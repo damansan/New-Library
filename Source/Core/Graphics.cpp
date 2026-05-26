@@ -1,6 +1,18 @@
 #include "Graphics.h"
 #include "Utility/misc.h"
 
+Graphics::~Graphics()
+{
+#ifdef _DEBUG
+	// 未解放オブジェクトの詳細を出力
+	Microsoft::WRL::ComPtr<ID3D11Debug> debug;
+	if (SUCCEEDED(device->QueryInterface(debug.GetAddressOf())))
+	{
+		debug->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
+	}
+#endif
+}
+
 // 初期化
 void Graphics::Initialize(HWND hWnd)
 {
@@ -151,7 +163,7 @@ void Graphics::Clear(float r, float g, float b, float a)
 	// GBufferクリアカラー作成(黒)
 	float black[4]{ 0.0f, 0.0f, 0.0f, 1.0f };
 	// 全GBufferクリア
-	for (int i = 0; i < 3; i++)
+	for (int i = 0; i < 5; i++)
 	{
 		immediateContext->ClearRenderTargetView(gbufferRTV[i].Get(), black);
 	}
@@ -252,7 +264,7 @@ void Graphics::ResizeBuffers()
 	// 深度ステンシル解放
 	depthStencilView.Reset();
 	// GBuffer レンダーターゲットビュー/シェーダーリソースビュー解放
-	for (int i = 0; i < 3; i++)
+	for (int i = 0; i < 5; i++)
 	{
 		gbufferRTV[i].Reset();
 		gbufferSRV[i].Reset();
@@ -261,6 +273,8 @@ void Graphics::ResizeBuffers()
 	gbufferAlbedo.Reset();
 	gbufferNormal.Reset();
 	gbufferPosition.Reset();
+	gbufferRoughnessMetallic.Reset();
+	gbufferEmissive.Reset();
 
 	// スワップチェイン再生成
 	swapChain->ResizeBuffers(
@@ -329,15 +343,17 @@ void Graphics::CreateGBuffer(UINT w, UINT h)
 	HRESULT hr{ S_OK };
 
 	// GBufferフォーマット
-	DXGI_FORMAT gbufferFormats[3] =
+	DXGI_FORMAT gbufferFormats[5] =
 	{
 		DXGI_FORMAT_R8G8B8A8_UNORM,     // 色
 		DXGI_FORMAT_R16G16B16A16_FLOAT, // 法線
 		DXGI_FORMAT_R32G32B32A32_FLOAT, // 位置
+		DXGI_FORMAT_R8G8B8A8_UNORM,     
+		DXGI_FORMAT_R16G16B16A16_FLOAT,
 	};
 
 	// 各GBuffer生成
-	for (int i = 0; i < 3; i++)
+	for (int i = 0; i < 5; i++)
 	{
 		// テクスチャ設定
 		D3D11_TEXTURE2D_DESC texDesc{};
@@ -377,8 +393,10 @@ void Graphics::CreateGBuffer(UINT w, UINT h)
 		_ASSERT_EXPR(SUCCEEDED(hr), hr_trace(hr));
 
 		// テクスチャ保持
-		if (i == 0) gbufferAlbedo = tex;   // 色
-		if (i == 1) gbufferNormal = tex;   // 法線
-		if (i == 2) gbufferPosition = tex; // 位置
+		if (i == 0) gbufferAlbedo = tex;            // 色
+		if (i == 1) gbufferNormal = tex;            // 法線
+		if (i == 2) gbufferPosition = tex;          // 位置
+		if (i == 3) gbufferRoughnessMetallic = tex; // 粗さ
+		if (i == 4) gbufferEmissive = tex;          // 発光
 	}
 }

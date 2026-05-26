@@ -1,43 +1,94 @@
 #include "framework.h"
 
+#include "Game/SceneGame.h"
+
 framework::framework(HWND hwnd) : hwnd(hwnd)
 {
 	// Graphics初期化
 	graphics.Initialize(hwnd);
 
 	// ImGuiManager初期化
-	imguiManager.Initialize(
-		hwnd,
-		graphics.GetDevice(),
-		graphics.GetDeviceContext()
-	);
+	imguiManager.Initialize(hwnd, graphics.GetDevice(), graphics.GetDeviceContext());
+
+	// カメラ初期化
+	camera.Initialize(graphics.GetScreenWidth(), graphics.GetScreenHeight());
+
+
+	// シェーダーパス登録
+	ShaderPassLibrary::Register("basic", {
+		"", "Data/Shader/Base_VS.cso", "Data/Shader/Basic_PS.cso"
+		});
+	ShaderPassLibrary::Register("lambert", {
+		"", "Data/Shader/Base_VS.cso", "Data/Shader/Lambert_PS.cso"
+		});
+	ShaderPassLibrary::Register("skinning_basic", {
+	"", "Data/Shader/Skinning_VS.cso", "Data/Shader/Basic_PS.cso"
+		});
+	ShaderPassLibrary::Register("skinning_lambert", {
+		"", "Data/Shader/Skinning_VS.cso", "Data/Shader/Lambert_PS.cso"
+		});
+
+
+	// 最初のシーンセット
+	sceneManager.ChangeScene(std::make_unique<SceneGame>());
+
+
 
 #ifndef _DEBUG
 	// リリース時はボーダーレスフルスクリーンで起動
 	graphics.ToggleFullscreen();
 #endif
-
 }
 
 framework::~framework()
 {
 }
 
-void framework::update(float elapsed_time)
+void framework::update(float elapsedTime)
 {
 	// ImGuiフレーム開始
 	imguiManager.BeginFrame();
 
-	ImGui::Begin("Test");
+	// フリーカメラ更新
+	freeCameraController.Update(elapsedTime, camera);
 
-	ImGui::End();
+	// コンテキスト生成
+	SceneContext context;
+	context.device = graphics.GetDevice();
+	context.deviceContext = graphics.GetDeviceContext();
+	context.resourceManager = &resourceManager;
+	context.camera = &camera;
+	context.view = camera.GetView();
+	context.projection = camera.GetProjection();
+
+
+	// シーン更新
+	sceneManager.Update(elapsedTime, context);
+	// シーンImGui描画
+	sceneManager.RenderImGui();
 }
-void framework::render(float elapsed_time)
+
+void framework::render(float elapsedTime)
 {
 	// 画面クリア
-	graphics.Clear(0.2f, 0.2f, 0.2f, 1.0f);
+	graphics.Clear(0.2f, 0.2f, 0.5f, 1.0f);
 	// レンダーターゲット設定
 	graphics.SetRenderTargets();
+
+
+	SceneContext context;
+	context.device = graphics.GetDevice();
+	context.deviceContext = graphics.GetDeviceContext();
+	context.resourceManager = &resourceManager;
+	context.renderTargetView = graphics.GetRenderTargetView();
+	context.depthStencilView = graphics.GetDepthStencilView();
+	context.camera = &camera;
+	context.view = camera.GetView();             
+	context.projection = camera.GetProjection(); 
+
+
+	// シーン描画
+	sceneManager.Render(context);
 
 	// ImGui描画
 	imguiManager.EndFrame();

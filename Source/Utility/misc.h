@@ -2,6 +2,7 @@
 
 #include <windows.h>
 #include <crtdbg.h>
+#include <string>
 
 #if defined( DEBUG ) || defined( _DEBUG )
 #define _ASSERT_EXPR_A(expr, msg) \
@@ -17,6 +18,14 @@ inline LPWSTR hr_trace(HRESULT hr)
 	LPWSTR msg{ 0 };
 	FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS | FORMAT_MESSAGE_ALLOCATE_BUFFER, NULL, hr, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), reinterpret_cast<LPWSTR>(&msg), 0, NULL);
 	return msg;
+}
+
+inline std::wstring ToWString(const std::string& str)
+{
+	int size = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, nullptr, 0);
+	std::wstring result(size, 0);
+	MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, result.data(), size);
+	return result;
 }
 
 class benchmark

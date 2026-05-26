@@ -29,6 +29,84 @@
     <Filter Include="External\imgui-docking\backends">
       <UniqueIdentifier>{b67ded63-317b-429c-bab8-0ec5491ff767}</UniqueIdentifier>
     </Filter>
+    <Filter Include="External\entt-main">
+      <UniqueIdentifier>{55738d4a-41b7-4726-ba78-e0ba6e927136}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="External\entt-main\single_include">
+      <UniqueIdentifier>{6c0e7331-6bc4-4393-9bf8-c81bcf323215}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="External\entt-main\single_include\entt">
+      <UniqueIdentifier>{1491127b-221e-4646-9446-1a0ff3ddd2d4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Core\Scene">
+      <UniqueIdentifier>{818a02ce-1e53-4b13-9baa-2ae2aee427b2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Core\SceneManager">
+      <UniqueIdentifier>{4fc7a6e1-8203-4d24-8368-e1c800c332fa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Game">
+      <UniqueIdentifier>{af7ea351-40f9-49aa-a98a-cd3762f6400a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\ECS">
+      <UniqueIdentifier>{254d4a1d-83ad-4b69-b33f-8b8b4920a726}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\ECS\Components">
+      <UniqueIdentifier>{785c1b8e-4a32-4f0a-97be-b9bf54340cfc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Game\SceneGame">
+      <UniqueIdentifier>{65464cfa-23e7-4110-95ce-df8abc882584}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Core\ShaderPass">
+      <UniqueIdentifier>{c13154b1-7a0b-4ab7-a102-25ad9aa2881a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Core\ShaderPassLibrary">
+      <UniqueIdentifier>{556e4f86-b158-4dad-a8b7-da1c066cf5cf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Resource">
+      <UniqueIdentifier>{a5a88041-86ee-429a-8804-0a733f1a3583}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Resource\GpuResourceUtils">
+      <UniqueIdentifier>{89127baf-1c59-4c9a-b00a-50a695fbac89}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Resource\Model">
+      <UniqueIdentifier>{1f0b8bd2-9192-45ac-a2ed-056192dafc9b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Resource\GLTFImporter">
+      <UniqueIdentifier>{80c1af71-670b-4762-8a44-8872bcbdcf91}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Resource\ResourceManager">
+      <UniqueIdentifier>{57d02242-59cd-4c57-b129-c3d5fab95d36}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Core\SceneContext">
+      <UniqueIdentifier>{a5c24d2f-c25e-4d3d-9711-a394ec1f8d34}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\ECS\Systems">
+      <UniqueIdentifier>{9af20c20-35bd-4993-909a-def20a230f33}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\ECS\Systems\MeshLoaderSystem">
+      <UniqueIdentifier>{cd386e78-fd88-4304-897f-067c33faa4be}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\ECS\Systems\RenderSystem">
+      <UniqueIdentifier>{da3004cc-92eb-45c1-8584-ecc0cc8e78bf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shader">
+      <UniqueIdentifier>{c2dc3734-b94f-4533-90fb-cd70336ef861}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Core\Camera">
+      <UniqueIdentifier>{76dfb451-1d60-4db8-aa17-60004c934c2c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Core\Camera\FreeCameraController">
+      <UniqueIdentifier>{829fbafd-c251-44a7-95f4-aa7ab697f542}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shader\Base">
+      <UniqueIdentifier>{0478ecab-c2c7-42fb-83f7-f2de25f18e85}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shader\Basic">
+      <UniqueIdentifier>{579ee668-8cb5-4c02-838f-60656d63df52}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shader\Lambert">
+      <UniqueIdentifier>{ee860c55-acf4-400e-b5e6-0607f7d87778}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Core\framework.cpp">
@@ -61,6 +139,39 @@
     <ClCompile Include="Source\Core\ImGuiManager.cpp">
       <Filter>Sources\Core\ImGuiManager</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Core\SceneManager.cpp">
+      <Filter>Sources\Core\SceneManager</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Core\ShaderPassLibrary.cpp">
+      <Filter>Sources\Core\ShaderPassLibrary</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Resource\GpuResourceUtils.cpp">
+      <Filter>Sources\Resource\GpuResourceUtils</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Game\SceneGame.cpp">
+      <Filter>Sources\Game\SceneGame</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Resource\Model.cpp">
+      <Filter>Sources\Resource\Model</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Resource\GLTFImporter.cpp">
+      <Filter>Sources\Resource\GLTFImporter</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Resource\ResourceManager.cpp">
+      <Filter>Sources\Resource\ResourceManager</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\ECS\Systems\MeshLoaderSystem.cpp">
+      <Filter>Sources\ECS\Systems\MeshLoaderSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\ECS\Systems\RenderSystem.cpp">
+      <Filter>Sources\ECS\Systems\RenderSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Core\Camera.cpp">
+      <Filter>Sources\Core\Camera</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Core\FreeCameraController.cpp">
+      <Filter>Sources\Core\Camera\FreeCameraController</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Core\framework.h">
@@ -78,5 +189,85 @@
     <ClInclude Include="Source\Core\ImGuiManager.h">
       <Filter>Sources\Core\ImGuiManager</Filter>
     </ClInclude>
+    <ClInclude Include="External\entt-main\single_include\entt\entt.hpp">
+      <Filter>External\entt-main\single_include\entt</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Core\Scene.h">
+      <Filter>Sources\Core\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Core\SceneManager.h">
+      <Filter>Sources\Core\SceneManager</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Game\SceneGame.h">
+      <Filter>Sources\Game\SceneGame</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ECS\Components\TransformComponent.h">
+      <Filter>Sources\ECS\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ECS\Components\MeshComponent.h">
+      <Filter>Sources\ECS\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Core\ShaderPass.h">
+      <Filter>Sources\Core\ShaderPass</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Core\ShaderPassLibrary.h">
+      <Filter>Sources\Core\ShaderPassLibrary</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ECS\Components\MaterialComponent.h">
+      <Filter>Sources\ECS\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Resource\GpuResourceUtils.h">
+      <Filter>Sources\Resource\GpuResourceUtils</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Resource\Model.h">
+      <Filter>Sources\Resource\Model</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Resource\GLTFImporter.h">
+      <Filter>Sources\Resource\GLTFImporter</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Resource\ResourceManager.h">
+      <Filter>Sources\Resource\ResourceManager</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ECS\Components\StaticMeshComponent.h">
+      <Filter>Sources\ECS\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ECS\Components\SkinnedMeshComponent.h">
+      <Filter>Sources\ECS\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ECS\Components\AnimatorComponent.h">
+      <Filter>Sources\ECS\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ECS\Components\Tags.h">
+      <Filter>Sources\ECS\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Core\SceneContext.h">
+      <Filter>Sources\Core\SceneContext</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ECS\Systems\MeshLoaderSystem.h">
+      <Filter>Sources\ECS\Systems\MeshLoaderSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ECS\Systems\RenderSystem.h">
+      <Filter>Sources\ECS\Systems\RenderSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Core\Camera.h">
+      <Filter>Sources\Core\Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Core\FreeCameraController.h">
+      <Filter>Sources\Core\Camera\FreeCameraController</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="Shader\Base_VS.hlsl">
+      <Filter>Shader\Base</Filter>
+    </FxCompile>
+    <FxCompile Include="Shader\Basic_PS.hlsl">
+      <Filter>Shader\Basic</Filter>
+    </FxCompile>
+    <FxCompile Include="Shader\Lambert_PS.hlsl">
+      <Filter>Shader\Lambert</Filter>
+    </FxCompile>
+    <FxCompile Include="Shader\Skinning_VS.hlsl">
+      <Filter>Shader\Base</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

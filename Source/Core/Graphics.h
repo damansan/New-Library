@@ -1,14 +1,13 @@
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
-//#include "Utility/misc.h"
 
 
 class Graphics
 {
 public:
 	Graphics() = default;
-	~Graphics() = default;
+	~Graphics();
 
 	Graphics(const Graphics&) = delete;                // コピーコンストラクタ禁止
 	Graphics& operator=(const Graphics&) = delete;     // コピー代入禁止
@@ -46,23 +45,29 @@ public:
 	// デバイスコンテキスト取得
 	ID3D11DeviceContext* GetDeviceContext() { return immediateContext.Get(); }
 
+	// Graphics.h に追加
+	ID3D11RenderTargetView* GetRenderTargetView() { return renderTargetView.Get(); }
+	ID3D11DepthStencilView* GetDepthStencilView() { return depthStencilView.Get(); }
 private:
 	HWND hWnd = nullptr; // 描画対象ウィンドウ
 
-	Microsoft::WRL::ComPtr<ID3D11Device>            device;           // デバイス
-	Microsoft::WRL::ComPtr<ID3D11DeviceContext>     immediateContext; // デバイスコンテキスト
-	Microsoft::WRL::ComPtr<IDXGISwapChain>          swapChain;        // スワップチェイン
-	Microsoft::WRL::ComPtr<ID3D11RenderTargetView>  renderTargetView; // レンダーターゲットビュー
-	Microsoft::WRL::ComPtr<ID3D11DepthStencilView>  depthStencilView; // 深度ステンシル
+	Microsoft::WRL::ComPtr<ID3D11Device>           device;           // デバイス
+	Microsoft::WRL::ComPtr<ID3D11DeviceContext>    immediateContext; // デバイスコンテキスト
+	Microsoft::WRL::ComPtr<IDXGISwapChain>         swapChain;        // スワップチェイン
+	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> renderTargetView; // レンダーターゲットビュー
+	Microsoft::WRL::ComPtr<ID3D11DepthStencilView> depthStencilView; // 深度ステンシル
 
 	// GBuffer
-	Microsoft::WRL::ComPtr<ID3D11Texture2D>          gbufferAlbedo;   // Albedo   (色)   保存用テクスチャ
-	Microsoft::WRL::ComPtr<ID3D11Texture2D>          gbufferNormal;   // Normal   (法線) 保存用テクスチャ
-	Microsoft::WRL::ComPtr<ID3D11Texture2D>          gbufferPosition; // Position (位置) 保存用テクスチャ
+	Microsoft::WRL::ComPtr<ID3D11Texture2D> gbufferAlbedo;           // Albedo   (色)   保存用テクスチャ
+	Microsoft::WRL::ComPtr<ID3D11Texture2D> gbufferNormal;           // Normal   (法線) 保存用テクスチャ
+	Microsoft::WRL::ComPtr<ID3D11Texture2D> gbufferPosition;         // Position (位置) 保存用テクスチャ
+	Microsoft::WRL::ComPtr<ID3D11Texture2D> gbufferRoughnessMetallic;// Metallic (粗さ) 保存用テクスチャ
+	Microsoft::WRL::ComPtr<ID3D11Texture2D> gbufferEmissive;         // Emissive (発光) 保存用テクスチャ
+
 	// GBuffer用レンダーターゲットビュー
-	Microsoft::WRL::ComPtr<ID3D11RenderTargetView>   gbufferRTV[3];
+	Microsoft::WRL::ComPtr<ID3D11RenderTargetView>   gbufferRTV[5];
 	// GBufferをシェーダーから読むためのシェーダーリソースビュー
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> gbufferSRV[3];
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> gbufferSRV[5];
 
 	// 描画領域
 	D3D11_VIEWPORT viewport{};

@@ -1,0 +1,18 @@
+﻿#pragma once
+#include <string>
+
+struct AnimatorComponent
+{
+    std::string currentAnimation;      // 現在のアニメーション名
+    float       animationTime{ 0.0f }; // 現在の再生時間
+    float       playSpeed{ 1.0f };     // 再生速度
+    bool        loop{ true };          // ループフラグ
+    bool        isPlaying{ true };     // 再生中フラグ
+    bool        isEnd{ false };        // 再生終了フラグ
+
+    // ブレンド用
+    std::string blendAnimation;      // ブレンド先アニメーション名
+    float       blendTime{ 0.0f };   // ブレンド時間
+    float       blendRate{ 0.0f };   // ブレンド率（0.0〜1.0）
+    bool        isBlending{ false }; // ブレンド中フラグ
+};

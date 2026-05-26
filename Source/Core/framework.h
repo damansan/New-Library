@@ -9,6 +9,12 @@
 
 #include "Core/Graphics.h"
 #include "Core/ImGuiManager.h"
+#include "Core/SceneManager.h"
+#include "Core/Camera.h"
+#include "Core/FreeCameraController.h"
+
+#include "Resource/ResourceManager.h"
+
 
 // ウィンドウサイズ
 #define SCREEN_WIDTH 1280
@@ -27,8 +33,8 @@ public:
 	framework& operator=(framework&&) noexcept = delete; // ムーブ代入禁止
 
 
-	void update(float elapsed_time);
-	void render(float elapsed_time);
+	void update(float elapsedTime);
+	void render(float elapsedTime);
 
 	// フレーム計算
 	void calculate_frame_stats();
@@ -47,5 +53,12 @@ private:
 	Graphics graphics;
 	// ImGuiManagerクラス
 	ImGuiManager imguiManager;
+	// SceneManagerクラス
+	SceneManager sceneManager;
+	// ResourceManagerクラス
+	ResourceManager resourceManager;
+	// Cameraクラス
+	Camera camera;
+	// FreeCameraControllerクラス
+	FreeCameraController  freeCameraController;
 };
-
