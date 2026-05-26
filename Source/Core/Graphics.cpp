@@ -1,18 +1,6 @@
 #include "Graphics.h"
 #include "Utility/misc.h"
 
-Graphics::~Graphics()
-{
-#ifdef _DEBUG
-	// 未解放オブジェクトの詳細を出力
-	Microsoft::WRL::ComPtr<ID3D11Debug> debug;
-	if (SUCCEEDED(device->QueryInterface(debug.GetAddressOf())))
-	{
-		debug->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
-	}
-#endif
-}
-
 // 初期化
 void Graphics::Initialize(HWND hWnd)
 {
@@ -335,6 +323,30 @@ void Graphics::ResizeBuffers()
 
 	// GBuffer再生成
 	CreateGBuffer(w, h);
+}
+
+// 終了処理
+void Graphics::Cleanup()
+{
+	if (immediateContext)
+	{
+		immediateContext->OMSetRenderTargets(0, nullptr, nullptr);
+		immediateContext->ClearState();
+	}
+
+	renderTargetView.Reset();
+	depthStencilView.Reset();
+
+	for (int i = 0; i < 5; i++)
+	{
+		gbufferRTV[i].Reset();
+		gbufferSRV[i].Reset();
+	}
+	gbufferAlbedo.Reset();
+	gbufferNormal.Reset();
+	gbufferPosition.Reset();
+	gbufferRoughnessMetallic.Reset();
+	gbufferEmissive.Reset();
 }
 
 // GBuffer生成専用

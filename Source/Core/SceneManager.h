@@ -25,6 +25,8 @@ public:
 	// シーン切り替え予約
 	void ChangeScene(std::unique_ptr<Scene>scene);
 
+	// シーンクリア
+	void ClearScene();
 private:
 	std::unique_ptr<Scene>currentScene; // 現在シーン
 	std::unique_ptr<Scene>nextScene;    // 次のシーン

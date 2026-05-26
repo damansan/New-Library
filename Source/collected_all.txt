@@ -1,5 +1,5 @@
 ===== Camera.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Core\Camera.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\Camera.h 
 #pragma once
 #include <DirectXMath.h>
 
@@ -48,7 +48,7 @@ private:
 }; 
  
 ===== framework.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Core\framework.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\framework.h 
 #pragma once
 
 #include <windows.h>
@@ -115,7 +115,7 @@ private:
 }; 
  
 ===== FreeCameraController.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Core\FreeCameraController.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\FreeCameraController.h 
 #pragma once
 #include <windows.h>
 #include <DirectXMath.h>
@@ -140,7 +140,7 @@ private:
 }; 
  
 ===== Graphics.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Core\Graphics.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\Graphics.h 
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
@@ -150,7 +150,7 @@ class Graphics
 {
 public:
 	Graphics() = default;
-	~Graphics() = default;
+	~Graphics();
 
 	Graphics(const Graphics&) = delete;                // ÉRÉsÅ[ÉRÉìÉXÉgÉâÉNÉ^ã÷é~
 	Graphics& operator=(const Graphics&) = delete;     // ÉRÉsÅ[ë„ì¸ã÷é~
@@ -169,6 +169,9 @@ public:
 	void ToggleFullscreen();
 	// ÉoÉbÉtÉ@çƒê∂ê¨
 	void ResizeBuffers();
+
+	// èIóπèàóù
+	void Cleanup();
 
 	// âÊñ ÉäÉTÉCÉYê›íË
 	void SetResizing(bool value) { isResizing = value; }
@@ -206,7 +209,7 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> gbufferPosition;         // Position (à íu) ï€ë∂ópÉeÉNÉXÉ`ÉÉ
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> gbufferRoughnessMetallic;// Metallic (ëeÇ≥) ï€ë∂ópÉeÉNÉXÉ`ÉÉ
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> gbufferEmissive;         // Emissive (î≠åı) ï€ë∂ópÉeÉNÉXÉ`ÉÉ
-	
+
 	// GBufferópÉåÉìÉ_Å[É^Å[ÉQÉbÉgÉrÉÖÅ[
 	Microsoft::WRL::ComPtr<ID3D11RenderTargetView>   gbufferRTV[5];
 	// GBufferÇÉVÉFÅ[É_Å[Ç©ÇÁì«ÇﬁÇΩÇﬂÇÃÉVÉFÅ[É_Å[ÉäÉ\Å[ÉXÉrÉÖÅ[
@@ -232,7 +235,7 @@ private:
 }; 
  
 ===== ImGuiManager.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Core\ImGuiManager.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\ImGuiManager.h 
 #pragma once
 #include <windows.h>
 #include <d3d11.h>
@@ -271,7 +274,7 @@ public:
 }; 
  
 ===== Scene.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Core\Scene.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\Scene.h 
 #pragma once
 #include "entt.hpp"
 #include "Core/SceneContext.h"
@@ -308,7 +311,7 @@ protected:
 }; 
  
 ===== SceneContext.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Core\SceneContext.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\SceneContext.h 
 #pragma once
 #include <d3d11.h>
 #include <DirectXMath.h>
@@ -332,7 +335,7 @@ struct SceneContext
 }; 
  
 ===== SceneManager.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Core\SceneManager.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\SceneManager.h 
 #pragma once
 #include "Scene.h"
 #include <memory>
@@ -360,13 +363,15 @@ public:
 	// ÉVÅ[ÉìêÿÇËë÷Ç¶ó\ñÒ
 	void ChangeScene(std::unique_ptr<Scene>scene);
 
+	// ÉVÅ[ÉìÉNÉäÉA
+	void ClearScene();
 private:
 	std::unique_ptr<Scene>currentScene; // åªç›ÉVÅ[Éì
 	std::unique_ptr<Scene>nextScene;    // éüÇÃÉVÅ[Éì
 }; 
  
 ===== ShaderPass.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Core\ShaderPass.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\ShaderPass.h 
 #pragma once
 #include <string>
 
@@ -381,7 +386,7 @@ struct ShaderPass
 }; 
  
 ===== ShaderPassLibrary.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Core\ShaderPassLibrary.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\ShaderPassLibrary.h 
 #pragma once
 #include <string>
 #include <unordered_map>
@@ -406,7 +411,7 @@ private:
 }; 
  
 ===== Camera.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Core\Camera.cpp 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\Camera.cpp 
 #include "Camera.h"
 
 // èâä˙âª
@@ -465,7 +470,7 @@ void Camera::SetPerspectiveFov(
 } 
  
 ===== framework.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Core\framework.cpp 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\framework.cpp 
 #include "framework.h"
 
 #include "Game/SceneGame.h"
@@ -510,6 +515,7 @@ framework::framework(HWND hwnd) : hwnd(hwnd)
 
 framework::~framework()
 {
+	sceneManager.ClearScene();
 }
 
 void framework::update(float elapsedTime)
@@ -653,7 +659,7 @@ LRESULT framework::handle_message(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpa
 } 
  
 ===== FreeCameraController.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Core\FreeCameraController.cpp 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\FreeCameraController.cpp 
 #include "FreeCameraController.h"
 #include "imgui.h"
 #include <Windows.h>
@@ -760,9 +766,49 @@ void FreeCameraController::Update(float elapsedTime, Camera& camera)
 } 
  
 ===== Graphics.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Core\Graphics.cpp 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\Graphics.cpp 
 #include "Graphics.h"
 #include "Utility/misc.h"
+
+Graphics::~Graphics()
+{
+
+	// ÉåÉìÉ_Å[É^Å[ÉQÉbÉgâèú
+	if (immediateContext)
+	{
+		immediateContext->OMSetRenderTargets(0, nullptr, nullptr);
+		immediateContext->ClearState();
+		immediateContext->Flush();
+	}
+
+	if (swapChain)
+	{
+		swapChain->SetFullscreenState(FALSE, nullptr);
+	}
+
+	    // GBufferÉäÉ\Å[ÉXâï˙
+    renderTargetView.Reset();
+    depthStencilView.Reset();
+    for (int i = 0; i < 5; i++)
+    {
+        gbufferRTV[i].Reset();
+        gbufferSRV[i].Reset();
+    }
+    gbufferAlbedo.Reset();
+    gbufferNormal.Reset();
+    gbufferPosition.Reset();
+    gbufferRoughnessMetallic.Reset();
+    gbufferEmissive.Reset();
+
+#ifdef _DEBUG
+	// ñ¢âï˙ÉIÉuÉWÉFÉNÉgÇÃè⁄ç◊ÇèoóÕ
+	Microsoft::WRL::ComPtr<ID3D11Debug> debug;
+	if (SUCCEEDED(device->QueryInterface(debug.GetAddressOf())))
+	{
+		debug->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
+	}
+#endif
+}
 
 // èâä˙âª
 void Graphics::Initialize(HWND hWnd)
@@ -1088,6 +1134,30 @@ void Graphics::ResizeBuffers()
 	CreateGBuffer(w, h);
 }
 
+// èIóπèàóù
+void Graphics::Cleanup()
+{
+	if (immediateContext)
+	{
+		immediateContext->OMSetRenderTargets(0, nullptr, nullptr);
+		immediateContext->ClearState();
+	}
+
+	renderTargetView.Reset();
+	depthStencilView.Reset();
+
+	for (int i = 0; i < 5; i++)
+	{
+		gbufferRTV[i].Reset();
+		gbufferSRV[i].Reset();
+	}
+	gbufferAlbedo.Reset();
+	gbufferNormal.Reset();
+	gbufferPosition.Reset();
+	gbufferRoughnessMetallic.Reset();
+	gbufferEmissive.Reset();
+}
+
 // GBufferê∂ê¨êÍóp
 void Graphics::CreateGBuffer(UINT w, UINT h)
 {
@@ -1154,7 +1224,7 @@ void Graphics::CreateGBuffer(UINT w, UINT h)
  
  
 ===== ImGuiManager.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Core\ImGuiManager.cpp 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\ImGuiManager.cpp 
 #include "ImGuiManager.h"
 
 ImGuiManager::~ImGuiManager()
@@ -1255,7 +1325,7 @@ bool ImGuiManager::HandleMessage(HWND hWnd, UINT msg, WPARAM wparam, LPARAM lpar
  
  
 ===== SceneManager.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Core\SceneManager.cpp 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\SceneManager.cpp 
 #include "SceneManager.h"
 
 // çXêV
@@ -1308,10 +1378,21 @@ void SceneManager::ChangeScene(std::unique_ptr<Scene> scene)
 	// éüÉtÉåÅ[ÉÄÇ≈êÿÇËë÷Ç¶
 	nextScene = std::move(scene);
 }
+
+// ÉVÅ[ÉìÉNÉäÉA
+void SceneManager::ClearScene()
+{
+	if (currentScene)
+	{
+		currentScene->Finalize();
+		currentScene.reset();
+	}
+	nextScene.reset();
+}
  
  
 ===== ShaderPassLibrary.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Core\ShaderPassLibrary.cpp 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\ShaderPassLibrary.cpp 
 #include "ShaderPassLibrary.h"
 #include <stdexcept>
 
@@ -1342,7 +1423,7 @@ bool ShaderPassLibrary::Has(const std::string& name)
  
  
 ===== AnimatorComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\AnimatorComponent.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\AnimatorComponent.h 
 Ôªø#pragma once
 #include <string>
 
@@ -1363,7 +1444,7 @@ struct AnimatorComponent
 }; 
  
 ===== MaterialComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\MaterialComponent.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\MaterialComponent.h 
 #pragma once
 #include <vector>
 #include <string>
@@ -1413,7 +1494,7 @@ struct MaterialComponent
 }; 
  
 ===== MeshComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\MeshComponent.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\MeshComponent.h 
 #pragma once
 #include <string>
 
@@ -1428,7 +1509,7 @@ struct MeshComponent
 }; 
  
 ===== SkinnedMeshComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\SkinnedMeshComponent.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\SkinnedMeshComponent.h 
 #pragma once
 #include <memory>
 #include <vector>
@@ -1446,7 +1527,7 @@ struct SkinnedMeshComponent
 }; 
  
 ===== StaticMeshComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\StaticMeshComponent.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\StaticMeshComponent.h 
 #pragma once
 #include <memory>
 #include "Resource/Model.h"
@@ -1459,7 +1540,7 @@ struct StaticMeshComponent
 }; 
  
 ===== Tags.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\Tags.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\Tags.h 
 #pragma once
 
 // ÉçÅ[ÉhçœÇ›ÉtÉâÉO
@@ -1472,7 +1553,7 @@ struct InvisibleTag {};
 struct NoShadowTag {}; 
  
 ===== TransformComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\TransformComponent.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\TransformComponent.h 
 #pragma once
 #include <DirectXMath.h>
 
@@ -1494,7 +1575,7 @@ struct TransformComponent
 }; 
  
 ===== MeshLoaderSystem.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\MeshLoaderSystem.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\MeshLoaderSystem.h 
 #pragma once
 #include <d3d11.h>
 
@@ -1520,7 +1601,7 @@ public:
 }; 
  
 ===== RenderSystem.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\RenderSystem.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\RenderSystem.h 
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
@@ -1614,10 +1695,12 @@ private:
     Microsoft::WRL::ComPtr<ID3D11RasterizerState>   rasterizerState;
     // ê[ìxÉXÉeÉìÉVÉãÉXÉeÅ[Ég
     Microsoft::WRL::ComPtr<ID3D11DepthStencilState> depthStencilState;
+    // ÉuÉåÉìÉhÉXÉeÅ[Ég
+    Microsoft::WRL::ComPtr<ID3D11BlendState>        blendState;
 }; 
  
 ===== MeshLoaderSystem.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\MeshLoaderSystem.cpp 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\MeshLoaderSystem.cpp 
 #include "MeshLoaderSystem.h"
 
 void MeshLoaderSystem::Update(
@@ -1676,7 +1759,7 @@ void MeshLoaderSystem::Update(
 } 
  
 ===== RenderSystem.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\RenderSystem.cpp 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\RenderSystem.cpp 
 #include "RenderSystem.h"
 #include "Resource/GpuResourceUtils.h"
 #include "Utility/misc.h"
@@ -1698,12 +1781,13 @@ void RenderSystem::Initialize(ID3D11Device* device)
 	);
 
 	// ÉXÉLÉjÉìÉOí∏ì_ÉVÉFÅ[É_Å[ì«Ç›çûÇ›
+	Microsoft::WRL::ComPtr<ID3D11InputLayout> dummyLayout;
 	GpuResourceUtils::LoadVertexShader(
 		device,
 		"Data/Shader/Skinning_VS.cso",
 		inputElementDescs.data(),
 		static_cast<UINT>(inputElementDescs.size()),
-		inputLayout,
+		dummyLayout,
 		skinnedVertexShader
 	);
 
@@ -1719,6 +1803,9 @@ void RenderSystem::Initialize(ID3D11Device* device)
 		device, "Data/Shader/Lambert_PS.cso", lambertPS);
 	pixelShaders["lambert"] = lambertPS;
 
+
+	pixelShaders["skinning_basic"] = basicPS;
+	pixelShaders["skinning_lambert"] = lambertPS;
 
 	// ÉVÅ[ÉìíËêîÉoÉbÉtÉ@ê∂ê¨
 	GpuResourceUtils::CreateConstantBuffer(
@@ -1774,6 +1861,20 @@ void RenderSystem::Initialize(ID3D11Device* device)
 		&depthStencilDesc,
 		depthStencilState.GetAddressOf()
 	);
+
+	// ÉuÉåÉìÉhÉXÉeÅ[Égê∂ê¨ÅiÉAÉãÉtÉ@ÉuÉåÉìÉhÅj
+	D3D11_BLEND_DESC blendDesc{};
+	blendDesc.AlphaToCoverageEnable = FALSE;
+	blendDesc.IndependentBlendEnable = FALSE;
+	blendDesc.RenderTarget[0].BlendEnable = TRUE;
+	blendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
+	blendDesc.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+	blendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+	blendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+	blendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
+	blendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+	blendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+	device->CreateBlendState(&blendDesc, blendState.GetAddressOf());
 }
 
 // ï`âÊ
@@ -1786,6 +1887,9 @@ void RenderSystem::Render(entt::registry& registry, ID3D11DeviceContext* dc, ID3
 	dc->RSSetState(rasterizerState.Get());
 	dc->OMSetDepthStencilState(depthStencilState.Get(), 0);
 	dc->PSSetSamplers(0, 1, samplerState.GetAddressOf());
+	// ÉuÉåÉìÉhÉXÉeÅ[Égê›íË
+	float blendFactor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+	dc->OMSetBlendState(blendState.Get(), blendFactor, 0xFFFFFFFF);
 
 	// ÉVÉFÅ[É_Å[ê›íË
 	dc->PSSetSamplers(0, 1, samplerState.GetAddressOf());
@@ -1794,23 +1898,17 @@ void RenderSystem::Render(entt::registry& registry, ID3D11DeviceContext* dc, ID3
 	dc->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 
-	// ê√ìIÉÅÉbÉVÉÖï`âÊÅj
+	// ê√ìIÉÅÉbÉVÉÖï`âÊ
 	for (auto& [passName, ps] : pixelShaders)
 	{
-		// skinning_ÉvÉåÉtÉBÉbÉNÉXÇÃÉpÉXÇÕê√ìIÉÅÉbÉVÉÖÇ≈ÇÕégÇÌÇ»Ç¢
-		if (passName.find("skinning_") != std::string::npos) continue;
-
-		dc->VSSetShader(vertexShader.Get(), nullptr, 0);
 		dc->PSSetShader(ps.Get(), nullptr, 0);
+		// ê√ìIÉÅÉbÉVÉÖï`âÊ
 		RenderStatic(registry, dc, passName);
 	}
 
 	// ÉXÉLÉjÉìÉOÉÅÉbÉVÉÖï`âÊ
 	for (auto& [passName, ps] : pixelShaders)
 	{
-		// skinning_ÉvÉåÉtÉBÉbÉNÉXÇÃÉpÉXÇÃÇ›
-		if (passName.find("skinning_") == std::string::npos) continue;
-
 		dc->VSSetShader(skinnedVertexShader.Get(), nullptr, 0);
 		dc->PSSetShader(ps.Get(), nullptr, 0);
 		RenderSkinned(registry, dc, passName);
@@ -1972,7 +2070,7 @@ void RenderSystem::RenderSkinned(entt::registry& registry, ID3D11DeviceContext* 
  
  
 ===== SceneGame.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Game\SceneGame.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Game\SceneGame.h 
 #pragma once
 #include "Core/Scene.h"
 #include "ECS/Systems/RenderSystem.h"
@@ -1992,7 +2090,7 @@ private:
  
  
 ===== SceneGame.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Game\SceneGame.cpp 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Game\SceneGame.cpp 
 #include "SceneGame.h"
 #include <imgui.h>
 
@@ -2002,14 +2100,15 @@ void SceneGame::Initialize(const SceneContext& context)
 
 	// ÉâÉìÉoÅ[ÉgÉVÉFÅ[É_Å[ÇégÇ§Entity
 	auto entity = registry.create();
-	registry.emplace<TransformComponent>(entity);
+	auto& t = registry.emplace<TransformComponent>(entity);
+	t.position = { -3.0f, 0.0f, 0.0f };
 	registry.emplace<MeshComponent>(entity, "Data/Model/Mr.Incredible.glb");
 	registry.emplace<MaterialComponent>(entity).AddPass("lambert");  // ÉâÉìÉoÅ[ÉgÇéwíË
 
 	// ÉxÅ[ÉVÉbÉNÉVÉFÅ[É_Å[ÇégÇ§Entity
 	auto entity2 = registry.create();
-	auto& t = registry.emplace<TransformComponent>(entity2);
-	t.position = { 3.0f, 0.0f, 0.0f };
+	auto& t2 = registry.emplace<TransformComponent>(entity2);
+	t2.position = { 3.0f, 0.0f, 0.0f };
 	registry.emplace<MeshComponent>(entity2, "Data/Model/Mr.Incredible.glb");
 	registry.emplace<MaterialComponent>(entity2).AddPass("basic");    // ÉxÅ[ÉVÉbÉNÇéwíË
 
@@ -2076,7 +2175,7 @@ void SceneGame::Render(const SceneContext& context)
  
  
 ===== GLTFImporter.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\GLTFImporter.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\GLTFImporter.h 
 #pragma once
 
 #include <memory>
@@ -2154,7 +2253,7 @@ private:
 }; 
  
 ===== GpuResourceUtils.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\GpuResourceUtils.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\GpuResourceUtils.h 
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
@@ -2221,7 +2320,7 @@ public:
 }; 
  
 ===== Model.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\Model.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\Model.h 
 #pragma once
 
 #include <string>
@@ -2355,7 +2454,7 @@ private:
 }; 
  
 ===== ResourceManager.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\ResourceManager.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\ResourceManager.h 
 #pragma once
 #include <string>
 #include <memory>
@@ -2393,7 +2492,7 @@ private:
 }; 
  
 ===== GLTFImporter.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\GLTFImporter.cpp 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\GLTFImporter.cpp 
 #include "GLTFImporter.h"
 
 #define TINYGLTF_IMPLEMENTATION
@@ -3144,12 +3243,20 @@ void GLTFImporter::CalcGlobalTransform(
  
  
 ===== GpuResourceUtils.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\GpuResourceUtils.cpp 
-#include "GpuResourceUtils.h"
-#include "Utility/misc.h"
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\GpuResourceUtils.cpp 
+//#include "GpuResourceUtils.h"
+//#include "Utility/misc.h"
+//
+//#include <DDSTextureLoader.h>
+//#include <WICTextureLoader.h>
+//#include <memory>
 
-#include <DDSTextureLoader.h>
-#include <WICTextureLoader.h>
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+#include "GpuResourceUtils.h"
+#include "DDSTextureLoader.h"
+#include "WICTextureLoader.h"
+#include "Utility/misc.h"
 #include <memory>
 
 
@@ -3256,18 +3363,52 @@ HRESULT GpuResourceUtils::LoadTexture(
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>& shaderResourceView
 )
 {
+	// Ç‹Ç∏WICÇ≈ééÇ›ÇÈÅiPNGÅEJPGÅj
 	HRESULT hr = DirectX::CreateWICTextureFromMemory(
 		device, data, dataSize, nullptr,
 		shaderResourceView.GetAddressOf());
 
+	if (SUCCEEDED(hr)) return hr;
 
-	// é∏îséûÇÕÉ_É~Å[ÉeÉNÉXÉ`ÉÉÇ≈ë„ë÷
-	if (FAILED(hr))
+	// WICé∏îséûÇÕstb_imageÇ≈ì«Ç›çûÇﬁÅiTGAìôÅj
+	int width, height, channels;
+	unsigned char* rgba = stbi_load_from_memory(
+		data, static_cast<int>(dataSize),
+		&width, &height, &channels, 4);
+
+	if (rgba)
 	{
+		D3D11_TEXTURE2D_DESC desc{};
+		desc.Width = width;
+		desc.Height = height;
+		desc.MipLevels = 1;
+		desc.ArraySize = 1;
+		desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		desc.SampleDesc.Count = 1;
+		desc.Usage = D3D11_USAGE_DEFAULT;
+		desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+
+		D3D11_SUBRESOURCE_DATA sub{};
+		sub.pSysMem = rgba;
+		sub.SysMemPitch = width * 4;
+
+		Microsoft::WRL::ComPtr<ID3D11Texture2D> texture;
+		hr = device->CreateTexture2D(&desc, &sub, texture.GetAddressOf());
+		if (SUCCEEDED(hr))
+		{
+			hr = device->CreateShaderResourceView(
+				texture.Get(), nullptr,
+				shaderResourceView.GetAddressOf());
+		}
+		stbi_image_free(rgba);
+	}
+	else
+	{
+		// stb_imageÇ‡é∏îsÇµÇΩèÍçáÇÕÉ_É~Å[
 		hr = CreateDummyTexture(device, shaderResourceView, 0xFFFFFFFF, 1);
 	}
-	_ASSERT_EXPR(SUCCEEDED(hr), hr_trace(hr));
 
+	_ASSERT_EXPR(SUCCEEDED(hr), hr_trace(hr));
 	return hr;
 }
 
@@ -3367,7 +3508,7 @@ HRESULT GpuResourceUtils::CreateConstantBuffer(
  
  
 ===== Model.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\Model.cpp 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\Model.cpp 
 #include "Model.h"
 
 // ì¸óÕÉåÉCÉAÉEÉgíËã`
@@ -3382,7 +3523,7 @@ const std::vector<D3D11_INPUT_ELEMENT_DESC> Model::InputElementDescs =
 }; 
  
 ===== ResourceManager.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\ResourceManager.cpp 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\ResourceManager.cpp 
 #include "ResourceManager.h"
 #include "GLTFImporter.h"
 
@@ -3421,7 +3562,7 @@ void ResourceManager::ReleaseAll()
  
  
 ===== high_resolution_timer.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Utility\high_resolution_timer.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Utility\high_resolution_timer.h 
 #pragma once
 
 #include <windows.h>
@@ -3560,7 +3701,7 @@ private:
  
  
 ===== misc.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Utility\misc.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Utility\misc.h 
 #pragma once
 
 #include <windows.h>
@@ -3624,7 +3765,7 @@ public:
  
  
 ===== main.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Utility\main.cpp 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Utility\main.cpp 
 #include <time.h>
 
 #include "Core/framework.h"

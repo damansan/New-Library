@@ -1,8 +1,16 @@
-#include "GpuResourceUtils.h"
-#include "Utility/misc.h"
+//#include "GpuResourceUtils.h"
+//#include "Utility/misc.h"
+//
+//#include <DDSTextureLoader.h>
+//#include <WICTextureLoader.h>
+//#include <memory>
 
-#include <DDSTextureLoader.h>
-#include <WICTextureLoader.h>
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+#include "GpuResourceUtils.h"
+#include "DDSTextureLoader.h"
+#include "WICTextureLoader.h"
+#include "Utility/misc.h"
 #include <memory>
 
 
@@ -109,18 +117,52 @@ HRESULT GpuResourceUtils::LoadTexture(
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>& shaderResourceView
 )
 {
+	// まずWICで試みる（PNG・JPG）
 	HRESULT hr = DirectX::CreateWICTextureFromMemory(
 		device, data, dataSize, nullptr,
 		shaderResourceView.GetAddressOf());
 
+	if (SUCCEEDED(hr)) return hr;
 
-	// 失敗時はダミーテクスチャで代替
-	if (FAILED(hr))
+	// WIC失敗時はstb_imageで読み込む（TGA等）
+	int width, height, channels;
+	unsigned char* rgba = stbi_load_from_memory(
+		data, static_cast<int>(dataSize),
+		&width, &height, &channels, 4);
+
+	if (rgba)
 	{
+		D3D11_TEXTURE2D_DESC desc{};
+		desc.Width = width;
+		desc.Height = height;
+		desc.MipLevels = 1;
+		desc.ArraySize = 1;
+		desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		desc.SampleDesc.Count = 1;
+		desc.Usage = D3D11_USAGE_DEFAULT;
+		desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+
+		D3D11_SUBRESOURCE_DATA sub{};
+		sub.pSysMem = rgba;
+		sub.SysMemPitch = width * 4;
+
+		Microsoft::WRL::ComPtr<ID3D11Texture2D> texture;
+		hr = device->CreateTexture2D(&desc, &sub, texture.GetAddressOf());
+		if (SUCCEEDED(hr))
+		{
+			hr = device->CreateShaderResourceView(
+				texture.Get(), nullptr,
+				shaderResourceView.GetAddressOf());
+		}
+		stbi_image_free(rgba);
+	}
+	else
+	{
+		// stb_imageも失敗した場合はダミー
 		hr = CreateDummyTexture(device, shaderResourceView, 0xFFFFFFFF, 1);
 	}
-	_ASSERT_EXPR(SUCCEEDED(hr), hr_trace(hr));
 
+	_ASSERT_EXPR(SUCCEEDED(hr), hr_trace(hr));
 	return hr;
 }
 

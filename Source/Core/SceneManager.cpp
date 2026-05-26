@@ -50,3 +50,14 @@ void SceneManager::ChangeScene(std::unique_ptr<Scene> scene)
 	// 次フレームで切り替え
 	nextScene = std::move(scene);
 }
+
+// シーンクリア
+void SceneManager::ClearScene()
+{
+	if (currentScene)
+	{
+		currentScene->Finalize();
+		currentScene.reset();
+	}
+	nextScene.reset();
+}

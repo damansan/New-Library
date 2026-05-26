@@ -42,6 +42,7 @@ framework::framework(HWND hwnd) : hwnd(hwnd)
 
 framework::~framework()
 {
+	sceneManager.ClearScene();
 }
 
 void framework::update(float elapsedTime)

@@ -7,7 +7,7 @@ class Graphics
 {
 public:
 	Graphics() = default;
-	~Graphics();
+	~Graphics() = default;
 
 	Graphics(const Graphics&) = delete;                // コピーコンストラクタ禁止
 	Graphics& operator=(const Graphics&) = delete;     // コピー代入禁止
@@ -26,6 +26,9 @@ public:
 	void ToggleFullscreen();
 	// バッファ再生成
 	void ResizeBuffers();
+
+	// 終了処理
+	void Cleanup();
 
 	// 画面リサイズ設定
 	void SetResizing(bool value) { isResizing = value; }
