@@ -36,6 +36,8 @@ void SceneGame::Update(float elapsedTime, const SceneContext& context)
 		*context.resourceManager
 	);
 
+	// アニメーション更新
+	animationSystem.Update(registry, elapsedTime);
 }
 
 void SceneGame::Render(const SceneContext& context)

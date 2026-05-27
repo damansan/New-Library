@@ -107,6 +107,9 @@
     <Filter Include="Shader\Lambert">
       <UniqueIdentifier>{ee860c55-acf4-400e-b5e6-0607f7d87778}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\ECS\Systems\AnimationSystem">
+      <UniqueIdentifier>{8d0c935a-a9b1-4524-a216-8e6da2993334}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Core\framework.cpp">
@@ -171,6 +174,9 @@
     </ClCompile>
     <ClCompile Include="Source\Core\FreeCameraController.cpp">
       <Filter>Sources\Core\Camera\FreeCameraController</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\ECS\Systems\AnimationSystem.cpp">
+      <Filter>Sources\ECS\Systems\AnimationSystem</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -254,6 +260,9 @@
     </ClInclude>
     <ClInclude Include="Source\Core\FreeCameraController.h">
       <Filter>Sources\Core\Camera\FreeCameraController</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ECS\Systems\AnimationSystem.h">
+      <Filter>Sources\ECS\Systems\AnimationSystem</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
