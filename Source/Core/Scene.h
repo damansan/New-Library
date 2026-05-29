@@ -2,7 +2,6 @@
 #include "entt.hpp"
 #include "Core/SceneContext.h"
 #include "ECS/Systems/MeshLoaderSystem.h"
-#include "ECS/Systems/AnimationSystem.h"
 
 class Scene
 {
@@ -32,5 +31,4 @@ public:
 protected:
 	entt::registry registry; // Entity/Componentä«óù
 	MeshLoaderSystem meshLoaderSystem;
-	AnimationSystem animationSystem;
 };

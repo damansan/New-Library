@@ -67,11 +67,6 @@ std::shared_ptr<Model> GLTFImporter::Load(
 	LoadNodes(*model, gltfModel);
 	// メッシュ読み込み
 	LoadMeshes(*model, gltfModel, device);
-	// スキンデータ読み込み
-	if (model->hasSkin)
-	{
-		LoadSkins(*model, gltfModel);
-	}
 	// マテリアル読み込み
 	LoadMaterials(*model, gltfModel, device, filepath);
 	// アニメーション読み込み
@@ -598,50 +593,6 @@ void GLTFImporter::LoadAnimations(
 
 		// モデルへ追加
 		model.animations.push_back(std::move(animation));
-	}
-}
-
-// スキンデータ読み込み
-void GLTFImporter::LoadSkins(Model& model, const tinygltf::Model& gltfModel)
-{
-	for (const auto& skin : gltfModel.skins)
-	{
-		// インバースバインドマトリックス取得
-		const auto& accessor = gltfModel.accessors[skin.inverseBindMatrices];
-		const auto& bufferView = gltfModel.bufferViews[accessor.bufferView];
-		const auto& buffer = gltfModel.buffers[bufferView.buffer];
-
-		const float* data = reinterpret_cast<const float*>(
-			buffer.data.data() + bufferView.byteOffset + accessor.byteOffset);
-
-		// ジョイント数分ボーン情報を設定
-		for (size_t i = 0; i < skin.joints.size(); i++)
-		{
-			int nodeIndex = skin.joints[i];
-
-			// ノードのボーンIndex設定
-			model.nodes[nodeIndex].boneIndex = static_cast<int>(i);
-
-			// オフセット行列読み込み（列優先→行優先変換）
-			DirectX::XMFLOAT4X4 offsetMatrix;
-			const float* m = &data[i * 16];
-			offsetMatrix = {
-				m[0],  m[1],  m[2],  m[3],
-				m[4],  m[5],  m[6],  m[7],
-				m[8],  m[9],  m[10], m[11],
-				m[12], m[13], m[14], m[15]
-			};
-
-			// メッシュのボーンリストに追加
-			for (auto& mesh : model.meshes)
-			{
-				Model::Bone bone;
-				bone.nodeIndex = nodeIndex;
-				bone.offsetTransform = offsetMatrix;
-				mesh.bones.push_back(bone);
-				break; // 最初のメッシュにのみ追加（後で修正）
-			}
-		}
 	}
 }
 

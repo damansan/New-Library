@@ -32,7 +32,6 @@
     <ClCompile Include="Source\Core\ImGuiManager.cpp" />
     <ClCompile Include="Source\Core\SceneManager.cpp" />
     <ClCompile Include="Source\Core\ShaderPassLibrary.cpp" />
-    <ClCompile Include="Source\ECS\Systems\AnimationSystem.cpp" />
     <ClCompile Include="Source\ECS\Systems\MeshLoaderSystem.cpp" />
     <ClCompile Include="Source\ECS\Systems\RenderSystem.cpp" />
     <ClCompile Include="Source\Game\SceneGame.cpp" />
@@ -61,7 +60,6 @@
     <ClInclude Include="Source\ECS\Components\StaticMeshComponent.h" />
     <ClInclude Include="Source\ECS\Components\Tags.h" />
     <ClInclude Include="Source\ECS\Components\TransformComponent.h" />
-    <ClInclude Include="Source\ECS\Systems\AnimationSystem.h" />
     <ClInclude Include="Source\ECS\Systems\MeshLoaderSystem.h" />
     <ClInclude Include="Source\ECS\Systems\RenderSystem.h" />
     <ClInclude Include="Source\Game\SceneGame.h" />

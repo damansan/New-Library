@@ -52,12 +52,6 @@ private:
         float sampleRate = 60.0f
     );
 
-    // スキンデータ読み込み
-    static void LoadSkins(
-        Model& model,
-        const tinygltf::Model& gltfModel
-    );
-
     // スキニング判定
     static bool CheckHasSkin(const tinygltf::Model& gltfModel);
 
