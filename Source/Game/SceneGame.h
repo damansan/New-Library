@@ -2,6 +2,8 @@
 #include "Core/Scene.h"
 #include "ECS/Systems/RenderSystem.h"
 
+#include "Debug/DebugRenderer.h"
+
 class SceneGame : public Scene
 {
 public:
@@ -13,4 +15,6 @@ public:
 
 private:
 	RenderSystem renderSystem;
+	DebugRenderer debugRenderer;
+
 };

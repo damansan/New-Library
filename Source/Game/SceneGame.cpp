@@ -4,6 +4,7 @@
 void SceneGame::Initialize(const SceneContext& context)
 {
 	renderSystem.Initialize(context.device);
+	debugRenderer.Initialize(context.device);
 
 	// ランバートシェーダーを使うEntity
 	auto entity = registry.create();
@@ -77,5 +78,31 @@ void SceneGame::Render(const SceneContext& context)
 		context.deviceContext,
 		context.renderTargetView,
 		context.depthStencilView
+	);
+
+
+
+
+
+	debugRenderer.Clear();
+
+	// SkinnedMeshComponent を持つエンティティのボーンを追加
+	auto view = registry.view<SkinnedMeshComponent, TransformComponent>();
+	view.each([&](auto entity, SkinnedMeshComponent& skinned, TransformComponent& transform)
+		{
+			if (!skinned.model) return;
+
+			debugRenderer.AddBones(
+				skinned.model->GetNodes(),
+				transform.GetWorldMatrix(),
+				{ 1.0f, 1.0f, 0.0f, 1.0f }  // 黄色
+			);
+		});
+
+	// ボーン描画
+	debugRenderer.Render(
+		context.deviceContext,
+		context.view,
+		context.projection
 	);
 }
