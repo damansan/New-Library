@@ -67,8 +67,8 @@ public:
         std::vector<Vertex>   vertices;
         std::vector<uint32_t> indices;
         std::vector<Bone>     bones;
-        int      nodeIndex = 0;
         int      materialIndex = 0;
+        int      skinIndex = -1;
         Material* material = nullptr;
 
         Microsoft::WRL::ComPtr<ID3D11Buffer> vertexBuffer;
@@ -103,6 +103,12 @@ public:
         std::vector<NodeAnim> nodeAnims;
     };
 
+    struct Skin
+    {
+        std::vector<int>                  joints;             // jointIndex → nodeIndex の対応表
+        std::vector<DirectX::XMFLOAT4X4> inverseBindMatrices; // joint数分のオフセット行列
+    };
+
     // 入力レイアウト
     static const std::vector<D3D11_INPUT_ELEMENT_DESC> InputElementDescs;
 
@@ -115,6 +121,7 @@ public:
     const std::vector<Mesh>& GetMeshes()     const { return meshes; }
     const std::vector<Material>& GetMaterials()  const { return materials; }
     const std::vector<Animation>& GetAnimations() const { return animations; }
+    const std::vector<Skin>& GetSkins()      const { return skins; }  // ← 追加
 
     std::vector<Node>& GetNodes() { return nodes; }
     std::vector<Mesh>& GetMeshes() { return meshes; }
@@ -127,5 +134,6 @@ private:
     std::vector<Mesh>      meshes;
     std::vector<Material>  materials;
     std::vector<Animation> animations;
+    std::vector<Skin>      skins;
     bool                   hasSkin = false;
 };

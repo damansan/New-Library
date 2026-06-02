@@ -1,5 +1,5 @@
 ===== Camera.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\Camera.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Core\Camera.h 
 #pragma once
 #include <DirectXMath.h>
 
@@ -48,7 +48,7 @@ private:
 }; 
  
 ===== framework.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\framework.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Core\framework.h 
 #pragma once
 
 #include <windows.h>
@@ -115,7 +115,7 @@ private:
 }; 
  
 ===== FreeCameraController.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\FreeCameraController.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Core\FreeCameraController.h 
 #pragma once
 #include <windows.h>
 #include <DirectXMath.h>
@@ -140,7 +140,7 @@ private:
 }; 
  
 ===== Graphics.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\Graphics.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Core\Graphics.h 
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
@@ -150,7 +150,7 @@ class Graphics
 {
 public:
 	Graphics() = default;
-	~Graphics();
+	~Graphics() = default;
 
 	Graphics(const Graphics&) = delete;                // ƒRƒs[ƒRƒ“ƒXƒgƒ‰ƒNƒ^‹Ö~
 	Graphics& operator=(const Graphics&) = delete;     // ƒRƒs[‘ã“ü‹Ö~
@@ -235,7 +235,7 @@ private:
 }; 
  
 ===== ImGuiManager.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\ImGuiManager.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Core\ImGuiManager.h 
 #pragma once
 #include <windows.h>
 #include <d3d11.h>
@@ -274,7 +274,7 @@ public:
 }; 
  
 ===== Scene.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\Scene.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Core\Scene.h 
 #pragma once
 #include "entt.hpp"
 #include "Core/SceneContext.h"
@@ -311,7 +311,7 @@ protected:
 }; 
  
 ===== SceneContext.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\SceneContext.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Core\SceneContext.h 
 #pragma once
 #include <d3d11.h>
 #include <DirectXMath.h>
@@ -335,7 +335,7 @@ struct SceneContext
 }; 
  
 ===== SceneManager.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\SceneManager.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Core\SceneManager.h 
 #pragma once
 #include "Scene.h"
 #include <memory>
@@ -371,7 +371,7 @@ private:
 }; 
  
 ===== ShaderPass.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\ShaderPass.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Core\ShaderPass.h 
 #pragma once
 #include <string>
 
@@ -386,7 +386,7 @@ struct ShaderPass
 }; 
  
 ===== ShaderPassLibrary.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\ShaderPassLibrary.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Core\ShaderPassLibrary.h 
 #pragma once
 #include <string>
 #include <unordered_map>
@@ -411,7 +411,7 @@ private:
 }; 
  
 ===== Camera.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\Camera.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Core\Camera.cpp 
 #include "Camera.h"
 
 // ‰Šú‰»
@@ -470,7 +470,7 @@ void Camera::SetPerspectiveFov(
 } 
  
 ===== framework.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\framework.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Core\framework.cpp 
 #include "framework.h"
 
 #include "Game/SceneGame.h"
@@ -659,7 +659,7 @@ LRESULT framework::handle_message(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpa
 } 
  
 ===== FreeCameraController.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\FreeCameraController.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Core\FreeCameraController.cpp 
 #include "FreeCameraController.h"
 #include "imgui.h"
 #include <Windows.h>
@@ -766,49 +766,9 @@ void FreeCameraController::Update(float elapsedTime, Camera& camera)
 } 
  
 ===== Graphics.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\Graphics.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Core\Graphics.cpp 
 #include "Graphics.h"
 #include "Utility/misc.h"
-
-Graphics::~Graphics()
-{
-
-	// ƒŒƒ“ƒ_[ƒ^[ƒQƒbƒg‰ğœ
-	if (immediateContext)
-	{
-		immediateContext->OMSetRenderTargets(0, nullptr, nullptr);
-		immediateContext->ClearState();
-		immediateContext->Flush();
-	}
-
-	if (swapChain)
-	{
-		swapChain->SetFullscreenState(FALSE, nullptr);
-	}
-
-	    // GBufferƒŠƒ\[ƒX‰ğ•ú
-    renderTargetView.Reset();
-    depthStencilView.Reset();
-    for (int i = 0; i < 5; i++)
-    {
-        gbufferRTV[i].Reset();
-        gbufferSRV[i].Reset();
-    }
-    gbufferAlbedo.Reset();
-    gbufferNormal.Reset();
-    gbufferPosition.Reset();
-    gbufferRoughnessMetallic.Reset();
-    gbufferEmissive.Reset();
-
-#ifdef _DEBUG
-	// –¢‰ğ•úƒIƒuƒWƒFƒNƒg‚ÌÚ×‚ğo—Í
-	Microsoft::WRL::ComPtr<ID3D11Debug> debug;
-	if (SUCCEEDED(device->QueryInterface(debug.GetAddressOf())))
-	{
-		debug->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
-	}
-#endif
-}
 
 // ‰Šú‰»
 void Graphics::Initialize(HWND hWnd)
@@ -1224,7 +1184,7 @@ void Graphics::CreateGBuffer(UINT w, UINT h)
  
  
 ===== ImGuiManager.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\ImGuiManager.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Core\ImGuiManager.cpp 
 #include "ImGuiManager.h"
 
 ImGuiManager::~ImGuiManager()
@@ -1325,7 +1285,7 @@ bool ImGuiManager::HandleMessage(HWND hWnd, UINT msg, WPARAM wparam, LPARAM lpar
  
  
 ===== SceneManager.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\SceneManager.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Core\SceneManager.cpp 
 #include "SceneManager.h"
 
 // XV
@@ -1392,7 +1352,7 @@ void SceneManager::ClearScene()
  
  
 ===== ShaderPassLibrary.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\ShaderPassLibrary.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Core\ShaderPassLibrary.cpp 
 #include "ShaderPassLibrary.h"
 #include <stdexcept>
 
@@ -1422,8 +1382,247 @@ bool ShaderPassLibrary::Has(const std::string& name)
 }
  
  
+===== DebugRenderer.h ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Debug\DebugRenderer.h 
+#pragma once
+#include <d3d11.h>
+#include <wrl.h>
+#include <DirectXMath.h>
+#include <vector>
+#include "Resource/Model.h"
+
+class DebugRenderer
+{
+public:
+    DebugRenderer() = default;
+    ~DebugRenderer() = default;
+
+    DebugRenderer(const DebugRenderer&) = delete;
+    DebugRenderer& operator=(const DebugRenderer&) = delete;
+
+    // ‰Šú‰»
+    void Initialize(ID3D11Device* device);
+
+    // ƒ‰ƒCƒ“’Ç‰Á
+    void AddLine(
+        const DirectX::XMFLOAT3& start,
+        const DirectX::XMFLOAT3& end,
+        const DirectX::XMFLOAT4& color = { 1,1,0,1 }
+    );
+
+    // ƒ{[ƒ“•`‰æ
+    void AddBones(
+        const std::vector<Model::Node>& nodes,
+        const DirectX::XMMATRIX& worldMatrix,
+        const DirectX::XMFLOAT4& color = { 1,1,0,1 }
+    );
+
+    // •`‰æ
+    void Render(
+        ID3D11DeviceContext* dc,
+        const DirectX::XMFLOAT4X4& view,
+        const DirectX::XMFLOAT4X4& projection
+    );
+
+    // ƒtƒŒ[ƒ€æ“ª‚ÅƒNƒŠƒA
+    void Clear();
+
+private:
+    struct LineVertex
+    {
+        DirectX::XMFLOAT3 position;
+        DirectX::XMFLOAT4 color;
+    };
+
+    struct CbDebug
+    {
+        DirectX::XMFLOAT4X4 viewProjection;
+    };
+
+    Microsoft::WRL::ComPtr<ID3D11Buffer>            vertexBuffer;
+    Microsoft::WRL::ComPtr<ID3D11Buffer>            constantBuffer;
+    Microsoft::WRL::ComPtr<ID3D11VertexShader>      vertexShader;
+    Microsoft::WRL::ComPtr<ID3D11PixelShader>       pixelShader;
+    Microsoft::WRL::ComPtr<ID3D11InputLayout>       inputLayout;
+    Microsoft::WRL::ComPtr<ID3D11RasterizerState>   rasterizerState;
+    Microsoft::WRL::ComPtr<ID3D11DepthStencilState> depthStencilState;
+
+    std::vector<LineVertex> vertices;
+
+    static constexpr UINT MAX_LINES = 4096;
+}; 
+ 
+===== DebugRenderer.cpp ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Debug\DebugRenderer.cpp 
+#include "DebugRenderer.h"
+#include "Resource/GpuResourceUtils.h"
+#include "Utility/misc.h"
+
+void DebugRenderer::Initialize(ID3D11Device* device)
+{
+    // “ü—ÍƒŒƒCƒAƒEƒg’è‹`
+    D3D11_INPUT_ELEMENT_DESC inputElementDescs[] =
+    {
+        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT,    0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "COLOR",    0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+    };
+
+    // ’¸“_ƒVƒF[ƒ_[“Ç‚İ‚İ
+    GpuResourceUtils::LoadVertexShader(
+        device,
+        "Data/Shader/Debug_VS.cso",
+        inputElementDescs,
+        ARRAYSIZE(inputElementDescs),
+        inputLayout,
+        vertexShader
+    );
+
+    // ƒsƒNƒZƒ‹ƒVƒF[ƒ_[“Ç‚İ‚İ
+    GpuResourceUtils::LoadPixelShader(
+        device,
+        "Data/Shader/Debug_PS.cso",
+        pixelShader
+    );
+
+    // “®“I’¸“_ƒoƒbƒtƒ@¶¬iMAP/UNMAP‚Å–ˆƒtƒŒ[ƒ€XVj
+    D3D11_BUFFER_DESC vbDesc{};
+    vbDesc.ByteWidth = sizeof(LineVertex) * MAX_LINES * 2; // 1ƒ‰ƒCƒ“‚É‚Â‚«2’¸“_
+    vbDesc.Usage = D3D11_USAGE_DYNAMIC;
+    vbDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+    vbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    HRESULT hr = device->CreateBuffer(&vbDesc, nullptr, vertexBuffer.GetAddressOf());
+    _ASSERT_EXPR(SUCCEEDED(hr), hr_trace(hr));
+
+    // ’è”ƒoƒbƒtƒ@¶¬
+    GpuResourceUtils::CreateConstantBuffer(
+        device,
+        sizeof(CbDebug),
+        constantBuffer
+    );
+
+    // ƒ‰ƒXƒ^ƒ‰ƒCƒU[ƒXƒe[ƒgiƒƒCƒ„[ƒtƒŒ[ƒ€AƒJƒŠƒ“ƒO‚È‚µj
+    D3D11_RASTERIZER_DESC rasterizerDesc{};
+    rasterizerDesc.FillMode = D3D11_FILL_WIREFRAME;
+    rasterizerDesc.CullMode = D3D11_CULL_NONE;
+    rasterizerDesc.DepthClipEnable = TRUE;
+    hr = device->CreateRasterizerState(&rasterizerDesc, rasterizerState.GetAddressOf());
+    _ASSERT_EXPR(SUCCEEDED(hr), hr_trace(hr));
+
+    // [“xƒXƒeƒ“ƒVƒ‹ƒXƒe[ƒgi[“xƒeƒXƒg‚ ‚èA‘‚«‚İ‚È‚µj
+    D3D11_DEPTH_STENCIL_DESC depthStencilDesc{};
+    depthStencilDesc.DepthEnable = TRUE;
+    depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO; // [“x‘‚«‚İ‚È‚µ
+    depthStencilDesc.DepthFunc = D3D11_COMPARISON_ALWAYS;     // [“xƒeƒXƒgí‚ÉƒpƒX
+    hr = device->CreateDepthStencilState(&depthStencilDesc, depthStencilState.GetAddressOf());
+    _ASSERT_EXPR(SUCCEEDED(hr), hr_trace(hr));
+
+    // ’¸“_ƒŠƒXƒgŠm•Û
+    vertices.reserve(MAX_LINES * 2);
+}
+
+void DebugRenderer::AddLine(
+    const DirectX::XMFLOAT3& start,
+    const DirectX::XMFLOAT3& end,
+    const DirectX::XMFLOAT4& color)
+{
+    // Å‘å”ƒ`ƒFƒbƒN
+    if (vertices.size() >= MAX_LINES * 2) return;
+
+    vertices.push_back({ start, color });
+    vertices.push_back({ end,   color });
+}
+
+void DebugRenderer::AddBones(
+    const std::vector<Model::Node>& nodes,
+    const DirectX::XMMATRIX& worldMatrix,
+    const DirectX::XMFLOAT4& color)
+{
+    for (int i = 0; i < (int)nodes.size(); i++)
+    {
+        const auto& node = nodes[i];
+        if (node.parentIndex < 0) continue;
+
+        const auto& parent = nodes[node.parentIndex];
+
+        // qƒm[ƒh‚Ìƒ[ƒ‹ƒhˆÊ’u
+        DirectX::XMFLOAT3 childPos = {
+            node.globalTransform._41,
+            node.globalTransform._42,
+            node.globalTransform._43
+        };
+        // eƒm[ƒh‚Ìƒ[ƒ‹ƒhˆÊ’u
+        DirectX::XMFLOAT3 parentPos = {
+            parent.globalTransform._41,
+            parent.globalTransform._42,
+            parent.globalTransform._43
+        };
+
+        // ƒGƒ“ƒeƒBƒeƒB‚Ìƒ[ƒ‹ƒhs—ñ‚ğŠ|‚¯‚é
+        DirectX::XMStoreFloat3(&childPos,
+            DirectX::XMVector3TransformCoord(
+                DirectX::XMLoadFloat3(&childPos), worldMatrix));
+        DirectX::XMStoreFloat3(&parentPos,
+            DirectX::XMVector3TransformCoord(
+                DirectX::XMLoadFloat3(&parentPos), worldMatrix));
+
+        AddLine(parentPos, childPos, color);
+    }
+}
+
+void DebugRenderer::Render(
+    ID3D11DeviceContext* dc,
+    const DirectX::XMFLOAT4X4& view,
+    const DirectX::XMFLOAT4X4& projection)
+{
+    // •`‰æ‚·‚é’¸“_‚ª‚È‚¯‚ê‚ÎƒXƒLƒbƒv
+    if (vertices.empty()) return;
+
+    // ’¸“_ƒoƒbƒtƒ@‚ğGPU‚É“]‘—
+    D3D11_MAPPED_SUBRESOURCE mapped{};
+    HRESULT hr = dc->Map(vertexBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped);
+    if (SUCCEEDED(hr))
+    {
+        size_t copySize = sizeof(LineVertex) * vertices.size();
+        memcpy(mapped.pData, vertices.data(), copySize);
+        dc->Unmap(vertexBuffer.Get(), 0);
+    }
+
+    // ViewProjections—ñ‚ğ’è”ƒoƒbƒtƒ@‚Éİ’è
+    CbDebug cbData{};
+    DirectX::XMMATRIX v = DirectX::XMLoadFloat4x4(&view);
+    DirectX::XMMATRIX p = DirectX::XMLoadFloat4x4(&projection);
+    DirectX::XMStoreFloat4x4(&cbData.viewProjection, v * p);
+    dc->UpdateSubresource(constantBuffer.Get(), 0, nullptr, &cbData, 0, 0);
+
+    // ƒVƒF[ƒ_[İ’è
+    dc->VSSetShader(vertexShader.Get(), nullptr, 0);
+    dc->PSSetShader(pixelShader.Get(), nullptr, 0);
+    dc->VSSetConstantBuffers(0, 1, constantBuffer.GetAddressOf());
+
+    // “ü—ÍƒŒƒCƒAƒEƒgİ’è
+    dc->IASetInputLayout(inputLayout.Get());
+    dc->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+
+    // ’¸“_ƒoƒbƒtƒ@İ’è
+    UINT stride = sizeof(LineVertex);
+    UINT offset = 0;
+    dc->IASetVertexBuffers(0, 1, vertexBuffer.GetAddressOf(), &stride, &offset);
+
+    // ƒXƒe[ƒgİ’è
+    dc->RSSetState(rasterizerState.Get());
+    dc->OMSetDepthStencilState(depthStencilState.Get(), 0);
+
+    // •`‰æ
+    dc->Draw(static_cast<UINT>(vertices.size()), 0);
+}
+
+void DebugRenderer::Clear()
+{
+    vertices.clear();
+} 
+ 
 ===== AnimatorComponent.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\AnimatorComponent.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\AnimatorComponent.h 
 ï»¿#pragma once
 #include <string>
 
@@ -1444,7 +1643,7 @@ struct AnimatorComponent
 }; 
  
 ===== MaterialComponent.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\MaterialComponent.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\MaterialComponent.h 
 #pragma once
 #include <vector>
 #include <string>
@@ -1494,7 +1693,7 @@ struct MaterialComponent
 }; 
  
 ===== MeshComponent.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\MeshComponent.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\MeshComponent.h 
 #pragma once
 #include <string>
 
@@ -1509,7 +1708,7 @@ struct MeshComponent
 }; 
  
 ===== SkinnedMeshComponent.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\SkinnedMeshComponent.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\SkinnedMeshComponent.h 
 #pragma once
 #include <memory>
 #include <vector>
@@ -1527,7 +1726,7 @@ struct SkinnedMeshComponent
 }; 
  
 ===== StaticMeshComponent.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\StaticMeshComponent.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\StaticMeshComponent.h 
 #pragma once
 #include <memory>
 #include "Resource/Model.h"
@@ -1540,7 +1739,7 @@ struct StaticMeshComponent
 }; 
  
 ===== Tags.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\Tags.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\Tags.h 
 #pragma once
 
 // ƒ[ƒhÏ‚İƒtƒ‰ƒO
@@ -1553,7 +1752,7 @@ struct InvisibleTag {};
 struct NoShadowTag {}; 
  
 ===== TransformComponent.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\TransformComponent.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\TransformComponent.h 
 #pragma once
 #include <DirectXMath.h>
 
@@ -1574,8 +1773,32 @@ struct TransformComponent
 	}
 }; 
  
+===== AnimationSystem.h ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\AnimationSystem.h 
+#pragma once
+#include "entt.hpp"
+#include "Resource/Model.h" 
+
+class AnimationSystem
+{
+public:
+    // XV
+    void Update(entt::registry& registry, float elapsedTime);
+
+private:
+    // VectorƒL[ƒtƒŒ[ƒ€‚ÌüŒ`•âŠÔ
+    static DirectX::XMFLOAT3 SampleVector(
+        const std::vector<Model::VectorKeyframe>& keyframes,
+        float time);
+
+    // QuaternionƒL[ƒtƒŒ[ƒ€‚Ì‹…–ÊüŒ`•âŠÔ
+    static DirectX::XMFLOAT4 SampleQuaternion(
+        const std::vector<Model::QuaternionKeyframe>& keyframes,
+        float time);
+}; 
+ 
 ===== MeshLoaderSystem.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\MeshLoaderSystem.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\MeshLoaderSystem.h 
 #pragma once
 #include <d3d11.h>
 
@@ -1601,7 +1824,7 @@ public:
 }; 
  
 ===== RenderSystem.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\RenderSystem.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\RenderSystem.h 
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
@@ -1699,8 +1922,217 @@ private:
     Microsoft::WRL::ComPtr<ID3D11BlendState>        blendState;
 }; 
  
+===== AnimationSystem.cpp ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\AnimationSystem.cpp 
+#include "AnimationSystem.h"
+#include "ECS/Components/AnimatorComponent.h"
+#include "ECS/Components/SkinnedMeshComponent.h"
+#include "Resource/GLTFImporter.h"
+
+// XV
+void AnimationSystem::Update(
+	entt::registry& registry,
+	float elapsedTime)
+{
+	auto view = registry.view<SkinnedMeshComponent, AnimatorComponent>();
+	view.each(
+		[&](auto entity,
+			SkinnedMeshComponent& skinned,
+			AnimatorComponent& animator)
+		{
+			if (!skinned.model) return;
+
+			const auto& animations = skinned.model->GetAnimations();
+			if (animations.empty()) return;
+
+			// Œ»İ‚ÌƒAƒjƒ[ƒVƒ‡ƒ“Index‚ğæ“¾
+			// AnimatorComponent ‚Ì currentAnimationName ‚©‚çŒŸõ
+			int animIndex = -1;
+			for (int i = 0; i < (int)animations.size(); i++)
+			{
+				if (animations[i].name == animator.currentAnimation)
+				{
+					animIndex = i;
+					break;
+				}
+			}
+			if (animIndex < 0) return;
+
+			const auto& anim = animations[animIndex];
+
+			// ŠÔ‚ği‚ß‚é
+			if (animator.isPlaying)
+			{
+				animator.animationTime += elapsedTime * animator.playSpeed;
+			}
+
+			// ƒ‹[ƒvˆ—
+			if (animator.animationTime > anim.secondsLength)
+			{
+				if (animator.loop)
+				{
+					animator.animationTime -= anim.secondsLength;
+				}
+				else
+				{
+					animator.animationTime = anim.secondsLength;
+					animator.isPlaying = false;
+					animator.isEnd = true;
+				}
+			}
+
+
+
+			// ƒm[ƒh‚ÌSRT‚ğƒL[ƒtƒŒ[ƒ€‚©‚çXV
+			const auto& nodeAnims = anim.nodeAnims;
+			auto& nodes = skinned.model->GetNodes();
+
+			for (int ni = 0; ni < (int)nodes.size(); ni++)
+			{
+				auto& node = nodes[ni];
+				const auto& nodeAnim = nodeAnims[ni];
+
+				// positionƒL[ƒtƒŒ[ƒ€‚ª‚ ‚ê‚Î•âŠÔ
+				if (!nodeAnim.positionKeyframes.empty())
+				{
+					node.position = SampleVector(
+						nodeAnim.positionKeyframes, animator.animationTime);
+				}
+
+				// rotationƒL[ƒtƒŒ[ƒ€‚ª‚ ‚ê‚Î•âŠÔ
+				if (!nodeAnim.rotationKeyframes.empty())
+				{
+					node.rotation = SampleQuaternion(
+						nodeAnim.rotationKeyframes, animator.animationTime);
+				}
+
+				// scaleƒL[ƒtƒŒ[ƒ€‚ª‚ ‚ê‚Î•âŠÔ
+				if (!nodeAnim.scaleKeyframes.empty())
+				{
+					node.scale = SampleVector(
+						nodeAnim.scaleKeyframes, animator.animationTime);
+				}
+			}
+
+			// globalTransform‚ğÄŒvZ
+			DirectX::XMFLOAT4X4 identity = { 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 };
+			const auto& gltfScenes = skinned.model->GetNodes();
+
+			// ƒ‹[ƒgƒm[ƒh‚ğ’T‚µ‚ÄÄ‹AŒvZ
+			for (int ni = 0; ni < (int)nodes.size(); ni++)
+			{
+				if (nodes[ni].parentIndex < 0)
+				{
+					GLTFImporter::CalcGlobalTransform(nodes, ni, identity);
+				}
+			}
+		});
+}
+
+
+// VectorƒL[ƒtƒŒ[ƒ€‚ÌüŒ`•âŠÔ
+DirectX::XMFLOAT3 AnimationSystem::SampleVector(
+	const std::vector<Model::VectorKeyframe>& keyframes,
+	float time)
+{
+	if (keyframes.empty())
+		return { 0, 0, 0 };
+
+	// Å‰‚ÌƒL[ƒtƒŒ[ƒ€‚æ‚è‘O
+	if (time <= keyframes.front().seconds)
+	{
+		return keyframes.front().value;
+	}
+
+	// ÅŒã‚ÌƒL[ƒtƒŒ[ƒ€‚æ‚èŒã
+	if (time >= keyframes.back().seconds)
+	{
+		return keyframes.back().value;
+	}
+
+	// ‘OŒã‚ÌƒL[ƒtƒŒ[ƒ€‚ğ’T‚·
+	for (size_t i = 0; i + 1 < keyframes.size(); i++)
+	{
+		const auto& a = keyframes[i];
+		const auto& b = keyframes[i + 1];
+
+		if (time >= a.seconds && time < b.seconds)
+		{
+			// •âŠÔ—¦
+			float t = (time - a.seconds) / (b.seconds - a.seconds);
+
+			// üŒ`•âŠÔ
+			return {
+				a.value.x + (b.value.x - a.value.x) * t,
+				a.value.y + (b.value.y - a.value.y) * t,
+				a.value.z + (b.value.z - a.value.z) * t
+			};
+		}
+	}
+	return keyframes.back().value;
+}
+
+
+// QuaternionƒL[ƒtƒŒ[ƒ€‚Ì‹…–ÊüŒ`•âŠÔ
+DirectX::XMFLOAT4 AnimationSystem::SampleQuaternion(const std::vector<Model::QuaternionKeyframe>& keyframes, float time)
+{
+	if (keyframes.empty())
+		return { 0, 0, 0, 1 };
+
+	if (time <= keyframes.front().seconds)
+	{
+		DirectX::XMVECTOR q = DirectX::XMLoadFloat4(&keyframes.front().value);
+		q = DirectX::XMQuaternionNormalize(q);
+		DirectX::XMFLOAT4 result;
+		DirectX::XMStoreFloat4(&result, q);
+		return result;
+		//return keyframes.front().value;
+	}
+
+	if (time >= keyframes.back().seconds)
+	{
+		DirectX::XMVECTOR q = DirectX::XMLoadFloat4(&keyframes.back().value);
+		q = DirectX::XMQuaternionNormalize(q);
+		DirectX::XMFLOAT4 result;
+		DirectX::XMStoreFloat4(&result, q);
+		return result;
+		//return keyframes.back().value;
+	}
+
+	for (size_t i = 0; i + 1 < keyframes.size(); i++)
+	{
+		const auto& a = keyframes[i];
+		const auto& b = keyframes[i + 1];
+
+		if (time >= a.seconds && time < b.seconds)
+		{
+			float t = (time - a.seconds) / (b.seconds - a.seconds);
+
+			// ‹…–ÊüŒ`•âŠÔiSlerpj
+			DirectX::XMVECTOR qa = DirectX::XMLoadFloat4(&a.value);
+			DirectX::XMVECTOR qb = DirectX::XMLoadFloat4(&b.value);
+
+			// ƒhƒbƒgÏ‚ª•‰‚È‚ç•„†‚ğ”½“]‚µ‚ÄÅ’ZŒo˜H‚ğæ‚é
+			float dot;
+			DirectX::XMStoreFloat(&dot, DirectX::XMQuaternionDot(qa, qb));
+			if (dot < 0.0f)
+			{
+				qb = DirectX::XMVectorNegate(qb);
+			}
+
+			DirectX::XMVECTOR q = DirectX::XMQuaternionSlerp(qa, qb, t);
+			q = DirectX::XMQuaternionNormalize(q);
+			DirectX::XMFLOAT4 result;
+			DirectX::XMStoreFloat4(&result, q);
+			return result;
+		}
+	}
+	return keyframes.back().value;
+}
+ 
+ 
 ===== MeshLoaderSystem.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\MeshLoaderSystem.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\MeshLoaderSystem.cpp 
 #include "MeshLoaderSystem.h"
 
 void MeshLoaderSystem::Update(
@@ -1759,7 +2191,7 @@ void MeshLoaderSystem::Update(
 } 
  
 ===== RenderSystem.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\RenderSystem.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\RenderSystem.cpp 
 #include "RenderSystem.h"
 #include "Resource/GpuResourceUtils.h"
 #include "Utility/misc.h"
@@ -2070,10 +2502,13 @@ void RenderSystem::RenderSkinned(entt::registry& registry, ID3D11DeviceContext* 
  
  
 ===== SceneGame.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Game\SceneGame.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Game\SceneGame.h 
 #pragma once
 #include "Core/Scene.h"
+#include "Core/SceneContext.h"
 #include "ECS/Systems/RenderSystem.h"
+#include "ECS/Systems/AnimationSystem.h"
+#include "Debug/DebugRenderer.h"
 
 class SceneGame : public Scene
 {
@@ -2082,100 +2517,211 @@ public:
 	void Finalize()override {}
 	void Update(float elapsedTime, const SceneContext& context) override;
 	void Render(const SceneContext& context)override;
-	void RenderImGui() override {}
+	void RenderImGui() override;
 
 private:
 	RenderSystem renderSystem;
+	DebugRenderer debugRenderer;
+	AnimationSystem animationSystem;
+
+	const SceneContext* sceneContext = nullptr;
 };
  
  
 ===== SceneGame.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Game\SceneGame.cpp 
-#include "SceneGame.h"
+Path: C:\Users\2240140\Desktop\New-Library\Source\Game\SceneGame.cpp 
+ï»¿#include "SceneGame.h"
 #include <imgui.h>
 
 void SceneGame::Initialize(const SceneContext& context)
 {
-	renderSystem.Initialize(context.device);
+    renderSystem.Initialize(context.device);
+    debugRenderer.Initialize(context.device);
 
-	// ƒ‰ƒ“ƒo[ƒgƒVƒF[ƒ_[‚ğg‚¤Entity
-	auto entity = registry.create();
-	auto& t = registry.emplace<TransformComponent>(entity);
-	t.position = { -3.0f, 0.0f, 0.0f };
-	registry.emplace<MeshComponent>(entity, "Data/Model/Mr.Incredible.glb");
-	registry.emplace<MaterialComponent>(entity).AddPass("lambert");  // ƒ‰ƒ“ƒo[ƒg‚ğw’è
+    // ãƒ©ãƒ³ãƒãƒ¼ãƒˆã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã‚’ä½¿ã†Entity
+    auto entity = registry.create();
+    auto& t = registry.emplace<TransformComponent>(entity);
+    t.position = { -3.0f, 0.0f, 0.0f };
+    registry.emplace<MeshComponent>(entity, "Data/Model/Mr.Incredible.glb");
+    registry.emplace<MaterialComponent>(entity).AddPass("lambert");  // ãƒ©ãƒ³ãƒãƒ¼ãƒˆã‚’æŒ‡å®š
 
-	// ƒx[ƒVƒbƒNƒVƒF[ƒ_[‚ğg‚¤Entity
-	auto entity2 = registry.create();
-	auto& t2 = registry.emplace<TransformComponent>(entity2);
-	t2.position = { 3.0f, 0.0f, 0.0f };
-	registry.emplace<MeshComponent>(entity2, "Data/Model/Mr.Incredible.glb");
-	registry.emplace<MaterialComponent>(entity2).AddPass("basic");    // ƒx[ƒVƒbƒN‚ğw’è
+    // ãƒ™ãƒ¼ã‚·ãƒƒã‚¯ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã‚’ä½¿ã†Entity
+    auto entity2 = registry.create();
+    auto& t2 = registry.emplace<TransformComponent>(entity2);
+    t2.position = { 3.0f, 0.0f, 0.0f };
+    registry.emplace<MeshComponent>(entity2, "Data/Model/Mr.Incredible.glb");
+    registry.emplace<MaterialComponent>(entity2).AddPass("basic");    // ãƒ™ãƒ¼ã‚·ãƒƒã‚¯ã‚’æŒ‡å®š
 
 
-	// ƒXƒLƒjƒ“ƒOƒ‚ƒfƒ‹
-	auto entity3 = registry.create();
-	registry.emplace<TransformComponent>(entity3);
-	registry.emplace<MeshComponent>(entity3, "Data/Model/unitychan.glb");
-	registry.emplace<MaterialComponent>(entity3).AddPass("skinning_lambert");
+    // ã‚¹ã‚­ãƒ‹ãƒ³ã‚°ãƒ¢ãƒ‡ãƒ«
+    auto entity3 = registry.create();
+    registry.emplace<TransformComponent>(entity3);
+    registry.emplace<MeshComponent>(entity3, "Data/Model/unitychan.glb");
+    registry.emplace<MaterialComponent>(entity3).AddPass("skinning_lambert");
 }
 
 void SceneGame::Update(float elapsedTime, const SceneContext& context)
 {
-	// –¢ƒ[ƒh‚Ìƒ‚ƒfƒ‹‚ğ©“®ƒ[ƒh
-	meshLoaderSystem.Update(
-		registry,
-		context.device,
-		*context.resourceManager
-	);
-
+    // æœªãƒ­ãƒ¼ãƒ‰ã®ãƒ¢ãƒ‡ãƒ«ã‚’è‡ªå‹•ãƒ­ãƒ¼ãƒ‰
+    meshLoaderSystem.Update(
+        registry,
+        context.device,
+        *context.resourceManager
+    );
+    animationSystem.Update(registry, elapsedTime/5);
 }
 
 void SceneGame::Render(const SceneContext& context)
 {
-	// CbSceneXV
-	CbScene cbSceneData{};
-	cbSceneData.view = context.view;
-	cbSceneData.projection = context.projection;
+    sceneContext = &context;
+
+    // CbSceneæ›´æ–°
+    CbScene cbSceneData{};
+    cbSceneData.view = context.view;
+    cbSceneData.projection = context.projection;
 
 
-	// ƒ‰ƒCƒgİ’èi‰¼‚Ì•½sŒõŒ¹j
-	cbSceneData.lightDirection = { 0.5f, -1.0f, 0.5f, 0.0f };
-	cbSceneData.lightColor = { 1.0f,  1.0f, 1.0f, 1.0f };
-	cbSceneData.ambientColor = { 0.2f,  0.2f, 0.2f, 1.0f };
+    // ãƒ©ã‚¤ãƒˆè¨­å®šï¼ˆä»®ã®å¹³è¡Œå…‰æºï¼‰
+    cbSceneData.lightDirection = { 0.5f, -1.0f, 0.5f, 0.0f };
+    cbSceneData.lightColor = { 1.0f,  1.0f, 1.0f, 1.0f };
+    cbSceneData.ambientColor = { 0.2f,  0.2f, 0.2f, 1.0f };
 
-	// ƒJƒƒ‰ˆÊ’u
-	if (context.camera)
-	{
-		const auto& eye = context.camera->GetEye();
-		cbSceneData.cameraPosition = { eye.x, eye.y, eye.z, 0.0f };
-	}
+    // ã‚«ãƒ¡ãƒ©ä½ç½®
+    if (context.camera)
+    {
+        const auto& eye = context.camera->GetEye();
+        cbSceneData.cameraPosition = { eye.x, eye.y, eye.z, 0.0f };
+    }
 
-	context.deviceContext->UpdateSubresource(
-		renderSystem.GetCbScene(), 0, nullptr, &cbSceneData, 0, 0
-	);
+    context.deviceContext->UpdateSubresource(
+        renderSystem.GetCbScene(), 0, nullptr, &cbSceneData, 0, 0
+    );
 
-	// ’¸“_ƒVƒF[ƒ_[‚Éİ’è
-	context.deviceContext->VSSetConstantBuffers(
-		0, 1, renderSystem.GetCbSceneAddress()
-	);
+    // é ‚ç‚¹ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã«è¨­å®š
+    context.deviceContext->VSSetConstantBuffers(
+        0, 1, renderSystem.GetCbSceneAddress()
+    );
 
-	// ƒsƒNƒZƒ‹ƒVƒF[ƒ_[‚É‚àİ’è
-	context.deviceContext->PSSetConstantBuffers(
-		0, 1, renderSystem.GetCbSceneAddress()
-	);
+    // ãƒ”ã‚¯ã‚»ãƒ«ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã«ã‚‚è¨­å®š
+    context.deviceContext->PSSetConstantBuffers(
+        0, 1, renderSystem.GetCbSceneAddress()
+    );
 
-	renderSystem.Render(
-		registry,
-		context.deviceContext,
-		context.renderTargetView,
-		context.depthStencilView
-	);
+    renderSystem.Render(
+        registry,
+        context.deviceContext,
+        context.renderTargetView,
+        context.depthStencilView
+    );
+
+    ////////////////////////
+
+    debugRenderer.Clear();
+
+    // SkinnedMeshComponent ã‚’æŒã¤ã‚¨ãƒ³ãƒ†ã‚£ãƒ†ã‚£ã®ãƒœãƒ¼ãƒ³ã‚’è¿½åŠ 
+    auto view = registry.view<SkinnedMeshComponent, TransformComponent>();
+    view.each([&](auto entity, SkinnedMeshComponent& skinned, TransformComponent& transform)
+        {
+            if (!skinned.model) return;
+
+            debugRenderer.AddBones(
+                skinned.model->GetNodes(),
+                transform.GetWorldMatrix(),
+                { 1.0f, 1.0f, 0.0f, 1.0f }  // é»„è‰²
+            );
+        });
+
+    // ãƒœãƒ¼ãƒ³æç”»
+    debugRenderer.Render(
+        context.deviceContext,
+        context.view,
+        context.projection
+    );
 }
+
+void SceneGame::RenderImGui()
+{
+    auto view = registry.view<SkinnedMeshComponent, AnimatorComponent>();
+    view.each([&](auto entity, SkinnedMeshComponent& skinned, AnimatorComponent& animator)
+        {
+            if (!skinned.model) return;
+
+            const auto& model = *skinned.model;
+            if (model.GetAnimations().empty()) return;
+
+            const auto& anim = model.GetAnimations()[0]; // Combo1
+            if (anim.nodeAnims.size() <= 3) return;
+
+            const auto& hipsAnim = anim.nodeAnims[3]; // Hips
+            if (hipsAnim.rotationKeyframes.empty()) return;
+
+            ImGui::Begin("Hips Rotation All Keyframes");
+            ImGui::Text("Anim: %s  (%.3fsec)",
+                anim.name.c_str(), anim.secondsLength);
+            ImGui::Text("Hips rotation keyframes: %d",
+                (int)hipsAnim.rotationKeyframes.size());
+            ImGui::Separator();
+
+            // å…¨ã‚­ãƒ¼ãƒ•ãƒ¬ãƒ¼ãƒ ã‚’è¡¨ç¤º
+            for (int i = 0; i < (int)hipsAnim.rotationKeyframes.size(); i++)
+            {
+                const auto& kf = hipsAnim.rotationKeyframes[i];
+                ImGui::Text("[%2d] t=%.4f  x=%6.3f y=%6.3f z=%6.3f w=%6.3f",
+                    i, kf.seconds,
+                    kf.value.x, kf.value.y,
+                    kf.value.z, kf.value.w);
+            }
+
+            ImGui::Separator();
+
+            // ç¾åœ¨æ™‚åˆ»ã®ã‚µãƒ³ãƒ—ãƒªãƒ³ã‚°çµæœã‚‚è¡¨ç¤º
+            ImGui::Text("CurrentTime: %.4f", animator.animationTime);
+            const auto& nodes = model.GetNodes();
+            if (nodes.size() > 3)
+            {
+                const auto& hips = nodes[3];
+                ImGui::Text("Hips node.rotation now:");
+                ImGui::Text("  x=%6.3f y=%6.3f z=%6.3f w=%6.3f",
+                    hips.rotation.x, hips.rotation.y,
+                    hips.rotation.z, hips.rotation.w);
+            }
+
+            ImGui::End();
+        });
+} 
  
+===== GLTFConverter.h ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\GLTFConverter.h 
+#pragma once
+#include <DirectXMath.h>
+#include <vector>
+
+
+class GLTFConverter
+{
+public:
+    // ˆÊ’uE–@üE•½sˆÚ“®iZ”½“]j
+    static DirectX::XMFLOAT3 Position(double x, double y, double z);
+    static DirectX::XMFLOAT3 Normal(double x, double y, double z);
+    static DirectX::XMFLOAT3 Translation(double x, double y, double z);
+
+    // ƒXƒP[ƒ‹i•ÏŠ·•s—vj
+    static DirectX::XMFLOAT3 Scale(double x, double y, double z);
+
+    // ƒNƒH[ƒ^ƒjƒIƒ“iX,Y”½“]j
+    static DirectX::XMFLOAT4 Rotation(double x, double y, double z, double w);
+
+    // s—ñi“]’u + Z”½“]j
+    static DirectX::XMFLOAT4X4 Matrix(const std::vector<double>& m);
+
+    // ƒAƒjƒ[ƒVƒ‡ƒ“ƒL[ƒtƒŒ[ƒ€—p
+    static DirectX::XMFLOAT3 AnimPosition(float x, float y, float z);
+    static DirectX::XMFLOAT4 AnimRotation(float x, float y, float z, float w);
+    static DirectX::XMFLOAT3 AnimScale(float x, float y, float z);
+}; 
  
 ===== GLTFImporter.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\GLTFImporter.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\GLTFImporter.h 
 #pragma once
 
 #include <memory>
@@ -2191,57 +2737,15 @@ Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\GLTFImporter.h
 #include "tiny_gltf.h"
 
 #include "Model.h"
+#include "GLTFConverter.h"
 
 class GLTFImporter
 {
 public:
-    // ƒ‚ƒfƒ‹“Ç‚İ‚İ•ƒXƒLƒjƒ“ƒO”»’è
+    // ƒ‚ƒfƒ‹“Ç‚İ‚İ
     static std::shared_ptr<Model> Load(
         ID3D11Device* device,
         const std::string& filename
-    );
-
-private:
-    // ƒm[ƒh“Ç‚İ‚İ
-    static void LoadNodes(
-        Model& model,
-        const tinygltf::Model& gltfModel
-    );
-
-    // ƒƒbƒVƒ…“Ç‚İ‚İ
-    static void LoadMeshes(
-        Model& model,
-        const tinygltf::Model& gltfModel,
-        ID3D11Device* device
-    );
-
-    // ƒ}ƒeƒŠƒAƒ‹“Ç‚İ‚İ
-    static void LoadMaterials(
-        Model& model,
-        const tinygltf::Model& gltfModel,
-        ID3D11Device* device,
-        const std::filesystem::path& filepath
-    );
-
-    // ƒAƒjƒ[ƒVƒ‡ƒ““Ç‚İ‚İ
-    static void LoadAnimations(
-        Model& model,
-        const tinygltf::Model& gltfModel,
-        float sampleRate = 60.0f
-    );
-
-    // ƒXƒLƒjƒ“ƒO”»’è
-    static bool CheckHasSkin(const tinygltf::Model& gltfModel);
-
-    // À•WŒn•ÏŠ·ƒwƒ‹ƒp[
-    static DirectX::XMFLOAT3   ToXMFLOAT3(const std::vector<double>& v);
-    static DirectX::XMFLOAT4   ToXMFLOAT4(const std::vector<double>& v);
-    static DirectX::XMFLOAT4X4 ToXMFLOAT4X4(const std::vector<double>& v);
-
-    // ƒ^ƒ“ƒWƒFƒ“ƒgŒvZ
-    static void ComputeTangents(
-        std::vector<Model::Vertex>& vertices,
-        const std::vector<uint32_t>& indices
     );
 
     // ƒOƒ[ƒoƒ‹ƒgƒ‰ƒ“ƒXƒtƒH[ƒ€ŒvZ
@@ -2250,10 +2754,53 @@ private:
         int nodeIndex,
         const DirectX::XMFLOAT4X4& parentTransform
     );
+
+private:
+    // ƒm[ƒh“Ç‚İ‚İ + ‰EèŒn¨¶èŒn•ÏŠ·
+    static void LoadNodes(
+        Model& model,
+        const tinygltf::Model& gltfModel
+    );
+
+    // ƒƒbƒVƒ…“Ç‚İ‚İ + ‰EèŒn¨¶èŒn•ÏŠ·
+    static void LoadMeshes(
+        Model& model,
+        const tinygltf::Model& gltfModel,
+        ID3D11Device* device
+    );
+
+    // ƒ}ƒeƒŠƒAƒ‹“Ç‚İ‚İiÀ•WŒn•ÏŠ·‚È‚µj
+    static void LoadMaterials(
+        Model& model,
+        const tinygltf::Model& gltfModel,
+        ID3D11Device* device,
+        const std::filesystem::path& filepath
+    );
+
+    // ƒXƒLƒ““Ç‚İ‚İ + ‰EèŒn¨¶èŒn•ÏŠ·
+    static void LoadSkins(
+        Model& model,
+        const tinygltf::Model& gltfModel
+    );
+
+    // ƒAƒjƒ[ƒVƒ‡ƒ““Ç‚İ‚İ + ‰EèŒn¨¶èŒn•ÏŠ·
+    static void LoadAnimations(
+        Model& model,
+        const tinygltf::Model& gltfModel
+    );
+
+    // ƒXƒLƒjƒ“ƒO”»’è
+    static bool CheckHasSkin(const tinygltf::Model& gltfModel);
+
+    // ƒ^ƒ“ƒWƒFƒ“ƒgŒvZ
+    static void ComputeTangents(
+        std::vector<Model::Vertex>& vertices,
+        const std::vector<uint32_t>& indices
+    );
 }; 
  
 ===== GpuResourceUtils.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\GpuResourceUtils.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\GpuResourceUtils.h 
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
@@ -2320,7 +2867,7 @@ public:
 }; 
  
 ===== Model.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\Model.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\Model.h 
 #pragma once
 
 #include <string>
@@ -2390,8 +2937,8 @@ public:
         std::vector<Vertex>   vertices;
         std::vector<uint32_t> indices;
         std::vector<Bone>     bones;
-        int      nodeIndex = 0;
         int      materialIndex = 0;
+        int      skinIndex = -1;
         Material* material = nullptr;
 
         Microsoft::WRL::ComPtr<ID3D11Buffer> vertexBuffer;
@@ -2426,6 +2973,12 @@ public:
         std::vector<NodeAnim> nodeAnims;
     };
 
+    struct Skin
+    {
+        std::vector<int>                  joints;             // jointIndex ¨ nodeIndex ‚Ì‘Î‰•\
+        std::vector<DirectX::XMFLOAT4X4> inverseBindMatrices; // joint”•ª‚ÌƒIƒtƒZƒbƒgs—ñ
+    };
+
     // “ü—ÍƒŒƒCƒAƒEƒg
     static const std::vector<D3D11_INPUT_ELEMENT_DESC> InputElementDescs;
 
@@ -2438,6 +2991,7 @@ public:
     const std::vector<Mesh>& GetMeshes()     const { return meshes; }
     const std::vector<Material>& GetMaterials()  const { return materials; }
     const std::vector<Animation>& GetAnimations() const { return animations; }
+    const std::vector<Skin>& GetSkins()      const { return skins; }  // © ’Ç‰Á
 
     std::vector<Node>& GetNodes() { return nodes; }
     std::vector<Mesh>& GetMeshes() { return meshes; }
@@ -2450,11 +3004,12 @@ private:
     std::vector<Mesh>      meshes;
     std::vector<Material>  materials;
     std::vector<Animation> animations;
+    std::vector<Skin>      skins;
     bool                   hasSkin = false;
 }; 
  
 ===== ResourceManager.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\ResourceManager.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\ResourceManager.h 
 #pragma once
 #include <string>
 #include <memory>
@@ -2491,18 +3046,100 @@ private:
     std::unordered_map<std::string, std::weak_ptr<Model>> modelCache;
 }; 
  
+===== GLTFConverter.cpp ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\GLTFConverter.cpp 
+#include "GLTFConverter.h"
+
+// ˆÊ’uiZ”½“]j
+DirectX::XMFLOAT3 GLTFConverter::Position(double x, double y, double z)
+{
+    return {
+        static_cast<float>(x),
+        static_cast<float>(y),
+        static_cast<float>(z)  // ‰EèŒn¨¶èŒn Z”½“]
+    };
+}
+// –@üiZ”½“]j
+DirectX::XMFLOAT3 GLTFConverter::Normal(double x, double y, double z)
+{
+    return {
+        static_cast<float>(x),
+        static_cast<float>(y),
+        static_cast<float>(z)  // ‰EèŒn¨¶èŒn Z”½“]
+    };
+}
+// •½sˆÚ“®iZ”½“]j
+DirectX::XMFLOAT3 GLTFConverter::Translation(double x, double y, double z)
+{
+    return {
+        static_cast<float>(x),
+        static_cast<float>(y),
+        static_cast<float>(z)  // ‰EèŒn¨¶èŒn Z”½“]
+    };
+}
+
+
+// ƒXƒP[ƒ‹i•ÏŠ·•s—vj
+DirectX::XMFLOAT3 GLTFConverter::Scale(double x, double y, double z)
+{
+    return {
+        static_cast<float>(x),
+        static_cast<float>(y),
+        static_cast<float>(z)
+    };
+}
+
+// ƒNƒH[ƒ^ƒjƒIƒ“iX,Y”½“]j
+DirectX::XMFLOAT4 GLTFConverter::Rotation(double x, double y, double z, double w)
+{
+    return {
+        static_cast<float>(x),  // ‰EèŒn¨¶èŒn X”½“]
+        static_cast<float>(y),  // ‰EèŒn¨¶èŒn Y”½“]
+        static_cast<float>(z),
+        static_cast<float>(w)
+    };
+}
+
+// s—ñi“]’u + Zs/—ñ”½“]j
+DirectX::XMFLOAT4X4 GLTFConverter::Matrix(const std::vector<double>& m)
+{
+    return {
+            (float)m[0], (float)m[4], (float)m[8],  (float)m[12],
+            (float)m[1], (float)m[5], (float)m[9],  (float)m[13],
+            (float)m[2], (float)m[6], (float)m[10], (float)m[14],
+            (float)m[3], (float)m[7], (float)m[11], (float)m[15]
+    };
+}
+
+
+// ƒAƒjƒ[ƒVƒ‡ƒ“—pˆÊ’uiZ”½“]j
+DirectX::XMFLOAT3 GLTFConverter::AnimPosition(float x, float y, float z)
+{
+    return { x, y, z };  // ‰EèŒn¨¶èŒn Z”½“]
+}
+
+// ƒAƒjƒ[ƒVƒ‡ƒ“—pƒNƒH[ƒ^ƒjƒIƒ“iX,Y”½“]j
+DirectX::XMFLOAT4 GLTFConverter::AnimRotation(float x, float y, float z, float w)
+{
+    return { x, y, z, w };  // ‰EèŒn¨¶èŒn X,Y”½“]
+}
+
+// ƒAƒjƒ[ƒVƒ‡ƒ“—pƒXƒP[ƒ‹i•ÏŠ·•s—vj
+DirectX::XMFLOAT3 GLTFConverter::AnimScale(float x, float y, float z)
+{
+    return { x, y, z };
+} 
+ 
 ===== GLTFImporter.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\GLTFImporter.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\GLTFImporter.cpp 
 #include "GLTFImporter.h"
 
 #define TINYGLTF_IMPLEMENTATION
 #include "tiny_gltf.h"
 #include "GpuResourceUtils.h"
 #include "Utility/misc.h"
-#include <stack>
 #include <filesystem>
 #include <algorithm>
-
 
 // ‰æ‘œ“Ç‚İ‚İ–³Œø‰»
 static bool NullLoadImageData(
@@ -2513,61 +3150,118 @@ static bool NullLoadImageData(
 }
 
 
-// ƒ‚ƒfƒ‹“Ç‚İ‚İ•ƒXƒLƒjƒ“ƒO”»’è
+// ƒ‚ƒfƒ‹“Ç‚İ‚İ
 std::shared_ptr<Model> GLTFImporter::Load(
 	ID3D11Device* device,
 	const std::string& filename)
 {
-	// GLTF“Ç‚İ‚İ—pƒ[ƒ_[ì¬
 	tinygltf::TinyGLTF loader;
-
-	// ‰æ‘œ“Ç‚İ‚İ–³Œø‰»
 	loader.SetImageLoader(NullLoadImageData, nullptr);
 
-	// GLTFƒf[ƒ^–{‘Ì
 	tinygltf::Model gltfModel;
-	// ƒGƒ‰[/ŒxƒƒbƒZ[ƒW—p
 	std::string error, warning;
-	// “Ç‚İ‚İ¬Œ÷ƒtƒ‰ƒO
 	bool succeeded = false;
+
 
 	// glb“Ç‚İ‚İ
 	if (filename.find(".glb") != std::string::npos)
 	{
-		succeeded = loader.LoadBinaryFromFile(&gltfModel, &error, &warning, filename.c_str());
+		succeeded = loader.LoadBinaryFromFile(
+			&gltfModel, &error, &warning, filename.c_str());
 	}
 	// gltf“Ç‚İ‚İ
 	else if (filename.find(".gltf") != std::string::npos)
 	{
-		succeeded = loader.LoadASCIIFromFile(&gltfModel, &error, &warning, filename.c_str());
+		succeeded = loader.LoadASCIIFromFile(
+			&gltfModel, &error, &warning, filename.c_str());
 	}
 
-	// Œx
 	_ASSERT_EXPR_A(warning.empty(), warning.c_str());
-	// ƒGƒ‰[
 	_ASSERT_EXPR_A(error.empty(), error.c_str());
-	// ¸”s
 	_ASSERT_EXPR_A(succeeded, "Failed to load glTF file");
 
-	// Model¶¬
 	auto model = std::make_shared<Model>();
-
-	// ƒXƒLƒjƒ“ƒO©“®”»’è
 	model->hasSkin = CheckHasSkin(gltfModel);
 
-	// ƒtƒ@ƒCƒ‹ƒpƒXæ“¾
 	std::filesystem::path filepath(filename);
 
-	// ƒm[ƒh“Ç‚İ‚İ
+	// “Ç‚İ‚İ‡˜
+	// ƒm[ƒh
 	LoadNodes(*model, gltfModel);
-	// ƒƒbƒVƒ…“Ç‚İ‚İ
+	// ƒƒbƒVƒ…j
 	LoadMeshes(*model, gltfModel, device);
-	// ƒ}ƒeƒŠƒAƒ‹“Ç‚İ‚İ
+	// ƒ}ƒeƒŠƒAƒ‹
 	LoadMaterials(*model, gltfModel, device, filepath);
-	// ƒAƒjƒ[ƒVƒ‡ƒ““Ç‚İ‚İ
+	// ƒXƒLƒ“
+	LoadSkins(*model, gltfModel);
+	// ƒAƒjƒ[ƒVƒ‡ƒ“
 	LoadAnimations(*model, gltfModel);
 
+	// ƒXƒLƒ“Š®—¹Œã‚Ébones.offsetTransform‚ğ•âŠ®
+	for (auto& mesh : model->meshes)
+	{
+		if (mesh.skinIndex < 0) continue;
+		const auto& skin = model->skins[mesh.skinIndex];
+		for (size_t ji = 0; ji < mesh.bones.size(); ji++)
+		{
+			if (ji < skin.inverseBindMatrices.size())
+			{
+				mesh.bones[ji].offsetTransform =
+					skin.inverseBindMatrices[ji];
+			}
+		}
+	}
+
 	return model;
+}
+
+// ƒOƒ[ƒoƒ‹ƒgƒ‰ƒ“ƒXƒtƒH[ƒ€ŒvZ
+void GLTFImporter::CalcGlobalTransform(
+	std::vector<Model::Node>& nodes,
+	int nodeIndex,
+	const DirectX::XMFLOAT4X4& parentTransform)
+{
+	auto& node = nodes[nodeIndex];
+
+	// Scales—ñ
+	DirectX::XMMATRIX S = DirectX::XMMatrixScaling(
+		node.scale.x, node.scale.y, node.scale.z);
+
+	// ƒNƒH[ƒ^ƒjƒIƒ“‚ğ³‹K‰»‚µ‚Äw‚ª³‚É‚È‚é‚æ‚¤“ˆê
+	DirectX::XMVECTOR q = DirectX::XMVectorSet(
+		node.rotation.x, node.rotation.y,
+		node.rotation.z, node.rotation.w);
+	q = DirectX::XMQuaternionNormalize(q);
+
+	// w‚ª•‰‚È‚ç‘S¬•ª‚ğ”½“]i“¯‚¶‰ñ“]‚ğ•\‚·j
+	float w;
+	DirectX::XMStoreFloat(&w, DirectX::XMVectorSplatW(q));
+	if (w < 0.0f) q = DirectX::XMVectorNegate(q);
+
+	// Rotations—ñ
+	//DirectX::XMMATRIX R = DirectX::XMMatrixRotationQuaternion(
+	//	DirectX::XMVectorSet(
+	//		node.rotation.x, node.rotation.y,
+	//		node.rotation.z, node.rotation.w));
+	DirectX::XMMATRIX R = DirectX::XMMatrixRotationQuaternion(q);
+
+	// Translations—ñ
+	DirectX::XMMATRIX T = DirectX::XMMatrixTranslation(
+		node.position.x, node.position.y, node.position.z);
+
+	// ƒ[ƒJƒ‹s—ñ = S * R * T
+	DirectX::XMMATRIX local = S * R * T;
+	DirectX::XMMATRIX parent = DirectX::XMLoadFloat4x4(&parentTransform);
+
+	// ƒOƒ[ƒoƒ‹s—ñ = ƒ[ƒJƒ‹ * e
+	DirectX::XMMATRIX global = local * parent;
+	DirectX::XMStoreFloat4x4(&node.globalTransform, global);
+
+	// qƒm[ƒh‚ÖÄ‹A
+	for (int childIndex : node.childIndices)
+	{
+		CalcGlobalTransform(nodes, childIndex, node.globalTransform);
+	}
 }
 
 // ƒm[ƒh“Ç‚İ‚İ
@@ -2575,58 +3269,63 @@ void GLTFImporter::LoadNodes(
 	Model& model,
 	const tinygltf::Model& gltfModel)
 {
-	// ƒm[ƒh”•ªƒƒ‚ƒŠŠm•Û
 	model.nodes.reserve(gltfModel.nodes.size());
 
-	// gltf“à‘Sƒm[ƒh‘–¸@
 	for (const auto& gltfNode : gltfModel.nodes)
 	{
 		Model::Node node;
-		// ƒm[ƒh–¼
 		node.name = gltfNode.name;
-
-		// qƒm[ƒhIndex•Û‘¶
 		node.childIndices = gltfNode.children;
 
-		// ƒgƒ‰ƒ“ƒXƒtƒH[ƒ€“Ç‚İ‚İ
 		if (!gltfNode.matrix.empty())
 		{
-			// matrixŒ`®‚Ìê‡
-			DirectX::XMFLOAT4X4 matrix = ToXMFLOAT4X4(gltfNode.matrix);
-			// s—ñ‚ğSRT‚Ö•ª‰ğ
+			// matrixŒ`® ¨ À•WŒn•ÏŠ·‚µ‚Ä‚©‚çSRT‚Ö•ª‰ğ
+			DirectX::XMFLOAT4X4 matrix =
+				GLTFConverter::Matrix(gltfNode.matrix);
+
 			DirectX::XMVECTOR S, R, T;
 			DirectX::XMMatrixDecompose(
 				&S, &R, &T,
 				DirectX::XMLoadFloat4x4(&matrix));
-			// Scale•Û‘¶
+
 			DirectX::XMStoreFloat3(&node.scale, S);
-			// Rotation•Û‘¶
 			DirectX::XMStoreFloat4(&node.rotation, R);
-			// Translation•Û‘¶
 			DirectX::XMStoreFloat3(&node.position, T);
 		}
 		else
 		{
-			// TRSŒ`®‚Ìê‡
-
-			// translation
+			// TRSŒ`® ¨ Še¬•ª‚ğÀ•WŒn•ÏŠ·
 			if (!gltfNode.translation.empty())
-				node.position = ToXMFLOAT3(gltfNode.translation);
-			// rotation
+			{
+				// •½sˆÚ“®: Z”½“]
+				node.position = GLTFConverter::Translation(
+					gltfNode.translation[0],
+					gltfNode.translation[1],
+					gltfNode.translation[2]);
+			}
 			if (!gltfNode.rotation.empty())
-				node.rotation = ToXMFLOAT4(gltfNode.rotation);
-			// scale
+			{
+				// ‰ñ“]: X,Y”½“]
+				node.rotation = GLTFConverter::Rotation(
+					gltfNode.rotation[0],
+					gltfNode.rotation[1],
+					gltfNode.rotation[2],
+					gltfNode.rotation[3]);
+			}
 			if (!gltfNode.scale.empty())
-				node.scale = ToXMFLOAT3(gltfNode.scale);
+			{
+				// ƒXƒP[ƒ‹: •ÏŠ·‚È‚µ
+				node.scale = GLTFConverter::Scale(
+					gltfNode.scale[0],
+					gltfNode.scale[1],
+					gltfNode.scale[2]);
+			}
 		}
-
-		// ƒm[ƒh’Ç‰Á
 		model.nodes.push_back(node);
 	}
 
 	// eIndexİ’è
-	// qƒm[ƒh‘¤‚ÉeIndex‚ğ‘‚«‚Ş
-	for (int i = 0; i < static_cast<int>(model.nodes.size()); i++)
+	for (int i = 0; i < (int)model.nodes.size(); i++)
 	{
 		for (int child : model.nodes[i].childIndices)
 		{
@@ -2635,12 +3334,12 @@ void GLTFImporter::LoadNodes(
 	}
 
 	// ƒOƒ[ƒoƒ‹ƒgƒ‰ƒ“ƒXƒtƒH[ƒ€ŒvZ
-	DirectX::XMFLOAT4X4 identity = { 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 };
+	DirectX::XMFLOAT4X4 identity =
+	{ 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 };
 	for (const auto& scene : gltfModel.scenes)
 	{
 		for (int rootIndex : scene.nodes)
 		{
-			// e‚©‚çq‚ÖTransform“`”À
 			CalcGlobalTransform(model.nodes, rootIndex, identity);
 		}
 	}
@@ -2652,78 +3351,62 @@ void GLTFImporter::LoadMeshes(
 	const tinygltf::Model& gltfModel,
 	ID3D11Device* device)
 {
-	// glTF“à‘SƒƒbƒVƒ…‘–¸
 	for (const auto& gltfMesh : gltfModel.meshes)
 	{
-		// Primitive’PˆÊ‚ÅƒƒbƒVƒ…¶¬(1ƒƒbƒVƒ…‚É•¡”Primitive‚ğ‚Ä‚éj
 		for (const auto& primitive : gltfMesh.primitives)
 		{
 			Model::Mesh mesh;
-			// ƒ}ƒeƒŠƒAƒ‹Index
 			mesh.materialIndex = primitive.material;
 
-			// Position“Ç‚İ‚İ
+			// Position“Ç‚İ‚İ + Z”½“]
 			if (primitive.attributes.count("POSITION"))
 			{
-				const auto& accessor = gltfModel.accessors[primitive.attributes.at("POSITION")];
-				const auto& bufferView = gltfModel.bufferViews[accessor.bufferView];
-				const auto& buffer = gltfModel.buffers[bufferView.buffer];
-
-				// ’¸“_À•Wƒf[ƒ^æ“¾
+				const auto& acc = gltfModel.accessors[primitive.attributes.at("POSITION")];
+				const auto& bv = gltfModel.bufferViews[acc.bufferView];
+				const auto& buf = gltfModel.buffers[bv.buffer];
 				const float* data = reinterpret_cast<const float*>(
-					buffer.data.data() + bufferView.byteOffset + accessor.byteOffset);
+					buf.data.data() + bv.byteOffset + acc.byteOffset);
 
-				// ’¸“_”•Û‘¶
-				mesh.vertices.resize(accessor.count);
-
-				// xyz“Ç‚İ‚İ
-				for (size_t i = 0; i < accessor.count; i++)
+				mesh.vertices.resize(acc.count);
+				for (size_t i = 0; i < acc.count; i++)
 				{
-					mesh.vertices[i].position =
-					{
+					// ‰EèŒn¨¶èŒn: Z”½“]
+					mesh.vertices[i].position = GLTFConverter::Position(
 						data[i * 3 + 0],
 						data[i * 3 + 1],
-						data[i * 3 + 2]
-					};
+						data[i * 3 + 2]);
 				}
 			}
 
-			// Normal“Ç‚İ‚İ
+			// Normal“Ç‚İ‚İ + Z”½“]
 			if (primitive.attributes.count("NORMAL"))
 			{
-				const auto& accessor = gltfModel.accessors[primitive.attributes.at("NORMAL")];
-				const auto& bufferView = gltfModel.bufferViews[accessor.bufferView];
-				const auto& buffer = gltfModel.buffers[bufferView.buffer];
-
-				// ’¸“_ƒf[ƒ^æ“¾
+				const auto& acc = gltfModel.accessors[primitive.attributes.at("NORMAL")];
+				const auto& bv = gltfModel.bufferViews[acc.bufferView];
+				const auto& buf = gltfModel.buffers[bv.buffer];
 				const float* data = reinterpret_cast<const float*>(
-					buffer.data.data() + bufferView.byteOffset + accessor.byteOffset);
+					buf.data.data() + bv.byteOffset + acc.byteOffset);
 
-				// –@üƒxƒNƒgƒ‹“Ç‚İ‚İ
-				for (size_t i = 0; i < accessor.count; i++)
+				for (size_t i = 0; i < acc.count; i++)
 				{
-					mesh.vertices[i].normal =
-					{
+					// ‰EèŒn¨¶èŒn: Z”½“]
+					mesh.vertices[i].normal = GLTFConverter::Normal(
 						data[i * 3 + 0],
 						data[i * 3 + 1],
-						data[i * 3 + 2]
-					};
+						data[i * 3 + 2]);
 				}
 			}
 
-			// Texcoord“Ç‚İ‚İ
+			// Texcoord“Ç‚İ‚İi•ÏŠ·‚È‚µj
 			if (primitive.attributes.count("TEXCOORD_0"))
 			{
-				const auto& accessor = gltfModel.accessors[primitive.attributes.at("TEXCOORD_0")];
-				const auto& bufferView = gltfModel.bufferViews[accessor.bufferView];
-				const auto& buffer = gltfModel.buffers[bufferView.buffer];
-
-				// ’¸“_ƒf[ƒ^æ“¾
+				const auto& acc = gltfModel.accessors[primitive.attributes.at("TEXCOORD_0")];
+				const auto& bv = gltfModel.bufferViews[acc.bufferView];
+				const auto& buf = gltfModel.buffers[bv.buffer];
 				const float* data = reinterpret_cast<const float*>(
-					buffer.data.data() + bufferView.byteOffset + accessor.byteOffset);
+					buf.data.data() + bv.byteOffset + acc.byteOffset);
 
-				// UVÀ•W“Ç‚İ‚İ
-				for (size_t i = 0; i < accessor.count; i++)
+				for (size_t i = 0; i < acc.count; i++)
 				{
 					mesh.vertices[i].texcoord =
 					{
@@ -2733,20 +3416,17 @@ void GLTFImporter::LoadMeshes(
 				}
 			}
 
-			// BoneWeight“Ç‚İ‚İ
+			// BoneWeight“Ç‚İ‚İi•ÏŠ·‚È‚µj
 			if (primitive.attributes.count("WEIGHTS_0"))
 			{
-				const auto& accessor = gltfModel.accessors[primitive.attributes.at("WEIGHTS_0")];
-				const auto& bufferView = gltfModel.bufferViews[accessor.bufferView];
-				const auto& buffer = gltfModel.buffers[bufferView.buffer];
-
-				// ’¸“_ƒf[ƒ^æ“¾
+				const auto& acc = gltfModel.accessors[primitive.attributes.at("WEIGHTS_0")];
+				const auto& bv = gltfModel.bufferViews[acc.bufferView];
+				const auto& buf = gltfModel.buffers[bv.buffer];
 				const float* data = reinterpret_cast<const float*>(
-					buffer.data.data() + bufferView.byteOffset + accessor.byteOffset);
+					buf.data.data() + bv.byteOffset + acc.byteOffset);
 
-				for (size_t i = 0; i < accessor.count; i++)
+				for (size_t i = 0; i < acc.count; i++)
 				{
-					// ƒ{[ƒ“ƒEƒFƒCƒg“Ç‚İ‚İ
 					mesh.vertices[i].boneWeight =
 					{
 						data[i * 4 + 0],
@@ -2757,19 +3437,16 @@ void GLTFImporter::LoadMeshes(
 				}
 			}
 
-			// BoneIndex“Ç‚İ‚İ
+			// BoneIndex“Ç‚İ‚İi•ÏŠ·‚È‚µj
 			if (primitive.attributes.count("JOINTS_0"))
 			{
-				const auto& accessor = gltfModel.accessors[primitive.attributes.at("JOINTS_0")];
-				const auto& bufferView = gltfModel.bufferViews[accessor.bufferView];
-				const auto& buffer = gltfModel.buffers[bufferView.buffer];
-
-				// ’¸“_ƒf[ƒ^æ“¾
+				const auto& acc = gltfModel.accessors[primitive.attributes.at("JOINTS_0")];
+				const auto& bv = gltfModel.bufferViews[acc.bufferView];
+				const auto& buf = gltfModel.buffers[bv.buffer];
 				const uint16_t* data = reinterpret_cast<const uint16_t*>(
-					buffer.data.data() + bufferView.byteOffset + accessor.byteOffset);
+					buf.data.data() + bv.byteOffset + acc.byteOffset);
 
-				// ƒ{[ƒ“Index“Ç‚İ‚İ
-				for (size_t i = 0; i < accessor.count; i++)
+				for (size_t i = 0; i < acc.count; i++)
 				{
 					mesh.vertices[i].boneIndex =
 					{
@@ -2784,33 +3461,59 @@ void GLTFImporter::LoadMeshes(
 			// Index“Ç‚İ‚İ
 			if (primitive.indices >= 0)
 			{
-				const auto& accessor = gltfModel.accessors[primitive.indices];
-				const auto& bufferView = gltfModel.bufferViews[accessor.bufferView];
-				const auto& buffer = gltfModel.buffers[bufferView.buffer];
+				const auto& acc = gltfModel.accessors[primitive.indices];
+				const auto& bv = gltfModel.bufferViews[acc.bufferView];
+				const auto& buf = gltfModel.buffers[bv.buffer];
+				const void* data = buf.data.data() +
+					bv.byteOffset + acc.byteOffset;
 
-				// Indexƒf[ƒ^æ“ª
-				const void* data = buffer.data.data() +
-					bufferView.byteOffset + accessor.byteOffset;
+				mesh.indices.resize(acc.count);
 
-				mesh.indices.resize(accessor.count);
-
-				// uint16Œ`®
-				if (accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT)
+				if (acc.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT)
 				{
 					const uint16_t* src = static_cast<const uint16_t*>(data);
-					for (size_t i = 0; i < accessor.count; i++)
+					for (size_t i = 0; i < acc.count; i++)
 					{
 						mesh.indices[i] = src[i];
 					}
 				}
-				// uint32Œ`®
-				else if (accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT)
+				else if (acc.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT)
 				{
 					const uint32_t* src = static_cast<const uint32_t*>(data);
-					for (size_t i = 0; i < accessor.count; i++)
+					for (size_t i = 0; i < acc.count; i++)
 					{
 						mesh.indices[i] = src[i];
 					}
+				}
+			}
+
+			// ƒ{[ƒ“î•ñ“Ç‚İ‚İ
+			if (primitive.attributes.count("JOINTS_0"))
+			{
+				int meshIndex = (int)(&gltfMesh - gltfModel.meshes.data());
+
+				for (int ni = 0; ni < (int)gltfModel.nodes.size(); ni++)
+				{
+					const auto& gltfNode = gltfModel.nodes[ni];
+					if (gltfNode.mesh != meshIndex || gltfNode.skin < 0)
+					{
+						continue;
+					}
+
+					const auto& skin = gltfModel.skins[gltfNode.skin];
+					mesh.bones.resize(skin.joints.size());
+					for (size_t ji = 0; ji < skin.joints.size(); ji++)
+					{
+						mesh.bones[ji].nodeIndex = skin.joints[ji];
+						mesh.bones[ji].offsetTransform =
+						{
+							1,0,0,0,
+							0,1,0,0,
+							0,0,1,0,
+							0,0,0,1
+						};
+					}
+					break;
 				}
 			}
 
@@ -2820,32 +3523,25 @@ void GLTFImporter::LoadMeshes(
 			// ’¸“_ƒoƒbƒtƒ@¶¬
 			{
 				D3D11_BUFFER_DESC desc{};
-				desc.ByteWidth = static_cast<UINT>(
-					sizeof(Model::Vertex) * mesh.vertices.size());
+				desc.ByteWidth = static_cast<UINT>(sizeof(Model::Vertex) * mesh.vertices.size());
 				desc.Usage = D3D11_USAGE_DEFAULT;
 				desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 
 				D3D11_SUBRESOURCE_DATA sub{};
 				sub.pSysMem = mesh.vertices.data();
-				device->CreateBuffer(&desc, &sub,
-					mesh.vertexBuffer.GetAddressOf());
+				device->CreateBuffer(&desc, &sub, mesh.vertexBuffer.GetAddressOf());
 			}
-
 			// ƒCƒ“ƒfƒbƒNƒXƒoƒbƒtƒ@¶¬
 			{
 				D3D11_BUFFER_DESC desc{};
-				desc.ByteWidth = static_cast<UINT>(
-					sizeof(uint32_t) * mesh.indices.size());
+				desc.ByteWidth = static_cast<UINT>(sizeof(uint32_t) * mesh.indices.size());
 				desc.Usage = D3D11_USAGE_DEFAULT;
 				desc.BindFlags = D3D11_BIND_INDEX_BUFFER;
 
 				D3D11_SUBRESOURCE_DATA sub{};
 				sub.pSysMem = mesh.indices.data();
-				device->CreateBuffer(&desc, &sub,
-					mesh.indexBuffer.GetAddressOf());
+				device->CreateBuffer(&desc, &sub, mesh.indexBuffer.GetAddressOf());
 			}
-
-			// ƒ‚ƒfƒ‹‚Ö’Ç‰Á
 			model.meshes.push_back(std::move(mesh));
 		}
 	}
@@ -2858,16 +3554,13 @@ void GLTFImporter::LoadMaterials(
 	ID3D11Device* device,
 	const std::filesystem::path& filepath)
 {
-	// glTF“à‘Sƒ}ƒeƒŠƒAƒ‹‘–¸
 	for (const auto& gltfMaterial : gltfModel.materials)
 	{
 		Model::Material material;
-		// ƒ}ƒeƒŠƒAƒ‹–¼
 		material.name = gltfMaterial.name;
 
-		// PBRİ’èæ“¾
 		const auto& pbr = gltfMaterial.pbrMetallicRoughness;
-		// BaseColor“Ç‚İ‚İ
+
 		if (!pbr.baseColorFactor.empty())
 		{
 			material.baseColor =
@@ -2878,26 +3571,24 @@ void GLTFImporter::LoadMaterials(
 				static_cast<float>(pbr.baseColorFactor[3])
 			};
 		}
-		// Roughness’l
+
 		material.roughnessFactor = static_cast<float>(pbr.roughnessFactor);
-		// Metallic’l
 		material.metallicFactor = static_cast<float>(pbr.metallicFactor);
 
-		// AlphaBlend
 		if (gltfMaterial.alphaMode == "BLEND")
 		{
 			material.alphaMode = Model::Material::AlphaMode::Blend;
 		}
-		// AlphaMask
 		else if (gltfMaterial.alphaMode == "MASK")
 		{
 			material.alphaMode = Model::Material::AlphaMode::Mask;
 		}
-		// AlphaCutoff’l
+
 		material.alphaCutoff = static_cast<float>(gltfMaterial.alphaCutoff);
 
 		// ƒeƒNƒXƒ`ƒƒ“Ç‚İ‚İƒwƒ‹ƒp[
-		auto loadTexture = [&](int textureIndex,
+		auto loadTexture = [&](
+			int textureIndex,
 			Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>& srv,
 			DWORD dummyColor)
 			{
@@ -2912,55 +3603,107 @@ void GLTFImporter::LoadMaterials(
 
 				if (!image.uri.empty())
 				{
-					// ŠO•”ƒtƒ@ƒCƒ‹ƒeƒNƒXƒ`ƒƒ
 					std::string texPath = (filepath.parent_path() / image.uri).string();
 					GpuResourceUtils::LoadTexture(device, texPath, srv);
 				}
 				else if (image.bufferView >= 0)
 				{
-					// –„‚ß‚İƒeƒNƒXƒ`ƒƒiGLBƒtƒ@ƒCƒ‹j
-					// bufferView‚©‚ç’¼Úƒf[ƒ^‚ğæ“¾‚·‚é
 					const auto& bv = gltfModel.bufferViews[image.bufferView];
-					const auto& buffer = gltfModel.buffers[bv.buffer];
-					const unsigned char* data = buffer.data.data() + bv.byteOffset;
-
+					const auto& buf = gltfModel.buffers[bv.buffer];
+					const unsigned char* data = buf.data.data() + bv.byteOffset;
 					GpuResourceUtils::LoadTexture(device, data, bv.byteLength, srv);
 				}
 				else
 				{
-					// ‚Ç‚¿‚ç‚à‚È‚¢ê‡‚Íƒ_ƒ~[
 					GpuResourceUtils::CreateDummyTexture(device, srv, dummyColor, 1);
 				}
 			};
 
-		// ƒx[ƒXƒJƒ‰[“Ç‚İ‚İ
 		loadTexture(pbr.baseColorTexture.index,
 			material.baseMap, 0xFFFFFFFF);
-		// ƒm[ƒ}ƒ‹ƒ}ƒbƒv“Ç‚İ‚İ
 		loadTexture(gltfMaterial.normalTexture.index,
 			material.normalMap, 0xFFFF8080);
-		// ƒƒ^ƒŠƒbƒN/ƒ‰ƒtƒlƒX“Ç‚İ‚İ
 		loadTexture(pbr.metallicRoughnessTexture.index,
 			material.metallicRoughnessMap, 0xFFFFFFFF);
-		// ƒIƒNƒ‹[ƒWƒ‡ƒ“ƒ}ƒbƒv“Ç‚İ‚İ
 		loadTexture(gltfMaterial.occlusionTexture.index,
 			material.occlusionMap, 0xFFFFFFFF);
-		// ƒGƒ~ƒbƒVƒu“Ç‚İ‚İ
 		loadTexture(gltfMaterial.emissiveTexture.index,
 			material.emissiveMap, 0xFF000000);
 
-		// ƒ‚ƒfƒ‹‚Ö’Ç‰Á
 		model.materials.push_back(std::move(material));
 	}
-
 	// ƒƒbƒVƒ…‚Æƒ}ƒeƒŠƒAƒ‹‚ğ•R•t‚¯
 	for (auto& mesh : model.meshes)
 	{
-		// —LŒø”ÍˆÍƒ`ƒFƒbƒN
-		if (mesh.materialIndex >= 0 && mesh.materialIndex < static_cast<int>(model.materials.size()))
+		if (mesh.materialIndex >= 0 &&
+			mesh.materialIndex < (int)model.materials.size())
 		{
-			// ƒ}ƒeƒŠƒAƒ‹İ’è
 			mesh.material = &model.materials[mesh.materialIndex];
+		}
+	}
+}
+
+// ƒXƒLƒ““Ç‚İ‚İ
+void GLTFImporter::LoadSkins(
+	Model& model,
+	const tinygltf::Model& gltfModel)
+{
+	model.skins.resize(gltfModel.skins.size());
+
+	for (int si = 0; si < (int)gltfModel.skins.size(); si++)
+	{
+		const auto& gltfSkin = gltfModel.skins[si];
+		auto& skin = model.skins[si];
+
+		// joints”z—ñijointIndex ¨ nodeIndexj
+		skin.joints = gltfSkin.joints;
+
+		// inverseBindMatrices“Ç‚İ‚İ + À•WŒn•ÏŠ·
+		if (gltfSkin.inverseBindMatrices >= 0)
+		{
+			const auto& acc = gltfModel.accessors[
+				gltfSkin.inverseBindMatrices];
+			const auto& bv = gltfModel.bufferViews[acc.bufferView];
+			const auto& buf = gltfModel.buffers[bv.buffer];
+			const float* data = reinterpret_cast<const float*>(
+				buf.data.data() + bv.byteOffset + acc.byteOffset);
+
+			skin.inverseBindMatrices.resize(acc.count);
+			for (size_t i = 0; i < acc.count; i++)
+			{
+				// glTF—ñ—Dæ ¨ DirectXs—Dæ‚É“]’u + Z”½“]
+				const float* m = data + i * 16;
+				//std::vector<double> md(m, m + 16);
+				//skin.inverseBindMatrices[i] = GLTFConverter::Matrix(md);
+				skin.inverseBindMatrices[i] = {
+					m[0], m[4], m[8],  m[12],
+					m[1], m[5], m[9],  m[13],
+					m[2], m[6], m[10], m[14],
+					m[3], m[7], m[11], m[15]
+				};
+			}
+		}
+	}
+
+	// ŠeƒƒbƒVƒ…‚ÉskinIndex‚ğİ’è
+	for (int ni = 0; ni < (int)gltfModel.nodes.size(); ni++)
+	{
+		const auto& gltfNode = gltfModel.nodes[ni];
+		if (gltfNode.mesh < 0 || gltfNode.skin < 0)
+		{
+			continue;
+		}
+
+		int primitiveOffset = 0;
+		for (int mi = 0; mi < gltfNode.mesh; mi++)
+		{
+			primitiveOffset += (int)gltfModel.meshes[mi].primitives.size();
+		}
+
+		int primitiveCount = (int)gltfModel.meshes[gltfNode.mesh].primitives.size();
+		for (int pi = 0; pi < primitiveCount; pi++)
+		{
+			model.meshes[primitiveOffset + pi].skinIndex = gltfNode.skin;
 		}
 	}
 }
@@ -2968,125 +3711,98 @@ void GLTFImporter::LoadMaterials(
 // ƒAƒjƒ[ƒVƒ‡ƒ““Ç‚İ‚İ
 void GLTFImporter::LoadAnimations(
 	Model& model,
-	const tinygltf::Model& gltfModel,
-	float sampleRate)
+	const tinygltf::Model& gltfModel)
 {
-	// glTF“à‘SƒAƒjƒ[ƒVƒ‡ƒ“‘–¸
 	for (const auto& gltfAnim : gltfModel.animations)
 	{
 		Model::Animation animation;
-		// ƒAƒjƒ[ƒVƒ‡ƒ“–¼
 		animation.name = gltfAnim.name;
-		// ƒAƒjƒ[ƒVƒ‡ƒ“’·‰Šú‰»
 		animation.secondsLength = 0.0f;
-		// ƒm[ƒh”•ªƒAƒjƒ[ƒVƒ‡ƒ“Šm•Û
 		animation.nodeAnims.resize(model.nodes.size());
 
-		// Channel“Ç‚İ‚İ
 		for (const auto& channel : gltfAnim.channels)
 		{
-			// Sampleræ“¾
 			const auto& sampler = gltfAnim.samplers[channel.sampler];
-			// “ü—ÍAccessoriŠÔj
 			const auto& inputAcc = gltfModel.accessors[sampler.input];
-			// o—ÍAccessori’lj
 			const auto& outputAcc = gltfModel.accessors[sampler.output];
-
-			// BufferViewæ“¾
 			const auto& inputBV = gltfModel.bufferViews[inputAcc.bufferView];
 			const auto& outputBV = gltfModel.bufferViews[outputAcc.bufferView];
-			// Bufferæ“¾
 			const auto& inputBuf = gltfModel.buffers[inputBV.buffer];
 			const auto& outputBuf = gltfModel.buffers[outputBV.buffer];
 
-			// ƒL[ƒtƒŒ[ƒ€ŠÔ”z—ñ
 			const float* times = reinterpret_cast<const float*>(
-				inputBuf.data.data() + inputBV.byteOffset + inputAcc.byteOffset);
-			// ƒL[ƒtƒŒ[ƒ€’l”z—ñ
-			const float* values = reinterpret_cast<const float*>(
-				outputBuf.data.data() + outputBV.byteOffset + outputAcc.byteOffset);
+				inputBuf.data.data() +
+				inputBV.byteOffset + inputAcc.byteOffset);
 
-			// ‘ÎÛƒm[ƒhIndex
+			const float* values = reinterpret_cast<const float*>(
+				outputBuf.data.data() +
+				outputBV.byteOffset + outputAcc.byteOffset);
+
 			int nodeIndex = channel.target_node;
-			// ”ÍˆÍŠOƒ`ƒFƒbƒN
-			if (nodeIndex < 0 || nodeIndex >= static_cast<int>(animation.nodeAnims.size()))
+			if (nodeIndex < 0 || nodeIndex >= (int)animation.nodeAnims.size())
 			{
 				continue;
 			}
 
-			// ƒm[ƒhƒAƒjƒ[ƒVƒ‡ƒ“æ“¾
 			auto& nodeAnim = animation.nodeAnims[nodeIndex];
 
 			// ƒAƒjƒ[ƒVƒ‡ƒ“’·XV
 			if (inputAcc.count > 0)
 			{
-				// ÅIƒL[ƒtƒŒ[ƒ€ŠÔ
-				float lastTime = times[inputAcc.count - 1];
-
-				// Å‘åŠÔXV
-				animation.secondsLength = (std::max)(animation.secondsLength, lastTime);
+				animation.secondsLength = (std::max)(
+					animation.secondsLength,
+					times[inputAcc.count - 1]);
 			}
 
-
-			// Translation
+			// Translation + Z”½“]
 			if (channel.target_path == "translation")
 			{
 				for (size_t i = 0; i < inputAcc.count; i++)
 				{
 					Model::VectorKeyframe kf;
-					// ƒL[ƒtƒŒ[ƒ€ŠÔ
 					kf.seconds = times[i];
-					// À•W’l
-					kf.value =
-					{
+
+					// ‰EèŒn¨¶èŒn: Z”½“]
+					kf.value = GLTFConverter::AnimPosition(
 						values[i * 3 + 0],
 						values[i * 3 + 1],
-						values[i * 3 + 2]
-					};
-
+						values[i * 3 + 2]);
 					nodeAnim.positionKeyframes.push_back(kf);
 				}
 			}
-			// Rotation
+
+			// Rotation + X,Y”½“]
 			else if (channel.target_path == "rotation")
 			{
 				for (size_t i = 0; i < inputAcc.count; i++)
 				{
 					Model::QuaternionKeyframe kf;
-
-					// ƒL[ƒtƒŒ[ƒ€ŠÔ
 					kf.seconds = times[i];
-					// ‰ñ“]’l
-					kf.value =
-					{
-						values[i * 4 + 0], values[i * 4 + 1],
-						values[i * 4 + 2], values[i * 4 + 3]
-					};
+					// ‰EèŒn¨¶èŒn: X,Y”½“]
+					kf.value = GLTFConverter::AnimRotation(
+						values[i * 4 + 0],
+						values[i * 4 + 1],
+						values[i * 4 + 2],
+						values[i * 4 + 3]);
 					nodeAnim.rotationKeyframes.push_back(kf);
 				}
 			}
-			// Scale
+
+			// Scalei•ÏŠ·‚È‚µj
 			else if (channel.target_path == "scale")
 			{
 				for (size_t i = 0; i < inputAcc.count; i++)
 				{
 					Model::VectorKeyframe kf;
-					// ƒL[ƒtƒŒ[ƒ€ŠÔ
 					kf.seconds = times[i];
-					// Scale’l
-					kf.value =
-					{
+					kf.value = GLTFConverter::AnimScale(
 						values[i * 3 + 0],
 						values[i * 3 + 1],
-						values[i * 3 + 2]
-					};
-
+						values[i * 3 + 2]);
 					nodeAnim.scaleKeyframes.push_back(kf);
 				}
 			}
 		}
-
-		// ƒ‚ƒfƒ‹‚Ö’Ç‰Á
 		model.animations.push_back(std::move(animation));
 	}
 }
@@ -3097,78 +3813,38 @@ bool GLTFImporter::CheckHasSkin(const tinygltf::Model& gltfModel)
 	return !gltfModel.skins.empty();
 }
 
-
-// À•WŒn•ÏŠ·ƒwƒ‹ƒp[
-DirectX::XMFLOAT3 GLTFImporter::ToXMFLOAT3(const std::vector<double>& v)
-{
-	return { 
-		static_cast<float>(v[0]),
-		static_cast<float>(v[1]),
-		static_cast<float>(v[2]) 
-	};
-}
-DirectX::XMFLOAT4 GLTFImporter::ToXMFLOAT4(const std::vector<double>& v)
-{
-	return { 
-		static_cast<float>(v[0]),
-		static_cast<float>(v[1]),
-		static_cast<float>(v[2]),
-		static_cast<float>(v[3]) 
-	};
-}
-DirectX::XMFLOAT4X4 GLTFImporter::ToXMFLOAT4X4(const std::vector<double>& v)
-{
-	return {
-		static_cast<float>(v[0]),  static_cast<float>(v[1]),
-		static_cast<float>(v[2]),  static_cast<float>(v[3]),
-		static_cast<float>(v[4]),  static_cast<float>(v[5]),
-		static_cast<float>(v[6]),  static_cast<float>(v[7]),
-		static_cast<float>(v[8]),  static_cast<float>(v[9]),
-		static_cast<float>(v[10]), static_cast<float>(v[11]),
-		static_cast<float>(v[12]), static_cast<float>(v[13]),
-		static_cast<float>(v[14]), static_cast<float>(v[15])
-	};
-}
-
-
 // ƒ^ƒ“ƒWƒFƒ“ƒgŒvZ
-void GLTFImporter::ComputeTangents(
-	std::vector<Model::Vertex>& vertices,
-	const std::vector<uint32_t>& indices)
+void GLTFImporter::ComputeTangents(std::vector<Model::Vertex>& vertices, const std::vector<uint32_t>& indices)
 {
-	// 3Index’PˆÊ‚ÅOŠpŒ`‘–¸
 	for (size_t i = 0; i < indices.size(); i += 3)
 	{
-		// OŠpŒ`’¸“_æ“¾
 		auto& v0 = vertices[indices[i + 0]];
 		auto& v1 = vertices[indices[i + 1]];
 		auto& v2 = vertices[indices[i + 2]];
 
-		// Positionæ“¾
 		DirectX::XMVECTOR p0 = DirectX::XMLoadFloat3(&v0.position);
 		DirectX::XMVECTOR p1 = DirectX::XMLoadFloat3(&v1.position);
 		DirectX::XMVECTOR p2 = DirectX::XMLoadFloat3(&v2.position);
 
-		// UVæ“¾
 		DirectX::XMVECTOR uv0 = DirectX::XMLoadFloat2(&v0.texcoord);
 		DirectX::XMVECTOR uv1 = DirectX::XMLoadFloat2(&v1.texcoord);
 		DirectX::XMVECTOR uv2 = DirectX::XMLoadFloat2(&v2.texcoord);
 
-		// •ÓƒxƒNƒgƒ‹ŒvZ
-		DirectX::XMVECTOR e1 = DirectX::XMVectorSubtract(p1, p0);    // Position·•ª
-		DirectX::XMVECTOR e2 = DirectX::XMVectorSubtract(p2, p0);
-		DirectX::XMVECTOR du1 = DirectX::XMVectorSubtract(uv1, uv0); // UV·•ª
-		DirectX::XMVECTOR du2 = DirectX::XMVectorSubtract(uv2, uv0);
+		DirectX::XMVECTOR e1 =
+			DirectX::XMVectorSubtract(p1, p0);
+		DirectX::XMVECTOR e2 =
+			DirectX::XMVectorSubtract(p2, p0);
+		DirectX::XMVECTOR du1 =
+			DirectX::XMVectorSubtract(uv1, uv0);
+		DirectX::XMVECTOR du2 =
+			DirectX::XMVectorSubtract(uv2, uv0);
 
-		// UV¬•ªæ“¾
 		float u1 = DirectX::XMVectorGetX(du1);
 		float v1f = DirectX::XMVectorGetY(du1);
 		float u2 = DirectX::XMVectorGetX(du2);
 		float v2f = DirectX::XMVectorGetY(du2);
 
-		// ƒ^ƒ“ƒWƒFƒ“ƒgŒvZŒW”
 		float denom = u1 * v2f - u2 * v1f;
-		// UV‚ª‰ó‚ê‚Ä‚¢‚éê‡
 		if (fabsf(denom) < 1e-6f)
 		{
 			continue;
@@ -3176,74 +3852,24 @@ void GLTFImporter::ComputeTangents(
 
 		float r = 1.0f / denom;
 
-		// ƒ^ƒ“ƒWƒFƒ“ƒgŒvZ
-		DirectX::XMVECTOR tangent = DirectX::XMVectorScale(
-			DirectX::XMVectorSubtract(
-				DirectX::XMVectorScale(e1, v2f),
-				DirectX::XMVectorScale(e2, v1f)),
-			r);
-		// ³‹K‰»
-		tangent = DirectX::XMVector3Normalize(tangent);
+		DirectX::XMVECTOR tangent = DirectX::XMVector3Normalize(
+			DirectX::XMVectorScale(
+				DirectX::XMVectorSubtract(
+					DirectX::XMVectorScale(e1, v2f),
+					DirectX::XMVectorScale(e2, v1f)),
+				r));
 
-		// ’¸“_‚Ö•Û‘¶
 		DirectX::XMFLOAT3 t;
 		DirectX::XMStoreFloat3(&t, tangent);
-		v0.tangent =
-		v1.tangent =
-		v2.tangent =
-		{
-			t.x,
-			t.y,
-			t.z,
-			1.0f
-		};
-	}
-}
 
-// ƒOƒ[ƒoƒ‹ƒgƒ‰ƒ“ƒXƒtƒH[ƒ€ŒvZ
-void GLTFImporter::CalcGlobalTransform(
-	std::vector<Model::Node>& nodes,
-	int nodeIndex,
-	const DirectX::XMFLOAT4X4& parentTransform)
-{
-	// ‘ÎÛƒm[ƒhæ“¾
-	auto& node = nodes[nodeIndex];
-
-	// Scales—ñ
-	DirectX::XMMATRIX S = DirectX::XMMatrixScaling(
-		node.scale.x, node.scale.y, node.scale.z);
-	// Rotations—ñ
-	DirectX::XMMATRIX R = DirectX::XMMatrixRotationQuaternion(
-		DirectX::XMVectorSet(
-			node.rotation.x, node.rotation.y,
-			node.rotation.z, node.rotation.w));
-	// Translations—ñ
-	DirectX::XMMATRIX T = DirectX::XMMatrixTranslation(
-		node.position.x, node.position.y, node.position.z);
-
-	// ƒ[ƒJƒ‹s—ñ‡¬
-	DirectX::XMMATRIX local = S * R * T;
-	
-	// es—ñæ“¾
-	DirectX::XMMATRIX parent = DirectX::XMLoadFloat4x4(&parentTransform);
-	
-	// ƒOƒ[ƒoƒ‹s—ñŒvZ
-	DirectX::XMMATRIX global = local * parent;
-
-	// ŒvZŒ‹‰Ê•Û‘¶
-	DirectX::XMStoreFloat4x4(&node.globalTransform, global);
-
-	// qƒm[ƒhÄ‹Aˆ—
-	for (int childIndex : node.childIndices)
-	{
-		// eTransform‚ğ“n‚µ‚ÄÄ‹A
-		CalcGlobalTransform(nodes, childIndex, node.globalTransform);
+		v0.tangent = v1.tangent = v2.tangent =
+		{ t.x, t.y, t.z, 1.0f };
 	}
 }
  
  
 ===== GpuResourceUtils.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\GpuResourceUtils.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\GpuResourceUtils.cpp 
 //#include "GpuResourceUtils.h"
 //#include "Utility/misc.h"
 //
@@ -3508,7 +4134,7 @@ HRESULT GpuResourceUtils::CreateConstantBuffer(
  
  
 ===== Model.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\Model.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\Model.cpp 
 #include "Model.h"
 
 // “ü—ÍƒŒƒCƒAƒEƒg’è‹`
@@ -3523,7 +4149,7 @@ const std::vector<D3D11_INPUT_ELEMENT_DESC> Model::InputElementDescs =
 }; 
  
 ===== ResourceManager.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\ResourceManager.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\ResourceManager.cpp 
 #include "ResourceManager.h"
 #include "GLTFImporter.h"
 
@@ -3562,7 +4188,7 @@ void ResourceManager::ReleaseAll()
  
  
 ===== high_resolution_timer.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Utility\high_resolution_timer.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Utility\high_resolution_timer.h 
 #pragma once
 
 #include <windows.h>
@@ -3701,7 +4327,7 @@ private:
  
  
 ===== misc.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Utility\misc.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Utility\misc.h 
 #pragma once
 
 #include <windows.h>
@@ -3765,7 +4391,7 @@ public:
  
  
 ===== main.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Utility\main.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Utility\main.cpp 
 #include <time.h>
 
 #include "Core/framework.h"

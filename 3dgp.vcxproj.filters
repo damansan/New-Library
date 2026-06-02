@@ -107,6 +107,18 @@
     <Filter Include="Shader\Lambert">
       <UniqueIdentifier>{ee860c55-acf4-400e-b5e6-0607f7d87778}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\Debug">
+      <UniqueIdentifier>{686c63a9-b918-4136-af7c-b84e6424acda}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shader\Debug">
+      <UniqueIdentifier>{d37f71bf-8bbd-4257-a44b-f2fc7ae3dc5d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\ECS\AnimationSystem">
+      <UniqueIdentifier>{3a03d423-17bd-4ab0-9c45-252e63cdd8ca}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Resource\GLTFConverter">
+      <UniqueIdentifier>{01cd5179-d739-480c-9aad-f37aa8c0c206}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Core\framework.cpp">
@@ -171,6 +183,15 @@
     </ClCompile>
     <ClCompile Include="Source\Core\FreeCameraController.cpp">
       <Filter>Sources\Core\Camera\FreeCameraController</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Debug\DebugRenderer.cpp">
+      <Filter>Sources\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\ECS\Systems\AnimationSystem.cpp">
+      <Filter>Sources\ECS\AnimationSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Resource\GLTFConverter.cpp">
+      <Filter>Sources\Resource\GLTFConverter</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -255,6 +276,15 @@
     <ClInclude Include="Source\Core\FreeCameraController.h">
       <Filter>Sources\Core\Camera\FreeCameraController</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Debug\DebugRenderer.h">
+      <Filter>Sources\Debug</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ECS\Systems\AnimationSystem.h">
+      <Filter>Sources\ECS\AnimationSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Resource\GLTFConverter.h">
+      <Filter>Sources\Resource\GLTFConverter</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shader\Base_VS.hlsl">
@@ -268,6 +298,12 @@
     </FxCompile>
     <FxCompile Include="Shader\Skinning_VS.hlsl">
       <Filter>Shader\Base</Filter>
+    </FxCompile>
+    <FxCompile Include="Shader\Debug_VS.hlsl">
+      <Filter>Shader\Debug</Filter>
+    </FxCompile>
+    <FxCompile Include="Shader\Debug_PS.hlsl">
+      <Filter>Shader\Debug</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>
