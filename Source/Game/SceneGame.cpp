@@ -1,159 +1,81 @@
-ï»¿#include "SceneGame.h"
+#include "SceneGame.h"
 #include <imgui.h>
 
 void SceneGame::Initialize(const SceneContext& context)
 {
-    renderSystem.Initialize(context.device);
-    debugRenderer.Initialize(context.device);
+	renderSystem.Initialize(context.device);
 
-    // ãƒ©ãƒ³ãƒãƒ¼ãƒˆã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã‚’ä½¿ã†Entity
-    auto entity = registry.create();
-    auto& t = registry.emplace<TransformComponent>(entity);
-    t.position = { -3.0f, 0.0f, 0.0f };
-    registry.emplace<MeshComponent>(entity, "Data/Model/Mr.Incredible.glb");
-    registry.emplace<MaterialComponent>(entity).AddPass("lambert");  // ãƒ©ãƒ³ãƒãƒ¼ãƒˆã‚’æŒ‡å®š
+	// ƒ‰ƒ“ƒo[ƒgƒVƒF[ƒ_[‚ğg‚¤Entity
+	auto entity = registry.create();
+	auto& t = registry.emplace<TransformComponent>(entity);
+	t.position = { -3.0f, 0.0f, 0.0f };
+	registry.emplace<MeshComponent>(entity, "Data/Model/Mr.Incredible.glb");
+	registry.emplace<MaterialComponent>(entity).AddPass("lambert");  // ƒ‰ƒ“ƒo[ƒg‚ğw’è
 
-    // ãƒ™ãƒ¼ã‚·ãƒƒã‚¯ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã‚’ä½¿ã†Entity
-    auto entity2 = registry.create();
-    auto& t2 = registry.emplace<TransformComponent>(entity2);
-    t2.position = { 3.0f, 0.0f, 0.0f };
-    registry.emplace<MeshComponent>(entity2, "Data/Model/Mr.Incredible.glb");
-    registry.emplace<MaterialComponent>(entity2).AddPass("basic");    // ãƒ™ãƒ¼ã‚·ãƒƒã‚¯ã‚’æŒ‡å®š
+	// ƒx[ƒVƒbƒNƒVƒF[ƒ_[‚ğg‚¤Entity
+	auto entity2 = registry.create();
+	auto& t2 = registry.emplace<TransformComponent>(entity2);
+	t2.position = { 3.0f, 0.0f, 0.0f };
+	registry.emplace<MeshComponent>(entity2, "Data/Model/Mr.Incredible.glb");
+	registry.emplace<MaterialComponent>(entity2).AddPass("basic");    // ƒx[ƒVƒbƒN‚ğw’è
 
 
-    // ã‚¹ã‚­ãƒ‹ãƒ³ã‚°ãƒ¢ãƒ‡ãƒ«
-    auto entity3 = registry.create();
-    registry.emplace<TransformComponent>(entity3);
-    registry.emplace<MeshComponent>(entity3, "Data/Model/unitychan.glb");
-    registry.emplace<MaterialComponent>(entity3).AddPass("skinning_lambert");
+	// ƒXƒLƒjƒ“ƒOƒ‚ƒfƒ‹
+	auto entity3 = registry.create();
+	registry.emplace<TransformComponent>(entity3);
+	registry.emplace<MeshComponent>(entity3, "Data/Model/unitychan.glb");
+	registry.emplace<MaterialComponent>(entity3).AddPass("skinning_lambert");
 }
 
 void SceneGame::Update(float elapsedTime, const SceneContext& context)
 {
-    // æœªãƒ­ãƒ¼ãƒ‰ã®ãƒ¢ãƒ‡ãƒ«ã‚’è‡ªå‹•ãƒ­ãƒ¼ãƒ‰
-    meshLoaderSystem.Update(
-        registry,
-        context.device,
-        *context.resourceManager
-    );
-    animationSystem.Update(registry, elapsedTime/5);
+	// –¢ƒ[ƒh‚Ìƒ‚ƒfƒ‹‚ğ©“®ƒ[ƒh
+	meshLoaderSystem.Update(
+		registry,
+		context.device,
+		*context.resourceManager
+	);
+
 }
 
 void SceneGame::Render(const SceneContext& context)
 {
-    sceneContext = &context;
-
-    // CbSceneæ›´æ–°
-    CbScene cbSceneData{};
-    cbSceneData.view = context.view;
-    cbSceneData.projection = context.projection;
+	// CbSceneXV
+	CbScene cbSceneData{};
+	cbSceneData.view = context.view;
+	cbSceneData.projection = context.projection;
 
 
-    // ãƒ©ã‚¤ãƒˆè¨­å®šï¼ˆä»®ã®å¹³è¡Œå…‰æºï¼‰
-    cbSceneData.lightDirection = { 0.5f, -1.0f, 0.5f, 0.0f };
-    cbSceneData.lightColor = { 1.0f,  1.0f, 1.0f, 1.0f };
-    cbSceneData.ambientColor = { 0.2f,  0.2f, 0.2f, 1.0f };
+	// ƒ‰ƒCƒgİ’èi‰¼‚Ì•½sŒõŒ¹j
+	cbSceneData.lightDirection = { 0.5f, -1.0f, 0.5f, 0.0f };
+	cbSceneData.lightColor = { 1.0f,  1.0f, 1.0f, 1.0f };
+	cbSceneData.ambientColor = { 0.2f,  0.2f, 0.2f, 1.0f };
 
-    // ã‚«ãƒ¡ãƒ©ä½ç½®
-    if (context.camera)
-    {
-        const auto& eye = context.camera->GetEye();
-        cbSceneData.cameraPosition = { eye.x, eye.y, eye.z, 0.0f };
-    }
+	// ƒJƒƒ‰ˆÊ’u
+	if (context.camera)
+	{
+		const auto& eye = context.camera->GetEye();
+		cbSceneData.cameraPosition = { eye.x, eye.y, eye.z, 0.0f };
+	}
 
-    context.deviceContext->UpdateSubresource(
-        renderSystem.GetCbScene(), 0, nullptr, &cbSceneData, 0, 0
-    );
+	context.deviceContext->UpdateSubresource(
+		renderSystem.GetCbScene(), 0, nullptr, &cbSceneData, 0, 0
+	);
 
-    // é ‚ç‚¹ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã«è¨­å®š
-    context.deviceContext->VSSetConstantBuffers(
-        0, 1, renderSystem.GetCbSceneAddress()
-    );
+	// ’¸“_ƒVƒF[ƒ_[‚Éİ’è
+	context.deviceContext->VSSetConstantBuffers(
+		0, 1, renderSystem.GetCbSceneAddress()
+	);
 
-    // ãƒ”ã‚¯ã‚»ãƒ«ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã«ã‚‚è¨­å®š
-    context.deviceContext->PSSetConstantBuffers(
-        0, 1, renderSystem.GetCbSceneAddress()
-    );
+	// ƒsƒNƒZƒ‹ƒVƒF[ƒ_[‚É‚àİ’è
+	context.deviceContext->PSSetConstantBuffers(
+		0, 1, renderSystem.GetCbSceneAddress()
+	);
 
-    renderSystem.Render(
-        registry,
-        context.deviceContext,
-        context.renderTargetView,
-        context.depthStencilView
-    );
-
-    ////////////////////////
-
-    debugRenderer.Clear();
-
-    // SkinnedMeshComponent ã‚’æŒã¤ã‚¨ãƒ³ãƒ†ã‚£ãƒ†ã‚£ã®ãƒœãƒ¼ãƒ³ã‚’è¿½åŠ 
-    auto view = registry.view<SkinnedMeshComponent, TransformComponent>();
-    view.each([&](auto entity, SkinnedMeshComponent& skinned, TransformComponent& transform)
-        {
-            if (!skinned.model) return;
-
-            debugRenderer.AddBones(
-                skinned.model->GetNodes(),
-                transform.GetWorldMatrix(),
-                { 1.0f, 1.0f, 0.0f, 1.0f }  // é»„è‰²
-            );
-        });
-
-    // ãƒœãƒ¼ãƒ³æç”»
-    debugRenderer.Render(
-        context.deviceContext,
-        context.view,
-        context.projection
-    );
-}
-
-void SceneGame::RenderImGui()
-{
-    auto view = registry.view<SkinnedMeshComponent, AnimatorComponent>();
-    view.each([&](auto entity, SkinnedMeshComponent& skinned, AnimatorComponent& animator)
-        {
-            if (!skinned.model) return;
-
-            const auto& model = *skinned.model;
-            if (model.GetAnimations().empty()) return;
-
-            const auto& anim = model.GetAnimations()[0]; // Combo1
-            if (anim.nodeAnims.size() <= 3) return;
-
-            const auto& hipsAnim = anim.nodeAnims[3]; // Hips
-            if (hipsAnim.rotationKeyframes.empty()) return;
-
-            ImGui::Begin("Hips Rotation All Keyframes");
-            ImGui::Text("Anim: %s  (%.3fsec)",
-                anim.name.c_str(), anim.secondsLength);
-            ImGui::Text("Hips rotation keyframes: %d",
-                (int)hipsAnim.rotationKeyframes.size());
-            ImGui::Separator();
-
-            // å…¨ã‚­ãƒ¼ãƒ•ãƒ¬ãƒ¼ãƒ ã‚’è¡¨ç¤º
-            for (int i = 0; i < (int)hipsAnim.rotationKeyframes.size(); i++)
-            {
-                const auto& kf = hipsAnim.rotationKeyframes[i];
-                ImGui::Text("[%2d] t=%.4f  x=%6.3f y=%6.3f z=%6.3f w=%6.3f",
-                    i, kf.seconds,
-                    kf.value.x, kf.value.y,
-                    kf.value.z, kf.value.w);
-            }
-
-            ImGui::Separator();
-
-            // ç¾åœ¨æ™‚åˆ»ã®ã‚µãƒ³ãƒ—ãƒªãƒ³ã‚°çµæœã‚‚è¡¨ç¤º
-            ImGui::Text("CurrentTime: %.4f", animator.animationTime);
-            const auto& nodes = model.GetNodes();
-            if (nodes.size() > 3)
-            {
-                const auto& hips = nodes[3];
-                ImGui::Text("Hips node.rotation now:");
-                ImGui::Text("  x=%6.3f y=%6.3f z=%6.3f w=%6.3f",
-                    hips.rotation.x, hips.rotation.y,
-                    hips.rotation.z, hips.rotation.w);
-            }
-
-            ImGui::End();
-        });
+	renderSystem.Render(
+		registry,
+		context.deviceContext,
+		context.renderTargetView,
+		context.depthStencilView
+	);
 }

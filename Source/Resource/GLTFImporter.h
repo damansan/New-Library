@@ -13,39 +13,31 @@
 #include "tiny_gltf.h"
 
 #include "Model.h"
-#include "GLTFConverter.h"
 
 class GLTFImporter
 {
 public:
-    // モデル読み込み
+    // モデル読み込み＆スキニング判定
     static std::shared_ptr<Model> Load(
         ID3D11Device* device,
         const std::string& filename
     );
 
-    // グローバルトランスフォーム計算
-    static void CalcGlobalTransform(
-        std::vector<Model::Node>& nodes,
-        int nodeIndex,
-        const DirectX::XMFLOAT4X4& parentTransform
-    );
-
 private:
-    // ノード読み込み + 右手系→左手系変換
+    // ノード読み込み
     static void LoadNodes(
         Model& model,
         const tinygltf::Model& gltfModel
     );
 
-    // メッシュ読み込み + 右手系→左手系変換
+    // メッシュ読み込み
     static void LoadMeshes(
         Model& model,
         const tinygltf::Model& gltfModel,
         ID3D11Device* device
     );
 
-    // マテリアル読み込み（座標系変換なし）
+    // マテリアル読み込み
     static void LoadMaterials(
         Model& model,
         const tinygltf::Model& gltfModel,
@@ -53,24 +45,31 @@ private:
         const std::filesystem::path& filepath
     );
 
-    // スキン読み込み + 右手系→左手系変換
-    static void LoadSkins(
-        Model& model,
-        const tinygltf::Model& gltfModel
-    );
-
-    // アニメーション読み込み + 右手系→左手系変換
+    // アニメーション読み込み
     static void LoadAnimations(
         Model& model,
-        const tinygltf::Model& gltfModel
+        const tinygltf::Model& gltfModel,
+        float sampleRate = 60.0f
     );
 
     // スキニング判定
     static bool CheckHasSkin(const tinygltf::Model& gltfModel);
 
+    // 座標系変換ヘルパー
+    static DirectX::XMFLOAT3   ToXMFLOAT3(const std::vector<double>& v);
+    static DirectX::XMFLOAT4   ToXMFLOAT4(const std::vector<double>& v);
+    static DirectX::XMFLOAT4X4 ToXMFLOAT4X4(const std::vector<double>& v);
+
     // タンジェント計算
     static void ComputeTangents(
         std::vector<Model::Vertex>& vertices,
         const std::vector<uint32_t>& indices
+    );
+
+    // グローバルトランスフォーム計算
+    static void CalcGlobalTransform(
+        std::vector<Model::Node>& nodes,
+        int nodeIndex,
+        const DirectX::XMFLOAT4X4& parentTransform
     );
 };
