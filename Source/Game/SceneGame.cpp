@@ -6,26 +6,26 @@ void SceneGame::Initialize(const SceneContext& context)
 	renderSystem.Initialize(context.device);
 	debugRenderer.Initialize(context.device);
 
-	//// ランバートシェーダーを使うEntity
-	//auto entity = registry.create();
-	//auto& t = registry.emplace<TransformComponent>(entity);
-	//t.position = { -3.0f, 0.0f, 0.0f };
-	//registry.emplace<MeshComponent>(entity, "Data/Model/Mr.Incredible.glb");
-	//registry.emplace<MaterialComponent>(entity).AddPass("lambert");  // ランバートを指定
+	// ランバートシェーダーを使うEntity
+	auto entity = registry.create();
+	auto& t = registry.emplace<TransformComponent>(entity);
+	t.position = { -3.0f, 0.0f, 0.0f };
+	registry.emplace<MeshComponent>(entity, "Data/Model/Mr.Incredible.glb");
+	registry.emplace<MaterialComponent>(entity).AddPass("lambert");  // ランバートを指定
 
-	//// ベーシックシェーダーを使うEntity
-	//auto entity2 = registry.create();
-	//auto& t2 = registry.emplace<TransformComponent>(entity2);
-	//t2.position = { 3.0f, 0.0f, 0.0f };
-	//registry.emplace<MeshComponent>(entity2, "Data/Model/Mr.Incredible.glb");
-	//registry.emplace<MaterialComponent>(entity2).AddPass("basic");    // ベーシックを指定
+	// ベーシックシェーダーを使うEntity
+	auto entity2 = registry.create();
+	auto& t2 = registry.emplace<TransformComponent>(entity2);
+	t2.position = { 3.0f, 0.0f, 0.0f };
+	registry.emplace<MeshComponent>(entity2, "Data/Model/Mr.Incredible.glb");
+	registry.emplace<MaterialComponent>(entity2).AddPass("basic");    // ベーシックを指定
 
 
 	// スキニングモデル
 	auto entity3 = registry.create();
 	registry.emplace<TransformComponent>(entity3);
-	registry.emplace<MeshComponent>(entity3, "Data/Model/unitychan.glb");
-	//registry.emplace<MeshComponent>(entity3, "Data/Model/PlayerRobot/Map_Robot3.gltf");
+	//registry.emplace<MeshComponent>(entity3, "Data/Model/unitychan.glb");
+	registry.emplace<MeshComponent>(entity3, "Data/Model/PlayerRobot/Map_Robot3.gltf");
 	registry.emplace<MaterialComponent>(entity3).AddPass("skinning_lambert");
 }
 
@@ -38,7 +38,7 @@ void SceneGame::Update(float elapsedTime, const SceneContext& context)
 		*context.resourceManager
 	);
 	// アニメーション更新
-	animationSystem.Update(registry, elapsedTime/10);
+	animationSystem.Update(registry, elapsedTime);
 }
 
 void SceneGame::Render(const SceneContext& context)

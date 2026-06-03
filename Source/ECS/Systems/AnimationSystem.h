@@ -31,8 +31,7 @@ private:
 
 	// ノードのグローバル行列を再帰計算してボーン行列に書き込む
 	static void CalcBoneTransforms(
-		const Model& model,
-		const Model::Animation& animation,
+		Model& model, const Model::Animation& animation,
 		float time,
 		std::vector<DirectX::XMFLOAT4X4>& boneTransforms);
 };

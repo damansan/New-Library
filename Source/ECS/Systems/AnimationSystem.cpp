@@ -165,12 +165,11 @@ DirectX::XMFLOAT3 AnimationSystem::InterpolateScale(
 
 // ノードのグローバル行列を再帰計算してボーン行列に書き込む
 void AnimationSystem::CalcBoneTransforms(
-	const Model& model,
-	const Model::Animation& animation,
+	Model& model, const Model::Animation& animation,
 	float time,
 	std::vector<DirectX::XMFLOAT4X4>& boneTransforms)
 {
-	const auto& nodes = model.GetNodes();
+	auto& nodes = model.GetNodes();
 	const auto& meshes = model.GetMeshes();
 
 	// ノードのグローバル行列を計算
@@ -180,7 +179,7 @@ void AnimationSystem::CalcBoneTransforms(
 	std::function<void(int, const DirectX::XMFLOAT4X4&)> calcGlobal =
 		[&](int nodeIndex, const DirectX::XMFLOAT4X4& parentTransform)
 		{
-			const auto& node = nodes[nodeIndex];
+			auto& node = nodes[nodeIndex];
 
 			// キーフレームから補間してローカル行列を作る
 			DirectX::XMFLOAT3 position = node.position;
@@ -225,6 +224,8 @@ void AnimationSystem::CalcBoneTransforms(
 			DirectX::XMMATRIX global = local * parent;
 
 			DirectX::XMStoreFloat4x4(&globalTransforms[nodeIndex], global);
+			DirectX::XMStoreFloat4x4(&nodes[nodeIndex].globalTransform, global);
+
 
 			// 子ノードを再帰処理
 			for (int child : node.childIndices)
