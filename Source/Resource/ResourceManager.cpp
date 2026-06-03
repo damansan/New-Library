@@ -1,5 +1,6 @@
 #include "ResourceManager.h"
 #include "GLTFImporter.h"
+#include "GLTFConverter.h" 
 
 // モデル取得
 std::shared_ptr<Model> ResourceManager::GetModel(ID3D11Device* device, const std::string& filename)
@@ -13,8 +14,11 @@ std::shared_ptr<Model> ResourceManager::GetModel(ID3D11Device* device, const std
 		if (cached) return cached;
 	}
 
-	// 未ロードまたはキャッシュ切れの場合は新規読み込み
-	auto model = GLTFImporter::Load(device, filename);
+	// GLTFImporter でファイルを読み込み GLTFData を生成
+	auto gltfData = GLTFImporter::Load(filename);
+
+	// GLTFConverter で GLTFData を Model に変換
+	auto model = GLTFConverter::Convert(device, gltfData);
 
 	// キャッシュに登録
 	modelCache[filename] = model;

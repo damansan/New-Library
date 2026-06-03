@@ -23,14 +23,6 @@ public:
         Microsoft::WRL::ComPtr<ID3D11PixelShader>& pixelShader
     );
 
-    // ファイルパスからテクスチャ読み込み
-    static HRESULT LoadTexture(
-        ID3D11Device* device,
-        const std::string& filename,
-        Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>& shaderResourceView,
-        D3D11_TEXTURE2D_DESC* texture2dDesc = nullptr
-    );
-
     // 埋め込みテクスチャ読み込み
     static HRESULT LoadTexture(
         ID3D11Device* device,

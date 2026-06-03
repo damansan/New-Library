@@ -8,9 +8,6 @@
     <Filter Include="Sources\Core">
       <UniqueIdentifier>{4fa40759-1629-49dc-a039-50a365ce633a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Sources\Core\framework">
-      <UniqueIdentifier>{e239fe73-39c1-4c17-8857-b874ee90de0f}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Sources\Utility">
       <UniqueIdentifier>{9aff6af3-bd4a-4153-97ce-dd4b673a0c2f}</UniqueIdentifier>
     </Filter>
@@ -116,6 +113,18 @@
     <Filter Include="Shader\Debug">
       <UniqueIdentifier>{384dfe56-abfb-492f-9fd3-ffba750579fd}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\ECS\Systems\AnimationSystem">
+      <UniqueIdentifier>{a1a8b9cb-ee01-4447-846a-22cc8a736186}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Resource\GLTFData">
+      <UniqueIdentifier>{205a4808-d48f-4931-be47-daa633376db1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Core\framework">
+      <UniqueIdentifier>{e239fe73-39c1-4c17-8857-b874ee90de0f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Resource\GLTFConverter">
+      <UniqueIdentifier>{1657cb11-f1cf-455e-b22f-50bd2a08c56c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Core\framework.cpp">
@@ -183,6 +192,12 @@
     </ClCompile>
     <ClCompile Include="Source\Debug\DebugRenderer.cpp">
       <Filter>Sources\Debug\DebugRenderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Resource\GLTFConverter.cpp">
+      <Filter>Sources\Resource\GLTFConverter</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\ECS\Systems\AnimationSystem.cpp">
+      <Filter>Sources\ECS\Systems\AnimationSystem</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -269,6 +284,15 @@
     </ClInclude>
     <ClInclude Include="Source\Debug\DebugRenderer.h">
       <Filter>Sources\Debug\DebugRenderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Resource\GLTFData.h">
+      <Filter>Sources\Resource\GLTFData</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Resource\GLTFConverter.h">
+      <Filter>Sources\Resource\GLTFConverter</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ECS\Systems\AnimationSystem.h">
+      <Filter>Sources\ECS\Systems\AnimationSystem</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

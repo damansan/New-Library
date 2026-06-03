@@ -122,6 +122,7 @@ public:
 
 private:
     friend class GLTFImporter;
+    friend class GLTFConverter;
 
     std::vector<Node>      nodes;
     std::vector<Mesh>      meshes;

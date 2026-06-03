@@ -1,55 +1,52 @@
 #pragma once
-
 #include <memory>
 #include <string>
-#include <d3d11.h>
 #include <filesystem>
 
-#define TINYGLTF_NO_EXTERNAL_IMAGE
 #define TINYGLTF_NO_STB_IMAGE
 #define TINYGLTF_NO_STB_IMAGE_WRITE
 #define TINYGLTF_NO_INCLUDE_STB_IMAGE
 #define TINYGLTF_NO_INCLUDE_STB_IMAGE_WRITE
 #include "tiny_gltf.h"
-
-#include "Model.h"
+#include "GLTFData.h"
 
 class GLTFImporter
 {
 public:
-    // モデル読み込み＆スキニング判定
-    static std::shared_ptr<Model> Load(
-        ID3D11Device* device,
-        const std::string& filename
-    );
+    // GLTFファイルを読み込んでGLTFDataを返す
+    static std::shared_ptr<GLTFData> Load(const std::string& filename);
 
 private:
     // ノード読み込み
     static void LoadNodes(
-        Model& model,
+        GLTFData& data,
         const tinygltf::Model& gltfModel
     );
 
     // メッシュ読み込み
     static void LoadMeshes(
-        Model& model,
-        const tinygltf::Model& gltfModel,
-        ID3D11Device* device
+        GLTFData& data,
+        const tinygltf::Model& gltfModel
     );
 
     // マテリアル読み込み
     static void LoadMaterials(
-        Model& model,
+        GLTFData& data,
         const tinygltf::Model& gltfModel,
-        ID3D11Device* device,
+        const std::filesystem::path& filepath
+    );
+
+    // テクスチャ読み込み
+    static void LoadTextures(
+        GLTFData& data,
+        const tinygltf::Model& gltfModel,
         const std::filesystem::path& filepath
     );
 
     // アニメーション読み込み
     static void LoadAnimations(
-        Model& model,
-        const tinygltf::Model& gltfModel,
-        float sampleRate = 60.0f
+        GLTFData& data,
+        const tinygltf::Model& gltfModel
     );
 
     // スキニング判定
@@ -62,13 +59,13 @@ private:
 
     // タンジェント計算
     static void ComputeTangents(
-        std::vector<Model::Vertex>& vertices,
+        std::vector<GLTFData::Vertex>& vertices,
         const std::vector<uint32_t>& indices
     );
 
     // グローバルトランスフォーム計算
     static void CalcGlobalTransform(
-        std::vector<Model::Node>& nodes,
+        std::vector<GLTFData::Node>& nodes,
         int nodeIndex,
         const DirectX::XMFLOAT4X4& parentTransform
     );

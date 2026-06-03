@@ -1,10 +1,3 @@
-//#include "GpuResourceUtils.h"
-//#include "Utility/misc.h"
-//
-//#include <DDSTextureLoader.h>
-//#include <WICTextureLoader.h>
-//#include <memory>
-
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 #include "GpuResourceUtils.h"
@@ -77,35 +70,6 @@ HRESULT GpuResourceUtils::LoadPixelShader(
 	HRESULT hr = device->CreatePixelShader(data.get(), size, nullptr, pixelShader.GetAddressOf());
 	_ASSERT_EXPR(SUCCEEDED(hr), hr_trace(hr));
 
-	return hr;
-}
-
-// ファイルパスからテクスチャ読み込み
-HRESULT GpuResourceUtils::LoadTexture(
-	ID3D11Device* device,
-	const std::string& filename,
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>& shaderResourceView,
-	D3D11_TEXTURE2D_DESC* texture2dDesc
-)
-{
-	// std::stringをstd::wstring変換
-	std::wstring wfilename = ToWString(filename);
-
-	HRESULT hr{ S_OK };
-	Microsoft::WRL::ComPtr<ID3D11Resource> resource;
-
-	// テクスチャファイル読み込み
-	hr = DirectX::CreateWICTextureFromFile(device, wfilename.c_str(), resource.GetAddressOf(), shaderResourceView.GetAddressOf());
-	_ASSERT_EXPR(SUCCEEDED(hr), hr_trace(hr));
-
-	//テクスチャ情報取得
-	if (texture2dDesc != nullptr)
-	{
-		Microsoft::WRL::ComPtr<ID3D11Texture2D> texture2d;
-		hr = resource->QueryInterface<ID3D11Texture2D>(texture2d.GetAddressOf());
-		_ASSERT_EXPR(SUCCEEDED(hr), hr_trace(hr));
-		texture2d->GetDesc(texture2dDesc);
-	}
 	return hr;
 }
 

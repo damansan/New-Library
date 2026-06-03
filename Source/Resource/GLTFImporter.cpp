@@ -1,13 +1,12 @@
 #include "GLTFImporter.h"
+#include "Utility/misc.h"
+#include <filesystem>
+#include <stack>
+#include <algorithm>
+#include <fstream>
 
 #define TINYGLTF_IMPLEMENTATION
 #include "tiny_gltf.h"
-#include "GpuResourceUtils.h"
-#include "Utility/misc.h"
-#include <stack>
-#include <filesystem>
-#include <algorithm>
-
 
 // 画像読み込み無効化
 static bool NullLoadImageData(
@@ -17,304 +16,257 @@ static bool NullLoadImageData(
 	return true;
 }
 
-
-// モデル読み込み＆スキニング判定
-std::shared_ptr<Model> GLTFImporter::Load(
-	ID3D11Device* device,
-	const std::string& filename)
+// GLTFファイルを読み込んでGLTFDataを返す
+std::shared_ptr<GLTFData> GLTFImporter::Load(const std::string& filename)
 {
-	// GLTF読み込み用ローダー作成
 	tinygltf::TinyGLTF loader;
-
-	// 画像読み込み無効化
 	loader.SetImageLoader(NullLoadImageData, nullptr);
 
-	// GLTFデータ本体
 	tinygltf::Model gltfModel;
-	// エラー/警告メッセージ用
 	std::string error, warning;
-	// 読み込み成功フラグ
 	bool succeeded = false;
 
-	// glb読み込み
 	if (filename.find(".glb") != std::string::npos)
 	{
-		succeeded = loader.LoadBinaryFromFile(&gltfModel, &error, &warning, filename.c_str());
+		succeeded = loader.LoadBinaryFromFile(
+			&gltfModel, &error, &warning, filename.c_str());
 	}
-	// gltf読み込み
 	else if (filename.find(".gltf") != std::string::npos)
 	{
-		succeeded = loader.LoadASCIIFromFile(&gltfModel, &error, &warning, filename.c_str());
+		succeeded = loader.LoadASCIIFromFile(
+			&gltfModel, &error, &warning, filename.c_str());
 	}
 
-	// 警告
 	_ASSERT_EXPR_A(warning.empty(), warning.c_str());
-	// エラー
 	_ASSERT_EXPR_A(error.empty(), error.c_str());
-	// 失敗
 	_ASSERT_EXPR_A(succeeded, "Failed to load glTF file");
 
-	// Model生成
-	auto model = std::make_shared<Model>();
+	auto data = std::make_shared<GLTFData>();
+	data->hasSkin = CheckHasSkin(gltfModel);
 
-	// スキニング自動判定
-	model->hasSkin = CheckHasSkin(gltfModel);
-
-	// ファイルパス取得
 	std::filesystem::path filepath(filename);
 
-	// ノード読み込み
-	LoadNodes(*model, gltfModel);
-	// メッシュ読み込み
-	LoadMeshes(*model, gltfModel, device);
-	// マテリアル読み込み
-	LoadMaterials(*model, gltfModel, device, filepath);
-	// アニメーション読み込み
-	LoadAnimations(*model, gltfModel);
+	LoadNodes(*data, gltfModel);
+	LoadTextures(*data, gltfModel, filepath);
+	LoadMaterials(*data, gltfModel, filepath);
+	LoadMeshes(*data, gltfModel);
+	LoadAnimations(*data, gltfModel);
 
-	return model;
+	return data;
 }
 
 // ノード読み込み
 void GLTFImporter::LoadNodes(
-	Model& model,
+	GLTFData& data,
 	const tinygltf::Model& gltfModel)
 {
-	// ノード数分メモリ確保
-	model.nodes.reserve(gltfModel.nodes.size());
+	data.nodes.reserve(gltfModel.nodes.size());
 
-	// gltf内全ノード走査　
 	for (const auto& gltfNode : gltfModel.nodes)
 	{
-		Model::Node node;
-		// ノード名
+		GLTFData::Node node;
 		node.name = gltfNode.name;
-
-		// 子ノードIndex保存
 		node.childIndices = gltfNode.children;
 
-		// トランスフォーム読み込み
 		if (!gltfNode.matrix.empty())
 		{
-			// matrix形式の場合
 			DirectX::XMFLOAT4X4 matrix = ToXMFLOAT4X4(gltfNode.matrix);
-			// 行列をSRTへ分解
 			DirectX::XMVECTOR S, R, T;
 			DirectX::XMMatrixDecompose(
 				&S, &R, &T,
 				DirectX::XMLoadFloat4x4(&matrix));
-			// Scale保存
 			DirectX::XMStoreFloat3(&node.scale, S);
-			// Rotation保存
 			DirectX::XMStoreFloat4(&node.rotation, R);
-			// Translation保存
 			DirectX::XMStoreFloat3(&node.position, T);
 		}
 		else
 		{
-			// TRS形式の場合
-
-			// translation
 			if (!gltfNode.translation.empty())
 				node.position = ToXMFLOAT3(gltfNode.translation);
-			// rotation
 			if (!gltfNode.rotation.empty())
 				node.rotation = ToXMFLOAT4(gltfNode.rotation);
-			// scale
 			if (!gltfNode.scale.empty())
 				node.scale = ToXMFLOAT3(gltfNode.scale);
 		}
 
-		// ノード追加
-		model.nodes.push_back(node);
+		data.nodes.push_back(node);
 	}
 
-	// 親Index設定
-	// 子ノード側に親Indexを書き込む
-	for (int i = 0; i < static_cast<int>(model.nodes.size()); i++)
+	// 親インデックス設定
+	for (int i = 0; i < (int)data.nodes.size(); i++)
 	{
-		for (int child : model.nodes[i].childIndices)
+		for (int child : data.nodes[i].childIndices)
 		{
-			model.nodes[child].parentIndex = i;
+			data.nodes[child].parentIndex = i;
 		}
 	}
 
 	// グローバルトランスフォーム計算
 	DirectX::XMFLOAT4X4 identity = { 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 };
-	for (const auto& scene : gltfModel.scenes)
+	for (int i = 0; i < (int)data.nodes.size(); i++)
 	{
-		for (int rootIndex : scene.nodes)
+		if (data.nodes[i].parentIndex < 0)
 		{
-			// 親から子へTransform伝搬
-			CalcGlobalTransform(model.nodes, rootIndex, identity);
+			CalcGlobalTransform(data.nodes, i, identity);
 		}
 	}
 }
 
 // メッシュ読み込み
 void GLTFImporter::LoadMeshes(
-	Model& model,
-	const tinygltf::Model& gltfModel,
-	ID3D11Device* device)
+	GLTFData& data,
+	const tinygltf::Model& gltfModel)
 {
-	// glTF内全メッシュ走査
-	for (const auto& gltfMesh : gltfModel.meshes)
+	for (int meshIdx = 0; meshIdx < (int)gltfModel.meshes.size(); meshIdx++)
 	{
-		// Primitive単位でメッシュ生成(1メッシュに複数Primitiveを持てる）
+		const auto& gltfMesh = gltfModel.meshes[meshIdx];
+
 		for (const auto& primitive : gltfMesh.primitives)
 		{
-			Model::Mesh mesh;
-			// マテリアルIndex
+			GLTFData::MeshData mesh;
+
+			// nodeIndex を逆引き
+			for (int n = 0; n < (int)gltfModel.nodes.size(); n++)
+			{
+				if (gltfModel.nodes[n].mesh == meshIdx)
+				{
+					mesh.nodeIndex = n;
+					break;
+				}
+			}
+
 			mesh.materialIndex = primitive.material;
 
-			// Position読み込み
+			// POSITION
 			if (primitive.attributes.count("POSITION"))
 			{
-				const auto& accessor = gltfModel.accessors[primitive.attributes.at("POSITION")];
-				const auto& bufferView = gltfModel.bufferViews[accessor.bufferView];
-				const auto& buffer = gltfModel.buffers[bufferView.buffer];
+				const auto& acc = gltfModel.accessors[primitive.attributes.at("POSITION")];
+				const auto& bv = gltfModel.bufferViews[acc.bufferView];
+				const auto& buf = gltfModel.buffers[bv.buffer];
+				const float* src = reinterpret_cast<const float*>(
+					buf.data.data() + bv.byteOffset + acc.byteOffset);
 
-				// 頂点座標データ取得
-				const float* data = reinterpret_cast<const float*>(
-					buffer.data.data() + bufferView.byteOffset + accessor.byteOffset);
-
-				// 頂点数保存
-				mesh.vertices.resize(accessor.count);
-
-				// xyz読み込み
-				for (size_t i = 0; i < accessor.count; i++)
+				mesh.vertices.resize(acc.count);
+				for (size_t i = 0; i < acc.count; i++)
 				{
-					mesh.vertices[i].position =
-					{
-						data[i * 3 + 0],
-						data[i * 3 + 1],
-						data[i * 3 + 2]
-					};
+					mesh.vertices[i].position = { src[i * 3 + 0], src[i * 3 + 1], src[i * 3 + 2] };
 				}
 			}
 
-			// Normal読み込み
+			// NORMAL
 			if (primitive.attributes.count("NORMAL"))
 			{
-				const auto& accessor = gltfModel.accessors[primitive.attributes.at("NORMAL")];
-				const auto& bufferView = gltfModel.bufferViews[accessor.bufferView];
-				const auto& buffer = gltfModel.buffers[bufferView.buffer];
+				const auto& acc = gltfModel.accessors[primitive.attributes.at("NORMAL")];
+				const auto& bv = gltfModel.bufferViews[acc.bufferView];
+				const auto& buf = gltfModel.buffers[bv.buffer];
+				const float* src = reinterpret_cast<const float*>(
+					buf.data.data() + bv.byteOffset + acc.byteOffset);
 
-				// 頂点データ取得
-				const float* data = reinterpret_cast<const float*>(
-					buffer.data.data() + bufferView.byteOffset + accessor.byteOffset);
-
-				// 法線ベクトル読み込み
-				for (size_t i = 0; i < accessor.count; i++)
+				for (size_t i = 0; i < acc.count; i++)
 				{
-					mesh.vertices[i].normal =
-					{
-						data[i * 3 + 0],
-						data[i * 3 + 1],
-						data[i * 3 + 2]
-					};
+					mesh.vertices[i].normal = { src[i * 3 + 0], src[i * 3 + 1], src[i * 3 + 2] };
 				}
 			}
 
-			// Texcoord読み込み
+			// TEXCOORD_0
 			if (primitive.attributes.count("TEXCOORD_0"))
 			{
-				const auto& accessor = gltfModel.accessors[primitive.attributes.at("TEXCOORD_0")];
-				const auto& bufferView = gltfModel.bufferViews[accessor.bufferView];
-				const auto& buffer = gltfModel.buffers[bufferView.buffer];
+				const auto& acc = gltfModel.accessors[primitive.attributes.at("TEXCOORD_0")];
+				const auto& bv = gltfModel.bufferViews[acc.bufferView];
+				const auto& buf = gltfModel.buffers[bv.buffer];
+				const float* src = reinterpret_cast<const float*>(
+					buf.data.data() + bv.byteOffset + acc.byteOffset);
 
-				// 頂点データ取得
-				const float* data = reinterpret_cast<const float*>(
-					buffer.data.data() + bufferView.byteOffset + accessor.byteOffset);
-
-				// UV座標読み込み
-				for (size_t i = 0; i < accessor.count; i++)
-				{
+				for (size_t i = 0; i < acc.count; i++)
 					mesh.vertices[i].texcoord =
-					{
-						data[i * 2 + 0],
-						data[i * 2 + 1]
-					};
-				}
+				{ src[i * 2 + 0], src[i * 2 + 1] };
 			}
 
-			// BoneWeight読み込み
+			// WEIGHTS_0
 			if (primitive.attributes.count("WEIGHTS_0"))
 			{
-				const auto& accessor = gltfModel.accessors[primitive.attributes.at("WEIGHTS_0")];
-				const auto& bufferView = gltfModel.bufferViews[accessor.bufferView];
-				const auto& buffer = gltfModel.buffers[bufferView.buffer];
+				const auto& acc = gltfModel.accessors[
+					primitive.attributes.at("WEIGHTS_0")];
+				const auto& bv = gltfModel.bufferViews[acc.bufferView];
+				const auto& buf = gltfModel.buffers[bv.buffer];
+				const float* src = reinterpret_cast<const float*>(
+					buf.data.data() + bv.byteOffset + acc.byteOffset);
 
-				// 頂点データ取得
-				const float* data = reinterpret_cast<const float*>(
-					buffer.data.data() + bufferView.byteOffset + accessor.byteOffset);
-
-				for (size_t i = 0; i < accessor.count; i++)
+				for (size_t i = 0; i < acc.count; i++)
 				{
-					// ボーンウェイト読み込み
-					mesh.vertices[i].boneWeight =
-					{
-						data[i * 4 + 0],
-						data[i * 4 + 1],
-						data[i * 4 + 2],
-						data[i * 4 + 3]
-					};
+					mesh.vertices[i].boneWeight = { src[i * 4 + 0], src[i * 4 + 1], src[i * 4 + 2], src[i * 4 + 3] };
 				}
 			}
 
-			// BoneIndex読み込み
+			// JOINTS_0
 			if (primitive.attributes.count("JOINTS_0"))
 			{
-				const auto& accessor = gltfModel.accessors[primitive.attributes.at("JOINTS_0")];
-				const auto& bufferView = gltfModel.bufferViews[accessor.bufferView];
-				const auto& buffer = gltfModel.buffers[bufferView.buffer];
+				const auto& acc = gltfModel.accessors[primitive.attributes.at("JOINTS_0")];
+				const auto& bv = gltfModel.bufferViews[acc.bufferView];
+				const auto& buf = gltfModel.buffers[bv.buffer];
+				const uint16_t* src = reinterpret_cast<const uint16_t*>(
+					buf.data.data() + bv.byteOffset + acc.byteOffset);
 
-				// 頂点データ取得
-				const uint16_t* data = reinterpret_cast<const uint16_t*>(
-					buffer.data.data() + bufferView.byteOffset + accessor.byteOffset);
-
-				// ボーンIndex読み込み
-				for (size_t i = 0; i < accessor.count; i++)
+				for (size_t i = 0; i < acc.count; i++)
 				{
-					mesh.vertices[i].boneIndex =
-					{
-						data[i * 4 + 0],
-						data[i * 4 + 1],
-						data[i * 4 + 2],
-						data[i * 4 + 3]
-					};
+					mesh.vertices[i].boneIndex = { src[i * 4 + 0], src[i * 4 + 1], src[i * 4 + 2], src[i * 4 + 3] };
 				}
 			}
 
-			// Index読み込み
+			// インデックス
 			if (primitive.indices >= 0)
 			{
-				const auto& accessor = gltfModel.accessors[primitive.indices];
-				const auto& bufferView = gltfModel.bufferViews[accessor.bufferView];
-				const auto& buffer = gltfModel.buffers[bufferView.buffer];
+				const auto& acc = gltfModel.accessors[primitive.indices];
+				const auto& bv = gltfModel.bufferViews[acc.bufferView];
+				const auto& buf = gltfModel.buffers[bv.buffer];
+				const void* src = buf.data.data() +
+					bv.byteOffset + acc.byteOffset;
 
-				// Indexデータ先頭
-				const void* data = buffer.data.data() +
-					bufferView.byteOffset + accessor.byteOffset;
+				mesh.indices.resize(acc.count);
 
-				mesh.indices.resize(accessor.count);
-
-				// uint16形式
-				if (accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT)
+				if (acc.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT)
 				{
-					const uint16_t* src = static_cast<const uint16_t*>(data);
-					for (size_t i = 0; i < accessor.count; i++)
+					const uint16_t* s = static_cast<const uint16_t*>(src);
+					for (size_t i = 0; i < acc.count; i++)
 					{
-						mesh.indices[i] = src[i];
+						mesh.indices[i] = s[i];
 					}
 				}
-				// uint32形式
-				else if (accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT)
+				else if (acc.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT)
 				{
-					const uint32_t* src = static_cast<const uint32_t*>(data);
-					for (size_t i = 0; i < accessor.count; i++)
+					const uint32_t* s = static_cast<const uint32_t*>(src);
+					for (size_t i = 0; i < acc.count; i++)
 					{
-						mesh.indices[i] = src[i];
+						mesh.indices[i] = s[i];
+					}
+				}
+			}
+
+			// ボーン（スキンから取得）
+			if (!gltfModel.skins.empty())
+			{
+				const auto& skin = gltfModel.skins[0];
+				mesh.bones.resize(skin.joints.size());
+
+				for (int j = 0; j < (int)skin.joints.size(); j++)
+				{
+					mesh.bones[j].nodeIndex = skin.joints[j];
+				}
+
+				// inverseBindMatrices
+				if (skin.inverseBindMatrices >= 0)
+				{
+					const auto& acc = gltfModel.accessors[skin.inverseBindMatrices];
+					const auto& bv = gltfModel.bufferViews[acc.bufferView];
+					const auto& buf = gltfModel.buffers[bv.buffer];
+					const float* src = reinterpret_cast<const float*>(
+						buf.data.data() + bv.byteOffset + acc.byteOffset);
+
+					for (int j = 0; j < (int)skin.joints.size(); j++)
+					{
+						memcpy(&mesh.bones[j].offsetTransform,
+							src + j * 16,
+							sizeof(DirectX::XMFLOAT4X4));
 					}
 				}
 			}
@@ -322,60 +274,28 @@ void GLTFImporter::LoadMeshes(
 			// タンジェント計算
 			ComputeTangents(mesh.vertices, mesh.indices);
 
-			// 頂点バッファ生成
-			{
-				D3D11_BUFFER_DESC desc{};
-				desc.ByteWidth = static_cast<UINT>(
-					sizeof(Model::Vertex) * mesh.vertices.size());
-				desc.Usage = D3D11_USAGE_DEFAULT;
-				desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-
-				D3D11_SUBRESOURCE_DATA sub{};
-				sub.pSysMem = mesh.vertices.data();
-				device->CreateBuffer(&desc, &sub,
-					mesh.vertexBuffer.GetAddressOf());
-			}
-
-			// インデックスバッファ生成
-			{
-				D3D11_BUFFER_DESC desc{};
-				desc.ByteWidth = static_cast<UINT>(
-					sizeof(uint32_t) * mesh.indices.size());
-				desc.Usage = D3D11_USAGE_DEFAULT;
-				desc.BindFlags = D3D11_BIND_INDEX_BUFFER;
-
-				D3D11_SUBRESOURCE_DATA sub{};
-				sub.pSysMem = mesh.indices.data();
-				device->CreateBuffer(&desc, &sub,
-					mesh.indexBuffer.GetAddressOf());
-			}
-
-			// モデルへ追加
-			model.meshes.push_back(std::move(mesh));
+			data.meshes.push_back(std::move(mesh));
 		}
 	}
 }
 
 // マテリアル読み込み
 void GLTFImporter::LoadMaterials(
-	Model& model,
-	const tinygltf::Model& gltfModel,
-	ID3D11Device* device,
-	const std::filesystem::path& filepath)
+	GLTFData& data,
+	const tinygltf::Model& gltfModel, const std::filesystem::path& filepath)
 {
-	// glTF内全マテリアル走査
+	data.materials.reserve(gltfModel.materials.size());
+
 	for (const auto& gltfMaterial : gltfModel.materials)
 	{
-		Model::Material material;
-		// マテリアル名
-		material.name = gltfMaterial.name;
+		GLTFData::MaterialData mat;
+		mat.name = gltfMaterial.name;
 
-		// PBR設定取得
 		const auto& pbr = gltfMaterial.pbrMetallicRoughness;
-		// BaseColor読み込み
+
 		if (!pbr.baseColorFactor.empty())
 		{
-			material.baseColor =
+			mat.baseColor =
 			{
 				static_cast<float>(pbr.baseColorFactor[0]),
 				static_cast<float>(pbr.baseColorFactor[1]),
@@ -383,216 +303,151 @@ void GLTFImporter::LoadMaterials(
 				static_cast<float>(pbr.baseColorFactor[3])
 			};
 		}
-		// Roughness値
-		material.roughnessFactor = static_cast<float>(pbr.roughnessFactor);
-		// Metallic値
-		material.metallicFactor = static_cast<float>(pbr.metallicFactor);
 
-		// AlphaBlend
+		mat.roughnessFactor = static_cast<float>(pbr.roughnessFactor);
+		mat.metallicFactor = static_cast<float>(pbr.metallicFactor);
+
 		if (gltfMaterial.alphaMode == "BLEND")
 		{
-			material.alphaMode = Model::Material::AlphaMode::Blend;
+			mat.alphaMode = GLTFData::MaterialData::AlphaMode::Blend;
 		}
-		// AlphaMask
 		else if (gltfMaterial.alphaMode == "MASK")
 		{
-			material.alphaMode = Model::Material::AlphaMode::Mask;
+			mat.alphaMode = GLTFData::MaterialData::AlphaMode::Mask;
 		}
-		// AlphaCutoff値
-		material.alphaCutoff = static_cast<float>(gltfMaterial.alphaCutoff);
 
-		// テクスチャ読み込みヘルパー
-		auto loadTexture = [&](int textureIndex,
-			Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>& srv,
-			DWORD dummyColor)
-			{
-				if (textureIndex < 0)
-				{
-					GpuResourceUtils::CreateDummyTexture(device, srv, dummyColor, 1);
-					return;
-				}
+		mat.alphaCutoff = static_cast<float>(gltfMaterial.alphaCutoff);
 
-				const auto& texture = gltfModel.textures[textureIndex];
-				const auto& image = gltfModel.images[texture.source];
+		// テクスチャインデックス設定
+		mat.baseMapIndex =
+			pbr.baseColorTexture.index;
+		mat.normalMapIndex =
+			gltfMaterial.normalTexture.index;
+		mat.metallicRoughnessMapIndex =
+			pbr.metallicRoughnessTexture.index;
+		mat.occlusionMapIndex =
+			gltfMaterial.occlusionTexture.index;
+		mat.emissiveMapIndex =
+			gltfMaterial.emissiveTexture.index;
 
-				if (!image.uri.empty())
-				{
-					// 外部ファイルテクスチャ
-					std::string texPath = (filepath.parent_path() / image.uri).string();
-					GpuResourceUtils::LoadTexture(device, texPath, srv);
-				}
-				else if (image.bufferView >= 0)
-				{
-					// 埋め込みテクスチャ（GLBファイル）
-					// bufferViewから直接データを取得する
-					const auto& bv = gltfModel.bufferViews[image.bufferView];
-					const auto& buffer = gltfModel.buffers[bv.buffer];
-					const unsigned char* data = buffer.data.data() + bv.byteOffset;
-
-					GpuResourceUtils::LoadTexture(device, data, bv.byteLength, srv);
-				}
-				else
-				{
-					// どちらもない場合はダミー
-					GpuResourceUtils::CreateDummyTexture(device, srv, dummyColor, 1);
-				}
-			};
-
-		// ベースカラー読み込み
-		loadTexture(pbr.baseColorTexture.index,
-			material.baseMap, 0xFFFFFFFF);
-		// ノーマルマップ読み込み
-		loadTexture(gltfMaterial.normalTexture.index,
-			material.normalMap, 0xFFFF8080);
-		// メタリック/ラフネス読み込み
-		loadTexture(pbr.metallicRoughnessTexture.index,
-			material.metallicRoughnessMap, 0xFFFFFFFF);
-		// オクルージョンマップ読み込み
-		loadTexture(gltfMaterial.occlusionTexture.index,
-			material.occlusionMap, 0xFFFFFFFF);
-		// エミッシブ読み込み
-		loadTexture(gltfMaterial.emissiveTexture.index,
-			material.emissiveMap, 0xFF000000);
-
-		// モデルへ追加
-		model.materials.push_back(std::move(material));
+		data.materials.push_back(std::move(mat));
 	}
+}
 
-	// メッシュとマテリアルを紐付け
-	for (auto& mesh : model.meshes)
+// テクスチャ読み込み
+void GLTFImporter::LoadTextures(
+	GLTFData& data,
+	const tinygltf::Model& gltfModel,
+	const std::filesystem::path& filepath)
+{
+	data.textures.reserve(gltfModel.textures.size());
+
+	for (const auto& gltfTexture : gltfModel.textures)
 	{
-		// 有効範囲チェック
-		if (mesh.materialIndex >= 0 && mesh.materialIndex < static_cast<int>(model.materials.size()))
+		GLTFData::TextureData texData;
+		const auto& image = gltfModel.images[gltfTexture.source];
+
+		if (!image.uri.empty())
 		{
-			// マテリアル設定
-			mesh.material = &model.materials[mesh.materialIndex];
+			// 外部ファイルの場合はファイルから読み込んでバイナリ化
+			std::string texPath = (filepath.parent_path() / image.uri).string();
+
+			std::ifstream ifs(texPath, std::ios::binary);
+			_ASSERT_EXPR_A(ifs, "Texture file not found");
+
+			texData.pixels = std::vector<uint8_t>(
+				std::istreambuf_iterator<char>(ifs),
+				std::istreambuf_iterator<char>()
+			);
 		}
+		else if (image.bufferView >= 0)
+		{
+			// GLB埋め込みの場合はbufferViewからバイナリを取り出す
+			const auto& bv = gltfModel.bufferViews[image.bufferView];
+			const auto& buffer = gltfModel.buffers[bv.buffer];
+			const uint8_t* begin = buffer.data.data() + bv.byteOffset;
+
+			texData.pixels.assign(begin, begin + bv.byteLength);
+		}
+
+		data.textures.push_back(std::move(texData));
 	}
 }
 
 // アニメーション読み込み
 void GLTFImporter::LoadAnimations(
-	Model& model,
-	const tinygltf::Model& gltfModel,
-	float sampleRate)
+	GLTFData& data,
+	const tinygltf::Model& gltfModel)
 {
-	// glTF内全アニメーション走査
 	for (const auto& gltfAnim : gltfModel.animations)
 	{
-		Model::Animation animation;
-		// アニメーション名
-		animation.name = gltfAnim.name;
-		// アニメーション長初期化
-		animation.secondsLength = 0.0f;
-		// ノード数分アニメーション確保
-		animation.nodeAnims.resize(model.nodes.size());
+		GLTFData::Animation anim;
+		anim.name = gltfAnim.name;
+		anim.secondsLength = 0.0f;
+		anim.nodeAnims.resize(data.nodes.size());
 
-		// Channel読み込み
 		for (const auto& channel : gltfAnim.channels)
 		{
-			// Sampler取得
 			const auto& sampler = gltfAnim.samplers[channel.sampler];
-			// 入力Accessor（時間）
 			const auto& inputAcc = gltfModel.accessors[sampler.input];
-			// 出力Accessor（値）
 			const auto& outputAcc = gltfModel.accessors[sampler.output];
-
-			// BufferView取得
 			const auto& inputBV = gltfModel.bufferViews[inputAcc.bufferView];
 			const auto& outputBV = gltfModel.bufferViews[outputAcc.bufferView];
-			// Buffer取得
 			const auto& inputBuf = gltfModel.buffers[inputBV.buffer];
 			const auto& outputBuf = gltfModel.buffers[outputBV.buffer];
 
-			// キーフレーム時間配列
 			const float* times = reinterpret_cast<const float*>(
 				inputBuf.data.data() + inputBV.byteOffset + inputAcc.byteOffset);
-			// キーフレーム値配列
 			const float* values = reinterpret_cast<const float*>(
 				outputBuf.data.data() + outputBV.byteOffset + outputAcc.byteOffset);
 
-			// 対象ノードIndex
 			int nodeIndex = channel.target_node;
-			// 範囲外チェック
-			if (nodeIndex < 0 || nodeIndex >= static_cast<int>(animation.nodeAnims.size()))
+			if (nodeIndex < 0 || nodeIndex >= (int)anim.nodeAnims.size())
 			{
 				continue;
 			}
 
-			// ノードアニメーション取得
-			auto& nodeAnim = animation.nodeAnims[nodeIndex];
+			auto& nodeAnim = anim.nodeAnims[nodeIndex];
 
-			// アニメーション長更新
 			if (inputAcc.count > 0)
 			{
-				// 最終キーフレーム時間
-				float lastTime = times[inputAcc.count - 1];
-
-				// 最大時間更新
-				animation.secondsLength = (std::max)(animation.secondsLength, lastTime);
+				anim.secondsLength = (std::max)(
+					anim.secondsLength, times[inputAcc.count - 1]);
 			}
 
-
-			// Translation
 			if (channel.target_path == "translation")
 			{
 				for (size_t i = 0; i < inputAcc.count; i++)
 				{
-					Model::VectorKeyframe kf;
-					// キーフレーム時間
+					GLTFData::VectorKeyframe kf;
 					kf.seconds = times[i];
-					// 座標値
-					kf.value =
-					{
-						values[i * 3 + 0],
-						values[i * 3 + 1],
-						values[i * 3 + 2]
-					};
-
+					kf.value = { values[i * 3 + 0], values[i * 3 + 1], values[i * 3 + 2] };
 					nodeAnim.positionKeyframes.push_back(kf);
 				}
 			}
-			// Rotation
 			else if (channel.target_path == "rotation")
 			{
 				for (size_t i = 0; i < inputAcc.count; i++)
 				{
-					Model::QuaternionKeyframe kf;
-
-					// キーフレーム時間
+					GLTFData::QuaternionKeyframe kf;
 					kf.seconds = times[i];
-					// 回転値
-					kf.value =
-					{
-						values[i * 4 + 0], values[i * 4 + 1],
-						values[i * 4 + 2], values[i * 4 + 3]
-					};
+					kf.value = { values[i * 4 + 0], values[i * 4 + 1],
+								   values[i * 4 + 2], values[i * 4 + 3] };
 					nodeAnim.rotationKeyframes.push_back(kf);
 				}
 			}
-			// Scale
 			else if (channel.target_path == "scale")
 			{
 				for (size_t i = 0; i < inputAcc.count; i++)
 				{
-					Model::VectorKeyframe kf;
-					// キーフレーム時間
+					GLTFData::VectorKeyframe kf;
 					kf.seconds = times[i];
-					// Scale値
-					kf.value =
-					{
-						values[i * 3 + 0],
-						values[i * 3 + 1],
-						values[i * 3 + 2]
-					};
-
+					kf.value = { values[i * 3 + 0], values[i * 3 + 1], values[i * 3 + 2] };
 					nodeAnim.scaleKeyframes.push_back(kf);
 				}
 			}
 		}
-
-		// モデルへ追加
-		model.animations.push_back(std::move(animation));
+		data.animations.push_back(std::move(anim));
 	}
 }
 
@@ -606,142 +461,108 @@ bool GLTFImporter::CheckHasSkin(const tinygltf::Model& gltfModel)
 // 座標系変換ヘルパー
 DirectX::XMFLOAT3 GLTFImporter::ToXMFLOAT3(const std::vector<double>& v)
 {
-	return { 
-		static_cast<float>(v[0]),
-		static_cast<float>(v[1]),
-		static_cast<float>(v[2]) 
+	return {
+			static_cast<float>(v[0]),
+			static_cast<float>(v[1]),
+			static_cast<float>(v[2])
 	};
 }
 DirectX::XMFLOAT4 GLTFImporter::ToXMFLOAT4(const std::vector<double>& v)
 {
-	return { 
-		static_cast<float>(v[0]),
-		static_cast<float>(v[1]),
-		static_cast<float>(v[2]),
-		static_cast<float>(v[3]) 
+	return {
+			static_cast<float>(v[0]),
+			static_cast<float>(v[1]),
+			static_cast<float>(v[2]),
+			static_cast<float>(v[3])
 	};
 }
 DirectX::XMFLOAT4X4 GLTFImporter::ToXMFLOAT4X4(const std::vector<double>& v)
 {
 	return {
-		static_cast<float>(v[0]),  static_cast<float>(v[1]),
-		static_cast<float>(v[2]),  static_cast<float>(v[3]),
-		static_cast<float>(v[4]),  static_cast<float>(v[5]),
-		static_cast<float>(v[6]),  static_cast<float>(v[7]),
-		static_cast<float>(v[8]),  static_cast<float>(v[9]),
-		static_cast<float>(v[10]), static_cast<float>(v[11]),
-		static_cast<float>(v[12]), static_cast<float>(v[13]),
-		static_cast<float>(v[14]), static_cast<float>(v[15])
+			static_cast<float>(v[0]),  static_cast<float>(v[1]),
+			static_cast<float>(v[2]),  static_cast<float>(v[3]),
+			static_cast<float>(v[4]),  static_cast<float>(v[5]),
+			static_cast<float>(v[6]),  static_cast<float>(v[7]),
+			static_cast<float>(v[8]),  static_cast<float>(v[9]),
+			static_cast<float>(v[10]), static_cast<float>(v[11]),
+			static_cast<float>(v[12]), static_cast<float>(v[13]),
+			static_cast<float>(v[14]), static_cast<float>(v[15])
 	};
 }
 
 
 // タンジェント計算
 void GLTFImporter::ComputeTangents(
-	std::vector<Model::Vertex>& vertices,
+	std::vector<GLTFData::Vertex>& vertices,
 	const std::vector<uint32_t>& indices)
 {
-	// 3Index単位で三角形走査
 	for (size_t i = 0; i < indices.size(); i += 3)
 	{
-		// 三角形頂点取得
 		auto& v0 = vertices[indices[i + 0]];
 		auto& v1 = vertices[indices[i + 1]];
 		auto& v2 = vertices[indices[i + 2]];
 
-		// Position取得
 		DirectX::XMVECTOR p0 = DirectX::XMLoadFloat3(&v0.position);
 		DirectX::XMVECTOR p1 = DirectX::XMLoadFloat3(&v1.position);
 		DirectX::XMVECTOR p2 = DirectX::XMLoadFloat3(&v2.position);
-
-		// UV取得
 		DirectX::XMVECTOR uv0 = DirectX::XMLoadFloat2(&v0.texcoord);
 		DirectX::XMVECTOR uv1 = DirectX::XMLoadFloat2(&v1.texcoord);
 		DirectX::XMVECTOR uv2 = DirectX::XMLoadFloat2(&v2.texcoord);
 
-		// 辺ベクトル計算
-		DirectX::XMVECTOR e1 = DirectX::XMVectorSubtract(p1, p0);    // Position差分
+		DirectX::XMVECTOR e1 = DirectX::XMVectorSubtract(p1, p0);
 		DirectX::XMVECTOR e2 = DirectX::XMVectorSubtract(p2, p0);
-		DirectX::XMVECTOR du1 = DirectX::XMVectorSubtract(uv1, uv0); // UV差分
+		DirectX::XMVECTOR du1 = DirectX::XMVectorSubtract(uv1, uv0);
 		DirectX::XMVECTOR du2 = DirectX::XMVectorSubtract(uv2, uv0);
 
-		// UV成分取得
 		float u1 = DirectX::XMVectorGetX(du1);
 		float v1f = DirectX::XMVectorGetY(du1);
 		float u2 = DirectX::XMVectorGetX(du2);
 		float v2f = DirectX::XMVectorGetY(du2);
-
-		// タンジェント計算係数
 		float denom = u1 * v2f - u2 * v1f;
-		// UVが壊れている場合
-		if (fabsf(denom) < 1e-6f)
-		{
-			continue;
-		}
+
+		if (fabsf(denom) < 1e-6f) continue;
 
 		float r = 1.0f / denom;
+		DirectX::XMVECTOR tangent = DirectX::XMVector3Normalize(
+			DirectX::XMVectorScale(
+				DirectX::XMVectorSubtract(
+					DirectX::XMVectorScale(e1, v2f),
+					DirectX::XMVectorScale(e2, v1f)),
+				r));
 
-		// タンジェント計算
-		DirectX::XMVECTOR tangent = DirectX::XMVectorScale(
-			DirectX::XMVectorSubtract(
-				DirectX::XMVectorScale(e1, v2f),
-				DirectX::XMVectorScale(e2, v1f)),
-			r);
-		// 正規化
-		tangent = DirectX::XMVector3Normalize(tangent);
-
-		// 頂点へ保存
 		DirectX::XMFLOAT3 t;
 		DirectX::XMStoreFloat3(&t, tangent);
-		v0.tangent =
-		v1.tangent =
-		v2.tangent =
-		{
-			t.x,
-			t.y,
-			t.z,
-			1.0f
-		};
+		v0.tangent = v1.tangent = v2.tangent = { t.x, t.y, t.z, 1.0f };
 	}
 }
 
+
 // グローバルトランスフォーム計算
 void GLTFImporter::CalcGlobalTransform(
-	std::vector<Model::Node>& nodes,
+	std::vector<GLTFData::Node>& nodes,
 	int nodeIndex,
 	const DirectX::XMFLOAT4X4& parentTransform)
 {
-	// 対象ノード取得
 	auto& node = nodes[nodeIndex];
 
-	// Scale行列
 	DirectX::XMMATRIX S = DirectX::XMMatrixScaling(
 		node.scale.x, node.scale.y, node.scale.z);
-	// Rotation行列
 	DirectX::XMMATRIX R = DirectX::XMMatrixRotationQuaternion(
 		DirectX::XMVectorSet(
 			node.rotation.x, node.rotation.y,
 			node.rotation.z, node.rotation.w));
-	// Translation行列
 	DirectX::XMMATRIX T = DirectX::XMMatrixTranslation(
 		node.position.x, node.position.y, node.position.z);
 
-	// ローカル行列合成
 	DirectX::XMMATRIX local = S * R * T;
-	
-	// 親行列取得
 	DirectX::XMMATRIX parent = DirectX::XMLoadFloat4x4(&parentTransform);
-	
-	// グローバル行列計算
 	DirectX::XMMATRIX global = local * parent;
 
-	// 計算結果保存
+	DirectX::XMStoreFloat4x4(&node.localTransform, local);
 	DirectX::XMStoreFloat4x4(&node.globalTransform, global);
 
-	// 子ノード再帰処理
-	for (int childIndex : node.childIndices)
+	for (int child : node.childIndices)
 	{
-		// 親Transformを渡して再帰
-		CalcGlobalTransform(nodes, childIndex, node.globalTransform);
+		CalcGlobalTransform(nodes, child, node.globalTransform);
 	}
 }

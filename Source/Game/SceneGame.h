@@ -1,7 +1,7 @@
 #pragma once
 #include "Core/Scene.h"
 #include "ECS/Systems/RenderSystem.h"
-
+#include "ECS/Systems/AnimationSystem.h"
 #include "Debug/DebugRenderer.h"
 
 class SceneGame : public Scene
@@ -15,6 +15,7 @@ public:
 
 private:
 	RenderSystem renderSystem;
+	AnimationSystem animationSystem;
 	DebugRenderer debugRenderer;
 
 };

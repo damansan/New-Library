@@ -1413,6 +1413,7 @@ public:
     // ボーン描画
     void AddBones(
         const std::vector<Model::Node>& nodes,
+        const std::vector<DirectX::XMFLOAT4X4>& nodeTransforms,
         const DirectX::XMMATRIX& worldMatrix,
         const DirectX::XMFLOAT4& color = { 1,1,0,1 }
     );
@@ -1534,6 +1535,7 @@ void DebugRenderer::AddLine(
 
 void DebugRenderer::AddBones(
     const std::vector<Model::Node>& nodes,
+    const std::vector<DirectX::XMFLOAT4X4>& nodeTransforms,
     const DirectX::XMMATRIX& worldMatrix,
     const DirectX::XMFLOAT4& color)
 {
@@ -1541,20 +1543,19 @@ void DebugRenderer::AddBones(
     {
         const auto& node = nodes[i];
         if (node.parentIndex < 0) continue;
+        if (i >= (int)nodeTransforms.size()) continue;
+        if (node.parentIndex >= (int)nodeTransforms.size()) continue;
 
-        const auto& parent = nodes[node.parentIndex];
-
-        // 子ノードのワールド位置
+        // nodeTransforms からワールド位置を取得
         DirectX::XMFLOAT3 childPos = {
-            node.globalTransform._41,
-            node.globalTransform._42,
-            node.globalTransform._43
+            nodeTransforms[i]._41,
+            nodeTransforms[i]._42,
+            nodeTransforms[i]._43
         };
-        // 親ノードのワールド位置
         DirectX::XMFLOAT3 parentPos = {
-            parent.globalTransform._41,
-            parent.globalTransform._42,
-            parent.globalTransform._43
+            nodeTransforms[node.parentIndex]._41,
+            nodeTransforms[node.parentIndex]._42,
+            nodeTransforms[node.parentIndex]._43
         };
 
         // エンティティのワールド行列を掛ける
@@ -1723,6 +1724,9 @@ struct SkinnedMeshComponent
 
     // ボーン行列(シェーダーに渡す）
     std::vector<DirectX::XMFLOAT4X4> boneTransforms;
+
+    // ノードのグローバル行列（デバッグ描画用）
+    std::vector<DirectX::XMFLOAT4X4> nodeTransforms;
 }; 
  
 ===== StaticMeshComponent.h ===== 
@@ -1771,6 +1775,48 @@ struct TransformComponent
 		DirectX::XMMATRIX T = DirectX::XMMatrixTranslation(position.x, position.y, position.z);
 		return S * R * T;
 	}
+}; 
+ 
+===== AnimationSystem.h ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\AnimationSystem.h 
+#pragma once
+#include <d3d11.h>
+#include "entt.hpp"
+#include "Resource/Model.h" 
+#include "ECS/Components/AnimatorComponent.h"
+#include "ECS/Components/SkinnedMeshComponent.h"
+
+class AnimationSystem
+{
+public:
+	// 更新（時間を進めてボーン行列を計算）
+	void Update(
+		entt::registry& registry,
+		float elapsedTime);
+
+private:
+	// キーフレーム補間（位置）
+	static DirectX::XMFLOAT3 InterpolatePosition(
+		const std::vector<Model::VectorKeyframe>& keyframes,
+		float time);
+
+	// キーフレーム補間（回転）
+	static DirectX::XMFLOAT4 InterpolateRotation(
+		const std::vector<Model::QuaternionKeyframe>& keyframes,
+		float time);
+
+	// キーフレーム補間（スケール）
+	static DirectX::XMFLOAT3 InterpolateScale(
+		const std::vector<Model::VectorKeyframe>& keyframes,
+		float time);
+
+	// ノードのグローバル行列を再帰計算してボーン行列に書き込む
+	static void CalcBoneTransforms(
+		const Model& model,
+		const Model::Animation& animation,
+		float time,
+		std::vector<DirectX::XMFLOAT4X4>& boneTransforms,
+		std::vector<DirectX::XMFLOAT4X4>& nodeTransforms);
 }; 
  
 ===== MeshLoaderSystem.h ===== 
@@ -1897,6 +1943,290 @@ private:
     // ブレンドステート
     Microsoft::WRL::ComPtr<ID3D11BlendState>        blendState;
 }; 
+ 
+===== AnimationSystem.cpp ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\AnimationSystem.cpp 
+#include "AnimationSystem.h"
+
+// 更新
+void AnimationSystem::Update(
+	entt::registry& registry,
+	float elapsedTime)
+{
+	auto view = registry.view<AnimatorComponent, SkinnedMeshComponent>();
+
+	view.each(
+		[&](auto entity,
+			AnimatorComponent& animator,
+			SkinnedMeshComponent& skinned)
+		{
+			// モデルが無効なら何もしない
+			if (!skinned.model) return;
+			if (!animator.isPlaying) return;
+
+			const auto& animations = skinned.model->GetAnimations();
+			if (animations.empty()) return;
+
+			// アニメーション名からインデックスを探す
+			int animIndex = -1;
+			for (int i = 0; i < (int)animations.size(); i++)
+			{
+				if (animations[i].name == animator.currentAnimation)
+				{
+					animIndex = i;
+					break;
+				}
+			}
+
+			// 見つからなければ0番目を使う
+			if (animIndex < 0)
+			{
+				animIndex = 0;
+				animator.currentAnimation = animations[0].name;
+			}
+
+			const auto& animation = animations[animIndex];
+			animator.animationTime += elapsedTime * animator.playSpeed;
+
+			// ループ処理
+			if (animator.loop)
+			{
+				if (animator.animationTime > animation.secondsLength)
+				{
+					animator.animationTime -= animation.secondsLength;
+					animator.isEnd = false;
+				}
+			}
+			else
+			{
+				if (animator.animationTime >= animation.secondsLength)
+				{
+					animator.animationTime = animation.secondsLength;
+					animator.isPlaying = false;
+					animator.isEnd = true;
+				}
+			}
+
+			// ボーン行列を計算
+			CalcBoneTransforms(
+				*skinned.model,
+				animation,
+				animator.animationTime,
+				skinned.boneTransforms,
+				skinned.nodeTransforms);
+		});
+}
+
+// キーフレーム補間（位置）
+DirectX::XMFLOAT3 AnimationSystem::InterpolatePosition(
+	const std::vector<Model::VectorKeyframe>& keyframes,
+	float time)
+{
+	if (keyframes.size() == 1)
+	{
+		return keyframes[0].value;
+	}
+
+	// 前後のキーフレームを探す
+	for (int i = 0; i < (int)keyframes.size() - 1; i++)
+	{
+		if (time <= keyframes[i + 1].seconds)
+		{
+			float t = (time - keyframes[i].seconds) / (keyframes[i + 1].seconds - keyframes[i].seconds);
+
+			DirectX::XMVECTOR a = DirectX::XMLoadFloat3(
+				&keyframes[i].value);
+			DirectX::XMVECTOR b = DirectX::XMLoadFloat3(
+				&keyframes[i + 1].value);
+
+			DirectX::XMFLOAT3 result;
+			DirectX::XMStoreFloat3(
+				&result,
+				DirectX::XMVectorLerp(a, b, t));
+			return result;
+		}
+	}
+	// 末尾を返す
+	return keyframes.back().value;
+}
+
+// キーフレーム補間（回転）
+DirectX::XMFLOAT4 AnimationSystem::InterpolateRotation(
+	const std::vector<Model::QuaternionKeyframe>& keyframes,
+	float time)
+{
+	if (keyframes.size() == 1)
+	{
+		return keyframes[0].value;
+	}
+
+	for (int i = 0; i < (int)keyframes.size() - 1; i++)
+	{
+		if (time <= keyframes[i + 1].seconds)
+		{
+			float t = (time - keyframes[i].seconds) / (keyframes[i + 1].seconds - keyframes[i].seconds);
+
+			DirectX::XMVECTOR a = DirectX::XMLoadFloat4(
+				&keyframes[i].value);
+			DirectX::XMVECTOR b = DirectX::XMLoadFloat4(
+				&keyframes[i + 1].value);
+
+			DirectX::XMFLOAT4 result;
+			DirectX::XMStoreFloat4(
+				&result,
+				DirectX::XMQuaternionSlerp(a, b, t));
+			return result;
+		}
+	}
+	return keyframes.back().value;
+}
+
+// キーフレーム補間（スケール）
+DirectX::XMFLOAT3 AnimationSystem::InterpolateScale(
+	const std::vector<Model::VectorKeyframe>& keyframes,
+	float time)
+{
+	if (keyframes.size() == 1)
+	{
+		return keyframes[0].value;
+	}
+
+	for (int i = 0; i < (int)keyframes.size() - 1; i++)
+	{
+		if (time <= keyframes[i + 1].seconds)
+		{
+			float t = (time - keyframes[i].seconds) / (keyframes[i + 1].seconds - keyframes[i].seconds);
+
+			DirectX::XMVECTOR a = DirectX::XMLoadFloat3(
+				&keyframes[i].value);
+			DirectX::XMVECTOR b = DirectX::XMLoadFloat3(
+				&keyframes[i + 1].value);
+
+			DirectX::XMFLOAT3 result;
+			DirectX::XMStoreFloat3(
+				&result,
+				DirectX::XMVectorLerp(a, b, t));
+			return result;
+		}
+	}
+	return keyframes.back().value;
+}
+
+// ノードのグローバル行列を再帰計算してボーン行列に書き込む
+void AnimationSystem::CalcBoneTransforms(
+	const Model& model,
+	const Model::Animation& animation,
+	float time,
+	std::vector<DirectX::XMFLOAT4X4>& boneTransforms,
+	std::vector<DirectX::XMFLOAT4X4>& nodeTransforms)
+{
+	const auto& nodes = model.GetNodes();
+	const auto& meshes = model.GetMeshes();
+
+	// ノードのグローバル行列を計算
+	std::vector<DirectX::XMFLOAT4X4> globalTransforms(nodes.size());
+
+	// ルートから再帰的にグローバル行列を計算
+	std::function<void(int, const DirectX::XMFLOAT4X4&)> calcGlobal =
+		[&](int nodeIndex, const DirectX::XMFLOAT4X4& parentTransform)
+		{
+			const auto& node = nodes[nodeIndex];
+
+			// キーフレームから補間してローカル行列を作る
+			DirectX::XMFLOAT3 position = node.position;
+			DirectX::XMFLOAT4 rotation = node.rotation;
+			DirectX::XMFLOAT3 scale = node.scale;
+
+			if (nodeIndex < (int)animation.nodeAnims.size())
+			{
+				const auto& nodeAnim = animation.nodeAnims[nodeIndex];
+
+				if (!nodeAnim.positionKeyframes.empty())
+				{
+					position = InterpolatePosition(
+						nodeAnim.positionKeyframes, time);
+				}
+
+				if (!nodeAnim.rotationKeyframes.empty())
+				{
+					//rotation = InterpolateRotation(
+					//	nodeAnim.rotationKeyframes, time);
+				}
+
+				if (!nodeAnim.scaleKeyframes.empty())
+				{
+					scale = InterpolateScale(
+						nodeAnim.scaleKeyframes, time);
+				}
+			}
+
+			// ローカル行列を計算
+			DirectX::XMMATRIX S = DirectX::XMMatrixScaling(
+				scale.x, scale.y, scale.z);
+			DirectX::XMMATRIX R = DirectX::XMMatrixRotationQuaternion(
+				DirectX::XMVectorSet(
+					rotation.x, rotation.y,
+					rotation.z, rotation.w));
+			DirectX::XMMATRIX T = DirectX::XMMatrixTranslation(
+				position.x, position.y, position.z);
+
+			DirectX::XMMATRIX local = S * R * T;
+			DirectX::XMMATRIX parent = DirectX::XMLoadFloat4x4(&parentTransform);
+			DirectX::XMMATRIX global = local * parent;
+
+			DirectX::XMStoreFloat4x4(&globalTransforms[nodeIndex], global);
+
+			// 子ノードを再帰処理
+			for (int child : node.childIndices)
+			{
+				calcGlobal(child, globalTransforms[nodeIndex]);
+			}
+		};
+
+	// ルートノードから計算開始
+	DirectX::XMFLOAT4X4 identity =
+	{ 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 };
+
+	for (int i = 0; i < (int)nodes.size(); i++)
+	{
+		if (nodes[i].parentIndex < 0)
+		{
+			calcGlobal(i, identity);
+		}
+	}
+
+	// メッシュごとにボーン行列を計算
+	// 最初のメッシュのボーン情報を使う
+	if (meshes.empty()) return;
+
+	const auto& mesh = meshes[0];
+	boneTransforms.resize(mesh.bones.size());
+
+	for (int i = 0; i < (int)mesh.bones.size(); i++)
+	{
+		const auto& bone = mesh.bones[i];
+		int nodeIdx = bone.nodeIndex;
+
+		if (nodeIdx < 0 || nodeIdx >= (int)globalTransforms.size())
+		{
+			continue;
+		}
+
+		// ボーン行列
+		DirectX::XMMATRIX offset = DirectX::XMLoadFloat4x4(
+			&bone.offsetTransform);
+		DirectX::XMMATRIX global = DirectX::XMLoadFloat4x4(
+			&globalTransforms[nodeIdx]);
+
+		DirectX::XMStoreFloat4x4(
+			&boneTransforms[i],
+			offset * global);
+	}
+
+	// nodeTransforms に書き込む
+	nodeTransforms = globalTransforms;
+}
+ 
  
 ===== MeshLoaderSystem.cpp ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\MeshLoaderSystem.cpp 
@@ -2273,7 +2603,7 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Game\SceneGame.h
 #pragma once
 #include "Core/Scene.h"
 #include "ECS/Systems/RenderSystem.h"
-
+#include "ECS/Systems/AnimationSystem.h"
 #include "Debug/DebugRenderer.h"
 
 class SceneGame : public Scene
@@ -2287,6 +2617,7 @@ public:
 
 private:
 	RenderSystem renderSystem;
+	AnimationSystem animationSystem;
 	DebugRenderer debugRenderer;
 
 };
@@ -2300,26 +2631,28 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Game\SceneGame.cpp
 void SceneGame::Initialize(const SceneContext& context)
 {
 	renderSystem.Initialize(context.device);
+	debugRenderer.Initialize(context.device);
 
-	// ランバートシェーダーを使うEntity
-	auto entity = registry.create();
-	auto& t = registry.emplace<TransformComponent>(entity);
-	t.position = { -3.0f, 0.0f, 0.0f };
-	registry.emplace<MeshComponent>(entity, "Data/Model/Mr.Incredible.glb");
-	registry.emplace<MaterialComponent>(entity).AddPass("lambert");  // ランバートを指定
+	//// ランバートシェーダーを使うEntity
+	//auto entity = registry.create();
+	//auto& t = registry.emplace<TransformComponent>(entity);
+	//t.position = { -3.0f, 0.0f, 0.0f };
+	//registry.emplace<MeshComponent>(entity, "Data/Model/Mr.Incredible.glb");
+	//registry.emplace<MaterialComponent>(entity).AddPass("lambert");  // ランバートを指定
 
-	// ベーシックシェーダーを使うEntity
-	auto entity2 = registry.create();
-	auto& t2 = registry.emplace<TransformComponent>(entity2);
-	t2.position = { 3.0f, 0.0f, 0.0f };
-	registry.emplace<MeshComponent>(entity2, "Data/Model/Mr.Incredible.glb");
-	registry.emplace<MaterialComponent>(entity2).AddPass("basic");    // ベーシックを指定
+	//// ベーシックシェーダーを使うEntity
+	//auto entity2 = registry.create();
+	//auto& t2 = registry.emplace<TransformComponent>(entity2);
+	//t2.position = { 3.0f, 0.0f, 0.0f };
+	//registry.emplace<MeshComponent>(entity2, "Data/Model/Mr.Incredible.glb");
+	//registry.emplace<MaterialComponent>(entity2).AddPass("basic");    // ベーシックを指定
 
 
 	// スキニングモデル
 	auto entity3 = registry.create();
 	registry.emplace<TransformComponent>(entity3);
 	registry.emplace<MeshComponent>(entity3, "Data/Model/unitychan.glb");
+	//registry.emplace<MeshComponent>(entity3, "Data/Model/PlayerRobot/Map_Robot3.gltf");
 	registry.emplace<MaterialComponent>(entity3).AddPass("skinning_lambert");
 }
 
@@ -2331,7 +2664,8 @@ void SceneGame::Update(float elapsedTime, const SceneContext& context)
 		context.device,
 		*context.resourceManager
 	);
-
+	// アニメーション更新
+	animationSystem.Update(registry, elapsedTime/10);
 }
 
 void SceneGame::Render(const SceneContext& context)
@@ -2386,9 +2720,11 @@ void SceneGame::Render(const SceneContext& context)
 	view.each([&](auto entity, SkinnedMeshComponent& skinned, TransformComponent& transform)
 		{
 			if (!skinned.model) return;
+			if (skinned.nodeTransforms.empty()) return;
 
 			debugRenderer.AddBones(
 				skinned.model->GetNodes(),
+				skinned.nodeTransforms,
 				transform.GetWorldMatrix(),
 				{ 1.0f, 1.0f, 0.0f, 1.0f }  // 黄色
 			);
@@ -2403,60 +2739,218 @@ void SceneGame::Render(const SceneContext& context)
 }
  
  
+===== GLTFConverter.h ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\GLTFConverter.h 
+#pragma once
+#include <memory>
+#include <d3d11.h>
+
+#include "GLTFData.h"
+#include "Model.h"
+
+class GLTFConverter
+{
+public:
+    // GLTFData を受け取り Model を生成して返す
+    static std::shared_ptr<Model> Convert(
+        ID3D11Device* device,
+        const std::shared_ptr<GLTFData>& data
+    );
+
+private:
+    // ノード変換
+    static void ConvertNodes(
+        Model& model,
+        const GLTFData& data
+    );
+
+    // メッシュ変換（頂点・インデックスバッファ生成）
+    static void ConvertMeshes(
+        Model& model,
+        const GLTFData& data,
+        ID3D11Device* device
+    );
+
+    // マテリアル変換（テクスチャ生成）
+    static void ConvertMaterials(
+        Model& model,
+        const GLTFData& data,
+        ID3D11Device* device
+    );
+
+    // アニメーション変換
+    static void ConvertAnimations(
+        Model& model,
+        const GLTFData& data
+    );
+}; 
+ 
+===== GLTFData.h ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\GLTFData.h 
+#pragma once
+#include <string>
+#include <vector>
+#include <DirectXMath.h>
+
+
+// GLTFファイルから読み込んだデータ
+struct GLTFData
+{
+    // 頂点データ
+    struct Vertex
+    {
+        DirectX::XMFLOAT3 position = { 0, 0, 0 };
+        DirectX::XMFLOAT3 normal = { 0, 0, 0 };
+        DirectX::XMFLOAT4 tangent = { 0, 0, 0, 1 };
+        DirectX::XMFLOAT2 texcoord = { 0, 0 };
+        DirectX::XMFLOAT4 boneWeight = { 1, 0, 0, 0 };
+        DirectX::XMUINT4  boneIndex = { 0, 0, 0, 0 };
+    };
+
+    // ボーン
+    struct Bone
+    {
+        int                 nodeIndex;
+        DirectX::XMFLOAT4X4 offsetTransform;
+    };
+
+    // ノード
+    struct Node
+    {
+        std::string          name;
+        int                  parentIndex = -1;
+        std::vector<int>     childIndices;
+        DirectX::XMFLOAT3    position = { 0, 0, 0 };
+        DirectX::XMFLOAT4    rotation = { 0, 0, 0, 1 };
+        DirectX::XMFLOAT3    scale = { 1, 1, 1 };
+        DirectX::XMFLOAT4X4  localTransform = { 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 };
+        DirectX::XMFLOAT4X4  globalTransform = { 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 };
+    };
+
+    // テクスチャデータ（パス・埋め込み問わずバイナリで統一）
+    struct TextureData
+    {
+        std::vector<uint8_t> pixels; // バイナリデータ
+    };
+
+    // マテリアルデータ
+    struct MaterialData
+    {
+        std::string          name;
+        DirectX::XMFLOAT4    baseColor = { 1, 1, 1, 1 };
+        float                roughnessFactor = 1.0f;
+        float                metallicFactor = 0.0f;
+
+        // テクスチャインデックス（-1 は未使用）
+        int baseMapIndex = -1;
+        int normalMapIndex = -1;
+        int metallicRoughnessMapIndex = -1;
+        int occlusionMapIndex = -1;
+        int emissiveMapIndex = -1;
+
+        enum class AlphaMode { Opaque, Blend, Mask };
+        AlphaMode alphaMode = AlphaMode::Opaque;
+        float     alphaCutoff = 0.5f;
+    };
+
+    // メッシュデータ
+    struct MeshData
+    {
+        std::vector<Vertex>   vertices;
+        std::vector<uint32_t> indices;
+        std::vector<Bone>     bones;
+        int nodeIndex = 0;
+        int materialIndex = 0;
+    };
+
+    // アニメーションキーフレーム
+    struct VectorKeyframe
+    {
+        float               seconds;
+        DirectX::XMFLOAT3   value;
+    };
+    struct QuaternionKeyframe
+    {
+        float               seconds;
+        DirectX::XMFLOAT4   value;
+    };
+
+    // ノードアニメーション
+    struct NodeAnim
+    {
+        std::vector<VectorKeyframe>     positionKeyframes;
+        std::vector<QuaternionKeyframe> rotationKeyframes;
+        std::vector<VectorKeyframe>     scaleKeyframes;
+    };
+
+    // アニメーション
+    struct Animation
+    {
+        std::string           name;
+        float                 secondsLength;
+        std::vector<NodeAnim> nodeAnims;
+    };
+
+    // データ本体
+    std::vector<Node>        nodes;
+    std::vector<MeshData>    meshes;
+    std::vector<MaterialData> materials;
+    std::vector<TextureData> textures;   // 全テクスチャをここに集約
+    std::vector<Animation>   animations;
+    bool                     hasSkin = false;
+}; 
+ 
 ===== GLTFImporter.h ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\GLTFImporter.h 
 #pragma once
-
 #include <memory>
 #include <string>
-#include <d3d11.h>
 #include <filesystem>
 
-#define TINYGLTF_NO_EXTERNAL_IMAGE
 #define TINYGLTF_NO_STB_IMAGE
 #define TINYGLTF_NO_STB_IMAGE_WRITE
 #define TINYGLTF_NO_INCLUDE_STB_IMAGE
 #define TINYGLTF_NO_INCLUDE_STB_IMAGE_WRITE
 #include "tiny_gltf.h"
-
-#include "Model.h"
+#include "GLTFData.h"
 
 class GLTFImporter
 {
 public:
-    // モデル読み込み＆スキニング判定
-    static std::shared_ptr<Model> Load(
-        ID3D11Device* device,
-        const std::string& filename
-    );
+    // GLTFファイルを読み込んでGLTFDataを返す
+    static std::shared_ptr<GLTFData> Load(const std::string& filename);
 
 private:
     // ノード読み込み
     static void LoadNodes(
-        Model& model,
+        GLTFData& data,
         const tinygltf::Model& gltfModel
     );
 
     // メッシュ読み込み
     static void LoadMeshes(
-        Model& model,
-        const tinygltf::Model& gltfModel,
-        ID3D11Device* device
+        GLTFData& data,
+        const tinygltf::Model& gltfModel
     );
 
     // マテリアル読み込み
     static void LoadMaterials(
-        Model& model,
+        GLTFData& data,
         const tinygltf::Model& gltfModel,
-        ID3D11Device* device,
+        const std::filesystem::path& filepath
+    );
+
+    // テクスチャ読み込み
+    static void LoadTextures(
+        GLTFData& data,
+        const tinygltf::Model& gltfModel,
         const std::filesystem::path& filepath
     );
 
     // アニメーション読み込み
     static void LoadAnimations(
-        Model& model,
-        const tinygltf::Model& gltfModel,
-        float sampleRate = 60.0f
+        GLTFData& data,
+        const tinygltf::Model& gltfModel
     );
 
     // スキニング判定
@@ -2469,13 +2963,13 @@ private:
 
     // タンジェント計算
     static void ComputeTangents(
-        std::vector<Model::Vertex>& vertices,
+        std::vector<GLTFData::Vertex>& vertices,
         const std::vector<uint32_t>& indices
     );
 
     // グローバルトランスフォーム計算
     static void CalcGlobalTransform(
-        std::vector<Model::Node>& nodes,
+        std::vector<GLTFData::Node>& nodes,
         int nodeIndex,
         const DirectX::XMFLOAT4X4& parentTransform
     );
@@ -2506,14 +3000,6 @@ public:
         ID3D11Device* device,
         const std::string& filename,
         Microsoft::WRL::ComPtr<ID3D11PixelShader>& pixelShader
-    );
-
-    // ファイルパスからテクスチャ読み込み
-    static HRESULT LoadTexture(
-        ID3D11Device* device,
-        const std::string& filename,
-        Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>& shaderResourceView,
-        D3D11_TEXTURE2D_DESC* texture2dDesc = nullptr
     );
 
     // 埋め込みテクスチャ読み込み
@@ -2674,6 +3160,7 @@ public:
 
 private:
     friend class GLTFImporter;
+    friend class GLTFConverter;
 
     std::vector<Node>      nodes;
     std::vector<Mesh>      meshes;
@@ -2720,18 +3207,274 @@ private:
     std::unordered_map<std::string, std::weak_ptr<Model>> modelCache;
 }; 
  
+===== GLTFConverter.cpp ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\GLTFConverter.cpp 
+#include "GLTFConverter.h"
+#include "GpuResourceUtils.h"
+#include "Utility/misc.h"
+
+// GLTFData を受け取り Model を生成して返す
+std::shared_ptr<Model> GLTFConverter::Convert(
+	ID3D11Device* device,
+	const std::shared_ptr<GLTFData>& data)
+{
+	auto model = std::make_shared<Model>();
+	model->hasSkin = data->hasSkin;
+
+	ConvertNodes(*model, *data);
+	ConvertMeshes(*model, *data, device);
+	ConvertMaterials(*model, *data, device);
+	ConvertAnimations(*model, *data);
+
+	return model;
+}
+
+// ノード変換
+void GLTFConverter::ConvertNodes(
+	Model& model,
+	const GLTFData& data)
+{
+	model.nodes.reserve(data.nodes.size());
+
+	for (const auto& src : data.nodes)
+	{
+		Model::Node dst;
+		dst.name = src.name;
+		dst.parentIndex = src.parentIndex;
+		dst.childIndices = src.childIndices;
+		dst.position = src.position;
+		dst.rotation = src.rotation;
+		dst.scale = src.scale;
+		dst.localTransform = src.localTransform;
+		dst.globalTransform = src.globalTransform;
+
+		model.nodes.push_back(std::move(dst));
+	}
+}
+
+// メッシュ変換
+void GLTFConverter::ConvertMeshes(
+	Model& model,
+	const GLTFData& data, 
+	ID3D11Device* device)
+{
+    model.meshes.reserve(data.meshes.size());
+
+    for (const auto& src : data.meshes)
+    {
+        Model::Mesh dst;
+        dst.nodeIndex = src.nodeIndex;
+        dst.materialIndex = src.materialIndex;
+
+        // 頂点データをGLTFData::VertexからModel::Vertexへコピー
+        dst.vertices.reserve(src.vertices.size());
+        for (const auto& v : src.vertices)
+        {
+            Model::Vertex mv;
+            mv.position = v.position;
+            mv.normal = v.normal;
+            mv.tangent = v.tangent;
+            mv.texcoord = v.texcoord;
+            mv.boneWeight = v.boneWeight;
+            mv.boneIndex = v.boneIndex;
+            dst.vertices.push_back(mv);
+        }
+
+        // インデックスデータコピー
+        dst.indices = src.indices;
+
+        // ボーンデータコピー
+        dst.bones.reserve(src.bones.size());
+        for (const auto& b : src.bones)
+        {
+            Model::Bone mb;
+            mb.nodeIndex = b.nodeIndex;
+            mb.offsetTransform = b.offsetTransform;
+            dst.bones.push_back(mb);
+        }
+
+        // 頂点バッファ生成
+        {
+            D3D11_BUFFER_DESC desc{};
+            desc.ByteWidth = static_cast<UINT>(
+                sizeof(Model::Vertex) * dst.vertices.size());
+            desc.Usage = D3D11_USAGE_DEFAULT;
+            desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+
+            D3D11_SUBRESOURCE_DATA sub{};
+            sub.pSysMem = dst.vertices.data();
+
+            HRESULT hr = device->CreateBuffer(
+                &desc, &sub, dst.vertexBuffer.GetAddressOf());
+            _ASSERT_EXPR(SUCCEEDED(hr), hr_trace(hr));
+        }
+
+        // インデックスバッファ生成
+        {
+            D3D11_BUFFER_DESC desc{};
+            desc.ByteWidth = static_cast<UINT>(
+                sizeof(uint32_t) * dst.indices.size());
+            desc.Usage = D3D11_USAGE_DEFAULT;
+            desc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+
+            D3D11_SUBRESOURCE_DATA sub{};
+            sub.pSysMem = dst.indices.data();
+
+            HRESULT hr = device->CreateBuffer(
+                &desc, &sub, dst.indexBuffer.GetAddressOf());
+            _ASSERT_EXPR(SUCCEEDED(hr), hr_trace(hr));
+        }
+
+        model.meshes.push_back(std::move(dst));
+    }
+}
+
+// マテリアル変換
+void GLTFConverter::ConvertMaterials(
+	Model& model,
+	const GLTFData& data, 
+	ID3D11Device* device)
+{
+    model.materials.reserve(data.materials.size());
+
+    // テクスチャ変換ヘルパー
+    // インデックスが -1 ならダミーテクスチャを生成する
+    auto convertTexture = [&](
+        int texIndex,
+        Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>& srv,
+        DWORD dummyColor)
+        {
+            if (texIndex < 0 ||
+                texIndex >= (int)data.textures.size())
+            {
+                GpuResourceUtils::CreateDummyTexture(
+                    device, srv, dummyColor, 1);
+                return;
+            }
+
+            const auto& texData = data.textures[texIndex];
+            if (texData.pixels.empty())
+            {
+                GpuResourceUtils::CreateDummyTexture(
+                    device, srv, dummyColor, 1);
+                return;
+            }
+
+            // バイナリデータからテクスチャ生成
+            GpuResourceUtils::LoadTexture(
+                device,
+                texData.pixels.data(),
+                texData.pixels.size(),
+                srv);
+        };
+
+    for (const auto& src : data.materials)
+    {
+        Model::Material dst;
+        dst.name = src.name;
+        dst.baseColor = src.baseColor;
+        dst.roughnessFactor = src.roughnessFactor;
+        dst.metallicFactor = src.metallicFactor;
+        dst.alphaMode = static_cast<Model::Material::AlphaMode>(
+            src.alphaMode);
+        dst.alphaCutoff = src.alphaCutoff;
+
+        // テクスチャ生成
+        convertTexture(src.baseMapIndex,
+            dst.baseMap, 0xFFFFFFFF);
+        convertTexture(src.normalMapIndex,
+            dst.normalMap, 0xFFFF8080);
+        convertTexture(src.metallicRoughnessMapIndex,
+            dst.metallicRoughnessMap, 0xFFFFFFFF);
+        convertTexture(src.occlusionMapIndex,
+            dst.occlusionMap, 0xFFFFFFFF);
+        convertTexture(src.emissiveMapIndex,
+            dst.emissiveMap, 0xFF000000);
+
+        model.materials.push_back(std::move(dst));
+    }
+
+    // メッシュとマテリアルを紐付け
+    for (auto& mesh : model.meshes)
+    {
+        if (mesh.materialIndex >= 0 &&
+            mesh.materialIndex < (int)model.materials.size())
+        {
+            mesh.material = &model.materials[mesh.materialIndex];
+        }
+    }
+}
+
+// アニメーション変換
+void GLTFConverter::ConvertAnimations(
+	Model& model, 
+	const GLTFData& data)
+{
+    model.animations.reserve(data.animations.size());
+
+    for (const auto& src : data.animations)
+    {
+        Model::Animation dst;
+        dst.name = src.name;
+        dst.secondsLength = src.secondsLength;
+
+        dst.nodeAnims.reserve(src.nodeAnims.size());
+        for (const auto& srcNode : src.nodeAnims)
+        {
+            Model::NodeAnim dstNode;
+
+            // positionキーフレーム
+            dstNode.positionKeyframes.reserve(
+                srcNode.positionKeyframes.size());
+            for (const auto& kf : srcNode.positionKeyframes)
+            {
+                Model::VectorKeyframe dkf;
+                dkf.seconds = kf.seconds;
+                dkf.value = kf.value;
+                dstNode.positionKeyframes.push_back(dkf);
+            }
+
+            // rotationキーフレーム
+            dstNode.rotationKeyframes.reserve(
+                srcNode.rotationKeyframes.size());
+            for (const auto& kf : srcNode.rotationKeyframes)
+            {
+                Model::QuaternionKeyframe dkf;
+                dkf.seconds = kf.seconds;
+                dkf.value = kf.value;
+                dstNode.rotationKeyframes.push_back(dkf);
+            }
+
+            // scaleキーフレーム
+            dstNode.scaleKeyframes.reserve(
+                srcNode.scaleKeyframes.size());
+            for (const auto& kf : srcNode.scaleKeyframes)
+            {
+                Model::VectorKeyframe dkf;
+                dkf.seconds = kf.seconds;
+                dkf.value = kf.value;
+                dstNode.scaleKeyframes.push_back(dkf);
+            }
+
+            dst.nodeAnims.push_back(std::move(dstNode));
+        }
+
+        model.animations.push_back(std::move(dst));
+    }
+}
+ 
+ 
 ===== GLTFImporter.cpp ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\GLTFImporter.cpp 
 #include "GLTFImporter.h"
+#include "Utility/misc.h"
+#include <filesystem>
+#include <stack>
+#include <algorithm>
+#include <fstream>
 
 #define TINYGLTF_IMPLEMENTATION
 #include "tiny_gltf.h"
-#include "GpuResourceUtils.h"
-#include "Utility/misc.h"
-#include <stack>
-#include <filesystem>
-#include <algorithm>
-
 
 // 画像読み込み無効化
 static bool NullLoadImageData(
@@ -2741,304 +3484,257 @@ static bool NullLoadImageData(
 	return true;
 }
 
-
-// モデル読み込み＆スキニング判定
-std::shared_ptr<Model> GLTFImporter::Load(
-	ID3D11Device* device,
-	const std::string& filename)
+// GLTFファイルを読み込んでGLTFDataを返す
+std::shared_ptr<GLTFData> GLTFImporter::Load(const std::string& filename)
 {
-	// GLTF読み込み用ローダー作成
 	tinygltf::TinyGLTF loader;
-
-	// 画像読み込み無効化
 	loader.SetImageLoader(NullLoadImageData, nullptr);
 
-	// GLTFデータ本体
 	tinygltf::Model gltfModel;
-	// エラー/警告メッセージ用
 	std::string error, warning;
-	// 読み込み成功フラグ
 	bool succeeded = false;
 
-	// glb読み込み
 	if (filename.find(".glb") != std::string::npos)
 	{
-		succeeded = loader.LoadBinaryFromFile(&gltfModel, &error, &warning, filename.c_str());
+		succeeded = loader.LoadBinaryFromFile(
+			&gltfModel, &error, &warning, filename.c_str());
 	}
-	// gltf読み込み
 	else if (filename.find(".gltf") != std::string::npos)
 	{
-		succeeded = loader.LoadASCIIFromFile(&gltfModel, &error, &warning, filename.c_str());
+		succeeded = loader.LoadASCIIFromFile(
+			&gltfModel, &error, &warning, filename.c_str());
 	}
 
-	// 警告
 	_ASSERT_EXPR_A(warning.empty(), warning.c_str());
-	// エラー
 	_ASSERT_EXPR_A(error.empty(), error.c_str());
-	// 失敗
 	_ASSERT_EXPR_A(succeeded, "Failed to load glTF file");
 
-	// Model生成
-	auto model = std::make_shared<Model>();
+	auto data = std::make_shared<GLTFData>();
+	data->hasSkin = CheckHasSkin(gltfModel);
 
-	// スキニング自動判定
-	model->hasSkin = CheckHasSkin(gltfModel);
-
-	// ファイルパス取得
 	std::filesystem::path filepath(filename);
 
-	// ノード読み込み
-	LoadNodes(*model, gltfModel);
-	// メッシュ読み込み
-	LoadMeshes(*model, gltfModel, device);
-	// マテリアル読み込み
-	LoadMaterials(*model, gltfModel, device, filepath);
-	// アニメーション読み込み
-	LoadAnimations(*model, gltfModel);
+	LoadNodes(*data, gltfModel);
+	LoadTextures(*data, gltfModel, filepath);
+	LoadMaterials(*data, gltfModel, filepath);
+	LoadMeshes(*data, gltfModel);
+	LoadAnimations(*data, gltfModel);
 
-	return model;
+	return data;
 }
 
 // ノード読み込み
 void GLTFImporter::LoadNodes(
-	Model& model,
+	GLTFData& data,
 	const tinygltf::Model& gltfModel)
 {
-	// ノード数分メモリ確保
-	model.nodes.reserve(gltfModel.nodes.size());
+	data.nodes.reserve(gltfModel.nodes.size());
 
-	// gltf内全ノード走査　
 	for (const auto& gltfNode : gltfModel.nodes)
 	{
-		Model::Node node;
-		// ノード名
+		GLTFData::Node node;
 		node.name = gltfNode.name;
-
-		// 子ノードIndex保存
 		node.childIndices = gltfNode.children;
 
-		// トランスフォーム読み込み
 		if (!gltfNode.matrix.empty())
 		{
-			// matrix形式の場合
 			DirectX::XMFLOAT4X4 matrix = ToXMFLOAT4X4(gltfNode.matrix);
-			// 行列をSRTへ分解
 			DirectX::XMVECTOR S, R, T;
 			DirectX::XMMatrixDecompose(
 				&S, &R, &T,
 				DirectX::XMLoadFloat4x4(&matrix));
-			// Scale保存
 			DirectX::XMStoreFloat3(&node.scale, S);
-			// Rotation保存
 			DirectX::XMStoreFloat4(&node.rotation, R);
-			// Translation保存
 			DirectX::XMStoreFloat3(&node.position, T);
 		}
 		else
 		{
-			// TRS形式の場合
-
-			// translation
 			if (!gltfNode.translation.empty())
 				node.position = ToXMFLOAT3(gltfNode.translation);
-			// rotation
 			if (!gltfNode.rotation.empty())
 				node.rotation = ToXMFLOAT4(gltfNode.rotation);
-			// scale
 			if (!gltfNode.scale.empty())
 				node.scale = ToXMFLOAT3(gltfNode.scale);
 		}
 
-		// ノード追加
-		model.nodes.push_back(node);
+		data.nodes.push_back(node);
 	}
 
-	// 親Index設定
-	// 子ノード側に親Indexを書き込む
-	for (int i = 0; i < static_cast<int>(model.nodes.size()); i++)
+	// 親インデックス設定
+	for (int i = 0; i < (int)data.nodes.size(); i++)
 	{
-		for (int child : model.nodes[i].childIndices)
+		for (int child : data.nodes[i].childIndices)
 		{
-			model.nodes[child].parentIndex = i;
+			data.nodes[child].parentIndex = i;
 		}
 	}
 
 	// グローバルトランスフォーム計算
 	DirectX::XMFLOAT4X4 identity = { 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 };
-	for (const auto& scene : gltfModel.scenes)
+	for (int i = 0; i < (int)data.nodes.size(); i++)
 	{
-		for (int rootIndex : scene.nodes)
+		if (data.nodes[i].parentIndex < 0)
 		{
-			// 親から子へTransform伝搬
-			CalcGlobalTransform(model.nodes, rootIndex, identity);
+			CalcGlobalTransform(data.nodes, i, identity);
 		}
 	}
 }
 
 // メッシュ読み込み
 void GLTFImporter::LoadMeshes(
-	Model& model,
-	const tinygltf::Model& gltfModel,
-	ID3D11Device* device)
+	GLTFData& data,
+	const tinygltf::Model& gltfModel)
 {
-	// glTF内全メッシュ走査
-	for (const auto& gltfMesh : gltfModel.meshes)
+	for (int meshIdx = 0; meshIdx < (int)gltfModel.meshes.size(); meshIdx++)
 	{
-		// Primitive単位でメッシュ生成(1メッシュに複数Primitiveを持てる）
+		const auto& gltfMesh = gltfModel.meshes[meshIdx];
+
 		for (const auto& primitive : gltfMesh.primitives)
 		{
-			Model::Mesh mesh;
-			// マテリアルIndex
+			GLTFData::MeshData mesh;
+
+			// nodeIndex を逆引き
+			for (int n = 0; n < (int)gltfModel.nodes.size(); n++)
+			{
+				if (gltfModel.nodes[n].mesh == meshIdx)
+				{
+					mesh.nodeIndex = n;
+					break;
+				}
+			}
+
 			mesh.materialIndex = primitive.material;
 
-			// Position読み込み
+			// POSITION
 			if (primitive.attributes.count("POSITION"))
 			{
-				const auto& accessor = gltfModel.accessors[primitive.attributes.at("POSITION")];
-				const auto& bufferView = gltfModel.bufferViews[accessor.bufferView];
-				const auto& buffer = gltfModel.buffers[bufferView.buffer];
+				const auto& acc = gltfModel.accessors[primitive.attributes.at("POSITION")];
+				const auto& bv = gltfModel.bufferViews[acc.bufferView];
+				const auto& buf = gltfModel.buffers[bv.buffer];
+				const float* src = reinterpret_cast<const float*>(
+					buf.data.data() + bv.byteOffset + acc.byteOffset);
 
-				// 頂点座標データ取得
-				const float* data = reinterpret_cast<const float*>(
-					buffer.data.data() + bufferView.byteOffset + accessor.byteOffset);
-
-				// 頂点数保存
-				mesh.vertices.resize(accessor.count);
-
-				// xyz読み込み
-				for (size_t i = 0; i < accessor.count; i++)
+				mesh.vertices.resize(acc.count);
+				for (size_t i = 0; i < acc.count; i++)
 				{
-					mesh.vertices[i].position =
-					{
-						data[i * 3 + 0],
-						data[i * 3 + 1],
-						data[i * 3 + 2]
-					};
+					mesh.vertices[i].position = { src[i * 3 + 0], src[i * 3 + 1], src[i * 3 + 2] };
 				}
 			}
 
-			// Normal読み込み
+			// NORMAL
 			if (primitive.attributes.count("NORMAL"))
 			{
-				const auto& accessor = gltfModel.accessors[primitive.attributes.at("NORMAL")];
-				const auto& bufferView = gltfModel.bufferViews[accessor.bufferView];
-				const auto& buffer = gltfModel.buffers[bufferView.buffer];
+				const auto& acc = gltfModel.accessors[primitive.attributes.at("NORMAL")];
+				const auto& bv = gltfModel.bufferViews[acc.bufferView];
+				const auto& buf = gltfModel.buffers[bv.buffer];
+				const float* src = reinterpret_cast<const float*>(
+					buf.data.data() + bv.byteOffset + acc.byteOffset);
 
-				// 頂点データ取得
-				const float* data = reinterpret_cast<const float*>(
-					buffer.data.data() + bufferView.byteOffset + accessor.byteOffset);
-
-				// 法線ベクトル読み込み
-				for (size_t i = 0; i < accessor.count; i++)
+				for (size_t i = 0; i < acc.count; i++)
 				{
-					mesh.vertices[i].normal =
-					{
-						data[i * 3 + 0],
-						data[i * 3 + 1],
-						data[i * 3 + 2]
-					};
+					mesh.vertices[i].normal = { src[i * 3 + 0], src[i * 3 + 1], src[i * 3 + 2] };
 				}
 			}
 
-			// Texcoord読み込み
+			// TEXCOORD_0
 			if (primitive.attributes.count("TEXCOORD_0"))
 			{
-				const auto& accessor = gltfModel.accessors[primitive.attributes.at("TEXCOORD_0")];
-				const auto& bufferView = gltfModel.bufferViews[accessor.bufferView];
-				const auto& buffer = gltfModel.buffers[bufferView.buffer];
+				const auto& acc = gltfModel.accessors[primitive.attributes.at("TEXCOORD_0")];
+				const auto& bv = gltfModel.bufferViews[acc.bufferView];
+				const auto& buf = gltfModel.buffers[bv.buffer];
+				const float* src = reinterpret_cast<const float*>(
+					buf.data.data() + bv.byteOffset + acc.byteOffset);
 
-				// 頂点データ取得
-				const float* data = reinterpret_cast<const float*>(
-					buffer.data.data() + bufferView.byteOffset + accessor.byteOffset);
-
-				// UV座標読み込み
-				for (size_t i = 0; i < accessor.count; i++)
-				{
+				for (size_t i = 0; i < acc.count; i++)
 					mesh.vertices[i].texcoord =
-					{
-						data[i * 2 + 0],
-						data[i * 2 + 1]
-					};
-				}
+				{ src[i * 2 + 0], src[i * 2 + 1] };
 			}
 
-			// BoneWeight読み込み
+			// WEIGHTS_0
 			if (primitive.attributes.count("WEIGHTS_0"))
 			{
-				const auto& accessor = gltfModel.accessors[primitive.attributes.at("WEIGHTS_0")];
-				const auto& bufferView = gltfModel.bufferViews[accessor.bufferView];
-				const auto& buffer = gltfModel.buffers[bufferView.buffer];
+				const auto& acc = gltfModel.accessors[
+					primitive.attributes.at("WEIGHTS_0")];
+				const auto& bv = gltfModel.bufferViews[acc.bufferView];
+				const auto& buf = gltfModel.buffers[bv.buffer];
+				const float* src = reinterpret_cast<const float*>(
+					buf.data.data() + bv.byteOffset + acc.byteOffset);
 
-				// 頂点データ取得
-				const float* data = reinterpret_cast<const float*>(
-					buffer.data.data() + bufferView.byteOffset + accessor.byteOffset);
-
-				for (size_t i = 0; i < accessor.count; i++)
+				for (size_t i = 0; i < acc.count; i++)
 				{
-					// ボーンウェイト読み込み
-					mesh.vertices[i].boneWeight =
-					{
-						data[i * 4 + 0],
-						data[i * 4 + 1],
-						data[i * 4 + 2],
-						data[i * 4 + 3]
-					};
+					mesh.vertices[i].boneWeight = { src[i * 4 + 0], src[i * 4 + 1], src[i * 4 + 2], src[i * 4 + 3] };
 				}
 			}
 
-			// BoneIndex読み込み
+			// JOINTS_0
 			if (primitive.attributes.count("JOINTS_0"))
 			{
-				const auto& accessor = gltfModel.accessors[primitive.attributes.at("JOINTS_0")];
-				const auto& bufferView = gltfModel.bufferViews[accessor.bufferView];
-				const auto& buffer = gltfModel.buffers[bufferView.buffer];
+				const auto& acc = gltfModel.accessors[primitive.attributes.at("JOINTS_0")];
+				const auto& bv = gltfModel.bufferViews[acc.bufferView];
+				const auto& buf = gltfModel.buffers[bv.buffer];
+				const uint16_t* src = reinterpret_cast<const uint16_t*>(
+					buf.data.data() + bv.byteOffset + acc.byteOffset);
 
-				// 頂点データ取得
-				const uint16_t* data = reinterpret_cast<const uint16_t*>(
-					buffer.data.data() + bufferView.byteOffset + accessor.byteOffset);
-
-				// ボーンIndex読み込み
-				for (size_t i = 0; i < accessor.count; i++)
+				for (size_t i = 0; i < acc.count; i++)
 				{
-					mesh.vertices[i].boneIndex =
-					{
-						data[i * 4 + 0],
-						data[i * 4 + 1],
-						data[i * 4 + 2],
-						data[i * 4 + 3]
-					};
+					mesh.vertices[i].boneIndex = { src[i * 4 + 0], src[i * 4 + 1], src[i * 4 + 2], src[i * 4 + 3] };
 				}
 			}
 
-			// Index読み込み
+			// インデックス
 			if (primitive.indices >= 0)
 			{
-				const auto& accessor = gltfModel.accessors[primitive.indices];
-				const auto& bufferView = gltfModel.bufferViews[accessor.bufferView];
-				const auto& buffer = gltfModel.buffers[bufferView.buffer];
+				const auto& acc = gltfModel.accessors[primitive.indices];
+				const auto& bv = gltfModel.bufferViews[acc.bufferView];
+				const auto& buf = gltfModel.buffers[bv.buffer];
+				const void* src = buf.data.data() +
+					bv.byteOffset + acc.byteOffset;
 
-				// Indexデータ先頭
-				const void* data = buffer.data.data() +
-					bufferView.byteOffset + accessor.byteOffset;
+				mesh.indices.resize(acc.count);
 
-				mesh.indices.resize(accessor.count);
-
-				// uint16形式
-				if (accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT)
+				if (acc.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT)
 				{
-					const uint16_t* src = static_cast<const uint16_t*>(data);
-					for (size_t i = 0; i < accessor.count; i++)
+					const uint16_t* s = static_cast<const uint16_t*>(src);
+					for (size_t i = 0; i < acc.count; i++)
 					{
-						mesh.indices[i] = src[i];
+						mesh.indices[i] = s[i];
 					}
 				}
-				// uint32形式
-				else if (accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT)
+				else if (acc.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT)
 				{
-					const uint32_t* src = static_cast<const uint32_t*>(data);
-					for (size_t i = 0; i < accessor.count; i++)
+					const uint32_t* s = static_cast<const uint32_t*>(src);
+					for (size_t i = 0; i < acc.count; i++)
 					{
-						mesh.indices[i] = src[i];
+						mesh.indices[i] = s[i];
+					}
+				}
+			}
+
+			// ボーン（スキンから取得）
+			if (!gltfModel.skins.empty())
+			{
+				const auto& skin = gltfModel.skins[0];
+				mesh.bones.resize(skin.joints.size());
+
+				for (int j = 0; j < (int)skin.joints.size(); j++)
+				{
+					mesh.bones[j].nodeIndex = skin.joints[j];
+				}
+
+				// inverseBindMatrices
+				if (skin.inverseBindMatrices >= 0)
+				{
+					const auto& acc = gltfModel.accessors[skin.inverseBindMatrices];
+					const auto& bv = gltfModel.bufferViews[acc.bufferView];
+					const auto& buf = gltfModel.buffers[bv.buffer];
+					const float* src = reinterpret_cast<const float*>(
+						buf.data.data() + bv.byteOffset + acc.byteOffset);
+
+					for (int j = 0; j < (int)skin.joints.size(); j++)
+					{
+						memcpy(&mesh.bones[j].offsetTransform,
+							src + j * 16,
+							sizeof(DirectX::XMFLOAT4X4));
 					}
 				}
 			}
@@ -3046,60 +3742,28 @@ void GLTFImporter::LoadMeshes(
 			// タンジェント計算
 			ComputeTangents(mesh.vertices, mesh.indices);
 
-			// 頂点バッファ生成
-			{
-				D3D11_BUFFER_DESC desc{};
-				desc.ByteWidth = static_cast<UINT>(
-					sizeof(Model::Vertex) * mesh.vertices.size());
-				desc.Usage = D3D11_USAGE_DEFAULT;
-				desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-
-				D3D11_SUBRESOURCE_DATA sub{};
-				sub.pSysMem = mesh.vertices.data();
-				device->CreateBuffer(&desc, &sub,
-					mesh.vertexBuffer.GetAddressOf());
-			}
-
-			// インデックスバッファ生成
-			{
-				D3D11_BUFFER_DESC desc{};
-				desc.ByteWidth = static_cast<UINT>(
-					sizeof(uint32_t) * mesh.indices.size());
-				desc.Usage = D3D11_USAGE_DEFAULT;
-				desc.BindFlags = D3D11_BIND_INDEX_BUFFER;
-
-				D3D11_SUBRESOURCE_DATA sub{};
-				sub.pSysMem = mesh.indices.data();
-				device->CreateBuffer(&desc, &sub,
-					mesh.indexBuffer.GetAddressOf());
-			}
-
-			// モデルへ追加
-			model.meshes.push_back(std::move(mesh));
+			data.meshes.push_back(std::move(mesh));
 		}
 	}
 }
 
 // マテリアル読み込み
 void GLTFImporter::LoadMaterials(
-	Model& model,
-	const tinygltf::Model& gltfModel,
-	ID3D11Device* device,
-	const std::filesystem::path& filepath)
+	GLTFData& data,
+	const tinygltf::Model& gltfModel, const std::filesystem::path& filepath)
 {
-	// glTF内全マテリアル走査
+	data.materials.reserve(gltfModel.materials.size());
+
 	for (const auto& gltfMaterial : gltfModel.materials)
 	{
-		Model::Material material;
-		// マテリアル名
-		material.name = gltfMaterial.name;
+		GLTFData::MaterialData mat;
+		mat.name = gltfMaterial.name;
 
-		// PBR設定取得
 		const auto& pbr = gltfMaterial.pbrMetallicRoughness;
-		// BaseColor読み込み
+
 		if (!pbr.baseColorFactor.empty())
 		{
-			material.baseColor =
+			mat.baseColor =
 			{
 				static_cast<float>(pbr.baseColorFactor[0]),
 				static_cast<float>(pbr.baseColorFactor[1]),
@@ -3107,216 +3771,151 @@ void GLTFImporter::LoadMaterials(
 				static_cast<float>(pbr.baseColorFactor[3])
 			};
 		}
-		// Roughness値
-		material.roughnessFactor = static_cast<float>(pbr.roughnessFactor);
-		// Metallic値
-		material.metallicFactor = static_cast<float>(pbr.metallicFactor);
 
-		// AlphaBlend
+		mat.roughnessFactor = static_cast<float>(pbr.roughnessFactor);
+		mat.metallicFactor = static_cast<float>(pbr.metallicFactor);
+
 		if (gltfMaterial.alphaMode == "BLEND")
 		{
-			material.alphaMode = Model::Material::AlphaMode::Blend;
+			mat.alphaMode = GLTFData::MaterialData::AlphaMode::Blend;
 		}
-		// AlphaMask
 		else if (gltfMaterial.alphaMode == "MASK")
 		{
-			material.alphaMode = Model::Material::AlphaMode::Mask;
+			mat.alphaMode = GLTFData::MaterialData::AlphaMode::Mask;
 		}
-		// AlphaCutoff値
-		material.alphaCutoff = static_cast<float>(gltfMaterial.alphaCutoff);
 
-		// テクスチャ読み込みヘルパー
-		auto loadTexture = [&](int textureIndex,
-			Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>& srv,
-			DWORD dummyColor)
-			{
-				if (textureIndex < 0)
-				{
-					GpuResourceUtils::CreateDummyTexture(device, srv, dummyColor, 1);
-					return;
-				}
+		mat.alphaCutoff = static_cast<float>(gltfMaterial.alphaCutoff);
 
-				const auto& texture = gltfModel.textures[textureIndex];
-				const auto& image = gltfModel.images[texture.source];
+		// テクスチャインデックス設定
+		mat.baseMapIndex =
+			pbr.baseColorTexture.index;
+		mat.normalMapIndex =
+			gltfMaterial.normalTexture.index;
+		mat.metallicRoughnessMapIndex =
+			pbr.metallicRoughnessTexture.index;
+		mat.occlusionMapIndex =
+			gltfMaterial.occlusionTexture.index;
+		mat.emissiveMapIndex =
+			gltfMaterial.emissiveTexture.index;
 
-				if (!image.uri.empty())
-				{
-					// 外部ファイルテクスチャ
-					std::string texPath = (filepath.parent_path() / image.uri).string();
-					GpuResourceUtils::LoadTexture(device, texPath, srv);
-				}
-				else if (image.bufferView >= 0)
-				{
-					// 埋め込みテクスチャ（GLBファイル）
-					// bufferViewから直接データを取得する
-					const auto& bv = gltfModel.bufferViews[image.bufferView];
-					const auto& buffer = gltfModel.buffers[bv.buffer];
-					const unsigned char* data = buffer.data.data() + bv.byteOffset;
-
-					GpuResourceUtils::LoadTexture(device, data, bv.byteLength, srv);
-				}
-				else
-				{
-					// どちらもない場合はダミー
-					GpuResourceUtils::CreateDummyTexture(device, srv, dummyColor, 1);
-				}
-			};
-
-		// ベースカラー読み込み
-		loadTexture(pbr.baseColorTexture.index,
-			material.baseMap, 0xFFFFFFFF);
-		// ノーマルマップ読み込み
-		loadTexture(gltfMaterial.normalTexture.index,
-			material.normalMap, 0xFFFF8080);
-		// メタリック/ラフネス読み込み
-		loadTexture(pbr.metallicRoughnessTexture.index,
-			material.metallicRoughnessMap, 0xFFFFFFFF);
-		// オクルージョンマップ読み込み
-		loadTexture(gltfMaterial.occlusionTexture.index,
-			material.occlusionMap, 0xFFFFFFFF);
-		// エミッシブ読み込み
-		loadTexture(gltfMaterial.emissiveTexture.index,
-			material.emissiveMap, 0xFF000000);
-
-		// モデルへ追加
-		model.materials.push_back(std::move(material));
+		data.materials.push_back(std::move(mat));
 	}
+}
 
-	// メッシュとマテリアルを紐付け
-	for (auto& mesh : model.meshes)
+// テクスチャ読み込み
+void GLTFImporter::LoadTextures(
+	GLTFData& data,
+	const tinygltf::Model& gltfModel,
+	const std::filesystem::path& filepath)
+{
+	data.textures.reserve(gltfModel.textures.size());
+
+	for (const auto& gltfTexture : gltfModel.textures)
 	{
-		// 有効範囲チェック
-		if (mesh.materialIndex >= 0 && mesh.materialIndex < static_cast<int>(model.materials.size()))
+		GLTFData::TextureData texData;
+		const auto& image = gltfModel.images[gltfTexture.source];
+
+		if (!image.uri.empty())
 		{
-			// マテリアル設定
-			mesh.material = &model.materials[mesh.materialIndex];
+			// 外部ファイルの場合はファイルから読み込んでバイナリ化
+			std::string texPath = (filepath.parent_path() / image.uri).string();
+
+			std::ifstream ifs(texPath, std::ios::binary);
+			_ASSERT_EXPR_A(ifs, "Texture file not found");
+
+			texData.pixels = std::vector<uint8_t>(
+				std::istreambuf_iterator<char>(ifs),
+				std::istreambuf_iterator<char>()
+			);
 		}
+		else if (image.bufferView >= 0)
+		{
+			// GLB埋め込みの場合はbufferViewからバイナリを取り出す
+			const auto& bv = gltfModel.bufferViews[image.bufferView];
+			const auto& buffer = gltfModel.buffers[bv.buffer];
+			const uint8_t* begin = buffer.data.data() + bv.byteOffset;
+
+			texData.pixels.assign(begin, begin + bv.byteLength);
+		}
+
+		data.textures.push_back(std::move(texData));
 	}
 }
 
 // アニメーション読み込み
 void GLTFImporter::LoadAnimations(
-	Model& model,
-	const tinygltf::Model& gltfModel,
-	float sampleRate)
+	GLTFData& data,
+	const tinygltf::Model& gltfModel)
 {
-	// glTF内全アニメーション走査
 	for (const auto& gltfAnim : gltfModel.animations)
 	{
-		Model::Animation animation;
-		// アニメーション名
-		animation.name = gltfAnim.name;
-		// アニメーション長初期化
-		animation.secondsLength = 0.0f;
-		// ノード数分アニメーション確保
-		animation.nodeAnims.resize(model.nodes.size());
+		GLTFData::Animation anim;
+		anim.name = gltfAnim.name;
+		anim.secondsLength = 0.0f;
+		anim.nodeAnims.resize(data.nodes.size());
 
-		// Channel読み込み
 		for (const auto& channel : gltfAnim.channels)
 		{
-			// Sampler取得
 			const auto& sampler = gltfAnim.samplers[channel.sampler];
-			// 入力Accessor（時間）
 			const auto& inputAcc = gltfModel.accessors[sampler.input];
-			// 出力Accessor（値）
 			const auto& outputAcc = gltfModel.accessors[sampler.output];
-
-			// BufferView取得
 			const auto& inputBV = gltfModel.bufferViews[inputAcc.bufferView];
 			const auto& outputBV = gltfModel.bufferViews[outputAcc.bufferView];
-			// Buffer取得
 			const auto& inputBuf = gltfModel.buffers[inputBV.buffer];
 			const auto& outputBuf = gltfModel.buffers[outputBV.buffer];
 
-			// キーフレーム時間配列
 			const float* times = reinterpret_cast<const float*>(
 				inputBuf.data.data() + inputBV.byteOffset + inputAcc.byteOffset);
-			// キーフレーム値配列
 			const float* values = reinterpret_cast<const float*>(
 				outputBuf.data.data() + outputBV.byteOffset + outputAcc.byteOffset);
 
-			// 対象ノードIndex
 			int nodeIndex = channel.target_node;
-			// 範囲外チェック
-			if (nodeIndex < 0 || nodeIndex >= static_cast<int>(animation.nodeAnims.size()))
+			if (nodeIndex < 0 || nodeIndex >= (int)anim.nodeAnims.size())
 			{
 				continue;
 			}
 
-			// ノードアニメーション取得
-			auto& nodeAnim = animation.nodeAnims[nodeIndex];
+			auto& nodeAnim = anim.nodeAnims[nodeIndex];
 
-			// アニメーション長更新
 			if (inputAcc.count > 0)
 			{
-				// 最終キーフレーム時間
-				float lastTime = times[inputAcc.count - 1];
-
-				// 最大時間更新
-				animation.secondsLength = (std::max)(animation.secondsLength, lastTime);
+				anim.secondsLength = (std::max)(
+					anim.secondsLength, times[inputAcc.count - 1]);
 			}
 
-
-			// Translation
 			if (channel.target_path == "translation")
 			{
 				for (size_t i = 0; i < inputAcc.count; i++)
 				{
-					Model::VectorKeyframe kf;
-					// キーフレーム時間
+					GLTFData::VectorKeyframe kf;
 					kf.seconds = times[i];
-					// 座標値
-					kf.value =
-					{
-						values[i * 3 + 0],
-						values[i * 3 + 1],
-						values[i * 3 + 2]
-					};
-
+					kf.value = { values[i * 3 + 0], values[i * 3 + 1], values[i * 3 + 2] };
 					nodeAnim.positionKeyframes.push_back(kf);
 				}
 			}
-			// Rotation
 			else if (channel.target_path == "rotation")
 			{
 				for (size_t i = 0; i < inputAcc.count; i++)
 				{
-					Model::QuaternionKeyframe kf;
-
-					// キーフレーム時間
+					GLTFData::QuaternionKeyframe kf;
 					kf.seconds = times[i];
-					// 回転値
-					kf.value =
-					{
-						values[i * 4 + 0], values[i * 4 + 1],
-						values[i * 4 + 2], values[i * 4 + 3]
-					};
+					kf.value = { values[i * 4 + 0], values[i * 4 + 1],
+								   values[i * 4 + 2], values[i * 4 + 3] };
 					nodeAnim.rotationKeyframes.push_back(kf);
 				}
 			}
-			// Scale
 			else if (channel.target_path == "scale")
 			{
 				for (size_t i = 0; i < inputAcc.count; i++)
 				{
-					Model::VectorKeyframe kf;
-					// キーフレーム時間
+					GLTFData::VectorKeyframe kf;
 					kf.seconds = times[i];
-					// Scale値
-					kf.value =
-					{
-						values[i * 3 + 0],
-						values[i * 3 + 1],
-						values[i * 3 + 2]
-					};
-
+					kf.value = { values[i * 3 + 0], values[i * 3 + 1], values[i * 3 + 2] };
 					nodeAnim.scaleKeyframes.push_back(kf);
 				}
 			}
 		}
-
-		// モデルへ追加
-		model.animations.push_back(std::move(animation));
+		data.animations.push_back(std::move(anim));
 	}
 }
 
@@ -3330,156 +3929,115 @@ bool GLTFImporter::CheckHasSkin(const tinygltf::Model& gltfModel)
 // 座標系変換ヘルパー
 DirectX::XMFLOAT3 GLTFImporter::ToXMFLOAT3(const std::vector<double>& v)
 {
-	return { 
-		static_cast<float>(v[0]),
-		static_cast<float>(v[1]),
-		static_cast<float>(v[2]) 
+	return {
+			static_cast<float>(v[0]),
+			static_cast<float>(v[1]),
+			static_cast<float>(v[2])
 	};
 }
 DirectX::XMFLOAT4 GLTFImporter::ToXMFLOAT4(const std::vector<double>& v)
 {
-	return { 
-		static_cast<float>(v[0]),
-		static_cast<float>(v[1]),
-		static_cast<float>(v[2]),
-		static_cast<float>(v[3]) 
+	return {
+			static_cast<float>(v[0]),
+			static_cast<float>(v[1]),
+			static_cast<float>(v[2]),
+			static_cast<float>(v[3])
 	};
 }
 DirectX::XMFLOAT4X4 GLTFImporter::ToXMFLOAT4X4(const std::vector<double>& v)
 {
 	return {
-		static_cast<float>(v[0]),  static_cast<float>(v[1]),
-		static_cast<float>(v[2]),  static_cast<float>(v[3]),
-		static_cast<float>(v[4]),  static_cast<float>(v[5]),
-		static_cast<float>(v[6]),  static_cast<float>(v[7]),
-		static_cast<float>(v[8]),  static_cast<float>(v[9]),
-		static_cast<float>(v[10]), static_cast<float>(v[11]),
-		static_cast<float>(v[12]), static_cast<float>(v[13]),
-		static_cast<float>(v[14]), static_cast<float>(v[15])
+			static_cast<float>(v[0]),  static_cast<float>(v[1]),
+			static_cast<float>(v[2]),  static_cast<float>(v[3]),
+			static_cast<float>(v[4]),  static_cast<float>(v[5]),
+			static_cast<float>(v[6]),  static_cast<float>(v[7]),
+			static_cast<float>(v[8]),  static_cast<float>(v[9]),
+			static_cast<float>(v[10]), static_cast<float>(v[11]),
+			static_cast<float>(v[12]), static_cast<float>(v[13]),
+			static_cast<float>(v[14]), static_cast<float>(v[15])
 	};
 }
 
 
 // タンジェント計算
 void GLTFImporter::ComputeTangents(
-	std::vector<Model::Vertex>& vertices,
+	std::vector<GLTFData::Vertex>& vertices,
 	const std::vector<uint32_t>& indices)
 {
-	// 3Index単位で三角形走査
 	for (size_t i = 0; i < indices.size(); i += 3)
 	{
-		// 三角形頂点取得
 		auto& v0 = vertices[indices[i + 0]];
 		auto& v1 = vertices[indices[i + 1]];
 		auto& v2 = vertices[indices[i + 2]];
 
-		// Position取得
 		DirectX::XMVECTOR p0 = DirectX::XMLoadFloat3(&v0.position);
 		DirectX::XMVECTOR p1 = DirectX::XMLoadFloat3(&v1.position);
 		DirectX::XMVECTOR p2 = DirectX::XMLoadFloat3(&v2.position);
-
-		// UV取得
 		DirectX::XMVECTOR uv0 = DirectX::XMLoadFloat2(&v0.texcoord);
 		DirectX::XMVECTOR uv1 = DirectX::XMLoadFloat2(&v1.texcoord);
 		DirectX::XMVECTOR uv2 = DirectX::XMLoadFloat2(&v2.texcoord);
 
-		// 辺ベクトル計算
-		DirectX::XMVECTOR e1 = DirectX::XMVectorSubtract(p1, p0);    // Position差分
+		DirectX::XMVECTOR e1 = DirectX::XMVectorSubtract(p1, p0);
 		DirectX::XMVECTOR e2 = DirectX::XMVectorSubtract(p2, p0);
-		DirectX::XMVECTOR du1 = DirectX::XMVectorSubtract(uv1, uv0); // UV差分
+		DirectX::XMVECTOR du1 = DirectX::XMVectorSubtract(uv1, uv0);
 		DirectX::XMVECTOR du2 = DirectX::XMVectorSubtract(uv2, uv0);
 
-		// UV成分取得
 		float u1 = DirectX::XMVectorGetX(du1);
 		float v1f = DirectX::XMVectorGetY(du1);
 		float u2 = DirectX::XMVectorGetX(du2);
 		float v2f = DirectX::XMVectorGetY(du2);
-
-		// タンジェント計算係数
 		float denom = u1 * v2f - u2 * v1f;
-		// UVが壊れている場合
-		if (fabsf(denom) < 1e-6f)
-		{
-			continue;
-		}
+
+		if (fabsf(denom) < 1e-6f) continue;
 
 		float r = 1.0f / denom;
+		DirectX::XMVECTOR tangent = DirectX::XMVector3Normalize(
+			DirectX::XMVectorScale(
+				DirectX::XMVectorSubtract(
+					DirectX::XMVectorScale(e1, v2f),
+					DirectX::XMVectorScale(e2, v1f)),
+				r));
 
-		// タンジェント計算
-		DirectX::XMVECTOR tangent = DirectX::XMVectorScale(
-			DirectX::XMVectorSubtract(
-				DirectX::XMVectorScale(e1, v2f),
-				DirectX::XMVectorScale(e2, v1f)),
-			r);
-		// 正規化
-		tangent = DirectX::XMVector3Normalize(tangent);
-
-		// 頂点へ保存
 		DirectX::XMFLOAT3 t;
 		DirectX::XMStoreFloat3(&t, tangent);
-		v0.tangent =
-		v1.tangent =
-		v2.tangent =
-		{
-			t.x,
-			t.y,
-			t.z,
-			1.0f
-		};
+		v0.tangent = v1.tangent = v2.tangent = { t.x, t.y, t.z, 1.0f };
 	}
 }
 
+
 // グローバルトランスフォーム計算
 void GLTFImporter::CalcGlobalTransform(
-	std::vector<Model::Node>& nodes,
+	std::vector<GLTFData::Node>& nodes,
 	int nodeIndex,
 	const DirectX::XMFLOAT4X4& parentTransform)
 {
-	// 対象ノード取得
 	auto& node = nodes[nodeIndex];
 
-	// Scale行列
 	DirectX::XMMATRIX S = DirectX::XMMatrixScaling(
 		node.scale.x, node.scale.y, node.scale.z);
-	// Rotation行列
 	DirectX::XMMATRIX R = DirectX::XMMatrixRotationQuaternion(
 		DirectX::XMVectorSet(
 			node.rotation.x, node.rotation.y,
 			node.rotation.z, node.rotation.w));
-	// Translation行列
 	DirectX::XMMATRIX T = DirectX::XMMatrixTranslation(
 		node.position.x, node.position.y, node.position.z);
 
-	// ローカル行列合成
 	DirectX::XMMATRIX local = S * R * T;
-	
-	// 親行列取得
 	DirectX::XMMATRIX parent = DirectX::XMLoadFloat4x4(&parentTransform);
-	
-	// グローバル行列計算
 	DirectX::XMMATRIX global = local * parent;
 
-	// 計算結果保存
+	DirectX::XMStoreFloat4x4(&node.localTransform, local);
 	DirectX::XMStoreFloat4x4(&node.globalTransform, global);
 
-	// 子ノード再帰処理
-	for (int childIndex : node.childIndices)
+	for (int child : node.childIndices)
 	{
-		// 親Transformを渡して再帰
-		CalcGlobalTransform(nodes, childIndex, node.globalTransform);
+		CalcGlobalTransform(nodes, child, node.globalTransform);
 	}
 }
  
  
 ===== GpuResourceUtils.cpp ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\GpuResourceUtils.cpp 
-//#include "GpuResourceUtils.h"
-//#include "Utility/misc.h"
-//
-//#include <DDSTextureLoader.h>
-//#include <WICTextureLoader.h>
-//#include <memory>
-
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 #include "GpuResourceUtils.h"
@@ -3552,35 +4110,6 @@ HRESULT GpuResourceUtils::LoadPixelShader(
 	HRESULT hr = device->CreatePixelShader(data.get(), size, nullptr, pixelShader.GetAddressOf());
 	_ASSERT_EXPR(SUCCEEDED(hr), hr_trace(hr));
 
-	return hr;
-}
-
-// ファイルパスからテクスチャ読み込み
-HRESULT GpuResourceUtils::LoadTexture(
-	ID3D11Device* device,
-	const std::string& filename,
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>& shaderResourceView,
-	D3D11_TEXTURE2D_DESC* texture2dDesc
-)
-{
-	// std::stringをstd::wstring変換
-	std::wstring wfilename = ToWString(filename);
-
-	HRESULT hr{ S_OK };
-	Microsoft::WRL::ComPtr<ID3D11Resource> resource;
-
-	// テクスチャファイル読み込み
-	hr = DirectX::CreateWICTextureFromFile(device, wfilename.c_str(), resource.GetAddressOf(), shaderResourceView.GetAddressOf());
-	_ASSERT_EXPR(SUCCEEDED(hr), hr_trace(hr));
-
-	//テクスチャ情報取得
-	if (texture2dDesc != nullptr)
-	{
-		Microsoft::WRL::ComPtr<ID3D11Texture2D> texture2d;
-		hr = resource->QueryInterface<ID3D11Texture2D>(texture2d.GetAddressOf());
-		_ASSERT_EXPR(SUCCEEDED(hr), hr_trace(hr));
-		texture2d->GetDesc(texture2dDesc);
-	}
 	return hr;
 }
 
@@ -3755,6 +4284,7 @@ const std::vector<D3D11_INPUT_ELEMENT_DESC> Model::InputElementDescs =
 Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\ResourceManager.cpp 
 #include "ResourceManager.h"
 #include "GLTFImporter.h"
+#include "GLTFConverter.h" 
 
 // モデル取得
 std::shared_ptr<Model> ResourceManager::GetModel(ID3D11Device* device, const std::string& filename)
@@ -3768,8 +4298,11 @@ std::shared_ptr<Model> ResourceManager::GetModel(ID3D11Device* device, const std
 		if (cached) return cached;
 	}
 
-	// 未ロードまたはキャッシュ切れの場合は新規読み込み
-	auto model = GLTFImporter::Load(device, filename);
+	// GLTFImporter でファイルを読み込み GLTFData を生成
+	auto gltfData = GLTFImporter::Load(filename);
+
+	// GLTFConverter で GLTFData を Model に変換
+	auto model = GLTFConverter::Convert(device, gltfData);
 
 	// キャッシュに登録
 	modelCache[filename] = model;
