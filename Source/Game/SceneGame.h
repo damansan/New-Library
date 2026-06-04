@@ -7,7 +7,7 @@
 
 #include "Game/Stage.h"
 #include "Game/Player.h"
-
+#include "Game/Enemy.h"
 
 class SceneGame : public Scene
 {
@@ -27,4 +27,7 @@ private:
 	std::unique_ptr<Stage> stage;
 	// プレイヤー
 	std::unique_ptr<Player> player;
+	// エネミー
+	std::unique_ptr<Enemy> enemy;
+
 };

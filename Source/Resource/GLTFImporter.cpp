@@ -605,6 +605,11 @@ void GLTFImporter::LoadAnimations(
 			{
 				for (size_t i = 0; i < inputAcc.count; i++)
 				{
+					// なぜかUnityで出力したアニメーションデータにはゴミと思われるキーフレームが存在している場合がある。
+					// 小数点が存在するフレーム（時間）がゴミデータっぽいので除外する。
+					float frame = times[i] * 60.0f;
+					if (fabs(std::round(frame) - frame) > 0.001) continue;
+
 					GLTFData::QuaternionKeyframe kf;
 					kf.seconds = times[i];
 					kf.value = { values[i * 4 + 0], values[i * 4 + 1],

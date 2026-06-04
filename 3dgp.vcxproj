@@ -36,6 +36,7 @@
     <ClCompile Include="Source\ECS\Systems\AnimationSystem.cpp" />
     <ClCompile Include="Source\ECS\Systems\MeshLoaderSystem.cpp" />
     <ClCompile Include="Source\ECS\Systems\RenderSystem.cpp" />
+    <ClCompile Include="Source\Game\Enemy.cpp" />
     <ClCompile Include="Source\Game\Player.cpp" />
     <ClCompile Include="Source\Game\SceneGame.cpp" />
     <ClCompile Include="Source\Game\Stage.cpp" />
@@ -71,6 +72,7 @@
     <ClInclude Include="Source\ECS\Systems\RenderSystem.h" />
     <ClInclude Include="Source\Game\Character.h" />
     <ClInclude Include="Source\Game\Actor.h" />
+    <ClInclude Include="Source\Game\Enemy.h" />
     <ClInclude Include="Source\Game\Object.h" />
     <ClInclude Include="Source\Game\Player.h" />
     <ClInclude Include="Source\Game\SceneGame.h" />

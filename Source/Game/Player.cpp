@@ -11,7 +11,8 @@ void Player::Initialize(entt::registry& registry, const SceneContext& context)
     t.position = { 0.0f, 0.0f, 0.0f };
     t.scale = { 1.0f, 1.0f, 1.0f };
 
-    registry.emplace<MeshComponent>(entity, "Data/Model/PlayerRobot/Map_Robot3.gltf");
+    //registry.emplace<MeshComponent>(entity, "Data/Model/PlayerRobot/Map_Robot3.gltf");
+    registry.emplace<MeshComponent>(entity, "Data/Model/unitychan.glb");
     registry.emplace<MaterialComponent>(entity).AddPass("skinning_lambert");
 }
 

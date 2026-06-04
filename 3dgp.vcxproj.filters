@@ -140,6 +140,9 @@
     <Filter Include="Sources\Game\Actor\Object\Stage">
       <UniqueIdentifier>{22a1b68c-e484-48d7-b2c2-60c45cb74a44}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\Game\Actor\Character\Enemy">
+      <UniqueIdentifier>{47b49f73-6aa9-4026-ada0-35d5edd33049}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Core\framework.cpp">
@@ -219,6 +222,9 @@
     </ClCompile>
     <ClCompile Include="Source\Game\Stage.cpp">
       <Filter>Sources\Game\Actor\Object\Stage</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Game\Enemy.cpp">
+      <Filter>Sources\Game\Actor\Character\Enemy</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -329,6 +335,9 @@
     </ClInclude>
     <ClInclude Include="Source\Game\Stage.h">
       <Filter>Sources\Game\Actor\Object\Stage</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Game\Enemy.h">
+      <Filter>Sources\Game\Actor\Character\Enemy</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
