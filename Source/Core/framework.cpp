@@ -21,6 +21,7 @@ framework::framework(HWND hwnd) : hwnd(hwnd)
 	ShaderPassLibrary::Register("lambert", {
 		"", "Data/Shader/Base_VS.cso", "Data/Shader/Lambert_PS.cso"
 		});
+
 	ShaderPassLibrary::Register("skinning_basic", {
 	"", "Data/Shader/Skinning_VS.cso", "Data/Shader/Basic_PS.cso"
 		});

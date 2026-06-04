@@ -58,14 +58,16 @@ private:
     void RenderStatic(
         entt::registry& registry,
         ID3D11DeviceContext* dc,
-        const std::string& passName
+        const std::string& passName,
+        bool transparent
     );
 
     // スキニングメッシュ描画
     void RenderSkinned(
         entt::registry& registry,
         ID3D11DeviceContext* dc,
-        const std::string& passName
+        const std::string& passName,
+        bool transparent
     );
 
     // 頂点シェーダー
@@ -91,6 +93,8 @@ private:
     Microsoft::WRL::ComPtr<ID3D11RasterizerState>   rasterizerState;
     // 深度ステンシルステート
     Microsoft::WRL::ComPtr<ID3D11DepthStencilState> depthStencilState;
+    // 半透明用深度ステンシルステート
+    Microsoft::WRL::ComPtr<ID3D11DepthStencilState> depthStencilStateTransparent;
     // ブレンドステート
     Microsoft::WRL::ComPtr<ID3D11BlendState>        blendState;
 };

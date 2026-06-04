@@ -9,7 +9,7 @@ void Enemy::Initialize(entt::registry& registry, const SceneContext& context)
     entity = registry.create();
 
     auto& t = registry.emplace<TransformComponent>(entity);
-    t.position = { 0.0f, 0.0f, 0.0f };
+    t.position = { 1.0f, 0.0f, 0.0f };
     t.scale = { 1.0f, 1.0f, 1.0f };
 
     registry.emplace<MeshComponent>(entity, "Data/Model/EnemyRobot/SK_SciFi_ToiletMech_Skin3.gltf");

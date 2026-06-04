@@ -494,6 +494,7 @@ framework::framework(HWND hwnd) : hwnd(hwnd)
 	ShaderPassLibrary::Register("lambert", {
 		"", "Data/Shader/Base_VS.cso", "Data/Shader/Lambert_PS.cso"
 		});
+
 	ShaderPassLibrary::Register("skinning_basic", {
 	"", "Data/Shader/Skinning_VS.cso", "Data/Shader/Basic_PS.cso"
 		});
@@ -1718,8 +1719,8 @@ struct SkinnedMeshComponent
     // ƒ‚ƒfƒ‹ƒf[ƒ^
     std::shared_ptr<Model> model; 
 
-    // ƒ{[ƒ“s—ñ(ƒVƒF[ƒ_[‚É“n‚·j
-    std::vector<DirectX::XMFLOAT4X4> boneTransforms;
+    // ƒƒbƒVƒ…‚²‚Æ‚Ìƒ{[ƒ“s—ñ
+    std::vector<std::vector<DirectX::XMFLOAT4X4>> boneTransforms;
 }; 
  
 ===== StaticMeshComponent.h ===== 
@@ -1807,7 +1808,7 @@ private:
 	static void CalcBoneTransforms(
 		Model& model, const Model::Animation& animation,
 		float time,
-		std::vector<DirectX::XMFLOAT4X4>& boneTransforms);
+		std::vector<std::vector<DirectX::XMFLOAT4X4>>& boneTransforms);
 }; 
  
 ===== MeshLoaderSystem.h ===== 
@@ -1898,14 +1899,16 @@ private:
     void RenderStatic(
         entt::registry& registry,
         ID3D11DeviceContext* dc,
-        const std::string& passName
+        const std::string& passName,
+        bool transparent
     );
 
     // ƒXƒLƒjƒ“ƒOƒƒbƒVƒ…•`‰æ
     void RenderSkinned(
         entt::registry& registry,
         ID3D11DeviceContext* dc,
-        const std::string& passName
+        const std::string& passName,
+        bool transparent
     );
 
     // ’¸“_ƒVƒF[ƒ_[
@@ -1931,6 +1934,8 @@ private:
     Microsoft::WRL::ComPtr<ID3D11RasterizerState>   rasterizerState;
     // [“xƒXƒeƒ“ƒVƒ‹ƒXƒe[ƒg
     Microsoft::WRL::ComPtr<ID3D11DepthStencilState> depthStencilState;
+    // ”¼“§–¾—p[“xƒXƒeƒ“ƒVƒ‹ƒXƒe[ƒg
+    Microsoft::WRL::ComPtr<ID3D11DepthStencilState> depthStencilStateTransparent;
     // ƒuƒŒƒ“ƒhƒXƒe[ƒg
     Microsoft::WRL::ComPtr<ID3D11BlendState>        blendState;
 }; 
@@ -2106,7 +2111,7 @@ DirectX::XMFLOAT3 AnimationSystem::InterpolateScale(
 void AnimationSystem::CalcBoneTransforms(
 	Model& model, const Model::Animation& animation,
 	float time,
-	std::vector<DirectX::XMFLOAT4X4>& boneTransforms)
+	std::vector<std::vector<DirectX::XMFLOAT4X4>>& boneTransforms)
 {
 	auto& nodes = model.GetNodes();
 	const auto& meshes = model.GetMeshes();
@@ -2185,33 +2190,26 @@ void AnimationSystem::CalcBoneTransforms(
 		}
 	}
 
-	// ƒƒbƒVƒ…‚²‚Æ‚Éƒ{[ƒ“s—ñ‚ğŒvZ
-	// Å‰‚ÌƒƒbƒVƒ…‚Ìƒ{[ƒ“î•ñ‚ğg‚¤
 	if (meshes.empty()) return;
 
-	const auto& mesh = meshes[0];
-	boneTransforms.resize(mesh.bones.size());
+	boneTransforms.resize(meshes.size());
 
-	for (int i = 0; i < (int)mesh.bones.size(); i++)
+	for (int m = 0; m < (int)meshes.size(); m++)
 	{
-		const auto& bone = mesh.bones[i];
-		int nodeIdx = bone.nodeIndex;
+		const auto& mesh = meshes[m];
+		boneTransforms[m].resize(mesh.bones.size());
 
-		if (nodeIdx < 0 || nodeIdx >= (int)globalTransforms.size())
+		for (int i = 0; i < (int)mesh.bones.size(); i++)
 		{
-			continue;
+			const auto& bone = mesh.bones[i];
+			int nodeIdx = bone.nodeIndex;
+			if (nodeIdx < 0 || nodeIdx >= (int)globalTransforms.size()) continue;
+
+			DirectX::XMMATRIX offset = DirectX::XMLoadFloat4x4(&bone.offsetTransform);
+			DirectX::XMMATRIX global = DirectX::XMLoadFloat4x4(&globalTransforms[nodeIdx]);
+
+			DirectX::XMStoreFloat4x4(&boneTransforms[m][i], offset * global);
 		}
-
-		// ƒ{[ƒ“s—ñ
-		DirectX::XMMATRIX offset = DirectX::XMLoadFloat4x4(
-			&bone.offsetTransform);
-		DirectX::XMMATRIX global = DirectX::XMLoadFloat4x4(
-			&globalTransforms[nodeIdx]);
-
-		DirectX::XMStoreFloat4x4(
-			&boneTransforms[i],
-			offset * global);
-			//global * offset);
 	}
 }
  
@@ -2249,12 +2247,16 @@ void MeshLoaderSystem::Update(
             auto& skinned = registry.emplace<SkinnedMeshComponent>(entity);
             skinned.model = model;
 
-            // ƒ{[ƒ“s—ñ‰Šú‰»
-            skinned.boneTransforms.resize(
-                model->GetNodes().size(),
-                { 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 }
-            );
-
+            // ƒ{[ƒ“s—ñ‰Šú‰»iƒƒbƒVƒ…‚²‚Æj
+            const auto& meshes = model->GetMeshes();
+            skinned.boneTransforms.resize(meshes.size());
+            for (int m = 0; m < (int)meshes.size(); m++)
+            {
+                skinned.boneTransforms[m].resize(
+                    meshes[m].bones.size(),
+                    { 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 }
+                );
+            }
             // ƒAƒjƒ[ƒVƒ‡ƒ“‰Šúİ’è
             auto& animator = registry.emplace<AnimatorComponent>(entity);
             if (!model->GetAnimations().empty())
@@ -2379,6 +2381,16 @@ void RenderSystem::Initialize(ID3D11Device* device)
 		depthStencilState.GetAddressOf()
 	);
 
+	// ”¼“§–¾—p[“xƒXƒeƒ“ƒVƒ‹ƒXƒe[ƒgi[“xƒeƒXƒgONA[“x‘‚«‚İOFFj
+	D3D11_DEPTH_STENCIL_DESC depthStencilDescTransparent{};
+	depthStencilDescTransparent.DepthEnable = TRUE;
+	depthStencilDescTransparent.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO; // ‘‚«‚İOFF
+	depthStencilDescTransparent.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
+	device->CreateDepthStencilState(
+		&depthStencilDescTransparent,
+		depthStencilStateTransparent.GetAddressOf()
+	);
+
 	// ƒuƒŒƒ“ƒhƒXƒe[ƒg¶¬iƒAƒ‹ƒtƒ@ƒuƒŒƒ“ƒhj
 	D3D11_BLEND_DESC blendDesc{};
 	blendDesc.AlphaToCoverageEnable = FALSE;
@@ -2400,35 +2412,52 @@ void RenderSystem::Render(entt::registry& registry, ID3D11DeviceContext* dc, ID3
 	// ƒŒƒ“ƒ_[ƒ^[ƒQƒbƒgÄƒZƒbƒg
 	dc->OMSetRenderTargets(1, &rtv, dsv);
 
-	// ƒXƒe[ƒgİ’è
+	// ‹¤’ÊƒXƒe[ƒgİ’è
 	dc->RSSetState(rasterizerState.Get());
-	dc->OMSetDepthStencilState(depthStencilState.Get(), 0);
 	dc->PSSetSamplers(0, 1, samplerState.GetAddressOf());
-	// ƒuƒŒƒ“ƒhƒXƒe[ƒgİ’è
-	float blendFactor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
-	dc->OMSetBlendState(blendState.Get(), blendFactor, 0xFFFFFFFF);
-
-	// ƒVƒF[ƒ_[İ’è
-	dc->PSSetSamplers(0, 1, samplerState.GetAddressOf());
-	dc->VSSetShader(vertexShader.Get(), nullptr, 0);
 	dc->IASetInputLayout(inputLayout.Get());
 	dc->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
+	float blendFactor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+
+	// •s“§–¾ƒpƒX
+	dc->OMSetDepthStencilState(depthStencilState.Get(), 0);
+	dc->OMSetBlendState(blendState.Get(), blendFactor, 0xFFFFFFFF);
 
 	// Ã“IƒƒbƒVƒ…•`‰æ
+	dc->VSSetShader(vertexShader.Get(), nullptr, 0);
 	for (auto& [passName, ps] : pixelShaders)
 	{
 		dc->PSSetShader(ps.Get(), nullptr, 0);
-		// Ã“IƒƒbƒVƒ…•`‰æ
-		RenderStatic(registry, dc, passName);
+		RenderStatic(registry, dc, passName, false);
 	}
 
 	// ƒXƒLƒjƒ“ƒOƒƒbƒVƒ…•`‰æ
+	dc->VSSetShader(skinnedVertexShader.Get(), nullptr, 0);
 	for (auto& [passName, ps] : pixelShaders)
 	{
-		dc->VSSetShader(skinnedVertexShader.Get(), nullptr, 0);
 		dc->PSSetShader(ps.Get(), nullptr, 0);
-		RenderSkinned(registry, dc, passName);
+		RenderSkinned(registry, dc, passName, false);
+	}
+
+	// ”¼“§–¾ƒpƒX
+	dc->OMSetDepthStencilState(depthStencilStateTransparent.Get(), 0);
+	dc->OMSetBlendState(blendState.Get(), blendFactor, 0xFFFFFFFF);
+
+	// Ã“IƒƒbƒVƒ…•`‰æ
+	dc->VSSetShader(vertexShader.Get(), nullptr, 0);
+	for (auto& [passName, ps] : pixelShaders)
+	{
+		dc->PSSetShader(ps.Get(), nullptr, 0);
+		RenderStatic(registry, dc, passName, true);
+	}
+
+	// ƒXƒLƒjƒ“ƒOƒƒbƒVƒ…•`‰æ
+	dc->VSSetShader(skinnedVertexShader.Get(), nullptr, 0);
+	for (auto& [passName, ps] : pixelShaders)
+	{
+		dc->PSSetShader(ps.Get(), nullptr, 0);
+		RenderSkinned(registry, dc, passName, true);
 	}
 }
 
@@ -2436,7 +2465,8 @@ void RenderSystem::Render(entt::registry& registry, ID3D11DeviceContext* dc, ID3
 void RenderSystem::RenderStatic(
 	entt::registry& registry,
 	ID3D11DeviceContext* dc, 
-	const std::string& passName)
+	const std::string& passName,
+	bool transparent)
 {
 	// TransformComponent + StaticMeshComponent ‚ğ‚ÂEntity‚ğæ“¾
 	auto view = registry.view<TransformComponent, StaticMeshComponent>();
@@ -2445,7 +2475,6 @@ void RenderSystem::RenderStatic(
 		{
 			// ƒ‚ƒfƒ‹‚ª–¢İ’è‚È‚çƒXƒLƒbƒv
 			if (!staticMesh.model) return;
-
 
 			// MaterialComponent‚ª‚ ‚éê‡‚ÍƒpƒX‚ğŠm”F
 			if (registry.all_of<MaterialComponent>(entity))
@@ -2482,6 +2511,19 @@ void RenderSystem::RenderStatic(
 			// ƒƒbƒVƒ…’PˆÊ‚Å•`‰æ
 			for (auto& mesh : staticMesh.model->GetMeshes())
 			{
+				// “§–¾ƒtƒ‰ƒO‚Æƒ}ƒeƒŠƒAƒ‹‚ÌalphaMode‚ªˆê’v‚·‚éƒƒbƒVƒ…‚¾‚¯•`‰æ
+				if (mesh.material)
+				{
+					bool isTransparent =
+						mesh.material->alphaMode == Model::Material::AlphaMode::Blend ||
+						mesh.material->alphaMode == Model::Material::AlphaMode::Mask;
+					if (isTransparent != transparent) continue;
+				}
+				else
+				{
+					if (transparent) continue;
+				}
+
 				// ’¸“_ƒoƒbƒtƒ@İ’è
 				UINT stride = sizeof(Model::Vertex);
 				UINT offset = 0;
@@ -2517,7 +2559,11 @@ void RenderSystem::RenderStatic(
 }
 
 // ƒXƒLƒjƒ“ƒOƒƒbƒVƒ…•`‰æ
-void RenderSystem::RenderSkinned(entt::registry& registry, ID3D11DeviceContext* dc, const std::string& passName)
+void RenderSystem::RenderSkinned(
+	entt::registry& registry, 
+	ID3D11DeviceContext* dc,
+	const std::string& passName,
+	bool transparent)
 {
 	auto view = registry.view<TransformComponent, SkinnedMeshComponent>();
 
@@ -2525,11 +2571,13 @@ void RenderSystem::RenderSkinned(entt::registry& registry, ID3D11DeviceContext* 
 		TransformComponent& transform,
 		SkinnedMeshComponent& skinnedMesh)
 		{
+			// ƒ‚ƒfƒ‹‚ª–¢İ’è‚È‚çƒXƒLƒbƒv
 			if (!skinnedMesh.model) return;
 
 			// ƒpƒXŠm”F
 			if (registry.all_of<MaterialComponent>(entity))
 			{
+				// MaterialComponent‚ª‚ ‚éê‡‚ÍƒpƒX‚ğŠm”F
 				auto& mat = registry.get<MaterialComponent>(entity);
 				bool hasPass = false;
 				for (auto& pass : mat.passes)
@@ -2540,14 +2588,16 @@ void RenderSystem::RenderSkinned(entt::registry& registry, ID3D11DeviceContext* 
 						break;
 					}
 				}
+				// w’èƒpƒX‚ª‚È‚¯‚ê‚ÎƒXƒLƒbƒv
 				if (!hasPass) return;
 			}
 			else
 			{
-				if (passName != "skinning_lambert") return;
+				// MaterialComponent‚ª‚È‚¢ê‡‚Íbasic‚Ì‚İ
+				if (passName != "skinning_basic") return;
 			}
 
-			// ƒ[ƒ‹ƒhs—ñXV
+			// ƒ[ƒ‹ƒhs—ñ‚ğ’è”ƒoƒbƒtƒ@‚Éİ’è
 			CbObject cbObjectData{};
 			DirectX::XMStoreFloat4x4(
 				&cbObjectData.world,
@@ -2556,30 +2606,77 @@ void RenderSystem::RenderSkinned(entt::registry& registry, ID3D11DeviceContext* 
 			dc->UpdateSubresource(cbObject.Get(), 0, nullptr, &cbObjectData, 0, 0);
 			dc->VSSetConstantBuffers(1, 1, cbObject.GetAddressOf());
 
-			// ƒ{[ƒ“s—ñXV
-			CbSkinning cbSkinningData{};
-			const auto& boneTransforms = skinnedMesh.boneTransforms;
-			size_t boneCount = (std::min)(boneTransforms.size(), (size_t)MAX_BONES);
-			for (size_t i = 0; i < boneCount; i++)
+			// ƒƒbƒVƒ…•`‰æiƒƒbƒVƒ…‚²‚Æ‚É‘Î‰‚·‚éƒ{[ƒ“s—ñ‚ğ“]‘—j
+			const auto& meshes = skinnedMesh.model->GetMeshes();
+			for (int m = 0; m < (int)meshes.size(); m++)
 			{
-				cbSkinningData.boneTransforms[i] = boneTransforms[i];
-			}
-			dc->UpdateSubresource(cbSkinning.Get(), 0, nullptr, &cbSkinningData, 0, 0);
-			dc->VSSetConstantBuffers(2, 1, cbSkinning.GetAddressOf());
+				const auto& mesh = meshes[m];
 
-			// ƒƒbƒVƒ…•`‰æ
-			for (auto& mesh : skinnedMesh.model->GetMeshes())
-			{
+				// “§–¾ƒtƒ‰ƒO‚Æƒ}ƒeƒŠƒAƒ‹‚ÌalphaMode‚ªˆê’v‚·‚éƒƒbƒVƒ…‚¾‚¯•`‰æ
+				if (mesh.material)
+				{
+					bool isTransparent =
+						mesh.material->alphaMode == Model::Material::AlphaMode::Blend ||
+						mesh.material->alphaMode == Model::Material::AlphaMode::Mask;
+					if (isTransparent != transparent) continue;
+				}
+				else
+				{
+					if (transparent) continue;
+				}
+
+				//CbSkinning cbSkinningData{};
+				//if (m < (int)skinnedMesh.boneTransforms.size())
+				//{
+				//	const auto& bt = skinnedMesh.boneTransforms[m];
+				//	size_t boneCount = (std::min)(bt.size(), (size_t)MAX_BONES);
+				//	for (size_t i = 0; i < boneCount; i++)
+				//	{
+				//		cbSkinningData.boneTransforms[i] = bt[i];
+				//	}
+				//}
+				//dc->UpdateSubresource(cbSkinning.Get(), 0, nullptr, &cbSkinningData, 0, 0);
+				//dc->VSSetConstantBuffers(2, 1, cbSkinning.GetAddressOf());
+				CbSkinning cbSkinningData{};
+				if (m < (int)skinnedMesh.boneTransforms.size() &&
+					!skinnedMesh.boneTransforms[m].empty())
+				{
+					const auto& bt = skinnedMesh.boneTransforms[m];
+					size_t boneCount = (std::min)(bt.size(), (size_t)MAX_BONES);
+					for (size_t i = 0; i < boneCount; i++)
+					{
+						cbSkinningData.boneTransforms[i] = bt[i];
+					}
+				}
+				else
+				{
+					// bones=0 ‚ÌƒƒbƒVƒ…‚Íƒm[ƒh‚ÌƒOƒ[ƒoƒ‹ƒgƒ‰ƒ“ƒXƒtƒH[ƒ€‚ğg‚¤
+					const auto& nodes = skinnedMesh.model->GetNodes();
+					int nodeIndex = mesh.nodeIndex;
+					if (nodeIndex >= 0 && nodeIndex < (int)nodes.size())
+					{
+						cbSkinningData.boneTransforms[0] =
+							nodes[nodeIndex].globalTransform;
+					}
+					else
+					{
+						cbSkinningData.boneTransforms[0] =
+						{ 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 };
+					}
+				}
+				dc->UpdateSubresource(cbSkinning.Get(), 0, nullptr, &cbSkinningData, 0, 0);
+				dc->VSSetConstantBuffers(2, 1, cbSkinning.GetAddressOf());
+
+
+
 				UINT stride = sizeof(Model::Vertex);
 				UINT offset = 0;
 				dc->IASetVertexBuffers(0, 1, mesh.vertexBuffer.GetAddressOf(), &stride, &offset);
 				dc->IASetIndexBuffer(mesh.indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
-
 				if (mesh.material && mesh.material->baseMap)
 				{
 					dc->PSSetShaderResources(0, 1, mesh.material->baseMap.GetAddressOf());
 				}
-
 				dc->DrawIndexed(static_cast<UINT>(mesh.indices.size()), 0, 0);
 			}
 		});
@@ -2752,7 +2849,7 @@ void Enemy::Initialize(entt::registry& registry, const SceneContext& context)
     entity = registry.create();
 
     auto& t = registry.emplace<TransformComponent>(entity);
-    t.position = { 0.0f, 0.0f, 0.0f };
+    t.position = { 1.0f, 0.0f, 0.0f };
     t.scale = { 1.0f, 1.0f, 1.0f };
 
     registry.emplace<MeshComponent>(entity, "Data/Model/EnemyRobot/SK_SciFi_ToiletMech_Skin3.gltf");
@@ -2787,11 +2884,10 @@ void Player::Initialize(entt::registry& registry, const SceneContext& context)
     entity = registry.create();
 
     auto& t = registry.emplace<TransformComponent>(entity);
-    t.position = { 0.0f, 0.0f, 0.0f };
+    t.position = { -1.0f, 0.0f, 0.0f };
     t.scale = { 1.0f, 1.0f, 1.0f };
 
-    //registry.emplace<MeshComponent>(entity, "Data/Model/PlayerRobot/Map_Robot3.gltf");
-    registry.emplace<MeshComponent>(entity, "Data/Model/unitychan.glb");
+    registry.emplace<MeshComponent>(entity, "Data/Model/PlayerRobot/Map_Robot3.gltf");
     registry.emplace<MaterialComponent>(entity).AddPass("skinning_lambert");
 }
 
@@ -2823,9 +2919,9 @@ void SceneGame::Initialize(const SceneContext& context)
 	player = std::make_unique<Player>();
 	player->Initialize(registry, context);
 
-	//// Enemyç”Ÿæˆ/åˆæœŸåŒ–
-	//enemy = std::make_unique<Enemy>();
-	//enemy->Initialize(registry, context);
+	// Enemyç”Ÿæˆ/åˆæœŸåŒ–
+	enemy = std::make_unique<Enemy>();
+	enemy->Initialize(registry, context);
 }
 
 void SceneGame::Update(float elapsedTime, const SceneContext& context)
@@ -2837,7 +2933,7 @@ void SceneGame::Update(float elapsedTime, const SceneContext& context)
 		*context.resourceManager
 	);
 	// ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³æ›´æ–°
-	animationSystem.Update(registry, elapsedTime/10);
+	animationSystem.Update(registry, elapsedTime);
 
 
 
@@ -2845,8 +2941,8 @@ void SceneGame::Update(float elapsedTime, const SceneContext& context)
 	stage->Update(elapsedTime, registry, context);
 	// Player æ›´æ–°
 	player->Update(elapsedTime, registry, context);
-	//// Enemy æ›´æ–°
-	//enemy->Update(elapsedTime, registry, context);
+	// Enemy æ›´æ–°
+	enemy->Update(elapsedTime, registry, context);
 }
 
 void SceneGame::Render(const SceneContext& context)
@@ -2909,12 +3005,12 @@ void SceneGame::Render(const SceneContext& context)
 			);
 		});
 
-	// ãƒœãƒ¼ãƒ³æç”»
-	debugRenderer.Render(
-		context.deviceContext,
-		context.view,
-		context.projection
-	);
+	//// ãƒœãƒ¼ãƒ³æç”»
+	//debugRenderer.Render(
+	//	context.deviceContext,
+	//	context.view,
+	//	context.projection
+	//);
 }
  
  
@@ -4064,9 +4160,22 @@ void GLTFImporter::LoadMeshes(
 			}
 
 			// ƒ{[ƒ“iƒXƒLƒ“‚©‚çæ“¾j
-			if (!gltfModel.skins.empty())
+			//if (!gltfModel.skins.empty())
+			//{
+			//	const auto& skin = gltfModel.skins[0];
+			int skinIndex = -1;
+			for (int n = 0; n < (int)gltfModel.nodes.size(); n++)
 			{
-				const auto& skin = gltfModel.skins[0];
+				if (gltfModel.nodes[n].mesh == meshIdx && gltfModel.nodes[n].skin >= 0)
+				{
+					skinIndex = gltfModel.nodes[n].skin;
+					break;
+				}
+			}
+
+			if (skinIndex >= 0 && skinIndex < (int)gltfModel.skins.size())
+			{
+				const auto& skin = gltfModel.skins[skinIndex];
 				mesh.bones.resize(skin.joints.size());
 
 				for (int j = 0; j < (int)skin.joints.size(); j++)

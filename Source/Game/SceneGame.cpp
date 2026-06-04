@@ -16,9 +16,9 @@ void SceneGame::Initialize(const SceneContext& context)
 	player = std::make_unique<Player>();
 	player->Initialize(registry, context);
 
-	//// Enemy生成/初期化
-	//enemy = std::make_unique<Enemy>();
-	//enemy->Initialize(registry, context);
+	// Enemy生成/初期化
+	enemy = std::make_unique<Enemy>();
+	enemy->Initialize(registry, context);
 }
 
 void SceneGame::Update(float elapsedTime, const SceneContext& context)
@@ -38,8 +38,8 @@ void SceneGame::Update(float elapsedTime, const SceneContext& context)
 	stage->Update(elapsedTime, registry, context);
 	// Player 更新
 	player->Update(elapsedTime, registry, context);
-	//// Enemy 更新
-	//enemy->Update(elapsedTime, registry, context);
+	// Enemy 更新
+	enemy->Update(elapsedTime, registry, context);
 }
 
 void SceneGame::Render(const SceneContext& context)
@@ -102,10 +102,10 @@ void SceneGame::Render(const SceneContext& context)
 			);
 		});
 
-	// ボーン描画
-	debugRenderer.Render(
-		context.deviceContext,
-		context.view,
-		context.projection
-	);
+	//// ボーン描画
+	//debugRenderer.Render(
+	//	context.deviceContext,
+	//	context.view,
+	//	context.projection
+	//);
 }

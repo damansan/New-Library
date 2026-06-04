@@ -100,6 +100,16 @@ void RenderSystem::Initialize(ID3D11Device* device)
 		depthStencilState.GetAddressOf()
 	);
 
+	// 半透明用深度ステンシルステート（深度テストON、深度書き込みOFF）
+	D3D11_DEPTH_STENCIL_DESC depthStencilDescTransparent{};
+	depthStencilDescTransparent.DepthEnable = TRUE;
+	depthStencilDescTransparent.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO; // 書き込みOFF
+	depthStencilDescTransparent.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
+	device->CreateDepthStencilState(
+		&depthStencilDescTransparent,
+		depthStencilStateTransparent.GetAddressOf()
+	);
+
 	// ブレンドステート生成（アルファブレンド）
 	D3D11_BLEND_DESC blendDesc{};
 	blendDesc.AlphaToCoverageEnable = FALSE;
@@ -121,35 +131,52 @@ void RenderSystem::Render(entt::registry& registry, ID3D11DeviceContext* dc, ID3
 	// レンダーターゲット再セット
 	dc->OMSetRenderTargets(1, &rtv, dsv);
 
-	// ステート設定
+	// 共通ステート設定
 	dc->RSSetState(rasterizerState.Get());
-	dc->OMSetDepthStencilState(depthStencilState.Get(), 0);
 	dc->PSSetSamplers(0, 1, samplerState.GetAddressOf());
-	// ブレンドステート設定
-	float blendFactor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
-	dc->OMSetBlendState(blendState.Get(), blendFactor, 0xFFFFFFFF);
-
-	// シェーダー設定
-	dc->PSSetSamplers(0, 1, samplerState.GetAddressOf());
-	dc->VSSetShader(vertexShader.Get(), nullptr, 0);
 	dc->IASetInputLayout(inputLayout.Get());
 	dc->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
+	float blendFactor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+
+	// 不透明パス
+	dc->OMSetDepthStencilState(depthStencilState.Get(), 0);
+	dc->OMSetBlendState(blendState.Get(), blendFactor, 0xFFFFFFFF);
 
 	// 静的メッシュ描画
+	dc->VSSetShader(vertexShader.Get(), nullptr, 0);
 	for (auto& [passName, ps] : pixelShaders)
 	{
 		dc->PSSetShader(ps.Get(), nullptr, 0);
-		// 静的メッシュ描画
-		RenderStatic(registry, dc, passName);
+		RenderStatic(registry, dc, passName, false);
 	}
 
 	// スキニングメッシュ描画
+	dc->VSSetShader(skinnedVertexShader.Get(), nullptr, 0);
 	for (auto& [passName, ps] : pixelShaders)
 	{
-		dc->VSSetShader(skinnedVertexShader.Get(), nullptr, 0);
 		dc->PSSetShader(ps.Get(), nullptr, 0);
-		RenderSkinned(registry, dc, passName);
+		RenderSkinned(registry, dc, passName, false);
+	}
+
+	// 半透明パス
+	dc->OMSetDepthStencilState(depthStencilStateTransparent.Get(), 0);
+	dc->OMSetBlendState(blendState.Get(), blendFactor, 0xFFFFFFFF);
+
+	// 静的メッシュ描画
+	dc->VSSetShader(vertexShader.Get(), nullptr, 0);
+	for (auto& [passName, ps] : pixelShaders)
+	{
+		dc->PSSetShader(ps.Get(), nullptr, 0);
+		RenderStatic(registry, dc, passName, true);
+	}
+
+	// スキニングメッシュ描画
+	dc->VSSetShader(skinnedVertexShader.Get(), nullptr, 0);
+	for (auto& [passName, ps] : pixelShaders)
+	{
+		dc->PSSetShader(ps.Get(), nullptr, 0);
+		RenderSkinned(registry, dc, passName, true);
 	}
 }
 
@@ -157,7 +184,8 @@ void RenderSystem::Render(entt::registry& registry, ID3D11DeviceContext* dc, ID3
 void RenderSystem::RenderStatic(
 	entt::registry& registry,
 	ID3D11DeviceContext* dc, 
-	const std::string& passName)
+	const std::string& passName,
+	bool transparent)
 {
 	// TransformComponent + StaticMeshComponent を持つEntityを取得
 	auto view = registry.view<TransformComponent, StaticMeshComponent>();
@@ -166,7 +194,6 @@ void RenderSystem::RenderStatic(
 		{
 			// モデルが未設定ならスキップ
 			if (!staticMesh.model) return;
-
 
 			// MaterialComponentがある場合はパスを確認
 			if (registry.all_of<MaterialComponent>(entity))
@@ -203,6 +230,19 @@ void RenderSystem::RenderStatic(
 			// メッシュ単位で描画
 			for (auto& mesh : staticMesh.model->GetMeshes())
 			{
+				// 透明フラグとマテリアルのalphaModeが一致するメッシュだけ描画
+				if (mesh.material)
+				{
+					bool isTransparent =
+						mesh.material->alphaMode == Model::Material::AlphaMode::Blend ||
+						mesh.material->alphaMode == Model::Material::AlphaMode::Mask;
+					if (isTransparent != transparent) continue;
+				}
+				else
+				{
+					if (transparent) continue;
+				}
+
 				// 頂点バッファ設定
 				UINT stride = sizeof(Model::Vertex);
 				UINT offset = 0;
@@ -238,7 +278,11 @@ void RenderSystem::RenderStatic(
 }
 
 // スキニングメッシュ描画
-void RenderSystem::RenderSkinned(entt::registry& registry, ID3D11DeviceContext* dc, const std::string& passName)
+void RenderSystem::RenderSkinned(
+	entt::registry& registry, 
+	ID3D11DeviceContext* dc,
+	const std::string& passName,
+	bool transparent)
 {
 	auto view = registry.view<TransformComponent, SkinnedMeshComponent>();
 
@@ -246,11 +290,13 @@ void RenderSystem::RenderSkinned(entt::registry& registry, ID3D11DeviceContext* 
 		TransformComponent& transform,
 		SkinnedMeshComponent& skinnedMesh)
 		{
+			// モデルが未設定ならスキップ
 			if (!skinnedMesh.model) return;
 
 			// パス確認
 			if (registry.all_of<MaterialComponent>(entity))
 			{
+				// MaterialComponentがある場合はパスを確認
 				auto& mat = registry.get<MaterialComponent>(entity);
 				bool hasPass = false;
 				for (auto& pass : mat.passes)
@@ -261,14 +307,16 @@ void RenderSystem::RenderSkinned(entt::registry& registry, ID3D11DeviceContext* 
 						break;
 					}
 				}
+				// 指定パスがなければスキップ
 				if (!hasPass) return;
 			}
 			else
 			{
-				if (passName != "skinning_lambert") return;
+				// MaterialComponentがない場合はbasicのみ
+				if (passName != "skinning_basic") return;
 			}
 
-			// ワールド行列更新
+			// ワールド行列を定数バッファに設定
 			CbObject cbObjectData{};
 			DirectX::XMStoreFloat4x4(
 				&cbObjectData.world,
@@ -277,40 +325,40 @@ void RenderSystem::RenderSkinned(entt::registry& registry, ID3D11DeviceContext* 
 			dc->UpdateSubresource(cbObject.Get(), 0, nullptr, &cbObjectData, 0, 0);
 			dc->VSSetConstantBuffers(1, 1, cbObject.GetAddressOf());
 
-			//// ボーン行列更新
-			//CbSkinning cbSkinningData{};
-			//const auto& boneTransforms = skinnedMesh.boneTransforms;
-			//size_t boneCount = (std::min)(boneTransforms.size(), (size_t)MAX_BONES);
-			//for (size_t i = 0; i < boneCount; i++)
-			//{
-			//	cbSkinningData.boneTransforms[i] = boneTransforms[i];
-			//}
-			//dc->UpdateSubresource(cbSkinning.Get(), 0, nullptr, &cbSkinningData, 0, 0);
-			//dc->VSSetConstantBuffers(2, 1, cbSkinning.GetAddressOf());
-
-			//// メッシュ描画
-			//for (auto& mesh : skinnedMesh.model->GetMeshes())
-			//{
-			//	UINT stride = sizeof(Model::Vertex);
-			//	UINT offset = 0;
-			//	dc->IASetVertexBuffers(0, 1, mesh.vertexBuffer.GetAddressOf(), &stride, &offset);
-			//	dc->IASetIndexBuffer(mesh.indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
-
-			//	if (mesh.material && mesh.material->baseMap)
-			//	{
-			//		dc->PSSetShaderResources(0, 1, mesh.material->baseMap.GetAddressOf());
-			//	}
-
-			//	dc->DrawIndexed(static_cast<UINT>(mesh.indices.size()), 0, 0);
-			//}
-
 			// メッシュ描画（メッシュごとに対応するボーン行列を転送）
 			const auto& meshes = skinnedMesh.model->GetMeshes();
 			for (int m = 0; m < (int)meshes.size(); m++)
 			{
-				// ボーン行列更新
+				const auto& mesh = meshes[m];
+
+				// 透明フラグとマテリアルのalphaModeが一致するメッシュだけ描画
+				if (mesh.material)
+				{
+					bool isTransparent =
+						mesh.material->alphaMode == Model::Material::AlphaMode::Blend ||
+						mesh.material->alphaMode == Model::Material::AlphaMode::Mask;
+					if (isTransparent != transparent) continue;
+				}
+				else
+				{
+					if (transparent) continue;
+				}
+
+				//CbSkinning cbSkinningData{};
+				//if (m < (int)skinnedMesh.boneTransforms.size())
+				//{
+				//	const auto& bt = skinnedMesh.boneTransforms[m];
+				//	size_t boneCount = (std::min)(bt.size(), (size_t)MAX_BONES);
+				//	for (size_t i = 0; i < boneCount; i++)
+				//	{
+				//		cbSkinningData.boneTransforms[i] = bt[i];
+				//	}
+				//}
+				//dc->UpdateSubresource(cbSkinning.Get(), 0, nullptr, &cbSkinningData, 0, 0);
+				//dc->VSSetConstantBuffers(2, 1, cbSkinning.GetAddressOf());
 				CbSkinning cbSkinningData{};
-				if (m < (int)skinnedMesh.boneTransforms.size())
+				if (m < (int)skinnedMesh.boneTransforms.size() &&
+					!skinnedMesh.boneTransforms[m].empty())
 				{
 					const auto& bt = skinnedMesh.boneTransforms[m];
 					size_t boneCount = (std::min)(bt.size(), (size_t)MAX_BONES);
@@ -319,10 +367,27 @@ void RenderSystem::RenderSkinned(entt::registry& registry, ID3D11DeviceContext* 
 						cbSkinningData.boneTransforms[i] = bt[i];
 					}
 				}
+				else
+				{
+					// bones=0 のメッシュはノードのグローバルトランスフォームを使う
+					const auto& nodes = skinnedMesh.model->GetNodes();
+					int nodeIndex = mesh.nodeIndex;
+					if (nodeIndex >= 0 && nodeIndex < (int)nodes.size())
+					{
+						cbSkinningData.boneTransforms[0] =
+							nodes[nodeIndex].globalTransform;
+					}
+					else
+					{
+						cbSkinningData.boneTransforms[0] =
+						{ 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 };
+					}
+				}
 				dc->UpdateSubresource(cbSkinning.Get(), 0, nullptr, &cbSkinningData, 0, 0);
 				dc->VSSetConstantBuffers(2, 1, cbSkinning.GetAddressOf());
 
-				const auto& mesh = meshes[m];
+
+
 				UINT stride = sizeof(Model::Vertex);
 				UINT offset = 0;
 				dc->IASetVertexBuffers(0, 1, mesh.vertexBuffer.GetAddressOf(), &stride, &offset);
