@@ -8,6 +8,7 @@
 #define TINYGLTF_IMPLEMENTATION
 #include "tiny_gltf.h"
 
+
 // 画像読み込み無効化
 static bool NullLoadImageData(
 	tinygltf::Image*, const int, std::string*,
@@ -53,6 +54,97 @@ std::shared_ptr<GLTFData> GLTFImporter::Load(const std::string& filename)
 	LoadAnimations(*data, gltfModel);
 
 	return data;
+
+
+
+	//// TODO デバッグ時間計測
+	//// 計測用ヘルパー（ローカルラムダ）
+	//auto now = []() {
+	//	LARGE_INTEGER t;
+	//	QueryPerformanceCounter(&t);
+	//	return t.QuadPart;
+	//	};
+	//LARGE_INTEGER freq;
+	//QueryPerformanceFrequency(&freq);
+	//auto ms = [&](LONGLONG start, LONGLONG end) {
+	//	return (double)(end - start) / freq.QuadPart * 1000.0;
+	//	};
+
+	//LONGLONG t0, t1;
+	//char buf[256];
+
+	//// ------- tinygltf ロード -------
+	//t0 = now();
+	//tinygltf::TinyGLTF loader;
+	//loader.SetImageLoader(NullLoadImageData, nullptr);
+	//tinygltf::Model gltfModel;
+	//std::string error, warning;
+	//bool succeeded = false;
+
+	//if (filename.find(".glb") != std::string::npos)
+	//	succeeded = loader.LoadBinaryFromFile(&gltfModel, &error, &warning, filename.c_str());
+	//else if (filename.find(".gltf") != std::string::npos)
+	//	succeeded = loader.LoadASCIIFromFile(&gltfModel, &error, &warning, filename.c_str());
+
+	//t1 = now();
+	//sprintf_s(buf, "[GLTF] TinyGLTF Load     : %.1f ms\n", ms(t0, t1));
+	//OutputDebugStringA(buf);
+
+	//_ASSERT_EXPR_A(warning.empty(), warning.c_str());
+	//_ASSERT_EXPR_A(error.empty(), error.c_str());
+	//_ASSERT_EXPR_A(succeeded, "Failed to load glTF file");
+
+	//auto data = std::make_shared<GLTFData>();
+	//data->hasSkin = CheckHasSkin(gltfModel);
+
+	//std::filesystem::path filepath(filename);
+
+	//// ------- LoadNodes -------
+	//t0 = now();
+	//LoadNodes(*data, gltfModel);
+	//t1 = now();
+	//sprintf_s(buf, "[GLTF] LoadNodes         : %.1f ms\n", ms(t0, t1));
+	//OutputDebugStringA(buf);
+
+	//// ------- LoadTextures -------
+	//t0 = now();
+	//LoadTextures(*data, gltfModel, filepath);
+	//t1 = now();
+	//sprintf_s(buf, "[GLTF] LoadTextures      : %.1f ms\n", ms(t0, t1));
+	//OutputDebugStringA(buf);
+
+	//// ------- LoadMaterials -------
+	//t0 = now();
+	//LoadMaterials(*data, gltfModel, filepath);
+	//t1 = now();
+	//sprintf_s(buf, "[GLTF] LoadMaterials     : %.1f ms\n", ms(t0, t1));
+	//OutputDebugStringA(buf);
+
+	//// ------- LoadMeshes -------
+	//t0 = now();
+	//LoadMeshes(*data, gltfModel);
+	//t1 = now();
+	//sprintf_s(buf, "[GLTF] LoadMeshes        : %.1f ms\n", ms(t0, t1));
+	//OutputDebugStringA(buf);
+
+	//// ------- LoadAnimations -------
+	//t0 = now();
+	//LoadAnimations(*data, gltfModel);
+	//t1 = now();
+	//sprintf_s(buf, "[GLTF] LoadAnimations    : %.1f ms\n", ms(t0, t1));
+	//OutputDebugStringA(buf);
+
+	//// ------- Convert -------
+	//// ※ ResourceManager側で計測するか、ここには含まれないので別途必要なら追加
+
+	//sprintf_s(buf, "[GLTF] nodes=%d meshes=%d textures=%d anims=%d\n",
+	//	(int)data->nodes.size(),
+	//	(int)data->meshes.size(),
+	//	(int)data->textures.size(),
+	//	(int)data->animations.size());
+	//OutputDebugStringA(buf);
+
+	//return data;
 }
 
 // ノード読み込み
@@ -207,9 +299,36 @@ void GLTFImporter::LoadMeshes(
 				const uint16_t* src = reinterpret_cast<const uint16_t*>(
 					buf.data.data() + bv.byteOffset + acc.byteOffset);
 
-				for (size_t i = 0; i < acc.count; i++)
+				//for (size_t i = 0; i < acc.count; i++)
+				//{
+				//	mesh.vertices[i].boneIndex = { src[i * 4 + 0], src[i * 4 + 1], src[i * 4 + 2], src[i * 4 + 3] };
+				//}
+
+				if (acc.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE)
 				{
-					mesh.vertices[i].boneIndex = { src[i * 4 + 0], src[i * 4 + 1], src[i * 4 + 2], src[i * 4 + 3] };
+					// uint8_t 型（1バイト×4）
+					for (size_t i = 0; i < acc.count; i++)
+					{
+						mesh.vertices[i].boneIndex = {
+							src[i * 4 + 0],
+							src[i * 4 + 1],
+							src[i * 4 + 2],
+							src[i * 4 + 3]
+						};
+					}
+				}
+				else // UNSIGNED_SHORT（uint16_t）
+				{
+					const uint16_t* src16 = reinterpret_cast<const uint16_t*>(src);
+					for (size_t i = 0; i < acc.count; i++)
+					{
+						mesh.vertices[i].boneIndex = {
+							src16[i * 4 + 0],
+							src16[i * 4 + 1],
+							src16[i * 4 + 2],
+							src16[i * 4 + 3]
+						};
+					}
 				}
 			}
 
@@ -340,37 +459,94 @@ void GLTFImporter::LoadTextures(
 	const tinygltf::Model& gltfModel,
 	const std::filesystem::path& filepath)
 {
+	//data.textures.reserve(gltfModel.textures.size());
+
+	//for (const auto& gltfTexture : gltfModel.textures)
+	//{
+	//	GLTFData::TextureData texData;
+	//	const auto& image = gltfModel.images[gltfTexture.source];
+
+	//	if (!image.uri.empty())
+	//	{
+	//		// 外部ファイルの場合はファイルから読み込んでバイナリ化
+	//		std::string texPath = (filepath.parent_path() / image.uri).string();
+
+	//		std::ifstream ifs(texPath, std::ios::binary);
+	//		_ASSERT_EXPR_A(ifs, "Texture file not found");
+
+	//		texData.pixels = std::vector<uint8_t>(
+	//			std::istreambuf_iterator<char>(ifs),
+	//			std::istreambuf_iterator<char>()
+	//		);
+	//	}
+	//	else if (image.bufferView >= 0)
+	//	{
+	//		// GLB埋め込みの場合はbufferViewからバイナリを取り出す
+	//		const auto& bv = gltfModel.bufferViews[image.bufferView];
+	//		const auto& buffer = gltfModel.buffers[bv.buffer];
+	//		const uint8_t* begin = buffer.data.data() + bv.byteOffset;
+
+	//		texData.pixels.assign(begin, begin + bv.byteLength);
+	//	}
+
+	//	data.textures.push_back(std::move(texData));
+	//}
+
+	LARGE_INTEGER freq, t0, t1;
+	QueryPerformanceFrequency(&freq);
+	char buf[256];
+
 	data.textures.reserve(gltfModel.textures.size());
 
-	for (const auto& gltfTexture : gltfModel.textures)
+	for (int i = 0; i < (int)gltfModel.textures.size(); i++)
 	{
+		QueryPerformanceCounter(&t0);
+
+		const auto& gltfTexture = gltfModel.textures[i];
 		GLTFData::TextureData texData;
 		const auto& image = gltfModel.images[gltfTexture.source];
 
 		if (!image.uri.empty())
 		{
-			// 外部ファイルの場合はファイルから読み込んでバイナリ化
+			//std::string texPath = (filepath.parent_path() / image.uri).string();
+			//std::ifstream ifs(texPath, std::ios::binary);
+			//_ASSERT_EXPR_A(ifs, "Texture file not found");
+			//texData.pixels = std::vector<uint8_t>(
+			//	std::istreambuf_iterator<char>(ifs),
+			//	std::istreambuf_iterator<char>()
+			//);
+
 			std::string texPath = (filepath.parent_path() / image.uri).string();
 
-			std::ifstream ifs(texPath, std::ios::binary);
+			// istreambuf_iterator より read の方が大幅に速い
+			std::ifstream ifs(texPath, std::ios::binary | std::ios::ate);
 			_ASSERT_EXPR_A(ifs, "Texture file not found");
 
-			texData.pixels = std::vector<uint8_t>(
-				std::istreambuf_iterator<char>(ifs),
-				std::istreambuf_iterator<char>()
-			);
+			std::streamsize size = ifs.tellg();
+			ifs.seekg(0, std::ios::beg);
+
+			texData.pixels.resize(static_cast<size_t>(size));
+			ifs.read(reinterpret_cast<char*>(texData.pixels.data()), size);
 		}
 		else if (image.bufferView >= 0)
 		{
-			// GLB埋め込みの場合はbufferViewからバイナリを取り出す
 			const auto& bv = gltfModel.bufferViews[image.bufferView];
 			const auto& buffer = gltfModel.buffers[bv.buffer];
 			const uint8_t* begin = buffer.data.data() + bv.byteOffset;
-
 			texData.pixels.assign(begin, begin + bv.byteLength);
 		}
 
 		data.textures.push_back(std::move(texData));
+
+		QueryPerformanceCounter(&t1);
+		double elapsed = (double)(t1.QuadPart - t0.QuadPart) / freq.QuadPart * 1000.0;
+		size_t sizeKB = data.textures.back().pixels.size() / 1024;
+		sprintf_s(buf, "[GLTF]   texture[%d] uri=%s size=%zuKB : %.1f ms\n",
+			i,
+			gltfModel.images[gltfTexture.source].uri.c_str(),
+			sizeKB,
+			elapsed);
+		OutputDebugStringA(buf);
 	}
 }
 

@@ -1,60 +1,55 @@
-#include "SceneGame.h"
+ï»¿#include "SceneGame.h"
 #include <imgui.h>
+
+
 
 void SceneGame::Initialize(const SceneContext& context)
 {
 	renderSystem.Initialize(context.device);
 	debugRenderer.Initialize(context.device);
 
-	// ƒ‰ƒ“ƒo[ƒgƒVƒF[ƒ_[‚ğg‚¤Entity
-	auto entity = registry.create();
-	auto& t = registry.emplace<TransformComponent>(entity);
-	t.position = { -3.0f, 0.0f, 0.0f };
-	registry.emplace<MeshComponent>(entity, "Data/Model/Mr.Incredible.glb");
-	registry.emplace<MaterialComponent>(entity).AddPass("lambert");  // ƒ‰ƒ“ƒo[ƒg‚ğw’è
+	// Stageç”Ÿæˆ/åˆæœŸåŒ–
+	stage = std::make_unique<Stage>();
+	stage->Initialize(registry, context);
 
-	// ƒx[ƒVƒbƒNƒVƒF[ƒ_[‚ğg‚¤Entity
-	auto entity2 = registry.create();
-	auto& t2 = registry.emplace<TransformComponent>(entity2);
-	t2.position = { 3.0f, 0.0f, 0.0f };
-	registry.emplace<MeshComponent>(entity2, "Data/Model/Mr.Incredible.glb");
-	registry.emplace<MaterialComponent>(entity2).AddPass("basic");    // ƒx[ƒVƒbƒN‚ğw’è
-
-
-	// ƒXƒLƒjƒ“ƒOƒ‚ƒfƒ‹
-	auto entity3 = registry.create();
-	registry.emplace<TransformComponent>(entity3);
-	//registry.emplace<MeshComponent>(entity3, "Data/Model/unitychan.glb");
-	registry.emplace<MeshComponent>(entity3, "Data/Model/PlayerRobot/Map_Robot3.gltf");
-	registry.emplace<MaterialComponent>(entity3).AddPass("skinning_lambert");
+	// Playerç”Ÿæˆ/åˆæœŸåŒ–
+	player = std::make_unique<Player>();
+	player->Initialize(registry, context);
 }
 
 void SceneGame::Update(float elapsedTime, const SceneContext& context)
 {
-	// –¢ƒ[ƒh‚Ìƒ‚ƒfƒ‹‚ğ©“®ƒ[ƒh
+	// æœªãƒ­ãƒ¼ãƒ‰ã®ãƒ¢ãƒ‡ãƒ«ã‚’è‡ªå‹•ãƒ­ãƒ¼ãƒ‰
 	meshLoaderSystem.Update(
 		registry,
 		context.device,
 		*context.resourceManager
 	);
-	// ƒAƒjƒ[ƒVƒ‡ƒ“XV
+	// ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³æ›´æ–°
 	animationSystem.Update(registry, elapsedTime);
+
+
+
+	// Stage æ›´æ–°
+	stage->Update(elapsedTime, registry, context);
+	// Player æ›´æ–°
+	player->Update(elapsedTime, registry, context);
 }
 
 void SceneGame::Render(const SceneContext& context)
 {
-	// CbSceneXV
+	// CbSceneæ›´æ–°
 	CbScene cbSceneData{};
 	cbSceneData.view = context.view;
 	cbSceneData.projection = context.projection;
 
 
-	// ƒ‰ƒCƒgİ’èi‰¼‚Ì•½sŒõŒ¹j
+	// ãƒ©ã‚¤ãƒˆè¨­å®šï¼ˆä»®ã®å¹³è¡Œå…‰æºï¼‰
 	cbSceneData.lightDirection = { 0.5f, -1.0f, 0.5f, 0.0f };
 	cbSceneData.lightColor = { 1.0f,  1.0f, 1.0f, 1.0f };
 	cbSceneData.ambientColor = { 0.2f,  0.2f, 0.2f, 1.0f };
 
-	// ƒJƒƒ‰ˆÊ’u
+	// ã‚«ãƒ¡ãƒ©ä½ç½®
 	if (context.camera)
 	{
 		const auto& eye = context.camera->GetEye();
@@ -65,12 +60,12 @@ void SceneGame::Render(const SceneContext& context)
 		renderSystem.GetCbScene(), 0, nullptr, &cbSceneData, 0, 0
 	);
 
-	// ’¸“_ƒVƒF[ƒ_[‚Éİ’è
+	// é ‚ç‚¹ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã«è¨­å®š
 	context.deviceContext->VSSetConstantBuffers(
 		0, 1, renderSystem.GetCbSceneAddress()
 	);
 
-	// ƒsƒNƒZƒ‹ƒVƒF[ƒ_[‚É‚àİ’è
+	// ãƒ”ã‚¯ã‚»ãƒ«ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã«ã‚‚è¨­å®š
 	context.deviceContext->PSSetConstantBuffers(
 		0, 1, renderSystem.GetCbSceneAddress()
 	);
@@ -88,7 +83,7 @@ void SceneGame::Render(const SceneContext& context)
 
 	debugRenderer.Clear();
 
-	// SkinnedMeshComponent ‚ğ‚ÂƒGƒ“ƒeƒBƒeƒB‚Ìƒ{[ƒ“‚ğ’Ç‰Á
+	// SkinnedMeshComponent ã‚’æŒã¤ã‚¨ãƒ³ãƒ†ã‚£ãƒ†ã‚£ã®ãƒœãƒ¼ãƒ³ã‚’è¿½åŠ 
 	auto view = registry.view<SkinnedMeshComponent, TransformComponent>();
 	view.each([&](auto entity, SkinnedMeshComponent& skinned, TransformComponent& transform)
 		{
@@ -97,11 +92,11 @@ void SceneGame::Render(const SceneContext& context)
 			debugRenderer.AddBones(
 				skinned.model->GetNodes(),
 				transform.GetWorldMatrix(),
-				{ 1.0f, 1.0f, 0.0f, 1.0f }  // ‰©F
+				{ 1.0f, 1.0f, 0.0f, 1.0f }  // é»„è‰²
 			);
 		});
 
-	// ƒ{[ƒ“•`‰æ
+	// ãƒœãƒ¼ãƒ³æç”»
 	debugRenderer.Render(
 		context.deviceContext,
 		context.view,

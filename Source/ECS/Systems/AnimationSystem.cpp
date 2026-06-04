@@ -252,7 +252,7 @@ void AnimationSystem::CalcBoneTransforms(
 
 	const auto& mesh = meshes[0];
 	boneTransforms.resize(mesh.bones.size());
-
+	
 	for (int i = 0; i < (int)mesh.bones.size(); i++)
 	{
 		const auto& bone = mesh.bones[i];

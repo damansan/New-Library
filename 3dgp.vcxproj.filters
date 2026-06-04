@@ -125,6 +125,21 @@
     <Filter Include="Sources\Resource\GLTFConverter">
       <UniqueIdentifier>{1657cb11-f1cf-455e-b22f-50bd2a08c56c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\Game\Actor">
+      <UniqueIdentifier>{2d9ae77c-5441-4636-b68f-f2d5956bd44e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Game\Actor\Character">
+      <UniqueIdentifier>{4c1c4f5e-35c5-4fed-9a2f-95d961859fc7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Game\Actor\Character\Player">
+      <UniqueIdentifier>{6050a809-ce74-4f52-bc33-442a780e61ab}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Game\Actor\Object">
+      <UniqueIdentifier>{7a795a97-3753-487f-9690-87e422c5ac96}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Game\Actor\Object\Stage">
+      <UniqueIdentifier>{22a1b68c-e484-48d7-b2c2-60c45cb74a44}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Core\framework.cpp">
@@ -198,6 +213,12 @@
     </ClCompile>
     <ClCompile Include="Source\ECS\Systems\AnimationSystem.cpp">
       <Filter>Sources\ECS\Systems\AnimationSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Game\Player.cpp">
+      <Filter>Sources\Game\Actor\Character\Player</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Game\Stage.cpp">
+      <Filter>Sources\Game\Actor\Object\Stage</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -293,6 +314,21 @@
     </ClInclude>
     <ClInclude Include="Source\ECS\Systems\AnimationSystem.h">
       <Filter>Sources\ECS\Systems\AnimationSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Game\Character.h">
+      <Filter>Sources\Game\Actor\Character</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Game\Actor.h">
+      <Filter>Sources\Game\Actor</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Game\Player.h">
+      <Filter>Sources\Game\Actor\Character\Player</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Game\Object.h">
+      <Filter>Sources\Game\Actor\Object</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Game\Stage.h">
+      <Filter>Sources\Game\Actor\Object\Stage</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

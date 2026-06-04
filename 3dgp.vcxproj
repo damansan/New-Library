@@ -36,7 +36,9 @@
     <ClCompile Include="Source\ECS\Systems\AnimationSystem.cpp" />
     <ClCompile Include="Source\ECS\Systems\MeshLoaderSystem.cpp" />
     <ClCompile Include="Source\ECS\Systems\RenderSystem.cpp" />
+    <ClCompile Include="Source\Game\Player.cpp" />
     <ClCompile Include="Source\Game\SceneGame.cpp" />
+    <ClCompile Include="Source\Game\Stage.cpp" />
     <ClCompile Include="Source\Resource\GLTFConverter.cpp" />
     <ClCompile Include="Source\Resource\GLTFImporter.cpp" />
     <ClCompile Include="Source\Resource\GpuResourceUtils.cpp" />
@@ -67,7 +69,12 @@
     <ClInclude Include="Source\ECS\Systems\AnimationSystem.h" />
     <ClInclude Include="Source\ECS\Systems\MeshLoaderSystem.h" />
     <ClInclude Include="Source\ECS\Systems\RenderSystem.h" />
+    <ClInclude Include="Source\Game\Character.h" />
+    <ClInclude Include="Source\Game\Actor.h" />
+    <ClInclude Include="Source\Game\Object.h" />
+    <ClInclude Include="Source\Game\Player.h" />
     <ClInclude Include="Source\Game\SceneGame.h" />
+    <ClInclude Include="Source\Game\Stage.h" />
     <ClInclude Include="Source\Resource\GLTFConverter.h" />
     <ClInclude Include="Source\Resource\GLTFData.h" />
     <ClInclude Include="Source\Resource\GLTFImporter.h" />
@@ -219,6 +226,8 @@
       <AdditionalIncludeDirectories>$(ProjectDir)Source;$(ProjectDir)External/imgui-docking;$(ProjectDir)External/imgui-docking/backends;$(ProjectDir)External/entt-main/single_include/entt;$(ProjectDir)External/GLTF;.\External\DirectXTK-main\Inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
