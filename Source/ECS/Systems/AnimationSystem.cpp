@@ -167,7 +167,7 @@ DirectX::XMFLOAT3 AnimationSystem::InterpolateScale(
 void AnimationSystem::CalcBoneTransforms(
 	Model& model, const Model::Animation& animation,
 	float time,
-	std::vector<DirectX::XMFLOAT4X4>& boneTransforms)
+	std::vector<std::vector<DirectX::XMFLOAT4X4>>& boneTransforms)
 {
 	auto& nodes = model.GetNodes();
 	const auto& meshes = model.GetMeshes();
@@ -246,31 +246,25 @@ void AnimationSystem::CalcBoneTransforms(
 		}
 	}
 
-	// メッシュごとにボーン行列を計算
-	// 最初のメッシュのボーン情報を使う
 	if (meshes.empty()) return;
 
-	const auto& mesh = meshes[0];
-	boneTransforms.resize(mesh.bones.size());
-	
-	for (int i = 0; i < (int)mesh.bones.size(); i++)
+	boneTransforms.resize(meshes.size());
+
+	for (int m = 0; m < (int)meshes.size(); m++)
 	{
-		const auto& bone = mesh.bones[i];
-		int nodeIdx = bone.nodeIndex;
+		const auto& mesh = meshes[m];
+		boneTransforms[m].resize(mesh.bones.size());
 
-		if (nodeIdx < 0 || nodeIdx >= (int)globalTransforms.size())
+		for (int i = 0; i < (int)mesh.bones.size(); i++)
 		{
-			continue;
+			const auto& bone = mesh.bones[i];
+			int nodeIdx = bone.nodeIndex;
+			if (nodeIdx < 0 || nodeIdx >= (int)globalTransforms.size()) continue;
+
+			DirectX::XMMATRIX offset = DirectX::XMLoadFloat4x4(&bone.offsetTransform);
+			DirectX::XMMATRIX global = DirectX::XMLoadFloat4x4(&globalTransforms[nodeIdx]);
+
+			DirectX::XMStoreFloat4x4(&boneTransforms[m][i], offset * global);
 		}
-
-		// ボーン行列
-		DirectX::XMMATRIX offset = DirectX::XMLoadFloat4x4(
-			&bone.offsetTransform);
-		DirectX::XMMATRIX global = DirectX::XMLoadFloat4x4(
-			&globalTransforms[nodeIdx]);
-
-		DirectX::XMStoreFloat4x4(
-			&boneTransforms[i],
-			offset * global);
 	}
 }

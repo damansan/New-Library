@@ -29,12 +29,16 @@ void MeshLoaderSystem::Update(
             auto& skinned = registry.emplace<SkinnedMeshComponent>(entity);
             skinned.model = model;
 
-            // ボーン行列初期化
-            skinned.boneTransforms.resize(
-                model->GetNodes().size(),
-                { 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 }
-            );
-
+            // ボーン行列初期化（メッシュごと）
+            const auto& meshes = model->GetMeshes();
+            skinned.boneTransforms.resize(meshes.size());
+            for (int m = 0; m < (int)meshes.size(); m++)
+            {
+                skinned.boneTransforms[m].resize(
+                    meshes[m].bones.size(),
+                    { 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 }
+                );
+            }
             // アニメーション初期設定
             auto& animator = registry.emplace<AnimatorComponent>(entity);
             if (!model->GetAnimations().empty())

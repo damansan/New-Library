@@ -277,30 +277,60 @@ void RenderSystem::RenderSkinned(entt::registry& registry, ID3D11DeviceContext* 
 			dc->UpdateSubresource(cbObject.Get(), 0, nullptr, &cbObjectData, 0, 0);
 			dc->VSSetConstantBuffers(1, 1, cbObject.GetAddressOf());
 
-			// ボーン行列更新
-			CbSkinning cbSkinningData{};
-			const auto& boneTransforms = skinnedMesh.boneTransforms;
-			size_t boneCount = (std::min)(boneTransforms.size(), (size_t)MAX_BONES);
-			for (size_t i = 0; i < boneCount; i++)
-			{
-				cbSkinningData.boneTransforms[i] = boneTransforms[i];
-			}
-			dc->UpdateSubresource(cbSkinning.Get(), 0, nullptr, &cbSkinningData, 0, 0);
-			dc->VSSetConstantBuffers(2, 1, cbSkinning.GetAddressOf());
+			//// ボーン行列更新
+			//CbSkinning cbSkinningData{};
+			//const auto& boneTransforms = skinnedMesh.boneTransforms;
+			//size_t boneCount = (std::min)(boneTransforms.size(), (size_t)MAX_BONES);
+			//for (size_t i = 0; i < boneCount; i++)
+			//{
+			//	cbSkinningData.boneTransforms[i] = boneTransforms[i];
+			//}
+			//dc->UpdateSubresource(cbSkinning.Get(), 0, nullptr, &cbSkinningData, 0, 0);
+			//dc->VSSetConstantBuffers(2, 1, cbSkinning.GetAddressOf());
 
-			// メッシュ描画
-			for (auto& mesh : skinnedMesh.model->GetMeshes())
+			//// メッシュ描画
+			//for (auto& mesh : skinnedMesh.model->GetMeshes())
+			//{
+			//	UINT stride = sizeof(Model::Vertex);
+			//	UINT offset = 0;
+			//	dc->IASetVertexBuffers(0, 1, mesh.vertexBuffer.GetAddressOf(), &stride, &offset);
+			//	dc->IASetIndexBuffer(mesh.indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+
+			//	if (mesh.material && mesh.material->baseMap)
+			//	{
+			//		dc->PSSetShaderResources(0, 1, mesh.material->baseMap.GetAddressOf());
+			//	}
+
+			//	dc->DrawIndexed(static_cast<UINT>(mesh.indices.size()), 0, 0);
+			//}
+
+			// メッシュ描画（メッシュごとに対応するボーン行列を転送）
+			const auto& meshes = skinnedMesh.model->GetMeshes();
+			for (int m = 0; m < (int)meshes.size(); m++)
 			{
+				// ボーン行列更新
+				CbSkinning cbSkinningData{};
+				if (m < (int)skinnedMesh.boneTransforms.size())
+				{
+					const auto& bt = skinnedMesh.boneTransforms[m];
+					size_t boneCount = (std::min)(bt.size(), (size_t)MAX_BONES);
+					for (size_t i = 0; i < boneCount; i++)
+					{
+						cbSkinningData.boneTransforms[i] = bt[i];
+					}
+				}
+				dc->UpdateSubresource(cbSkinning.Get(), 0, nullptr, &cbSkinningData, 0, 0);
+				dc->VSSetConstantBuffers(2, 1, cbSkinning.GetAddressOf());
+
+				const auto& mesh = meshes[m];
 				UINT stride = sizeof(Model::Vertex);
 				UINT offset = 0;
 				dc->IASetVertexBuffers(0, 1, mesh.vertexBuffer.GetAddressOf(), &stride, &offset);
 				dc->IASetIndexBuffer(mesh.indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
-
 				if (mesh.material && mesh.material->baseMap)
 				{
 					dc->PSSetShaderResources(0, 1, mesh.material->baseMap.GetAddressOf());
 				}
-
 				dc->DrawIndexed(static_cast<UINT>(mesh.indices.size()), 0, 0);
 			}
 		});

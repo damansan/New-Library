@@ -170,15 +170,29 @@ void GLTFImporter::LoadNodes(
 			DirectX::XMStoreFloat3(&node.scale, S);
 			DirectX::XMStoreFloat4(&node.rotation, R);
 			DirectX::XMStoreFloat3(&node.position, T);
+
+			// 右手系→左手系変換
+			node.position.z = -node.position.z;
+			node.rotation.x = -node.rotation.x;
+			node.rotation.y = -node.rotation.y;
 		}
 		else
 		{
 			if (!gltfNode.translation.empty())
+			{
 				node.position = ToXMFLOAT3(gltfNode.translation);
+				node.position.z = -node.position.z;
+			}
 			if (!gltfNode.rotation.empty())
+			{
 				node.rotation = ToXMFLOAT4(gltfNode.rotation);
+				node.rotation.x = -node.rotation.x;
+				node.rotation.y = -node.rotation.y;
+			}
 			if (!gltfNode.scale.empty())
+			{
 				node.scale = ToXMFLOAT3(gltfNode.scale);
+			}
 		}
 
 		data.nodes.push_back(node);
@@ -241,7 +255,12 @@ void GLTFImporter::LoadMeshes(
 				mesh.vertices.resize(acc.count);
 				for (size_t i = 0; i < acc.count; i++)
 				{
-					mesh.vertices[i].position = { src[i * 3 + 0], src[i * 3 + 1], src[i * 3 + 2] };
+					mesh.vertices[i].position = 
+					{ 
+						src[i * 3 + 0],
+						src[i * 3 + 1], 
+						-src[i * 3 + 2] 
+					};
 				}
 			}
 
@@ -256,7 +275,12 @@ void GLTFImporter::LoadMeshes(
 
 				for (size_t i = 0; i < acc.count; i++)
 				{
-					mesh.vertices[i].normal = { src[i * 3 + 0], src[i * 3 + 1], src[i * 3 + 2] };
+					mesh.vertices[i].normal = 
+					{ 
+						src[i * 3 + 0], 
+						src[i * 3 + 1], 
+						-src[i * 3 + 2] 
+					};
 				}
 			}
 
@@ -298,11 +322,6 @@ void GLTFImporter::LoadMeshes(
 				const auto& buf = gltfModel.buffers[bv.buffer];
 				const uint16_t* src = reinterpret_cast<const uint16_t*>(
 					buf.data.data() + bv.byteOffset + acc.byteOffset);
-
-				//for (size_t i = 0; i < acc.count; i++)
-				//{
-				//	mesh.vertices[i].boneIndex = { src[i * 4 + 0], src[i * 4 + 1], src[i * 4 + 2], src[i * 4 + 3] };
-				//}
 
 				if (acc.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE)
 				{
@@ -346,25 +365,50 @@ void GLTFImporter::LoadMeshes(
 				if (acc.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT)
 				{
 					const uint16_t* s = static_cast<const uint16_t*>(src);
-					for (size_t i = 0; i < acc.count; i++)
+					//for (size_t i = 0; i < acc.count; i++)
+					//{
+					//	mesh.indices[i] = s[i];
+					//}
+					for (size_t i = 0; i < acc.count; i += 3)
 					{
-						mesh.indices[i] = s[i];
+						mesh.indices[i + 0] = s[i + 0];
+						mesh.indices[i + 1] = s[i + 2];
+						mesh.indices[i + 2] = s[i + 1];
 					}
 				}
 				else if (acc.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT)
 				{
 					const uint32_t* s = static_cast<const uint32_t*>(src);
-					for (size_t i = 0; i < acc.count; i++)
+					//for (size_t i = 0; i < acc.count; i++)
+					//{
+					//	mesh.indices[i] = s[i];
+					//}
+					for (size_t i = 0; i < acc.count; i += 3)
 					{
-						mesh.indices[i] = s[i];
+						mesh.indices[i + 0] = s[i + 0];
+						mesh.indices[i + 1] = s[i + 2];
+						mesh.indices[i + 2] = s[i + 1];
 					}
 				}
 			}
 
 			// ボーン（スキンから取得）
-			if (!gltfModel.skins.empty())
+			//if (!gltfModel.skins.empty())
+			//{
+			//	const auto& skin = gltfModel.skins[0];
+			int skinIndex = -1;
+			for (int n = 0; n < (int)gltfModel.nodes.size(); n++)
 			{
-				const auto& skin = gltfModel.skins[0];
+				if (gltfModel.nodes[n].mesh == meshIdx && gltfModel.nodes[n].skin >= 0)
+				{
+					skinIndex = gltfModel.nodes[n].skin;
+					break;
+				}
+			}
+
+			if (skinIndex >= 0 && skinIndex < (int)gltfModel.skins.size())
+			{
+				const auto& skin = gltfModel.skins[skinIndex];
 				mesh.bones.resize(skin.joints.size());
 
 				for (int j = 0; j < (int)skin.joints.size(); j++)
@@ -383,9 +427,20 @@ void GLTFImporter::LoadMeshes(
 
 					for (int j = 0; j < (int)skin.joints.size(); j++)
 					{
-						memcpy(&mesh.bones[j].offsetTransform,
-							src + j * 16,
-							sizeof(DirectX::XMFLOAT4X4));
+						//memcpy(&mesh.bones[j].offsetTransform,
+						//	src + j * 16,
+						//	sizeof(DirectX::XMFLOAT4X4));
+						DirectX::XMFLOAT4X4 ibm;
+						memcpy(&ibm, src + j * 16, sizeof(DirectX::XMFLOAT4X4));
+
+						ibm._13 = -ibm._13;
+						ibm._23 = -ibm._23;
+						ibm._43 = -ibm._43;
+						ibm._31 = -ibm._31;
+						ibm._32 = -ibm._32;
+						ibm._34 = -ibm._34;
+
+						mesh.bones[j].offsetTransform = ibm;
 					}
 				}
 			}
@@ -597,7 +652,12 @@ void GLTFImporter::LoadAnimations(
 				{
 					GLTFData::VectorKeyframe kf;
 					kf.seconds = times[i];
-					kf.value = { values[i * 3 + 0], values[i * 3 + 1], values[i * 3 + 2] };
+					kf.value = 
+					{
+						values[i * 3 + 0], 
+						values[i * 3 + 1], 
+						-values[i * 3 + 2] 
+					};
 					nodeAnim.positionKeyframes.push_back(kf);
 				}
 			}
@@ -612,8 +672,13 @@ void GLTFImporter::LoadAnimations(
 
 					GLTFData::QuaternionKeyframe kf;
 					kf.seconds = times[i];
-					kf.value = { values[i * 4 + 0], values[i * 4 + 1],
-								   values[i * 4 + 2], values[i * 4 + 3] };
+					kf.value = 
+					{ 
+						-values[i * 4 + 0], 
+						-values[i * 4 + 1],
+						values[i * 4 + 2], 
+						values[i * 4 + 3] 
+					};
 					nodeAnim.rotationKeyframes.push_back(kf);
 				}
 			}

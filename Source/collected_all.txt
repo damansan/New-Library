@@ -2191,7 +2191,7 @@ void AnimationSystem::CalcBoneTransforms(
 
 	const auto& mesh = meshes[0];
 	boneTransforms.resize(mesh.bones.size());
-	
+
 	for (int i = 0; i < (int)mesh.bones.size(); i++)
 	{
 		const auto& bone = mesh.bones[i];
@@ -2211,6 +2211,7 @@ void AnimationSystem::CalcBoneTransforms(
 		DirectX::XMStoreFloat4x4(
 			&boneTransforms[i],
 			offset * global);
+			//global * offset);
 	}
 }
  
@@ -2585,6 +2586,107 @@ void RenderSystem::RenderSkinned(entt::registry& registry, ID3D11DeviceContext* 
 }
  
  
+===== Actor.h ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Game\Actor.h 
+#pragma once
+#include "entt.hpp"
+#include "Core/SceneContext.h"
+#include "ECS/Components/TransformComponent.h"
+#include "ECS/Components/MeshComponent.h"
+#include "ECS/Components/MaterialComponent.h"
+
+class Actor
+{
+public:
+    Actor() = default;
+    virtual ~Actor() = default;
+
+    // ‰Šú‰»EI—¹
+    virtual void Initialize(entt::registry& registry, const SceneContext& context) = 0;
+    virtual void Finalize(entt::registry& registry) {}
+
+    // XVEImGui
+    virtual void Update(float elapsedTime, entt::registry& registry, const SceneContext& context) {}
+    virtual void RenderImGui() {}
+
+    // entity‚Ìæ“¾
+    entt::entity GetEntity() const { return entity; }
+
+protected:
+    entt::entity entity{ entt::null };
+}; 
+ 
+===== Character.h ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Game\Character.h 
+#pragma once
+#include "Actor.h"
+
+class Character : public Actor
+{
+public:
+    Character() = default;
+    virtual ~Character() = default;
+
+    virtual void Initialize(
+        entt::registry& registry, 
+        const SceneContext& context) = 0;
+    
+    virtual void Update(
+        float elapsedTime, 
+        entt::registry& registry, 
+        const SceneContext& context) = 0;
+
+protected:
+}; 
+ 
+===== Enemy.h ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Game\Enemy.h 
+#pragma once
+#include "Character.h"
+
+class Enemy : public Character
+{
+public:
+    Enemy() = default;
+    virtual ~Enemy() = default;
+
+    void Initialize(entt::registry& registry, const SceneContext& context) override;
+    void Update(float elapsedTime, entt::registry& registry, const SceneContext& context) override;
+    void RenderImGui() override;
+}; 
+ 
+===== Object.h ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Game\Object.h 
+#pragma once
+#include "Actor.h"
+
+class Object : public Actor
+{
+public:
+    Object() = default;
+    virtual ~Object() = default;
+
+    virtual void Initialize(entt::registry& registry, const SceneContext& context) = 0;
+    virtual void Update(float elapsedTime, entt::registry& registry, const SceneContext& context) {}
+}; 
+ 
+===== Player.h ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Game\Player.h 
+#pragma once
+#include "Character.h"
+
+
+class Player : public Character
+{
+public:
+    Player() = default;
+    virtual ~Player() = default;
+
+    void Initialize(entt::registry& registry, const SceneContext& context) override;
+    void Update(float elapsedTime, entt::registry& registry, const SceneContext& context) override;
+    void RenderImGui() override;
+}; 
+ 
 ===== SceneGame.h ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\Game\SceneGame.h 
 #pragma once
@@ -2592,8 +2694,11 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Game\SceneGame.h
 #include "ECS/Systems/RenderSystem.h"
 #include "ECS/Systems/AnimationSystem.h"
 #include "Debug/DebugRenderer.h"
-
 #include <memory>
+
+#include "Game/Stage.h"
+#include "Game/Player.h"
+#include "Game/Enemy.h"
 
 class SceneGame : public Scene
 {
@@ -2609,12 +2714,98 @@ private:
 	AnimationSystem animationSystem;
 	DebugRenderer debugRenderer;
 
+	// ƒXƒe[ƒW
+	std::unique_ptr<Stage> stage;
+	// ƒvƒŒƒCƒ„[
+	std::unique_ptr<Player> player;
+	// ƒGƒlƒ~[
+	std::unique_ptr<Enemy> enemy;
+
 };
  
  
+===== Stage.h ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Game\Stage.h 
+#pragma once
+#include "Game/Object.h"
+
+class Stage : public Object
+{
+public:
+    Stage() = default;
+    virtual ~Stage() = default;
+
+    void Initialize(entt::registry& registry, const SceneContext& context) override;
+    void RenderImGui() override;
+}; 
+ 
+===== Enemy.cpp ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Game\Enemy.cpp 
+#include "Enemy.h"
+#include "ECS/Components/TransformComponent.h"
+#include "ECS/Components/MeshComponent.h"
+#include "ECS/Components/MaterialComponent.h"
+#include "ECS/Components/AnimatorComponent.h"
+
+void Enemy::Initialize(entt::registry& registry, const SceneContext& context)
+{
+    entity = registry.create();
+
+    auto& t = registry.emplace<TransformComponent>(entity);
+    t.position = { 0.0f, 0.0f, 0.0f };
+    t.scale = { 1.0f, 1.0f, 1.0f };
+
+    registry.emplace<MeshComponent>(entity, "Data/Model/EnemyRobot/SK_SciFi_ToiletMech_Skin3.gltf");
+    registry.emplace<MaterialComponent>(entity).AddPass("skinning_lambert");
+    
+}
+
+void Enemy::Update(float elapsedTime, entt::registry& registry, const SceneContext& context)
+{
+    auto* animator = registry.try_get<AnimatorComponent>(entity);
+    if (animator)
+    {
+        animator->currentAnimation = "Idle2";
+        animator->loop = true;
+        animator->playSpeed = 1.0f;
+    }
+}
+
+void Enemy::RenderImGui()
+{
+} 
+ 
+===== Player.cpp ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Game\Player.cpp 
+#include "Player.h"
+#include "ECS/Components/TransformComponent.h"
+#include "ECS/Components/MeshComponent.h"
+#include "ECS/Components/MaterialComponent.h"
+
+void Player::Initialize(entt::registry& registry, const SceneContext& context)
+{
+    entity = registry.create();
+
+    auto& t = registry.emplace<TransformComponent>(entity);
+    t.position = { 0.0f, 0.0f, 0.0f };
+    t.scale = { 1.0f, 1.0f, 1.0f };
+
+    //registry.emplace<MeshComponent>(entity, "Data/Model/PlayerRobot/Map_Robot3.gltf");
+    registry.emplace<MeshComponent>(entity, "Data/Model/unitychan.glb");
+    registry.emplace<MaterialComponent>(entity).AddPass("skinning_lambert");
+}
+
+void Player::Update(float elapsedTime, entt::registry& registry, const SceneContext& context)
+{
+}
+
+void Player::RenderImGui()
+{
+} 
+ 
 ===== SceneGame.cpp ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\Game\SceneGame.cpp 
-#include "SceneGame.h"
+ï»¿#include "SceneGame.h"
 #include <imgui.h>
 
 
@@ -2624,35 +2815,54 @@ void SceneGame::Initialize(const SceneContext& context)
 	renderSystem.Initialize(context.device);
 	debugRenderer.Initialize(context.device);
 
+	// Stageç”Ÿæˆ/åˆæœŸåŒ–
+	stage = std::make_unique<Stage>();
+	stage->Initialize(registry, context);
+
+	// Playerç”Ÿæˆ/åˆæœŸåŒ–
+	player = std::make_unique<Player>();
+	player->Initialize(registry, context);
+
+	//// Enemyç”Ÿæˆ/åˆæœŸåŒ–
+	//enemy = std::make_unique<Enemy>();
+	//enemy->Initialize(registry, context);
 }
 
 void SceneGame::Update(float elapsedTime, const SceneContext& context)
 {
-	// –¢ƒ[ƒh‚Ìƒ‚ƒfƒ‹‚ğ©“®ƒ[ƒh
+	// æœªãƒ­ãƒ¼ãƒ‰ã®ãƒ¢ãƒ‡ãƒ«ã‚’è‡ªå‹•ãƒ­ãƒ¼ãƒ‰
 	meshLoaderSystem.Update(
 		registry,
 		context.device,
 		*context.resourceManager
 	);
-	// ƒAƒjƒ[ƒVƒ‡ƒ“XV
-	animationSystem.Update(registry, elapsedTime);
+	// ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³æ›´æ–°
+	animationSystem.Update(registry, elapsedTime/10);
 
+
+
+	// Stage æ›´æ–°
+	stage->Update(elapsedTime, registry, context);
+	// Player æ›´æ–°
+	player->Update(elapsedTime, registry, context);
+	//// Enemy æ›´æ–°
+	//enemy->Update(elapsedTime, registry, context);
 }
 
 void SceneGame::Render(const SceneContext& context)
 {
-	// CbSceneXV
+	// CbSceneæ›´æ–°
 	CbScene cbSceneData{};
 	cbSceneData.view = context.view;
 	cbSceneData.projection = context.projection;
 
 
-	// ƒ‰ƒCƒgİ’èi‰¼‚Ì•½sŒõŒ¹j
+	// ãƒ©ã‚¤ãƒˆè¨­å®šï¼ˆä»®ã®å¹³è¡Œå…‰æºï¼‰
 	cbSceneData.lightDirection = { 0.5f, -1.0f, 0.5f, 0.0f };
 	cbSceneData.lightColor = { 1.0f,  1.0f, 1.0f, 1.0f };
 	cbSceneData.ambientColor = { 0.2f,  0.2f, 0.2f, 1.0f };
 
-	// ƒJƒƒ‰ˆÊ’u
+	// ã‚«ãƒ¡ãƒ©ä½ç½®
 	if (context.camera)
 	{
 		const auto& eye = context.camera->GetEye();
@@ -2663,12 +2873,12 @@ void SceneGame::Render(const SceneContext& context)
 		renderSystem.GetCbScene(), 0, nullptr, &cbSceneData, 0, 0
 	);
 
-	// ’¸“_ƒVƒF[ƒ_[‚Éİ’è
+	// é ‚ç‚¹ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã«è¨­å®š
 	context.deviceContext->VSSetConstantBuffers(
 		0, 1, renderSystem.GetCbSceneAddress()
 	);
 
-	// ƒsƒNƒZƒ‹ƒVƒF[ƒ_[‚É‚àİ’è
+	// ãƒ”ã‚¯ã‚»ãƒ«ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã«ã‚‚è¨­å®š
 	context.deviceContext->PSSetConstantBuffers(
 		0, 1, renderSystem.GetCbSceneAddress()
 	);
@@ -2686,7 +2896,7 @@ void SceneGame::Render(const SceneContext& context)
 
 	debugRenderer.Clear();
 
-	// SkinnedMeshComponent ‚ğ‚ÂƒGƒ“ƒeƒBƒeƒB‚Ìƒ{[ƒ“‚ğ’Ç‰Á
+	// SkinnedMeshComponent ã‚’æŒã¤ã‚¨ãƒ³ãƒ†ã‚£ãƒ†ã‚£ã®ãƒœãƒ¼ãƒ³ã‚’è¿½åŠ 
 	auto view = registry.view<SkinnedMeshComponent, TransformComponent>();
 	view.each([&](auto entity, SkinnedMeshComponent& skinned, TransformComponent& transform)
 		{
@@ -2695,11 +2905,11 @@ void SceneGame::Render(const SceneContext& context)
 			debugRenderer.AddBones(
 				skinned.model->GetNodes(),
 				transform.GetWorldMatrix(),
-				{ 1.0f, 1.0f, 0.0f, 1.0f }  // ‰©F
+				{ 1.0f, 1.0f, 0.0f, 1.0f }  // é»„è‰²
 			);
 		});
 
-	// ƒ{[ƒ“•`‰æ
+	// ãƒœãƒ¼ãƒ³æç”»
 	debugRenderer.Render(
 		context.deviceContext,
 		context.view,
@@ -2707,6 +2917,29 @@ void SceneGame::Render(const SceneContext& context)
 	);
 }
  
+ 
+===== Stage.cpp ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Game\Stage.cpp 
+#include "Stage.h"
+#include "ECS/Components/TransformComponent.h"
+#include "ECS/Components/MeshComponent.h"
+#include "ECS/Components/MaterialComponent.h"
+
+void Stage::Initialize(entt::registry& registry, const SceneContext& context)
+{
+    entity = registry.create();
+
+    auto& t = registry.emplace<TransformComponent>(entity);
+    t.position = { 0.0f, 0.0f, 0.0f };
+    t.scale = { 1.0f, 1.0f, 1.0f };
+
+    registry.emplace<MeshComponent>(entity, "Data/Model/Stage/ExampleStage/ExampleStage.gltf");
+    registry.emplace<MaterialComponent>(entity).AddPass("lambert");
+}
+
+void Stage::RenderImGui()
+{
+} 
  
 ===== GLTFConverter.h ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\GLTFConverter.h 
@@ -3608,15 +3841,29 @@ void GLTFImporter::LoadNodes(
 			DirectX::XMStoreFloat3(&node.scale, S);
 			DirectX::XMStoreFloat4(&node.rotation, R);
 			DirectX::XMStoreFloat3(&node.position, T);
+
+			// ‰EèŒn¨¶èŒn•ÏŠ·
+			node.position.z = -node.position.z;
+			node.rotation.x = -node.rotation.x;
+			node.rotation.y = -node.rotation.y;
 		}
 		else
 		{
 			if (!gltfNode.translation.empty())
+			{
 				node.position = ToXMFLOAT3(gltfNode.translation);
+				node.position.z = -node.position.z;
+			}
 			if (!gltfNode.rotation.empty())
+			{
 				node.rotation = ToXMFLOAT4(gltfNode.rotation);
+				node.rotation.x = -node.rotation.x;
+				node.rotation.y = -node.rotation.y;
+			}
 			if (!gltfNode.scale.empty())
+			{
 				node.scale = ToXMFLOAT3(gltfNode.scale);
+			}
 		}
 
 		data.nodes.push_back(node);
@@ -3679,7 +3926,12 @@ void GLTFImporter::LoadMeshes(
 				mesh.vertices.resize(acc.count);
 				for (size_t i = 0; i < acc.count; i++)
 				{
-					mesh.vertices[i].position = { src[i * 3 + 0], src[i * 3 + 1], src[i * 3 + 2] };
+					mesh.vertices[i].position = 
+					{ 
+						src[i * 3 + 0],
+						src[i * 3 + 1], 
+						-src[i * 3 + 2] 
+					};
 				}
 			}
 
@@ -3694,7 +3946,12 @@ void GLTFImporter::LoadMeshes(
 
 				for (size_t i = 0; i < acc.count; i++)
 				{
-					mesh.vertices[i].normal = { src[i * 3 + 0], src[i * 3 + 1], src[i * 3 + 2] };
+					mesh.vertices[i].normal = 
+					{ 
+						src[i * 3 + 0], 
+						src[i * 3 + 1], 
+						-src[i * 3 + 2] 
+					};
 				}
 			}
 
@@ -3736,11 +3993,6 @@ void GLTFImporter::LoadMeshes(
 				const auto& buf = gltfModel.buffers[bv.buffer];
 				const uint16_t* src = reinterpret_cast<const uint16_t*>(
 					buf.data.data() + bv.byteOffset + acc.byteOffset);
-
-				//for (size_t i = 0; i < acc.count; i++)
-				//{
-				//	mesh.vertices[i].boneIndex = { src[i * 4 + 0], src[i * 4 + 1], src[i * 4 + 2], src[i * 4 + 3] };
-				//}
 
 				if (acc.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE)
 				{
@@ -3784,17 +4036,29 @@ void GLTFImporter::LoadMeshes(
 				if (acc.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT)
 				{
 					const uint16_t* s = static_cast<const uint16_t*>(src);
-					for (size_t i = 0; i < acc.count; i++)
+					//for (size_t i = 0; i < acc.count; i++)
+					//{
+					//	mesh.indices[i] = s[i];
+					//}
+					for (size_t i = 0; i < acc.count; i += 3)
 					{
-						mesh.indices[i] = s[i];
+						mesh.indices[i + 0] = s[i + 0];
+						mesh.indices[i + 1] = s[i + 2];
+						mesh.indices[i + 2] = s[i + 1];
 					}
 				}
 				else if (acc.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT)
 				{
 					const uint32_t* s = static_cast<const uint32_t*>(src);
-					for (size_t i = 0; i < acc.count; i++)
+					//for (size_t i = 0; i < acc.count; i++)
+					//{
+					//	mesh.indices[i] = s[i];
+					//}
+					for (size_t i = 0; i < acc.count; i += 3)
 					{
-						mesh.indices[i] = s[i];
+						mesh.indices[i + 0] = s[i + 0];
+						mesh.indices[i + 1] = s[i + 2];
+						mesh.indices[i + 2] = s[i + 1];
 					}
 				}
 			}
@@ -3821,9 +4085,20 @@ void GLTFImporter::LoadMeshes(
 
 					for (int j = 0; j < (int)skin.joints.size(); j++)
 					{
-						memcpy(&mesh.bones[j].offsetTransform,
-							src + j * 16,
-							sizeof(DirectX::XMFLOAT4X4));
+						//memcpy(&mesh.bones[j].offsetTransform,
+						//	src + j * 16,
+						//	sizeof(DirectX::XMFLOAT4X4));
+						DirectX::XMFLOAT4X4 ibm;
+						memcpy(&ibm, src + j * 16, sizeof(DirectX::XMFLOAT4X4));
+
+						ibm._13 = -ibm._13;
+						ibm._23 = -ibm._23;
+						ibm._43 = -ibm._43;
+						ibm._31 = -ibm._31;
+						ibm._32 = -ibm._32;
+						ibm._34 = -ibm._34;
+
+						mesh.bones[j].offsetTransform = ibm;
 					}
 				}
 			}
@@ -4035,7 +4310,12 @@ void GLTFImporter::LoadAnimations(
 				{
 					GLTFData::VectorKeyframe kf;
 					kf.seconds = times[i];
-					kf.value = { values[i * 3 + 0], values[i * 3 + 1], values[i * 3 + 2] };
+					kf.value = 
+					{
+						values[i * 3 + 0], 
+						values[i * 3 + 1], 
+						-values[i * 3 + 2] 
+					};
 					nodeAnim.positionKeyframes.push_back(kf);
 				}
 			}
@@ -4043,10 +4323,20 @@ void GLTFImporter::LoadAnimations(
 			{
 				for (size_t i = 0; i < inputAcc.count; i++)
 				{
+					// ‚È‚º‚©Unity‚Åo—Í‚µ‚½ƒAƒjƒ[ƒVƒ‡ƒ“ƒf[ƒ^‚É‚ÍƒSƒ~‚Æv‚í‚ê‚éƒL[ƒtƒŒ[ƒ€‚ª‘¶İ‚µ‚Ä‚¢‚éê‡‚ª‚ ‚éB
+					// ¬”“_‚ª‘¶İ‚·‚éƒtƒŒ[ƒ€iŠÔj‚ªƒSƒ~ƒf[ƒ^‚Á‚Û‚¢‚Ì‚ÅœŠO‚·‚éB
+					float frame = times[i] * 60.0f;
+					if (fabs(std::round(frame) - frame) > 0.001) continue;
+
 					GLTFData::QuaternionKeyframe kf;
 					kf.seconds = times[i];
-					kf.value = { values[i * 4 + 0], values[i * 4 + 1],
-								   values[i * 4 + 2], values[i * 4 + 3] };
+					kf.value = 
+					{ 
+						-values[i * 4 + 0], 
+						-values[i * 4 + 1],
+						values[i * 4 + 2], 
+						values[i * 4 + 3] 
+					};
 					nodeAnim.rotationKeyframes.push_back(kf);
 				}
 			}
