@@ -116,6 +116,20 @@ void GLTFConverter::ConvertMeshes(
 
         model.meshes.push_back(std::move(dst));
     }
+    // 全メッシュの頂点からバウンディングボックスを計算
+    for (const auto& mesh : model.meshes)
+    {
+        for (const auto& v : mesh.vertices)
+        {
+            model.boundingBox.min.x = (std::min)(model.boundingBox.min.x, v.position.x);
+            model.boundingBox.min.y = (std::min)(model.boundingBox.min.y, v.position.y);
+            model.boundingBox.min.z = (std::min)(model.boundingBox.min.z, v.position.z);
+
+            model.boundingBox.max.x = (std::max)(model.boundingBox.max.x, v.position.x);
+            model.boundingBox.max.y = (std::max)(model.boundingBox.max.y, v.position.y);
+            model.boundingBox.max.z = (std::max)(model.boundingBox.max.z, v.position.z);
+        }
+    }
 }
 
 // マテリアル変換

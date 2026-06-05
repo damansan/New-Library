@@ -141,6 +141,8 @@ void RenderSystem::Render(entt::registry& registry, ID3D11DeviceContext* dc, ID3
 
 	float blendFactor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 
+	Frustum frustum = cachedFrustum;
+
 	// 不透明パス
 	dc->OMSetDepthStencilState(depthStencilState.Get(), 0);
 	dc->OMSetBlendState(blendState.Get(), blendFactor, 0xFFFFFFFF);
@@ -150,7 +152,7 @@ void RenderSystem::Render(entt::registry& registry, ID3D11DeviceContext* dc, ID3
 	for (auto& [passName, ps] : staticPixelShaders)
 	{
 		dc->PSSetShader(ps.Get(), nullptr, 0);
-		RenderStatic(registry, dc, passName, false);
+		RenderStatic(registry, dc, passName, false, frustum);
 	}
 
 	// スキニングメッシュ描画
@@ -158,7 +160,7 @@ void RenderSystem::Render(entt::registry& registry, ID3D11DeviceContext* dc, ID3
 	for (auto& [passName, ps] : skinnedPixelShaders)
 	{
 		dc->PSSetShader(ps.Get(), nullptr, 0);
-		RenderSkinned(registry, dc, passName, false);
+		RenderSkinned(registry, dc, passName, false, frustum);
 	}
 
 	// 半透明パス
@@ -170,7 +172,7 @@ void RenderSystem::Render(entt::registry& registry, ID3D11DeviceContext* dc, ID3
 	for (auto& [passName, ps] : staticPixelShaders)
 	{
 		dc->PSSetShader(ps.Get(), nullptr, 0);
-		RenderStatic(registry, dc, passName, true);
+		RenderStatic(registry, dc, passName, true, frustum);
 	}
 
 	// スキニングメッシュ描画
@@ -178,16 +180,17 @@ void RenderSystem::Render(entt::registry& registry, ID3D11DeviceContext* dc, ID3
 	for (auto& [passName, ps] : skinnedPixelShaders)
 	{
 		dc->PSSetShader(ps.Get(), nullptr, 0);
-		RenderSkinned(registry, dc, passName, true);
+		RenderSkinned(registry, dc, passName, true, frustum);
 	}
 }
 
 // 静的メッシュ描画
 void RenderSystem::RenderStatic(
 	entt::registry& registry,
-	ID3D11DeviceContext* dc, 
+	ID3D11DeviceContext* dc,
 	const std::string& passName,
-	bool transparent)
+	bool transparent,
+	const Frustum& frustum)
 {
 	// TransformComponent + StaticMeshComponent を持つEntityを取得
 	auto view = registry.view<TransformComponent, StaticMeshComponent>();
@@ -219,12 +222,14 @@ void RenderSystem::RenderStatic(
 				if (passName != "lambert") return;
 			}
 
+			// フラスタムカリング
+			DirectX::XMFLOAT4X4 worldMatrix{};
+			DirectX::XMStoreFloat4x4(&worldMatrix, transform.GetWorldMatrix());
+			if (!IsInFrustum(frustum, staticMesh.model->GetBoundingBox(), worldMatrix)) return;
+
 			// ワールド行列を定数バッファに設定
 			CbObject cbObjectData{};
-			DirectX::XMStoreFloat4x4(
-				&cbObjectData.world,
-				transform.GetWorldMatrix()
-			);
+			cbObjectData.world = worldMatrix;
 
 			dc->UpdateSubresource(cbObject.Get(), 0, nullptr, &cbObjectData, 0, 0);
 			dc->VSSetConstantBuffers(1, 1, cbObject.GetAddressOf());
@@ -281,10 +286,11 @@ void RenderSystem::RenderStatic(
 
 // スキニングメッシュ描画
 void RenderSystem::RenderSkinned(
-	entt::registry& registry, 
+	entt::registry& registry,
 	ID3D11DeviceContext* dc,
 	const std::string& passName,
-	bool transparent)
+	bool transparent,
+	const Frustum& frustum)
 {
 	auto view = registry.view<TransformComponent, SkinnedMeshComponent>();
 
@@ -318,12 +324,14 @@ void RenderSystem::RenderSkinned(
 				if (passName != "lambert") return;
 			}
 
+			// フラスタムカリング
+			DirectX::XMFLOAT4X4 worldMatrix{};
+			DirectX::XMStoreFloat4x4(&worldMatrix, transform.GetWorldMatrix());
+			if (!IsInFrustum(frustum, skinnedMesh.model->GetBoundingBox(), worldMatrix)) return;
+
 			// ワールド行列を定数バッファに設定
 			CbObject cbObjectData{};
-			DirectX::XMStoreFloat4x4(
-				&cbObjectData.world,
-				transform.GetWorldMatrix()
-			);
+			cbObjectData.world = worldMatrix;
 			dc->UpdateSubresource(cbObject.Get(), 0, nullptr, &cbObjectData, 0, 0);
 			dc->VSSetConstantBuffers(1, 1, cbObject.GetAddressOf());
 
@@ -376,8 +384,6 @@ void RenderSystem::RenderSkinned(
 				dc->UpdateSubresource(cbSkinning.Get(), 0, nullptr, &cbSkinningData, 0, 0);
 				dc->VSSetConstantBuffers(2, 1, cbSkinning.GetAddressOf());
 
-
-
 				UINT stride = sizeof(Model::Vertex);
 				UINT offset = 0;
 				dc->IASetVertexBuffers(0, 1, mesh.vertexBuffer.GetAddressOf(), &stride, &offset);
@@ -389,4 +395,110 @@ void RenderSystem::RenderSkinned(
 				dc->DrawIndexed(static_cast<UINT>(mesh.indices.size()), 0, 0);
 			}
 		});
+}
+
+// フラスタム計算
+RenderSystem::Frustum RenderSystem::CalcFrustum(
+	const DirectX::XMFLOAT4X4& view,
+	const DirectX::XMFLOAT4X4& projection)
+{
+	// ViewProjection行列を計算
+	DirectX::XMMATRIX v = DirectX::XMLoadFloat4x4(&view);
+	DirectX::XMMATRIX p = DirectX::XMLoadFloat4x4(&projection);
+	DirectX::XMMATRIX vp = v * p;
+
+	DirectX::XMFLOAT4X4 m;
+	DirectX::XMStoreFloat4x4(&m, vp);
+
+	Frustum frustum;
+
+	// Left
+	frustum.planes[0].normal = { m._14 + m._11, m._24 + m._21, m._34 + m._31 };
+	frustum.planes[0].distance = m._44 + m._41;
+	// Right
+	frustum.planes[1].normal = { m._14 - m._11, m._24 - m._21, m._34 - m._31 };
+	frustum.planes[1].distance = m._44 - m._41;
+	// Bottom
+	frustum.planes[2].normal = { m._14 + m._12, m._24 + m._22, m._34 + m._32 };
+	frustum.planes[2].distance = m._44 + m._42;
+	// Top
+	frustum.planes[3].normal = { m._14 - m._12, m._24 - m._22, m._34 - m._32 };
+	frustum.planes[3].distance = m._44 - m._42;
+	// Near
+	frustum.planes[4].normal = { m._13, m._23, m._33 };
+	frustum.planes[4].distance = m._43;
+	// Far
+	frustum.planes[5].normal = { m._14 - m._13, m._24 - m._23, m._34 - m._33 };
+	frustum.planes[5].distance = m._44 - m._43;
+
+	// 各平面を正規化
+	for (auto& plane : frustum.planes)
+	{
+		float len = sqrtf(
+			plane.normal.x * plane.normal.x +
+			plane.normal.y * plane.normal.y +
+			plane.normal.z * plane.normal.z
+		);
+		if (len > 0.0f)
+		{
+			plane.normal.x /= len;
+			plane.normal.y /= len;
+			plane.normal.z /= len;
+			plane.distance /= len;
+		}
+	}
+
+	return frustum;
+}
+
+// バウンディングボックスがフラスタム内にあるか判定
+bool RenderSystem::IsInFrustum(
+	const Frustum& frustum,
+	const Model::BoundingBox& bbox,
+	const DirectX::XMFLOAT4X4& world)
+{
+	// ワールド空間でのAABB8頂点を計算
+	DirectX::XMVECTOR corners[8];
+	DirectX::XMMATRIX w = DirectX::XMLoadFloat4x4(&world);
+
+	corners[0] = DirectX::XMVector3TransformCoord(
+		DirectX::XMVectorSet(bbox.min.x, bbox.min.y, bbox.min.z, 1), w);
+	corners[1] = DirectX::XMVector3TransformCoord(
+		DirectX::XMVectorSet(bbox.max.x, bbox.min.y, bbox.min.z, 1), w);
+	corners[2] = DirectX::XMVector3TransformCoord(
+		DirectX::XMVectorSet(bbox.min.x, bbox.max.y, bbox.min.z, 1), w);
+	corners[3] = DirectX::XMVector3TransformCoord(
+		DirectX::XMVectorSet(bbox.max.x, bbox.max.y, bbox.min.z, 1), w);
+	corners[4] = DirectX::XMVector3TransformCoord(
+		DirectX::XMVectorSet(bbox.min.x, bbox.min.y, bbox.max.z, 1), w);
+	corners[5] = DirectX::XMVector3TransformCoord(
+		DirectX::XMVectorSet(bbox.max.x, bbox.min.y, bbox.max.z, 1), w);
+	corners[6] = DirectX::XMVector3TransformCoord(
+		DirectX::XMVectorSet(bbox.min.x, bbox.max.y, bbox.max.z, 1), w);
+	corners[7] = DirectX::XMVector3TransformCoord(
+		DirectX::XMVectorSet(bbox.max.x, bbox.max.y, bbox.max.z, 1), w);
+
+	// 各平面に対して全頂点が外側にあればカリング
+	for (const auto& plane : frustum.planes)
+	{
+		DirectX::XMVECTOR n = DirectX::XMVectorSet(
+			plane.normal.x, plane.normal.y, plane.normal.z, 0);
+
+		int outsideCount = 0;
+		for (const auto& corner : corners)
+		{
+			float dot = DirectX::XMVectorGetX(
+				DirectX::XMVector3Dot(n, corner));
+			if (dot + plane.distance < 0.0f)
+			{
+				outsideCount++;
+			}
+		}
+		// 8頂点全て外側ならフラスタム外とする
+		if (outsideCount == 8)
+		{
+			return false;
+		}
+	}
+	return true;
 }

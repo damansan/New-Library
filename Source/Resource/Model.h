@@ -120,6 +120,35 @@ public:
     std::vector<Mesh>& GetMeshes() { return meshes; }
     std::vector<Material>& GetMaterials() { return materials; }
 
+
+    // バウンディングボックス
+    struct BoundingBox
+    {
+        DirectX::XMFLOAT3 min = { FLT_MAX,  FLT_MAX,  FLT_MAX };
+        DirectX::XMFLOAT3 max = { -FLT_MAX, -FLT_MAX, -FLT_MAX };
+
+        // 中心座標取得
+        DirectX::XMFLOAT3 GetCenter() const
+        {
+            return {
+                (min.x + max.x) * 0.5f,
+                (min.y + max.y) * 0.5f,
+                (min.z + max.z) * 0.5f
+            };
+        }
+
+        // 半径取得（球体近似）
+        float GetRadius() const
+        {
+            float dx = (max.x - min.x) * 0.5f;
+            float dy = (max.y - min.y) * 0.5f;
+            float dz = (max.z - min.z) * 0.5f;
+            return sqrtf(dx * dx + dy * dy + dz * dz);
+        }
+    };
+    // バウンディングボックス取得
+    const BoundingBox& GetBoundingBox() const { return boundingBox; }
+
 private:
     friend class GLTFImporter;
     friend class GLTFConverter;
@@ -129,4 +158,7 @@ private:
     std::vector<Material>  materials;
     std::vector<Animation> animations;
     bool                   hasSkin = false;
+
+
+    BoundingBox boundingBox;
 };

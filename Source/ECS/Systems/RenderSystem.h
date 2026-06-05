@@ -50,16 +50,41 @@ public:
         ID3D11DepthStencilView* dsv
     );
 
+    // フラスタムをSceneGame側からセット
+    void SetFrustum(
+        const DirectX::XMFLOAT4X4& view,
+        const DirectX::XMFLOAT4X4& projection)
+    {
+        cachedFrustum = CalcFrustum(view, projection);
+    }
+
+
     // 定数バッファゲッター
     ID3D11Buffer* GetCbScene() { return cbScene.Get(); }
     ID3D11Buffer** GetCbSceneAddress() { return cbScene.GetAddressOf(); }
 private:
+
+    // フラスタム平面
+    struct FrustumPlane
+    {
+        DirectX::XMFLOAT3 normal;
+        float distance;
+    };
+
+    // フラスタム（6平面）
+    struct Frustum
+    {
+        FrustumPlane planes[6]; // Left, Right, Top, Bottom, Near, Far
+    };
+
+
     // 静的メッシュ描画
     void RenderStatic(
         entt::registry& registry,
         ID3D11DeviceContext* dc,
         const std::string& passName,
-        bool transparent
+        bool transparent,
+        const Frustum& frustum
     );
 
     // スキニングメッシュ描画
@@ -67,9 +92,25 @@ private:
         entt::registry& registry,
         ID3D11DeviceContext* dc,
         const std::string& passName,
-        bool transparent
+        bool transparent,
+        const Frustum& frustum
     );
 
+    
+    // フラスタム計算（ViewProjection行列から）
+    Frustum CalcFrustum(
+        const DirectX::XMFLOAT4X4& view,
+        const DirectX::XMFLOAT4X4& projection
+    );
+
+    // バウンディングボックスがフラスタム内にあるか判定
+    bool IsInFrustum(
+        const Frustum& frustum,
+        const Model::BoundingBox& bbox,
+        const DirectX::XMFLOAT4X4& world
+    );
+
+    
     // 頂点シェーダー
     Microsoft::WRL::ComPtr<ID3D11VertexShader> vertexShader;
     // スキニング用頂点シェーダー
@@ -100,4 +141,6 @@ private:
     Microsoft::WRL::ComPtr<ID3D11DepthStencilState> depthStencilStateTransparent;
     // ブレンドステート
     Microsoft::WRL::ComPtr<ID3D11BlendState>        blendState;
+
+    Frustum cachedFrustum;
 };

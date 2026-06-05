@@ -31,5 +31,7 @@ public:
 
 private:
     // モデルキャッシュ
-    std::unordered_map<std::string, std::weak_ptr<Model>> modelCache;
+    //std::unordered_map<std::string, std::weak_ptr<Model>> modelCache;
+    std::unordered_map<std::string, std::shared_ptr<Model>> modelCache;
+
 };
