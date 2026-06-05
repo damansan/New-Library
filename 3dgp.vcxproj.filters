@@ -143,6 +143,9 @@
     <Filter Include="Sources\Game\Actor\Character\Enemy">
       <UniqueIdentifier>{47b49f73-6aa9-4026-ada0-35d5edd33049}</UniqueIdentifier>
     </Filter>
+    <Filter Include="External\tracy-0.13.1">
+      <UniqueIdentifier>{054ca6fc-d2f6-4f82-9ad5-f6505e353961}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Core\framework.cpp">
@@ -225,6 +228,9 @@
     </ClCompile>
     <ClCompile Include="Source\Game\Enemy.cpp">
       <Filter>Sources\Game\Actor\Character\Enemy</Filter>
+    </ClCompile>
+    <ClCompile Include="External\tracy-0.13.1\public\TracyClient.cpp">
+      <Filter>External\tracy-0.13.1</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -167,9 +167,20 @@ void Graphics::SetRenderTargets()
 }
 
 // 画面プレゼント
-void Graphics::Present()
+void Graphics::Present(bool vsync)
 {
-	swapChain->Present(0, DXGI_PRESENT_ALLOW_TEARING); // 常にティアリング許可
+	//swapChain->Present(0, DXGI_PRESENT_ALLOW_TEARING); // 常にティアリング許可
+
+	if (vsync)
+	{
+		// VSync ON：モニターのリフレッシュレートに同期
+		swapChain->Present(1, 0);
+	}
+	else
+	{
+		// VSync OFF：可能な限り速く描画
+		swapChain->Present(0, DXGI_PRESENT_ALLOW_TEARING);
+	}
 }
 
 // フルスクリーン切り替え
@@ -360,7 +371,7 @@ void Graphics::CreateGBuffer(UINT w, UINT h)
 		DXGI_FORMAT_R8G8B8A8_UNORM,     // 色
 		DXGI_FORMAT_R16G16B16A16_FLOAT, // 法線
 		DXGI_FORMAT_R32G32B32A32_FLOAT, // 位置
-		DXGI_FORMAT_R8G8B8A8_UNORM,     
+		DXGI_FORMAT_R8G8B8A8_UNORM,
 		DXGI_FORMAT_R16G16B16A16_FLOAT,
 	};
 

@@ -8,7 +8,7 @@ void RenderSystem::Initialize(ID3D11Device* device)
 	// 入力レイアウト
 	const std::vector<D3D11_INPUT_ELEMENT_DESC>& inputElementDescs = Model::InputElementDescs;
 
-	// 頂点シェーダー読み込み
+	// 静的頂点シェーダー読み込み
 	GpuResourceUtils::LoadVertexShader(
 		device,
 		"Data/Shader/Base_VS.cso",
@@ -33,17 +33,19 @@ void RenderSystem::Initialize(ID3D11Device* device)
 	Microsoft::WRL::ComPtr<ID3D11PixelShader> basicPS;
 	GpuResourceUtils::LoadPixelShader(
 		device, "Data/Shader/Basic_PS.cso", basicPS);
-	pixelShaders["basic"] = basicPS;
 
 	// ピクセルシェーダー読み込み(Lambert)
 	Microsoft::WRL::ComPtr<ID3D11PixelShader> lambertPS;
 	GpuResourceUtils::LoadPixelShader(
 		device, "Data/Shader/Lambert_PS.cso", lambertPS);
-	pixelShaders["lambert"] = lambertPS;
 
+	// 静的メッシュ用（Base_VS + PS）
+	staticPixelShaders["basic"] = basicPS;
+	staticPixelShaders["lambert"] = lambertPS;
 
-	pixelShaders["skinning_basic"] = basicPS;
-	pixelShaders["skinning_lambert"] = lambertPS;
+	// スキニング用（Skinning_VS + PS）パス名は同じ
+	skinnedPixelShaders["basic"] = basicPS;
+	skinnedPixelShaders["lambert"] = lambertPS;
 
 	// シーン定数バッファ生成
 	GpuResourceUtils::CreateConstantBuffer(
@@ -145,7 +147,7 @@ void RenderSystem::Render(entt::registry& registry, ID3D11DeviceContext* dc, ID3
 
 	// 静的メッシュ描画
 	dc->VSSetShader(vertexShader.Get(), nullptr, 0);
-	for (auto& [passName, ps] : pixelShaders)
+	for (auto& [passName, ps] : staticPixelShaders)
 	{
 		dc->PSSetShader(ps.Get(), nullptr, 0);
 		RenderStatic(registry, dc, passName, false);
@@ -153,7 +155,7 @@ void RenderSystem::Render(entt::registry& registry, ID3D11DeviceContext* dc, ID3
 
 	// スキニングメッシュ描画
 	dc->VSSetShader(skinnedVertexShader.Get(), nullptr, 0);
-	for (auto& [passName, ps] : pixelShaders)
+	for (auto& [passName, ps] : skinnedPixelShaders)
 	{
 		dc->PSSetShader(ps.Get(), nullptr, 0);
 		RenderSkinned(registry, dc, passName, false);
@@ -165,7 +167,7 @@ void RenderSystem::Render(entt::registry& registry, ID3D11DeviceContext* dc, ID3
 
 	// 静的メッシュ描画
 	dc->VSSetShader(vertexShader.Get(), nullptr, 0);
-	for (auto& [passName, ps] : pixelShaders)
+	for (auto& [passName, ps] : staticPixelShaders)
 	{
 		dc->PSSetShader(ps.Get(), nullptr, 0);
 		RenderStatic(registry, dc, passName, true);
@@ -173,7 +175,7 @@ void RenderSystem::Render(entt::registry& registry, ID3D11DeviceContext* dc, ID3
 
 	// スキニングメッシュ描画
 	dc->VSSetShader(skinnedVertexShader.Get(), nullptr, 0);
-	for (auto& [passName, ps] : pixelShaders)
+	for (auto& [passName, ps] : skinnedPixelShaders)
 	{
 		dc->PSSetShader(ps.Get(), nullptr, 0);
 		RenderSkinned(registry, dc, passName, true);
@@ -214,7 +216,7 @@ void RenderSystem::RenderStatic(
 			else
 			{
 				// MaterialComponentがない場合はbasicのみ
-				if (passName != "basic") return;
+				if (passName != "lambert") return;
 			}
 
 			// ワールド行列を定数バッファに設定
@@ -313,7 +315,7 @@ void RenderSystem::RenderSkinned(
 			else
 			{
 				// MaterialComponentがない場合はbasicのみ
-				if (passName != "skinning_basic") return;
+				if (passName != "lambert") return;
 			}
 
 			// ワールド行列を定数バッファに設定
@@ -344,18 +346,6 @@ void RenderSystem::RenderSkinned(
 					if (transparent) continue;
 				}
 
-				//CbSkinning cbSkinningData{};
-				//if (m < (int)skinnedMesh.boneTransforms.size())
-				//{
-				//	const auto& bt = skinnedMesh.boneTransforms[m];
-				//	size_t boneCount = (std::min)(bt.size(), (size_t)MAX_BONES);
-				//	for (size_t i = 0; i < boneCount; i++)
-				//	{
-				//		cbSkinningData.boneTransforms[i] = bt[i];
-				//	}
-				//}
-				//dc->UpdateSubresource(cbSkinning.Get(), 0, nullptr, &cbSkinningData, 0, 0);
-				//dc->VSSetConstantBuffers(2, 1, cbSkinning.GetAddressOf());
 				CbSkinning cbSkinningData{};
 				if (m < (int)skinnedMesh.boneTransforms.size() &&
 					!skinnedMesh.boneTransforms[m].empty())

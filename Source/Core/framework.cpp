@@ -1,6 +1,8 @@
 #include "framework.h"
-
+#include "tracy/Tracy.hpp"
 #include "Game/SceneGame.h"
+
+#include <iomanip>
 
 framework::framework(HWND hwnd) : hwnd(hwnd)
 {
@@ -22,18 +24,8 @@ framework::framework(HWND hwnd) : hwnd(hwnd)
 		"", "Data/Shader/Base_VS.cso", "Data/Shader/Lambert_PS.cso"
 		});
 
-	ShaderPassLibrary::Register("skinning_basic", {
-	"", "Data/Shader/Skinning_VS.cso", "Data/Shader/Basic_PS.cso"
-		});
-	ShaderPassLibrary::Register("skinning_lambert", {
-		"", "Data/Shader/Skinning_VS.cso", "Data/Shader/Lambert_PS.cso"
-		});
-
-
 	// 最初のシーンセット
 	sceneManager.ChangeScene(std::make_unique<SceneGame>());
-
-
 
 #ifndef _DEBUG
 	// リリース時はボーダーレスフルスクリーンで起動
@@ -48,8 +40,7 @@ framework::~framework()
 
 void framework::update(float elapsedTime)
 {
-	// ImGuiフレーム開始
-	imguiManager.BeginFrame();
+	ZoneScoped;
 
 	// フリーカメラ更新
 	freeCameraController.Update(elapsedTime, camera);
@@ -66,12 +57,25 @@ void framework::update(float elapsedTime)
 
 	// シーン更新
 	sceneManager.Update(elapsedTime, context);
+}
+
+void framework::updateImGui()
+{
+	// ImGuiフレーム開始
+	imguiManager.BeginFrame();
+
+	ImGui::Begin("System");
+	ImGui::Checkbox("VSync", &vsync);
+	ImGui::End();
+
 	// シーンImGui描画
 	sceneManager.RenderImGui();
 }
 
 void framework::render(float elapsedTime)
 {
+	ZoneScoped;
+
 	// 画面クリア
 	graphics.Clear(0.2f, 0.2f, 0.5f, 1.0f);
 	// レンダーターゲット設定
@@ -96,7 +100,9 @@ void framework::render(float elapsedTime)
 	imguiManager.EndFrame();
 
 	// 画面反映
-	graphics.Present();
+	graphics.Present(vsync);
+	
+	FrameMark;
 }
 
 // フレーム計算
@@ -111,9 +117,16 @@ void framework::calculate_frame_stats()
 	{
 		float fps = static_cast<float>(frames);
 		float mspf = 1000.0f / fps;
+
+		updateCount = updateCountBuf;
+		updateCountBuf = 0;
+
 		std::ostringstream outs;
 		outs.precision(6);
-		outs << "FPS : " << fps << " / " << "Frame Time : " << mspf << " (ms)";
+		//outs << "FPS : " << fps << " / " << "Frame Time : " << mspf << " (ms)";
+		outs << "FPS : " << fps
+			<< " / Frame Time : " << mspf << " ms"
+			<< " / Update : " << updateCount << " fps";
 		SetWindowTextA(hwnd, outs.str().c_str());
 
 		frames = 0;
@@ -126,6 +139,10 @@ int framework::run()
 {
 	MSG msg{};
 
+	// 固定タイムステップ設定（60fps）
+	const double fixedTimestep = 1.0 / 60.0;
+	double accumulator = 0.0;
+
 	while (WM_QUIT != msg.message)
 	{
 		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
@@ -137,8 +154,25 @@ int framework::run()
 		{
 			timer.tick();
 			calculate_frame_stats();
-			update(timer.time_interval());
-			render(timer.time_interval());
+
+			// 経過時間を蓄積（最大0.25秒でスパイク防止）
+			double frameTime = (double)timer.time_interval();
+			if (frameTime > 0.25) frameTime = 0.25;
+			accumulator += frameTime;
+
+			// 固定タイムステップでupdateを実行
+			while (accumulator >= fixedTimestep)
+			{
+				update((float)fixedTimestep);
+				accumulator -= fixedTimestep;
+				updateCountBuf++;
+			}
+
+			// ImGuiは毎フレーム1回だけ
+			updateImGui();
+
+			// renderは毎フレーム実行
+			render((float)timer.time_interval());
 		}
 	}
 	return static_cast<int>(msg.wParam);

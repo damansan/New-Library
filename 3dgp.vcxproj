@@ -25,6 +25,7 @@
     <ClCompile Include="External\imgui-docking\imgui_draw.cpp" />
     <ClCompile Include="External\imgui-docking\imgui_tables.cpp" />
     <ClCompile Include="External\imgui-docking\imgui_widgets.cpp" />
+    <ClCompile Include="External\tracy-0.13.1\public\TracyClient.cpp" />
     <ClCompile Include="Source\Core\Camera.cpp" />
     <ClCompile Include="Source\Core\framework.cpp" />
     <ClCompile Include="Source\Core\FreeCameraController.cpp" />
@@ -223,9 +224,9 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_WINDOWS;TRACY_ENABLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)Source;$(ProjectDir)External/imgui-docking;$(ProjectDir)External/imgui-docking/backends;$(ProjectDir)External/entt-main/single_include/entt;$(ProjectDir)External/GLTF;.\External\DirectXTK-main\Inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)Source;$(ProjectDir)External/imgui-docking;$(ProjectDir)External/imgui-docking/backends;$(ProjectDir)External/entt-main/single_include/entt;$(ProjectDir)External/GLTF;$(ProjectDir)External/tracy-0.13.1/public;.\External\DirectXTK-main\Inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
@@ -280,7 +281,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)Source;$(ProjectDir)External/imgui-docking;$(ProjectDir)External/imgui-docking/backends;$(ProjectDir)External/entt-main/single_include/entt;$(ProjectDir)External/GLTF;.\External\DirectXTK-main\Inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)Source;$(ProjectDir)External/imgui-docking;$(ProjectDir)External/imgui-docking/backends;$(ProjectDir)External/entt-main/single_include/entt;$(ProjectDir)External/GLTF;$(ProjectDir)External/tracy-0.13.1/public;.\External\DirectXTK-main\Inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>

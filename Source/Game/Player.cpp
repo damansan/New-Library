@@ -12,7 +12,8 @@ void Player::Initialize(entt::registry& registry, const SceneContext& context)
     t.scale = { 1.0f, 1.0f, 1.0f };
 
     registry.emplace<MeshComponent>(entity, "Data/Model/PlayerRobot/Map_Robot3.gltf");
-    registry.emplace<MaterialComponent>(entity).AddPass("skinning_lambert");
+    //registry.emplace<MeshComponent>(entity, "Data/Model/unitychan.glb");
+    registry.emplace<MaterialComponent>(entity).AddPass("lambert");
 }
 
 void Player::Update(float elapsedTime, entt::registry& registry, const SceneContext& context)

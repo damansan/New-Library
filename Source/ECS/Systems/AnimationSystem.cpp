@@ -1,17 +1,21 @@
 #include "AnimationSystem.h"
+#include "tracy/Tracy.hpp"
 
 // XV
 void AnimationSystem::Update(
 	entt::registry& registry,
 	float elapsedTime)
 {
-	auto view = registry.view<AnimatorComponent, SkinnedMeshComponent>();
+	ZoneScoped;
 
+	auto view = registry.view<AnimatorComponent, SkinnedMeshComponent>();
 	view.each(
 		[&](auto entity,
 			AnimatorComponent& animator,
 			SkinnedMeshComponent& skinned)
 		{
+			ZoneScopedN("AnimationSystem::Entity");
+
 			// ƒ‚ƒfƒ‹‚ª–³Œø‚È‚ç‰½‚à‚µ‚È‚¢
 			if (!skinned.model) return;
 			if (!animator.isPlaying) return;

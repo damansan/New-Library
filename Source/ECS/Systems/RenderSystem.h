@@ -78,9 +78,12 @@ private:
     // 入力レイアウト
     Microsoft::WRL::ComPtr<ID3D11InputLayout>  inputLayout;
 
-    // ピクセルシェーダー
+    // 静的メッシュ用ピクセルシェーダー
     std::unordered_map<std::string,
-        Microsoft::WRL::ComPtr<ID3D11PixelShader>> pixelShaders;
+        Microsoft::WRL::ComPtr<ID3D11PixelShader>> staticPixelShaders;
+    // スキニングメッシュ用ピクセルシェーダー
+    std::unordered_map<std::string,
+        Microsoft::WRL::ComPtr<ID3D11PixelShader>> skinnedPixelShaders;
 
     // 定数バッファ
     Microsoft::WRL::ComPtr<ID3D11Buffer> cbScene;    // シーン情報

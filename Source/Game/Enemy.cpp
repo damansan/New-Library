@@ -13,7 +13,8 @@ void Enemy::Initialize(entt::registry& registry, const SceneContext& context)
     t.scale = { 1.0f, 1.0f, 1.0f };
 
     registry.emplace<MeshComponent>(entity, "Data/Model/EnemyRobot/SK_SciFi_ToiletMech_Skin3.gltf");
-    registry.emplace<MaterialComponent>(entity).AddPass("skinning_lambert");
+    //registry.emplace<MeshComponent>(entity, "Data/Model/unitychan.glb");
+    registry.emplace<MaterialComponent>(entity).AddPass("lambert");
     
 }
 

@@ -34,6 +34,7 @@ public:
 
 
 	void update(float elapsedTime);
+	void updateImGui();
 	void render(float elapsedTime);
 
 	// フレーム計算
@@ -61,4 +62,13 @@ private:
 	Camera camera;
 	// FreeCameraControllerクラス
 	FreeCameraController  freeCameraController;
+
+
+private:
+	// VSync ON OFF
+	bool vsync = true;
+
+	// Update計測
+	int updateCount = 0;
+	int updateCountBuf = 0;
 };

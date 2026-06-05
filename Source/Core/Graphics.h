@@ -21,7 +21,7 @@ public:
 	// レンダーターゲット設定
 	void SetRenderTargets();
 	// 画面プレゼント
-	void Present();
+	void Present(bool vsync = false);
 	// フルスクリーン切り替え
 	void ToggleFullscreen();
 	// バッファ再生成
