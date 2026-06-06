@@ -8,6 +8,12 @@ void SceneGame::Initialize(const SceneContext& context)
 	renderSystem.Initialize(context.device);
 	debugRenderer.Initialize(context.device);
 
+	// SkyBox初期化
+	skyBox.Initialize(
+		context.device,
+		"Data/SkyBox/BlueSky/specular_pmrem.dds"
+	);
+
 	// Stage生成/初期化
 	stage = std::make_unique<Stage>();
 	stage->Initialize(registry, context);
@@ -122,7 +128,24 @@ void SceneGame::Render(const SceneContext& context)
 		);
 	}
 
+	{
+		ZoneScopedN("SkyBox::Render");
 
+		// カメラ位置を取得
+		DirectX::XMFLOAT3 eye = { 0.0f, 0.0f, 0.0f };
+		if (context.camera)
+		{
+			const auto& e = context.camera->GetEye();
+			eye = { e.x, e.y, e.z };
+		}
+
+		skyBox.Render(
+			context.deviceContext,
+			context.view,
+			context.projection,
+			eye
+		);
+	}
 
 
 	{

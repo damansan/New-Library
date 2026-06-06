@@ -47,6 +47,7 @@
     <ClCompile Include="Source\Resource\GpuResourceUtils.cpp" />
     <ClCompile Include="Source\Resource\Model.cpp" />
     <ClCompile Include="Source\Resource\ResourceManager.cpp" />
+    <ClCompile Include="Source\Shader\SkyBox.cpp" />
     <ClCompile Include="Source\Utility\main.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -86,6 +87,7 @@
     <ClInclude Include="Source\Resource\Model.h" />
     <ClInclude Include="Source\Resource\GpuResourceUtils.h" />
     <ClInclude Include="Source\Resource\ResourceManager.h" />
+    <ClInclude Include="Source\Shader\SkyBox.h" />
     <ClInclude Include="Source\Utility\high_resolution_timer.h" />
     <ClInclude Include="Source\Utility\misc.h" />
   </ItemGroup>
@@ -131,6 +133,18 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+    </FxCompile>
+    <FxCompile Include="Shader\SkyBox_PS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="Shader\SkyBox_VS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
