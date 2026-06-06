@@ -37,6 +37,7 @@
     <ClCompile Include="Source\ECS\Systems\AnimationSystem.cpp" />
     <ClCompile Include="Source\ECS\Systems\MeshLoaderSystem.cpp" />
     <ClCompile Include="Source\ECS\Systems\RenderSystem.cpp" />
+    <ClCompile Include="Source\Game\DamagedHelmet.cpp" />
     <ClCompile Include="Source\Game\Enemy.cpp" />
     <ClCompile Include="Source\Game\Player.cpp" />
     <ClCompile Include="Source\Game\SceneGame.cpp" />
@@ -73,6 +74,7 @@
     <ClInclude Include="Source\ECS\Systems\RenderSystem.h" />
     <ClInclude Include="Source\Game\Character.h" />
     <ClInclude Include="Source\Game\Actor.h" />
+    <ClInclude Include="Source\Game\DamagedHelmet.h" />
     <ClInclude Include="Source\Game\Enemy.h" />
     <ClInclude Include="Source\Game\Object.h" />
     <ClInclude Include="Source\Game\Player.h" />
@@ -118,12 +120,21 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
+    <FxCompile Include="Shader\PBR_PS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+    </FxCompile>
     <FxCompile Include="Shader\Skinning_VS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
     </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Shader\PBR_Functions.hlsli" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{0DDBE550-8551-4506-9A5A-4DD100C00C48}</ProjectGuid>

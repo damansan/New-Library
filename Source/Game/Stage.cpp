@@ -12,7 +12,7 @@ void Stage::Initialize(entt::registry& registry, const SceneContext& context)
     t.scale = { 1.0f, 1.0f, 1.0f };
 
     registry.emplace<MeshComponent>(entity, "Data/Model/Stage/ExampleStage/ExampleStage.gltf");
-    registry.emplace<MaterialComponent>(entity).AddPass("lambert");
+    registry.emplace<MaterialComponent>(entity).AddPass("pbr");
 }
 
 void Stage::RenderImGui()

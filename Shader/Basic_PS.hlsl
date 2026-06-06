@@ -4,7 +4,8 @@ SamplerState samplerState : register(s0);
 struct VS_OUT
 {
     float4 position : SV_POSITION;
-    float3 normal : NORMAL;
+    float3 normal   : NORMAL;
+    float4 tangent  : TANGENT;
     float2 texcoord : TEXCOORD;
     float3 worldPos : WORLD_POSITION;
 };

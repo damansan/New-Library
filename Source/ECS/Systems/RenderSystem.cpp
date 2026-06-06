@@ -39,13 +39,20 @@ void RenderSystem::Initialize(ID3D11Device* device)
 	GpuResourceUtils::LoadPixelShader(
 		device, "Data/Shader/Lambert_PS.cso", lambertPS);
 
+	// ピクセルシェーダー読み込み(PBR)
+	Microsoft::WRL::ComPtr<ID3D11PixelShader> pbrPS;
+	GpuResourceUtils::LoadPixelShader(
+		device, "Data/Shader/PBR_PS.cso", pbrPS);
+
 	// 静的メッシュ用（Base_VS + PS）
 	staticPixelShaders["basic"] = basicPS;
 	staticPixelShaders["lambert"] = lambertPS;
+	staticPixelShaders["pbr"] = pbrPS;
 
-	// スキニング用（Skinning_VS + PS）パス名は同じ
+	// スキニング用（Skinning_VS + PS）
 	skinnedPixelShaders["basic"] = basicPS;
 	skinnedPixelShaders["lambert"] = lambertPS;
+	skinnedPixelShaders["pbr"] = pbrPS;
 
 	// シーン定数バッファ生成
 	GpuResourceUtils::CreateConstantBuffer(
@@ -125,6 +132,15 @@ void RenderSystem::Initialize(ID3D11Device* device)
 	blendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
 	blendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 	device->CreateBlendState(&blendDesc, blendState.GetAddressOf());
+
+
+	// ダミーテクスチャ生成
+	// 白 (Albedo / Occlusion用)
+	GpuResourceUtils::CreateDummyTexture(device, dummyWhite, 0xFFFFFFFF, 1);
+	// 法線マップ用 (R=128, G=128, B=255 → 正面向き法線)
+	GpuResourceUtils::CreateDummyTexture(device, dummyNormal, 0xFFFF8080, 1);
+	// 黒 (Emissive用)
+	GpuResourceUtils::CreateDummyTexture(device, dummyBlack, 0xFF000000, 1);
 }
 
 // 描画
@@ -265,20 +281,51 @@ void RenderSystem::RenderStatic(
 					DXGI_FORMAT_R32_UINT, 0
 				);
 
-				// ベースカラーテクスチャ設定
-				if (mesh.material && mesh.material->baseMap)
+				//// ベースカラーテクスチャ設定
+				//if (mesh.material && mesh.material->baseMap)
+				//{
+				//	dc->PSSetShaderResources(
+				//		0, 1,
+				//		mesh.material->baseMap.GetAddressOf()
+				//	);
+				//}
+
+				// PBR用テクスチャを一括でセット
+				ID3D11ShaderResourceView* srvs[5] =
 				{
-					dc->PSSetShaderResources(
-						0, 1,
-						mesh.material->baseMap.GetAddressOf()
-					);
-				}
+					// t0: Albedo
+					(mesh.material && mesh.material->baseMap)
+						? mesh.material->baseMap.Get()
+						: dummyWhite.Get(),
+
+					// t1: 法線マップ
+					(mesh.material && mesh.material->normalMap)
+						? mesh.material->normalMap.Get()
+						: dummyNormal.Get(),
+
+					// t2: MetallicRoughness
+					(mesh.material && mesh.material->metallicRoughnessMap)
+						? mesh.material->metallicRoughnessMap.Get()
+						: dummyWhite.Get(),
+
+					// t3: Occlusion
+					(mesh.material && mesh.material->occlusionMap)
+						? mesh.material->occlusionMap.Get()
+						: dummyWhite.Get(),
+
+					// t4: Emissive
+					(mesh.material && mesh.material->emissiveMap)
+						? mesh.material->emissiveMap.Get()
+						: dummyBlack.Get(),
+				};
+				dc->PSSetShaderResources(0, 5, srvs);
 
 				// 描画
 				dc->DrawIndexed(
 					static_cast<UINT>(mesh.indices.size()),
 					0, 0
 				);
+
 			}
 
 		});
@@ -388,11 +435,32 @@ void RenderSystem::RenderSkinned(
 				UINT offset = 0;
 				dc->IASetVertexBuffers(0, 1, mesh.vertexBuffer.GetAddressOf(), &stride, &offset);
 				dc->IASetIndexBuffer(mesh.indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
-				if (mesh.material && mesh.material->baseMap)
+				//if (mesh.material && mesh.material->baseMap)
+				//{
+				//	dc->PSSetShaderResources(0, 1, mesh.material->baseMap.GetAddressOf());
+				//}
+
+				// PBR用テクスチャを一括でセット
+				ID3D11ShaderResourceView* srvs[5] =
 				{
-					dc->PSSetShaderResources(0, 1, mesh.material->baseMap.GetAddressOf());
-				}
-				dc->DrawIndexed(static_cast<UINT>(mesh.indices.size()), 0, 0);
+					(mesh.material && mesh.material->baseMap)
+						? mesh.material->baseMap.Get() : dummyWhite.Get(),
+					(mesh.material && mesh.material->normalMap)
+						? mesh.material->normalMap.Get() : dummyNormal.Get(),
+					(mesh.material && mesh.material->metallicRoughnessMap)
+						? mesh.material->metallicRoughnessMap.Get() : dummyWhite.Get(),
+					(mesh.material && mesh.material->occlusionMap)
+						? mesh.material->occlusionMap.Get() : dummyWhite.Get(),
+					(mesh.material && mesh.material->emissiveMap)
+						? mesh.material->emissiveMap.Get() : dummyBlack.Get(),
+				};
+				dc->PSSetShaderResources(0, 5, srvs);
+				
+				// 描画
+				dc->DrawIndexed(
+					static_cast<UINT>(mesh.indices.size()),
+					0, 0
+				);
 			}
 		});
 }

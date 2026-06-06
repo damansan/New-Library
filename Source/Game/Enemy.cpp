@@ -14,7 +14,7 @@ void Enemy::Initialize(entt::registry& registry, const SceneContext& context)
 
     registry.emplace<MeshComponent>(entity, "Data/Model/EnemyRobot/SK_SciFi_ToiletMech_Skin3.gltf");
     //registry.emplace<MeshComponent>(entity, "Data/Model/unitychan.glb");
-    registry.emplace<MaterialComponent>(entity).AddPass("lambert");
+    registry.emplace<MaterialComponent>(entity).AddPass("pbr");
     
 }
 

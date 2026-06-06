@@ -142,5 +142,10 @@ private:
     // ブレンドステート
     Microsoft::WRL::ComPtr<ID3D11BlendState>        blendState;
 
+    // ダミーテクスチャ（テクスチャがないメッシュ用）
+    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> dummyWhite;  // Albedo/Occlusion用
+    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> dummyNormal; // 法線マップ用 (0.5,0.5,1.0)
+    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> dummyBlack;  // Emissive用
+
     Frustum cachedFrustum;
 };

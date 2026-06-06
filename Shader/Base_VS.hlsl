@@ -18,19 +18,20 @@ cbuffer CbObject : register(b1)
 // 頂点入力
 struct VS_IN
 {
-    float3 position : POSITION;
-    float3 normal : NORMAL;
-    float4 tangent : TANGENT;
-    float2 texcoord : TEXCOORD;
+    float3 position   : POSITION;
+    float3 normal     : NORMAL;
+    float4 tangent    : TANGENT;
+    float2 texcoord   : TEXCOORD;
     float4 boneWeight : WEIGHTS;
-    uint4 boneIndex : BONES;
+    uint4 boneIndex   : BONES;
 };
 
 // 頂点出力
 struct VS_OUT
 {
     float4 position : SV_POSITION;
-    float3 normal : NORMAL;
+    float3 normal   : NORMAL;
+    float4 tangent  : TANGENT;
     float2 texcoord : TEXCOORD;
     float3 worldPos : WORLD_POSITION;
 };
@@ -46,8 +47,13 @@ VS_OUT main(VS_IN vin)
     pos = mul(pos, projection);
     vout.position = pos;
 
-    // 法線のワールド変換
+    // 法線をワールド空間へ
     vout.normal = normalize(mul(vin.normal, (float3x3) world));
+    
+    // 接線をワールド空間へ
+    vout.tangent.xyz = normalize(mul(vin.tangent.xyz, (float3x3) world));
+    vout.tangent.w = vin.tangent.w;
+
     vout.texcoord = vin.texcoord;
 
     return vout;

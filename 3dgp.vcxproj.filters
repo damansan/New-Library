@@ -146,6 +146,12 @@
     <Filter Include="External\tracy-0.13.1">
       <UniqueIdentifier>{054ca6fc-d2f6-4f82-9ad5-f6505e353961}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shader\PBR">
+      <UniqueIdentifier>{11761a69-1d93-470c-a31f-08939903ff40}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Game\Actor\Object\DamagedHelmet">
+      <UniqueIdentifier>{a01566cb-7eb7-40a3-a661-8fa3da471e8d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Core\framework.cpp">
@@ -231,6 +237,9 @@
     </ClCompile>
     <ClCompile Include="External\tracy-0.13.1\public\TracyClient.cpp">
       <Filter>External\tracy-0.13.1</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Game\DamagedHelmet.cpp">
+      <Filter>Sources\Game\Actor\Object\DamagedHelmet</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -345,6 +354,9 @@
     <ClInclude Include="Source\Game\Enemy.h">
       <Filter>Sources\Game\Actor\Character\Enemy</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Game\DamagedHelmet.h">
+      <Filter>Sources\Game\Actor\Object\DamagedHelmet</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shader\Base_VS.hlsl">
@@ -365,5 +377,13 @@
     <FxCompile Include="Shader\Debug_PS.hlsl">
       <Filter>Shader\Debug</Filter>
     </FxCompile>
+    <FxCompile Include="Shader\PBR_PS.hlsl">
+      <Filter>Shader\PBR</Filter>
+    </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Shader\PBR_Functions.hlsli">
+      <Filter>Shader\PBR</Filter>
+    </None>
   </ItemGroup>
 </Project>

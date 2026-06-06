@@ -19,6 +19,10 @@ void SceneGame::Initialize(const SceneContext& context)
 	// Enemy生成/初期化
 	enemy = std::make_unique<Enemy>();
 	enemy->Initialize(registry, context);
+
+	//// ヘルメット生成/初期化
+	//helmet = std::make_unique<DamagedHelmet>();
+	//helmet->Initialize(registry, context);
 }
 
 void SceneGame::Update(float elapsedTime, const SceneContext& context)
@@ -59,6 +63,8 @@ void SceneGame::Update(float elapsedTime, const SceneContext& context)
 		// Enemy 更新
 		enemy->Update(elapsedTime, registry, context);
 	}
+
+	//helmet->Update(elapsedTime, registry, context);
 }
 
 void SceneGame::Render(const SceneContext& context)
@@ -76,7 +82,7 @@ void SceneGame::Render(const SceneContext& context)
 
 		// ライト設定（仮の平行光源）
 		cbSceneData.lightDirection = { 0.5f, -1.0f, 0.5f, 0.0f };
-		cbSceneData.lightColor = { 1.0f,  1.0f, 1.0f, 1.0f };
+		cbSceneData.lightColor = { 1.0f,  1.0f, 1.0f, 3.0f };
 		cbSceneData.ambientColor = { 0.2f,  0.2f, 0.2f, 1.0f };
 
 		// カメラ位置
@@ -107,6 +113,7 @@ void SceneGame::Render(const SceneContext& context)
 	{
 		ZoneScopedN("RenderSystem::Render");
 
+		// 描画
 		renderSystem.Render(
 			registry,
 			context.deviceContext,

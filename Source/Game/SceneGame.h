@@ -9,6 +9,8 @@
 #include "Game/Player.h"
 #include "Game/Enemy.h"
 
+#include "Game/DamagedHelmet.h"
+
 class SceneGame : public Scene
 {
 public:
@@ -29,5 +31,8 @@ private:
 	std::unique_ptr<Player> player;
 	// エネミー
 	std::unique_ptr<Enemy> enemy;
+
+	// ヘルメット
+	std::unique_ptr<DamagedHelmet> helmet;
 
 };

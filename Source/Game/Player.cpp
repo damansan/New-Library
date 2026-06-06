@@ -13,7 +13,7 @@ void Player::Initialize(entt::registry& registry, const SceneContext& context)
 
     registry.emplace<MeshComponent>(entity, "Data/Model/PlayerRobot/Map_Robot3.gltf");
     //registry.emplace<MeshComponent>(entity, "Data/Model/unitychan.glb");
-    registry.emplace<MaterialComponent>(entity).AddPass("lambert");
+    registry.emplace<MaterialComponent>(entity).AddPass("pbr");
 }
 
 void Player::Update(float elapsedTime, entt::registry& registry, const SceneContext& context)
