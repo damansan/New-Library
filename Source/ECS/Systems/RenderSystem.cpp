@@ -149,6 +149,15 @@ void RenderSystem::Render(entt::registry& registry, ID3D11DeviceContext* dc, ID3
 	// レンダーターゲット再セット
 	dc->OMSetRenderTargets(1, &rtv, dsv);
 
+	// IBL用テクスチャをピクセルシェーダーにセット
+	ID3D11ShaderResourceView* iblSrvs[3] =
+	{
+		iblDiffuseIem,
+		iblSpecularPmrem,
+		iblLutGgx,
+	};
+	dc->PSSetShaderResources(5, 3, iblSrvs);
+
 	// 共通ステート設定
 	dc->RSSetState(rasterizerState.Get());
 	dc->PSSetSamplers(0, 1, samplerState.GetAddressOf());

@@ -2612,28 +2612,6 @@ void RenderSystem::RenderStatic(
 				passes.push_back("lambert");
 			}
 
-			//// MaterialComponent‚ª‚ ‚éê‡‚ÍƒpƒX‚ğŠm”F
-			//if (registry.all_of<MaterialComponent>(entity))
-			//{
-			//	auto& mat = registry.get<MaterialComponent>(entity);
-			//	bool hasPass = false;
-			//	for (auto& pass : mat.passes)
-			//	{
-			//		if (pass.name == passName && pass.enabled)
-			//		{
-			//			hasPass = true;
-			//			break;
-			//		}
-			//	}
-			//	// w’èƒpƒX‚ª‚È‚¯‚ê‚ÎƒXƒLƒbƒv
-			//	if (!hasPass) return;
-			//}
-			//else
-			//{
-			//	// MaterialComponent‚ª‚È‚¢ê‡‚Íbasic‚Ì‚İ
-			//	if (passName != "lambert") return;
-			//}
-
 			// ƒtƒ‰ƒXƒ^ƒ€ƒJƒŠƒ“ƒO
 			DirectX::XMFLOAT4X4 worldMatrix{};
 			DirectX::XMStoreFloat4x4(&worldMatrix, transform.GetWorldMatrix());
@@ -2677,15 +2655,6 @@ void RenderSystem::RenderStatic(
 					DXGI_FORMAT_R32_UINT, 0
 				);
 
-				//// ƒx[ƒXƒJƒ‰[ƒeƒNƒXƒ`ƒƒİ’è
-				//if (mesh.material && mesh.material->baseMap)
-				//{
-				//	dc->PSSetShaderResources(
-				//		0, 1,
-				//		mesh.material->baseMap.GetAddressOf()
-				//	);
-				//}
-
 				// PBR—pƒeƒNƒXƒ`ƒƒ‚ğˆêŠ‡‚ÅƒZƒbƒg
 				ID3D11ShaderResourceView* srvs[5] =
 				{
@@ -2715,12 +2684,6 @@ void RenderSystem::RenderStatic(
 						: dummyBlack.Get(),
 				};
 				dc->PSSetShaderResources(0, 5, srvs);
-
-				//// •`‰æ
-				//dc->DrawIndexed(
-				//	static_cast<UINT>(mesh.indices.size()),
-				//	0, 0
-				//);
 				
 				// ƒpƒX‚²‚Æ‚ÉPS‚ğØ‚è‘Ö‚¦‚Ä•`‰æ
 				for (auto& passName : passes)
@@ -2751,29 +2714,6 @@ void RenderSystem::RenderSkinned(
 		{
 			// ƒ‚ƒfƒ‹‚ª–¢İ’è‚È‚çƒXƒLƒbƒv
 			if (!skinnedMesh.model) return;
-
-			//// ƒpƒXŠm”F
-			//if (registry.all_of<MaterialComponent>(entity))
-			//{
-			//	// MaterialComponent‚ª‚ ‚éê‡‚ÍƒpƒX‚ğŠm”F
-			//	auto& mat = registry.get<MaterialComponent>(entity);
-			//	bool hasPass = false;
-			//	for (auto& pass : mat.passes)
-			//	{
-			//		if (pass.name == passName && pass.enabled)
-			//		{
-			//			hasPass = true;
-			//			break;
-			//		}
-			//	}
-			//	// w’èƒpƒX‚ª‚È‚¯‚ê‚ÎƒXƒLƒbƒv
-			//	if (!hasPass) return;
-			//}
-			//else
-			//{
-			//	// MaterialComponent‚ª‚È‚¢ê‡‚Íbasic‚Ì‚İ
-			//	if (passName != "lambert") return;
-			//}
 
 			std::vector<std::string> passes;
 			if (registry.all_of<MaterialComponent>(entity))
@@ -2853,10 +2793,6 @@ void RenderSystem::RenderSkinned(
 				UINT offset = 0;
 				dc->IASetVertexBuffers(0, 1, mesh.vertexBuffer.GetAddressOf(), &stride, &offset);
 				dc->IASetIndexBuffer(mesh.indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
-				//if (mesh.material && mesh.material->baseMap)
-				//{
-				//	dc->PSSetShaderResources(0, 1, mesh.material->baseMap.GetAddressOf());
-				//}
 
 				// PBR—pƒeƒNƒXƒ`ƒƒ‚ğˆêŠ‡‚ÅƒZƒbƒg
 				ID3D11ShaderResourceView* srvs[5] =
@@ -2874,12 +2810,6 @@ void RenderSystem::RenderSkinned(
 				};
 				dc->PSSetShaderResources(0, 5, srvs);
 				
-				//// •`‰æ
-				//dc->DrawIndexed(
-				//	static_cast<UINT>(mesh.indices.size()),
-				//	0, 0
-				//);
-
 				for (auto& passName : passes)
 				{
 					auto it = skinnedPixelShaders.find(passName);
@@ -3122,6 +3052,7 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Game\SceneGame.h
 #include "ECS/Systems/RenderSystem.h"
 #include "ECS/Systems/AnimationSystem.h"
 #include "Debug/DebugRenderer.h"
+#include "Shader/SkyBox.h"
 #include <memory>
 
 #include "Game/Stage.h"
@@ -3143,6 +3074,7 @@ private:
 	RenderSystem renderSystem;
 	AnimationSystem animationSystem;
 	DebugRenderer debugRenderer;
+	SkyBox skyBox;
 
 	// ƒXƒe[ƒW
 	std::unique_ptr<Stage> stage;
@@ -3274,6 +3206,12 @@ void SceneGame::Initialize(const SceneContext& context)
 	renderSystem.Initialize(context.device);
 	debugRenderer.Initialize(context.device);
 
+	// SkyBoxåˆæœŸåŒ–
+	skyBox.Initialize(
+		context.device,
+		"Data/SkyBox/BlueSky"
+	);
+
 	// Stageç”Ÿæˆ/åˆæœŸåŒ–
 	stage = std::make_unique<Stage>();
 	stage->Initialize(registry, context);
@@ -3388,7 +3326,24 @@ void SceneGame::Render(const SceneContext& context)
 		);
 	}
 
+	{
+		ZoneScopedN("SkyBox::Render");
 
+		// ã‚«ãƒ¡ãƒ©ä½ç½®ã‚’å–å¾—
+		DirectX::XMFLOAT3 eye = { 0.0f, 0.0f, 0.0f };
+		if (context.camera)
+		{
+			const auto& e = context.camera->GetEye();
+			eye = { e.x, e.y, e.z };
+		}
+
+		skyBox.Render(
+			context.deviceContext,
+			context.view,
+			context.projection,
+			eye
+		);
+	}
 
 
 	{
@@ -5321,6 +5276,236 @@ void ResourceManager::ReleaseModel(const std::string& filename)
 void ResourceManager::ReleaseAll()
 {
 	modelCache.clear();
+}
+ 
+ 
+===== SkyBox.h ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Shader\SkyBox.h 
+#pragma once
+#include <d3d11.h>
+#include <wrl.h>
+#include <DirectXMath.h>
+#include <string>
+
+class SkyBox
+{
+public:
+    // ‰Šú‰»
+    void Initialize(ID3D11Device* device, const std::string& folderPath);
+
+    // •`‰æ
+    void Render(
+        ID3D11DeviceContext* dc,
+        const DirectX::XMFLOAT4X4& view,
+        const DirectX::XMFLOAT4X4& projection,
+        const DirectX::XMFLOAT3& cameraPosition
+    );
+
+    // SRVƒQƒbƒ^[
+    ID3D11ShaderResourceView* GetSRV() const { return skyTexture.Get(); }
+    ID3D11ShaderResourceView* GetDiffuseIem()  const { return diffuseIem.Get(); }
+    ID3D11ShaderResourceView* GetLutGgx()      const { return lutGgx.Get(); }
+
+    // IBL ON/OFF
+    bool enabled = true;
+
+private:
+    struct CbSkyBox
+    {
+        DirectX::XMFLOAT4X4 view;
+        DirectX::XMFLOAT4X4 projection;
+        DirectX::XMFLOAT4   cameraPosition;
+        // 16ƒoƒCƒgƒAƒ‰ƒCƒƒ“ƒg—pƒpƒfƒBƒ“ƒO
+        DirectX::XMFLOAT4   padding;
+    };
+
+
+    // ’¸“_ƒVƒF[ƒ_[
+    Microsoft::WRL::ComPtr<ID3D11VertexShader>       vertexShader;
+    // ƒsƒNƒZƒ‹ƒVƒF[ƒ_[
+    Microsoft::WRL::ComPtr<ID3D11PixelShader>        pixelShader;
+    // “ü—ÍƒŒƒCƒAƒEƒg
+    Microsoft::WRL::ComPtr<ID3D11InputLayout>        inputLayout;
+    // ’¸“_ƒoƒbƒtƒ@
+    Microsoft::WRL::ComPtr<ID3D11Buffer>             vertexBuffer;
+    // ƒCƒ“ƒfƒbƒNƒXƒoƒbƒtƒ@
+    Microsoft::WRL::ComPtr<ID3D11Buffer>             indexBuffer;
+    // ƒLƒ…[ƒuƒ}ƒbƒvƒeƒNƒXƒ`ƒƒ
+    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> skyTexture;
+    // ƒTƒ“ƒvƒ‰[ƒXƒe[ƒg
+    Microsoft::WRL::ComPtr<ID3D11SamplerState>       samplerState;
+    // [“xƒXƒeƒ“ƒVƒ‹ƒXƒe[ƒgi[“x‘‚«‚İOFFj
+    Microsoft::WRL::ComPtr<ID3D11DepthStencilState>  depthStencilState;
+    // ’è”ƒoƒbƒtƒ@
+    Microsoft::WRL::ComPtr<ID3D11Buffer>             cbSkyBox;
+
+    UINT indexCount = 0;
+
+    // IBL—pƒeƒNƒXƒ`ƒƒ
+    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> diffuseIem;
+    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> lutGgx;
+}; 
+ 
+===== SkyBox.cpp ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Shader\SkyBox.cpp 
+#include "SkyBox.h"
+#include "Resource/GpuResourceUtils.h"
+#include "Utility/misc.h"
+
+void SkyBox::Initialize(
+	ID3D11Device* device,
+	const std::string& folderPath) 
+{
+	// ––”ö‚ÉƒXƒ‰ƒbƒVƒ…‚ª‚È‚¯‚ê‚Î’Ç‰Á
+	std::string folder = folderPath;
+	if (!folder.empty() && folder.back() != '/' && folder.back() != '\\')
+		folder += '/';
+
+	// ƒLƒ…[ƒuƒ}ƒbƒv“Ç‚İ‚İ
+	GpuResourceUtils::LoadDDSTexture(
+		device, folder + "specular_pmrem.dds", skyTexture);
+
+	GpuResourceUtils::LoadDDSTexture(
+		device, folder + "diffuse_iem.dds", diffuseIem);
+
+	GpuResourceUtils::LoadDDSTexture(
+		device, folder + "lut_ggx.dds", lutGgx);
+
+
+	// “ü—ÍƒŒƒCƒAƒEƒgiPOSITION‚Ì‚İj
+	const D3D11_INPUT_ELEMENT_DESC layout[] =
+	{
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0,
+		  D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	};
+
+	// ’¸“_ƒVƒF[ƒ_[“Ç‚İ‚İ
+	GpuResourceUtils::LoadVertexShader(
+		device,
+		"Data/Shader/SkyBox_VS.cso",
+		layout, 1,
+		inputLayout,
+		vertexShader
+	);
+
+	// ƒsƒNƒZƒ‹ƒVƒF[ƒ_[“Ç‚İ‚İ
+	GpuResourceUtils::LoadPixelShader(
+		device,
+		"Data/Shader/SkyBox_PS.cso",
+		pixelShader
+	);
+
+	// ’è”ƒoƒbƒtƒ@¶¬
+	GpuResourceUtils::CreateConstantBuffer(
+		device,
+		sizeof(CbSkyBox),
+		cbSkyBox
+	);
+
+	// ƒTƒ“ƒvƒ‰[ƒXƒe[ƒg¶¬
+	D3D11_SAMPLER_DESC samplerDesc{};
+	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+	samplerDesc.MinLOD = 0;
+	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+	device->CreateSamplerState(&samplerDesc, samplerState.GetAddressOf());
+
+	// [“xƒXƒeƒ“ƒVƒ‹ƒXƒe[ƒg¶¬
+	D3D11_DEPTH_STENCIL_DESC dsDesc{};
+	dsDesc.DepthEnable = TRUE;
+	dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO; // ‘‚«‚İOFF
+	dsDesc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL; // LESS_EQUAL‚Å1.0‚ğ’Ê‚·
+	device->CreateDepthStencilState(&dsDesc, depthStencilState.GetAddressOf());
+
+	// ’PˆÊ—§•û‘Ì‚Ì’¸“_ƒf[ƒ^
+	const DirectX::XMFLOAT3 vertices[] =
+	{
+		{ -1.0f,  1.0f, -1.0f },
+		{  1.0f,  1.0f, -1.0f },
+		{  1.0f,  1.0f,  1.0f },
+		{ -1.0f,  1.0f,  1.0f },
+		{ -1.0f, -1.0f, -1.0f },
+		{  1.0f, -1.0f, -1.0f },
+		{  1.0f, -1.0f,  1.0f },
+		{ -1.0f, -1.0f,  1.0f },
+	};
+
+	// ƒCƒ“ƒfƒbƒNƒXƒf[ƒ^
+	const UINT indices[] =
+	{
+		0, 1, 2,  0, 2, 3, // ã–Ê
+		4, 6, 5,  4, 7, 6, // ‰º–Ê
+		0, 4, 5,  0, 5, 1, // ‘O–Ê
+		2, 6, 7,  2, 7, 3, // Œã–Ê
+		0, 3, 7,  0, 7, 4, // ¶–Ê
+		1, 5, 6,  1, 6, 2, // ‰E–Ê
+	};
+	indexCount = ARRAYSIZE(indices);
+
+	// ’¸“_ƒoƒbƒtƒ@¶¬
+	D3D11_BUFFER_DESC vbDesc{};
+	vbDesc.ByteWidth = sizeof(vertices);
+	vbDesc.Usage = D3D11_USAGE_DEFAULT;
+	vbDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+
+	D3D11_SUBRESOURCE_DATA vbData{};
+	vbData.pSysMem = vertices;
+	device->CreateBuffer(&vbDesc, &vbData, vertexBuffer.GetAddressOf());
+
+	// ƒCƒ“ƒfƒbƒNƒXƒoƒbƒtƒ@¶¬
+	D3D11_BUFFER_DESC ibDesc{};
+	ibDesc.ByteWidth = sizeof(indices);
+	ibDesc.Usage = D3D11_USAGE_DEFAULT;
+	ibDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+
+	D3D11_SUBRESOURCE_DATA ibData{};
+	ibData.pSysMem = indices;
+	device->CreateBuffer(&ibDesc, &ibData, indexBuffer.GetAddressOf());
+}
+
+void SkyBox::Render(
+	ID3D11DeviceContext* dc,
+	const DirectX::XMFLOAT4X4& view,
+	const DirectX::XMFLOAT4X4& projection,
+	const DirectX::XMFLOAT3& cameraPosition)
+{
+	if (!enabled) return;
+	if (!skyTexture) return;
+
+	// ’è”ƒoƒbƒtƒ@XV
+	CbSkyBox cbData{};
+	cbData.view = view;
+	cbData.projection = projection;
+	cbData.cameraPosition = { cameraPosition.x, cameraPosition.y,cameraPosition.z, 0.0f };
+	dc->UpdateSubresource(cbSkyBox.Get(), 0, nullptr, &cbData, 0, 0);
+
+	// ƒVƒF[ƒ_[İ’è
+	dc->VSSetShader(vertexShader.Get(), nullptr, 0);
+	dc->PSSetShader(pixelShader.Get(), nullptr, 0);
+	dc->IASetInputLayout(inputLayout.Get());
+
+	// ’è”ƒoƒbƒtƒ@İ’è
+	dc->VSSetConstantBuffers(0, 1, cbSkyBox.GetAddressOf());
+
+	// ƒeƒNƒXƒ`ƒƒİ’èit10ƒXƒƒbƒgj
+	dc->PSSetShaderResources(10, 1, skyTexture.GetAddressOf());
+	dc->PSSetSamplers(0, 1, samplerState.GetAddressOf());
+
+	// [“xƒXƒe[ƒgİ’èi‘‚«‚İOFFj
+	dc->OMSetDepthStencilState(depthStencilState.Get(), 0);
+
+	// ’¸“_EƒCƒ“ƒfƒbƒNƒXƒoƒbƒtƒ@İ’è
+	UINT stride = sizeof(DirectX::XMFLOAT3);
+	UINT offset = 0;
+	dc->IASetVertexBuffers(0, 1, vertexBuffer.GetAddressOf(), &stride, &offset);
+	dc->IASetIndexBuffer(indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+	dc->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	// •`‰æ
+	dc->DrawIndexed(indexCount, 0, 0);
 }
  
  

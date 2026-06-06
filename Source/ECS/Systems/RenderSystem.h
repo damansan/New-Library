@@ -50,7 +50,7 @@ public:
         ID3D11DepthStencilView* dsv
     );
 
-    // フラスタムをSceneGame側からセット
+    // フラスタムをScene側からセット
     void SetFrustum(
         const DirectX::XMFLOAT4X4& view,
         const DirectX::XMFLOAT4X4& projection)
@@ -58,6 +58,16 @@ public:
         cachedFrustum = CalcFrustum(view, projection);
     }
 
+    // IBLテクスチャセット
+    void SetIBLTextures(
+        ID3D11ShaderResourceView* diffuseIem,
+        ID3D11ShaderResourceView* specularPmrem,
+        ID3D11ShaderResourceView* lutGgx)
+    {
+        iblDiffuseIem = diffuseIem;
+        iblSpecularPmrem = specularPmrem;
+        iblLutGgx = lutGgx;
+    }
 
     // 定数バッファゲッター
     ID3D11Buffer* GetCbScene() { return cbScene.Get(); }
@@ -140,10 +150,15 @@ private:
     // ブレンドステート
     Microsoft::WRL::ComPtr<ID3D11BlendState>        blendState;
 
-    // ダミーテクスチャ（テクスチャがないメッシュ用）
+    // ダミーテクスチャ
     Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> dummyWhite;  // Albedo/Occlusion用
     Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> dummyNormal; // 法線マップ用 (0.5,0.5,1.0)
     Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> dummyBlack;  // Emissive用
+
+    // IBL用テクスチャ
+    ID3D11ShaderResourceView* iblDiffuseIem = nullptr;
+    ID3D11ShaderResourceView* iblSpecularPmrem = nullptr;
+    ID3D11ShaderResourceView* iblLutGgx = nullptr;
 
     Frustum cachedFrustum;
 };

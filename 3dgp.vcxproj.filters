@@ -161,6 +161,9 @@
     <Filter Include="Sources\Shader\SkyBox">
       <UniqueIdentifier>{9e97e8a1-a467-46bd-9240-1e362631dcf8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shader\IBL">
+      <UniqueIdentifier>{89857270-8749-4d50-962f-65309e5333a1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Core\framework.cpp">
@@ -405,6 +408,9 @@
   <ItemGroup>
     <None Include="Shader\PBR_Functions.hlsli">
       <Filter>Shader\PBR</Filter>
+    </None>
+    <None Include="Shader\IBL_Functions.hlsli">
+      <Filter>Shader\IBL</Filter>
     </None>
   </ItemGroup>
 </Project>

@@ -1,4 +1,5 @@
 #include "PBR_Functions.hlsli"
+#include "IBL_Functions.hlsli" 
 
 cbuffer CbScene : register(b0)
 {
@@ -16,6 +17,10 @@ Texture2D normalMap            : register(t1); // 法線マップ
 Texture2D metallicRoughnessMap : register(t2); // G:Roughness B:Metallic
 Texture2D occlusionMap         : register(t3); // R:Occlusion
 Texture2D emissiveMap          : register(t4); // Emissive
+// IBL用テクスチャ
+TextureCube diffuseIem    : register(t5); // Diffuse IBL
+TextureCube specularPmrem : register(t6); // Specular IBL
+Texture2D lutGgx          : register(t7); // BRDF LUT
 
 SamplerState samplerState : register(s0);
 
@@ -83,10 +88,17 @@ float4 main(VS_OUT pin) : SV_TARGET
     
     
     // 間接光（アンビエント）
-    // ※IBL実装前の仮対応
-    float3 ambientDiffuse = ambientColor.rgb * ambientColor.a * diffuse_reflectance;
-    float3 ambientSpecular = ambientColor.rgb * ambientColor.a * F0;
-    float3 ambient = ambientDiffuse + ambientSpecular;
+    float3 ambient = 0;
+    float3 iblDiffuse = IBL_Diffuse(
+    diffuseIem, samplerState, N,
+    diffuse_reflectance, F0, V);
+
+    float3 iblSpecular = IBL_Specular(
+    specularPmrem, lutGgx, samplerState,
+    N, V, F0, roughness);
+
+    ambient = iblDiffuse + iblSpecular;
+    
     
     // Occlusion適用
     diffuse *= occlusion;

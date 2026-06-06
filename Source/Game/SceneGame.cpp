@@ -11,7 +11,13 @@ void SceneGame::Initialize(const SceneContext& context)
 	// SkyBox初期化
 	skyBox.Initialize(
 		context.device,
-		"Data/SkyBox/BlueSky/specular_pmrem.dds"
+		"Data/SkyBox/BlueSky"
+	);
+	// IBLテクスチャセット
+	renderSystem.SetIBLTextures(
+		skyBox.GetDiffuseIem(),
+		skyBox.GetSRV(),
+		skyBox.GetLutGgx()
 	);
 
 	// Stage生成/初期化
@@ -22,9 +28,9 @@ void SceneGame::Initialize(const SceneContext& context)
 	player = std::make_unique<Player>();
 	player->Initialize(registry, context);
 
-	// Enemy生成/初期化
-	enemy = std::make_unique<Enemy>();
-	enemy->Initialize(registry, context);
+	//// Enemy生成/初期化
+	//enemy = std::make_unique<Enemy>();
+	//enemy->Initialize(registry, context);
 
 	//// ヘルメット生成/初期化
 	//helmet = std::make_unique<DamagedHelmet>();
@@ -63,12 +69,12 @@ void SceneGame::Update(float elapsedTime, const SceneContext& context)
 		// Player 更新
 		player->Update(elapsedTime, registry, context);
 	}
-	{
-		ZoneScopedN("Enemy::Update");
+	//{
+	//	ZoneScopedN("Enemy::Update");
 
-		// Enemy 更新
-		enemy->Update(elapsedTime, registry, context);
-	}
+	//	// Enemy 更新
+	//	enemy->Update(elapsedTime, registry, context);
+	//}
 
 	//helmet->Update(elapsedTime, registry, context);
 }

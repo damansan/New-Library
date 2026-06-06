@@ -4,8 +4,24 @@
 
 void SkyBox::Initialize(
 	ID3D11Device* device,
-	const std::string& ddsPath)
+	const std::string& folderPath) 
 {
+	// 末尾にスラッシュがなければ追加
+	std::string folder = folderPath;
+	if (!folder.empty() && folder.back() != '/' && folder.back() != '\\')
+		folder += '/';
+
+	// キューブマップ読み込み
+	GpuResourceUtils::LoadDDSTexture(
+		device, folder + "specular_pmrem.dds", skyTexture);
+
+	GpuResourceUtils::LoadDDSTexture(
+		device, folder + "diffuse_iem.dds", diffuseIem);
+
+	GpuResourceUtils::LoadDDSTexture(
+		device, folder + "lut_ggx.dds", lutGgx);
+
+
 	// 入力レイアウト（POSITIONのみ）
 	const D3D11_INPUT_ELEMENT_DESC layout[] =
 	{
@@ -29,13 +45,6 @@ void SkyBox::Initialize(
 		pixelShader
 	);
 
-	// キューブマップ読み込み
-	GpuResourceUtils::LoadDDSTexture(
-		device,
-		ddsPath,
-		skyTexture
-	);
-
 	// 定数バッファ生成
 	GpuResourceUtils::CreateConstantBuffer(
 		device,
@@ -46,9 +55,12 @@ void SkyBox::Initialize(
 	// サンプラーステート生成
 	D3D11_SAMPLER_DESC samplerDesc{};
 	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	//samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	//samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	//samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
 	samplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
 	samplerDesc.MinLOD = 0;
 	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;

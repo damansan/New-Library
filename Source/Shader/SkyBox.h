@@ -8,7 +8,7 @@ class SkyBox
 {
 public:
     // 初期化
-    void Initialize(ID3D11Device* device, const std::string& ddsPath);
+    void Initialize(ID3D11Device* device, const std::string& folderPath);
 
     // 描画
     void Render(
@@ -20,6 +20,8 @@ public:
 
     // SRVゲッター
     ID3D11ShaderResourceView* GetSRV() const { return skyTexture.Get(); }
+    ID3D11ShaderResourceView* GetDiffuseIem()  const { return diffuseIem.Get(); }
+    ID3D11ShaderResourceView* GetLutGgx()      const { return lutGgx.Get(); }
 
     // IBL ON/OFF
     bool enabled = true;
@@ -55,4 +57,8 @@ private:
     Microsoft::WRL::ComPtr<ID3D11Buffer>             cbSkyBox;
 
     UINT indexCount = 0;
+
+    // IBL用テクスチャ
+    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> diffuseIem;
+    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> lutGgx;
 };

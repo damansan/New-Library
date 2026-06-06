@@ -148,6 +148,7 @@
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
+    <None Include="Shader\IBL_Functions.hlsli" />
     <None Include="Shader\PBR_Functions.hlsli" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
