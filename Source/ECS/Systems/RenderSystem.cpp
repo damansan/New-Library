@@ -159,25 +159,18 @@ void RenderSystem::Render(entt::registry& registry, ID3D11DeviceContext* dc, ID3
 
 	Frustum frustum = cachedFrustum;
 
+
 	// 不透明パス
 	dc->OMSetDepthStencilState(depthStencilState.Get(), 0);
 	dc->OMSetBlendState(blendState.Get(), blendFactor, 0xFFFFFFFF);
 
 	// 静的メッシュ描画
 	dc->VSSetShader(vertexShader.Get(), nullptr, 0);
-	for (auto& [passName, ps] : staticPixelShaders)
-	{
-		dc->PSSetShader(ps.Get(), nullptr, 0);
-		RenderStatic(registry, dc, passName, false, frustum);
-	}
-
+	RenderStatic(registry, dc, false, frustum);
 	// スキニングメッシュ描画
 	dc->VSSetShader(skinnedVertexShader.Get(), nullptr, 0);
-	for (auto& [passName, ps] : skinnedPixelShaders)
-	{
-		dc->PSSetShader(ps.Get(), nullptr, 0);
-		RenderSkinned(registry, dc, passName, false, frustum);
-	}
+	RenderSkinned(registry, dc, false, frustum);
+
 
 	// 半透明パス
 	dc->OMSetDepthStencilState(depthStencilStateTransparent.Get(), 0);
@@ -185,26 +178,17 @@ void RenderSystem::Render(entt::registry& registry, ID3D11DeviceContext* dc, ID3
 
 	// 静的メッシュ描画
 	dc->VSSetShader(vertexShader.Get(), nullptr, 0);
-	for (auto& [passName, ps] : staticPixelShaders)
-	{
-		dc->PSSetShader(ps.Get(), nullptr, 0);
-		RenderStatic(registry, dc, passName, true, frustum);
-	}
-
+	RenderStatic(registry, dc, true, frustum);
 	// スキニングメッシュ描画
 	dc->VSSetShader(skinnedVertexShader.Get(), nullptr, 0);
-	for (auto& [passName, ps] : skinnedPixelShaders)
-	{
-		dc->PSSetShader(ps.Get(), nullptr, 0);
-		RenderSkinned(registry, dc, passName, true, frustum);
-	}
+	RenderSkinned(registry, dc, true, frustum);
+
 }
 
 // 静的メッシュ描画
 void RenderSystem::RenderStatic(
 	entt::registry& registry,
 	ID3D11DeviceContext* dc,
-	const std::string& passName,
 	bool transparent,
 	const Frustum& frustum)
 {
@@ -216,26 +200,19 @@ void RenderSystem::RenderStatic(
 			// モデルが未設定ならスキップ
 			if (!staticMesh.model) return;
 
-			// MaterialComponentがある場合はパスを確認
+			// エンティティのパスリストを取得
+			std::vector<std::string> passes;
 			if (registry.all_of<MaterialComponent>(entity))
 			{
 				auto& mat = registry.get<MaterialComponent>(entity);
-				bool hasPass = false;
 				for (auto& pass : mat.passes)
 				{
-					if (pass.name == passName && pass.enabled)
-					{
-						hasPass = true;
-						break;
-					}
+					if (pass.enabled) passes.push_back(pass.name);
 				}
-				// 指定パスがなければスキップ
-				if (!hasPass) return;
 			}
 			else
 			{
-				// MaterialComponentがない場合はbasicのみ
-				if (passName != "lambert") return;
+				passes.push_back("lambert");
 			}
 
 			// フラスタムカリング
@@ -281,15 +258,6 @@ void RenderSystem::RenderStatic(
 					DXGI_FORMAT_R32_UINT, 0
 				);
 
-				//// ベースカラーテクスチャ設定
-				//if (mesh.material && mesh.material->baseMap)
-				//{
-				//	dc->PSSetShaderResources(
-				//		0, 1,
-				//		mesh.material->baseMap.GetAddressOf()
-				//	);
-				//}
-
 				// PBR用テクスチャを一括でセット
 				ID3D11ShaderResourceView* srvs[5] =
 				{
@@ -319,13 +287,16 @@ void RenderSystem::RenderStatic(
 						: dummyBlack.Get(),
 				};
 				dc->PSSetShaderResources(0, 5, srvs);
+				
+				// パスごとにPSを切り替えて描画
+				for (auto& passName : passes)
+				{
+					auto it = staticPixelShaders.find(passName);
+					if (it == staticPixelShaders.end()) continue;
 
-				// 描画
-				dc->DrawIndexed(
-					static_cast<UINT>(mesh.indices.size()),
-					0, 0
-				);
-
+					dc->PSSetShader(it->second.Get(), nullptr, 0);
+					dc->DrawIndexed(static_cast<UINT>(mesh.indices.size()), 0, 0);
+				}
 			}
 
 		});
@@ -335,7 +306,6 @@ void RenderSystem::RenderStatic(
 void RenderSystem::RenderSkinned(
 	entt::registry& registry,
 	ID3D11DeviceContext* dc,
-	const std::string& passName,
 	bool transparent,
 	const Frustum& frustum)
 {
@@ -348,27 +318,18 @@ void RenderSystem::RenderSkinned(
 			// モデルが未設定ならスキップ
 			if (!skinnedMesh.model) return;
 
-			// パス確認
+			std::vector<std::string> passes;
 			if (registry.all_of<MaterialComponent>(entity))
 			{
-				// MaterialComponentがある場合はパスを確認
 				auto& mat = registry.get<MaterialComponent>(entity);
-				bool hasPass = false;
 				for (auto& pass : mat.passes)
 				{
-					if (pass.name == passName && pass.enabled)
-					{
-						hasPass = true;
-						break;
-					}
+					if (pass.enabled) passes.push_back(pass.name);
 				}
-				// 指定パスがなければスキップ
-				if (!hasPass) return;
 			}
 			else
 			{
-				// MaterialComponentがない場合はbasicのみ
-				if (passName != "lambert") return;
+				passes.push_back("lambert");
 			}
 
 			// フラスタムカリング
@@ -435,10 +396,6 @@ void RenderSystem::RenderSkinned(
 				UINT offset = 0;
 				dc->IASetVertexBuffers(0, 1, mesh.vertexBuffer.GetAddressOf(), &stride, &offset);
 				dc->IASetIndexBuffer(mesh.indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
-				//if (mesh.material && mesh.material->baseMap)
-				//{
-				//	dc->PSSetShaderResources(0, 1, mesh.material->baseMap.GetAddressOf());
-				//}
 
 				// PBR用テクスチャを一括でセット
 				ID3D11ShaderResourceView* srvs[5] =
@@ -456,11 +413,14 @@ void RenderSystem::RenderSkinned(
 				};
 				dc->PSSetShaderResources(0, 5, srvs);
 				
-				// 描画
-				dc->DrawIndexed(
-					static_cast<UINT>(mesh.indices.size()),
-					0, 0
-				);
+				for (auto& passName : passes)
+				{
+					auto it = skinnedPixelShaders.find(passName);
+					if (it == skinnedPixelShaders.end()) continue;
+
+					dc->PSSetShader(it->second.Get(), nullptr, 0);
+					dc->DrawIndexed(static_cast<UINT>(mesh.indices.size()), 0, 0);
+				}
 			}
 		});
 }

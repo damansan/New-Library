@@ -506,6 +506,12 @@ framework::framework(HWND hwnd) : hwnd(hwnd)
 	ShaderPassLibrary::Register("lambert", {
 		"", "Data/Shader/Base_VS.cso", "Data/Shader/Lambert_PS.cso"
 		});
+	ShaderPassLibrary::Register("pbr", {
+		"", "Data/Shader/Base_VS.cso", "Data/Shader/PBR_PS.cso"
+		});
+	ShaderPassLibrary::Register("pbr_skinning", {
+	"", "Data/Shader/Skinning_VS.cso", "Data/Shader/PBR_PS.cso"
+		});
 
 	// Å‰‚ÌƒV[ƒ“ƒZƒbƒg
 	sceneManager.ChangeScene(std::make_unique<SceneGame>());
@@ -1980,7 +1986,6 @@ private:
     void RenderStatic(
         entt::registry& registry,
         ID3D11DeviceContext* dc,
-        const std::string& passName,
         bool transparent,
         const Frustum& frustum
     );
@@ -1989,7 +1994,6 @@ private:
     void RenderSkinned(
         entt::registry& registry,
         ID3D11DeviceContext* dc,
-        const std::string& passName,
         bool transparent,
         const Frustum& frustum
     );
@@ -2039,6 +2043,11 @@ private:
     Microsoft::WRL::ComPtr<ID3D11DepthStencilState> depthStencilStateTransparent;
     // ƒuƒŒƒ“ƒhƒXƒe[ƒg
     Microsoft::WRL::ComPtr<ID3D11BlendState>        blendState;
+
+    // ƒ_ƒ~[ƒeƒNƒXƒ`ƒƒiƒeƒNƒXƒ`ƒƒ‚ª‚È‚¢ƒƒbƒVƒ…—pj
+    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> dummyWhite;  // Albedo/Occlusion—p
+    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> dummyNormal; // –@üƒ}ƒbƒv—p (0.5,0.5,1.0)
+    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> dummyBlack;  // Emissive—p
 
     Frustum cachedFrustum;
 }; 
@@ -2427,13 +2436,20 @@ void RenderSystem::Initialize(ID3D11Device* device)
 	GpuResourceUtils::LoadPixelShader(
 		device, "Data/Shader/Lambert_PS.cso", lambertPS);
 
+	// ƒsƒNƒZƒ‹ƒVƒF[ƒ_[“Ç‚İ‚İ(PBR)
+	Microsoft::WRL::ComPtr<ID3D11PixelShader> pbrPS;
+	GpuResourceUtils::LoadPixelShader(
+		device, "Data/Shader/PBR_PS.cso", pbrPS);
+
 	// Ã“IƒƒbƒVƒ…—piBase_VS + PSj
 	staticPixelShaders["basic"] = basicPS;
 	staticPixelShaders["lambert"] = lambertPS;
+	staticPixelShaders["pbr"] = pbrPS;
 
-	// ƒXƒLƒjƒ“ƒO—piSkinning_VS + PSjƒpƒX–¼‚Í“¯‚¶
+	// ƒXƒLƒjƒ“ƒO—piSkinning_VS + PSj
 	skinnedPixelShaders["basic"] = basicPS;
 	skinnedPixelShaders["lambert"] = lambertPS;
+	skinnedPixelShaders["pbr"] = pbrPS;
 
 	// ƒV[ƒ“’è”ƒoƒbƒtƒ@¶¬
 	GpuResourceUtils::CreateConstantBuffer(
@@ -2513,6 +2529,15 @@ void RenderSystem::Initialize(ID3D11Device* device)
 	blendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
 	blendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 	device->CreateBlendState(&blendDesc, blendState.GetAddressOf());
+
+
+	// ƒ_ƒ~[ƒeƒNƒXƒ`ƒƒ¶¬
+	// ”’ (Albedo / Occlusion—p)
+	GpuResourceUtils::CreateDummyTexture(device, dummyWhite, 0xFFFFFFFF, 1);
+	// –@üƒ}ƒbƒv—p (R=128, G=128, B=255 ¨ ³–ÊŒü‚«–@ü)
+	GpuResourceUtils::CreateDummyTexture(device, dummyNormal, 0xFFFF8080, 1);
+	// • (Emissive—p)
+	GpuResourceUtils::CreateDummyTexture(device, dummyBlack, 0xFF000000, 1);
 }
 
 // •`‰æ
@@ -2531,25 +2556,18 @@ void RenderSystem::Render(entt::registry& registry, ID3D11DeviceContext* dc, ID3
 
 	Frustum frustum = cachedFrustum;
 
+
 	// •s“§–¾ƒpƒX
 	dc->OMSetDepthStencilState(depthStencilState.Get(), 0);
 	dc->OMSetBlendState(blendState.Get(), blendFactor, 0xFFFFFFFF);
 
 	// Ã“IƒƒbƒVƒ…•`‰æ
 	dc->VSSetShader(vertexShader.Get(), nullptr, 0);
-	for (auto& [passName, ps] : staticPixelShaders)
-	{
-		dc->PSSetShader(ps.Get(), nullptr, 0);
-		RenderStatic(registry, dc, passName, false, frustum);
-	}
-
+	RenderStatic(registry, dc, false, frustum);
 	// ƒXƒLƒjƒ“ƒOƒƒbƒVƒ…•`‰æ
 	dc->VSSetShader(skinnedVertexShader.Get(), nullptr, 0);
-	for (auto& [passName, ps] : skinnedPixelShaders)
-	{
-		dc->PSSetShader(ps.Get(), nullptr, 0);
-		RenderSkinned(registry, dc, passName, false, frustum);
-	}
+	RenderSkinned(registry, dc, false, frustum);
+
 
 	// ”¼“§–¾ƒpƒX
 	dc->OMSetDepthStencilState(depthStencilStateTransparent.Get(), 0);
@@ -2557,26 +2575,17 @@ void RenderSystem::Render(entt::registry& registry, ID3D11DeviceContext* dc, ID3
 
 	// Ã“IƒƒbƒVƒ…•`‰æ
 	dc->VSSetShader(vertexShader.Get(), nullptr, 0);
-	for (auto& [passName, ps] : staticPixelShaders)
-	{
-		dc->PSSetShader(ps.Get(), nullptr, 0);
-		RenderStatic(registry, dc, passName, true, frustum);
-	}
-
+	RenderStatic(registry, dc, true, frustum);
 	// ƒXƒLƒjƒ“ƒOƒƒbƒVƒ…•`‰æ
 	dc->VSSetShader(skinnedVertexShader.Get(), nullptr, 0);
-	for (auto& [passName, ps] : skinnedPixelShaders)
-	{
-		dc->PSSetShader(ps.Get(), nullptr, 0);
-		RenderSkinned(registry, dc, passName, true, frustum);
-	}
+	RenderSkinned(registry, dc, true, frustum);
+
 }
 
 // Ã“IƒƒbƒVƒ…•`‰æ
 void RenderSystem::RenderStatic(
 	entt::registry& registry,
 	ID3D11DeviceContext* dc,
-	const std::string& passName,
 	bool transparent,
 	const Frustum& frustum)
 {
@@ -2588,27 +2597,42 @@ void RenderSystem::RenderStatic(
 			// ƒ‚ƒfƒ‹‚ª–¢İ’è‚È‚çƒXƒLƒbƒv
 			if (!staticMesh.model) return;
 
-			// MaterialComponent‚ª‚ ‚éê‡‚ÍƒpƒX‚ğŠm”F
+			// ƒGƒ“ƒeƒBƒeƒB‚ÌƒpƒXƒŠƒXƒg‚ğæ“¾
+			std::vector<std::string> passes;
 			if (registry.all_of<MaterialComponent>(entity))
 			{
 				auto& mat = registry.get<MaterialComponent>(entity);
-				bool hasPass = false;
 				for (auto& pass : mat.passes)
 				{
-					if (pass.name == passName && pass.enabled)
-					{
-						hasPass = true;
-						break;
-					}
+					if (pass.enabled) passes.push_back(pass.name);
 				}
-				// w’èƒpƒX‚ª‚È‚¯‚ê‚ÎƒXƒLƒbƒv
-				if (!hasPass) return;
 			}
 			else
 			{
-				// MaterialComponent‚ª‚È‚¢ê‡‚Íbasic‚Ì‚İ
-				if (passName != "lambert") return;
+				passes.push_back("lambert");
 			}
+
+			//// MaterialComponent‚ª‚ ‚éê‡‚ÍƒpƒX‚ğŠm”F
+			//if (registry.all_of<MaterialComponent>(entity))
+			//{
+			//	auto& mat = registry.get<MaterialComponent>(entity);
+			//	bool hasPass = false;
+			//	for (auto& pass : mat.passes)
+			//	{
+			//		if (pass.name == passName && pass.enabled)
+			//		{
+			//			hasPass = true;
+			//			break;
+			//		}
+			//	}
+			//	// w’èƒpƒX‚ª‚È‚¯‚ê‚ÎƒXƒLƒbƒv
+			//	if (!hasPass) return;
+			//}
+			//else
+			//{
+			//	// MaterialComponent‚ª‚È‚¢ê‡‚Íbasic‚Ì‚İ
+			//	if (passName != "lambert") return;
+			//}
 
 			// ƒtƒ‰ƒXƒ^ƒ€ƒJƒŠƒ“ƒO
 			DirectX::XMFLOAT4X4 worldMatrix{};
@@ -2653,20 +2677,60 @@ void RenderSystem::RenderStatic(
 					DXGI_FORMAT_R32_UINT, 0
 				);
 
-				// ƒx[ƒXƒJƒ‰[ƒeƒNƒXƒ`ƒƒİ’è
-				if (mesh.material && mesh.material->baseMap)
-				{
-					dc->PSSetShaderResources(
-						0, 1,
-						mesh.material->baseMap.GetAddressOf()
-					);
-				}
+				//// ƒx[ƒXƒJƒ‰[ƒeƒNƒXƒ`ƒƒİ’è
+				//if (mesh.material && mesh.material->baseMap)
+				//{
+				//	dc->PSSetShaderResources(
+				//		0, 1,
+				//		mesh.material->baseMap.GetAddressOf()
+				//	);
+				//}
 
-				// •`‰æ
-				dc->DrawIndexed(
-					static_cast<UINT>(mesh.indices.size()),
-					0, 0
-				);
+				// PBR—pƒeƒNƒXƒ`ƒƒ‚ğˆêŠ‡‚ÅƒZƒbƒg
+				ID3D11ShaderResourceView* srvs[5] =
+				{
+					// t0: Albedo
+					(mesh.material && mesh.material->baseMap)
+						? mesh.material->baseMap.Get()
+						: dummyWhite.Get(),
+
+					// t1: –@üƒ}ƒbƒv
+					(mesh.material && mesh.material->normalMap)
+						? mesh.material->normalMap.Get()
+						: dummyNormal.Get(),
+
+					// t2: MetallicRoughness
+					(mesh.material && mesh.material->metallicRoughnessMap)
+						? mesh.material->metallicRoughnessMap.Get()
+						: dummyWhite.Get(),
+
+					// t3: Occlusion
+					(mesh.material && mesh.material->occlusionMap)
+						? mesh.material->occlusionMap.Get()
+						: dummyWhite.Get(),
+
+					// t4: Emissive
+					(mesh.material && mesh.material->emissiveMap)
+						? mesh.material->emissiveMap.Get()
+						: dummyBlack.Get(),
+				};
+				dc->PSSetShaderResources(0, 5, srvs);
+
+				//// •`‰æ
+				//dc->DrawIndexed(
+				//	static_cast<UINT>(mesh.indices.size()),
+				//	0, 0
+				//);
+				
+				// ƒpƒX‚²‚Æ‚ÉPS‚ğØ‚è‘Ö‚¦‚Ä•`‰æ
+				for (auto& passName : passes)
+				{
+					auto it = staticPixelShaders.find(passName);
+					if (it == staticPixelShaders.end()) continue;
+
+					dc->PSSetShader(it->second.Get(), nullptr, 0);
+					dc->DrawIndexed(static_cast<UINT>(mesh.indices.size()), 0, 0);
+				}
 			}
 
 		});
@@ -2676,7 +2740,6 @@ void RenderSystem::RenderStatic(
 void RenderSystem::RenderSkinned(
 	entt::registry& registry,
 	ID3D11DeviceContext* dc,
-	const std::string& passName,
 	bool transparent,
 	const Frustum& frustum)
 {
@@ -2689,27 +2752,41 @@ void RenderSystem::RenderSkinned(
 			// ƒ‚ƒfƒ‹‚ª–¢İ’è‚È‚çƒXƒLƒbƒv
 			if (!skinnedMesh.model) return;
 
-			// ƒpƒXŠm”F
+			//// ƒpƒXŠm”F
+			//if (registry.all_of<MaterialComponent>(entity))
+			//{
+			//	// MaterialComponent‚ª‚ ‚éê‡‚ÍƒpƒX‚ğŠm”F
+			//	auto& mat = registry.get<MaterialComponent>(entity);
+			//	bool hasPass = false;
+			//	for (auto& pass : mat.passes)
+			//	{
+			//		if (pass.name == passName && pass.enabled)
+			//		{
+			//			hasPass = true;
+			//			break;
+			//		}
+			//	}
+			//	// w’èƒpƒX‚ª‚È‚¯‚ê‚ÎƒXƒLƒbƒv
+			//	if (!hasPass) return;
+			//}
+			//else
+			//{
+			//	// MaterialComponent‚ª‚È‚¢ê‡‚Íbasic‚Ì‚İ
+			//	if (passName != "lambert") return;
+			//}
+
+			std::vector<std::string> passes;
 			if (registry.all_of<MaterialComponent>(entity))
 			{
-				// MaterialComponent‚ª‚ ‚éê‡‚ÍƒpƒX‚ğŠm”F
 				auto& mat = registry.get<MaterialComponent>(entity);
-				bool hasPass = false;
 				for (auto& pass : mat.passes)
 				{
-					if (pass.name == passName && pass.enabled)
-					{
-						hasPass = true;
-						break;
-					}
+					if (pass.enabled) passes.push_back(pass.name);
 				}
-				// w’èƒpƒX‚ª‚È‚¯‚ê‚ÎƒXƒLƒbƒv
-				if (!hasPass) return;
 			}
 			else
 			{
-				// MaterialComponent‚ª‚È‚¢ê‡‚Íbasic‚Ì‚İ
-				if (passName != "lambert") return;
+				passes.push_back("lambert");
 			}
 
 			// ƒtƒ‰ƒXƒ^ƒ€ƒJƒŠƒ“ƒO
@@ -2776,11 +2853,41 @@ void RenderSystem::RenderSkinned(
 				UINT offset = 0;
 				dc->IASetVertexBuffers(0, 1, mesh.vertexBuffer.GetAddressOf(), &stride, &offset);
 				dc->IASetIndexBuffer(mesh.indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
-				if (mesh.material && mesh.material->baseMap)
+				//if (mesh.material && mesh.material->baseMap)
+				//{
+				//	dc->PSSetShaderResources(0, 1, mesh.material->baseMap.GetAddressOf());
+				//}
+
+				// PBR—pƒeƒNƒXƒ`ƒƒ‚ğˆêŠ‡‚ÅƒZƒbƒg
+				ID3D11ShaderResourceView* srvs[5] =
 				{
-					dc->PSSetShaderResources(0, 1, mesh.material->baseMap.GetAddressOf());
+					(mesh.material && mesh.material->baseMap)
+						? mesh.material->baseMap.Get() : dummyWhite.Get(),
+					(mesh.material && mesh.material->normalMap)
+						? mesh.material->normalMap.Get() : dummyNormal.Get(),
+					(mesh.material && mesh.material->metallicRoughnessMap)
+						? mesh.material->metallicRoughnessMap.Get() : dummyWhite.Get(),
+					(mesh.material && mesh.material->occlusionMap)
+						? mesh.material->occlusionMap.Get() : dummyWhite.Get(),
+					(mesh.material && mesh.material->emissiveMap)
+						? mesh.material->emissiveMap.Get() : dummyBlack.Get(),
+				};
+				dc->PSSetShaderResources(0, 5, srvs);
+				
+				//// •`‰æ
+				//dc->DrawIndexed(
+				//	static_cast<UINT>(mesh.indices.size()),
+				//	0, 0
+				//);
+
+				for (auto& passName : passes)
+				{
+					auto it = skinnedPixelShaders.find(passName);
+					if (it == skinnedPixelShaders.end()) continue;
+
+					dc->PSSetShader(it->second.Get(), nullptr, 0);
+					dc->DrawIndexed(static_cast<UINT>(mesh.indices.size()), 0, 0);
 				}
-				dc->DrawIndexed(static_cast<UINT>(mesh.indices.size()), 0, 0);
 			}
 		});
 }
@@ -2945,6 +3052,21 @@ public:
 protected:
 }; 
  
+===== DamagedHelmet.h ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Game\DamagedHelmet.h 
+#pragma once
+#include "Game/Object.h"
+
+class DamagedHelmet : public Object
+{
+public:
+	DamagedHelmet() = default;
+	virtual ~DamagedHelmet() = default;
+
+	void Initialize(entt::registry& registry, const SceneContext& context) override;
+	void RenderImGui() override;
+}; 
+ 
 ===== Enemy.h ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\Game\Enemy.h 
 #pragma once
@@ -3006,6 +3128,8 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Game\SceneGame.h
 #include "Game/Player.h"
 #include "Game/Enemy.h"
 
+#include "Game/DamagedHelmet.h"
+
 class SceneGame : public Scene
 {
 public:
@@ -3027,6 +3151,9 @@ private:
 	// ƒGƒlƒ~[
 	std::unique_ptr<Enemy> enemy;
 
+	// ƒwƒ‹ƒƒbƒg
+	std::unique_ptr<DamagedHelmet> helmet;
+
 };
  
  
@@ -3044,6 +3171,31 @@ public:
     void Initialize(entt::registry& registry, const SceneContext& context) override;
     void RenderImGui() override;
 }; 
+ 
+===== DamagedHelmet.cpp ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Game\DamagedHelmet.cpp 
+#include "DamagedHelmet.h"
+#include "ECS/Components/TransformComponent.h"
+#include "ECS/Components/MeshComponent.h"
+#include "ECS/Components/MaterialComponent.h"
+
+void DamagedHelmet::Initialize(entt::registry& registry, const SceneContext& context)
+{
+    entity = registry.create();
+
+    auto& t = registry.emplace<TransformComponent>(entity);
+    t.position = { 0.0f, 0.0f, 0.0f };
+    t.scale = { 1.0f, 1.0f, 1.0f };
+
+    registry.emplace<MeshComponent>(entity, "Data/Model/Helmet/DamagedHelmet.gltf");
+    registry.emplace<MaterialComponent>(entity).AddPass("lambert");
+
+}
+
+void DamagedHelmet::RenderImGui()
+{
+}
+ 
  
 ===== Enemy.cpp ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\Game\Enemy.cpp 
@@ -3063,7 +3215,7 @@ void Enemy::Initialize(entt::registry& registry, const SceneContext& context)
 
     registry.emplace<MeshComponent>(entity, "Data/Model/EnemyRobot/SK_SciFi_ToiletMech_Skin3.gltf");
     //registry.emplace<MeshComponent>(entity, "Data/Model/unitychan.glb");
-    registry.emplace<MaterialComponent>(entity).AddPass("lambert");
+    registry.emplace<MaterialComponent>(entity).AddPass("pbr");
     
 }
 
@@ -3099,7 +3251,7 @@ void Player::Initialize(entt::registry& registry, const SceneContext& context)
 
     registry.emplace<MeshComponent>(entity, "Data/Model/PlayerRobot/Map_Robot3.gltf");
     //registry.emplace<MeshComponent>(entity, "Data/Model/unitychan.glb");
-    registry.emplace<MaterialComponent>(entity).AddPass("lambert");
+    registry.emplace<MaterialComponent>(entity).AddPass("pbr");
 }
 
 void Player::Update(float elapsedTime, entt::registry& registry, const SceneContext& context)
@@ -3133,6 +3285,10 @@ void SceneGame::Initialize(const SceneContext& context)
 	// Enemyç”Ÿæˆ/åˆæœŸåŒ–
 	enemy = std::make_unique<Enemy>();
 	enemy->Initialize(registry, context);
+
+	//// ãƒ˜ãƒ«ãƒ¡ãƒƒãƒˆç”Ÿæˆ/åˆæœŸåŒ–
+	//helmet = std::make_unique<DamagedHelmet>();
+	//helmet->Initialize(registry, context);
 }
 
 void SceneGame::Update(float elapsedTime, const SceneContext& context)
@@ -3173,6 +3329,8 @@ void SceneGame::Update(float elapsedTime, const SceneContext& context)
 		// Enemy æ›´æ–°
 		enemy->Update(elapsedTime, registry, context);
 	}
+
+	//helmet->Update(elapsedTime, registry, context);
 }
 
 void SceneGame::Render(const SceneContext& context)
@@ -3190,7 +3348,7 @@ void SceneGame::Render(const SceneContext& context)
 
 		// ãƒ©ã‚¤ãƒˆè¨­å®šï¼ˆä»®ã®å¹³è¡Œå…‰æºï¼‰
 		cbSceneData.lightDirection = { 0.5f, -1.0f, 0.5f, 0.0f };
-		cbSceneData.lightColor = { 1.0f,  1.0f, 1.0f, 1.0f };
+		cbSceneData.lightColor = { 1.0f,  1.0f, 1.0f, 3.0f };
 		cbSceneData.ambientColor = { 0.2f,  0.2f, 0.2f, 1.0f };
 
 		// ã‚«ãƒ¡ãƒ©ä½ç½®
@@ -3221,6 +3379,7 @@ void SceneGame::Render(const SceneContext& context)
 	{
 		ZoneScopedN("RenderSystem::Render");
 
+		// æç”»
 		renderSystem.Render(
 			registry,
 			context.deviceContext,
@@ -3280,7 +3439,7 @@ void Stage::Initialize(entt::registry& registry, const SceneContext& context)
     t.scale = { 1.0f, 1.0f, 1.0f };
 
     registry.emplace<MeshComponent>(entity, "Data/Model/Stage/ExampleStage/ExampleStage.gltf");
-    registry.emplace<MaterialComponent>(entity).AddPass("lambert");
+    registry.emplace<MaterialComponent>(entity).AddPass("pbr");
 }
 
 void Stage::RenderImGui()

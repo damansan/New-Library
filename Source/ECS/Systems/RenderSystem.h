@@ -82,7 +82,6 @@ private:
     void RenderStatic(
         entt::registry& registry,
         ID3D11DeviceContext* dc,
-        const std::string& passName,
         bool transparent,
         const Frustum& frustum
     );
@@ -91,7 +90,6 @@ private:
     void RenderSkinned(
         entt::registry& registry,
         ID3D11DeviceContext* dc,
-        const std::string& passName,
         bool transparent,
         const Frustum& frustum
     );
