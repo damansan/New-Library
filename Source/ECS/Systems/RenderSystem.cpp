@@ -202,55 +202,6 @@ void RenderSystem::Render(
 
 	// Lightingパス
 	LightingPass(dc, rtv, dsv);
-
-
-
-	//// レンダーターゲット再セット
-	//dc->OMSetRenderTargets(1, &rtv, dsv);
-
-	//// IBL用テクスチャをピクセルシェーダーにセット
-	//ID3D11ShaderResourceView* iblSrvs[3] =
-	//{
-	//	iblDiffuseIem,
-	//	iblSpecularPmrem,
-	//	iblLutGgx,
-	//};
-	//dc->PSSetShaderResources(5, 3, iblSrvs);
-
-	//// 共通ステート設定
-	//dc->RSSetState(rasterizerState.Get());
-	//dc->PSSetSamplers(0, 1, samplerState.GetAddressOf());
-	//dc->IASetInputLayout(inputLayout.Get());
-	//dc->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-	//float blendFactor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
-
-	//Frustum frustum = cachedFrustum;
-
-
-	//// 不透明パス
-	//dc->OMSetDepthStencilState(depthStencilState.Get(), 0);
-	//dc->OMSetBlendState(blendState.Get(), blendFactor, 0xFFFFFFFF);
-
-	//// 静的メッシュ描画
-	//dc->VSSetShader(vertexShader.Get(), nullptr, 0);
-	//RenderStatic(registry, dc, false, frustum);
-	//// スキニングメッシュ描画
-	//dc->VSSetShader(skinnedVertexShader.Get(), nullptr, 0);
-	//RenderSkinned(registry, dc, false, frustum);
-
-
-	//// 半透明パス
-	//dc->OMSetDepthStencilState(depthStencilStateTransparent.Get(), 0);
-	//dc->OMSetBlendState(blendState.Get(), blendFactor, 0xFFFFFFFF);
-
-	//// 静的メッシュ描画
-	//dc->VSSetShader(vertexShader.Get(), nullptr, 0);
-	//RenderStatic(registry, dc, true, frustum);
-	//// スキニングメッシュ描画
-	//dc->VSSetShader(skinnedVertexShader.Get(), nullptr, 0);
-	//RenderSkinned(registry, dc, true, frustum);
-
 }
 
 // 静的メッシュ描画
