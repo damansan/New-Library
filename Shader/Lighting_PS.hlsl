@@ -5,10 +5,31 @@ cbuffer CbScene : register(b0)
 {
     row_major float4x4 view;
     row_major float4x4 projection;
-    float4 lightDirection;
-    float4 lightColor;
-    float4 ambientColor;
+    //float4 lightDirection;
+    //float4 lightColor;
+    //float4 ambientColor;
     float4 cameraPosition;
+};
+
+struct DirectionalLight
+{
+    float4 direction; // xyz=方向 w=未使用
+    float4 color; // xyz=色 w=強度
+};
+struct PointLight
+{
+    float4 position; // xyz=位置 w=範囲
+    float4 color; // xyz=色 w=強度
+};
+
+#define MAX_POINT_LIGHTS 64
+
+cbuffer CbLights : register(b1)
+{
+    DirectionalLight directionalLight;
+    PointLight pointLights[MAX_POINT_LIGHTS];
+    int pointLightCount;
+    float3 cbPadding;
 };
 
 // Gバッファ
@@ -56,14 +77,53 @@ float4 main(VS_OUT pin) : SV_TARGET
 
     // ベクトル計算
     float3 V = normalize(cameraPosition.xyz - worldPos);
-    float3 L = normalize(-lightDirection.xyz);
-    float3 LC = lightColor.rgb * lightColor.a;
-
-    // 直接光のPBRライティング
     float3 diffuse = 0;
     float3 specular = 0;
-    DirectBRDF(diffuse_reflectance, F0, N, V, L, LC,
-               roughness, diffuse, specular);
+    
+    // 平行光源
+    {
+        float3 L = normalize(-directionalLight.direction.xyz);
+        float3 LC = directionalLight.color.rgb * directionalLight.color.a;
+        float3 d = 0;
+        float3 s = 0;
+        DirectBRDF(diffuse_reflectance, F0, N, V, L, LC, roughness, d, s);
+        diffuse += d;
+        specular += s;
+    }
+
+    // ポイントライト
+    for (int i = 0; i < pointLightCount; i++)
+    {
+        float3 toLight = pointLights[i].position.xyz - worldPos;
+        float dist = length(toLight);
+        float range = pointLights[i].position.w;
+
+        if (dist > range)
+            continue;
+
+        float attenuation = 1.0f - saturate(dist / range);
+        attenuation *= attenuation;
+
+        float3 L = normalize(toLight);
+        float3 LC = pointLights[i].color.rgb
+              * pointLights[i].color.a
+              * attenuation;
+
+        float3 d = 0;
+        float3 s = 0;
+        DirectBRDF(diffuse_reflectance, F0, N, V, L, LC, roughness, d, s);
+        diffuse += d;
+        specular += s;
+    }
+    
+    //float3 L = normalize(-lightDirection.xyz);
+    //float3 LC = lightColor.rgb * lightColor.a;
+
+    //// 直接光のPBRライティング
+    //float3 diffuse = 0;
+    //float3 specular = 0;
+    //DirectBRDF(diffuse_reflectance, F0, N, V, L, LC,
+    //           roughness, diffuse, specular);
 
     // 間接光（IBL）
     float3 iblDiffuse = IBL_Diffuse(

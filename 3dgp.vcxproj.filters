@@ -173,6 +173,9 @@
     <Filter Include="Shader\Lighting">
       <UniqueIdentifier>{9359414c-cb4d-40dd-9279-5b2e93257f5a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\Rendering\LightManager">
+      <UniqueIdentifier>{eea5f1f4-67d2-4d9b-8709-0c60219fde2f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Core\framework.cpp">
@@ -267,6 +270,9 @@
     </ClCompile>
     <ClCompile Include="Source\Rendering\GBuffer.cpp">
       <Filter>Sources\Rendering\GBuffer</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Rendering\LightManager.cpp">
+      <Filter>Sources\Rendering\LightManager</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -389,6 +395,9 @@
     </ClInclude>
     <ClInclude Include="Source\Rendering\GBuffer.h">
       <Filter>Sources\Rendering\GBuffer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Rendering\LightManager.h">
+      <Filter>Sources\Rendering\LightManager</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -4,6 +4,8 @@
 #include "ECS/Systems/AnimationSystem.h"
 #include "Debug/DebugRenderer.h"
 #include "Rendering/SkyBox.h"
+#include "Rendering/LightManager.h"
+
 #include <memory>
 
 #include "Game/Stage.h"
@@ -26,6 +28,7 @@ private:
 	AnimationSystem animationSystem;
 	DebugRenderer debugRenderer;
 	SkyBox skyBox;
+	LightManager lightManager;
 
 	// ステージ
 	std::unique_ptr<Stage> stage;

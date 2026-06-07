@@ -18,9 +18,6 @@ struct CbScene
 {
     DirectX::XMFLOAT4X4 view;             // ビュー行列
     DirectX::XMFLOAT4X4 projection;       // プロジェクション行列
-    DirectX::XMFLOAT4   lightDirection;   // ライト方向（w未使用）
-    DirectX::XMFLOAT4   lightColor;       // ライト色（w=強度）
-    DirectX::XMFLOAT4   ambientColor;     // 環境光色（w=強度）
     DirectX::XMFLOAT4   cameraPosition;   // カメラ位置（w未使用）
 };
 

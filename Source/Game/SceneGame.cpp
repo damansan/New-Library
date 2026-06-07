@@ -19,7 +19,18 @@ void SceneGame::Initialize(const SceneContext& context)
 		skyBox.GetSRV(),
 		skyBox.GetLutGgx()
 	);
-
+	lightManager.Initialize(context.device);
+	lightManager.SetDirectionalLight(
+		{ 0.5f, -1.0f, 0.5f },
+		{ 1.0f,  1.0f, 1.0f },
+		1.0f
+	);
+	lightManager.AddPointLight(
+		{ 0.0f, 1.0f, 2.0f }, // 位置
+		{ 1.0f, 0.0f, 0.0f }, // 色（赤）
+		5.0f,                  // 範囲
+		3.0f                   // 強度
+	);
 	// Stage生成/初期化
 	stage = std::make_unique<Stage>();
 	stage->Initialize(registry, context);
@@ -91,18 +102,13 @@ void SceneGame::Render(const SceneContext& context)
 		cbSceneData.view = context.view;
 		cbSceneData.projection = context.projection;
 
-
-		// ライト設定（仮の平行光源）
-		cbSceneData.lightDirection = { 0.5f, -1.0f, 0.5f, 0.0f };
-		cbSceneData.lightColor = { 1.0f,  1.0f, 1.0f, 1.0f };
-		cbSceneData.ambientColor = { 0.2f,  0.2f, 0.2f, 1.0f };
-
 		// カメラ位置
 		if (context.camera)
 		{
 			const auto& eye = context.camera->GetEye();
 			cbSceneData.cameraPosition = { eye.x, eye.y, eye.z, 0.0f };
 		}
+		lightManager.Bind(context.deviceContext);
 
 		context.deviceContext->UpdateSubresource(
 			renderSystem.GetCbScene(), 0, nullptr, &cbSceneData, 0, 0
