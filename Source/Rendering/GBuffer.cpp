@@ -11,6 +11,7 @@ void GBuffer::Initialize(ID3D11Device* device, UINT width, UINT height)
         DXGI_FORMAT_R32G32B32A32_FLOAT,  // Position
         DXGI_FORMAT_R8G8B8A8_UNORM,      // Roughness/Metallic
         DXGI_FORMAT_R16G16B16A16_FLOAT,  // Emissive
+        DXGI_FORMAT_R8_UNORM,            // Occlusion
     };
 
     for (UINT i = 0; i < BUFFER_COUNT; i++)

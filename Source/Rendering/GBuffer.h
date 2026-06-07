@@ -16,15 +16,16 @@ public:
     void EndGeometryPass(ID3D11DeviceContext* dc);
 
     // SRVゲッター（LightingパスでGバッファを読む）
-    ID3D11ShaderResourceView* GetAlbedoSRV()    const { return srvs[0].Get(); }
-    ID3D11ShaderResourceView* GetNormalSRV()    const { return srvs[1].Get(); }
-    ID3D11ShaderResourceView* GetPositionSRV()  const { return srvs[2].Get(); }
+    ID3D11ShaderResourceView* GetAlbedoSRV()            const { return srvs[0].Get(); }
+    ID3D11ShaderResourceView* GetNormalSRV()            const { return srvs[1].Get(); }
+    ID3D11ShaderResourceView* GetPositionSRV()          const { return srvs[2].Get(); }
     ID3D11ShaderResourceView* GetRoughnessMetallicSRV() const { return srvs[3].Get(); }
-    ID3D11ShaderResourceView* GetEmissiveSRV()  const { return srvs[4].Get(); }
+    ID3D11ShaderResourceView* GetEmissiveSRV()          const { return srvs[4].Get(); }
+    ID3D11ShaderResourceView* GetOcclusionSRV()         const { return srvs[5].Get(); }
 
     // RTV配列ゲッター
     ID3D11RenderTargetView* const* GetRTVs() const { return rtvPtrs; }
-    static constexpr UINT BUFFER_COUNT = 5;
+    static constexpr UINT BUFFER_COUNT = 6;
 
 private:
     // RTV

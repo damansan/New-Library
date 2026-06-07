@@ -198,7 +198,7 @@ void RenderSystem::Render(
 		iblSpecularPmrem,
 		iblLutGgx,
 	};
-	dc->PSSetShaderResources(5, 3, iblSrvs);
+	dc->PSSetShaderResources(6, 3, iblSrvs);
 
 	// Lightingパス
 	LightingPass(dc, rtv, dsv);
@@ -664,15 +664,16 @@ void RenderSystem::LightingPass(
 	dc->RSSetViewports(1, &vp);
 
 	// GバッファをSRVとしてセット
-	ID3D11ShaderResourceView* gbSrvs[5] =
+	ID3D11ShaderResourceView* gbSrvs[6] =
 	{
 		gBuffer.GetAlbedoSRV(),
 		gBuffer.GetNormalSRV(),
 		gBuffer.GetPositionSRV(),
 		gBuffer.GetRoughnessMetallicSRV(),
 		gBuffer.GetEmissiveSRV(),
+		gBuffer.GetOcclusionSRV(),
 	};
-	dc->PSSetShaderResources(0, 5, gbSrvs);
+	dc->PSSetShaderResources(0, 6, gbSrvs);
 
 	// Lightingシェーダーセット
 	dc->VSSetShader(lightingVS.Get(), nullptr, 0);
@@ -699,6 +700,6 @@ void RenderSystem::LightingPass(
 	dc->Draw(4, 0);
 
 	// SRVの束縛を解除
-	ID3D11ShaderResourceView* nullSrvs[5] = {};
-	dc->PSSetShaderResources(0, 5, nullSrvs);
+	ID3D11ShaderResourceView* nullSrvs[9] = {};
+	dc->PSSetShaderResources(0, 9, nullSrvs);
 }

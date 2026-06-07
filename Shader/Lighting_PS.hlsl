@@ -17,14 +17,12 @@ Texture2D gbNormal            : register(t1);
 Texture2D gbPosition          : register(t2);
 Texture2D gbRoughnessMetallic : register(t3);
 Texture2D gbEmissive          : register(t4);
+Texture2D gbOcclusion         : register(t5);
 
 // IBL用テクスチャ
-TextureCube diffuseIem    : register(t5);
-TextureCube specularPmrem : register(t6);
-Texture2D lutGgx          : register(t7);
-
-// Occlusion
-Texture2D gbOcclusion : register(t8);
+TextureCube diffuseIem    : register(t6);
+TextureCube specularPmrem : register(t7);
+Texture2D lutGgx          : register(t8);
 
 SamplerState samplerState : register(s0);
 
@@ -44,8 +42,7 @@ float4 main(VS_OUT pin) : SV_TARGET
     float3 worldPos = gbPosition.Sample(samplerState, uv).xyz;
     float4 roughnessMetallic = gbRoughnessMetallic.Sample(samplerState, uv);
     float3 emissive = gbEmissive.Sample(samplerState, uv).rgb;
-    //float occlusion = gbOcclusion.Sample(samplerState, uv).r;
-    float occlusion = 1.0f;
+    float  occlusion = gbOcclusion.Sample(samplerState, uv).r;
 
     // 法線デコード
     N = normalize(N * 2.0f - 1.0f);

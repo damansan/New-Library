@@ -23,6 +23,7 @@ struct PS_OUT
     float4 position          : SV_TARGET2; // WorldPosition
     float4 roughnessMetallic : SV_TARGET3; // R:Roughness G:Metallic
     float4 emissive          : SV_TARGET4; // Emissive
+    float occlusion          : SV_TARGET5; // Occlusion
 };
 
 PS_OUT main(VS_OUT pin)
@@ -66,6 +67,7 @@ PS_OUT main(VS_OUT pin)
     float3 emissive = emissiveMap.Sample(samplerState, pin.texcoord).rgb;
     emissive = pow(max(emissive, 0.0001f), 2.2f);
     pout.emissive = float4(emissive, 1.0f);
+    pout.occlusion = occlusionMap.Sample(samplerState, pin.texcoord).r;
 
     return pout;
 }
