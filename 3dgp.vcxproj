@@ -42,12 +42,12 @@
     <ClCompile Include="Source\Game\Player.cpp" />
     <ClCompile Include="Source\Game\SceneGame.cpp" />
     <ClCompile Include="Source\Game\Stage.cpp" />
+    <ClCompile Include="Source\Rendering\SkyBox.cpp" />
     <ClCompile Include="Source\Resource\GLTFConverter.cpp" />
     <ClCompile Include="Source\Resource\GLTFImporter.cpp" />
     <ClCompile Include="Source\Resource\GpuResourceUtils.cpp" />
     <ClCompile Include="Source\Resource\Model.cpp" />
     <ClCompile Include="Source\Resource\ResourceManager.cpp" />
-    <ClCompile Include="Source\Shader\SkyBox.cpp" />
     <ClCompile Include="Source\Utility\main.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -81,13 +81,13 @@
     <ClInclude Include="Source\Game\Player.h" />
     <ClInclude Include="Source\Game\SceneGame.h" />
     <ClInclude Include="Source\Game\Stage.h" />
+    <ClInclude Include="Source\Rendering\SkyBox.h" />
     <ClInclude Include="Source\Resource\GLTFConverter.h" />
     <ClInclude Include="Source\Resource\GLTFData.h" />
     <ClInclude Include="Source\Resource\GLTFImporter.h" />
     <ClInclude Include="Source\Resource\Model.h" />
     <ClInclude Include="Source\Resource\GpuResourceUtils.h" />
     <ClInclude Include="Source\Resource\ResourceManager.h" />
-    <ClInclude Include="Source\Shader\SkyBox.h" />
     <ClInclude Include="Source\Utility\high_resolution_timer.h" />
     <ClInclude Include="Source\Utility\misc.h" />
   </ItemGroup>

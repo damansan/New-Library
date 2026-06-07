@@ -155,14 +155,14 @@
     <Filter Include="Shader\SkyBox">
       <UniqueIdentifier>{1b0ea87d-9bb1-418d-a974-cdd1965c1b74}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Sources\Shader">
-      <UniqueIdentifier>{86e23669-f22d-47df-b29e-1d4285214f46}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Shader\SkyBox">
-      <UniqueIdentifier>{9e97e8a1-a467-46bd-9240-1e362631dcf8}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Shader\IBL">
       <UniqueIdentifier>{89857270-8749-4d50-962f-65309e5333a1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Rendering">
+      <UniqueIdentifier>{86e23669-f22d-47df-b29e-1d4285214f46}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Rendering\SkyBox">
+      <UniqueIdentifier>{9e97e8a1-a467-46bd-9240-1e362631dcf8}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -253,8 +253,8 @@
     <ClCompile Include="Source\Game\DamagedHelmet.cpp">
       <Filter>Sources\Game\Actor\Object\DamagedHelmet</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Shader\SkyBox.cpp">
-      <Filter>Sources\Shader\SkyBox</Filter>
+    <ClCompile Include="Source\Rendering\SkyBox.cpp">
+      <Filter>Sources\Rendering\SkyBox</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -372,8 +372,8 @@
     <ClInclude Include="Source\Game\DamagedHelmet.h">
       <Filter>Sources\Game\Actor\Object\DamagedHelmet</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Shader\SkyBox.h">
-      <Filter>Sources\Shader\SkyBox</Filter>
+    <ClInclude Include="Source\Rendering\SkyBox.h">
+      <Filter>Sources\Rendering\SkyBox</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

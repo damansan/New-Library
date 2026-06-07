@@ -3,7 +3,7 @@
 #include "ECS/Systems/RenderSystem.h"
 #include "ECS/Systems/AnimationSystem.h"
 #include "Debug/DebugRenderer.h"
-#include "Shader/SkyBox.h"
+#include "Rendering/SkyBox.h"
 #include <memory>
 
 #include "Game/Stage.h"
