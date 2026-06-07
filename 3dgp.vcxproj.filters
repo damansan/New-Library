@@ -164,6 +164,15 @@
     <Filter Include="Sources\Rendering\SkyBox">
       <UniqueIdentifier>{9e97e8a1-a467-46bd-9240-1e362631dcf8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\Rendering\GBuffer">
+      <UniqueIdentifier>{95c9f472-eff5-45d9-a729-6be6db67f6cd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shader\Gbuffer">
+      <UniqueIdentifier>{7fed1a80-c51b-4ebf-9f46-020f1a9788f5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shader\Lighting">
+      <UniqueIdentifier>{9359414c-cb4d-40dd-9279-5b2e93257f5a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Core\framework.cpp">
@@ -255,6 +264,9 @@
     </ClCompile>
     <ClCompile Include="Source\Rendering\SkyBox.cpp">
       <Filter>Sources\Rendering\SkyBox</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Rendering\GBuffer.cpp">
+      <Filter>Sources\Rendering\GBuffer</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -375,6 +387,9 @@
     <ClInclude Include="Source\Rendering\SkyBox.h">
       <Filter>Sources\Rendering\SkyBox</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Rendering\GBuffer.h">
+      <Filter>Sources\Rendering\GBuffer</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shader\Base_VS.hlsl">
@@ -403,6 +418,15 @@
     </FxCompile>
     <FxCompile Include="Shader\SkyBox_PS.hlsl">
       <Filter>Shader\SkyBox</Filter>
+    </FxCompile>
+    <FxCompile Include="Shader\Gbuffer_PS.hlsl">
+      <Filter>Shader\Gbuffer</Filter>
+    </FxCompile>
+    <FxCompile Include="Shader\Lighting_PS.hlsl">
+      <Filter>Shader\Lighting</Filter>
+    </FxCompile>
+    <FxCompile Include="Shader\Lighting_VS.hlsl">
+      <Filter>Shader\Lighting</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>

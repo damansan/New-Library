@@ -94,7 +94,7 @@ void SceneGame::Render(const SceneContext& context)
 
 		// ライト設定（仮の平行光源）
 		cbSceneData.lightDirection = { 0.5f, -1.0f, 0.5f, 0.0f };
-		cbSceneData.lightColor = { 1.0f,  1.0f, 1.0f, 3.0f };
+		cbSceneData.lightColor = { 1.0f,  1.0f, 1.0f, 1.0f };
 		cbSceneData.ambientColor = { 0.2f,  0.2f, 0.2f, 1.0f };
 
 		// カメラ位置
@@ -130,7 +130,10 @@ void SceneGame::Render(const SceneContext& context)
 			registry,
 			context.deviceContext,
 			context.renderTargetView,
-			context.depthStencilView
+			context.depthStencilView,
+			context.device,
+			context.screenWidth,
+			context.screenHeight
 		);
 	}
 

@@ -213,18 +213,6 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> renderTargetView; // ƒŒƒ“ƒ_[ƒ^[ƒQƒbƒgƒrƒ…[
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilView> depthStencilView; // [“xƒXƒeƒ“ƒVƒ‹
 
-	// GBuffer
-	Microsoft::WRL::ComPtr<ID3D11Texture2D> gbufferAlbedo;           // Albedo   (F)   •Û‘¶—pƒeƒNƒXƒ`ƒƒ
-	Microsoft::WRL::ComPtr<ID3D11Texture2D> gbufferNormal;           // Normal   (–@ü) •Û‘¶—pƒeƒNƒXƒ`ƒƒ
-	Microsoft::WRL::ComPtr<ID3D11Texture2D> gbufferPosition;         // Position (ˆÊ’u) •Û‘¶—pƒeƒNƒXƒ`ƒƒ
-	Microsoft::WRL::ComPtr<ID3D11Texture2D> gbufferRoughnessMetallic;// Metallic (‘e‚³) •Û‘¶—pƒeƒNƒXƒ`ƒƒ
-	Microsoft::WRL::ComPtr<ID3D11Texture2D> gbufferEmissive;         // Emissive (”­Œõ) •Û‘¶—pƒeƒNƒXƒ`ƒƒ
-
-	// GBuffer—pƒŒƒ“ƒ_[ƒ^[ƒQƒbƒgƒrƒ…[
-	Microsoft::WRL::ComPtr<ID3D11RenderTargetView>   gbufferRTV[5];
-	// GBuffer‚ğƒVƒF[ƒ_[‚©‚ç“Ç‚Ş‚½‚ß‚ÌƒVƒF[ƒ_[ƒŠƒ\[ƒXƒrƒ…[
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> gbufferSRV[5];
-
 	// •`‰æ—Ìˆæ
 	D3D11_VIEWPORT viewport{};
 
@@ -240,8 +228,6 @@ private:
 	// ƒEƒBƒ“ƒhƒEƒ‚[ƒh‚ÌˆÊ’u‚ÆƒTƒCƒY•Û‘¶
 	RECT windowedRect{};
 
-	// GBuffer¶¬ê—p
-	void CreateGBuffer(UINT w, UINT h);
 }; 
  
 ===== ImGuiManager.h ===== 
@@ -342,6 +328,9 @@ struct SceneContext
     Camera* camera = nullptr;
     DirectX::XMFLOAT4X4 view;
     DirectX::XMFLOAT4X4 projection;
+
+    UINT screenWidth = 0;
+    UINT screenHeight = 0;
 }; 
  
 ===== SceneManager.h ===== 
@@ -543,7 +532,6 @@ void framework::update(float elapsedTime)
 	context.view = camera.GetView();
 	context.projection = camera.GetProjection();
 
-
 	// ƒV[ƒ“XV
 	sceneManager.Update(elapsedTime, context);
 }
@@ -580,6 +568,8 @@ void framework::render(float elapsedTime)
 	context.camera = &camera;
 	context.view = camera.GetView();             
 	context.projection = camera.GetProjection(); 
+	context.screenWidth = static_cast<UINT>(graphics.GetScreenWidth());
+	context.screenHeight = static_cast<UINT>(graphics.GetScreenHeight());
 
 
 	// ƒV[ƒ“•`‰æ
@@ -946,9 +936,6 @@ void Graphics::Initialize(HWND hWnd)
 	viewport.Height = screenHeight;
 	viewport.MinDepth = 0.0f;       // [“x”ÍˆÍ
 	viewport.MaxDepth = 1.0f;
-
-	// GBuffer¶¬
-	CreateGBuffer(w, h);
 }
 
 // ‰æ–ÊƒNƒŠƒA
@@ -967,14 +954,6 @@ void Graphics::Clear(float r, float g, float b, float a)
 		1.0f, // [“x‰Šú’l(1.0 = Å‰“)
 		0     // ƒXƒeƒ“ƒVƒ‹‰Šú’l
 	);
-
-	// GBufferƒNƒŠƒAƒJƒ‰[ì¬(•)
-	float black[4]{ 0.0f, 0.0f, 0.0f, 1.0f };
-	// ‘SGBufferƒNƒŠƒA
-	for (int i = 0; i < 5; i++)
-	{
-		immediateContext->ClearRenderTargetView(gbufferRTV[i].Get(), black);
-	}
 }
 
 // ƒŒƒ“ƒ_[ƒ^[ƒQƒbƒgİ’è
@@ -1082,18 +1061,6 @@ void Graphics::ResizeBuffers()
 	renderTargetView.Reset();
 	// [“xƒXƒeƒ“ƒVƒ‹‰ğ•ú
 	depthStencilView.Reset();
-	// GBuffer ƒŒƒ“ƒ_[ƒ^[ƒQƒbƒgƒrƒ…[/ƒVƒF[ƒ_[ƒŠƒ\[ƒXƒrƒ…[‰ğ•ú
-	for (int i = 0; i < 5; i++)
-	{
-		gbufferRTV[i].Reset();
-		gbufferSRV[i].Reset();
-	}
-	// GBufferƒeƒNƒXƒ`ƒƒ‰ğ•ú
-	gbufferAlbedo.Reset();
-	gbufferNormal.Reset();
-	gbufferPosition.Reset();
-	gbufferRoughnessMetallic.Reset();
-	gbufferEmissive.Reset();
 
 	// ƒXƒƒbƒvƒ`ƒFƒCƒ“Ä¶¬
 	swapChain->ResizeBuffers(
@@ -1151,9 +1118,6 @@ void Graphics::ResizeBuffers()
 	// ƒrƒ…[ƒ|[ƒgƒTƒCƒYXV
 	viewport.Width = screenWidth;
 	viewport.Height = screenHeight;
-
-	// GBufferÄ¶¬
-	CreateGBuffer(w, h);
 }
 
 // I—¹ˆ—
@@ -1167,83 +1131,7 @@ void Graphics::Cleanup()
 
 	renderTargetView.Reset();
 	depthStencilView.Reset();
-
-	for (int i = 0; i < 5; i++)
-	{
-		gbufferRTV[i].Reset();
-		gbufferSRV[i].Reset();
-	}
-	gbufferAlbedo.Reset();
-	gbufferNormal.Reset();
-	gbufferPosition.Reset();
-	gbufferRoughnessMetallic.Reset();
-	gbufferEmissive.Reset();
-}
-
-// GBuffer¶¬ê—p
-void Graphics::CreateGBuffer(UINT w, UINT h)
-{
-	HRESULT hr{ S_OK };
-
-	// GBufferƒtƒH[ƒ}ƒbƒg
-	DXGI_FORMAT gbufferFormats[5] =
-	{
-		DXGI_FORMAT_R8G8B8A8_UNORM,     // F
-		DXGI_FORMAT_R16G16B16A16_FLOAT, // –@ü
-		DXGI_FORMAT_R32G32B32A32_FLOAT, // ˆÊ’u
-		DXGI_FORMAT_R8G8B8A8_UNORM,
-		DXGI_FORMAT_R16G16B16A16_FLOAT,
-	};
-
-	// ŠeGBuffer¶¬
-	for (int i = 0; i < 5; i++)
-	{
-		// ƒeƒNƒXƒ`ƒƒİ’è
-		D3D11_TEXTURE2D_DESC texDesc{};
-		texDesc.Width = w;     // ƒTƒCƒY
-		texDesc.Height = h;
-		texDesc.MipLevels = 1;               // ƒ~ƒbƒvƒ}ƒbƒv–³‚µ
-		texDesc.ArraySize = 1;               // ƒeƒNƒXƒ`ƒƒ”z—ñ”
-		texDesc.Format = gbufferFormats[i];  // ƒtƒH[ƒ}ƒbƒg
-		texDesc.SampleDesc.Count = 1;        // MSAAİ’è
-		texDesc.Usage = D3D11_USAGE_DEFAULT; // GPUg—p
-		// RenderTarget‚ÆShaderResource ‚Ì—¼•û‚Åg—p
-		texDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
-
-		// GBufferƒeƒNƒXƒ`ƒƒ¶¬
-		Microsoft::WRL::ComPtr<ID3D11Texture2D> tex;
-		hr = device->CreateTexture2D(
-			&texDesc,
-			nullptr,
-			tex.GetAddressOf()
-		);
-		_ASSERT_EXPR(SUCCEEDED(hr), hr_trace(hr));
-
-		// ƒŒƒ“ƒ_[ƒ^[ƒQƒbƒgƒrƒ…[¶¬
-		hr = device->CreateRenderTargetView(
-			tex.Get(),
-			nullptr,
-			gbufferRTV[i].GetAddressOf()
-		);
-		_ASSERT_EXPR(SUCCEEDED(hr), hr_trace(hr));
-
-		// ƒVƒF[ƒ_[ƒŠƒ\[ƒXƒrƒ…[¶¬
-		hr = device->CreateShaderResourceView(
-			tex.Get(),
-			nullptr,
-			gbufferSRV[i].GetAddressOf()
-		);
-		_ASSERT_EXPR(SUCCEEDED(hr), hr_trace(hr));
-
-		// ƒeƒNƒXƒ`ƒƒ•Û
-		if (i == 0) gbufferAlbedo = tex;            // F
-		if (i == 1) gbufferNormal = tex;            // –@ü
-		if (i == 2) gbufferPosition = tex;          // ˆÊ’u
-		if (i == 3) gbufferRoughnessMetallic = tex; // ‘e‚³
-		if (i == 4) gbufferEmissive = tex;          // ”­Œõ
-	}
-}
- 
+} 
  
 ===== ImGuiManager.cpp ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\Core\ImGuiManager.cpp 
@@ -1915,7 +1803,7 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\RenderSystem.h
 #include "ECS/Components/Tags.h"
 
 #include "Resource/Model.h"
-
+#include "Rendering/GBuffer.h"
 
 // ’è”ƒoƒbƒtƒ@\‘¢‘Ì
 struct CbScene
@@ -1951,10 +1839,13 @@ public:
         entt::registry& registry,
         ID3D11DeviceContext* dc,
         ID3D11RenderTargetView* rtv,
-        ID3D11DepthStencilView* dsv
+        ID3D11DepthStencilView* dsv,
+        ID3D11Device* device,
+        UINT width,
+        UINT height
     );
 
-    // ƒtƒ‰ƒXƒ^ƒ€‚ğSceneGame‘¤‚©‚çƒZƒbƒg
+    // ƒtƒ‰ƒXƒ^ƒ€‚ğScene‘¤‚©‚çƒZƒbƒg
     void SetFrustum(
         const DirectX::XMFLOAT4X4& view,
         const DirectX::XMFLOAT4X4& projection)
@@ -1962,10 +1853,27 @@ public:
         cachedFrustum = CalcFrustum(view, projection);
     }
 
+    // IBLƒeƒNƒXƒ`ƒƒƒZƒbƒg
+    void SetIBLTextures(
+        ID3D11ShaderResourceView* diffuseIem,
+        ID3D11ShaderResourceView* specularPmrem,
+        ID3D11ShaderResourceView* lutGgx)
+    {
+        iblDiffuseIem = diffuseIem;
+        iblSpecularPmrem = specularPmrem;
+        iblLutGgx = lutGgx;
+    }
 
     // ’è”ƒoƒbƒtƒ@ƒQƒbƒ^[
     ID3D11Buffer* GetCbScene() { return cbScene.Get(); }
     ID3D11Buffer** GetCbSceneAddress() { return cbScene.GetAddressOf(); }
+
+    // ‰æ–ÊƒTƒCƒYƒZƒbƒg
+    void SetScreenSize(UINT width, UINT height)
+    {
+        screenWidth = width;
+        screenHeight = height;
+    }
 private:
 
     // ƒtƒ‰ƒXƒ^ƒ€•½–Ê
@@ -1983,7 +1891,7 @@ private:
 
 
     // Ã“IƒƒbƒVƒ…•`‰æ
-    void RenderStatic(
+    void RenderStaticGeometry(
         entt::registry& registry,
         ID3D11DeviceContext* dc,
         bool transparent,
@@ -1991,7 +1899,7 @@ private:
     );
 
     // ƒXƒLƒjƒ“ƒOƒƒbƒVƒ…•`‰æ
-    void RenderSkinned(
+    void RenderSkinnedGeometry(
         entt::registry& registry,
         ID3D11DeviceContext* dc,
         bool transparent,
@@ -2044,12 +1952,50 @@ private:
     // ƒuƒŒƒ“ƒhƒXƒe[ƒg
     Microsoft::WRL::ComPtr<ID3D11BlendState>        blendState;
 
-    // ƒ_ƒ~[ƒeƒNƒXƒ`ƒƒiƒeƒNƒXƒ`ƒƒ‚ª‚È‚¢ƒƒbƒVƒ…—pj
+    // ƒ_ƒ~[ƒeƒNƒXƒ`ƒƒ
     Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> dummyWhite;  // Albedo/Occlusion—p
     Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> dummyNormal; // –@üƒ}ƒbƒv—p (0.5,0.5,1.0)
     Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> dummyBlack;  // Emissive—p
 
+    // IBL—pƒeƒNƒXƒ`ƒƒ
+    ID3D11ShaderResourceView* iblDiffuseIem = nullptr;
+    ID3D11ShaderResourceView* iblSpecularPmrem = nullptr;
+    ID3D11ShaderResourceView* iblLutGgx = nullptr;
+
     Frustum cachedFrustum;
+
+
+    // GBuffer
+    GBuffer gBuffer;
+
+    // ‰æ–ÊƒTƒCƒY
+    UINT screenWidth = 0;
+    UINT screenHeight = 0;
+
+    // GeometryƒpƒX—pPixelShader
+    Microsoft::WRL::ComPtr<ID3D11PixelShader> gBufferPS;
+
+    // LightingƒpƒX—p
+    Microsoft::WRL::ComPtr<ID3D11VertexShader> lightingVS;
+    Microsoft::WRL::ComPtr<ID3D11PixelShader>  lightingPS;
+
+    // ƒtƒ‹ƒXƒNƒŠ[ƒ“•`‰æ—pƒ‰ƒXƒ^ƒ‰ƒCƒU[
+    Microsoft::WRL::ComPtr<ID3D11RasterizerState> rasterizerStateNoCull;
+
+    // GeometryƒpƒX
+    void GeometryPass(
+        entt::registry& registry,
+        ID3D11DeviceContext* dc,
+        ID3D11DepthStencilView* dsv,
+        const Frustum& frustum
+    );
+
+    // LightingƒpƒX
+    void LightingPass(
+        ID3D11DeviceContext* dc,
+        ID3D11RenderTargetView* rtv,
+        ID3D11DepthStencilView* dsv
+    );
 }; 
  
 ===== AnimationSystem.cpp ===== 
@@ -2538,52 +2484,120 @@ void RenderSystem::Initialize(ID3D11Device* device)
 	GpuResourceUtils::CreateDummyTexture(device, dummyNormal, 0xFFFF8080, 1);
 	// • (Emissive—p)
 	GpuResourceUtils::CreateDummyTexture(device, dummyBlack, 0xFF000000, 1);
+
+
+	// Gbuffer—pPixelShader“Ç‚İ‚İ
+	GpuResourceUtils::LoadPixelShader(
+		device, "Data/Shader/Gbuffer_PS.cso", gBufferPS);
+
+	// LightingƒpƒX—pƒVƒF[ƒ_[“Ç‚İ‚İ
+	Microsoft::WRL::ComPtr<ID3D11InputLayout> dummyLayoutL;
+	GpuResourceUtils::LoadVertexShader(
+		device,
+		"Data/Shader/Lighting_VS.cso",
+		nullptr, 0,
+		dummyLayoutL,
+		lightingVS
+	);
+	GpuResourceUtils::LoadPixelShader(
+		device, "Data/Shader/Lighting_PS.cso", lightingPS);
+
+	// ƒJƒŠƒ“ƒO‚È‚µƒ‰ƒXƒ^ƒ‰ƒCƒU[
+	D3D11_RASTERIZER_DESC noCullDesc{};
+	noCullDesc.FillMode = D3D11_FILL_SOLID;
+	noCullDesc.CullMode = D3D11_CULL_NONE;
+	noCullDesc.FrontCounterClockwise = FALSE;
+	device->CreateRasterizerState(
+		&noCullDesc, rasterizerStateNoCull.GetAddressOf());
 }
 
 // •`‰æ
-void RenderSystem::Render(entt::registry& registry, ID3D11DeviceContext* dc, ID3D11RenderTargetView* rtv, ID3D11DepthStencilView* dsv)
+void RenderSystem::Render(
+	entt::registry& registry, 
+	ID3D11DeviceContext* dc, 
+	ID3D11RenderTargetView* rtv,
+	ID3D11DepthStencilView* dsv, 
+	ID3D11Device* device,
+	UINT width, 
+	UINT height)
 {
-	// ƒŒƒ“ƒ_[ƒ^[ƒQƒbƒgÄƒZƒbƒg
-	dc->OMSetRenderTargets(1, &rtv, dsv);
-
-	// ‹¤’ÊƒXƒe[ƒgİ’è
-	dc->RSSetState(rasterizerState.Get());
-	dc->PSSetSamplers(0, 1, samplerState.GetAddressOf());
-	dc->IASetInputLayout(inputLayout.Get());
-	dc->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-	float blendFactor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+	// GBuffer‰Šú‰»
+	if (screenWidth != width || screenHeight != height || screenWidth == 0)
+	{
+		screenWidth = width;
+		screenHeight = height;
+		gBuffer.Initialize(device, width, height);
+	}
 
 	Frustum frustum = cachedFrustum;
 
+	// GeometryƒpƒX
+	GeometryPass(registry, dc, dsv, frustum);
 
-	// •s“§–¾ƒpƒX
-	dc->OMSetDepthStencilState(depthStencilState.Get(), 0);
-	dc->OMSetBlendState(blendState.Get(), blendFactor, 0xFFFFFFFF);
+	// IBL—pƒeƒNƒXƒ`ƒƒƒZƒbƒg
+	ID3D11ShaderResourceView* iblSrvs[3] =
+	{
+		iblDiffuseIem,
+		iblSpecularPmrem,
+		iblLutGgx,
+	};
+	dc->PSSetShaderResources(5, 3, iblSrvs);
 
-	// Ã“IƒƒbƒVƒ…•`‰æ
-	dc->VSSetShader(vertexShader.Get(), nullptr, 0);
-	RenderStatic(registry, dc, false, frustum);
-	// ƒXƒLƒjƒ“ƒOƒƒbƒVƒ…•`‰æ
-	dc->VSSetShader(skinnedVertexShader.Get(), nullptr, 0);
-	RenderSkinned(registry, dc, false, frustum);
+	// LightingƒpƒX
+	LightingPass(dc, rtv, dsv);
 
 
-	// ”¼“§–¾ƒpƒX
-	dc->OMSetDepthStencilState(depthStencilStateTransparent.Get(), 0);
-	dc->OMSetBlendState(blendState.Get(), blendFactor, 0xFFFFFFFF);
 
-	// Ã“IƒƒbƒVƒ…•`‰æ
-	dc->VSSetShader(vertexShader.Get(), nullptr, 0);
-	RenderStatic(registry, dc, true, frustum);
-	// ƒXƒLƒjƒ“ƒOƒƒbƒVƒ…•`‰æ
-	dc->VSSetShader(skinnedVertexShader.Get(), nullptr, 0);
-	RenderSkinned(registry, dc, true, frustum);
+	//// ƒŒƒ“ƒ_[ƒ^[ƒQƒbƒgÄƒZƒbƒg
+	//dc->OMSetRenderTargets(1, &rtv, dsv);
+
+	//// IBL—pƒeƒNƒXƒ`ƒƒ‚ğƒsƒNƒZƒ‹ƒVƒF[ƒ_[‚ÉƒZƒbƒg
+	//ID3D11ShaderResourceView* iblSrvs[3] =
+	//{
+	//	iblDiffuseIem,
+	//	iblSpecularPmrem,
+	//	iblLutGgx,
+	//};
+	//dc->PSSetShaderResources(5, 3, iblSrvs);
+
+	//// ‹¤’ÊƒXƒe[ƒgİ’è
+	//dc->RSSetState(rasterizerState.Get());
+	//dc->PSSetSamplers(0, 1, samplerState.GetAddressOf());
+	//dc->IASetInputLayout(inputLayout.Get());
+	//dc->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	//float blendFactor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+
+	//Frustum frustum = cachedFrustum;
+
+
+	//// •s“§–¾ƒpƒX
+	//dc->OMSetDepthStencilState(depthStencilState.Get(), 0);
+	//dc->OMSetBlendState(blendState.Get(), blendFactor, 0xFFFFFFFF);
+
+	//// Ã“IƒƒbƒVƒ…•`‰æ
+	//dc->VSSetShader(vertexShader.Get(), nullptr, 0);
+	//RenderStatic(registry, dc, false, frustum);
+	//// ƒXƒLƒjƒ“ƒOƒƒbƒVƒ…•`‰æ
+	//dc->VSSetShader(skinnedVertexShader.Get(), nullptr, 0);
+	//RenderSkinned(registry, dc, false, frustum);
+
+
+	//// ”¼“§–¾ƒpƒX
+	//dc->OMSetDepthStencilState(depthStencilStateTransparent.Get(), 0);
+	//dc->OMSetBlendState(blendState.Get(), blendFactor, 0xFFFFFFFF);
+
+	//// Ã“IƒƒbƒVƒ…•`‰æ
+	//dc->VSSetShader(vertexShader.Get(), nullptr, 0);
+	//RenderStatic(registry, dc, true, frustum);
+	//// ƒXƒLƒjƒ“ƒOƒƒbƒVƒ…•`‰æ
+	//dc->VSSetShader(skinnedVertexShader.Get(), nullptr, 0);
+	//RenderSkinned(registry, dc, true, frustum);
 
 }
 
 // Ã“IƒƒbƒVƒ…•`‰æ
-void RenderSystem::RenderStatic(
+void RenderSystem::RenderStaticGeometry(
 	entt::registry& registry,
 	ID3D11DeviceContext* dc,
 	bool transparent,
@@ -2597,20 +2611,20 @@ void RenderSystem::RenderStatic(
 			// ƒ‚ƒfƒ‹‚ª–¢İ’è‚È‚çƒXƒLƒbƒv
 			if (!staticMesh.model) return;
 
-			// ƒGƒ“ƒeƒBƒeƒB‚ÌƒpƒXƒŠƒXƒg‚ğæ“¾
-			std::vector<std::string> passes;
-			if (registry.all_of<MaterialComponent>(entity))
-			{
-				auto& mat = registry.get<MaterialComponent>(entity);
-				for (auto& pass : mat.passes)
-				{
-					if (pass.enabled) passes.push_back(pass.name);
-				}
-			}
-			else
-			{
-				passes.push_back("lambert");
-			}
+			//// ƒGƒ“ƒeƒBƒeƒB‚ÌƒpƒXƒŠƒXƒg‚ğæ“¾
+			//std::vector<std::string> passes;
+			//if (registry.all_of<MaterialComponent>(entity))
+			//{
+			//	auto& mat = registry.get<MaterialComponent>(entity);
+			//	for (auto& pass : mat.passes)
+			//	{
+			//		if (pass.enabled) passes.push_back(pass.name);
+			//	}
+			//}
+			//else
+			//{
+			//	passes.push_back("lambert");
+			//}
 
 			// ƒtƒ‰ƒXƒ^ƒ€ƒJƒŠƒ“ƒO
 			DirectX::XMFLOAT4X4 worldMatrix{};
@@ -2685,22 +2699,23 @@ void RenderSystem::RenderStatic(
 				};
 				dc->PSSetShaderResources(0, 5, srvs);
 				
-				// ƒpƒX‚²‚Æ‚ÉPS‚ğØ‚è‘Ö‚¦‚Ä•`‰æ
-				for (auto& passName : passes)
-				{
-					auto it = staticPixelShaders.find(passName);
-					if (it == staticPixelShaders.end()) continue;
+				//// ƒpƒX‚²‚Æ‚ÉPS‚ğØ‚è‘Ö‚¦‚Ä•`‰æ
+				//for (auto& passName : passes)
+				//{
+				//	auto it = staticPixelShaders.find(passName);
+				//	if (it == staticPixelShaders.end()) continue;
 
-					dc->PSSetShader(it->second.Get(), nullptr, 0);
-					dc->DrawIndexed(static_cast<UINT>(mesh.indices.size()), 0, 0);
-				}
+				//	dc->PSSetShader(it->second.Get(), nullptr, 0);
+				//	dc->DrawIndexed(static_cast<UINT>(mesh.indices.size()), 0, 0);
+				//}
+				dc->DrawIndexed(static_cast<UINT>(mesh.indices.size()), 0, 0);
 			}
 
 		});
 }
 
 // ƒXƒLƒjƒ“ƒOƒƒbƒVƒ…•`‰æ
-void RenderSystem::RenderSkinned(
+void RenderSystem::RenderSkinnedGeometry(
 	entt::registry& registry,
 	ID3D11DeviceContext* dc,
 	bool transparent,
@@ -2715,19 +2730,19 @@ void RenderSystem::RenderSkinned(
 			// ƒ‚ƒfƒ‹‚ª–¢İ’è‚È‚çƒXƒLƒbƒv
 			if (!skinnedMesh.model) return;
 
-			std::vector<std::string> passes;
-			if (registry.all_of<MaterialComponent>(entity))
-			{
-				auto& mat = registry.get<MaterialComponent>(entity);
-				for (auto& pass : mat.passes)
-				{
-					if (pass.enabled) passes.push_back(pass.name);
-				}
-			}
-			else
-			{
-				passes.push_back("lambert");
-			}
+			//std::vector<std::string> passes;
+			//if (registry.all_of<MaterialComponent>(entity))
+			//{
+			//	auto& mat = registry.get<MaterialComponent>(entity);
+			//	for (auto& pass : mat.passes)
+			//	{
+			//		if (pass.enabled) passes.push_back(pass.name);
+			//	}
+			//}
+			//else
+			//{
+			//	passes.push_back("lambert");
+			//}
 
 			// ƒtƒ‰ƒXƒ^ƒ€ƒJƒŠƒ“ƒO
 			DirectX::XMFLOAT4X4 worldMatrix{};
@@ -2810,14 +2825,15 @@ void RenderSystem::RenderSkinned(
 				};
 				dc->PSSetShaderResources(0, 5, srvs);
 				
-				for (auto& passName : passes)
-				{
-					auto it = skinnedPixelShaders.find(passName);
-					if (it == skinnedPixelShaders.end()) continue;
+				//for (auto& passName : passes)
+				//{
+				//	auto it = skinnedPixelShaders.find(passName);
+				//	if (it == skinnedPixelShaders.end()) continue;
 
-					dc->PSSetShader(it->second.Get(), nullptr, 0);
-					dc->DrawIndexed(static_cast<UINT>(mesh.indices.size()), 0, 0);
-				}
+				//	dc->PSSetShader(it->second.Get(), nullptr, 0);
+				//	dc->DrawIndexed(static_cast<UINT>(mesh.indices.size()), 0, 0);
+				//}
+				dc->DrawIndexed(static_cast<UINT>(mesh.indices.size()), 0, 0);
 			}
 		});
 }
@@ -2926,6 +2942,108 @@ bool RenderSystem::IsInFrustum(
 		}
 	}
 	return true;
+}
+
+// GeometryƒpƒX
+void RenderSystem::GeometryPass(
+	entt::registry& registry,
+	ID3D11DeviceContext* dc, 
+	ID3D11DepthStencilView* dsv,
+	const Frustum& frustum)
+{
+	// Gƒoƒbƒtƒ@‚ÌRTV‚ğƒZƒbƒg{ƒNƒŠƒA
+	gBuffer.BeginGeometryPass(dc, dsv);
+
+	// ƒrƒ…[ƒ|[ƒgİ’è
+	D3D11_VIEWPORT vp{};
+	vp.Width = static_cast<float>(screenWidth);
+	vp.Height = static_cast<float>(screenHeight);
+	vp.MinDepth = 0.0f;
+	vp.MaxDepth = 1.0f;
+	dc->RSSetViewports(1, &vp);
+
+	// ‹¤’ÊƒXƒe[ƒgİ’è
+	dc->RSSetState(rasterizerState.Get());
+	dc->PSSetSamplers(0, 1, samplerState.GetAddressOf());
+	dc->IASetInputLayout(inputLayout.Get());
+	dc->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	float blendFactor[4] = {};
+
+	// •s“§–¾ƒpƒX
+	dc->OMSetDepthStencilState(depthStencilState.Get(), 0);
+	dc->OMSetBlendState(blendState.Get(), blendFactor, 0xFFFFFFFF);
+
+	// GBuffer_PS‚ğƒZƒbƒg
+	dc->PSSetShader(gBufferPS.Get(), nullptr, 0);
+
+	// Ã“IƒƒbƒVƒ…•`‰æ
+	dc->VSSetShader(vertexShader.Get(), nullptr, 0);
+	RenderStaticGeometry(registry, dc, false, frustum);
+
+	// ƒXƒLƒjƒ“ƒOƒƒbƒVƒ…•`‰æ
+	dc->VSSetShader(skinnedVertexShader.Get(), nullptr, 0);
+	RenderSkinnedGeometry(registry, dc, false, frustum);
+
+	// GeometryƒpƒXI—¹
+	gBuffer.EndGeometryPass(dc);
+}
+
+// LightingƒpƒX
+void RenderSystem::LightingPass(
+	ID3D11DeviceContext* dc,
+	ID3D11RenderTargetView* rtv,
+	ID3D11DepthStencilView* dsv)
+{
+	// ƒƒCƒ“RTV‚ÉƒZƒbƒg
+	dc->OMSetRenderTargets(1, &rtv, dsv);
+
+	// ƒrƒ…[ƒ|[ƒgİ’è
+	D3D11_VIEWPORT vp{};
+	vp.Width = static_cast<float>(screenWidth);
+	vp.Height = static_cast<float>(screenHeight);
+	vp.MinDepth = 0.0f;
+	vp.MaxDepth = 1.0f;
+	dc->RSSetViewports(1, &vp);
+
+	// Gƒoƒbƒtƒ@‚ğSRV‚Æ‚µ‚ÄƒZƒbƒg
+	ID3D11ShaderResourceView* gbSrvs[5] =
+	{
+		gBuffer.GetAlbedoSRV(),
+		gBuffer.GetNormalSRV(),
+		gBuffer.GetPositionSRV(),
+		gBuffer.GetRoughnessMetallicSRV(),
+		gBuffer.GetEmissiveSRV(),
+	};
+	dc->PSSetShaderResources(0, 5, gbSrvs);
+
+	// LightingƒVƒF[ƒ_[ƒZƒbƒg
+	dc->VSSetShader(lightingVS.Get(), nullptr, 0);
+	dc->PSSetShader(lightingPS.Get(), nullptr, 0);
+
+	// “ü—ÍƒŒƒCƒAƒEƒg‚È‚µ
+	dc->IASetInputLayout(nullptr);
+	dc->IASetPrimitiveTopology(
+		D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+
+	// ƒJƒŠƒ“ƒO‚È‚µƒ‰ƒXƒ^ƒ‰ƒCƒU[
+	dc->RSSetState(rasterizerStateNoCull.Get());
+
+	// [“x‘‚«‚İOFF
+	dc->OMSetDepthStencilState(
+		depthStencilStateTransparent.Get(), 0);
+
+	// CbScene‚ğƒsƒNƒZƒ‹ƒVƒF[ƒ_[‚ÉƒZƒbƒg
+	dc->PSSetConstantBuffers(0, 1, cbScene.GetAddressOf());
+	// ƒTƒ“ƒvƒ‰[‚àƒZƒbƒg
+	dc->PSSetSamplers(0, 1, samplerState.GetAddressOf());
+
+	// ƒtƒ‹ƒXƒNƒŠ[ƒ“•`‰æ
+	dc->Draw(4, 0);
+
+	// SRV‚Ì‘©”›‚ğ‰ğœ
+	ID3D11ShaderResourceView* nullSrvs[5] = {};
+	dc->PSSetShaderResources(0, 5, nullSrvs);
 }
  
  
@@ -3052,7 +3170,7 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Game\SceneGame.h
 #include "ECS/Systems/RenderSystem.h"
 #include "ECS/Systems/AnimationSystem.h"
 #include "Debug/DebugRenderer.h"
-#include "Shader/SkyBox.h"
+#include "Rendering/SkyBox.h"
 #include <memory>
 
 #include "Game/Stage.h"
@@ -3211,6 +3329,12 @@ void SceneGame::Initialize(const SceneContext& context)
 		context.device,
 		"Data/SkyBox/BlueSky"
 	);
+	// IBLãƒ†ã‚¯ã‚¹ãƒãƒ£ã‚»ãƒƒãƒˆ
+	renderSystem.SetIBLTextures(
+		skyBox.GetDiffuseIem(),
+		skyBox.GetSRV(),
+		skyBox.GetLutGgx()
+	);
 
 	// Stageç”Ÿæˆ/åˆæœŸåŒ–
 	stage = std::make_unique<Stage>();
@@ -3220,9 +3344,9 @@ void SceneGame::Initialize(const SceneContext& context)
 	player = std::make_unique<Player>();
 	player->Initialize(registry, context);
 
-	// Enemyç”Ÿæˆ/åˆæœŸåŒ–
-	enemy = std::make_unique<Enemy>();
-	enemy->Initialize(registry, context);
+	//// Enemyç”Ÿæˆ/åˆæœŸåŒ–
+	//enemy = std::make_unique<Enemy>();
+	//enemy->Initialize(registry, context);
 
 	//// ãƒ˜ãƒ«ãƒ¡ãƒƒãƒˆç”Ÿæˆ/åˆæœŸåŒ–
 	//helmet = std::make_unique<DamagedHelmet>();
@@ -3261,12 +3385,12 @@ void SceneGame::Update(float elapsedTime, const SceneContext& context)
 		// Player æ›´æ–°
 		player->Update(elapsedTime, registry, context);
 	}
-	{
-		ZoneScopedN("Enemy::Update");
+	//{
+	//	ZoneScopedN("Enemy::Update");
 
-		// Enemy æ›´æ–°
-		enemy->Update(elapsedTime, registry, context);
-	}
+	//	// Enemy æ›´æ–°
+	//	enemy->Update(elapsedTime, registry, context);
+	//}
 
 	//helmet->Update(elapsedTime, registry, context);
 }
@@ -3322,7 +3446,10 @@ void SceneGame::Render(const SceneContext& context)
 			registry,
 			context.deviceContext,
 			context.renderTargetView,
-			context.depthStencilView
+			context.depthStencilView,
+			context.device,
+			context.screenWidth,
+			context.screenHeight
 		);
 	}
 
@@ -3400,6 +3527,351 @@ void Stage::Initialize(entt::registry& registry, const SceneContext& context)
 void Stage::RenderImGui()
 {
 } 
+ 
+===== GBuffer.h ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Rendering\GBuffer.h 
+#pragma once
+#include <d3d11.h>
+#include <wrl.h>
+
+class GBuffer
+{
+public:
+    // ‰Šú‰»
+    void Initialize(ID3D11Device* device, UINT width, UINT height);
+
+    // GeometryƒpƒXŠJn
+    void BeginGeometryPass(ID3D11DeviceContext* dc,
+        ID3D11DepthStencilView* dsv);
+
+    // GeometryƒpƒXI—¹
+    void EndGeometryPass(ID3D11DeviceContext* dc);
+
+    // SRVƒQƒbƒ^[iLightingƒpƒX‚ÅGƒoƒbƒtƒ@‚ğ“Ç‚Şj
+    ID3D11ShaderResourceView* GetAlbedoSRV()    const { return srvs[0].Get(); }
+    ID3D11ShaderResourceView* GetNormalSRV()    const { return srvs[1].Get(); }
+    ID3D11ShaderResourceView* GetPositionSRV()  const { return srvs[2].Get(); }
+    ID3D11ShaderResourceView* GetRoughnessMetallicSRV() const { return srvs[3].Get(); }
+    ID3D11ShaderResourceView* GetEmissiveSRV()  const { return srvs[4].Get(); }
+
+    // RTV”z—ñƒQƒbƒ^[
+    ID3D11RenderTargetView* const* GetRTVs() const { return rtvPtrs; }
+    static constexpr UINT BUFFER_COUNT = 5;
+
+private:
+    // RTV
+    Microsoft::WRL::ComPtr<ID3D11RenderTargetView>   rtvs[BUFFER_COUNT];
+    // SRV
+    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srvs[BUFFER_COUNT];
+    // RTV‚Ìrawƒ|ƒCƒ“ƒ^”z—ñ
+    ID3D11RenderTargetView* rtvPtrs[BUFFER_COUNT] = {};
+}; 
+ 
+===== SkyBox.h ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Rendering\SkyBox.h 
+#pragma once
+#include <d3d11.h>
+#include <wrl.h>
+#include <DirectXMath.h>
+#include <string>
+
+class SkyBox
+{
+public:
+    // ‰Šú‰»
+    void Initialize(ID3D11Device* device, const std::string& folderPath);
+
+    // •`‰æ
+    void Render(
+        ID3D11DeviceContext* dc,
+        const DirectX::XMFLOAT4X4& view,
+        const DirectX::XMFLOAT4X4& projection,
+        const DirectX::XMFLOAT3& cameraPosition
+    );
+
+    // SRVƒQƒbƒ^[
+    ID3D11ShaderResourceView* GetSRV() const { return skyTexture.Get(); }
+    ID3D11ShaderResourceView* GetDiffuseIem()  const { return diffuseIem.Get(); }
+    ID3D11ShaderResourceView* GetLutGgx()      const { return lutGgx.Get(); }
+
+    // IBL ON/OFF
+    bool enabled = true;
+
+private:
+    struct CbSkyBox
+    {
+        DirectX::XMFLOAT4X4 view;
+        DirectX::XMFLOAT4X4 projection;
+        DirectX::XMFLOAT4   cameraPosition;
+        // 16ƒoƒCƒgƒAƒ‰ƒCƒƒ“ƒg—pƒpƒfƒBƒ“ƒO
+        DirectX::XMFLOAT4   padding;
+    };
+
+
+    // ’¸“_ƒVƒF[ƒ_[
+    Microsoft::WRL::ComPtr<ID3D11VertexShader>       vertexShader;
+    // ƒsƒNƒZƒ‹ƒVƒF[ƒ_[
+    Microsoft::WRL::ComPtr<ID3D11PixelShader>        pixelShader;
+    // “ü—ÍƒŒƒCƒAƒEƒg
+    Microsoft::WRL::ComPtr<ID3D11InputLayout>        inputLayout;
+    // ’¸“_ƒoƒbƒtƒ@
+    Microsoft::WRL::ComPtr<ID3D11Buffer>             vertexBuffer;
+    // ƒCƒ“ƒfƒbƒNƒXƒoƒbƒtƒ@
+    Microsoft::WRL::ComPtr<ID3D11Buffer>             indexBuffer;
+    // ƒLƒ…[ƒuƒ}ƒbƒvƒeƒNƒXƒ`ƒƒ
+    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> skyTexture;
+    // ƒTƒ“ƒvƒ‰[ƒXƒe[ƒg
+    Microsoft::WRL::ComPtr<ID3D11SamplerState>       samplerState;
+    // [“xƒXƒeƒ“ƒVƒ‹ƒXƒe[ƒgi[“x‘‚«‚İOFFj
+    Microsoft::WRL::ComPtr<ID3D11DepthStencilState>  depthStencilState;
+    // ’è”ƒoƒbƒtƒ@
+    Microsoft::WRL::ComPtr<ID3D11Buffer>             cbSkyBox;
+
+    UINT indexCount = 0;
+
+    // IBL—pƒeƒNƒXƒ`ƒƒ
+    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> diffuseIem;
+    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> lutGgx;
+}; 
+ 
+===== GBuffer.cpp ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Rendering\GBuffer.cpp 
+#include "GBuffer.h"
+#include "Utility/misc.h"
+
+void GBuffer::Initialize(ID3D11Device* device, UINT width, UINT height)
+{
+    // GBuffer‚ÌƒtƒH[ƒ}ƒbƒg’è‹`
+    DXGI_FORMAT formats[BUFFER_COUNT] =
+    {
+        DXGI_FORMAT_R8G8B8A8_UNORM,      // Albedo
+        DXGI_FORMAT_R16G16B16A16_FLOAT,  // Normal
+        DXGI_FORMAT_R32G32B32A32_FLOAT,  // Position
+        DXGI_FORMAT_R8G8B8A8_UNORM,      // Roughness/Metallic
+        DXGI_FORMAT_R16G16B16A16_FLOAT,  // Emissive
+    };
+
+    for (UINT i = 0; i < BUFFER_COUNT; i++)
+    {
+        // ƒeƒNƒXƒ`ƒƒ¶¬
+        D3D11_TEXTURE2D_DESC texDesc{};
+        texDesc.Width = width;
+        texDesc.Height = height;
+        texDesc.MipLevels = 1;
+        texDesc.ArraySize = 1;
+        texDesc.Format = formats[i];
+        texDesc.SampleDesc.Count = 1;
+        texDesc.Usage = D3D11_USAGE_DEFAULT;
+        texDesc.BindFlags = D3D11_BIND_RENDER_TARGET
+            | D3D11_BIND_SHADER_RESOURCE;
+
+        Microsoft::WRL::ComPtr<ID3D11Texture2D> tex;
+        HRESULT hr = device->CreateTexture2D(
+            &texDesc, nullptr, tex.GetAddressOf());
+        _ASSERT_EXPR(SUCCEEDED(hr), hr_trace(hr));
+
+        // RTV¶¬
+        hr = device->CreateRenderTargetView(
+            tex.Get(), nullptr, rtvs[i].GetAddressOf());
+        _ASSERT_EXPR(SUCCEEDED(hr), hr_trace(hr));
+
+        // SRV¶¬
+        hr = device->CreateShaderResourceView(
+            tex.Get(), nullptr, srvs[i].GetAddressOf());
+        _ASSERT_EXPR(SUCCEEDED(hr), hr_trace(hr));
+
+        // rawƒ|ƒCƒ“ƒ^”z—ñ‚ÉƒZƒbƒg
+        rtvPtrs[i] = rtvs[i].Get();
+    }
+}
+
+// GeometryƒpƒXŠJn
+void GBuffer::BeginGeometryPass(
+    ID3D11DeviceContext* dc,
+    ID3D11DepthStencilView* dsv)
+{
+    // ‘SGBuffer‚ğƒNƒŠƒA
+    float black[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+    for (UINT i = 0; i < BUFFER_COUNT; i++)
+        dc->ClearRenderTargetView(rtvs[i].Get(), black);
+
+    // Gƒoƒbƒtƒ@‚ÌRTV‚ğƒZƒbƒgi[“x‚Í‹¤—Lj
+    dc->OMSetRenderTargets(BUFFER_COUNT, rtvPtrs, dsv);
+}
+
+// GeometryƒpƒXI—¹
+void GBuffer::EndGeometryPass(ID3D11DeviceContext* dc)
+{
+    // RTV‚Ì‘©”›‚ğ‰ğœ
+    ID3D11RenderTargetView* nullRTVs[BUFFER_COUNT] = {};
+    dc->OMSetRenderTargets(BUFFER_COUNT, nullRTVs, nullptr);
+} 
+ 
+===== SkyBox.cpp ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Rendering\SkyBox.cpp 
+#include "SkyBox.h"
+#include "Resource/GpuResourceUtils.h"
+#include "Utility/misc.h"
+
+void SkyBox::Initialize(
+	ID3D11Device* device,
+	const std::string& folderPath) 
+{
+	// ––”ö‚ÉƒXƒ‰ƒbƒVƒ…‚ª‚È‚¯‚ê‚Î’Ç‰Á
+	std::string folder = folderPath;
+	if (!folder.empty() && folder.back() != '/' && folder.back() != '\\')
+		folder += '/';
+
+	// ƒLƒ…[ƒuƒ}ƒbƒv“Ç‚İ‚İ
+	GpuResourceUtils::LoadDDSTexture(
+		device, folder + "specular_pmrem.dds", skyTexture);
+
+	GpuResourceUtils::LoadDDSTexture(
+		device, folder + "diffuse_iem.dds", diffuseIem);
+
+	GpuResourceUtils::LoadDDSTexture(
+		device, folder + "lut_ggx.dds", lutGgx);
+
+
+	// “ü—ÍƒŒƒCƒAƒEƒgiPOSITION‚Ì‚İj
+	const D3D11_INPUT_ELEMENT_DESC layout[] =
+	{
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0,
+		  D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	};
+
+	// ’¸“_ƒVƒF[ƒ_[“Ç‚İ‚İ
+	GpuResourceUtils::LoadVertexShader(
+		device,
+		"Data/Shader/SkyBox_VS.cso",
+		layout, 1,
+		inputLayout,
+		vertexShader
+	);
+
+	// ƒsƒNƒZƒ‹ƒVƒF[ƒ_[“Ç‚İ‚İ
+	GpuResourceUtils::LoadPixelShader(
+		device,
+		"Data/Shader/SkyBox_PS.cso",
+		pixelShader
+	);
+
+	// ’è”ƒoƒbƒtƒ@¶¬
+	GpuResourceUtils::CreateConstantBuffer(
+		device,
+		sizeof(CbSkyBox),
+		cbSkyBox
+	);
+
+	// ƒTƒ“ƒvƒ‰[ƒXƒe[ƒg¶¬
+	D3D11_SAMPLER_DESC samplerDesc{};
+	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	//samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	//samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	//samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+	samplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+	samplerDesc.MinLOD = 0;
+	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+	device->CreateSamplerState(&samplerDesc, samplerState.GetAddressOf());
+
+	// [“xƒXƒeƒ“ƒVƒ‹ƒXƒe[ƒg¶¬
+	D3D11_DEPTH_STENCIL_DESC dsDesc{};
+	dsDesc.DepthEnable = TRUE;
+	dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO; // ‘‚«‚İOFF
+	dsDesc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL; // LESS_EQUAL‚Å1.0‚ğ’Ê‚·
+	device->CreateDepthStencilState(&dsDesc, depthStencilState.GetAddressOf());
+
+	// ’PˆÊ—§•û‘Ì‚Ì’¸“_ƒf[ƒ^
+	const DirectX::XMFLOAT3 vertices[] =
+	{
+		{ -1.0f,  1.0f, -1.0f },
+		{  1.0f,  1.0f, -1.0f },
+		{  1.0f,  1.0f,  1.0f },
+		{ -1.0f,  1.0f,  1.0f },
+		{ -1.0f, -1.0f, -1.0f },
+		{  1.0f, -1.0f, -1.0f },
+		{  1.0f, -1.0f,  1.0f },
+		{ -1.0f, -1.0f,  1.0f },
+	};
+
+	// ƒCƒ“ƒfƒbƒNƒXƒf[ƒ^
+	const UINT indices[] =
+	{
+		0, 1, 2,  0, 2, 3, // ã–Ê
+		4, 6, 5,  4, 7, 6, // ‰º–Ê
+		0, 4, 5,  0, 5, 1, // ‘O–Ê
+		2, 6, 7,  2, 7, 3, // Œã–Ê
+		0, 3, 7,  0, 7, 4, // ¶–Ê
+		1, 5, 6,  1, 6, 2, // ‰E–Ê
+	};
+	indexCount = ARRAYSIZE(indices);
+
+	// ’¸“_ƒoƒbƒtƒ@¶¬
+	D3D11_BUFFER_DESC vbDesc{};
+	vbDesc.ByteWidth = sizeof(vertices);
+	vbDesc.Usage = D3D11_USAGE_DEFAULT;
+	vbDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+
+	D3D11_SUBRESOURCE_DATA vbData{};
+	vbData.pSysMem = vertices;
+	device->CreateBuffer(&vbDesc, &vbData, vertexBuffer.GetAddressOf());
+
+	// ƒCƒ“ƒfƒbƒNƒXƒoƒbƒtƒ@¶¬
+	D3D11_BUFFER_DESC ibDesc{};
+	ibDesc.ByteWidth = sizeof(indices);
+	ibDesc.Usage = D3D11_USAGE_DEFAULT;
+	ibDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+
+	D3D11_SUBRESOURCE_DATA ibData{};
+	ibData.pSysMem = indices;
+	device->CreateBuffer(&ibDesc, &ibData, indexBuffer.GetAddressOf());
+}
+
+void SkyBox::Render(
+	ID3D11DeviceContext* dc,
+	const DirectX::XMFLOAT4X4& view,
+	const DirectX::XMFLOAT4X4& projection,
+	const DirectX::XMFLOAT3& cameraPosition)
+{
+	if (!enabled) return;
+	if (!skyTexture) return;
+
+	// ’è”ƒoƒbƒtƒ@XV
+	CbSkyBox cbData{};
+	cbData.view = view;
+	cbData.projection = projection;
+	cbData.cameraPosition = { cameraPosition.x, cameraPosition.y,cameraPosition.z, 0.0f };
+	dc->UpdateSubresource(cbSkyBox.Get(), 0, nullptr, &cbData, 0, 0);
+
+	// ƒVƒF[ƒ_[İ’è
+	dc->VSSetShader(vertexShader.Get(), nullptr, 0);
+	dc->PSSetShader(pixelShader.Get(), nullptr, 0);
+	dc->IASetInputLayout(inputLayout.Get());
+
+	// ’è”ƒoƒbƒtƒ@İ’è
+	dc->VSSetConstantBuffers(0, 1, cbSkyBox.GetAddressOf());
+
+	// ƒeƒNƒXƒ`ƒƒİ’èit10ƒXƒƒbƒgj
+	dc->PSSetShaderResources(10, 1, skyTexture.GetAddressOf());
+	dc->PSSetSamplers(0, 1, samplerState.GetAddressOf());
+
+	// [“xƒXƒe[ƒgİ’èi‘‚«‚İOFFj
+	dc->OMSetDepthStencilState(depthStencilState.Get(), 0);
+
+	// ’¸“_EƒCƒ“ƒfƒbƒNƒXƒoƒbƒtƒ@İ’è
+	UINT stride = sizeof(DirectX::XMFLOAT3);
+	UINT offset = 0;
+	dc->IASetVertexBuffers(0, 1, vertexBuffer.GetAddressOf(), &stride, &offset);
+	dc->IASetIndexBuffer(indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+	dc->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	// •`‰æ
+	dc->DrawIndexed(indexCount, 0, 0);
+}
+ 
  
 ===== GLTFConverter.h ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\GLTFConverter.h 
@@ -5276,236 +5748,6 @@ void ResourceManager::ReleaseModel(const std::string& filename)
 void ResourceManager::ReleaseAll()
 {
 	modelCache.clear();
-}
- 
- 
-===== SkyBox.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Shader\SkyBox.h 
-#pragma once
-#include <d3d11.h>
-#include <wrl.h>
-#include <DirectXMath.h>
-#include <string>
-
-class SkyBox
-{
-public:
-    // ‰Šú‰»
-    void Initialize(ID3D11Device* device, const std::string& folderPath);
-
-    // •`‰æ
-    void Render(
-        ID3D11DeviceContext* dc,
-        const DirectX::XMFLOAT4X4& view,
-        const DirectX::XMFLOAT4X4& projection,
-        const DirectX::XMFLOAT3& cameraPosition
-    );
-
-    // SRVƒQƒbƒ^[
-    ID3D11ShaderResourceView* GetSRV() const { return skyTexture.Get(); }
-    ID3D11ShaderResourceView* GetDiffuseIem()  const { return diffuseIem.Get(); }
-    ID3D11ShaderResourceView* GetLutGgx()      const { return lutGgx.Get(); }
-
-    // IBL ON/OFF
-    bool enabled = true;
-
-private:
-    struct CbSkyBox
-    {
-        DirectX::XMFLOAT4X4 view;
-        DirectX::XMFLOAT4X4 projection;
-        DirectX::XMFLOAT4   cameraPosition;
-        // 16ƒoƒCƒgƒAƒ‰ƒCƒƒ“ƒg—pƒpƒfƒBƒ“ƒO
-        DirectX::XMFLOAT4   padding;
-    };
-
-
-    // ’¸“_ƒVƒF[ƒ_[
-    Microsoft::WRL::ComPtr<ID3D11VertexShader>       vertexShader;
-    // ƒsƒNƒZƒ‹ƒVƒF[ƒ_[
-    Microsoft::WRL::ComPtr<ID3D11PixelShader>        pixelShader;
-    // “ü—ÍƒŒƒCƒAƒEƒg
-    Microsoft::WRL::ComPtr<ID3D11InputLayout>        inputLayout;
-    // ’¸“_ƒoƒbƒtƒ@
-    Microsoft::WRL::ComPtr<ID3D11Buffer>             vertexBuffer;
-    // ƒCƒ“ƒfƒbƒNƒXƒoƒbƒtƒ@
-    Microsoft::WRL::ComPtr<ID3D11Buffer>             indexBuffer;
-    // ƒLƒ…[ƒuƒ}ƒbƒvƒeƒNƒXƒ`ƒƒ
-    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> skyTexture;
-    // ƒTƒ“ƒvƒ‰[ƒXƒe[ƒg
-    Microsoft::WRL::ComPtr<ID3D11SamplerState>       samplerState;
-    // [“xƒXƒeƒ“ƒVƒ‹ƒXƒe[ƒgi[“x‘‚«‚İOFFj
-    Microsoft::WRL::ComPtr<ID3D11DepthStencilState>  depthStencilState;
-    // ’è”ƒoƒbƒtƒ@
-    Microsoft::WRL::ComPtr<ID3D11Buffer>             cbSkyBox;
-
-    UINT indexCount = 0;
-
-    // IBL—pƒeƒNƒXƒ`ƒƒ
-    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> diffuseIem;
-    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> lutGgx;
-}; 
- 
-===== SkyBox.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Shader\SkyBox.cpp 
-#include "SkyBox.h"
-#include "Resource/GpuResourceUtils.h"
-#include "Utility/misc.h"
-
-void SkyBox::Initialize(
-	ID3D11Device* device,
-	const std::string& folderPath) 
-{
-	// ––”ö‚ÉƒXƒ‰ƒbƒVƒ…‚ª‚È‚¯‚ê‚Î’Ç‰Á
-	std::string folder = folderPath;
-	if (!folder.empty() && folder.back() != '/' && folder.back() != '\\')
-		folder += '/';
-
-	// ƒLƒ…[ƒuƒ}ƒbƒv“Ç‚İ‚İ
-	GpuResourceUtils::LoadDDSTexture(
-		device, folder + "specular_pmrem.dds", skyTexture);
-
-	GpuResourceUtils::LoadDDSTexture(
-		device, folder + "diffuse_iem.dds", diffuseIem);
-
-	GpuResourceUtils::LoadDDSTexture(
-		device, folder + "lut_ggx.dds", lutGgx);
-
-
-	// “ü—ÍƒŒƒCƒAƒEƒgiPOSITION‚Ì‚İj
-	const D3D11_INPUT_ELEMENT_DESC layout[] =
-	{
-		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0,
-		  D3D11_INPUT_PER_VERTEX_DATA, 0 },
-	};
-
-	// ’¸“_ƒVƒF[ƒ_[“Ç‚İ‚İ
-	GpuResourceUtils::LoadVertexShader(
-		device,
-		"Data/Shader/SkyBox_VS.cso",
-		layout, 1,
-		inputLayout,
-		vertexShader
-	);
-
-	// ƒsƒNƒZƒ‹ƒVƒF[ƒ_[“Ç‚İ‚İ
-	GpuResourceUtils::LoadPixelShader(
-		device,
-		"Data/Shader/SkyBox_PS.cso",
-		pixelShader
-	);
-
-	// ’è”ƒoƒbƒtƒ@¶¬
-	GpuResourceUtils::CreateConstantBuffer(
-		device,
-		sizeof(CbSkyBox),
-		cbSkyBox
-	);
-
-	// ƒTƒ“ƒvƒ‰[ƒXƒe[ƒg¶¬
-	D3D11_SAMPLER_DESC samplerDesc{};
-	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-	samplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
-	samplerDesc.MinLOD = 0;
-	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
-	device->CreateSamplerState(&samplerDesc, samplerState.GetAddressOf());
-
-	// [“xƒXƒeƒ“ƒVƒ‹ƒXƒe[ƒg¶¬
-	D3D11_DEPTH_STENCIL_DESC dsDesc{};
-	dsDesc.DepthEnable = TRUE;
-	dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO; // ‘‚«‚İOFF
-	dsDesc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL; // LESS_EQUAL‚Å1.0‚ğ’Ê‚·
-	device->CreateDepthStencilState(&dsDesc, depthStencilState.GetAddressOf());
-
-	// ’PˆÊ—§•û‘Ì‚Ì’¸“_ƒf[ƒ^
-	const DirectX::XMFLOAT3 vertices[] =
-	{
-		{ -1.0f,  1.0f, -1.0f },
-		{  1.0f,  1.0f, -1.0f },
-		{  1.0f,  1.0f,  1.0f },
-		{ -1.0f,  1.0f,  1.0f },
-		{ -1.0f, -1.0f, -1.0f },
-		{  1.0f, -1.0f, -1.0f },
-		{  1.0f, -1.0f,  1.0f },
-		{ -1.0f, -1.0f,  1.0f },
-	};
-
-	// ƒCƒ“ƒfƒbƒNƒXƒf[ƒ^
-	const UINT indices[] =
-	{
-		0, 1, 2,  0, 2, 3, // ã–Ê
-		4, 6, 5,  4, 7, 6, // ‰º–Ê
-		0, 4, 5,  0, 5, 1, // ‘O–Ê
-		2, 6, 7,  2, 7, 3, // Œã–Ê
-		0, 3, 7,  0, 7, 4, // ¶–Ê
-		1, 5, 6,  1, 6, 2, // ‰E–Ê
-	};
-	indexCount = ARRAYSIZE(indices);
-
-	// ’¸“_ƒoƒbƒtƒ@¶¬
-	D3D11_BUFFER_DESC vbDesc{};
-	vbDesc.ByteWidth = sizeof(vertices);
-	vbDesc.Usage = D3D11_USAGE_DEFAULT;
-	vbDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-
-	D3D11_SUBRESOURCE_DATA vbData{};
-	vbData.pSysMem = vertices;
-	device->CreateBuffer(&vbDesc, &vbData, vertexBuffer.GetAddressOf());
-
-	// ƒCƒ“ƒfƒbƒNƒXƒoƒbƒtƒ@¶¬
-	D3D11_BUFFER_DESC ibDesc{};
-	ibDesc.ByteWidth = sizeof(indices);
-	ibDesc.Usage = D3D11_USAGE_DEFAULT;
-	ibDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
-
-	D3D11_SUBRESOURCE_DATA ibData{};
-	ibData.pSysMem = indices;
-	device->CreateBuffer(&ibDesc, &ibData, indexBuffer.GetAddressOf());
-}
-
-void SkyBox::Render(
-	ID3D11DeviceContext* dc,
-	const DirectX::XMFLOAT4X4& view,
-	const DirectX::XMFLOAT4X4& projection,
-	const DirectX::XMFLOAT3& cameraPosition)
-{
-	if (!enabled) return;
-	if (!skyTexture) return;
-
-	// ’è”ƒoƒbƒtƒ@XV
-	CbSkyBox cbData{};
-	cbData.view = view;
-	cbData.projection = projection;
-	cbData.cameraPosition = { cameraPosition.x, cameraPosition.y,cameraPosition.z, 0.0f };
-	dc->UpdateSubresource(cbSkyBox.Get(), 0, nullptr, &cbData, 0, 0);
-
-	// ƒVƒF[ƒ_[İ’è
-	dc->VSSetShader(vertexShader.Get(), nullptr, 0);
-	dc->PSSetShader(pixelShader.Get(), nullptr, 0);
-	dc->IASetInputLayout(inputLayout.Get());
-
-	// ’è”ƒoƒbƒtƒ@İ’è
-	dc->VSSetConstantBuffers(0, 1, cbSkyBox.GetAddressOf());
-
-	// ƒeƒNƒXƒ`ƒƒİ’èit10ƒXƒƒbƒgj
-	dc->PSSetShaderResources(10, 1, skyTexture.GetAddressOf());
-	dc->PSSetSamplers(0, 1, samplerState.GetAddressOf());
-
-	// [“xƒXƒe[ƒgİ’èi‘‚«‚İOFFj
-	dc->OMSetDepthStencilState(depthStencilState.Get(), 0);
-
-	// ’¸“_EƒCƒ“ƒfƒbƒNƒXƒoƒbƒtƒ@İ’è
-	UINT stride = sizeof(DirectX::XMFLOAT3);
-	UINT offset = 0;
-	dc->IASetVertexBuffers(0, 1, vertexBuffer.GetAddressOf(), &stride, &offset);
-	dc->IASetIndexBuffer(indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
-	dc->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-	// •`‰æ
-	dc->DrawIndexed(indexCount, 0, 0);
 }
  
  

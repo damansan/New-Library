@@ -11,7 +11,7 @@
 #include "ECS/Components/Tags.h"
 
 #include "Resource/Model.h"
-
+#include "Rendering/GBuffer.h"
 
 // 定数バッファ構造体
 struct CbScene
@@ -47,7 +47,10 @@ public:
         entt::registry& registry,
         ID3D11DeviceContext* dc,
         ID3D11RenderTargetView* rtv,
-        ID3D11DepthStencilView* dsv
+        ID3D11DepthStencilView* dsv,
+        ID3D11Device* device,
+        UINT width,
+        UINT height
     );
 
     // フラスタムをScene側からセット
@@ -72,6 +75,13 @@ public:
     // 定数バッファゲッター
     ID3D11Buffer* GetCbScene() { return cbScene.Get(); }
     ID3D11Buffer** GetCbSceneAddress() { return cbScene.GetAddressOf(); }
+
+    // 画面サイズセット
+    void SetScreenSize(UINT width, UINT height)
+    {
+        screenWidth = width;
+        screenHeight = height;
+    }
 private:
 
     // フラスタム平面
@@ -89,7 +99,7 @@ private:
 
 
     // 静的メッシュ描画
-    void RenderStatic(
+    void RenderStaticGeometry(
         entt::registry& registry,
         ID3D11DeviceContext* dc,
         bool transparent,
@@ -97,7 +107,7 @@ private:
     );
 
     // スキニングメッシュ描画
-    void RenderSkinned(
+    void RenderSkinnedGeometry(
         entt::registry& registry,
         ID3D11DeviceContext* dc,
         bool transparent,
@@ -161,4 +171,37 @@ private:
     ID3D11ShaderResourceView* iblLutGgx = nullptr;
 
     Frustum cachedFrustum;
+
+
+    // GBuffer
+    GBuffer gBuffer;
+
+    // 画面サイズ
+    UINT screenWidth = 0;
+    UINT screenHeight = 0;
+
+    // Geometryパス用PixelShader
+    Microsoft::WRL::ComPtr<ID3D11PixelShader> gBufferPS;
+
+    // Lightingパス用
+    Microsoft::WRL::ComPtr<ID3D11VertexShader> lightingVS;
+    Microsoft::WRL::ComPtr<ID3D11PixelShader>  lightingPS;
+
+    // フルスクリーン描画用ラスタライザー
+    Microsoft::WRL::ComPtr<ID3D11RasterizerState> rasterizerStateNoCull;
+
+    // Geometryパス
+    void GeometryPass(
+        entt::registry& registry,
+        ID3D11DeviceContext* dc,
+        ID3D11DepthStencilView* dsv,
+        const Frustum& frustum
+    );
+
+    // Lightingパス
+    void LightingPass(
+        ID3D11DeviceContext* dc,
+        ID3D11RenderTargetView* rtv,
+        ID3D11DepthStencilView* dsv
+    );
 };

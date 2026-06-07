@@ -60,18 +60,6 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> renderTargetView; // レンダーターゲットビュー
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilView> depthStencilView; // 深度ステンシル
 
-	// GBuffer
-	Microsoft::WRL::ComPtr<ID3D11Texture2D> gbufferAlbedo;           // Albedo   (色)   保存用テクスチャ
-	Microsoft::WRL::ComPtr<ID3D11Texture2D> gbufferNormal;           // Normal   (法線) 保存用テクスチャ
-	Microsoft::WRL::ComPtr<ID3D11Texture2D> gbufferPosition;         // Position (位置) 保存用テクスチャ
-	Microsoft::WRL::ComPtr<ID3D11Texture2D> gbufferRoughnessMetallic;// Metallic (粗さ) 保存用テクスチャ
-	Microsoft::WRL::ComPtr<ID3D11Texture2D> gbufferEmissive;         // Emissive (発光) 保存用テクスチャ
-
-	// GBuffer用レンダーターゲットビュー
-	Microsoft::WRL::ComPtr<ID3D11RenderTargetView>   gbufferRTV[5];
-	// GBufferをシェーダーから読むためのシェーダーリソースビュー
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> gbufferSRV[5];
-
 	// 描画領域
 	D3D11_VIEWPORT viewport{};
 
@@ -87,6 +75,4 @@ private:
 	// ウィンドウモード時の位置とサイズ保存
 	RECT windowedRect{};
 
-	// GBuffer生成専用
-	void CreateGBuffer(UINT w, UINT h);
 };

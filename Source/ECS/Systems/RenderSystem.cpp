@@ -141,15 +141,57 @@ void RenderSystem::Initialize(ID3D11Device* device)
 	GpuResourceUtils::CreateDummyTexture(device, dummyNormal, 0xFFFF8080, 1);
 	// 黒 (Emissive用)
 	GpuResourceUtils::CreateDummyTexture(device, dummyBlack, 0xFF000000, 1);
+
+
+	// Gbuffer用PixelShader読み込み
+	GpuResourceUtils::LoadPixelShader(
+		device, "Data/Shader/Gbuffer_PS.cso", gBufferPS);
+
+	// Lightingパス用シェーダー読み込み
+	Microsoft::WRL::ComPtr<ID3D11InputLayout> dummyLayoutL;
+	GpuResourceUtils::LoadVertexShader(
+		device,
+		"Data/Shader/Lighting_VS.cso",
+		nullptr, 0,
+		dummyLayoutL,
+		lightingVS
+	);
+	GpuResourceUtils::LoadPixelShader(
+		device, "Data/Shader/Lighting_PS.cso", lightingPS);
+
+	// カリングなしラスタライザー
+	D3D11_RASTERIZER_DESC noCullDesc{};
+	noCullDesc.FillMode = D3D11_FILL_SOLID;
+	noCullDesc.CullMode = D3D11_CULL_NONE;
+	noCullDesc.FrontCounterClockwise = FALSE;
+	device->CreateRasterizerState(
+		&noCullDesc, rasterizerStateNoCull.GetAddressOf());
 }
 
 // 描画
-void RenderSystem::Render(entt::registry& registry, ID3D11DeviceContext* dc, ID3D11RenderTargetView* rtv, ID3D11DepthStencilView* dsv)
+void RenderSystem::Render(
+	entt::registry& registry, 
+	ID3D11DeviceContext* dc, 
+	ID3D11RenderTargetView* rtv,
+	ID3D11DepthStencilView* dsv, 
+	ID3D11Device* device,
+	UINT width, 
+	UINT height)
 {
-	// レンダーターゲット再セット
-	dc->OMSetRenderTargets(1, &rtv, dsv);
+	// GBuffer初期化
+	if (screenWidth != width || screenHeight != height || screenWidth == 0)
+	{
+		screenWidth = width;
+		screenHeight = height;
+		gBuffer.Initialize(device, width, height);
+	}
 
-	// IBL用テクスチャをピクセルシェーダーにセット
+	Frustum frustum = cachedFrustum;
+
+	// Geometryパス
+	GeometryPass(registry, dc, dsv, frustum);
+
+	// IBL用テクスチャセット
 	ID3D11ShaderResourceView* iblSrvs[3] =
 	{
 		iblDiffuseIem,
@@ -158,44 +200,61 @@ void RenderSystem::Render(entt::registry& registry, ID3D11DeviceContext* dc, ID3
 	};
 	dc->PSSetShaderResources(5, 3, iblSrvs);
 
-	// 共通ステート設定
-	dc->RSSetState(rasterizerState.Get());
-	dc->PSSetSamplers(0, 1, samplerState.GetAddressOf());
-	dc->IASetInputLayout(inputLayout.Get());
-	dc->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-	float blendFactor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
-
-	Frustum frustum = cachedFrustum;
+	// Lightingパス
+	LightingPass(dc, rtv, dsv);
 
 
-	// 不透明パス
-	dc->OMSetDepthStencilState(depthStencilState.Get(), 0);
-	dc->OMSetBlendState(blendState.Get(), blendFactor, 0xFFFFFFFF);
 
-	// 静的メッシュ描画
-	dc->VSSetShader(vertexShader.Get(), nullptr, 0);
-	RenderStatic(registry, dc, false, frustum);
-	// スキニングメッシュ描画
-	dc->VSSetShader(skinnedVertexShader.Get(), nullptr, 0);
-	RenderSkinned(registry, dc, false, frustum);
+	//// レンダーターゲット再セット
+	//dc->OMSetRenderTargets(1, &rtv, dsv);
+
+	//// IBL用テクスチャをピクセルシェーダーにセット
+	//ID3D11ShaderResourceView* iblSrvs[3] =
+	//{
+	//	iblDiffuseIem,
+	//	iblSpecularPmrem,
+	//	iblLutGgx,
+	//};
+	//dc->PSSetShaderResources(5, 3, iblSrvs);
+
+	//// 共通ステート設定
+	//dc->RSSetState(rasterizerState.Get());
+	//dc->PSSetSamplers(0, 1, samplerState.GetAddressOf());
+	//dc->IASetInputLayout(inputLayout.Get());
+	//dc->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	//float blendFactor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+
+	//Frustum frustum = cachedFrustum;
 
 
-	// 半透明パス
-	dc->OMSetDepthStencilState(depthStencilStateTransparent.Get(), 0);
-	dc->OMSetBlendState(blendState.Get(), blendFactor, 0xFFFFFFFF);
+	//// 不透明パス
+	//dc->OMSetDepthStencilState(depthStencilState.Get(), 0);
+	//dc->OMSetBlendState(blendState.Get(), blendFactor, 0xFFFFFFFF);
 
-	// 静的メッシュ描画
-	dc->VSSetShader(vertexShader.Get(), nullptr, 0);
-	RenderStatic(registry, dc, true, frustum);
-	// スキニングメッシュ描画
-	dc->VSSetShader(skinnedVertexShader.Get(), nullptr, 0);
-	RenderSkinned(registry, dc, true, frustum);
+	//// 静的メッシュ描画
+	//dc->VSSetShader(vertexShader.Get(), nullptr, 0);
+	//RenderStatic(registry, dc, false, frustum);
+	//// スキニングメッシュ描画
+	//dc->VSSetShader(skinnedVertexShader.Get(), nullptr, 0);
+	//RenderSkinned(registry, dc, false, frustum);
+
+
+	//// 半透明パス
+	//dc->OMSetDepthStencilState(depthStencilStateTransparent.Get(), 0);
+	//dc->OMSetBlendState(blendState.Get(), blendFactor, 0xFFFFFFFF);
+
+	//// 静的メッシュ描画
+	//dc->VSSetShader(vertexShader.Get(), nullptr, 0);
+	//RenderStatic(registry, dc, true, frustum);
+	//// スキニングメッシュ描画
+	//dc->VSSetShader(skinnedVertexShader.Get(), nullptr, 0);
+	//RenderSkinned(registry, dc, true, frustum);
 
 }
 
 // 静的メッシュ描画
-void RenderSystem::RenderStatic(
+void RenderSystem::RenderStaticGeometry(
 	entt::registry& registry,
 	ID3D11DeviceContext* dc,
 	bool transparent,
@@ -209,20 +268,20 @@ void RenderSystem::RenderStatic(
 			// モデルが未設定ならスキップ
 			if (!staticMesh.model) return;
 
-			// エンティティのパスリストを取得
-			std::vector<std::string> passes;
-			if (registry.all_of<MaterialComponent>(entity))
-			{
-				auto& mat = registry.get<MaterialComponent>(entity);
-				for (auto& pass : mat.passes)
-				{
-					if (pass.enabled) passes.push_back(pass.name);
-				}
-			}
-			else
-			{
-				passes.push_back("lambert");
-			}
+			//// エンティティのパスリストを取得
+			//std::vector<std::string> passes;
+			//if (registry.all_of<MaterialComponent>(entity))
+			//{
+			//	auto& mat = registry.get<MaterialComponent>(entity);
+			//	for (auto& pass : mat.passes)
+			//	{
+			//		if (pass.enabled) passes.push_back(pass.name);
+			//	}
+			//}
+			//else
+			//{
+			//	passes.push_back("lambert");
+			//}
 
 			// フラスタムカリング
 			DirectX::XMFLOAT4X4 worldMatrix{};
@@ -297,22 +356,23 @@ void RenderSystem::RenderStatic(
 				};
 				dc->PSSetShaderResources(0, 5, srvs);
 				
-				// パスごとにPSを切り替えて描画
-				for (auto& passName : passes)
-				{
-					auto it = staticPixelShaders.find(passName);
-					if (it == staticPixelShaders.end()) continue;
+				//// パスごとにPSを切り替えて描画
+				//for (auto& passName : passes)
+				//{
+				//	auto it = staticPixelShaders.find(passName);
+				//	if (it == staticPixelShaders.end()) continue;
 
-					dc->PSSetShader(it->second.Get(), nullptr, 0);
-					dc->DrawIndexed(static_cast<UINT>(mesh.indices.size()), 0, 0);
-				}
+				//	dc->PSSetShader(it->second.Get(), nullptr, 0);
+				//	dc->DrawIndexed(static_cast<UINT>(mesh.indices.size()), 0, 0);
+				//}
+				dc->DrawIndexed(static_cast<UINT>(mesh.indices.size()), 0, 0);
 			}
 
 		});
 }
 
 // スキニングメッシュ描画
-void RenderSystem::RenderSkinned(
+void RenderSystem::RenderSkinnedGeometry(
 	entt::registry& registry,
 	ID3D11DeviceContext* dc,
 	bool transparent,
@@ -327,19 +387,19 @@ void RenderSystem::RenderSkinned(
 			// モデルが未設定ならスキップ
 			if (!skinnedMesh.model) return;
 
-			std::vector<std::string> passes;
-			if (registry.all_of<MaterialComponent>(entity))
-			{
-				auto& mat = registry.get<MaterialComponent>(entity);
-				for (auto& pass : mat.passes)
-				{
-					if (pass.enabled) passes.push_back(pass.name);
-				}
-			}
-			else
-			{
-				passes.push_back("lambert");
-			}
+			//std::vector<std::string> passes;
+			//if (registry.all_of<MaterialComponent>(entity))
+			//{
+			//	auto& mat = registry.get<MaterialComponent>(entity);
+			//	for (auto& pass : mat.passes)
+			//	{
+			//		if (pass.enabled) passes.push_back(pass.name);
+			//	}
+			//}
+			//else
+			//{
+			//	passes.push_back("lambert");
+			//}
 
 			// フラスタムカリング
 			DirectX::XMFLOAT4X4 worldMatrix{};
@@ -422,14 +482,15 @@ void RenderSystem::RenderSkinned(
 				};
 				dc->PSSetShaderResources(0, 5, srvs);
 				
-				for (auto& passName : passes)
-				{
-					auto it = skinnedPixelShaders.find(passName);
-					if (it == skinnedPixelShaders.end()) continue;
+				//for (auto& passName : passes)
+				//{
+				//	auto it = skinnedPixelShaders.find(passName);
+				//	if (it == skinnedPixelShaders.end()) continue;
 
-					dc->PSSetShader(it->second.Get(), nullptr, 0);
-					dc->DrawIndexed(static_cast<UINT>(mesh.indices.size()), 0, 0);
-				}
+				//	dc->PSSetShader(it->second.Get(), nullptr, 0);
+				//	dc->DrawIndexed(static_cast<UINT>(mesh.indices.size()), 0, 0);
+				//}
+				dc->DrawIndexed(static_cast<UINT>(mesh.indices.size()), 0, 0);
 			}
 		});
 }
@@ -538,4 +599,106 @@ bool RenderSystem::IsInFrustum(
 		}
 	}
 	return true;
+}
+
+// Geometryパス
+void RenderSystem::GeometryPass(
+	entt::registry& registry,
+	ID3D11DeviceContext* dc, 
+	ID3D11DepthStencilView* dsv,
+	const Frustum& frustum)
+{
+	// GバッファのRTVをセット＋クリア
+	gBuffer.BeginGeometryPass(dc, dsv);
+
+	// ビューポート設定
+	D3D11_VIEWPORT vp{};
+	vp.Width = static_cast<float>(screenWidth);
+	vp.Height = static_cast<float>(screenHeight);
+	vp.MinDepth = 0.0f;
+	vp.MaxDepth = 1.0f;
+	dc->RSSetViewports(1, &vp);
+
+	// 共通ステート設定
+	dc->RSSetState(rasterizerState.Get());
+	dc->PSSetSamplers(0, 1, samplerState.GetAddressOf());
+	dc->IASetInputLayout(inputLayout.Get());
+	dc->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	float blendFactor[4] = {};
+
+	// 不透明パス
+	dc->OMSetDepthStencilState(depthStencilState.Get(), 0);
+	dc->OMSetBlendState(blendState.Get(), blendFactor, 0xFFFFFFFF);
+
+	// GBuffer_PSをセット
+	dc->PSSetShader(gBufferPS.Get(), nullptr, 0);
+
+	// 静的メッシュ描画
+	dc->VSSetShader(vertexShader.Get(), nullptr, 0);
+	RenderStaticGeometry(registry, dc, false, frustum);
+
+	// スキニングメッシュ描画
+	dc->VSSetShader(skinnedVertexShader.Get(), nullptr, 0);
+	RenderSkinnedGeometry(registry, dc, false, frustum);
+
+	// Geometryパス終了
+	gBuffer.EndGeometryPass(dc);
+}
+
+// Lightingパス
+void RenderSystem::LightingPass(
+	ID3D11DeviceContext* dc,
+	ID3D11RenderTargetView* rtv,
+	ID3D11DepthStencilView* dsv)
+{
+	// メインRTVにセット
+	dc->OMSetRenderTargets(1, &rtv, dsv);
+
+	// ビューポート設定
+	D3D11_VIEWPORT vp{};
+	vp.Width = static_cast<float>(screenWidth);
+	vp.Height = static_cast<float>(screenHeight);
+	vp.MinDepth = 0.0f;
+	vp.MaxDepth = 1.0f;
+	dc->RSSetViewports(1, &vp);
+
+	// GバッファをSRVとしてセット
+	ID3D11ShaderResourceView* gbSrvs[5] =
+	{
+		gBuffer.GetAlbedoSRV(),
+		gBuffer.GetNormalSRV(),
+		gBuffer.GetPositionSRV(),
+		gBuffer.GetRoughnessMetallicSRV(),
+		gBuffer.GetEmissiveSRV(),
+	};
+	dc->PSSetShaderResources(0, 5, gbSrvs);
+
+	// Lightingシェーダーセット
+	dc->VSSetShader(lightingVS.Get(), nullptr, 0);
+	dc->PSSetShader(lightingPS.Get(), nullptr, 0);
+
+	// 入力レイアウトなし
+	dc->IASetInputLayout(nullptr);
+	dc->IASetPrimitiveTopology(
+		D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+
+	// カリングなしラスタライザー
+	dc->RSSetState(rasterizerStateNoCull.Get());
+
+	// 深度書き込みOFF
+	dc->OMSetDepthStencilState(
+		depthStencilStateTransparent.Get(), 0);
+
+	// CbSceneをピクセルシェーダーにセット
+	dc->PSSetConstantBuffers(0, 1, cbScene.GetAddressOf());
+	// サンプラーもセット
+	dc->PSSetSamplers(0, 1, samplerState.GetAddressOf());
+
+	// フルスクリーン描画
+	dc->Draw(4, 0);
+
+	// SRVの束縛を解除
+	ID3D11ShaderResourceView* nullSrvs[5] = {};
+	dc->PSSetShaderResources(0, 5, nullSrvs);
 }

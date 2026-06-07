@@ -18,4 +18,7 @@ struct SceneContext
     Camera* camera = nullptr;
     DirectX::XMFLOAT4X4 view;
     DirectX::XMFLOAT4X4 projection;
+
+    UINT screenWidth = 0;
+    UINT screenHeight = 0;
 };

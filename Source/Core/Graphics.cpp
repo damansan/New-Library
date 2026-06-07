@@ -126,9 +126,6 @@ void Graphics::Initialize(HWND hWnd)
 	viewport.Height = screenHeight;
 	viewport.MinDepth = 0.0f;       // 深度範囲
 	viewport.MaxDepth = 1.0f;
-
-	// GBuffer生成
-	CreateGBuffer(w, h);
 }
 
 // 画面クリア
@@ -147,14 +144,6 @@ void Graphics::Clear(float r, float g, float b, float a)
 		1.0f, // 深度初期値(1.0 = 最遠)
 		0     // ステンシル初期値
 	);
-
-	// GBufferクリアカラー作成(黒)
-	float black[4]{ 0.0f, 0.0f, 0.0f, 1.0f };
-	// 全GBufferクリア
-	for (int i = 0; i < 5; i++)
-	{
-		immediateContext->ClearRenderTargetView(gbufferRTV[i].Get(), black);
-	}
 }
 
 // レンダーターゲット設定
@@ -262,18 +251,6 @@ void Graphics::ResizeBuffers()
 	renderTargetView.Reset();
 	// 深度ステンシル解放
 	depthStencilView.Reset();
-	// GBuffer レンダーターゲットビュー/シェーダーリソースビュー解放
-	for (int i = 0; i < 5; i++)
-	{
-		gbufferRTV[i].Reset();
-		gbufferSRV[i].Reset();
-	}
-	// GBufferテクスチャ解放
-	gbufferAlbedo.Reset();
-	gbufferNormal.Reset();
-	gbufferPosition.Reset();
-	gbufferRoughnessMetallic.Reset();
-	gbufferEmissive.Reset();
 
 	// スワップチェイン再生成
 	swapChain->ResizeBuffers(
@@ -331,9 +308,6 @@ void Graphics::ResizeBuffers()
 	// ビューポートサイズ更新
 	viewport.Width = screenWidth;
 	viewport.Height = screenHeight;
-
-	// GBuffer再生成
-	CreateGBuffer(w, h);
 }
 
 // 終了処理
@@ -347,79 +321,4 @@ void Graphics::Cleanup()
 
 	renderTargetView.Reset();
 	depthStencilView.Reset();
-
-	for (int i = 0; i < 5; i++)
-	{
-		gbufferRTV[i].Reset();
-		gbufferSRV[i].Reset();
-	}
-	gbufferAlbedo.Reset();
-	gbufferNormal.Reset();
-	gbufferPosition.Reset();
-	gbufferRoughnessMetallic.Reset();
-	gbufferEmissive.Reset();
-}
-
-// GBuffer生成専用
-void Graphics::CreateGBuffer(UINT w, UINT h)
-{
-	HRESULT hr{ S_OK };
-
-	// GBufferフォーマット
-	DXGI_FORMAT gbufferFormats[5] =
-	{
-		DXGI_FORMAT_R8G8B8A8_UNORM,     // 色
-		DXGI_FORMAT_R16G16B16A16_FLOAT, // 法線
-		DXGI_FORMAT_R32G32B32A32_FLOAT, // 位置
-		DXGI_FORMAT_R8G8B8A8_UNORM,
-		DXGI_FORMAT_R16G16B16A16_FLOAT,
-	};
-
-	// 各GBuffer生成
-	for (int i = 0; i < 5; i++)
-	{
-		// テクスチャ設定
-		D3D11_TEXTURE2D_DESC texDesc{};
-		texDesc.Width = w;     // サイズ
-		texDesc.Height = h;
-		texDesc.MipLevels = 1;               // ミップマップ無し
-		texDesc.ArraySize = 1;               // テクスチャ配列数
-		texDesc.Format = gbufferFormats[i];  // フォーマット
-		texDesc.SampleDesc.Count = 1;        // MSAA設定
-		texDesc.Usage = D3D11_USAGE_DEFAULT; // GPU使用
-		// RenderTargetとShaderResource の両方で使用
-		texDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
-
-		// GBufferテクスチャ生成
-		Microsoft::WRL::ComPtr<ID3D11Texture2D> tex;
-		hr = device->CreateTexture2D(
-			&texDesc,
-			nullptr,
-			tex.GetAddressOf()
-		);
-		_ASSERT_EXPR(SUCCEEDED(hr), hr_trace(hr));
-
-		// レンダーターゲットビュー生成
-		hr = device->CreateRenderTargetView(
-			tex.Get(),
-			nullptr,
-			gbufferRTV[i].GetAddressOf()
-		);
-		_ASSERT_EXPR(SUCCEEDED(hr), hr_trace(hr));
-
-		// シェーダーリソースビュー生成
-		hr = device->CreateShaderResourceView(
-			tex.Get(),
-			nullptr,
-			gbufferSRV[i].GetAddressOf()
-		);
-		_ASSERT_EXPR(SUCCEEDED(hr), hr_trace(hr));
-
-		// テクスチャ保持
-		if (i == 0) gbufferAlbedo = tex;            // 色
-		if (i == 1) gbufferNormal = tex;            // 法線
-		if (i == 2) gbufferPosition = tex;          // 位置
-		if (i == 3) gbufferRoughnessMetallic = tex; // 粗さ
-		if (i == 4) gbufferEmissive = tex;          // 発光
-	}
 }

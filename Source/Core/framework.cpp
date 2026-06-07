@@ -60,7 +60,6 @@ void framework::update(float elapsedTime)
 	context.view = camera.GetView();
 	context.projection = camera.GetProjection();
 
-
 	// シーン更新
 	sceneManager.Update(elapsedTime, context);
 }
@@ -97,6 +96,8 @@ void framework::render(float elapsedTime)
 	context.camera = &camera;
 	context.view = camera.GetView();             
 	context.projection = camera.GetProjection(); 
+	context.screenWidth = static_cast<UINT>(graphics.GetScreenWidth());
+	context.screenHeight = static_cast<UINT>(graphics.GetScreenHeight());
 
 
 	// シーン描画
