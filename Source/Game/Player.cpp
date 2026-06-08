@@ -3,12 +3,13 @@
 #include "ECS/Components/MeshComponent.h"
 #include "ECS/Components/MaterialComponent.h"
 #include "ECS/Systems/AnimationSystem.h"
+
 void Player::Initialize(entt::registry& registry, const SceneContext& context)
 {
     entity = registry.create();
 
     auto& t = registry.emplace<TransformComponent>(entity);
-    t.position = { -1.0f, 0.0f, 0.0f };
+    t.position = { 0.0f, 0.0f, 0.0f };
     t.scale = { 1.0f, 1.0f, 1.0f };
 
     registry.emplace<MeshComponent>(entity, "Data/Model/PlayerRobot/Map_Robot3.gltf");

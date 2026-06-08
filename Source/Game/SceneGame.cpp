@@ -25,12 +25,39 @@ void SceneGame::Initialize(const SceneContext& context)
 		{ 1.0f,  1.0f, 1.0f },
 		1.0f
 	);
-	lightManager.AddPointLight(
-		{ 0.0f, 1.0f, 2.0f }, // 位置
-		{ 1.0f, 0.0f, 0.0f }, // 色（赤）
-		5.0f,                  // 範囲
-		3.0f                   // 強度
-	);
+
+	//lightManager.AddPointLight(
+	//	{ 0.0f, 1.0f, 2.0f }, // 位置
+	//	{ 1.0f, 0.0f, 0.0f }, // 色（赤）
+	//	5.0f,                  // 範囲
+	//	3.0f                   // 強度
+	//);
+
+	// 円状に20個のポイントライトを配置
+	const int lightCount = 20;
+	const float radius = 5.0f;   // 円の半径
+	const float height = 1.0f;   // Y座標（高さ）
+
+	for (int i = 0; i < lightCount; i++)
+	{
+		float angle = (2.0f * 3.14159265f / lightCount) * i;
+		float x = radius * cosf(angle);
+		float z = radius * sinf(angle);
+
+		// 色を角度に応じて変化させる（虹色っぽく）
+		float r = (sinf(angle) + 1.0f) * 0.5f;
+		float g = (sinf(angle + 2.0f) + 1.0f) * 0.5f;
+		float b = (sinf(angle + 4.0f) + 1.0f) * 0.5f;
+
+		lightManager.AddPointLight(
+			{ x, height, z }, // 位置
+			{ r, g, b },      // 色
+			5.0f,             // 範囲
+			3.0f              // 強度
+		);
+	}
+
+
 	// Stage生成/初期化
 	stage = std::make_unique<Stage>();
 	stage->Initialize(registry, context);
