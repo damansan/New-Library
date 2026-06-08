@@ -39,7 +39,7 @@ void SceneGame::Initialize(const SceneContext& context)
 	player = std::make_unique<Player>();
 	player->Initialize(registry, context);
 
-	//// Enemy生成/初期化
+	// Enemy生成/初期化
 	//enemy = std::make_unique<Enemy>();
 	//enemy->Initialize(registry, context);
 

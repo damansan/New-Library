@@ -2,7 +2,7 @@
 #include "ECS/Components/TransformComponent.h"
 #include "ECS/Components/MeshComponent.h"
 #include "ECS/Components/MaterialComponent.h"
-
+#include "ECS/Systems/AnimationSystem.h"
 void Player::Initialize(entt::registry& registry, const SceneContext& context)
 {
     entity = registry.create();
@@ -18,6 +18,13 @@ void Player::Initialize(entt::registry& registry, const SceneContext& context)
 
 void Player::Update(float elapsedTime, entt::registry& registry, const SceneContext& context)
 {
+    auto* animator = registry.try_get<AnimatorComponent>(entity);
+    if (animator)
+    {
+        animator->currentAnimation = "Idle";
+        animator->loop = true;
+        animator->playSpeed = 1.0f;
+    }
 }
 
 void Player::RenderImGui()

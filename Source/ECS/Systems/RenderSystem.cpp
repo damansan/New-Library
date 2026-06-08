@@ -132,7 +132,13 @@ void RenderSystem::Initialize(ID3D11Device* device)
 	blendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
 	blendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 	device->CreateBlendState(&blendDesc, blendState.GetAddressOf());
-
+	// GBuffer用（ブレンドなし）
+	D3D11_BLEND_DESC blendDescOpaque{};
+	blendDescOpaque.AlphaToCoverageEnable = FALSE;
+	blendDescOpaque.IndependentBlendEnable = FALSE;
+	blendDescOpaque.RenderTarget[0].BlendEnable = FALSE;
+	blendDescOpaque.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+	device->CreateBlendState(&blendDescOpaque, blendStateOpaque.GetAddressOf());
 
 	// ダミーテクスチャ生成
 	// 白 (Albedo / Occlusion用)
@@ -219,21 +225,6 @@ void RenderSystem::RenderStaticGeometry(
 			// モデルが未設定ならスキップ
 			if (!staticMesh.model) return;
 
-			//// エンティティのパスリストを取得
-			//std::vector<std::string> passes;
-			//if (registry.all_of<MaterialComponent>(entity))
-			//{
-			//	auto& mat = registry.get<MaterialComponent>(entity);
-			//	for (auto& pass : mat.passes)
-			//	{
-			//		if (pass.enabled) passes.push_back(pass.name);
-			//	}
-			//}
-			//else
-			//{
-			//	passes.push_back("lambert");
-			//}
-
 			// フラスタムカリング
 			DirectX::XMFLOAT4X4 worldMatrix{};
 			DirectX::XMStoreFloat4x4(&worldMatrix, transform.GetWorldMatrix());
@@ -307,15 +298,6 @@ void RenderSystem::RenderStaticGeometry(
 				};
 				dc->PSSetShaderResources(0, 5, srvs);
 				
-				//// パスごとにPSを切り替えて描画
-				//for (auto& passName : passes)
-				//{
-				//	auto it = staticPixelShaders.find(passName);
-				//	if (it == staticPixelShaders.end()) continue;
-
-				//	dc->PSSetShader(it->second.Get(), nullptr, 0);
-				//	dc->DrawIndexed(static_cast<UINT>(mesh.indices.size()), 0, 0);
-				//}
 				dc->DrawIndexed(static_cast<UINT>(mesh.indices.size()), 0, 0);
 			}
 
@@ -337,20 +319,6 @@ void RenderSystem::RenderSkinnedGeometry(
 		{
 			// モデルが未設定ならスキップ
 			if (!skinnedMesh.model) return;
-
-			//std::vector<std::string> passes;
-			//if (registry.all_of<MaterialComponent>(entity))
-			//{
-			//	auto& mat = registry.get<MaterialComponent>(entity);
-			//	for (auto& pass : mat.passes)
-			//	{
-			//		if (pass.enabled) passes.push_back(pass.name);
-			//	}
-			//}
-			//else
-			//{
-			//	passes.push_back("lambert");
-			//}
 
 			// フラスタムカリング
 			DirectX::XMFLOAT4X4 worldMatrix{};
@@ -433,14 +401,6 @@ void RenderSystem::RenderSkinnedGeometry(
 				};
 				dc->PSSetShaderResources(0, 5, srvs);
 				
-				//for (auto& passName : passes)
-				//{
-				//	auto it = skinnedPixelShaders.find(passName);
-				//	if (it == skinnedPixelShaders.end()) continue;
-
-				//	dc->PSSetShader(it->second.Get(), nullptr, 0);
-				//	dc->DrawIndexed(static_cast<UINT>(mesh.indices.size()), 0, 0);
-				//}
 				dc->DrawIndexed(static_cast<UINT>(mesh.indices.size()), 0, 0);
 			}
 		});
@@ -580,7 +540,8 @@ void RenderSystem::GeometryPass(
 
 	// 不透明パス
 	dc->OMSetDepthStencilState(depthStencilState.Get(), 0);
-	dc->OMSetBlendState(blendState.Get(), blendFactor, 0xFFFFFFFF);
+	//dc->OMSetBlendState(blendState.Get(), blendFactor, 0xFFFFFFFF);
+	dc->OMSetBlendState(blendStateOpaque.Get(), blendFactor, 0xFFFFFFFF);
 
 	// GBuffer_PSをセット
 	dc->PSSetShader(gBufferPS.Get(), nullptr, 0);

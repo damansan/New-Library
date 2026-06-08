@@ -156,6 +156,8 @@ private:
     Microsoft::WRL::ComPtr<ID3D11DepthStencilState> depthStencilStateTransparent;
     // ブレンドステート
     Microsoft::WRL::ComPtr<ID3D11BlendState>        blendState;
+    // GBuffer用（ブレンドなし）
+    Microsoft::WRL::ComPtr<ID3D11BlendState>        blendStateOpaque;  
 
     // ダミーテクスチャ
     Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> dummyWhite;  // Albedo/Occlusion用
