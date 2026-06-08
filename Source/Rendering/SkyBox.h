@@ -49,6 +49,8 @@ private:
     Microsoft::WRL::ComPtr<ID3D11Buffer>             indexBuffer;
     // キューブマップテクスチャ
     Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> skyTexture;
+    // スカイボックス描画用（skybox.ddsがあればこれを使用）
+    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> skyBoxTexture;
     // サンプラーステート
     Microsoft::WRL::ComPtr<ID3D11SamplerState>       samplerState;
     // 深度ステンシルステート（深度書き込みOFF）

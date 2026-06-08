@@ -1,6 +1,7 @@
 #include "SkyBox.h"
 #include "Resource/GpuResourceUtils.h"
 #include "Utility/misc.h"
+#include <filesystem>
 
 void SkyBox::Initialize(
 	ID3D11Device* device,
@@ -21,6 +22,16 @@ void SkyBox::Initialize(
 	GpuResourceUtils::LoadDDSTexture(
 		device, folder + "lut_ggx.dds", lutGgx);
 
+	// スカイボックス描画用（skybox.ddsがあれば使う、無かったらspecular_pmrem.ddsを使う）
+	if (std::filesystem::exists(folder + "skybox.dds"))
+	{
+		GpuResourceUtils::LoadDDSTexture(
+			device, folder + "skybox.dds", skyBoxTexture);
+	}
+	else
+	{
+		skyBoxTexture = skyTexture;
+	}
 
 	// 入力レイアウト（POSITIONのみ）
 	const D3D11_INPUT_ELEMENT_DESC layout[] =
@@ -144,7 +155,8 @@ void SkyBox::Render(
 	dc->VSSetConstantBuffers(0, 1, cbSkyBox.GetAddressOf());
 
 	// テクスチャ設定（t10スロット）
-	dc->PSSetShaderResources(10, 1, skyTexture.GetAddressOf());
+	//dc->PSSetShaderResources(10, 1, skyTexture.GetAddressOf());
+	dc->PSSetShaderResources(10, 1, skyBoxTexture.GetAddressOf());
 	dc->PSSetSamplers(0, 1, samplerState.GetAddressOf());
 
 	// 深度ステート設定（書き込みOFF）
