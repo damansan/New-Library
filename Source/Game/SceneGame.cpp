@@ -11,7 +11,8 @@ void SceneGame::Initialize(const SceneContext& context)
 	// SkyBox初期化
 	skyBox.Initialize(
 		context.device,
-		"Data/SkyBox/BlueSky"
+		//"Data/SkyBox/BlueSky"
+		"Data/SkyBox/DynamicSky"
 	);
 	// IBLテクスチャセット
 	renderSystem.SetIBLTextures(
@@ -33,10 +34,9 @@ void SceneGame::Initialize(const SceneContext& context)
 	//	3.0f                   // 強度
 	//);
 
-	// 円状に20個のポイントライトを配置
 	const int lightCount = 20;
-	const float radius = 5.0f;   // 円の半径
-	const float height = 1.0f;   // Y座標（高さ）
+	const float radius = 5.0f;
+	const float height = 1.0f;
 
 	for (int i = 0; i < lightCount; i++)
 	{
@@ -44,7 +44,6 @@ void SceneGame::Initialize(const SceneContext& context)
 		float x = radius * cosf(angle);
 		float z = radius * sinf(angle);
 
-		// 色を角度に応じて変化させる（虹色っぽく）
 		float r = (sinf(angle) + 1.0f) * 0.5f;
 		float g = (sinf(angle + 2.0f) + 1.0f) * 0.5f;
 		float b = (sinf(angle + 4.0f) + 1.0f) * 0.5f;
