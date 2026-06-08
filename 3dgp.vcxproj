@@ -33,7 +33,7 @@
     <ClCompile Include="Source\Core\ImGuiManager.cpp" />
     <ClCompile Include="Source\Core\SceneManager.cpp" />
     <ClCompile Include="Source\Core\ShaderPassLibrary.cpp" />
-    <ClCompile Include="Source\Debug\DebugRenderer.cpp" />
+    <ClCompile Include="Source\DebugRenderer\DebugRenderer.cpp" />
     <ClCompile Include="Source\ECS\Systems\AnimationSystem.cpp" />
     <ClCompile Include="Source\ECS\Systems\MeshLoaderSystem.cpp" />
     <ClCompile Include="Source\ECS\Systems\RenderSystem.cpp" />
@@ -64,7 +64,7 @@
     <ClInclude Include="Source\Core\SceneManager.h" />
     <ClInclude Include="Source\Core\ShaderPass.h" />
     <ClInclude Include="Source\Core\ShaderPassLibrary.h" />
-    <ClInclude Include="Source\Debug\DebugRenderer.h" />
+    <ClInclude Include="Source\DebugRenderer\DebugRenderer.h" />
     <ClInclude Include="Source\ECS\Components\AnimatorComponent.h" />
     <ClInclude Include="Source\ECS\Components\InputComponent.h" />
     <ClInclude Include="Source\ECS\Components\MaterialComponent.h" />

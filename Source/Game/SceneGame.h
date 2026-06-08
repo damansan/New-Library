@@ -2,7 +2,7 @@
 #include "Core/Scene.h"
 #include "ECS/Systems/RenderSystem.h"
 #include "ECS/Systems/AnimationSystem.h"
-#include "Debug/DebugRenderer.h"
+#include "DebugRenderer/DebugRenderer.h"
 #include "Rendering/SkyBox.h"
 #include "Rendering/LightManager.h"
 

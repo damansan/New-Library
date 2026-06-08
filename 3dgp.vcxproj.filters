@@ -104,12 +104,6 @@
     <Filter Include="Shader\Lambert">
       <UniqueIdentifier>{ee860c55-acf4-400e-b5e6-0607f7d87778}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Sources\Debug">
-      <UniqueIdentifier>{89d6f69b-4e82-4f0f-989e-7a29d69496d9}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Debug\DebugRenderer">
-      <UniqueIdentifier>{3ca9e856-3e00-48c7-bd0b-ed44345bee7b}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Shader\Debug">
       <UniqueIdentifier>{384dfe56-abfb-492f-9fd3-ffba750579fd}</UniqueIdentifier>
     </Filter>
@@ -176,6 +170,9 @@
     <Filter Include="Sources\Rendering\LightManager">
       <UniqueIdentifier>{eea5f1f4-67d2-4d9b-8709-0c60219fde2f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\DebugRenderer">
+      <UniqueIdentifier>{3ca9e856-3e00-48c7-bd0b-ed44345bee7b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Core\framework.cpp">
@@ -241,9 +238,6 @@
     <ClCompile Include="Source\Core\FreeCameraController.cpp">
       <Filter>Sources\Core\Camera\FreeCameraController</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Debug\DebugRenderer.cpp">
-      <Filter>Sources\Debug\DebugRenderer</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Resource\GLTFConverter.cpp">
       <Filter>Sources\Resource\GLTFConverter</Filter>
     </ClCompile>
@@ -273,6 +267,9 @@
     </ClCompile>
     <ClCompile Include="Source\Rendering\LightManager.cpp">
       <Filter>Sources\Rendering\LightManager</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\DebugRenderer\DebugRenderer.cpp">
+      <Filter>Sources\DebugRenderer</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -357,9 +354,6 @@
     <ClInclude Include="Source\Core\FreeCameraController.h">
       <Filter>Sources\Core\Camera\FreeCameraController</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Debug\DebugRenderer.h">
-      <Filter>Sources\Debug\DebugRenderer</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Resource\GLTFData.h">
       <Filter>Sources\Resource\GLTFData</Filter>
     </ClInclude>
@@ -401,6 +395,9 @@
     </ClInclude>
     <ClInclude Include="Source\ECS\Components\InputComponent.h">
       <Filter>Sources\ECS\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\DebugRenderer\DebugRenderer.h">
+      <Filter>Sources\DebugRenderer</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
