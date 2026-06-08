@@ -1,0 +1,176 @@
+{
+	"asset":
+	{
+		"version": "2.0",
+		"generator": "Unreal Engine 5.7.4"
+	},
+	"scene": 0,
+	"accessors": [
+		{
+			"bufferView": 0,
+			"count": 20826,
+			"type": "SCALAR",
+			"componentType": 5123
+		},
+		{
+			"bufferView": 1,
+			"count": 7595,
+			"type": "VEC3",
+			"componentType": 5126,
+			"min": [
+				-0.0437378697,
+				-0.0729148835,
+				-1.63646221
+			],
+			"max": [
+				0.0437378697,
+				0.0552554317,
+				0.322219759
+			]
+		},
+		{
+			"bufferView": 2,
+			"count": 7595,
+			"type": "VEC3",
+			"componentType": 5126
+		},
+		{
+			"bufferView": 3,
+			"count": 7595,
+			"type": "VEC4",
+			"componentType": 5126
+		},
+		{
+			"bufferView": 4,
+			"count": 7595,
+			"type": "VEC2",
+			"componentType": 5126
+		},
+		{
+			"bufferView": 5,
+			"count": 7595,
+			"type": "VEC2",
+			"componentType": 5126
+		},
+		{
+			"bufferView": 6,
+			"count": 7595,
+			"type": "VEC2",
+			"componentType": 5126
+		}
+	],
+	"buffers": [
+		{
+			"uri": "Nodachi_Sword.bin",
+			"byteLength": 527732
+		}
+	],
+	"bufferViews": [
+		{
+			"buffer": 0,
+			"byteLength": 41652,
+			"target": 34963
+		},
+		{
+			"buffer": 0,
+			"byteLength": 91140,
+			"byteOffset": 41652,
+			"target": 34962
+		},
+		{
+			"buffer": 0,
+			"byteLength": 91140,
+			"byteOffset": 132792,
+			"target": 34962
+		},
+		{
+			"buffer": 0,
+			"byteLength": 121520,
+			"byteOffset": 223932,
+			"target": 34962
+		},
+		{
+			"buffer": 0,
+			"byteLength": 60760,
+			"byteOffset": 345452,
+			"target": 34962
+		},
+		{
+			"buffer": 0,
+			"byteLength": 60760,
+			"byteOffset": 406212,
+			"target": 34962
+		},
+		{
+			"buffer": 0,
+			"byteLength": 60760,
+			"byteOffset": 466972,
+			"target": 34962
+		}
+	],
+	"images": [
+		{
+			"uri": "M_Asset_BaseColor.png"
+		}
+	],
+	"materials": [
+		{
+			"name": "M_Asset",
+			"pbrMetallicRoughness":
+			{
+				"baseColorTexture":
+				{
+					"index": 0
+				},
+				"metallicFactor": 0,
+				"roughnessFactor": 0.5
+			},
+			"doubleSided": true
+		}
+	],
+	"meshes": [
+		{
+			"name": "Nodachi_Sword",
+			"primitives": [
+				{
+					"attributes":
+					{
+						"POSITION": 1,
+						"NORMAL": 2,
+						"TANGENT": 3,
+						"TEXCOORD_0": 4,
+						"TEXCOORD_1": 5,
+						"TEXCOORD_2": 6
+					},
+					"indices": 0,
+					"material": 0
+				}
+			]
+		}
+	],
+	"nodes": [
+		{
+			"mesh": 0
+		}
+	],
+	"samplers": [
+		{
+			"minFilter": 9987,
+			"magFilter": 9729
+		}
+	],
+	"scenes": [
+		{
+			"nodes": [
+				0
+			]
+		}
+	],
+	"textures": [
+		{
+			"name": "M_Asset_BaseColor",
+			"sampler": 0,
+			"source": 0
+		}
+	]
+}

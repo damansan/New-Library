@@ -65,13 +65,9 @@ void SceneGame::Initialize(const SceneContext& context)
 	player = std::make_unique<Player>();
 	player->Initialize(registry, context);
 
-	// Enemy生成/初期化
+	//// Enemy生成/初期化
 	//enemy = std::make_unique<Enemy>();
 	//enemy->Initialize(registry, context);
-
-	//// ヘルメット生成/初期化
-	//helmet = std::make_unique<DamagedHelmet>();
-	//helmet->Initialize(registry, context);
 }
 
 void SceneGame::Update(float elapsedTime, const SceneContext& context)
@@ -112,8 +108,6 @@ void SceneGame::Update(float elapsedTime, const SceneContext& context)
 	//	// Enemy 更新
 	//	enemy->Update(elapsedTime, registry, context);
 	//}
-
-	//helmet->Update(elapsedTime, registry, context);
 }
 
 void SceneGame::Render(const SceneContext& context)
@@ -212,10 +206,10 @@ void SceneGame::Render(const SceneContext& context)
 		ZoneScopedN("DebugRenderer::Render");
 
 		// ボーン描画
-		debugRenderer.Render(
-			context.deviceContext,
-			context.view,
-			context.projection
-		);
+		//debugRenderer.Render(
+		//	context.deviceContext,
+		//	context.view,
+		//	context.projection
+		//);
 	}
 }

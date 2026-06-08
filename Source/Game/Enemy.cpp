@@ -9,10 +9,10 @@ void Enemy::Initialize(entt::registry& registry, const SceneContext& context)
     entity = registry.create();
 
     auto& t = registry.emplace<TransformComponent>(entity);
-    t.position = { 1.0f, 0.0f, 0.0f };
+    t.position = { 0.0f, 0.0f, 0.0f };
     t.scale = { 1.0f, 1.0f, 1.0f };
 
-    registry.emplace<MeshComponent>(entity, "Data/Model/EnemyRobot/SK_SciFi_ToiletMech_Skin3.gltf");
+    registry.emplace<MeshComponent>(entity, "Data/Model/EnemyRobot/SK_SteamPunkBoss.gltf");
     //registry.emplace<MeshComponent>(entity, "Data/Model/unitychan.glb");
     registry.emplace<MaterialComponent>(entity).AddPass("pbr");
     
@@ -23,10 +23,11 @@ void Enemy::Update(float elapsedTime, entt::registry& registry, const SceneConte
     auto* animator = registry.try_get<AnimatorComponent>(entity);
     if (animator)
     {
-        animator->currentAnimation = "Idle2";
+        animator->currentAnimation = "Anim_Idle_0";
         animator->loop = true;
         animator->playSpeed = 1.0f;
     }
+
 }
 
 void Enemy::RenderImGui()

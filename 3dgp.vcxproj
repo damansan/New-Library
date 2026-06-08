@@ -66,6 +66,7 @@
     <ClInclude Include="Source\Core\ShaderPassLibrary.h" />
     <ClInclude Include="Source\Debug\DebugRenderer.h" />
     <ClInclude Include="Source\ECS\Components\AnimatorComponent.h" />
+    <ClInclude Include="Source\ECS\Components\InputComponent.h" />
     <ClInclude Include="Source\ECS\Components\MaterialComponent.h" />
     <ClInclude Include="Source\ECS\Components\MeshComponent.h" />
     <ClInclude Include="Source\ECS\Components\SkinnedMeshComponent.h" />
