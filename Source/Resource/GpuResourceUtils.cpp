@@ -6,6 +6,8 @@
 #include "Utility/misc.h"
 #include <memory>
 #include <vector>
+#include <DirectXTex.h>
+#include <filesystem>
 
 // 頂点シェーダー読み込み
 HRESULT GpuResourceUtils::LoadVertexShader(
@@ -184,6 +186,70 @@ HRESULT GpuResourceUtils::LoadDDSTexture(
 			*isCubemap = (desc.MiscFlags & D3D11_RESOURCE_MISC_TEXTURECUBE) != 0;
 		}
 	}
+	return hr;
+}
+// DDSキャッシュ付きテクスチャ読み込み
+HRESULT GpuResourceUtils::LoadTextureWithDDSCache(
+	ID3D11Device* device, 
+	const std::string& filename,
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>& shaderResourceView)
+{
+	// 同名の .dds キャッシュパスを生成
+	std::string ddsPath = filename + ".dds";
+
+	// DDSキャッシュが存在すればそちらから読む
+	if (std::filesystem::exists(ddsPath))
+	{
+		HRESULT hr = LoadDDSTexture(device, ddsPath, shaderResourceView);
+		if (SUCCEEDED(hr)) return hr;
+		// DDSロード失敗時は通常ロードにフォールバック
+	}
+
+	// DDSがない場合は通常ロードしてDDSを保存
+	HRESULT hr = LoadTextureFromFile(device, filename, shaderResourceView);
+	if (SUCCEEDED(hr))
+	{
+		// バックグラウンドではなく初回のみ保存
+		SaveToDDS(device, filename, ddsPath);
+	}
+	return hr;
+}
+// PNGなどのファイルをDDSとして保存
+HRESULT GpuResourceUtils::SaveToDDS(
+	ID3D11Device* device, 
+	const std::string& srcFilename, 
+	const std::string& ddsFilename)
+{
+	// ファイルをメモリに読み込む
+	FILE* fp = nullptr;
+	fopen_s(&fp, srcFilename.c_str(), "rb");
+	if (!fp) return E_FAIL;
+
+	fseek(fp, 0, SEEK_END);
+	long size = ftell(fp);
+	fseek(fp, 0, SEEK_SET);
+	std::vector<unsigned char> data(size);
+	fread(data.data(), size, 1, fp);
+	fclose(fp);
+
+	// DirectXTex でメモリからイメージを読み込む
+	DirectX::ScratchImage image;
+	HRESULT hr = DirectX::LoadFromWICMemory(
+		data.data(), data.size(),
+		DirectX::WIC_FLAGS_NONE,
+		nullptr, image);
+
+	if (FAILED(hr)) return hr;
+
+	// DDS形式で保存
+	std::wstring wDdsPath = ToWString(ddsFilename);
+	hr = DirectX::SaveToDDSFile(
+		image.GetImages(),
+		image.GetImageCount(),
+		image.GetMetadata(),
+		DirectX::DDS_FLAGS_NONE,
+		wDdsPath.c_str());
+
 	return hr;
 }
 

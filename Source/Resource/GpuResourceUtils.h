@@ -45,6 +45,18 @@ public:
         Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>& shaderResourceView,
         bool* isCubemap = nullptr
     );
+    // DDSキャッシュ付きテクスチャ読み込み
+    static HRESULT LoadTextureWithDDSCache(
+        ID3D11Device* device,
+        const std::string& filename,
+        Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>& shaderResourceView
+    );
+    // PNGなどのファイルをDDSとして保存
+    static HRESULT SaveToDDS(
+        ID3D11Device* device,
+        const std::string& srcFilename,
+        const std::string& ddsFilename
+    );
 
     // ダミーテクスチャ生成
     static HRESULT CreateDummyTexture(

@@ -24,7 +24,7 @@ std::shared_ptr<Model> GLTFConverter::Convert(
 // .cereal から復元した後にGPUリソースだけ再生成する
 void GLTFConverter::CreateGpuResources(ID3D11Device* device, Model& model)
 {
-	// --- メッシュのGPUバッファ再生成 ---
+	// メッシュのGPUバッファ再生成
 	for (auto& mesh : model.meshes)
 	{
 		// 頂点バッファ
@@ -55,7 +55,7 @@ void GLTFConverter::CreateGpuResources(ID3D11Device* device, Model& model)
 		}
 	}
 
-	// --- マテリアルのテクスチャ再生成 ---
+	// マテリアルのテクスチャ再生成
 	for (auto& mat : model.materials)
 	{
 		// パス優先、なければバイナリ、両方空ならダミー
@@ -67,21 +67,19 @@ void GLTFConverter::CreateGpuResources(ID3D11Device* device, Model& model)
 			{
 				if (!filepath.empty())
 				{
-					// 外部ファイルから読む
-					GpuResourceUtils::LoadTextureFromFile(device, filepath, srv);
+					// 外部ファイル → DDSキャッシュ優先でロード
+					GpuResourceUtils::LoadTextureWithDDSCache(device, filepath, srv);
 				}
 				else if (!pixels.empty())
 				{
-					// 埋め込みバイナリから読む
+					// 埋め込みバイナリ → そのままロード（DDSキャッシュ対象外）
 					GpuResourceUtils::LoadTexture(device, pixels.data(), pixels.size(), srv);
 				}
 				else
 				{
-					// 両方空はダミー
 					GpuResourceUtils::CreateDummyTexture(device, srv, dummyColor, 1);
 				}
 			};
-
 		loadTex(mat.baseTextureFileName, mat.baseMapData, mat.baseMap, 0xFFFFFFFF);
 		loadTex(mat.normalTextureFileName, mat.normalMapData, mat.normalMap, 0xFFFF8080);
 		loadTex(mat.metallicRoughnessTextureFileName, mat.metallicRoughnessMapData, mat.metallicRoughnessMap, 0xFFFFFFFF);
@@ -89,7 +87,7 @@ void GLTFConverter::CreateGpuResources(ID3D11Device* device, Model& model)
 		loadTex(mat.emissiveTextureFileName, mat.emissiveMapData, mat.emissiveMap, 0xFF000000);
 	}
 
-	// --- material ポインタの再接続 ---
+	// material ポインタの再接続
 	for (auto& mesh : model.meshes)
 	{
 		if (mesh.materialIndex >= 0 &&
@@ -237,22 +235,22 @@ void GLTFConverter::ConvertMaterials(
 			}
 
 			const auto& texData = data.textures[texIndex];
-		
+
 			if (!texData.filepath.empty())
 			{
 				// 外部ファイルから読む
-				GpuResourceUtils::LoadTextureFromFile(device, texData.filepath, srv);
+				// DDSキャッシュ優先でロード
+				GpuResourceUtils::LoadTextureWithDDSCache(device, texData.filepath, srv);
 			}
 			else if (!texData.pixels.empty())
 			{
-				// 埋め込みバイナリから読む
-				GpuResourceUtils::LoadTexture(
-					device, texData.pixels.data(), texData.pixels.size(), srv);
+				// 埋め込みバイナリから読む(そのままロード(DDSキャッシュ対象外))
+				GpuResourceUtils::LoadTexture(device, texData.pixels.data(), texData.pixels.size(), srv);
 			}
 			else
 			{
 				GpuResourceUtils::CreateDummyTexture(device, srv, dummyColor, 1);
-			}		
+			}
 		};
 
 	for (const auto& src : data.materials)
