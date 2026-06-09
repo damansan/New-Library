@@ -179,6 +179,12 @@
     <Filter Include="Sources\ECS\Systems\MovementSystem">
       <UniqueIdentifier>{4e0d7caa-8bb9-4429-b709-00c4339d3742}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\Utility\CerealHelper">
+      <UniqueIdentifier>{ec682482-b10b-4925-908f-ef5913aaea45}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Resource\ModelSerializer">
+      <UniqueIdentifier>{50e40258-8912-418f-a58d-91ad1a5d0f5a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Core\framework.cpp">
@@ -282,6 +288,12 @@
     </ClCompile>
     <ClCompile Include="Source\ECS\Systems\MovementSystem.cpp">
       <Filter>Sources\ECS\Systems\MovementSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Utility\CerealHelper.cpp">
+      <Filter>Sources\Utility\CerealHelper</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Resource\ModelSerializer.cpp">
+      <Filter>Sources\Resource\ModelSerializer</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -419,6 +431,12 @@
     </ClInclude>
     <ClInclude Include="Source\ECS\Systems\MovementSystem.h">
       <Filter>Sources\ECS\Systems\MovementSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Utility\CerealHelper.h">
+      <Filter>Sources\Utility\CerealHelper</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Resource\ModelSerializer.h">
+      <Filter>Sources\Resource\ModelSerializer</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -5,7 +5,6 @@
 #include <d3d11.h>
 #include "Model.h"
 
-
 class ResourceManager
 {
 public:

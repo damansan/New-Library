@@ -51,7 +51,9 @@
     <ClCompile Include="Source\Resource\GLTFImporter.cpp" />
     <ClCompile Include="Source\Resource\GpuResourceUtils.cpp" />
     <ClCompile Include="Source\Resource\Model.cpp" />
+    <ClCompile Include="Source\Resource\ModelSerializer.cpp" />
     <ClCompile Include="Source\Resource\ResourceManager.cpp" />
+    <ClCompile Include="Source\Utility\CerealHelper.cpp" />
     <ClCompile Include="Source\Utility\main.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -97,7 +99,9 @@
     <ClInclude Include="Source\Resource\GLTFImporter.h" />
     <ClInclude Include="Source\Resource\Model.h" />
     <ClInclude Include="Source\Resource\GpuResourceUtils.h" />
+    <ClInclude Include="Source\Resource\ModelSerializer.h" />
     <ClInclude Include="Source\Resource\ResourceManager.h" />
+    <ClInclude Include="Source\Utility\CerealHelper.h" />
     <ClInclude Include="Source\Utility\high_resolution_timer.h" />
     <ClInclude Include="Source\Utility\misc.h" />
   </ItemGroup>
@@ -280,7 +284,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;TRACY_ENABLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)Source;$(ProjectDir)External/imgui-docking;$(ProjectDir)External/imgui-docking/backends;$(ProjectDir)External/entt-main/single_include/entt;$(ProjectDir)External/GLTF;$(ProjectDir)External/tracy-0.13.1/public;.\External\DirectXTK-main\Inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)Source;$(ProjectDir)External/imgui-docking;$(ProjectDir)External/imgui-docking/backends;$(ProjectDir)External/entt-main/single_include/entt;$(ProjectDir)External/GLTF;$(ProjectDir)External/tracy-0.13.1/public;.\External\DirectXTK-main\Inc;.\External\cereal-master\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>

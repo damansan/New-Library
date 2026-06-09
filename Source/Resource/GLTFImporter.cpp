@@ -561,30 +561,37 @@ void GLTFImporter::LoadTextures(
 		GLTFData::TextureData texData;
 		const auto& image = gltfModel.images[gltfTexture.source];
 
+		//if (!image.uri.empty())
+		//{
+		//	std::string texPath = (filepath.parent_path() / image.uri).string();
+
+		//	// istreambuf_iterator より read の方が大幅に速い
+		//	std::ifstream ifs(texPath, std::ios::binary | std::ios::ate);
+		//	_ASSERT_EXPR_A(ifs, "Texture file not found");
+
+		//	std::streamsize size = ifs.tellg();
+		//	ifs.seekg(0, std::ios::beg);
+
+		//	texData.pixels.resize(static_cast<size_t>(size));
+		//	ifs.read(reinterpret_cast<char*>(texData.pixels.data()), size);
+		//}
+		//else if (image.bufferView >= 0)
+		//{
+		//	const auto& bv = gltfModel.bufferViews[image.bufferView];
+		//	const auto& buffer = gltfModel.buffers[bv.buffer];
+		//	const uint8_t* begin = buffer.data.data() + bv.byteOffset;
+		//	texData.pixels.assign(begin, begin + bv.byteLength);
+		//}
 		if (!image.uri.empty())
 		{
-			//std::string texPath = (filepath.parent_path() / image.uri).string();
-			//std::ifstream ifs(texPath, std::ios::binary);
-			//_ASSERT_EXPR_A(ifs, "Texture file not found");
-			//texData.pixels = std::vector<uint8_t>(
-			//	std::istreambuf_iterator<char>(ifs),
-			//	std::istreambuf_iterator<char>()
-			//);
-
 			std::string texPath = (filepath.parent_path() / image.uri).string();
 
-			// istreambuf_iterator より read の方が大幅に速い
-			std::ifstream ifs(texPath, std::ios::binary | std::ios::ate);
-			_ASSERT_EXPR_A(ifs, "Texture file not found");
-
-			std::streamsize size = ifs.tellg();
-			ifs.seekg(0, std::ios::beg);
-
-			texData.pixels.resize(static_cast<size_t>(size));
-			ifs.read(reinterpret_cast<char*>(texData.pixels.data()), size);
+			// パスだけ保存する（バイナリは読まない）
+			texData.filepath = texPath;
 		}
 		else if (image.bufferView >= 0)
 		{
+			// GLB埋め込みの場合はバイナリを取り出す
 			const auto& bv = gltfModel.bufferViews[image.bufferView];
 			const auto& buffer = gltfModel.buffers[bv.buffer];
 			const uint8_t* begin = buffer.data.data() + bv.byteOffset;
@@ -592,16 +599,6 @@ void GLTFImporter::LoadTextures(
 		}
 
 		data.textures.push_back(std::move(texData));
-
-		QueryPerformanceCounter(&t1);
-		double elapsed = (double)(t1.QuadPart - t0.QuadPart) / freq.QuadPart * 1000.0;
-		size_t sizeKB = data.textures.back().pixels.size() / 1024;
-		sprintf_s(buf, "[GLTF]   texture[%d] uri=%s size=%zuKB : %.1f ms\n",
-			i,
-			gltfModel.images[gltfTexture.source].uri.c_str(),
-			sizeKB,
-			elapsed);
-		OutputDebugStringA(buf);
 	}
 }
 

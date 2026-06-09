@@ -31,6 +31,13 @@ public:
         Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>& shaderResourceView
     );
 
+    // ファイルパスからテクスチャ読み込み
+    static HRESULT LoadTextureFromFile(
+        ID3D11Device* device,
+        const std::string& filename,
+        Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>& shaderResourceView
+    );
+
     // DDSテクスチャ読み込み
     static HRESULT LoadDDSTexture(
         ID3D11Device* device,

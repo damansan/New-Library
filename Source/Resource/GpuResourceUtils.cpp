@@ -5,7 +5,7 @@
 #include "WICTextureLoader.h"
 #include "Utility/misc.h"
 #include <memory>
-
+#include <vector>
 
 // 頂点シェーダー読み込み
 HRESULT GpuResourceUtils::LoadVertexShader(
@@ -128,6 +128,33 @@ HRESULT GpuResourceUtils::LoadTexture(
 
 	_ASSERT_EXPR(SUCCEEDED(hr), hr_trace(hr));
 	return hr;
+}
+
+// ファイルパスからテクスチャ読み込み
+HRESULT GpuResourceUtils::LoadTextureFromFile(
+	ID3D11Device* device, 
+	const std::string& filename,
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>& shaderResourceView)
+{
+	// ファイルを開いてバイナリを読み込む
+	FILE* fp = nullptr;
+	fopen_s(&fp, filename.c_str(), "rb");
+	if (!fp)
+	{
+		// ファイルが見つからない場合はダミーを返す
+		return CreateDummyTexture(device, shaderResourceView, 0xFFFFFFFF, 1);
+	}
+
+	fseek(fp, 0, SEEK_END);
+	long size = ftell(fp);
+	fseek(fp, 0, SEEK_SET);
+
+	std::vector<unsigned char> data(size);
+	fread(data.data(), size, 1, fp);
+	fclose(fp);
+
+	// 既存の LoadTexture（メモリ版）に流す
+	return LoadTexture(device, data.data(), data.size(), shaderResourceView);
 }
 
 // DDSテクスチャ読み込み

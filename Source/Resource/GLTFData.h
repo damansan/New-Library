@@ -38,10 +38,12 @@ struct GLTFData
         DirectX::XMFLOAT4X4  globalTransform = { 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 };
     };
 
-    // テクスチャデータ（パス・埋め込み問わずバイナリで統一）
+    // テクスチャデータ
     struct TextureData
     {
         std::vector<uint8_t> pixels; // バイナリデータ
+        std::string          filepath; // 外部ファイルの場合のパス
+
     };
 
     // マテリアルデータ

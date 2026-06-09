@@ -14,6 +14,9 @@ public:
         const std::shared_ptr<GLTFData>& data
     );
 
+    // .cereal から復元した後にGPUリソースだけ再生成する
+    static void CreateGpuResources(ID3D11Device* device, Model& model);
+
 private:
     // ノード変換
     static void ConvertNodes(

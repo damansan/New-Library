@@ -45,11 +45,25 @@ public:
     struct Material
     {
         std::string       name;
-        std::string       baseTextureFileName;
         DirectX::XMFLOAT4 baseColor = { 1, 1, 1, 1 };
         float             roughnessFactor = 1.0f;
         float             metallicFactor = 0.0f;
 
+        // 外部ファイル参照テクスチャ用パス（シリアライズ対象）
+        std::string baseTextureFileName;
+        std::string normalTextureFileName;
+        std::string metallicRoughnessTextureFileName;
+        std::string occlusionTextureFileName;
+        std::string emissiveTextureFileName;
+
+        // 埋め込みテクスチャ用バイナリデータ（シリアライズ対象）
+        std::vector<uint8_t> baseMapData;
+        std::vector<uint8_t> normalMapData;
+        std::vector<uint8_t> metallicRoughnessMapData;
+        std::vector<uint8_t> occlusionMapData;
+        std::vector<uint8_t> emissiveMapData;
+
+        // GPUリソース(シリアライズ対象外)
         Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> baseMap;
         Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> normalMap;
         Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> metallicRoughnessMap;
@@ -152,6 +166,7 @@ public:
 private:
     friend class GLTFImporter;
     friend class GLTFConverter;
+    friend class ModelSerializer;
 
     std::vector<Node>      nodes;
     std::vector<Mesh>      meshes;
