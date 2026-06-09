@@ -39,6 +39,7 @@
     <ClCompile Include="Source\ECS\Systems\MeshLoaderSystem.cpp" />
     <ClCompile Include="Source\ECS\Systems\MovementSystem.cpp" />
     <ClCompile Include="Source\ECS\Systems\RenderSystem.cpp" />
+    <ClCompile Include="Source\Editor\ProjectWindow.cpp" />
     <ClCompile Include="Source\Game\DamagedHelmet.cpp" />
     <ClCompile Include="Source\Game\Enemy.cpp" />
     <ClCompile Include="Source\Game\Player.cpp" />
@@ -58,6 +59,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="External\entt-main\single_include\entt\entt.hpp" />
+    <ClInclude Include="External\json-3.12.0\single_include\nlohmann\json.hpp" />
     <ClInclude Include="Source\Core\Camera.h" />
     <ClInclude Include="Source\Core\framework.h" />
     <ClInclude Include="Source\Core\FreeCameraController.h" />
@@ -83,6 +85,8 @@
     <ClInclude Include="Source\ECS\Systems\MeshLoaderSystem.h" />
     <ClInclude Include="Source\ECS\Systems\MovementSystem.h" />
     <ClInclude Include="Source\ECS\Systems\RenderSystem.h" />
+    <ClInclude Include="Source\Editor\EditorContext.h" />
+    <ClInclude Include="Source\Editor\ProjectWindow.h" />
     <ClInclude Include="Source\Game\Character.h" />
     <ClInclude Include="Source\Game\Actor.h" />
     <ClInclude Include="Source\Game\DamagedHelmet.h" />
@@ -284,7 +288,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;TRACY_ENABLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)Source;$(ProjectDir)External/imgui-docking;$(ProjectDir)External/imgui-docking/backends;$(ProjectDir)External/entt-main/single_include/entt;$(ProjectDir)External/GLTF;$(ProjectDir)External/tracy-0.13.1/public;.\External\DirectXTK-main\Inc;.\External\DirectXTex-may2026\DirectXTex;.\External\cereal-master\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)Source;$(ProjectDir)External/imgui-docking;$(ProjectDir)External/imgui-docking/backends;$(ProjectDir)External/entt-main/single_include/entt;$(ProjectDir)External/GLTF;$(ProjectDir)External/tracy-0.13.1/public;$(ProjectDir)External/json-3.12.0/single_include/nlohmann;.\External\DirectXTK-main\Inc;.\External\DirectXTex-may2026\DirectXTex;.\External\cereal-master\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
@@ -339,7 +343,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)Source;$(ProjectDir)External/imgui-docking;$(ProjectDir)External/imgui-docking/backends;$(ProjectDir)External/entt-main/single_include/entt;$(ProjectDir)External/GLTF;$(ProjectDir)External/tracy-0.13.1/public;.\External\DirectXTK-main\Inc;.\External\DirectXTex-may2026\DirectXTex;.\External\cereal-master\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)Source;$(ProjectDir)External/imgui-docking;$(ProjectDir)External/imgui-docking/backends;$(ProjectDir)External/entt-main/single_include/entt;$(ProjectDir)External/GLTF;$(ProjectDir)External/tracy-0.13.1/public;$(ProjectDir)External/json-3.12.0/single_include/nlohmann;.\External\DirectXTK-main\Inc;.\External\DirectXTex-may2026\DirectXTex;.\External\cereal-master\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>

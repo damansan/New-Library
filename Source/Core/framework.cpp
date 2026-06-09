@@ -33,6 +33,9 @@ framework::framework(HWND hwnd) : hwnd(hwnd)
 	// 最初のシーンセット
 	sceneManager.ChangeScene(std::make_unique<SceneGame>());
 
+	// ProjectWindow 初期化
+	projectWindow.Initialize("Data/Model");
+
 #ifndef _DEBUG
 	// リリース時はボーダーレスフルスクリーンで起動
 	graphics.ToggleFullscreen();
@@ -75,6 +78,13 @@ void framework::updateImGui()
 
 	// シーンImGui描画
 	sceneManager.RenderImGui();
+
+#ifdef _DEBUG
+	if (auto* scene = sceneManager.GetCurrentScene())
+	{
+		projectWindow.Draw(scene->GetRegistry(), editorContext);
+	}
+#endif
 }
 
 void framework::render(float elapsedTime)

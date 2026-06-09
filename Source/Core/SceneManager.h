@@ -27,6 +27,10 @@ public:
 
 	// シーンクリア
 	void ClearScene();
+
+	// 現在のシーン取得
+	Scene* GetCurrentScene() { return currentScene.get(); }
+
 private:
 	std::unique_ptr<Scene>currentScene; // 現在シーン
 	std::unique_ptr<Scene>nextScene;    // 次のシーン

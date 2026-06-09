@@ -29,12 +29,6 @@
     <Filter Include="External\entt-main">
       <UniqueIdentifier>{55738d4a-41b7-4726-ba78-e0ba6e927136}</UniqueIdentifier>
     </Filter>
-    <Filter Include="External\entt-main\single_include">
-      <UniqueIdentifier>{6c0e7331-6bc4-4393-9bf8-c81bcf323215}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="External\entt-main\single_include\entt">
-      <UniqueIdentifier>{1491127b-221e-4646-9446-1a0ff3ddd2d4}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Sources\Core\Scene">
       <UniqueIdentifier>{818a02ce-1e53-4b13-9baa-2ae2aee427b2}</UniqueIdentifier>
     </Filter>
@@ -185,6 +179,18 @@
     <Filter Include="Sources\Resource\ModelSerializer">
       <UniqueIdentifier>{50e40258-8912-418f-a58d-91ad1a5d0f5a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="External\json-3.12.0">
+      <UniqueIdentifier>{21e8e830-d41f-441f-a456-7efbeae5c971}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Editor">
+      <UniqueIdentifier>{2056686f-274e-4486-9d5b-5c6c5813702e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Editor\ProjectWindow">
+      <UniqueIdentifier>{ae186463-3a03-4397-828d-1e2bbc6201b9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Editor\EditorContext">
+      <UniqueIdentifier>{1b3722c7-6ab5-4eb4-a603-1a6961a5ca5c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Core\framework.cpp">
@@ -295,6 +301,9 @@
     <ClCompile Include="Source\Resource\ModelSerializer.cpp">
       <Filter>Sources\Resource\ModelSerializer</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Editor\ProjectWindow.cpp">
+      <Filter>Sources\Editor\ProjectWindow</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Core\framework.h">
@@ -311,9 +320,6 @@
     </ClInclude>
     <ClInclude Include="Source\Core\ImGuiManager.h">
       <Filter>Sources\Core\ImGuiManager</Filter>
-    </ClInclude>
-    <ClInclude Include="External\entt-main\single_include\entt\entt.hpp">
-      <Filter>External\entt-main\single_include\entt</Filter>
     </ClInclude>
     <ClInclude Include="Source\Core\Scene.h">
       <Filter>Sources\Core\Scene</Filter>
@@ -437,6 +443,18 @@
     </ClInclude>
     <ClInclude Include="Source\Resource\ModelSerializer.h">
       <Filter>Sources\Resource\ModelSerializer</Filter>
+    </ClInclude>
+    <ClInclude Include="External\json-3.12.0\single_include\nlohmann\json.hpp">
+      <Filter>External\json-3.12.0</Filter>
+    </ClInclude>
+    <ClInclude Include="External\entt-main\single_include\entt\entt.hpp">
+      <Filter>External\entt-main</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Editor\ProjectWindow.h">
+      <Filter>Sources\Editor\ProjectWindow</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Editor\EditorContext.h">
+      <Filter>Sources\Editor\EditorContext</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

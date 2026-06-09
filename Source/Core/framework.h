@@ -15,6 +15,8 @@
 
 #include "Resource/ResourceManager.h"
 
+#include "Editor/EditorContext.h"
+#include "Editor/ProjectWindow.h"
 
 // ウィンドウサイズ
 #define SCREEN_WIDTH 1280
@@ -62,6 +64,10 @@ private:
 	Camera camera;
 	// FreeCameraControllerクラス
 	FreeCameraController  freeCameraController;
+
+	// Editor
+	EditorContext  editorContext;
+	ProjectWindow  projectWindow;
 
 
 private:
