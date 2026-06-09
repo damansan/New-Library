@@ -25,16 +25,16 @@ public:
 	void Finalize()override {}
 	void Update(float elapsedTime, const SceneContext& context) override;
 	void Render(const SceneContext& context)override;
-	void RenderImGui() override {}
+	void RenderImGui() override;
 
 private:
 	RenderSystem renderSystem;
 	AnimationSystem animationSystem;
-	InputSystem     inputSystem;    
-	MovementSystem  movementSystem; 
+	InputSystem     inputSystem;
+	MovementSystem  movementSystem;
 
 	DebugRenderer debugRenderer;
-	
+
 	SkyBox skyBox;
 	LightManager lightManager;
 
@@ -46,5 +46,4 @@ private:
 	std::unique_ptr<Player> player;
 	// エネミー
 	std::unique_ptr<Enemy> enemy;
-
 };

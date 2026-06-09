@@ -220,3 +220,10 @@ void SceneGame::Render(const SceneContext& context)
 		//);
 	}
 }
+
+void SceneGame::RenderImGui()
+{
+#ifdef _DEBUG
+	player->RenderImGui();
+#endif
+}

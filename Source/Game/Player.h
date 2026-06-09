@@ -11,4 +11,7 @@ public:
     void Initialize(entt::registry& registry, const SceneContext& context) override;
     void Update(float elapsedTime, entt::registry& registry, const SceneContext& context) override;
     void RenderImGui() override;
+
+private:
+    entt::registry* reg{ nullptr };
 };
