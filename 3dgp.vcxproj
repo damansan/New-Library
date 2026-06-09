@@ -35,7 +35,9 @@
     <ClCompile Include="Source\Core\ShaderPassLibrary.cpp" />
     <ClCompile Include="Source\DebugRenderer\DebugRenderer.cpp" />
     <ClCompile Include="Source\ECS\Systems\AnimationSystem.cpp" />
+    <ClCompile Include="Source\ECS\Systems\InputSystem.cpp" />
     <ClCompile Include="Source\ECS\Systems\MeshLoaderSystem.cpp" />
+    <ClCompile Include="Source\ECS\Systems\MovementSystem.cpp" />
     <ClCompile Include="Source\ECS\Systems\RenderSystem.cpp" />
     <ClCompile Include="Source\Game\DamagedHelmet.cpp" />
     <ClCompile Include="Source\Game\Enemy.cpp" />
@@ -69,12 +71,15 @@
     <ClInclude Include="Source\ECS\Components\InputComponent.h" />
     <ClInclude Include="Source\ECS\Components\MaterialComponent.h" />
     <ClInclude Include="Source\ECS\Components\MeshComponent.h" />
+    <ClInclude Include="Source\ECS\Components\MovementComponent.h" />
     <ClInclude Include="Source\ECS\Components\SkinnedMeshComponent.h" />
     <ClInclude Include="Source\ECS\Components\StaticMeshComponent.h" />
     <ClInclude Include="Source\ECS\Components\Tags.h" />
     <ClInclude Include="Source\ECS\Components\TransformComponent.h" />
     <ClInclude Include="Source\ECS\Systems\AnimationSystem.h" />
+    <ClInclude Include="Source\ECS\Systems\InputSystem.h" />
     <ClInclude Include="Source\ECS\Systems\MeshLoaderSystem.h" />
+    <ClInclude Include="Source\ECS\Systems\MovementSystem.h" />
     <ClInclude Include="Source\ECS\Systems\RenderSystem.h" />
     <ClInclude Include="Source\Game\Character.h" />
     <ClInclude Include="Source\Game\Actor.h" />

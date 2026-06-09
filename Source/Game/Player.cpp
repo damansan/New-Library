@@ -3,6 +3,10 @@
 #include "ECS/Components/MeshComponent.h"
 #include "ECS/Components/MaterialComponent.h"
 #include "ECS/Systems/AnimationSystem.h"
+#include "ECS/Components/InputComponent.h"   
+#include "ECS/Components/MovementComponent.h"
+
+#include "imgui.h"
 
 void Player::Initialize(entt::registry& registry, const SceneContext& context)
 {
@@ -15,6 +19,8 @@ void Player::Initialize(entt::registry& registry, const SceneContext& context)
     registry.emplace<MeshComponent>(entity, "Data/Model/PlayerRobot/Map_Robot3.gltf");
     //registry.emplace<MeshComponent>(entity, "Data/Model/unitychan.glb");
     registry.emplace<MaterialComponent>(entity).AddPass("pbr");
+    registry.emplace<InputComponent>(entity);   
+    registry.emplace<MovementComponent>(entity);
 }
 
 void Player::Update(float elapsedTime, entt::registry& registry, const SceneContext& context)
@@ -30,4 +36,7 @@ void Player::Update(float elapsedTime, entt::registry& registry, const SceneCont
 
 void Player::RenderImGui()
 {
+    ImGui::Begin("Player Info");
+
+    ImGui::End();
 }

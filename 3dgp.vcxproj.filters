@@ -173,6 +173,12 @@
     <Filter Include="Sources\DebugRenderer">
       <UniqueIdentifier>{3ca9e856-3e00-48c7-bd0b-ed44345bee7b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\ECS\Systems\InputSystem">
+      <UniqueIdentifier>{81216e75-0473-4f8d-b425-d5c760c69d33}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\ECS\Systems\MovementSystem">
+      <UniqueIdentifier>{4e0d7caa-8bb9-4429-b709-00c4339d3742}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Core\framework.cpp">
@@ -270,6 +276,12 @@
     </ClCompile>
     <ClCompile Include="Source\DebugRenderer\DebugRenderer.cpp">
       <Filter>Sources\DebugRenderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\ECS\Systems\InputSystem.cpp">
+      <Filter>Sources\ECS\Systems\InputSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\ECS\Systems\MovementSystem.cpp">
+      <Filter>Sources\ECS\Systems\MovementSystem</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -398,6 +410,15 @@
     </ClInclude>
     <ClInclude Include="Source\DebugRenderer\DebugRenderer.h">
       <Filter>Sources\DebugRenderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ECS\Components\MovementComponent.h">
+      <Filter>Sources\ECS\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ECS\Systems\InputSystem.h">
+      <Filter>Sources\ECS\Systems\InputSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ECS\Systems\MovementSystem.h">
+      <Filter>Sources\ECS\Systems\MovementSystem</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

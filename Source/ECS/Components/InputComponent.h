@@ -6,6 +6,6 @@ struct InputComponent
     float moveZ{ 0.0f };  // W/S キー  (-1 ～ +1)
 
     // アクション入力(ふえてく)
-    bool jump{ false };  // SPASE
-    bool attack{ false };// LMB?
+    bool jump{ false };   // SPASE
+    bool attack{ false }; // LMB?
 };

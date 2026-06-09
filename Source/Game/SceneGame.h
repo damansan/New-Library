@@ -2,7 +2,11 @@
 #include "Core/Scene.h"
 #include "ECS/Systems/RenderSystem.h"
 #include "ECS/Systems/AnimationSystem.h"
+#include "ECS/Systems/InputSystem.h"    
+#include "ECS/Systems/MovementSystem.h" 
+
 #include "DebugRenderer/DebugRenderer.h"
+
 #include "Rendering/SkyBox.h"
 #include "Rendering/LightManager.h"
 
@@ -26,9 +30,15 @@ public:
 private:
 	RenderSystem renderSystem;
 	AnimationSystem animationSystem;
+	InputSystem     inputSystem;    
+	MovementSystem  movementSystem; 
+
 	DebugRenderer debugRenderer;
+	
 	SkyBox skyBox;
 	LightManager lightManager;
+
+
 
 	// ステージ
 	std::unique_ptr<Stage> stage;
@@ -36,8 +46,5 @@ private:
 	std::unique_ptr<Player> player;
 	// エネミー
 	std::unique_ptr<Enemy> enemy;
-
-	// ヘルメット
-	std::unique_ptr<DamagedHelmet> helmet;
 
 };

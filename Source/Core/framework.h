@@ -66,7 +66,7 @@ private:
 
 private:
 	// VSync ON OFF
-	bool vsync = true;
+	bool vsync = false;
 
 	// UpdateŒv‘ª
 	int updateCount = 0;

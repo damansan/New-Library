@@ -73,7 +73,14 @@ void SceneGame::Initialize(const SceneContext& context)
 void SceneGame::Update(float elapsedTime, const SceneContext& context)
 {
 	ZoneScoped;
-
+	{
+		ZoneScopedN("InputSystem");
+		inputSystem.Update(registry);
+	}
+	{
+		ZoneScopedN("MovementSystem");
+		movementSystem.Update(registry, elapsedTime, context);
+	}
 	{
 		ZoneScopedN("MeshLoaderSystem");
 
