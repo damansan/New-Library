@@ -190,35 +190,35 @@ void SceneGame::Render(const SceneContext& context)
 	}
 
 
-	{
-		ZoneScopedN("DebugRenderer");
+	//{
+	//	ZoneScopedN("DebugRenderer");
 
-		debugRenderer.Clear();
-		// SkinnedMeshComponent を持つエンティティのボーンを追加
-		auto view = registry.view<SkinnedMeshComponent, TransformComponent>();
-		view.each([&](auto entity, SkinnedMeshComponent& skinned, TransformComponent& transform)
-			{
-				if (!skinned.model) return;
+	//	debugRenderer.Clear();
+	//	// SkinnedMeshComponent を持つエンティティのボーンを追加
+	//	auto view = registry.view<SkinnedMeshComponent, TransformComponent>();
+	//	view.each([&](auto entity, SkinnedMeshComponent& skinned, TransformComponent& transform)
+	//		{
+	//			if (!skinned.model) return;
 
-				debugRenderer.AddBones(
-					skinned.model->GetNodes(),
-					transform.GetWorldMatrix(),
-					{ 1.0f, 1.0f, 0.0f, 1.0f }  // 黄色
-				);
-			});
+	//			debugRenderer.AddBones(
+	//				skinned.model->GetNodes(),
+	//				transform.GetWorldMatrix(),
+	//				{ 1.0f, 1.0f, 0.0f, 1.0f }  // 黄色
+	//			);
+	//		});
 
-	}
+	//}
 
-	{
-		ZoneScopedN("DebugRenderer::Render");
+	//{
+	//	ZoneScopedN("DebugRenderer::Render");
 
-		// ボーン描画
-		debugRenderer.Render(
-			context.deviceContext,
-			context.view,
-			context.projection
-		);
-	}
+	//	// ボーン描画
+	//	debugRenderer.Render(
+	//		context.deviceContext,
+	//		context.view,
+	//		context.projection
+	//	);
+	//}
 }
 
 void SceneGame::RenderImGui()

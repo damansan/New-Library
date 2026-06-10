@@ -19,20 +19,13 @@ void Player::Initialize(entt::registry& registry, const SceneContext& context)
 
 	registry.emplace<MeshComponent>(entity, "Data/Model/PlayerRobot/Map_Robot3.gltf");
 	//registry.emplace<MeshComponent>(entity, "Data/Model/unitychan.glb");
-	registry.emplace<MaterialComponent>(entity).AddPass("pbr");
+	registry.emplace<MaterialComponent>(entity).AddPass("lambert");
 	registry.emplace<InputComponent>(entity);
 	registry.emplace<MovementComponent>(entity);
 }
 
 void Player::Update(float elapsedTime, entt::registry& registry, const SceneContext& context)
 {
-	auto* animator = registry.try_get<AnimatorComponent>(entity);
-	if (animator)
-	{
-		animator->currentAnimation = "Idle";
-		animator->loop = true;
-		animator->playSpeed = 1.0f;
-	}
 }
 
 void Player::RenderImGui()

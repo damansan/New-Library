@@ -507,6 +507,7 @@ framework::framework(HWND hwnd) : hwnd(hwnd)
 
 
 	// ƒVƒF[ƒ_[ƒpƒX“o˜^
+	ShaderPassLibrary::Register("None", { "None", "", "" });
 	ShaderPassLibrary::Register("basic", {
 		"", "Data/Shader/Base_VS.cso", "Data/Shader/Basic_PS.cso"
 		});
@@ -515,9 +516,6 @@ framework::framework(HWND hwnd) : hwnd(hwnd)
 		});
 	ShaderPassLibrary::Register("pbr", {
 		"", "Data/Shader/Base_VS.cso", "Data/Shader/PBR_PS.cso"
-		});
-	ShaderPassLibrary::Register("pbr_skinning", {
-	"", "Data/Shader/Skinning_VS.cso", "Data/Shader/PBR_PS.cso"
 		});
 
 	// Å‰‚ÌƒV[ƒ“ƒZƒbƒg
@@ -1702,9 +1700,8 @@ Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\MeshComp
 
 struct MeshComponent
 {
-	std::string modelPath; // ƒ‚ƒfƒ‹ƒtƒ@ƒCƒ‹ƒpƒX
-	bool visible{true};    // •\Ž¦ƒtƒ‰ƒO
-	bool castShadow{true}; // ‰e‚ð—Ž‚Æ‚·‚©
+	std::string modelPath;    // ƒ‚ƒfƒ‹ƒtƒ@ƒCƒ‹ƒpƒX
+	std::string previousPath; // ‘OƒtƒŒ[ƒ€‚ÌƒpƒX‚ð‹L˜^
 
 	MeshComponent() = default;
 	MeshComponent(const std::string& path) : modelPath(path) {}
@@ -2411,6 +2408,23 @@ void MeshLoaderSystem::Update(
     ID3D11Device* device,
     ResourceManager& resourceManager)
 {
+    // ƒpƒX‚ª•Ï‚í‚Á‚Ä‚¢‚½‚çÄƒ[ƒh‚³‚¹‚é
+    auto loadedView = registry.view<MeshComponent, MeshLoadedTag>();
+    for (auto entity : loadedView)
+    {
+        auto& mesh = loadedView.get<MeshComponent>(entity);
+        if (mesh.modelPath != mesh.previousPath)
+        {
+            registry.remove<MeshLoadedTag>(entity);
+            if (registry.any_of<SkinnedMeshComponent>(entity))
+                registry.remove<SkinnedMeshComponent>(entity);
+            if (registry.any_of<StaticMeshComponent>(entity))
+                registry.remove<StaticMeshComponent>(entity);
+            if (registry.any_of<AnimatorComponent>(entity))
+                registry.remove<AnimatorComponent>(entity);
+        }
+    }
+
     // MeshComponent‚ðŽ‚Â‚ªMeshLoadedTag‚Ì‚È‚¢Entity‚ðŽæ“¾
     auto view = registry.view<MeshComponent>(entt::exclude<MeshLoadedTag>);
 
@@ -2459,6 +2473,9 @@ void MeshLoaderSystem::Update(
             auto& staticMesh = registry.emplace<StaticMeshComponent>(entity);
             staticMesh.model = model;
         }
+
+        // ƒ[ƒhŠ®—¹Žž‚É previousPath ‚ðXV
+        mesh.previousPath = mesh.modelPath;
 
         // ƒ[ƒhÏ‚Ýƒtƒ‰ƒO‚ð•t—^
         registry.emplace<MeshLoadedTag>(entity);
@@ -2542,6 +2559,7 @@ Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\RenderSyste
 #include "RenderSystem.h"
 #include "Resource/GpuResourceUtils.h"
 #include "Utility/misc.h"
+#include "ECS/Components/MaterialComponent.h"
 
 // ‰Šú‰»(ƒVƒF[ƒ_[“Ç‚Ýž‚Ýj
 void RenderSystem::Initialize(ID3D11Device* device)
@@ -2766,6 +2784,13 @@ void RenderSystem::RenderStaticGeometry(
 			// ƒ‚ƒfƒ‹‚ª–¢Ý’è‚È‚çƒXƒLƒbƒv
 			if (!staticMesh.model) return;
 
+			// MaterialComponent ‚ª "None" ‚È‚ç•`‰æƒXƒLƒbƒv
+			if (registry.any_of<MaterialComponent>(entity))
+			{
+				auto& mat = registry.get<MaterialComponent>(entity);
+				if (mat.passes.empty() || mat.passes[0].name == "None") return;
+			}
+
 			// ƒtƒ‰ƒXƒ^ƒ€ƒJƒŠƒ“ƒO
 			DirectX::XMFLOAT4X4 worldMatrix{};
 			DirectX::XMStoreFloat4x4(&worldMatrix, transform.GetWorldMatrix());
@@ -2860,6 +2885,13 @@ void RenderSystem::RenderSkinnedGeometry(
 		{
 			// ƒ‚ƒfƒ‹‚ª–¢Ý’è‚È‚çƒXƒLƒbƒv
 			if (!skinnedMesh.model) return;
+
+			// MaterialComponent ‚ª "None" ‚È‚ç•`‰æƒXƒLƒbƒv
+			if (registry.any_of<MaterialComponent>(entity))
+			{
+				auto& mat = registry.get<MaterialComponent>(entity);
+				if (mat.passes.empty() || mat.passes[0].name == "None") return;
+			}
 
 			// ƒtƒ‰ƒXƒ^ƒ€ƒJƒŠƒ“ƒO
 			DirectX::XMFLOAT4X4 worldMatrix{};
@@ -3444,28 +3476,39 @@ void ComponentRegistryInitializer::Initialize()
             if (!mat) return;
             if (ImGui::CollapsingHeader("Material", ImGuiTreeNodeFlags_DefaultOpen))
             {
+                ImGui::Text("passes: %d", (int)mat->passes.size());
                 const auto& passNames = ShaderPassLibrary::GetNames();
 
                 for (int i = 0; i < (int)mat->passes.size(); i++)
                 {
                     auto& pass = mat->passes[i];
-                    std::string label = "Pass " + std::to_string(i);
 
-                    if (ImGui::BeginCombo(label.c_str(), pass.name.c_str()))
+                    // "None" ‚È‚ç‘I‘ðŽˆ‚ð•\Ž¦
+                    if (pass.name == "None")
                     {
-                        for (const auto& name : passNames)
+                        ImGui::Text("Shader: None");
+                        ImGui::SameLine();
+
+                        if (ImGui::BeginCombo("##shaderSelect", "Select..."))
                         {
-                            bool isSelected = (pass.name == name);
-                            if (ImGui::Selectable(name.c_str(), isSelected))
+                            for (const auto& name : passNames)
                             {
-                                pass = ShaderPassLibrary::Get(name);
+                                // "None" ‚Í‘I‘ðŽˆ‚Éo‚³‚È‚¢
+                                if (name == "None") continue;
+
+                                if (ImGui::Selectable(name.c_str()))
+                                {
+                                    // ‘I‘ð‚µ‚½ƒVƒF[ƒ_[‚É‘‚«Š·‚¦
+                                    pass = ShaderPassLibrary::Get(name);
+                                }
                             }
-                            if (isSelected)
-                            {
-                                ImGui::SetItemDefaultFocus();
-                            }
+                            ImGui::EndCombo();
                         }
-                        ImGui::EndCombo();
+                    }
+                    else
+                    {
+                        // ‘I‘ðÏ‚Ý‚È‚çŒÅ’èƒeƒLƒXƒg‚Å•\Ž¦i•ÏX•s‰Âj
+                        ImGui::Text("Shader: %s", pass.name.c_str());
                     }
                 }
             }
@@ -3568,6 +3611,7 @@ void HierarchyWindow::Draw(entt::registry& registry, EditorContext& context)
 
     ImRect dropRect(dropAreaMin, dropAreaMax);
 
+	// ƒhƒƒbƒvƒ^[ƒQƒbƒg
     if (ImGui::BeginDragDropTargetCustom(dropRect, ImGui::GetCurrentWindow()->ID))
     {
         if (const ImGuiPayload* payload =
@@ -3584,7 +3628,11 @@ void HierarchyWindow::Draw(entt::registry& registry, EditorContext& context)
             t.scale = { 1.0f, 1.0f, 1.0f };
 
             registry.emplace<MeshComponent>(e, modelPath);
-            registry.emplace<MaterialComponent>(e).AddPass("pbr");
+
+            // ƒ}ƒeƒŠƒAƒ‹‚ÍNone‚Å¶¬iƒVƒF[ƒ_[–¢‘I‘ðó‘Ôj
+            auto& mat = registry.emplace<MaterialComponent>(e);
+            mat.AddPass("None");
+            //registry.emplace<MaterialComponent>(e).AddPass("pbr");
 
             // ƒtƒ@ƒCƒ‹–¼‚©‚ç Entity –¼‚ðÝ’è
             std::filesystem::path p(modelPath);
@@ -4178,7 +4226,6 @@ Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Game\Enemy.cpp
 #include "ECS/Components/TransformComponent.h"
 #include "ECS/Components/MeshComponent.h"
 #include "ECS/Components/MaterialComponent.h"
-#include "ECS/Components/AnimatorComponent.h"
 
 void Enemy::Initialize(entt::registry& registry, const SceneContext& context)
 {
@@ -4189,21 +4236,11 @@ void Enemy::Initialize(entt::registry& registry, const SceneContext& context)
     t.scale = { 1.0f, 1.0f, 1.0f };
 
     registry.emplace<MeshComponent>(entity, "Data/Model/EnemyRobot/SK_SteamPunkBoss.gltf");
-    //registry.emplace<MeshComponent>(entity, "Data/Model/unitychan.glb");
     registry.emplace<MaterialComponent>(entity).AddPass("pbr");
-    
 }
 
 void Enemy::Update(float elapsedTime, entt::registry& registry, const SceneContext& context)
 {
-    auto* animator = registry.try_get<AnimatorComponent>(entity);
-    if (animator)
-    {
-        animator->currentAnimation = "Anim_Idle_0";
-        animator->loop = true;
-        animator->playSpeed = 1.0f;
-    }
-
 }
 
 void Enemy::RenderImGui()
@@ -4233,20 +4270,20 @@ void Player::Initialize(entt::registry& registry, const SceneContext& context)
 
 	registry.emplace<MeshComponent>(entity, "Data/Model/PlayerRobot/Map_Robot3.gltf");
 	//registry.emplace<MeshComponent>(entity, "Data/Model/unitychan.glb");
-	registry.emplace<MaterialComponent>(entity).AddPass("pbr");
+	registry.emplace<MaterialComponent>(entity).AddPass("basic");
 	registry.emplace<InputComponent>(entity);
 	registry.emplace<MovementComponent>(entity);
 }
 
 void Player::Update(float elapsedTime, entt::registry& registry, const SceneContext& context)
 {
-	auto* animator = registry.try_get<AnimatorComponent>(entity);
-	if (animator)
-	{
-		animator->currentAnimation = "Idle";
-		animator->loop = true;
-		animator->playSpeed = 1.0f;
-	}
+	//auto* animator = registry.try_get<AnimatorComponent>(entity);
+	//if (animator)
+	//{
+	//	animator->currentAnimation = "Idle";
+	//	animator->loop = true;
+	//	animator->playSpeed = 1.0f;
+	//}
 }
 
 void Player::RenderImGui()
@@ -4464,35 +4501,35 @@ void SceneGame::Render(const SceneContext& context)
 	}
 
 
-	{
-		ZoneScopedN("DebugRenderer");
+	//{
+	//	ZoneScopedN("DebugRenderer");
 
-		debugRenderer.Clear();
-		// SkinnedMeshComponent ã‚’æŒã¤ã‚¨ãƒ³ãƒ†ã‚£ãƒ†ã‚£ã®ãƒœãƒ¼ãƒ³ã‚’è¿½åŠ 
-		auto view = registry.view<SkinnedMeshComponent, TransformComponent>();
-		view.each([&](auto entity, SkinnedMeshComponent& skinned, TransformComponent& transform)
-			{
-				if (!skinned.model) return;
+	//	debugRenderer.Clear();
+	//	// SkinnedMeshComponent ã‚’æŒã¤ã‚¨ãƒ³ãƒ†ã‚£ãƒ†ã‚£ã®ãƒœãƒ¼ãƒ³ã‚’è¿½åŠ 
+	//	auto view = registry.view<SkinnedMeshComponent, TransformComponent>();
+	//	view.each([&](auto entity, SkinnedMeshComponent& skinned, TransformComponent& transform)
+	//		{
+	//			if (!skinned.model) return;
 
-				debugRenderer.AddBones(
-					skinned.model->GetNodes(),
-					transform.GetWorldMatrix(),
-					{ 1.0f, 1.0f, 0.0f, 1.0f }  // é»„è‰²
-				);
-			});
+	//			debugRenderer.AddBones(
+	//				skinned.model->GetNodes(),
+	//				transform.GetWorldMatrix(),
+	//				{ 1.0f, 1.0f, 0.0f, 1.0f }  // é»„è‰²
+	//			);
+	//		});
 
-	}
+	//}
 
-	{
-		ZoneScopedN("DebugRenderer::Render");
+	//{
+	//	ZoneScopedN("DebugRenderer::Render");
 
-		// ãƒœãƒ¼ãƒ³æç”»
-		debugRenderer.Render(
-			context.deviceContext,
-			context.view,
-			context.projection
-		);
-	}
+	//	// ãƒœãƒ¼ãƒ³æç”»
+	//	debugRenderer.Render(
+	//		context.deviceContext,
+	//		context.view,
+	//		context.projection
+	//	);
+	//}
 }
 
 void SceneGame::RenderImGui()

@@ -1,6 +1,7 @@
 #include "RenderSystem.h"
 #include "Resource/GpuResourceUtils.h"
 #include "Utility/misc.h"
+#include "ECS/Components/MaterialComponent.h"
 
 // 初期化(シェーダー読み込み）
 void RenderSystem::Initialize(ID3D11Device* device)

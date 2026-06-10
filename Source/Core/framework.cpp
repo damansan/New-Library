@@ -27,9 +27,6 @@ framework::framework(HWND hwnd) : hwnd(hwnd)
 	ShaderPassLibrary::Register("pbr", {
 		"", "Data/Shader/Base_VS.cso", "Data/Shader/PBR_PS.cso"
 		});
-	ShaderPassLibrary::Register("pbr_skinning", {
-	"", "Data/Shader/Skinning_VS.cso", "Data/Shader/PBR_PS.cso"
-		});
 
 	// 最初のシーンセット
 	sceneManager.ChangeScene(std::make_unique<SceneGame>());

@@ -96,29 +96,9 @@ void ComponentRegistryInitializer::Initialize()
             if (!mat) return;
             if (ImGui::CollapsingHeader("Material", ImGuiTreeNodeFlags_DefaultOpen))
             {
-                const auto& passNames = ShaderPassLibrary::GetNames();
-
-                for (int i = 0; i < (int)mat->passes.size(); i++)
+                for (const auto& pass : mat->passes)
                 {
-                    auto& pass = mat->passes[i];
-                    std::string label = "Pass " + std::to_string(i);
-
-                    if (ImGui::BeginCombo(label.c_str(), pass.name.c_str()))
-                    {
-                        for (const auto& name : passNames)
-                        {
-                            bool isSelected = (pass.name == name);
-                            if (ImGui::Selectable(name.c_str(), isSelected))
-                            {
-                                pass = ShaderPassLibrary::Get(name);
-                            }
-                            if (isSelected)
-                            {
-                                ImGui::SetItemDefaultFocus();
-                            }
-                        }
-                        ImGui::EndCombo();
-                    }
+                    ImGui::Text("Shader: %s", pass.name.c_str());
                 }
             }
         });

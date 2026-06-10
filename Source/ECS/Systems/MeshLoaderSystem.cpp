@@ -5,6 +5,23 @@ void MeshLoaderSystem::Update(
     ID3D11Device* device,
     ResourceManager& resourceManager)
 {
+    // パスが変わっていたら再ロードさせる
+    auto loadedView = registry.view<MeshComponent, MeshLoadedTag>();
+    for (auto entity : loadedView)
+    {
+        auto& mesh = loadedView.get<MeshComponent>(entity);
+        if (mesh.modelPath != mesh.previousPath)
+        {
+            registry.remove<MeshLoadedTag>(entity);
+            if (registry.any_of<SkinnedMeshComponent>(entity))
+                registry.remove<SkinnedMeshComponent>(entity);
+            if (registry.any_of<StaticMeshComponent>(entity))
+                registry.remove<StaticMeshComponent>(entity);
+            if (registry.any_of<AnimatorComponent>(entity))
+                registry.remove<AnimatorComponent>(entity);
+        }
+    }
+
     // MeshComponentを持つがMeshLoadedTagのないEntityを取得
     auto view = registry.view<MeshComponent>(entt::exclude<MeshLoadedTag>);
 
@@ -53,6 +70,9 @@ void MeshLoaderSystem::Update(
             auto& staticMesh = registry.emplace<StaticMeshComponent>(entity);
             staticMesh.model = model;
         }
+
+        // ロード完了時に previousPath を更新
+        mesh.previousPath = mesh.modelPath;
 
         // ロード済みフラグを付与
         registry.emplace<MeshLoadedTag>(entity);

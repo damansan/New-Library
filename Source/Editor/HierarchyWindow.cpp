@@ -61,6 +61,7 @@ void HierarchyWindow::Draw(entt::registry& registry, EditorContext& context)
 
     ImRect dropRect(dropAreaMin, dropAreaMax);
 
+	// ドロップターゲット
     if (ImGui::BeginDragDropTargetCustom(dropRect, ImGui::GetCurrentWindow()->ID))
     {
         if (const ImGuiPayload* payload =
