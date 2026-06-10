@@ -11,6 +11,8 @@
 #include "ECS/Components/MaterialComponent.h"
 #include "ECS/Components/InputComponent.h"
 #include "ECS/Components/MovementComponent.h"
+#include "ECS/Components/AnimatorComponent.h"
+#include "ECS/Components/SkinnedMeshComponent.h"
 
 #include "Core/ShaderPassLibrary.h"
 
@@ -88,20 +90,20 @@ void ComponentRegistryInitializer::Initialize()
             }
         });
 
-    // マテリアルコンポーネントの登録
-    REGISTER_COMPONENT(MaterialComponent, "Material",
-        [](auto& reg, auto e)
-        {
-            auto* mat = reg.try_get<MaterialComponent>(e);
-            if (!mat) return;
-            if (ImGui::CollapsingHeader("Material", ImGuiTreeNodeFlags_DefaultOpen))
-            {
-                for (const auto& pass : mat->passes)
-                {
-                    ImGui::Text("Shader: %s", pass.name.c_str());
-                }
-            }
-        });
+    //// マテリアルコンポーネントの登録
+    //REGISTER_COMPONENT(MaterialComponent, "Material",
+    //    [](auto& reg, auto e)
+    //    {
+    //        auto* mat = reg.try_get<MaterialComponent>(e);
+    //        if (!mat) return;
+    //        if (ImGui::CollapsingHeader("Material", ImGuiTreeNodeFlags_DefaultOpen))
+    //        {
+    //            for (const auto& pass : mat->passes)
+    //            {
+    //                ImGui::Text("Shader: %s", pass.name.c_str());
+    //            }
+    //        }
+    //    });
 
     // インプットコンポーネントの登録
     REGISTER_COMPONENT(InputComponent, "Input",
@@ -131,6 +133,84 @@ void ComponentRegistryInitializer::Initialize()
                 ImGui::DragFloat("Gravity", &mv->gravity, 0.1f, -100.0f, 0.0f);
                 ImGui::DragFloat3("Velocity", &mv->velocity.x, 0.01f);
                 ImGui::Checkbox("Is Grounded", &mv->isGrounded);
+            }
+        });
+
+    // アニメーターコンポーネントの登録
+    REGISTER_COMPONENT(AnimatorComponent, "Animator",
+        [](auto& reg, auto e)
+        {
+            auto* anim = reg.try_get<AnimatorComponent>(e);
+            if (!anim) return;
+
+            // SkinnedMeshComponent からアニメーション一覧を取得
+            auto* skinned = reg.try_get<SkinnedMeshComponent>(e);
+
+            if (ImGui::CollapsingHeader("Animator", ImGuiTreeNodeFlags_DefaultOpen))
+            {
+                // モデルがなければ警告表示
+                if (!skinned || !skinned->model)
+                {
+                    ImGui::TextColored(
+                        ImVec4(1, 0.5f, 0, 1),
+                        "No SkinnedMesh found.");
+                    return;
+                }
+
+                const auto& animations = skinned->model->GetAnimations();
+
+                if (animations.empty())
+                {
+                    ImGui::TextColored(
+                        ImVec4(1, 0.5f, 0, 1),
+                        "No animations found.");
+                    return;
+                }
+
+                // アニメーション選択ドロップダウン
+                if (ImGui::BeginCombo(
+                    "Animation",
+                    anim->currentAnimation.c_str()))
+                {
+                    for (const auto& animation : animations)
+                    {
+                        bool isSelected =
+                            (anim->currentAnimation == animation.name);
+
+                        if (ImGui::Selectable(
+                            animation.name.c_str(), isSelected))
+                        {
+                            anim->currentAnimation = animation.name;
+                            anim->animationTime = 0.0f;
+                            anim->isPlaying = true;
+                            anim->isEnd = false;
+                        }
+                        if (isSelected)
+                            ImGui::SetItemDefaultFocus();
+                    }
+                    ImGui::EndCombo();
+                }
+
+                // 再生速度
+                ImGui::SliderFloat("Play Speed", &anim->playSpeed, 0.0f, 3.0f);
+
+                // ループ
+                ImGui::Checkbox("Loop", &anim->loop);
+
+                // 再生/停止ボタン
+                if (anim->isPlaying)
+                {
+                    if (ImGui::Button("Stop"))
+                        anim->isPlaying = false;
+                }
+                else
+                {
+                    if (ImGui::Button("Play"))
+                    {
+                        anim->isPlaying = true;
+                        anim->isEnd = false;
+                    }
+                }
             }
         });
 }

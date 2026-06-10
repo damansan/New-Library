@@ -56,13 +56,13 @@ void MeshLoaderSystem::Update(
                     { 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 }
                 );
             }
-            // アニメーション初期設定
-            auto& animator = registry.emplace<AnimatorComponent>(entity);
-            if (!model->GetAnimations().empty())
-            {
-                animator.currentAnimation =
-                    model->GetAnimations()[0].name;
-            }
+            //// アニメーション初期設定
+            //auto& animator = registry.emplace<AnimatorComponent>(entity);
+            //if (!model->GetAnimations().empty())
+            //{
+            //    animator.currentAnimation =
+            //        model->GetAnimations()[0].name;
+            //}
         }
         else
         {
