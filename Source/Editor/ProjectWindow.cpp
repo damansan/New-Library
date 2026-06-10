@@ -30,25 +30,52 @@ void ProjectWindow::Draw(entt::registry& registry, EditorContext& context)
 {
 	ImGui::Begin("Project");
 
-	// 左右に分割
-	ImGui::Columns(2, "ProjectColumns", true);
-	// 左側の幅を固定
-	ImGui::SetColumnWidth(0, 200.0f);
+	//// 左右に分割
+	//ImGui::Columns(2, "ProjectColumns", true);
+	//// 左側の幅を固定
+	//ImGui::SetColumnWidth(0, 200.0f);
 
-	// 左側：フォルダツリー
-	ImGui::BeginChild("FolderTree", ImVec2(0, 0), false);
-	DrawFolderTree(rootPath);
-	ImGui::EndChild();
+	//// 左側：フォルダツリー
+	//ImGui::BeginChild("FolderTree", ImVec2(0, 0), false);
+	//DrawFolderTree(rootPath);
+	//ImGui::EndChild();
 
-	ImGui::NextColumn();
+	//ImGui::NextColumn();
 
-	// 右側：ファイルグリッド
+	//// 右側：ファイルグリッド
 
-	ImGui::BeginChild("FileGrid", ImVec2(0, 0), false);
-	DrawFileGrid(registry, context);
-	ImGui::EndChild();
+	//ImGui::BeginChild("FileGrid", ImVec2(0, 0), false);
+	//DrawFileGrid(registry, context);
+	//ImGui::EndChild();
 
-	ImGui::Columns(1);
+	//ImGui::Columns(1);
+
+	//ImGui::End();
+
+	if (ImGui::BeginTable("ProjectLayout", 2,
+		ImGuiTableFlags_Resizable |
+		ImGuiTableFlags_BordersInnerV))
+	{
+		// 左側の初期幅を設定
+		ImGui::TableSetupColumn("Folders", ImGuiTableColumnFlags_WidthFixed, 200.0f);
+		ImGui::TableSetupColumn("Files", ImGuiTableColumnFlags_WidthStretch);
+
+		ImGui::TableNextRow();
+
+		// 左側：フォルダツリー
+		ImGui::TableSetColumnIndex(0);
+		ImGui::BeginChild("FolderTree", ImVec2(0, 0), false);
+		DrawFolderTree(rootPath);
+		ImGui::EndChild();
+
+		// 右側：ファイルグリッド
+		ImGui::TableSetColumnIndex(1);
+		ImGui::BeginChild("FileGrid", ImVec2(0, 0), false);
+		DrawFileGrid(registry, context);
+		ImGui::EndChild();
+
+		ImGui::EndTable();
+	}
 
 	ImGui::End();
 }

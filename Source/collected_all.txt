@@ -1,5 +1,5 @@
 ===== Camera.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Core\Camera.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\Camera.h 
 #pragma once
 #include <DirectXMath.h>
 
@@ -48,7 +48,7 @@ private:
 }; 
  
 ===== framework.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Core\framework.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\framework.h 
 #pragma once
 
 #include <windows.h>
@@ -66,6 +66,10 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Core\framework.h
 
 #include "Resource/ResourceManager.h"
 
+#include "Editor/EditorContext.h"
+#include "Editor/ProjectWindow.h"
+#include "Editor/HierarchyWindow.h"
+#include "Editor/InspectorWindow.h"
 
 // ƒEƒBƒ“ƒhƒEƒTƒCƒY
 #define SCREEN_WIDTH 1280
@@ -114,6 +118,11 @@ private:
 	// FreeCameraControllerƒNƒ‰ƒX
 	FreeCameraController  freeCameraController;
 
+	// Editor
+	EditorContext  editorContext;
+	ProjectWindow  projectWindow;
+	HierarchyWindow hierarchyWindow;
+	InspectorWindow inspectorWindow;
 
 private:
 	// VSync ON OFF
@@ -125,7 +134,7 @@ private:
 }; 
  
 ===== FreeCameraController.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Core\FreeCameraController.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\FreeCameraController.h 
 #pragma once
 #include <windows.h>
 #include <DirectXMath.h>
@@ -150,7 +159,7 @@ private:
 }; 
  
 ===== Graphics.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Core\Graphics.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\Graphics.h 
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
@@ -231,7 +240,7 @@ private:
 }; 
  
 ===== ImGuiManager.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Core\ImGuiManager.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\ImGuiManager.h 
 #pragma once
 #include <windows.h>
 #include <d3d11.h>
@@ -270,7 +279,7 @@ public:
 }; 
  
 ===== Scene.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Core\Scene.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\Scene.h 
 #pragma once
 #include "entt.hpp"
 #include "Core/SceneContext.h"
@@ -307,7 +316,7 @@ protected:
 }; 
  
 ===== SceneContext.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Core\SceneContext.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\SceneContext.h 
 #pragma once
 #include <d3d11.h>
 #include <DirectXMath.h>
@@ -334,7 +343,7 @@ struct SceneContext
 }; 
  
 ===== SceneManager.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Core\SceneManager.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\SceneManager.h 
 #pragma once
 #include "Scene.h"
 #include <memory>
@@ -364,13 +373,17 @@ public:
 
 	// ƒV[ƒ“ƒNƒŠƒA
 	void ClearScene();
+
+	// Œ»İ‚ÌƒV[ƒ“æ“¾
+	Scene* GetCurrentScene() { return currentScene.get(); }
+
 private:
 	std::unique_ptr<Scene>currentScene; // Œ»İƒV[ƒ“
 	std::unique_ptr<Scene>nextScene;    // Ÿ‚ÌƒV[ƒ“
 }; 
  
 ===== ShaderPass.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Core\ShaderPass.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\ShaderPass.h 
 #pragma once
 #include <string>
 
@@ -385,7 +398,7 @@ struct ShaderPass
 }; 
  
 ===== ShaderPassLibrary.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Core\ShaderPassLibrary.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\ShaderPassLibrary.h 
 #pragma once
 #include <string>
 #include <unordered_map>
@@ -405,12 +418,16 @@ public:
 	// ƒpƒX‘¶İŠm”F
 	static bool Has(const std::string& name);
 
+	// ƒVƒF[ƒ_[ƒpƒX–¼æ“¾
+	static const std::vector<std::string>& GetNames(); 
+
 private:
 	static std::unordered_map<std::string, ShaderPass> passes;
+	static std::vector<std::string> names;
 }; 
  
 ===== Camera.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Core\Camera.cpp 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\Camera.cpp 
 #include "Camera.h"
 
 // ‰Šú‰»
@@ -469,10 +486,11 @@ void Camera::SetPerspectiveFov(
 } 
  
 ===== framework.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Core\framework.cpp 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\framework.cpp 
 #include "framework.h"
 #include "tracy/Tracy.hpp"
 #include "Game/SceneGame.h"
+#include "Editor/ComponentRegistryInitializer.h"
 
 #include <iomanip>
 
@@ -504,6 +522,12 @@ framework::framework(HWND hwnd) : hwnd(hwnd)
 
 	// Å‰‚ÌƒV[ƒ“ƒZƒbƒg
 	sceneManager.ChangeScene(std::make_unique<SceneGame>());
+
+	// ProjectWindow ‰Šú‰»
+	projectWindow.Initialize("Data/Model");
+	projectWindow.LoadIcons(graphics.GetDevice());
+	ComponentRegistryInitializer::Initialize();
+
 
 #ifndef _DEBUG
 	// ƒŠƒŠ[ƒX‚Íƒ{[ƒ_[ƒŒƒXƒtƒ‹ƒXƒNƒŠ[ƒ“‚Å‹N“®
@@ -547,6 +571,15 @@ void framework::updateImGui()
 
 	// ƒV[ƒ“ImGui•`‰æ
 	sceneManager.RenderImGui();
+
+#ifdef _DEBUG
+	if (auto* scene = sceneManager.GetCurrentScene())
+	{
+		projectWindow.Draw(scene->GetRegistry(), editorContext);
+		hierarchyWindow.Draw(scene->GetRegistry(), editorContext);
+		inspectorWindow.Draw(scene->GetRegistry(), editorContext);
+	}
+#endif
 }
 
 void framework::render(float elapsedTime)
@@ -700,7 +733,7 @@ LRESULT framework::handle_message(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpa
 } 
  
 ===== FreeCameraController.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Core\FreeCameraController.cpp 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\FreeCameraController.cpp 
 #include "FreeCameraController.h"
 #include "imgui.h"
 #include <Windows.h>
@@ -807,7 +840,7 @@ void FreeCameraController::Update(float elapsedTime, Camera& camera)
 } 
  
 ===== Graphics.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Core\Graphics.cpp 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\Graphics.cpp 
 #include "Graphics.h"
 #include "Utility/misc.h"
 
@@ -1134,7 +1167,7 @@ void Graphics::Cleanup()
 } 
  
 ===== ImGuiManager.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Core\ImGuiManager.cpp 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\ImGuiManager.cpp 
 #include "ImGuiManager.h"
 
 ImGuiManager::~ImGuiManager()
@@ -1235,7 +1268,7 @@ bool ImGuiManager::HandleMessage(HWND hWnd, UINT msg, WPARAM wparam, LPARAM lpar
  
  
 ===== SceneManager.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Core\SceneManager.cpp 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\SceneManager.cpp 
 #include "SceneManager.h"
 
 // XV
@@ -1302,19 +1335,21 @@ void SceneManager::ClearScene()
  
  
 ===== ShaderPassLibrary.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Core\ShaderPassLibrary.cpp 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\ShaderPassLibrary.cpp 
 #include "ShaderPassLibrary.h"
 #include <stdexcept>
+#include <vector>
 
 // Ã“Iƒƒ“ƒo’è‹`
 std::unordered_map<std::string, ShaderPass> ShaderPassLibrary::passes;
-
+std::vector<std::string> ShaderPassLibrary::names;
 
 // ƒpƒX“o˜^
 void ShaderPassLibrary::Register(const std::string& name, ShaderPass pass)
 {
 	pass.name = name;
 	passes[name] = pass;
+	names.push_back(name);
 }
 
 // ƒpƒXæ“¾
@@ -1330,10 +1365,15 @@ bool ShaderPassLibrary::Has(const std::string& name)
 {
 	return passes.find(name) != passes.end();
 }
- 
+
+// ƒVƒF[ƒ_[ƒpƒX–¼ˆê——æ“¾
+const std::vector<std::string>& ShaderPassLibrary::GetNames()
+{
+	return names;
+} 
  
 ===== DebugRenderer.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\DebugRenderer\DebugRenderer.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\DebugRenderer\DebugRenderer.h 
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
@@ -1405,7 +1445,7 @@ private:
 }; 
  
 ===== DebugRenderer.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\DebugRenderer\DebugRenderer.cpp 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\DebugRenderer\DebugRenderer.cpp 
 #include "DebugRenderer.h"
 #include "Resource/GpuResourceUtils.h"
 #include "Utility/misc.h"
@@ -1571,7 +1611,7 @@ void DebugRenderer::Clear()
 } 
  
 ===== AnimatorComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\AnimatorComponent.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\AnimatorComponent.h 
 ï»¿#pragma once
 #include <string>
 
@@ -1592,7 +1632,7 @@ struct AnimatorComponent
 }; 
  
 ===== InputComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\InputComponent.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\InputComponent.h 
 #pragma once
 struct InputComponent
 {
@@ -1606,7 +1646,7 @@ struct InputComponent
 }; 
  
 ===== MaterialComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\MaterialComponent.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\MaterialComponent.h 
 #pragma once
 #include <vector>
 #include <string>
@@ -1656,7 +1696,7 @@ struct MaterialComponent
 }; 
  
 ===== MeshComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\MeshComponent.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\MeshComponent.h 
 #pragma once
 #include <string>
 
@@ -1671,7 +1711,7 @@ struct MeshComponent
 }; 
  
 ===== MovementComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\MovementComponent.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\MovementComponent.h 
 #pragma once
 #include <DirectXMath.h>
 
@@ -1692,7 +1732,7 @@ struct MovementComponent
 }; 
  
 ===== SkinnedMeshComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\SkinnedMeshComponent.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\SkinnedMeshComponent.h 
 #pragma once
 #include <memory>
 #include <vector>
@@ -1710,7 +1750,7 @@ struct SkinnedMeshComponent
 }; 
  
 ===== StaticMeshComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\StaticMeshComponent.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\StaticMeshComponent.h 
 #pragma once
 #include <memory>
 #include "Resource/Model.h"
@@ -1723,7 +1763,7 @@ struct StaticMeshComponent
 }; 
  
 ===== Tags.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\Tags.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\Tags.h 
 #pragma once
 
 // ƒ[ƒhÏ‚İƒtƒ‰ƒO
@@ -1736,7 +1776,7 @@ struct InvisibleTag {};
 struct NoShadowTag {}; 
  
 ===== TransformComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\TransformComponent.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\TransformComponent.h 
 #pragma once
 #include <DirectXMath.h>
 
@@ -1758,7 +1798,7 @@ struct TransformComponent
 }; 
  
 ===== AnimationSystem.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\AnimationSystem.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\AnimationSystem.h 
 #pragma once
 #include <d3d11.h>
 #include "entt.hpp"
@@ -1798,7 +1838,7 @@ private:
 }; 
  
 ===== InputSystem.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\InputSystem.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\InputSystem.h 
 #pragma once
 #include "entt.hpp"
 
@@ -1809,7 +1849,7 @@ public:
 }; 
  
 ===== MeshLoaderSystem.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\MeshLoaderSystem.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\MeshLoaderSystem.h 
 #pragma once
 #include <d3d11.h>
 
@@ -1835,7 +1875,7 @@ public:
 }; 
  
 ===== MovementSystem.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\MovementSystem.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\MovementSystem.h 
 #pragma once
 #include "entt.hpp"
 #include "Core/SceneContext.h"
@@ -1847,7 +1887,7 @@ public:
 }; 
  
 ===== RenderSystem.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\RenderSystem.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\RenderSystem.h 
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
@@ -2056,7 +2096,7 @@ private:
 }; 
  
 ===== AnimationSystem.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\AnimationSystem.cpp 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\AnimationSystem.cpp 
 #include "AnimationSystem.h"
 #include "tracy/Tracy.hpp"
 
@@ -2334,7 +2374,7 @@ void AnimationSystem::CalcBoneTransforms(
  
  
 ===== InputSystem.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\InputSystem.cpp 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\InputSystem.cpp 
 #include "InputSystem.h"
 #include "entt.hpp"
 #include "ECS/Components/InputComponent.h"
@@ -2363,7 +2403,7 @@ void InputSystem::Update(entt::registry& registry)
  
  
 ===== MeshLoaderSystem.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\MeshLoaderSystem.cpp 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\MeshLoaderSystem.cpp 
 #include "MeshLoaderSystem.h"
 
 void MeshLoaderSystem::Update(
@@ -2426,7 +2466,7 @@ void MeshLoaderSystem::Update(
 } 
  
 ===== MovementSystem.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\MovementSystem.cpp 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\MovementSystem.cpp 
 #include "MovementSystem.h"
 #include "ECS/Components/InputComponent.h"
 #include "ECS/Components/MovementComponent.h"
@@ -2498,7 +2538,7 @@ void MovementSystem::Update(entt::registry& registry, float elapsedTime, const S
  
  
 ===== RenderSystem.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\RenderSystem.cpp 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\RenderSystem.cpp 
 #include "RenderSystem.h"
 #include "Resource/GpuResourceUtils.h"
 #include "Utility/misc.h"
@@ -3118,8 +3158,810 @@ void RenderSystem::LightingPass(
 }
  
  
+===== ComponentRegistry.h ===== 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Editor\ComponentRegistry.h 
+#pragma once
+#include <string>
+#include <vector>
+#include <unordered_map>
+#include <functional>
+#include "entt.hpp"
+
+struct ComponentInfo
+{
+    std::string name;
+    std::function<void(entt::registry&, entt::entity)> add;
+    std::function<void(entt::registry&, entt::entity)> remove;
+    std::function<bool(entt::registry&, entt::entity)> has;
+    std::function<void(entt::registry&, entt::entity)> drawImGui;
+};
+
+class ComponentRegistry
+{
+public:
+    static void Register(const std::string& name, ComponentInfo info);
+    static const std::vector<std::string>& GetNames();
+    static const ComponentInfo* Get(const std::string& name);
+
+private:
+    static std::unordered_map<std::string, ComponentInfo> registry;
+    static std::vector<std::string> names;
+};
+
+#define REGISTER_COMPONENT(Type, Name, DrawFunc)                                    \
+    ComponentRegistry::Register(Name,                                               \
+    {                                                                               \
+        Name,                                                                       \
+        [](auto& r, auto e){ if (!r.any_of<Type>(e)) r.emplace<Type>(e); },         \
+        [](auto& r, auto e){ r.remove<Type>(e); },                                  \
+        [](auto& r, auto e){ return r.any_of<Type>(e); },                           \
+        DrawFunc                                                                    \
+    }) 
+ 
+===== ComponentRegistryInitializer.h ===== 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Editor\ComponentRegistryInitializer.h 
+#pragma once
+
+class ComponentRegistryInitializer
+{
+public:
+    // ‘SƒRƒ“ƒ|[ƒlƒ“ƒg‚ğComponentRegistry‚É“o˜^‚·‚é
+    static void Initialize();
+}; 
+ 
+===== EditorContext.h ===== 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Editor\EditorContext.h 
+#pragma once
+#include <string>
+#include <unordered_map>
+#include "entt.hpp"
+
+struct EditorContext
+{
+    entt::entity selectedEntity = entt::null;
+    std::unordered_map<entt::entity, std::string> entityNames;
+
+    std::string GetName(entt::entity e) const
+    {
+        auto it = entityNames.find(e);
+        if (it != entityNames.end()) return it->second;
+        return "Entity " + std::to_string((uint32_t)e);
+    }
+
+    void SetName(entt::entity e, const std::string& name)
+    {
+        entityNames[e] = name;
+    }
+
+    void Select(entt::entity e) { selectedEntity = e; }
+    void Deselect() { selectedEntity = entt::null; }
+
+    bool IsSelected(entt::entity e) const
+    {
+        return selectedEntity == e;
+    }
+}; 
+ 
+===== HierarchyWindow.h ===== 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Editor\HierarchyWindow.h 
+#pragma once
+#include "entt.hpp"
+#include "Editor/EditorContext.h"
+
+class HierarchyWindow
+{
+public:
+    // •`‰æ
+    void Draw(entt::registry& registry, EditorContext& context);
+}; 
+ 
+===== InspectorWindow.h ===== 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Editor\InspectorWindow.h 
+#pragma once
+#include "entt.hpp"
+#include "EditorContext.h"
+
+class InspectorWindow
+{
+public:
+    // •`‰æ
+    void Draw(entt::registry& registry, EditorContext& context);
+
+private:
+    // –¼‘O•ÒWUI
+    void DrawNameField(entt::registry& registry, EditorContext& context);
+
+    // ƒRƒ“ƒ|[ƒlƒ“ƒgˆê——UI
+    void DrawComponents(entt::registry& registry, EditorContext& context);
+
+	// ƒRƒ“ƒ|[ƒlƒ“ƒg’Ç‰ÁUI
+    void DrawAddComponent(entt::registry& registry, EditorContext& context);
+}; 
+ 
+===== ProjectWindow.h ===== 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Editor\ProjectWindow.h 
+#pragma once
+#include <string>
+#include <vector>
+#include <filesystem>
+#include <d3d11.h>
+#include <wrl.h>
+
+#include "EditorContext.h"
+#include "entt.hpp"
+
+class ProjectWindow
+{
+public:
+    // ‰Šú‰»iŒŸõ‚·‚éƒ‹[ƒgƒpƒX‚ğİ’èj
+    void Initialize(const std::string& rootPath);
+    // ƒAƒCƒRƒ““Ç‚İ‚İ
+    void LoadIcons(ID3D11Device* device);
+    // •`‰æ
+    void Draw(entt::registry& registry, EditorContext& context);
+
+private:
+    // ¶‘¤FƒtƒHƒ‹ƒ_ƒcƒŠ[
+    void DrawFolderTree(const std::filesystem::path& path);
+    // ‰E‘¤Fƒtƒ@ƒCƒ‹ˆê——
+    void DrawFileGrid(entt::registry& registry, EditorContext& context);
+    // ƒtƒ@ƒCƒ‹‚ªƒ‚ƒfƒ‹ƒtƒ@ƒCƒ‹‚©”»’è
+    bool IsModelFile(const std::filesystem::path& path);
+
+    // ƒ‹[ƒgƒpƒX
+    std::filesystem::path rootPath;
+    // Œ»İ‘I‘ğ’†‚ÌƒtƒHƒ‹ƒ_
+    std::filesystem::path selectedFolder;
+
+    // ƒ‚ƒfƒ‹ƒAƒCƒRƒ“—pSRV
+    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> modelIconSRV;
+}; 
+ 
+===== ComponentRegistry.cpp ===== 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Editor\ComponentRegistry.cpp 
+#include "ComponentRegistry.h"
+
+std::unordered_map<std::string, ComponentInfo> ComponentRegistry::registry;
+std::vector<std::string> ComponentRegistry::names;
+
+void ComponentRegistry::Register(const std::string& name, ComponentInfo info)
+{
+    if (registry.find(name) != registry.end()) return;
+    info.name = name;
+    registry[name] = info;
+    names.push_back(name);
+}
+
+const std::vector<std::string>& ComponentRegistry::GetNames()
+{
+    return names;
+}
+
+const ComponentInfo* ComponentRegistry::Get(const std::string& name)
+{
+    auto it = registry.find(name);
+    if (it == registry.end()) return nullptr;
+    return &it->second;
+} 
+ 
+===== ComponentRegistryInitializer.cpp ===== 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Editor\ComponentRegistryInitializer.cpp 
+#include "ComponentRegistryInitializer.h"
+#include "Editor/ComponentRegistry.h"
+#include <imgui.h>
+#include <Windows.h>
+#include <commdlg.h>
+#include <filesystem>
+#include <algorithm>
+
+#include "ECS/Components/TransformComponent.h"
+#include "ECS/Components/MeshComponent.h"
+#include "ECS/Components/MaterialComponent.h"
+#include "ECS/Components/InputComponent.h"
+#include "ECS/Components/MovementComponent.h"
+
+#include "Core/ShaderPassLibrary.h"
+
+void ComponentRegistryInitializer::Initialize()
+{
+    // ƒgƒ‰ƒ“ƒXƒtƒH[ƒ€ƒRƒ“ƒ|[ƒlƒ“ƒg‚Ì“o˜^
+    REGISTER_COMPONENT(TransformComponent, "Transform",
+        [](auto& reg, auto e)
+        {
+            auto* t = reg.try_get<TransformComponent>(e);
+            if (!t) return;
+            if (ImGui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen))
+            {
+                ImGui::DragFloat3("Position", &t->position.x, 0.1f);
+                ImGui::DragFloat3("Rotation", &t->rotation.x, 0.01f);
+                ImGui::DragFloat3("Scale", &t->scale.x, 0.01f);
+            }
+        });
+
+    // ƒƒbƒVƒ…ƒRƒ“ƒ|[ƒlƒ“ƒg‚Ì“o˜^
+    REGISTER_COMPONENT(MeshComponent, "Mesh",
+        [](auto& reg, auto e)
+        {
+            auto* m = reg.try_get<MeshComponent>(e);
+            if (!m) return;
+            if (ImGui::CollapsingHeader("Mesh", ImGuiTreeNodeFlags_DefaultOpen))
+            {
+                // ƒ‚ƒfƒ‹–¼‚¾‚¯•\¦iƒtƒ‹ƒpƒX‚©‚çƒtƒ@ƒCƒ‹–¼‚ğæ“¾j
+                std::string displayName = m->modelPath.empty()
+                    ? "None"
+                    : std::filesystem::path(m->modelPath).stem().string();
+
+                ImGui::InputText("##modelName", displayName.data(),
+                    displayName.size() + 1,
+                    ImGuiInputTextFlags_ReadOnly);
+
+                ImGui::SameLine();
+
+                if (ImGui::Button("...##openModel"))
+                {
+                    // Data ƒtƒHƒ‹ƒ_‚Ìâ‘ÎƒpƒX‚ğæ“¾
+                    char currentDir[256] = {};
+                    GetCurrentDirectoryA(sizeof(currentDir), currentDir);
+                    std::string dataDir = std::string(currentDir) + "\\Data";
+
+                    OPENFILENAMEA ofn = {};
+                    char filePath[256] = {};
+
+                    ofn.lStructSize = sizeof(ofn);
+                    ofn.hwndOwner = nullptr;
+                    ofn.lpstrFilter = "GLTFƒtƒ@ƒCƒ‹\0*.gltf;*.glb\0‚·‚×‚Ä‚Ìƒtƒ@ƒCƒ‹\0*.*\0";
+                    ofn.lpstrFile = filePath;
+                    ofn.nMaxFile = sizeof(filePath);
+                    ofn.lpstrTitle = "ƒ‚ƒfƒ‹‚ğ‘I‘ğ";
+                    ofn.lpstrInitialDir = dataDir.c_str(); // Data ‚©‚çŠJ‚­
+                    ofn.Flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST;
+
+                    if (GetOpenFileNameA(&ofn))
+                    {
+                        // â‘ÎƒpƒX‚ğ‘Š‘ÎƒpƒX‚É•ÏŠ·
+                        std::string absPath = filePath;
+                        std::string basePath = std::string(currentDir) + "\\";
+
+                        // basePath ‚©‚ç‚Ì‘Š‘ÎƒpƒX‚É•ÏŠ·
+                        if (absPath.find(basePath) == 0)
+                        {
+                            absPath = absPath.substr(basePath.size());
+                        }
+
+                        // ƒoƒbƒNƒXƒ‰ƒbƒVƒ…‚ğƒXƒ‰ƒbƒVƒ…‚É“ˆê
+                        std::replace(absPath.begin(), absPath.end(), '\\', '/');
+                        m->modelPath = absPath;
+                    }
+                }
+            }
+        });
+
+    // ƒ}ƒeƒŠƒAƒ‹ƒRƒ“ƒ|[ƒlƒ“ƒg‚Ì“o˜^
+    REGISTER_COMPONENT(MaterialComponent, "Material",
+        [](auto& reg, auto e)
+        {
+            auto* mat = reg.try_get<MaterialComponent>(e);
+            if (!mat) return;
+            if (ImGui::CollapsingHeader("Material", ImGuiTreeNodeFlags_DefaultOpen))
+            {
+                const auto& passNames = ShaderPassLibrary::GetNames();
+
+                for (int i = 0; i < (int)mat->passes.size(); i++)
+                {
+                    auto& pass = mat->passes[i];
+                    std::string label = "Pass " + std::to_string(i);
+
+                    if (ImGui::BeginCombo(label.c_str(), pass.name.c_str()))
+                    {
+                        for (const auto& name : passNames)
+                        {
+                            bool isSelected = (pass.name == name);
+                            if (ImGui::Selectable(name.c_str(), isSelected))
+                            {
+                                pass = ShaderPassLibrary::Get(name);
+                            }
+                            if (isSelected)
+                            {
+                                ImGui::SetItemDefaultFocus();
+                            }
+                        }
+                        ImGui::EndCombo();
+                    }
+                }
+            }
+        });
+
+    // ƒCƒ“ƒvƒbƒgƒRƒ“ƒ|[ƒlƒ“ƒg‚Ì“o˜^
+    REGISTER_COMPONENT(InputComponent, "Input",
+        [](auto& reg, auto e)
+        {
+            auto* input = reg.try_get<InputComponent>(e);
+            if (!input) return;
+            if (ImGui::CollapsingHeader("Input", ImGuiTreeNodeFlags_DefaultOpen))
+            {
+                ImGui::Text("MoveX:  %.2f", input->moveX);
+                ImGui::Text("MoveZ:  %.2f", input->moveZ);
+                ImGui::Text("Jump:   %s", input->jump ? "true" : "false");
+                ImGui::Text("Attack: %s", input->attack ? "true" : "false");
+            }
+        });
+
+    // ƒ€[ƒuƒƒ“ƒgƒRƒ“ƒ|[ƒlƒ“ƒg‚Ì“o˜^
+    REGISTER_COMPONENT(MovementComponent, "Movement",
+        [](auto& reg, auto e)
+        {
+            auto* mv = reg.try_get<MovementComponent>(e);
+            if (!mv) return;
+            if (ImGui::CollapsingHeader("Movement", ImGuiTreeNodeFlags_DefaultOpen))
+            {
+                ImGui::DragFloat("Move Speed", &mv->moveSpeed, 0.1f, 0.0f, 20.0f);
+                ImGui::DragFloat("Jump Power", &mv->jumpPower, 0.1f, 0.0f, 50.0f);
+                ImGui::DragFloat("Gravity", &mv->gravity, 0.1f, -100.0f, 0.0f);
+                ImGui::DragFloat3("Velocity", &mv->velocity.x, 0.01f);
+                ImGui::Checkbox("Is Grounded", &mv->isGrounded);
+            }
+        });
+} 
+ 
+===== HierarchyWindow.cpp ===== 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Editor\HierarchyWindow.cpp 
+#include "HierarchyWindow.h"
+#include "imgui_internal.h"
+#include <imgui.h>
+#include <filesystem>
+
+#include "ECS/Components/TransformComponent.h"
+#include "ECS/Components/MeshComponent.h"
+#include "ECS/Components/MaterialComponent.h"
+
+
+void HierarchyWindow::Draw(entt::registry& registry, EditorContext& context)
+{
+    ImGui::Begin("Hierarchy");
+
+    // ‹ó‚Ì Entity ‚ğ’Ç‰Á‚·‚éƒ{ƒ^ƒ“
+    if (ImGui::Button("+ Add Entity"))
+    {
+        entt::entity e = registry.create();
+
+        // –¼‘O‚ğ©“®İ’è
+        context.SetName(e, "Entity");
+
+        // ì¬‚µ‚½ Entity ‚ğ‘I‘ğó‘Ô‚É
+        context.Select(e);
+    }
+    // ‘I‘ğ’†‚Ì‚Æ‚«‚¾‚¯ Delete ƒ{ƒ^ƒ“‚ğ—×‚É•\¦
+    if (context.selectedEntity != entt::null)
+    {
+        ImGui::SameLine();
+        if (ImGui::Button("Delete"))
+        {
+            registry.destroy(context.selectedEntity);
+            context.Deselect();
+        }
+    }
+
+    ImGui::Separator();
+    // ƒZƒpƒŒ[ƒ^‚Ì‰º‚ÌÀ•W‚ğ‹L˜^
+    ImVec2 dropAreaMin = ImGui::GetCursorScreenPos();
+
+    // ‘S Entity ‚ğ—ñ‹“
+    auto view = registry.view<entt::entity>();
+    for (auto e : view)
+    {
+        std::string name = context.GetName(e);
+
+        // ‘I‘ğó‘Ô‚ğƒnƒCƒ‰ƒCƒg
+        bool isSelected = context.IsSelected(e);
+        if (ImGui::Selectable(
+            (name + "##" + std::to_string((uint32_t)e)).c_str(),
+            isSelected))
+        {
+            context.Select(e);
+        }
+    }
+
+    // ƒZƒpƒŒ[ƒ^ˆÈ‰ºƒEƒBƒ“ƒhƒE––”ö‚Ü‚Å‚ğƒhƒƒbƒvƒ^[ƒQƒbƒg‚É
+    ImVec2 dropAreaMax = ImGui::GetWindowPos();
+    dropAreaMax.x += ImGui::GetWindowSize().x;
+    dropAreaMax.y += ImGui::GetWindowSize().y;
+
+    ImRect dropRect(dropAreaMin, dropAreaMax);
+
+    if (ImGui::BeginDragDropTargetCustom(dropRect, ImGui::GetCurrentWindow()->ID))
+    {
+        if (const ImGuiPayload* payload =
+            ImGui::AcceptDragDropPayload("MODEL_PATH"))
+        {                
+            // ƒpƒX‚ğó‚¯æ‚é
+            std::string modelPath(static_cast<const char*>(payload->Data));
+
+            // Entity ¶¬
+            entt::entity e = registry.create();
+
+            auto& t = registry.emplace<TransformComponent>(e);
+            t.position = { 0.0f, 0.0f, 0.0f };
+            t.scale = { 1.0f, 1.0f, 1.0f };
+
+            registry.emplace<MeshComponent>(e, modelPath);
+            registry.emplace<MaterialComponent>(e).AddPass("pbr");
+
+            // ƒtƒ@ƒCƒ‹–¼‚©‚ç Entity –¼‚ğİ’è
+            std::filesystem::path p(modelPath);
+            context.SetName(e, p.stem().string());
+            context.Select(e);
+        }
+        ImGui::EndDragDropTarget();
+    }
+    ImGui::End();
+} 
+ 
+===== InspectorWindow.cpp ===== 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Editor\InspectorWindow.cpp 
+#include "InspectorWindow.h"
+#include <imgui.h>
+#include "imgui_internal.h"
+#include "ComponentRegistry.h"
+
+// •`‰æ
+void InspectorWindow::Draw(entt::registry& registry, EditorContext& context)
+{
+    ImGui::Begin("Inspector");
+
+    // ‰½‚à‘I‘ğ‚³‚ê‚Ä‚¢‚È‚¯‚ê‚Î‰½‚à•\¦‚µ‚È‚¢
+    if (context.selectedEntity == entt::null)
+    {
+        ImGui::Text("No entity selected.");
+        ImGui::End();
+        return;
+    }
+
+    // –¼‘O•ÒW
+    DrawNameField(registry, context);
+
+    ImGui::Separator();
+
+    // ƒRƒ“ƒ|[ƒlƒ“ƒgˆê——
+    DrawComponents(registry, context);
+
+    ImGui::Separator();
+
+    // ƒRƒ“ƒ|[ƒlƒ“ƒg’Ç‰Áƒ{ƒ^ƒ“
+    DrawAddComponent(registry, context);
+
+    ImGui::End();
+}
+
+// –¼‘O•ÒWUI
+void InspectorWindow::DrawNameField(entt::registry& registry, EditorContext& context)
+{
+    entt::entity e = context.selectedEntity;
+    std::string name = context.GetName(e);
+
+    char buf[256] = {};
+    strncpy_s(buf, name.c_str(), sizeof(buf) - 1);
+
+    if (ImGui::InputText("Name", buf, sizeof(buf)))
+    {
+        context.SetName(e, buf);
+    }
+}
+
+// ƒRƒ“ƒ|[ƒlƒ“ƒgˆê——UI
+void InspectorWindow::DrawComponents(entt::registry& registry, EditorContext& context)
+{
+    entt::entity e = context.selectedEntity;
+
+    for (const auto& name : ComponentRegistry::GetNames())
+    {
+        const ComponentInfo* info = ComponentRegistry::Get(name);
+        if (!info) continue;
+        // ‚±‚ÌEntity‚ªƒRƒ“ƒ|[ƒlƒ“ƒg‚ğ‚Á‚Ä‚¢‚é‚©
+        if (!info->has(registry, e)) continue;
+
+
+        // íœƒ{ƒ^ƒ“
+        ImGui::PushID(name.c_str());
+        if (ImGui::Button("x"))
+        {
+            info->remove(registry, e);
+            ImGui::PopID();
+            // íœŒã‚ÍƒCƒeƒŒ[ƒVƒ‡ƒ“‚ğ’†’f
+            break;
+        }
+        ImGui::SameLine();
+        ImGui::PopID();
+
+
+        // ƒRƒ“ƒ|[ƒlƒ“ƒg‚ÌImGui‚ğ•`‰æ
+        info->drawImGui(registry, e);
+    }
+}
+
+// ƒRƒ“ƒ|[ƒlƒ“ƒg’Ç‰ÁUI
+void InspectorWindow::DrawAddComponent(entt::registry& registry, EditorContext& context)
+{
+    entt::entity e = context.selectedEntity;
+
+    if (ImGui::Button("+ Add Component"))
+    {
+        ImGui::OpenPopup("AddComponentPopup");
+    }
+
+    if (ImGui::BeginPopup("AddComponentPopup"))
+    {
+        ImGui::Text("Select Component");
+        ImGui::Separator();
+
+        for (const auto& name : ComponentRegistry::GetNames())
+        {
+            const ComponentInfo* info = ComponentRegistry::Get(name);
+            if (!info) continue;
+
+            // ‚·‚Å‚É‚Á‚Ä‚¢‚éƒRƒ“ƒ|[ƒlƒ“ƒg‚ÍƒOƒŒ[ƒAƒEƒg
+            if (info->has(registry, e))
+            {
+                ImGui::TextDisabled(name.c_str());
+            }
+            else
+            {
+                if (ImGui::Selectable(name.c_str()))
+                {
+                    info->add(registry, e);
+                    ImGui::CloseCurrentPopup();
+                }
+            }
+        }
+        ImGui::EndPopup();
+    }
+}
+ 
+ 
+===== ProjectWindow.cpp ===== 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Editor\ProjectWindow.cpp 
+#include "ProjectWindow.h"
+#include <imgui.h>
+
+#include "ECS/Components/TransformComponent.h"
+#include "ECS/Components/MeshComponent.h"
+#include "ECS/Components/MaterialComponent.h"
+#include <algorithm>
+#include <WICTextureLoader.h>
+
+void ProjectWindow::Initialize(const std::string& rootPath)
+{
+	this->rootPath = rootPath;
+	// ‰Šú‘I‘ğƒtƒHƒ‹ƒ_‚Íƒ‹[ƒg
+	this->selectedFolder = rootPath;
+}
+
+// ƒAƒCƒRƒ““Ç‚İ‚İ
+void ProjectWindow::LoadIcons(ID3D11Device* device)
+{
+	// Data/Sprite/System/folder.png ‚ğ“Ç‚İ‚Ş
+	DirectX::CreateWICTextureFromFile(
+		device,
+		L"Data/Sprite/System/folder.png",
+		nullptr,
+		modelIconSRV.GetAddressOf()
+	);
+}
+
+void ProjectWindow::Draw(entt::registry& registry, EditorContext& context)
+{
+	ImGui::Begin("Project");
+
+	//// ¶‰E‚É•ªŠ„
+	//ImGui::Columns(2, "ProjectColumns", true);
+	//// ¶‘¤‚Ì•‚ğŒÅ’è
+	//ImGui::SetColumnWidth(0, 200.0f);
+
+	//// ¶‘¤FƒtƒHƒ‹ƒ_ƒcƒŠ[
+	//ImGui::BeginChild("FolderTree", ImVec2(0, 0), false);
+	//DrawFolderTree(rootPath);
+	//ImGui::EndChild();
+
+	//ImGui::NextColumn();
+
+	//// ‰E‘¤Fƒtƒ@ƒCƒ‹ƒOƒŠƒbƒh
+
+	//ImGui::BeginChild("FileGrid", ImVec2(0, 0), false);
+	//DrawFileGrid(registry, context);
+	//ImGui::EndChild();
+
+	//ImGui::Columns(1);
+
+	//ImGui::End();
+
+	if (ImGui::BeginTable("ProjectLayout", 2,
+		ImGuiTableFlags_Resizable |
+		ImGuiTableFlags_BordersInnerV))
+	{
+		// ¶‘¤‚Ì‰Šú•‚ğİ’è
+		ImGui::TableSetupColumn("Folders", ImGuiTableColumnFlags_WidthFixed, 200.0f);
+		ImGui::TableSetupColumn("Files", ImGuiTableColumnFlags_WidthStretch);
+
+		ImGui::TableNextRow();
+
+		// ¶‘¤FƒtƒHƒ‹ƒ_ƒcƒŠ[
+		ImGui::TableSetColumnIndex(0);
+		ImGui::BeginChild("FolderTree", ImVec2(0, 0), false);
+		DrawFolderTree(rootPath);
+		ImGui::EndChild();
+
+		// ‰E‘¤Fƒtƒ@ƒCƒ‹ƒOƒŠƒbƒh
+		ImGui::TableSetColumnIndex(1);
+		ImGui::BeginChild("FileGrid", ImVec2(0, 0), false);
+		DrawFileGrid(registry, context);
+		ImGui::EndChild();
+
+		ImGui::EndTable();
+	}
+
+	ImGui::End();
+}
+
+// ƒtƒHƒ‹ƒ_ƒcƒŠ[
+void ProjectWindow::DrawFolderTree(const std::filesystem::path& path)
+{
+	if (!std::filesystem::is_directory(path)) return;
+
+	std::string folderName = path.filename().string();
+
+	// ƒTƒuƒtƒHƒ‹ƒ_‚ª‚ ‚é‚©Šm”F
+	bool hasSubFolder = false;
+	for (const auto& entry : std::filesystem::directory_iterator(path))
+	{
+		if (entry.is_directory())
+		{
+			hasSubFolder = true;
+			break;
+		}
+	}
+
+	ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_SpanAvailWidth;
+
+	// ‘I‘ğ’†ƒtƒHƒ‹ƒ_‚ğƒnƒCƒ‰ƒCƒg
+	if (selectedFolder == path)
+	{
+		flags |= ImGuiTreeNodeFlags_Selected;
+	}
+
+	// Å‰º‘w‚Ìê‡‚Í—tƒm[ƒh‚Æ‚µ‚Ä•\¦
+	if (!hasSubFolder)
+	{
+		flags |= ImGuiTreeNodeFlags_Leaf;
+		flags |= ImGuiTreeNodeFlags_NoTreePushOnOpen;
+	}
+
+	bool open = ImGui::TreeNodeEx(folderName.c_str(), flags);
+
+	// ƒNƒŠƒbƒN‚Å‘I‘ğ
+	if (ImGui::IsItemClicked())
+	{
+		selectedFolder = path;
+	}
+
+	// Å‰º‘w‚ÍTreePop‚ª•s—v
+	if (open && hasSubFolder)
+	{
+		for (const auto& entry : std::filesystem::directory_iterator(path))
+		{
+			if (entry.is_directory())
+			{
+				DrawFolderTree(entry.path());
+			}
+		}
+		ImGui::TreePop();
+	}
+}
+// ƒtƒ@ƒCƒ‹ˆê——
+void ProjectWindow::DrawFileGrid(entt::registry& registry, EditorContext& context)
+{
+	if (selectedFolder.empty()) return;
+	if (!std::filesystem::exists(selectedFolder)) return;
+
+	// ƒAƒCƒRƒ“ƒTƒCƒY‚Æ—]”’
+	const float iconSize = 64.0f;
+	const float padding = 16.0f;
+	const float cellSize = iconSize + padding;
+
+	// ƒEƒBƒ“ƒhƒE•‚©‚ç—ñ”‚ğŒvZ
+	float windowWidth = ImGui::GetContentRegionAvail().x;
+	int   columns = (std::max)(1, (int)(windowWidth / cellSize));
+
+	int index = 0;
+
+	for (const auto& entry : std::filesystem::directory_iterator(selectedFolder))
+	{
+		if (!entry.is_regular_file()) continue;
+		if (!IsModelFile(entry.path())) continue;
+
+		std::string filename = entry.path().stem().string();
+		std::string modelPath = entry.path().string();
+		std::replace(modelPath.begin(), modelPath.end(), '\\', '/');
+
+		// —ñ‚ÌÜ‚è•Ô‚µ
+		if (index % columns != 0)
+		{
+			ImGui::SameLine();
+		}
+
+		// ƒOƒ‹[ƒv‰»‚µ‚ÄƒAƒCƒRƒ“{–¼‘O‚ğ‚Ü‚Æ‚ß‚é
+		ImGui::BeginGroup();
+
+		ImVec2 pos = ImGui::GetCursorScreenPos();
+
+		// ƒAƒCƒRƒ“•\¦
+		if (modelIconSRV)
+		{
+			ImGui::Image(
+				(ImTextureID)modelIconSRV.Get(),
+				ImVec2(iconSize, iconSize)
+			);
+		}
+		else
+		{
+			ImGui::GetWindowDrawList()->AddRectFilled(
+				pos,
+				ImVec2(pos.x + iconSize, pos.y + iconSize),
+				IM_COL32(80, 120, 200, 255),
+				8.0f
+			);
+			ImGui::Dummy(ImVec2(iconSize, iconSize));
+		}
+
+		// ‰æ‘œ‚Ìã‚É“§–¾ƒ{ƒ^ƒ“‚ğd‚Ë‚Äƒhƒ‰ƒbƒO”»’è
+		ImGui::SetCursorScreenPos(pos);
+		ImGui::PushID(index);
+		ImGui::InvisibleButton("##icon", ImVec2(iconSize, iconSize));
+
+		// ƒhƒ‰ƒbƒOŠJn
+		if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
+		{
+			// ƒ‚ƒfƒ‹ƒpƒX‚ğƒyƒCƒ[ƒh‚Æ‚µ‚Ä“n‚·
+			ImGui::SetDragDropPayload(
+				"MODEL_PATH",
+				modelPath.c_str(),
+				modelPath.size() + 1
+			);
+			if (modelIconSRV)
+			{
+				ImGui::Image(
+					(ImTextureID)modelIconSRV.Get(),
+					ImVec2(iconSize, iconSize)
+				);
+			}
+			ImGui::Text(filename.c_str());
+			ImGui::EndDragDropSource();
+		}
+
+		ImGui::PopID();
+
+		// ƒtƒ@ƒCƒ‹–¼i’·‚¯‚ê‚ÎÈ—ªj
+		std::string displayName = filename;
+		if (displayName.size() > 10)
+			displayName = displayName.substr(0, 9) + "...";
+		ImGui::TextUnformatted(displayName.c_str());
+
+		ImGui::EndGroup();
+		index++;
+	}
+}
+
+
+bool ProjectWindow::IsModelFile(const std::filesystem::path& path)
+{
+	std::string ext = path.extension().string();
+
+	// ¬•¶š‚É•ÏŠ·‚µ‚Ä”äŠr
+	std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+
+	return ext == ".gltf" || ext == ".glb";
+} 
+ 
 ===== Actor.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Game\Actor.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Game\Actor.h 
 #pragma once
 #include "entt.hpp"
 #include "Core/SceneContext.h"
@@ -3149,7 +3991,7 @@ protected:
 }; 
  
 ===== Character.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Game\Character.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Game\Character.h 
 #pragma once
 #include "Actor.h"
 
@@ -3172,7 +4014,7 @@ protected:
 }; 
  
 ===== DamagedHelmet.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Game\DamagedHelmet.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Game\DamagedHelmet.h 
 #pragma once
 #include "Game/Object.h"
 
@@ -3187,7 +4029,7 @@ public:
 }; 
  
 ===== Enemy.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Game\Enemy.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Game\Enemy.h 
 #pragma once
 #include "Character.h"
 
@@ -3203,7 +4045,7 @@ public:
 }; 
  
 ===== Object.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Game\Object.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Game\Object.h 
 #pragma once
 #include "Actor.h"
 
@@ -3218,7 +4060,7 @@ public:
 }; 
  
 ===== Player.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Game\Player.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Game\Player.h 
 #pragma once
 #include "Character.h"
 
@@ -3238,7 +4080,7 @@ private:
 }; 
  
 ===== SceneGame.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Game\SceneGame.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Game\SceneGame.h 
 #pragma once
 #include "Core/Scene.h"
 #include "ECS/Systems/RenderSystem.h"
@@ -3291,7 +4133,7 @@ private:
  
  
 ===== Stage.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Game\Stage.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Game\Stage.h 
 #pragma once
 #include "Game/Object.h"
 
@@ -3306,7 +4148,7 @@ public:
 }; 
  
 ===== DamagedHelmet.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Game\DamagedHelmet.cpp 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Game\DamagedHelmet.cpp 
 #include "DamagedHelmet.h"
 #include "ECS/Components/TransformComponent.h"
 #include "ECS/Components/MeshComponent.h"
@@ -3331,7 +4173,7 @@ void DamagedHelmet::RenderImGui()
  
  
 ===== Enemy.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Game\Enemy.cpp 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Game\Enemy.cpp 
 #include "Enemy.h"
 #include "ECS/Components/TransformComponent.h"
 #include "ECS/Components/MeshComponent.h"
@@ -3369,7 +4211,7 @@ void Enemy::RenderImGui()
 } 
  
 ===== Player.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Game\Player.cpp 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Game\Player.cpp 
 #include "Player.h"
 #include "ECS/Components/TransformComponent.h"
 #include "ECS/Components/MeshComponent.h"
@@ -3429,7 +4271,7 @@ void Player::RenderImGui()
 } 
  
 ===== SceneGame.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Game\SceneGame.cpp 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Game\SceneGame.cpp 
 ï»¿#include "SceneGame.h"
 #include <imgui.h>
 
@@ -3662,7 +4504,7 @@ void SceneGame::RenderImGui()
  
  
 ===== Stage.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Game\Stage.cpp 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Game\Stage.cpp 
 #include "Stage.h"
 #include "ECS/Components/TransformComponent.h"
 #include "ECS/Components/MeshComponent.h"
@@ -3685,7 +4527,7 @@ void Stage::RenderImGui()
 } 
  
 ===== GBuffer.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Rendering\GBuffer.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Rendering\GBuffer.h 
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
@@ -3725,7 +4567,7 @@ private:
 }; 
  
 ===== LightManager.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Rendering\LightManager.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Rendering\LightManager.h 
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
@@ -3793,7 +4635,7 @@ private:
 }; 
  
 ===== SkyBox.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Rendering\SkyBox.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Rendering\SkyBox.h 
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
@@ -3862,7 +4704,7 @@ private:
 }; 
  
 ===== GBuffer.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Rendering\GBuffer.cpp 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Rendering\GBuffer.cpp 
 #include "GBuffer.h"
 #include "Utility/misc.h"
 
@@ -3936,7 +4778,7 @@ void GBuffer::EndGeometryPass(ID3D11DeviceContext* dc)
 } 
  
 ===== LightManager.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Rendering\LightManager.cpp 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Rendering\LightManager.cpp 
 #include "LightManager.h"
 #include "Resource/GpuResourceUtils.h"
 #include "Utility/misc.h"
@@ -4024,7 +4866,7 @@ void LightManager::Bind(ID3D11DeviceContext* dc)
  
  
 ===== SkyBox.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Rendering\SkyBox.cpp 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Rendering\SkyBox.cpp 
 #include "SkyBox.h"
 #include "Resource/GpuResourceUtils.h"
 #include "Utility/misc.h"
@@ -4202,7 +5044,7 @@ void SkyBox::Render(
  
  
 ===== GLTFConverter.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\GLTFConverter.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\GLTFConverter.h 
 #pragma once
 #include <memory>
 #include <d3d11.h>
@@ -4251,7 +5093,7 @@ private:
 }; 
  
 ===== GLTFData.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\GLTFData.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\GLTFData.h 
 #pragma once
 #include <string>
 #include <vector>
@@ -4292,10 +5134,12 @@ struct GLTFData
         DirectX::XMFLOAT4X4  globalTransform = { 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 };
     };
 
-    // ƒeƒNƒXƒ`ƒƒƒf[ƒ^iƒpƒXE–„‚ß‚İ–â‚í‚¸ƒoƒCƒiƒŠ‚Å“ˆêj
+    // ƒeƒNƒXƒ`ƒƒƒf[ƒ^
     struct TextureData
     {
         std::vector<uint8_t> pixels; // ƒoƒCƒiƒŠƒf[ƒ^
+        std::string          filepath; // ŠO•”ƒtƒ@ƒCƒ‹‚Ìê‡‚ÌƒpƒX
+
     };
 
     // ƒ}ƒeƒŠƒAƒ‹ƒf[ƒ^
@@ -4366,7 +5210,7 @@ struct GLTFData
 }; 
  
 ===== GLTFImporter.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\GLTFImporter.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\GLTFImporter.h 
 #pragma once
 #include <memory>
 #include <string>
@@ -4442,7 +5286,7 @@ private:
 }; 
  
 ===== GpuResourceUtils.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\GpuResourceUtils.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\GpuResourceUtils.h 
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
@@ -4476,12 +5320,31 @@ public:
         Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>& shaderResourceView
     );
 
+    // ƒtƒ@ƒCƒ‹ƒpƒX‚©‚çƒeƒNƒXƒ`ƒƒ“Ç‚İ‚İ
+    static HRESULT LoadTextureFromFile(
+        ID3D11Device* device,
+        const std::string& filename,
+        Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>& shaderResourceView
+    );
+
     // DDSƒeƒNƒXƒ`ƒƒ“Ç‚İ‚İ
     static HRESULT LoadDDSTexture(
         ID3D11Device* device,
         const std::string& filename,
         Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>& shaderResourceView,
         bool* isCubemap = nullptr
+    );
+    // DDSƒLƒƒƒbƒVƒ…•t‚«ƒeƒNƒXƒ`ƒƒ“Ç‚İ‚İ
+    static HRESULT LoadTextureWithDDSCache(
+        ID3D11Device* device,
+        const std::string& filename,
+        Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>& shaderResourceView
+    );
+    // PNG‚È‚Ç‚Ìƒtƒ@ƒCƒ‹‚ğDDS‚Æ‚µ‚Ä•Û‘¶
+    static HRESULT SaveToDDS(
+        ID3D11Device* device,
+        const std::string& srcFilename,
+        const std::string& ddsFilename
     );
 
     // ƒ_ƒ~[ƒeƒNƒXƒ`ƒƒ¶¬
@@ -4501,7 +5364,7 @@ public:
 }; 
  
 ===== Model.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\Model.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\Model.h 
 #pragma once
 
 #include <string>
@@ -4549,17 +5412,25 @@ public:
     struct Material
     {
         std::string       name;
-        std::string       baseTextureFileName;
         DirectX::XMFLOAT4 baseColor = { 1, 1, 1, 1 };
         float             roughnessFactor = 1.0f;
         float             metallicFactor = 0.0f;
 
-        std::vector<unsigned char> baseMapData;
-        std::vector<unsigned char> normalMapData;
-        std::vector<unsigned char> metallicRoughnessMapData;
-        std::vector<unsigned char> occlusionMapData;
-        std::vector<unsigned char> emissiveMapData;
+        // ŠO•”ƒtƒ@ƒCƒ‹QÆƒeƒNƒXƒ`ƒƒ—pƒpƒXiƒVƒŠƒAƒ‰ƒCƒY‘ÎÛj
+        std::string baseTextureFileName;
+        std::string normalTextureFileName;
+        std::string metallicRoughnessTextureFileName;
+        std::string occlusionTextureFileName;
+        std::string emissiveTextureFileName;
 
+        // –„‚ß‚İƒeƒNƒXƒ`ƒƒ—pƒoƒCƒiƒŠƒf[ƒ^iƒVƒŠƒAƒ‰ƒCƒY‘ÎÛj
+        std::vector<uint8_t> baseMapData;
+        std::vector<uint8_t> normalMapData;
+        std::vector<uint8_t> metallicRoughnessMapData;
+        std::vector<uint8_t> occlusionMapData;
+        std::vector<uint8_t> emissiveMapData;
+
+        // GPUƒŠƒ\[ƒX(ƒVƒŠƒAƒ‰ƒCƒY‘ÎÛŠO)
         Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> baseMap;
         Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> normalMap;
         Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> metallicRoughnessMap;
@@ -4675,7 +5546,7 @@ private:
 }; 
  
 ===== ModelSerializer.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\ModelSerializer.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\ModelSerializer.h 
 #pragma once
 #include <memory>
 #include <string>
@@ -4706,7 +5577,7 @@ public:
 }; 
  
 ===== ResourceManager.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\ResourceManager.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\ResourceManager.h 
 #pragma once
 #include <string>
 #include <memory>
@@ -4745,7 +5616,7 @@ private:
 }; 
  
 ===== GLTFConverter.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\GLTFConverter.cpp 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\GLTFConverter.cpp 
 #include "GLTFConverter.h"
 #include "GpuResourceUtils.h"
 #include "Utility/misc.h"
@@ -4772,69 +5643,78 @@ std::shared_ptr<Model> GLTFConverter::Convert(
 // .cereal ‚©‚ç•œŒ³‚µ‚½Œã‚ÉGPUƒŠƒ\[ƒX‚¾‚¯Ä¶¬‚·‚é
 void GLTFConverter::CreateGpuResources(ID3D11Device* device, Model& model)
 {
-    // --- ƒƒbƒVƒ…‚ÌGPUƒoƒbƒtƒ@Ä¶¬ ---
-    for (auto& mesh : model.meshes)
-    {
-        // ’¸“_ƒoƒbƒtƒ@
-        {
-            D3D11_BUFFER_DESC desc{};
-            desc.ByteWidth = static_cast<UINT>(
-                sizeof(Model::Vertex) * mesh.vertices.size());
-            desc.Usage = D3D11_USAGE_DEFAULT;
-            desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-            D3D11_SUBRESOURCE_DATA sub{};
-            sub.pSysMem = mesh.vertices.data();
-            HRESULT hr = device->CreateBuffer(
-                &desc, &sub, mesh.vertexBuffer.GetAddressOf());
-            _ASSERT_EXPR(SUCCEEDED(hr), hr_trace(hr));
-        }
-        // ƒCƒ“ƒfƒbƒNƒXƒoƒbƒtƒ@
-        {
-            D3D11_BUFFER_DESC desc{};
-            desc.ByteWidth = static_cast<UINT>(
-                sizeof(uint32_t) * mesh.indices.size());
-            desc.Usage = D3D11_USAGE_DEFAULT;
-            desc.BindFlags = D3D11_BIND_INDEX_BUFFER;
-            D3D11_SUBRESOURCE_DATA sub{};
-            sub.pSysMem = mesh.indices.data();
-            HRESULT hr = device->CreateBuffer(
-                &desc, &sub, mesh.indexBuffer.GetAddressOf());
-            _ASSERT_EXPR(SUCCEEDED(hr), hr_trace(hr));
-        }
-    }
+	// ƒƒbƒVƒ…‚ÌGPUƒoƒbƒtƒ@Ä¶¬
+	for (auto& mesh : model.meshes)
+	{
+		// ’¸“_ƒoƒbƒtƒ@
+		{
+			D3D11_BUFFER_DESC desc{};
+			desc.ByteWidth = static_cast<UINT>(
+				sizeof(Model::Vertex) * mesh.vertices.size());
+			desc.Usage = D3D11_USAGE_DEFAULT;
+			desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+			D3D11_SUBRESOURCE_DATA sub{};
+			sub.pSysMem = mesh.vertices.data();
+			HRESULT hr = device->CreateBuffer(
+				&desc, &sub, mesh.vertexBuffer.GetAddressOf());
+			_ASSERT_EXPR(SUCCEEDED(hr), hr_trace(hr));
+		}
+		// ƒCƒ“ƒfƒbƒNƒXƒoƒbƒtƒ@
+		{
+			D3D11_BUFFER_DESC desc{};
+			desc.ByteWidth = static_cast<UINT>(
+				sizeof(uint32_t) * mesh.indices.size());
+			desc.Usage = D3D11_USAGE_DEFAULT;
+			desc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+			D3D11_SUBRESOURCE_DATA sub{};
+			sub.pSysMem = mesh.indices.data();
+			HRESULT hr = device->CreateBuffer(
+				&desc, &sub, mesh.indexBuffer.GetAddressOf());
+			_ASSERT_EXPR(SUCCEEDED(hr), hr_trace(hr));
+		}
+	}
 
-    // --- ƒ}ƒeƒŠƒAƒ‹‚ÌƒeƒNƒXƒ`ƒƒÄ¶¬ ---
-    for (auto& mat : model.materials)
-    {
-        auto loadTex = [&](
-            const std::vector<unsigned char>& pixels,
-            Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>& srv,
-            DWORD dummyColor)
-            {
-                if (pixels.empty())
-                {
-                    GpuResourceUtils::CreateDummyTexture(device, srv, dummyColor, 1);
-                    return;
-                }
-                GpuResourceUtils::LoadTexture(device, pixels.data(), pixels.size(), srv);
-            };
+	// ƒ}ƒeƒŠƒAƒ‹‚ÌƒeƒNƒXƒ`ƒƒÄ¶¬
+	for (auto& mat : model.materials)
+	{
+		// ƒpƒX—DæA‚È‚¯‚ê‚ÎƒoƒCƒiƒŠA—¼•û‹ó‚È‚çƒ_ƒ~[
+		auto loadTex = [&](
+			const std::string& filepath,
+			const std::vector<uint8_t>& pixels,
+			Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>& srv,
+			DWORD dummyColor)
+			{
+				if (!filepath.empty())
+				{
+					// ŠO•”ƒtƒ@ƒCƒ‹ ¨ DDSƒLƒƒƒbƒVƒ…—Dæ‚Åƒ[ƒh
+					GpuResourceUtils::LoadTextureWithDDSCache(device, filepath, srv);
+				}
+				else if (!pixels.empty())
+				{
+					// –„‚ß‚İƒoƒCƒiƒŠ ¨ ‚»‚Ì‚Ü‚Üƒ[ƒhiDDSƒLƒƒƒbƒVƒ…‘ÎÛŠOj
+					GpuResourceUtils::LoadTexture(device, pixels.data(), pixels.size(), srv);
+				}
+				else
+				{
+					GpuResourceUtils::CreateDummyTexture(device, srv, dummyColor, 1);
+				}
+			};
+		loadTex(mat.baseTextureFileName, mat.baseMapData, mat.baseMap, 0xFFFFFFFF);
+		loadTex(mat.normalTextureFileName, mat.normalMapData, mat.normalMap, 0xFFFF8080);
+		loadTex(mat.metallicRoughnessTextureFileName, mat.metallicRoughnessMapData, mat.metallicRoughnessMap, 0xFFFFFFFF);
+		loadTex(mat.occlusionTextureFileName, mat.occlusionMapData, mat.occlusionMap, 0xFFFFFFFF);
+		loadTex(mat.emissiveTextureFileName, mat.emissiveMapData, mat.emissiveMap, 0xFF000000);
+	}
 
-        loadTex(mat.baseMapData, mat.baseMap, 0xFFFFFFFF);
-        loadTex(mat.normalMapData, mat.normalMap, 0xFFFF8080);
-        loadTex(mat.metallicRoughnessMapData, mat.metallicRoughnessMap, 0xFFFFFFFF);
-        loadTex(mat.occlusionMapData, mat.occlusionMap, 0xFFFFFFFF);
-        loadTex(mat.emissiveMapData, mat.emissiveMap, 0xFF000000);
-    }
-
-    // --- material ƒ|ƒCƒ“ƒ^‚ÌÄÚ‘± ---
-    for (auto& mesh : model.meshes)
-    {
-        if (mesh.materialIndex >= 0 &&
-            mesh.materialIndex < (int)model.materials.size())
-        {
-            mesh.material = &model.materials[mesh.materialIndex];
-        }
-    }
+	// material ƒ|ƒCƒ“ƒ^‚ÌÄÚ‘±
+	for (auto& mesh : model.meshes)
+	{
+		if (mesh.materialIndex >= 0 &&
+			mesh.materialIndex < (int)model.materials.size())
+		{
+			mesh.material = &model.materials[mesh.materialIndex];
+		}
+	}
 }
 
 // ƒm[ƒh•ÏŠ·
@@ -4863,246 +5743,253 @@ void GLTFConverter::ConvertNodes(
 // ƒƒbƒVƒ…•ÏŠ·
 void GLTFConverter::ConvertMeshes(
 	Model& model,
-	const GLTFData& data, 
+	const GLTFData& data,
 	ID3D11Device* device)
 {
-    model.meshes.reserve(data.meshes.size());
+	model.meshes.reserve(data.meshes.size());
 
-    for (const auto& src : data.meshes)
-    {
-        Model::Mesh dst;
-        dst.nodeIndex = src.nodeIndex;
-        dst.materialIndex = src.materialIndex;
+	for (const auto& src : data.meshes)
+	{
+		Model::Mesh dst;
+		dst.nodeIndex = src.nodeIndex;
+		dst.materialIndex = src.materialIndex;
 
-        // ’¸“_ƒf[ƒ^‚ğGLTFData::Vertex‚©‚çModel::Vertex‚ÖƒRƒs[
-        dst.vertices.reserve(src.vertices.size());
-        for (const auto& v : src.vertices)
-        {
-            Model::Vertex mv;
-            mv.position = v.position;
-            mv.normal = v.normal;
-            mv.tangent = v.tangent;
-            mv.texcoord = v.texcoord;
-            mv.boneWeight = v.boneWeight;
-            mv.boneIndex = v.boneIndex;
-            dst.vertices.push_back(mv);
-        }
+		// ’¸“_ƒf[ƒ^‚ğGLTFData::Vertex‚©‚çModel::Vertex‚ÖƒRƒs[
+		dst.vertices.reserve(src.vertices.size());
+		for (const auto& v : src.vertices)
+		{
+			Model::Vertex mv;
+			mv.position = v.position;
+			mv.normal = v.normal;
+			mv.tangent = v.tangent;
+			mv.texcoord = v.texcoord;
+			mv.boneWeight = v.boneWeight;
+			mv.boneIndex = v.boneIndex;
+			dst.vertices.push_back(mv);
+		}
 
-        // ƒCƒ“ƒfƒbƒNƒXƒf[ƒ^ƒRƒs[
-        dst.indices = src.indices;
+		// ƒCƒ“ƒfƒbƒNƒXƒf[ƒ^ƒRƒs[
+		dst.indices = src.indices;
 
-        // ƒ{[ƒ“ƒf[ƒ^ƒRƒs[
-        dst.bones.reserve(src.bones.size());
-        for (const auto& b : src.bones)
-        {
-            Model::Bone mb;
-            mb.nodeIndex = b.nodeIndex;
-            mb.offsetTransform = b.offsetTransform;
-            dst.bones.push_back(mb);
-        }
+		// ƒ{[ƒ“ƒf[ƒ^ƒRƒs[
+		dst.bones.reserve(src.bones.size());
+		for (const auto& b : src.bones)
+		{
+			Model::Bone mb;
+			mb.nodeIndex = b.nodeIndex;
+			mb.offsetTransform = b.offsetTransform;
+			dst.bones.push_back(mb);
+		}
 
-        // ’¸“_ƒoƒbƒtƒ@¶¬
-        {
-            D3D11_BUFFER_DESC desc{};
-            desc.ByteWidth = static_cast<UINT>(
-                sizeof(Model::Vertex) * dst.vertices.size());
-            desc.Usage = D3D11_USAGE_DEFAULT;
-            desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+		// ’¸“_ƒoƒbƒtƒ@¶¬
+		{
+			D3D11_BUFFER_DESC desc{};
+			desc.ByteWidth = static_cast<UINT>(
+				sizeof(Model::Vertex) * dst.vertices.size());
+			desc.Usage = D3D11_USAGE_DEFAULT;
+			desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 
-            D3D11_SUBRESOURCE_DATA sub{};
-            sub.pSysMem = dst.vertices.data();
+			D3D11_SUBRESOURCE_DATA sub{};
+			sub.pSysMem = dst.vertices.data();
 
-            HRESULT hr = device->CreateBuffer(
-                &desc, &sub, dst.vertexBuffer.GetAddressOf());
-            _ASSERT_EXPR(SUCCEEDED(hr), hr_trace(hr));
-        }
+			HRESULT hr = device->CreateBuffer(
+				&desc, &sub, dst.vertexBuffer.GetAddressOf());
+			_ASSERT_EXPR(SUCCEEDED(hr), hr_trace(hr));
+		}
 
-        // ƒCƒ“ƒfƒbƒNƒXƒoƒbƒtƒ@¶¬
-        {
-            D3D11_BUFFER_DESC desc{};
-            desc.ByteWidth = static_cast<UINT>(
-                sizeof(uint32_t) * dst.indices.size());
-            desc.Usage = D3D11_USAGE_DEFAULT;
-            desc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+		// ƒCƒ“ƒfƒbƒNƒXƒoƒbƒtƒ@¶¬
+		{
+			D3D11_BUFFER_DESC desc{};
+			desc.ByteWidth = static_cast<UINT>(
+				sizeof(uint32_t) * dst.indices.size());
+			desc.Usage = D3D11_USAGE_DEFAULT;
+			desc.BindFlags = D3D11_BIND_INDEX_BUFFER;
 
-            D3D11_SUBRESOURCE_DATA sub{};
-            sub.pSysMem = dst.indices.data();
+			D3D11_SUBRESOURCE_DATA sub{};
+			sub.pSysMem = dst.indices.data();
 
-            HRESULT hr = device->CreateBuffer(
-                &desc, &sub, dst.indexBuffer.GetAddressOf());
-            _ASSERT_EXPR(SUCCEEDED(hr), hr_trace(hr));
-        }
+			HRESULT hr = device->CreateBuffer(
+				&desc, &sub, dst.indexBuffer.GetAddressOf());
+			_ASSERT_EXPR(SUCCEEDED(hr), hr_trace(hr));
+		}
 
-        model.meshes.push_back(std::move(dst));
-    }
-    // ‘SƒƒbƒVƒ…‚Ì’¸“_‚©‚çƒoƒEƒ“ƒfƒBƒ“ƒOƒ{ƒbƒNƒX‚ğŒvZ
-    for (const auto& mesh : model.meshes)
-    {
-        for (const auto& v : mesh.vertices)
-        {
-            model.boundingBox.min.x = (std::min)(model.boundingBox.min.x, v.position.x);
-            model.boundingBox.min.y = (std::min)(model.boundingBox.min.y, v.position.y);
-            model.boundingBox.min.z = (std::min)(model.boundingBox.min.z, v.position.z);
+		model.meshes.push_back(std::move(dst));
+	}
+	// ‘SƒƒbƒVƒ…‚Ì’¸“_‚©‚çƒoƒEƒ“ƒfƒBƒ“ƒOƒ{ƒbƒNƒX‚ğŒvZ
+	for (const auto& mesh : model.meshes)
+	{
+		for (const auto& v : mesh.vertices)
+		{
+			model.boundingBox.min.x = (std::min)(model.boundingBox.min.x, v.position.x);
+			model.boundingBox.min.y = (std::min)(model.boundingBox.min.y, v.position.y);
+			model.boundingBox.min.z = (std::min)(model.boundingBox.min.z, v.position.z);
 
-            model.boundingBox.max.x = (std::max)(model.boundingBox.max.x, v.position.x);
-            model.boundingBox.max.y = (std::max)(model.boundingBox.max.y, v.position.y);
-            model.boundingBox.max.z = (std::max)(model.boundingBox.max.z, v.position.z);
-        }
-    }
+			model.boundingBox.max.x = (std::max)(model.boundingBox.max.x, v.position.x);
+			model.boundingBox.max.y = (std::max)(model.boundingBox.max.y, v.position.y);
+			model.boundingBox.max.z = (std::max)(model.boundingBox.max.z, v.position.z);
+		}
+	}
 }
 
 // ƒ}ƒeƒŠƒAƒ‹•ÏŠ·
 void GLTFConverter::ConvertMaterials(
 	Model& model,
-	const GLTFData& data, 
+	const GLTFData& data,
 	ID3D11Device* device)
 {
-    model.materials.reserve(data.materials.size());
+	model.materials.reserve(data.materials.size());
 
-    // ƒeƒNƒXƒ`ƒƒ•ÏŠ·ƒwƒ‹ƒp[
-    // ƒCƒ“ƒfƒbƒNƒX‚ª -1 ‚È‚çƒ_ƒ~[ƒeƒNƒXƒ`ƒƒ‚ğ¶¬‚·‚é
-    auto convertTexture = [&](
-        int texIndex,
-        Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>& srv,
-        DWORD dummyColor)
-        {
-            if (texIndex < 0 ||
-                texIndex >= (int)data.textures.size())
-            {
-                GpuResourceUtils::CreateDummyTexture(
-                    device, srv, dummyColor, 1);
-                return;
-            }
+	// ƒeƒNƒXƒ`ƒƒ•ÏŠ·ƒwƒ‹ƒp[
+	// ƒCƒ“ƒfƒbƒNƒX‚ª -1 ‚È‚çƒ_ƒ~[ƒeƒNƒXƒ`ƒƒ‚ğ¶¬‚·‚é
+	auto convertTexture = [&](
+		int texIndex,
+		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>& srv,
+		DWORD dummyColor)
+		{
+			if (texIndex < 0 ||
+				texIndex >= (int)data.textures.size())
+			{
+				GpuResourceUtils::CreateDummyTexture(device, srv, dummyColor, 1);
+				return;
+			}
 
-            const auto& texData = data.textures[texIndex];
-            if (texData.pixels.empty())
-            {
-                GpuResourceUtils::CreateDummyTexture(
-                    device, srv, dummyColor, 1);
-                return;
-            }
+			const auto& texData = data.textures[texIndex];
 
-            // ƒoƒCƒiƒŠƒf[ƒ^‚©‚çƒeƒNƒXƒ`ƒƒ¶¬
-            GpuResourceUtils::LoadTexture(
-                device,
-                texData.pixels.data(),
-                texData.pixels.size(),
-                srv);
-        };
+			if (!texData.filepath.empty())
+			{
+				// ŠO•”ƒtƒ@ƒCƒ‹‚©‚ç“Ç‚Ş
+				// DDSƒLƒƒƒbƒVƒ…—Dæ‚Åƒ[ƒh
+				GpuResourceUtils::LoadTextureWithDDSCache(device, texData.filepath, srv);
+			}
+			else if (!texData.pixels.empty())
+			{
+				// –„‚ß‚İƒoƒCƒiƒŠ‚©‚ç“Ç‚Ş(‚»‚Ì‚Ü‚Üƒ[ƒh(DDSƒLƒƒƒbƒVƒ…‘ÎÛŠO))
+				GpuResourceUtils::LoadTexture(device, texData.pixels.data(), texData.pixels.size(), srv);
+			}
+			else
+			{
+				GpuResourceUtils::CreateDummyTexture(device, srv, dummyColor, 1);
+			}
+		};
 
-    for (const auto& src : data.materials)
-    {
-        Model::Material dst;
-        dst.name = src.name;
-        dst.baseColor = src.baseColor;
-        dst.roughnessFactor = src.roughnessFactor;
-        dst.metallicFactor = src.metallicFactor;
-        dst.alphaMode = static_cast<Model::Material::AlphaMode>(
-            src.alphaMode);
-        dst.alphaCutoff = src.alphaCutoff;
+	for (const auto& src : data.materials)
+	{
+		Model::Material dst;
+		dst.name = src.name;
+		dst.baseColor = src.baseColor;
+		dst.roughnessFactor = src.roughnessFactor;
+		dst.metallicFactor = src.metallicFactor;
+		dst.alphaMode = static_cast<Model::Material::AlphaMode>(src.alphaMode);
+		dst.alphaCutoff = src.alphaCutoff;
 
-        // ƒsƒNƒZƒ‹ƒf[ƒ^‚ğ•Û‘¶‚µ‚Ä‚¨‚­iƒVƒŠƒAƒ‰ƒCƒY—pj
-        auto savePixels = [&](int texIndex, std::vector<unsigned char>& outData)
-            {
-                if (texIndex < 0 || texIndex >= (int)data.textures.size()) return;
-                const auto& texData = data.textures[texIndex];
-                if (!texData.pixels.empty())
-                    outData = texData.pixels;
-            };
-        
-        savePixels(src.baseMapIndex, dst.baseMapData);
-        savePixels(src.normalMapIndex, dst.normalMapData);
-        savePixels(src.metallicRoughnessMapIndex, dst.metallicRoughnessMapData);
-        savePixels(src.occlusionMapIndex, dst.occlusionMapData);
-        savePixels(src.emissiveMapIndex, dst.emissiveMapData);
+		// ŠO•”ƒtƒ@ƒCƒ‹‚È‚çƒpƒX‚ğA–„‚ß‚İ‚È‚çƒoƒCƒiƒŠƒf[ƒ^‚ğ•Û‘¶
+		auto saveTexture = [&](
+			int texIndex,
+			std::string& outPath,
+			std::vector<uint8_t>& outPixels)
+			{
+				if (texIndex < 0 || texIndex >= (int)data.textures.size()) return;
+				const auto& texData = data.textures[texIndex];
 
-        // ƒeƒNƒXƒ`ƒƒ¶¬
-        convertTexture(src.baseMapIndex,
-            dst.baseMap, 0xFFFFFFFF);
-        convertTexture(src.normalMapIndex,
-            dst.normalMap, 0xFFFF8080);
-        convertTexture(src.metallicRoughnessMapIndex,
-            dst.metallicRoughnessMap, 0xFFFFFFFF);
-        convertTexture(src.occlusionMapIndex,
-            dst.occlusionMap, 0xFFFFFFFF);
-        convertTexture(src.emissiveMapIndex,
-            dst.emissiveMap, 0xFF000000);
+				if (!texData.filepath.empty())
+				{
+					// ŠO•”ƒtƒ@ƒCƒ‹QÆ‚È‚çƒpƒX‚¾‚¯•Û‘¶
+					outPath = texData.filepath;
+				}
+				else if (!texData.pixels.empty())
+				{
+					// –„‚ß‚İ‚È‚çƒoƒCƒiƒŠƒf[ƒ^‚ğ•Û‘¶
+					outPixels = texData.pixels;
+				}
+			};
 
-        model.materials.push_back(std::move(dst));
-    }
+		saveTexture(src.baseMapIndex, dst.baseTextureFileName, dst.baseMapData);
+		saveTexture(src.normalMapIndex, dst.normalTextureFileName, dst.normalMapData);
+		saveTexture(src.metallicRoughnessMapIndex, dst.metallicRoughnessTextureFileName, dst.metallicRoughnessMapData);
+		saveTexture(src.occlusionMapIndex, dst.occlusionTextureFileName, dst.occlusionMapData);
+		saveTexture(src.emissiveMapIndex, dst.emissiveTextureFileName, dst.emissiveMapData);
 
-    // ƒƒbƒVƒ…‚Æƒ}ƒeƒŠƒAƒ‹‚ğ•R•t‚¯
-    for (auto& mesh : model.meshes)
-    {
-        if (mesh.materialIndex >= 0 &&
-            mesh.materialIndex < (int)model.materials.size())
-        {
-            mesh.material = &model.materials[mesh.materialIndex];
-        }
-    }
+		// ƒeƒNƒXƒ`ƒƒ¶¬i‰‰ñƒ[ƒhj
+		convertTexture(src.baseMapIndex, dst.baseMap, 0xFFFFFFFF);
+		convertTexture(src.normalMapIndex, dst.normalMap, 0xFFFF8080);
+		convertTexture(src.metallicRoughnessMapIndex, dst.metallicRoughnessMap, 0xFFFFFFFF);
+		convertTexture(src.occlusionMapIndex, dst.occlusionMap, 0xFFFFFFFF);
+		convertTexture(src.emissiveMapIndex, dst.emissiveMap, 0xFF000000);
+
+		model.materials.push_back(std::move(dst));
+	}
+	// ƒƒbƒVƒ…‚Æƒ}ƒeƒŠƒAƒ‹‚ğ•R•t‚¯
+	for (auto& mesh : model.meshes)
+	{
+		if (mesh.materialIndex >= 0 &&
+			mesh.materialIndex < (int)model.materials.size())
+		{
+			mesh.material = &model.materials[mesh.materialIndex];
+		}
+	}
 }
 
 // ƒAƒjƒ[ƒVƒ‡ƒ“•ÏŠ·
 void GLTFConverter::ConvertAnimations(
-	Model& model, 
+	Model& model,
 	const GLTFData& data)
 {
-    model.animations.reserve(data.animations.size());
+	model.animations.reserve(data.animations.size());
 
-    for (const auto& src : data.animations)
-    {
-        Model::Animation dst;
-        dst.name = src.name;
-        dst.secondsLength = src.secondsLength;
+	for (const auto& src : data.animations)
+	{
+		Model::Animation dst;
+		dst.name = src.name;
+		dst.secondsLength = src.secondsLength;
 
-        dst.nodeAnims.reserve(src.nodeAnims.size());
-        for (const auto& srcNode : src.nodeAnims)
-        {
-            Model::NodeAnim dstNode;
+		dst.nodeAnims.reserve(src.nodeAnims.size());
+		for (const auto& srcNode : src.nodeAnims)
+		{
+			Model::NodeAnim dstNode;
 
-            // positionƒL[ƒtƒŒ[ƒ€
-            dstNode.positionKeyframes.reserve(
-                srcNode.positionKeyframes.size());
-            for (const auto& kf : srcNode.positionKeyframes)
-            {
-                Model::VectorKeyframe dkf;
-                dkf.seconds = kf.seconds;
-                dkf.value = kf.value;
-                dstNode.positionKeyframes.push_back(dkf);
-            }
+			// positionƒL[ƒtƒŒ[ƒ€
+			dstNode.positionKeyframes.reserve(
+				srcNode.positionKeyframes.size());
+			for (const auto& kf : srcNode.positionKeyframes)
+			{
+				Model::VectorKeyframe dkf;
+				dkf.seconds = kf.seconds;
+				dkf.value = kf.value;
+				dstNode.positionKeyframes.push_back(dkf);
+			}
 
-            // rotationƒL[ƒtƒŒ[ƒ€
-            dstNode.rotationKeyframes.reserve(
-                srcNode.rotationKeyframes.size());
-            for (const auto& kf : srcNode.rotationKeyframes)
-            {
-                Model::QuaternionKeyframe dkf;
-                dkf.seconds = kf.seconds;
-                dkf.value = kf.value;
-                dstNode.rotationKeyframes.push_back(dkf);
-            }
+			// rotationƒL[ƒtƒŒ[ƒ€
+			dstNode.rotationKeyframes.reserve(
+				srcNode.rotationKeyframes.size());
+			for (const auto& kf : srcNode.rotationKeyframes)
+			{
+				Model::QuaternionKeyframe dkf;
+				dkf.seconds = kf.seconds;
+				dkf.value = kf.value;
+				dstNode.rotationKeyframes.push_back(dkf);
+			}
 
-            // scaleƒL[ƒtƒŒ[ƒ€
-            dstNode.scaleKeyframes.reserve(
-                srcNode.scaleKeyframes.size());
-            for (const auto& kf : srcNode.scaleKeyframes)
-            {
-                Model::VectorKeyframe dkf;
-                dkf.seconds = kf.seconds;
-                dkf.value = kf.value;
-                dstNode.scaleKeyframes.push_back(dkf);
-            }
+			// scaleƒL[ƒtƒŒ[ƒ€
+			dstNode.scaleKeyframes.reserve(
+				srcNode.scaleKeyframes.size());
+			for (const auto& kf : srcNode.scaleKeyframes)
+			{
+				Model::VectorKeyframe dkf;
+				dkf.seconds = kf.seconds;
+				dkf.value = kf.value;
+				dstNode.scaleKeyframes.push_back(dkf);
+			}
 
-            dst.nodeAnims.push_back(std::move(dstNode));
-        }
+			dst.nodeAnims.push_back(std::move(dstNode));
+		}
 
-        model.animations.push_back(std::move(dst));
-    }
+		model.animations.push_back(std::move(dst));
+	}
 }
  
  
 ===== GLTFImporter.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\GLTFImporter.cpp 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\GLTFImporter.cpp 
 #include "GLTFImporter.h"
 #include "Utility/misc.h"
 #include <filesystem>
@@ -5666,30 +6553,37 @@ void GLTFImporter::LoadTextures(
 		GLTFData::TextureData texData;
 		const auto& image = gltfModel.images[gltfTexture.source];
 
+		//if (!image.uri.empty())
+		//{
+		//	std::string texPath = (filepath.parent_path() / image.uri).string();
+
+		//	// istreambuf_iterator ‚æ‚è read ‚Ì•û‚ª‘å•‚É‘¬‚¢
+		//	std::ifstream ifs(texPath, std::ios::binary | std::ios::ate);
+		//	_ASSERT_EXPR_A(ifs, "Texture file not found");
+
+		//	std::streamsize size = ifs.tellg();
+		//	ifs.seekg(0, std::ios::beg);
+
+		//	texData.pixels.resize(static_cast<size_t>(size));
+		//	ifs.read(reinterpret_cast<char*>(texData.pixels.data()), size);
+		//}
+		//else if (image.bufferView >= 0)
+		//{
+		//	const auto& bv = gltfModel.bufferViews[image.bufferView];
+		//	const auto& buffer = gltfModel.buffers[bv.buffer];
+		//	const uint8_t* begin = buffer.data.data() + bv.byteOffset;
+		//	texData.pixels.assign(begin, begin + bv.byteLength);
+		//}
 		if (!image.uri.empty())
 		{
-			//std::string texPath = (filepath.parent_path() / image.uri).string();
-			//std::ifstream ifs(texPath, std::ios::binary);
-			//_ASSERT_EXPR_A(ifs, "Texture file not found");
-			//texData.pixels = std::vector<uint8_t>(
-			//	std::istreambuf_iterator<char>(ifs),
-			//	std::istreambuf_iterator<char>()
-			//);
-
 			std::string texPath = (filepath.parent_path() / image.uri).string();
 
-			// istreambuf_iterator ‚æ‚è read ‚Ì•û‚ª‘å•‚É‘¬‚¢
-			std::ifstream ifs(texPath, std::ios::binary | std::ios::ate);
-			_ASSERT_EXPR_A(ifs, "Texture file not found");
-
-			std::streamsize size = ifs.tellg();
-			ifs.seekg(0, std::ios::beg);
-
-			texData.pixels.resize(static_cast<size_t>(size));
-			ifs.read(reinterpret_cast<char*>(texData.pixels.data()), size);
+			// ƒpƒX‚¾‚¯•Û‘¶‚·‚éiƒoƒCƒiƒŠ‚Í“Ç‚Ü‚È‚¢j
+			texData.filepath = texPath;
 		}
 		else if (image.bufferView >= 0)
 		{
+			// GLB–„‚ß‚İ‚Ìê‡‚ÍƒoƒCƒiƒŠ‚ğæ‚èo‚·
 			const auto& bv = gltfModel.bufferViews[image.bufferView];
 			const auto& buffer = gltfModel.buffers[bv.buffer];
 			const uint8_t* begin = buffer.data.data() + bv.byteOffset;
@@ -5697,16 +6591,6 @@ void GLTFImporter::LoadTextures(
 		}
 
 		data.textures.push_back(std::move(texData));
-
-		QueryPerformanceCounter(&t1);
-		double elapsed = (double)(t1.QuadPart - t0.QuadPart) / freq.QuadPart * 1000.0;
-		size_t sizeKB = data.textures.back().pixels.size() / 1024;
-		sprintf_s(buf, "[GLTF]   texture[%d] uri=%s size=%zuKB : %.1f ms\n",
-			i,
-			gltfModel.images[gltfTexture.source].uri.c_str(),
-			sizeKB,
-			elapsed);
-		OutputDebugStringA(buf);
 	}
 }
 
@@ -5920,7 +6804,7 @@ void GLTFImporter::CalcGlobalTransform(
  
  
 ===== GpuResourceUtils.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\GpuResourceUtils.cpp 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\GpuResourceUtils.cpp 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 #include "GpuResourceUtils.h"
@@ -5928,7 +6812,9 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\GpuResourceUtils.cpp
 #include "WICTextureLoader.h"
 #include "Utility/misc.h"
 #include <memory>
-
+#include <vector>
+#include <DirectXTex.h>
+#include <filesystem>
 
 // ’¸“_ƒVƒF[ƒ_[“Ç‚İ‚İ
 HRESULT GpuResourceUtils::LoadVertexShader(
@@ -6053,6 +6939,33 @@ HRESULT GpuResourceUtils::LoadTexture(
 	return hr;
 }
 
+// ƒtƒ@ƒCƒ‹ƒpƒX‚©‚çƒeƒNƒXƒ`ƒƒ“Ç‚İ‚İ
+HRESULT GpuResourceUtils::LoadTextureFromFile(
+	ID3D11Device* device, 
+	const std::string& filename,
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>& shaderResourceView)
+{
+	// ƒtƒ@ƒCƒ‹‚ğŠJ‚¢‚ÄƒoƒCƒiƒŠ‚ğ“Ç‚İ‚Ş
+	FILE* fp = nullptr;
+	fopen_s(&fp, filename.c_str(), "rb");
+	if (!fp)
+	{
+		// ƒtƒ@ƒCƒ‹‚ªŒ©‚Â‚©‚ç‚È‚¢ê‡‚Íƒ_ƒ~[‚ğ•Ô‚·
+		return CreateDummyTexture(device, shaderResourceView, 0xFFFFFFFF, 1);
+	}
+
+	fseek(fp, 0, SEEK_END);
+	long size = ftell(fp);
+	fseek(fp, 0, SEEK_SET);
+
+	std::vector<unsigned char> data(size);
+	fread(data.data(), size, 1, fp);
+	fclose(fp);
+
+	// Šù‘¶‚Ì LoadTextureiƒƒ‚ƒŠ”Åj‚É—¬‚·
+	return LoadTexture(device, data.data(), data.size(), shaderResourceView);
+}
+
 // DDSƒeƒNƒXƒ`ƒƒ“Ç‚İ‚İ
 HRESULT GpuResourceUtils::LoadDDSTexture(
 	ID3D11Device* device,
@@ -6080,6 +6993,70 @@ HRESULT GpuResourceUtils::LoadDDSTexture(
 			*isCubemap = (desc.MiscFlags & D3D11_RESOURCE_MISC_TEXTURECUBE) != 0;
 		}
 	}
+	return hr;
+}
+// DDSƒLƒƒƒbƒVƒ…•t‚«ƒeƒNƒXƒ`ƒƒ“Ç‚İ‚İ
+HRESULT GpuResourceUtils::LoadTextureWithDDSCache(
+	ID3D11Device* device, 
+	const std::string& filename,
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>& shaderResourceView)
+{
+	// “¯–¼‚Ì .dds ƒLƒƒƒbƒVƒ…ƒpƒX‚ğ¶¬
+	std::string ddsPath = filename + ".dds";
+
+	// DDSƒLƒƒƒbƒVƒ…‚ª‘¶İ‚·‚ê‚Î‚»‚¿‚ç‚©‚ç“Ç‚Ş
+	if (std::filesystem::exists(ddsPath))
+	{
+		HRESULT hr = LoadDDSTexture(device, ddsPath, shaderResourceView);
+		if (SUCCEEDED(hr)) return hr;
+		// DDSƒ[ƒh¸”s‚Í’Êíƒ[ƒh‚ÉƒtƒH[ƒ‹ƒoƒbƒN
+	}
+
+	// DDS‚ª‚È‚¢ê‡‚Í’Êíƒ[ƒh‚µ‚ÄDDS‚ğ•Û‘¶
+	HRESULT hr = LoadTextureFromFile(device, filename, shaderResourceView);
+	if (SUCCEEDED(hr))
+	{
+		// ƒoƒbƒNƒOƒ‰ƒEƒ“ƒh‚Å‚Í‚È‚­‰‰ñ‚Ì‚İ•Û‘¶
+		SaveToDDS(device, filename, ddsPath);
+	}
+	return hr;
+}
+// PNG‚È‚Ç‚Ìƒtƒ@ƒCƒ‹‚ğDDS‚Æ‚µ‚Ä•Û‘¶
+HRESULT GpuResourceUtils::SaveToDDS(
+	ID3D11Device* device, 
+	const std::string& srcFilename, 
+	const std::string& ddsFilename)
+{
+	// ƒtƒ@ƒCƒ‹‚ğƒƒ‚ƒŠ‚É“Ç‚İ‚Ş
+	FILE* fp = nullptr;
+	fopen_s(&fp, srcFilename.c_str(), "rb");
+	if (!fp) return E_FAIL;
+
+	fseek(fp, 0, SEEK_END);
+	long size = ftell(fp);
+	fseek(fp, 0, SEEK_SET);
+	std::vector<unsigned char> data(size);
+	fread(data.data(), size, 1, fp);
+	fclose(fp);
+
+	// DirectXTex ‚Åƒƒ‚ƒŠ‚©‚çƒCƒ[ƒW‚ğ“Ç‚İ‚Ş
+	DirectX::ScratchImage image;
+	HRESULT hr = DirectX::LoadFromWICMemory(
+		data.data(), data.size(),
+		DirectX::WIC_FLAGS_NONE,
+		nullptr, image);
+
+	if (FAILED(hr)) return hr;
+
+	// DDSŒ`®‚Å•Û‘¶
+	std::wstring wDdsPath = ToWString(ddsFilename);
+	hr = DirectX::SaveToDDSFile(
+		image.GetImages(),
+		image.GetImageCount(),
+		image.GetMetadata(),
+		DirectX::DDS_FLAGS_NONE,
+		wDdsPath.c_str());
+
 	return hr;
 }
 
@@ -6149,7 +7126,7 @@ HRESULT GpuResourceUtils::CreateConstantBuffer(
  
  
 ===== Model.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\Model.cpp 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\Model.cpp 
 #include "Model.h"
 
 // “ü—ÍƒŒƒCƒAƒEƒg’è‹`
@@ -6164,7 +7141,7 @@ const std::vector<D3D11_INPUT_ELEMENT_DESC> Model::InputElementDescs =
 }; 
  
 ===== ModelSerializer.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\ModelSerializer.cpp 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\ModelSerializer.cpp 
 #include "ModelSerializer.h"
 #include "Model.h"
 #include "Utility/CerealHelper.h"
@@ -6204,17 +7181,23 @@ void serialize(T& archive, Model::Material& m)
 	int alphaMode = static_cast<int>(m.alphaMode);
 	archive(
 		m.name,
-		m.baseTextureFileName,
 		m.baseColor,
 		m.roughnessFactor,
 		m.metallicFactor,
 		alphaMode,
 		m.alphaCutoff,
-		m.baseMapData,             
-		m.normalMapData,           
+		// ŠO•”ƒtƒ@ƒCƒ‹QÆ—pƒpƒX
+		m.baseTextureFileName,
+		m.normalTextureFileName,
+		m.metallicRoughnessTextureFileName,
+		m.occlusionTextureFileName,
+		m.emissiveTextureFileName,
+		// –„‚ß‚İƒeƒNƒXƒ`ƒƒ—pƒoƒCƒiƒŠ
+		m.baseMapData,
+		m.normalMapData,
 		m.metallicRoughnessMapData,
-		m.occlusionMapData,        
-		m.emissiveMapData          
+		m.occlusionMapData,
+		m.emissiveMapData
 	);
 	m.alphaMode = static_cast<Model::Material::AlphaMode>(alphaMode);
 }
@@ -6318,7 +7301,7 @@ std::string ModelSerializer::ToCerealPath(const std::string& gltfPath)
 } 
  
 ===== ResourceManager.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\ResourceManager.cpp 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\ResourceManager.cpp 
 #include "ResourceManager.h"
 #include "GLTFImporter.h"
 #include "GLTFConverter.h" 
@@ -6379,7 +7362,7 @@ void ResourceManager::ReleaseAll()
  
  
 ===== CerealHelper.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Utility\CerealHelper.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Utility\CerealHelper.h 
 #pragma once
 #include <DirectXMath.h>
 
@@ -6413,7 +7396,7 @@ namespace DirectX
 } 
  
 ===== high_resolution_timer.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Utility\high_resolution_timer.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Utility\high_resolution_timer.h 
 #pragma once
 
 #include <windows.h>
@@ -6552,7 +7535,7 @@ private:
  
  
 ===== misc.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Utility\misc.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Utility\misc.h 
 #pragma once
 
 #include <windows.h>
@@ -6616,7 +7599,7 @@ public:
  
  
 ===== CerealHelper.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Utility\CerealHelper.cpp 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Utility\CerealHelper.cpp 
 #include "CerealHelper.h"
 #include <cereal/archives/binary.hpp>
 
@@ -6697,7 +7680,7 @@ namespace DirectX
 } 
  
 ===== main.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Utility\main.cpp 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Utility\main.cpp 
 #include <time.h>
 
 #include "Core/framework.h"

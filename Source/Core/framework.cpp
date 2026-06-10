@@ -1,6 +1,7 @@
 #include "framework.h"
 #include "tracy/Tracy.hpp"
 #include "Game/SceneGame.h"
+#include "Editor/ComponentRegistryInitializer.h"
 
 #include <iomanip>
 
@@ -34,8 +35,10 @@ framework::framework(HWND hwnd) : hwnd(hwnd)
 	sceneManager.ChangeScene(std::make_unique<SceneGame>());
 
 	// ProjectWindow 初期化
-	projectWindow.Initialize("Data");
+	projectWindow.Initialize("Data/Model");
 	projectWindow.LoadIcons(graphics.GetDevice());
+	ComponentRegistryInitializer::Initialize();
+
 
 #ifndef _DEBUG
 	// リリース時はボーダーレスフルスクリーンで起動

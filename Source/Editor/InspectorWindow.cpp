@@ -1,6 +1,7 @@
 #include "InspectorWindow.h"
 #include <imgui.h>
-//#include "ComponentRegistry.h"
+#include "imgui_internal.h"
+#include "ComponentRegistry.h"
 
 // 描画
 void InspectorWindow::Draw(entt::registry& registry, EditorContext& context)
@@ -23,15 +24,94 @@ void InspectorWindow::Draw(entt::registry& registry, EditorContext& context)
     // コンポーネント一覧
     DrawComponents(registry, context);
 
+    ImGui::Separator();
+
+    // コンポーネント追加ボタン
+    DrawAddComponent(registry, context);
+
     ImGui::End();
 }
 
 // 名前編集UI
 void InspectorWindow::DrawNameField(entt::registry& registry, EditorContext& context)
 {
+    entt::entity e = context.selectedEntity;
+    std::string name = context.GetName(e);
+
+    char buf[256] = {};
+    strncpy_s(buf, name.c_str(), sizeof(buf) - 1);
+
+    if (ImGui::InputText("Name", buf, sizeof(buf)))
+    {
+        context.SetName(e, buf);
+    }
 }
 
 // コンポーネント一覧UI
 void InspectorWindow::DrawComponents(entt::registry& registry, EditorContext& context)
 {
+    entt::entity e = context.selectedEntity;
+
+    for (const auto& name : ComponentRegistry::GetNames())
+    {
+        const ComponentInfo* info = ComponentRegistry::Get(name);
+        if (!info) continue;
+        // このEntityがコンポーネントを持っているか
+        if (!info->has(registry, e)) continue;
+
+
+        // 削除ボタン
+        ImGui::PushID(name.c_str());
+        if (ImGui::Button("x"))
+        {
+            info->remove(registry, e);
+            ImGui::PopID();
+            // 削除後はイテレーションを中断
+            break;
+        }
+        ImGui::SameLine();
+        ImGui::PopID();
+
+
+        // コンポーネントのImGuiを描画
+        info->drawImGui(registry, e);
+    }
+}
+
+// コンポーネント追加UI
+void InspectorWindow::DrawAddComponent(entt::registry& registry, EditorContext& context)
+{
+    entt::entity e = context.selectedEntity;
+
+    if (ImGui::Button("+ Add Component"))
+    {
+        ImGui::OpenPopup("AddComponentPopup");
+    }
+
+    if (ImGui::BeginPopup("AddComponentPopup"))
+    {
+        ImGui::Text("Select Component");
+        ImGui::Separator();
+
+        for (const auto& name : ComponentRegistry::GetNames())
+        {
+            const ComponentInfo* info = ComponentRegistry::Get(name);
+            if (!info) continue;
+
+            // すでに持っているコンポーネントはグレーアウト
+            if (info->has(registry, e))
+            {
+                ImGui::TextDisabled(name.c_str());
+            }
+            else
+            {
+                if (ImGui::Selectable(name.c_str()))
+                {
+                    info->add(registry, e);
+                    ImGui::CloseCurrentPopup();
+                }
+            }
+        }
+        ImGui::EndPopup();
+    }
 }

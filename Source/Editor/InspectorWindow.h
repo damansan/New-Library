@@ -14,4 +14,7 @@ private:
 
     // コンポーネント一覧UI
     void DrawComponents(entt::registry& registry, EditorContext& context);
+
+	// コンポーネント追加UI
+    void DrawAddComponent(entt::registry& registry, EditorContext& context);
 };

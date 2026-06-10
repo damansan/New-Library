@@ -197,6 +197,9 @@
     <Filter Include="Sources\Editor\InspectorWindow">
       <UniqueIdentifier>{8f919397-1970-48ac-bce8-3e0ae6d02a96}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\Editor\ComponentRegistry">
+      <UniqueIdentifier>{0284df2a-6828-42c8-96ed-1fa09f18d31a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Core\framework.cpp">
@@ -315,6 +318,12 @@
     </ClCompile>
     <ClCompile Include="Source\Editor\InspectorWindow.cpp">
       <Filter>Sources\Editor\InspectorWindow</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Editor\ComponentRegistry.cpp">
+      <Filter>Sources\Editor\ComponentRegistry</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Editor\ComponentRegistryInitializer.cpp">
+      <Filter>Sources\Editor\ComponentRegistry</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -473,6 +482,12 @@
     </ClInclude>
     <ClInclude Include="Source\Editor\InspectorWindow.h">
       <Filter>Sources\Editor\InspectorWindow</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Editor\ComponentRegistry.h">
+      <Filter>Sources\Editor\ComponentRegistry</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Editor\ComponentRegistryInitializer.h">
+      <Filter>Sources\Editor\ComponentRegistry</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
