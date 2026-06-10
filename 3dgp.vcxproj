@@ -39,6 +39,8 @@
     <ClCompile Include="Source\ECS\Systems\MeshLoaderSystem.cpp" />
     <ClCompile Include="Source\ECS\Systems\MovementSystem.cpp" />
     <ClCompile Include="Source\ECS\Systems\RenderSystem.cpp" />
+    <ClCompile Include="Source\Editor\HierarchyWindow.cpp" />
+    <ClCompile Include="Source\Editor\InspectorWindow.cpp" />
     <ClCompile Include="Source\Editor\ProjectWindow.cpp" />
     <ClCompile Include="Source\Game\DamagedHelmet.cpp" />
     <ClCompile Include="Source\Game\Enemy.cpp" />
@@ -86,6 +88,8 @@
     <ClInclude Include="Source\ECS\Systems\MovementSystem.h" />
     <ClInclude Include="Source\ECS\Systems\RenderSystem.h" />
     <ClInclude Include="Source\Editor\EditorContext.h" />
+    <ClInclude Include="Source\Editor\HierarchyWindow.h" />
+    <ClInclude Include="Source\Editor\InspectorWindow.h" />
     <ClInclude Include="Source\Editor\ProjectWindow.h" />
     <ClInclude Include="Source\Game\Character.h" />
     <ClInclude Include="Source\Game\Actor.h" />

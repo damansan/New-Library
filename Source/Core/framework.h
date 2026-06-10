@@ -17,6 +17,8 @@
 
 #include "Editor/EditorContext.h"
 #include "Editor/ProjectWindow.h"
+#include "Editor/HierarchyWindow.h"
+#include "Editor/InspectorWindow.h"
 
 // ウィンドウサイズ
 #define SCREEN_WIDTH 1280
@@ -68,7 +70,8 @@ private:
 	// Editor
 	EditorContext  editorContext;
 	ProjectWindow  projectWindow;
-
+	HierarchyWindow hierarchyWindow;
+	InspectorWindow inspectorWindow;
 
 private:
 	// VSync ON OFF

@@ -34,7 +34,8 @@ framework::framework(HWND hwnd) : hwnd(hwnd)
 	sceneManager.ChangeScene(std::make_unique<SceneGame>());
 
 	// ProjectWindow 初期化
-	projectWindow.Initialize("Data/Model");
+	projectWindow.Initialize("Data");
+	projectWindow.LoadIcons(graphics.GetDevice());
 
 #ifndef _DEBUG
 	// リリース時はボーダーレスフルスクリーンで起動
@@ -83,6 +84,8 @@ void framework::updateImGui()
 	if (auto* scene = sceneManager.GetCurrentScene())
 	{
 		projectWindow.Draw(scene->GetRegistry(), editorContext);
+		hierarchyWindow.Draw(scene->GetRegistry(), editorContext);
+		inspectorWindow.Draw(scene->GetRegistry(), editorContext);
 	}
 #endif
 }

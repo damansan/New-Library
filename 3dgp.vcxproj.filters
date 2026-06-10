@@ -191,6 +191,12 @@
     <Filter Include="Sources\Editor\EditorContext">
       <UniqueIdentifier>{1b3722c7-6ab5-4eb4-a603-1a6961a5ca5c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\Editor\HierarchyWindow">
+      <UniqueIdentifier>{cb8c5499-42b7-4649-9e40-52be04a873d2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Editor\InspectorWindow">
+      <UniqueIdentifier>{8f919397-1970-48ac-bce8-3e0ae6d02a96}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Core\framework.cpp">
@@ -303,6 +309,12 @@
     </ClCompile>
     <ClCompile Include="Source\Editor\ProjectWindow.cpp">
       <Filter>Sources\Editor\ProjectWindow</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Editor\HierarchyWindow.cpp">
+      <Filter>Sources\Editor\HierarchyWindow</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Editor\InspectorWindow.cpp">
+      <Filter>Sources\Editor\InspectorWindow</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -455,6 +467,12 @@
     </ClInclude>
     <ClInclude Include="Source\Editor\EditorContext.h">
       <Filter>Sources\Editor\EditorContext</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Editor\HierarchyWindow.h">
+      <Filter>Sources\Editor\HierarchyWindow</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Editor\InspectorWindow.h">
+      <Filter>Sources\Editor\InspectorWindow</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
