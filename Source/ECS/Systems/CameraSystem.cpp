@@ -1,5 +1,8 @@
 #include "CameraSystem.h"
 #include "ECS/Components/TransformComponent.h"
+#include "ECS/Components/InputComponent.h"
+
+#include <algorithm>
 
 // カメラ更新
 void CameraSystem::Update(entt::registry& registry, float elapsedTime)
@@ -26,6 +29,18 @@ void CameraSystem::Update(entt::registry& registry, float elapsedTime)
                     targetTransform->position.y + cam.height,
                     targetTransform->position.z - cam.distance
                 };
+            }
+
+            // 追従対象のInputComponentからカメラ操作入力を取得
+            auto* input = registry.try_get<InputComponent>(cam.target);
+            if (input)
+            {
+                const float rotSpeed = 2.0f;
+                cam.yaw += input->cameraX * rotSpeed * elapsedTime;
+                cam.pitch += input->cameraY * rotSpeed * elapsedTime;
+
+                // pitch の制限
+                cam.pitch = std::clamp(cam.pitch, -0.8f, 1.0f);
             }
 
             switch (cam.mode)

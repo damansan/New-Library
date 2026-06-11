@@ -77,9 +77,14 @@ void framework::update(float elapsedTime)
 	context.camera = &camera;
 	context.view = camera.GetView();
 	context.projection = camera.GetProjection();
+	context.cameraMode = editorContext.cameraMode;
 
 	// シーン更新
 	sceneManager.Update(elapsedTime, context);
+
+	// ゲームカメラの結果をcontextに反映
+	context.view = camera.GetView();
+	context.projection = camera.GetProjection();
 }
 
 void framework::updateImGui()
