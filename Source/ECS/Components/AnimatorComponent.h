@@ -13,6 +13,6 @@ struct AnimatorComponent
     // ブレンド用
     std::string blendAnimation;      // ブレンド先アニメーション名
     float       blendTime{ 0.0f };   // ブレンド時間
-    float       blendRate{ 0.0f };   // ブレンド率（0.0〜1.0）
+    float       blendRate{ 0.0f };   // ブレンド率（0.0～1.0）
     bool        isBlending{ false }; // ブレンド中フラグ
 };

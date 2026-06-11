@@ -75,7 +75,7 @@ void SceneGame::Update(float elapsedTime, const SceneContext& context)
 	ZoneScoped;
 	{
 		ZoneScopedN("InputSystem");
-		inputSystem.Update(registry);
+		inputSystem.Update(registry,elapsedTime);
 	}
 	{
 		ZoneScopedN("MovementSystem");

@@ -326,6 +326,7 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Core\SceneContext.h
 #include <DirectXMath.h>
 #include "Resource/ResourceManager.h"
 #include "Core/Camera.h"
+#include "Editor/EditorContext.h"
 
 // SceneŒn‚É“n‚·ƒRƒ“ƒeƒLƒXƒg
 // •K—v‚È‚à‚Ì‚ª‘‚¦‚½‚ç‚±‚±‚É’Ç‰Á‚·‚é
@@ -344,6 +345,8 @@ struct SceneContext
 
     UINT screenWidth = 0;
     UINT screenHeight = 0;
+
+    CameraMode cameraMode = CameraMode::Debug;
 }; 
  
 ===== SceneManager.h ===== 
@@ -550,6 +553,11 @@ void framework::update(float elapsedTime)
 	{
 		editorContext.cameraMode = CameraMode::Debug;
 	}
+	else
+	{
+		// ‚»‚êˆÈŠO‚ÍƒQ[ƒ€ƒJƒƒ‰
+		editorContext.cameraMode = CameraMode::Game;
+	}
 
 	// ƒJƒƒ‰ƒ‚[ƒh‚É‰‚¶‚ÄXV
 	if (editorContext.cameraMode == CameraMode::Debug)
@@ -565,9 +573,14 @@ void framework::update(float elapsedTime)
 	context.camera = &camera;
 	context.view = camera.GetView();
 	context.projection = camera.GetProjection();
+	context.cameraMode = editorContext.cameraMode;
 
 	// ƒV[ƒ“XV
 	sceneManager.Update(elapsedTime, context);
+
+	// ƒQ[ƒ€ƒJƒƒ‰‚ÌŒ‹‰Ê‚ğcontext‚É”½‰f
+	context.view = camera.GetView();
+	context.projection = camera.GetProjection();
 }
 
 void framework::updateImGui()
@@ -1637,7 +1650,7 @@ struct AnimatorComponent
     // ãƒ–ãƒ¬ãƒ³ãƒ‰ç”¨
     std::string blendAnimation;      // ãƒ–ãƒ¬ãƒ³ãƒ‰å…ˆã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³å
     float       blendTime{ 0.0f };   // ãƒ–ãƒ¬ãƒ³ãƒ‰æ™‚é–“
-    float       blendRate{ 0.0f };   // ãƒ–ãƒ¬ãƒ³ãƒ‰ç‡ï¼ˆ0.0ã€œ1.0ï¼‰
+    float       blendRate{ 0.0f };   // ãƒ–ãƒ¬ãƒ³ãƒ‰ç‡ï¼ˆ0.0ï½1.0ï¼‰
     bool        isBlending{ false }; // ãƒ–ãƒ¬ãƒ³ãƒ‰ä¸­ãƒ•ãƒ©ã‚°
 }; 
  
@@ -1680,13 +1693,17 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\InputComponent.
 #pragma once
 struct InputComponent
 {
-    // ˆÚ“®•ûŒüi³‹K‰»‘O‚Ì“ü—Í’lj
-    float moveX{ 0.0f };  // A/D ƒL[  (-1 ` +1)
-    float moveZ{ 0.0f };  // W/S ƒL[  (-1 ` +1)
+    // ˆÚ“®
+    float moveX = 0.0f;
+    float moveZ = 0.0f;
+    // ƒJƒƒ‰‘€ì
+    float cameraX = 0.0f;
+    float cameraY = 0.0f;
 
-    // ƒAƒNƒVƒ‡ƒ““ü—Í(‚Ó‚¦‚Ä‚­)
-    bool jump{ false };   // SPASE
-    bool attack{ false }; // LMB?
+    // ƒAƒNƒVƒ‡ƒ“
+    bool jump = false;
+    bool attack = false;
+    bool dodge = false;
 }; 
  
 ===== MaterialComponent.h ===== 
@@ -1909,12 +1926,43 @@ private:
 ===== InputSystem.h ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\InputSystem.h 
 #pragma once
+#pragma comment(lib, "Xinput.lib")
+#include <windows.h>
+#include <Xinput.h>
+#include <DualSenseWindows/IO.h>
 #include "entt.hpp"
+
+#include "ECS/Components/InputComponent.h"
 
 class InputSystem
 {
 public:
-	void Update(entt::registry& registry);
+	InputSystem();
+	~InputSystem();
+
+	void Update(entt::registry& registry,float elapsedTime);
+
+private:
+	// ƒfƒbƒhƒ][ƒ“ˆ—
+	float ApplyDeadzone(float value, float deadzone = 0.2f);
+	
+	// Xbox “ü—Í
+	void UpdateXbox(InputComponent& input);
+
+	// PS5 “ü—Í
+	void UpdatePS5(InputComponent& input);
+
+	// Xbox
+	bool xboxConnected = false;
+	XINPUT_STATE xState = {};
+
+	// PS5
+	DS5W::DeviceContext ds5Context;
+	bool ds5Connected = false;
+	DS5W::DS5InputState ds5State = {};
+	// PS5 ÄŒŸõƒ^ƒCƒ}[
+	float ds5ReconnectTimer = 0.0f;
+	const float ds5ReconnectInterval = 3.0f; // 3•b‚É1‰ñ
 }; 
  
 ===== MeshLoaderSystem.h ===== 
@@ -2446,6 +2494,9 @@ void AnimationSystem::CalcBoneTransforms(
 Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\CameraSystem.cpp 
 #include "CameraSystem.h"
 #include "ECS/Components/TransformComponent.h"
+#include "ECS/Components/InputComponent.h"
+
+#include <algorithm>
 
 // ƒJƒƒ‰XV
 void CameraSystem::Update(entt::registry& registry, float elapsedTime)
@@ -2472,6 +2523,18 @@ void CameraSystem::Update(entt::registry& registry, float elapsedTime)
                     targetTransform->position.y + cam.height,
                     targetTransform->position.z - cam.distance
                 };
+            }
+
+            // ’Ç]‘ÎÛ‚ÌInputComponent‚©‚çƒJƒƒ‰‘€ì“ü—Í‚ğæ“¾
+            auto* input = registry.try_get<InputComponent>(cam.target);
+            if (input)
+            {
+                const float rotSpeed = 2.0f;
+                cam.yaw += input->cameraX * rotSpeed * elapsedTime;
+                cam.pitch += input->cameraY * rotSpeed * elapsedTime;
+
+                // pitch ‚Ì§ŒÀ
+                cam.pitch = std::clamp(cam.pitch, -0.8f, 1.0f);
             }
 
             switch (cam.mode)
@@ -2571,30 +2634,153 @@ void CameraSystem::UpdateFixed(CameraComponent& cam, const TransformComponent& t
  
 ===== InputSystem.cpp ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\InputSystem.cpp 
-#include "InputSystem.h"
-#include "entt.hpp"
-#include "ECS/Components/InputComponent.h"
-#include <windows.h> 
+ï»¿#include "InputSystem.h"
+#include <cmath>
+#include <algorithm>
 
-void InputSystem::Update(entt::registry& registry)
+InputSystem::InputSystem()
 {
+    // PS5 ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ©ãƒ¼ã®åˆæœŸæ¤œç´¢
+    DS5W::DeviceEnumInfo enumInfo[4];
+    unsigned int deviceCount = 0;
+
+    if (DS5W_SUCCESS(DS5W::enumDevices(enumInfo, 4, &deviceCount, true)))
+    {
+        if (deviceCount > 0)
+        {
+            if (DS5W_SUCCESS(DS5W::initDeviceContext(&enumInfo[0], &ds5Context)))
+            {
+                ds5Connected = true;
+            }
+        }
+    }
+}
+InputSystem::~InputSystem()
+{
+    if (ds5Connected)
+    {
+        DS5W::freeDeviceContext(&ds5Context);
+        ds5Connected = false;
+    }
+}
+
+void InputSystem::Update(entt::registry& registry, float elapsedTime)
+{
+    // Xbox ã®æ¥ç¶šç¢ºèªï¼ˆæ¯ãƒ•ãƒ¬ãƒ¼ãƒ ï¼‰
+    xboxConnected = XInputGetState(0, &xState) == ERROR_SUCCESS;
+
+    // PS5 ã®å…¥åŠ›å–å¾—ï¼ˆæ¯ãƒ•ãƒ¬ãƒ¼ãƒ ï¼‰
+    if (ds5Connected)
+    {
+        DS5W_ReturnValue rv = DS5W::getDeviceInputState(&ds5Context, &ds5State);
+        if (DS5W_FAILED(rv))
+        {
+            // åˆ‡æ–­ã•ã‚ŒãŸã‚‰å†æ¥ç¶šã‚’è©¦ã¿ã‚‹
+            ds5Connected = false;
+            DS5W::freeDeviceContext(&ds5Context);
+        }
+    }
+    else
+    {
+        // ã‚¿ã‚¤ãƒãƒ¼ã§å†æ¤œç´¢é »åº¦ã‚’åˆ¶é™
+        ds5ReconnectTimer += elapsedTime;
+        if (ds5ReconnectTimer >= ds5ReconnectInterval)
+        {
+            ds5ReconnectTimer = 0.0f;
+
+            DS5W::DeviceEnumInfo enumInfo[4];
+            unsigned int deviceCount = 0;
+
+            if (DS5W_SUCCESS(DS5W::enumDevices(enumInfo, 4, &deviceCount, true)))
+            {
+                if (deviceCount > 0)
+                {
+                    if (DS5W_SUCCESS(DS5W::initDeviceContext(&enumInfo[0], &ds5Context)))
+                    {
+                        ds5Connected = true;
+                    }
+                }
+            }
+        }
+    }
+
+    // å„ Entity ã® InputComponent ã‚’æ›´æ–°
     auto view = registry.view<InputComponent>();
     view.each([&](auto entity, InputComponent& input)
         {
-            // --- ˆÚ“®“ü—Í‚ÌƒŠƒZƒbƒg ---
+            // ãƒªã‚»ãƒƒãƒˆ
             input.moveX = 0.0f;
             input.moveZ = 0.0f;
+            input.cameraX = 0.0f;
+            input.cameraY = 0.0f;
+            input.jump = false;
+            input.attack = false;
+            input.dodge = false;
 
-            // --- ƒL[ƒ{[ƒh“ü—Í ---
-            if (GetKeyState('W') & 0x8000) input.moveZ += 1.0f;
-            if (GetKeyState('S') & 0x8000) input.moveZ -= 1.0f;
-            if (GetKeyState('A') & 0x8000) input.moveX -= 1.0f;
-            if (GetKeyState('D') & 0x8000) input.moveX += 1.0f;
+            UpdateXbox(input);
+            UpdatePS5(input);
 
-            // --- ƒAƒNƒVƒ‡ƒ““ü—Í ---
-            input.jump = (GetKeyState(VK_SPACE) & 0x8000) != 0;
-            input.attack = (GetKeyState(VK_LBUTTON) & 0x8000) != 0;
+            // ç§»å‹•å…¥åŠ›ã‚’ -1.0ã€œ1.0 ã«ã‚¯ãƒ©ãƒ³ãƒ—
+            input.moveX = std::clamp(input.moveX, -1.0f, 1.0f);
+            input.moveZ = std::clamp(input.moveZ, -1.0f, 1.0f);
         });
+}
+
+// ãƒ‡ãƒƒãƒ‰ã‚¾ãƒ¼ãƒ³å‡¦ç†
+float InputSystem::ApplyDeadzone(float value, float deadzone)
+{
+    if (fabsf(value) < deadzone) return 0.0f;
+    // ãƒ‡ãƒƒãƒ‰ã‚¾ãƒ¼ãƒ³å¤–ã®å€¤ã‚’ 0.0ï½1.0 ã«æ­£è¦åŒ–
+    float sign = value > 0.0f ? 1.0f : -1.0f;
+    return sign * (fabsf(value) - deadzone) / (1.0f - deadzone);
+}
+
+// Xbox å…¥åŠ›
+void InputSystem::UpdateXbox(InputComponent& input)
+{
+    if (!xboxConnected) return;
+
+    const auto& gp = xState.Gamepad;
+
+    // å·¦ã‚¹ãƒ†ã‚£ãƒƒã‚¯ï¼ˆç§»å‹•ï¼‰
+    float lx = ApplyDeadzone(gp.sThumbLX / 32767.0f);
+    float ly = ApplyDeadzone(gp.sThumbLY / 32767.0f);
+    input.moveX += lx;
+    input.moveZ += ly;
+
+    // å³ã‚¹ãƒ†ã‚£ãƒƒã‚¯ï¼ˆã‚«ãƒ¡ãƒ©ï¼‰
+    float rx = ApplyDeadzone(gp.sThumbRX / 32767.0f);
+    float ry = ApplyDeadzone(gp.sThumbRY / 32767.0f);
+    input.cameraX += rx;
+    input.cameraY += -ry;
+
+    // ãƒœã‚¿ãƒ³
+    input.jump |= (gp.wButtons & XINPUT_GAMEPAD_A) != 0;
+    input.attack |= (gp.wButtons & XINPUT_GAMEPAD_X) != 0;
+    input.dodge |= (gp.wButtons & XINPUT_GAMEPAD_B) != 0;
+}
+
+// PS5 å…¥åŠ›
+void InputSystem::UpdatePS5(InputComponent& input)
+{
+    if (!ds5Connected) return;
+
+    // å·¦ã‚¹ãƒ†ã‚£ãƒƒã‚¯ï¼ˆç§»å‹•ï¼‰-128ã€œ127 ã‚’ -1.0ã€œ1.0 ã«å¤‰æ›
+    float lx = ApplyDeadzone(ds5State.leftStick.x / 127.0f);
+    float ly = ApplyDeadzone(ds5State.leftStick.y / 127.0f);
+    input.moveX += lx;
+    input.moveZ += -ly; // Y è»¸åè»¢
+
+    // å³ã‚¹ãƒ†ã‚£ãƒƒã‚¯ï¼ˆã‚«ãƒ¡ãƒ©ï¼‰
+    float rx = ApplyDeadzone(ds5State.rightStick.x / 127.0f);
+    float ry = ApplyDeadzone(ds5State.rightStick.y / 127.0f);
+    input.cameraX += rx;
+    input.cameraY += ry;
+
+    // ãƒœã‚¿ãƒ³ï¼ˆÃ— = ã‚¸ãƒ£ãƒ³ãƒ—ã€â–¡ = æ”»æ’ƒã€â—‹ = å›é¿ï¼‰
+    input.jump |= (ds5State.buttonsAndDpad & DS5W_ISTATE_BTX_CROSS) != 0;
+    input.attack |= (ds5State.buttonsAndDpad & DS5W_ISTATE_BTX_SQUARE) != 0;
+    input.dodge |= (ds5State.buttonsAndDpad & DS5W_ISTATE_BTX_CIRCLE) != 0;
 }
  
  
@@ -4497,7 +4683,8 @@ private:
 	SkyBox skyBox;
 	LightManager lightManager;
 
-	//CameraSystem cameraSystem;
+	// ƒJƒƒ‰
+	CameraSystem cameraSystem;
 
 	// ƒXƒe[ƒW
 	std::unique_ptr<Stage> stage;
@@ -4707,7 +4894,7 @@ void SceneGame::Update(float elapsedTime, const SceneContext& context)
 	ZoneScoped;
 	{
 		ZoneScopedN("InputSystem");
-		inputSystem.Update(registry);
+		inputSystem.Update(registry,elapsedTime);
 	}
 	{
 		ZoneScopedN("MovementSystem");
@@ -4728,6 +4915,12 @@ void SceneGame::Update(float elapsedTime, const SceneContext& context)
 	}
 
 
+	// ã‚²ãƒ¼ãƒ ã‚«ãƒ¡ãƒ©ãƒ¢ãƒ¼ãƒ‰ã®ã¨ãã ã‘ CameraSystem ã‚’æ›´æ–°
+	if (context.cameraMode == CameraMode::Game)
+	{
+		cameraSystem.Update(registry, elapsedTime);
+		cameraSystem.ApplyToCamera(registry, *context.camera);
+	}
 
 	{
 		ZoneScopedN("Stage::Update");
