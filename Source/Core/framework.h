@@ -20,6 +20,8 @@
 #include "Editor/HierarchyWindow.h"
 #include "Editor/InspectorWindow.h"
 
+#include "ECS/Systems/CameraSystem.h"
+
 // ウィンドウサイズ
 #define SCREEN_WIDTH 1280
 #define SCREEN_HEIGHT 720
@@ -66,6 +68,8 @@ private:
 	Camera camera;
 	// FreeCameraControllerクラス
 	FreeCameraController  freeCameraController;
+	// CameraSystem
+	CameraSystem cameraSystem;
 
 	// Editor
 	EditorContext  editorContext;

@@ -3,10 +3,20 @@
 #include <unordered_map>
 #include "entt.hpp"
 
+// カメラモード
+enum class CameraMode
+{
+    Debug,  // デバッグカメラ（マウス・キーボード）
+    Game,   // ゲームカメラ  （コントローラー）
+};
+
 struct EditorContext
 {
     entt::entity selectedEntity = entt::null;
     std::unordered_map<entt::entity, std::string> entityNames;
+
+    // カメラモード
+    CameraMode cameraMode = CameraMode::Debug;
 
     std::string GetName(entt::entity e) const
     {

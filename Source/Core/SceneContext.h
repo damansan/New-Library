@@ -3,6 +3,7 @@
 #include <DirectXMath.h>
 #include "Resource/ResourceManager.h"
 #include "Core/Camera.h"
+#include "Editor/EditorContext.h"
 
 // Scene系に渡すコンテキスト
 // 必要なものが増えたらここに追加する
@@ -21,4 +22,6 @@ struct SceneContext
 
     UINT screenWidth = 0;
     UINT screenHeight = 0;
+
+    CameraMode cameraMode = CameraMode::Debug;
 };

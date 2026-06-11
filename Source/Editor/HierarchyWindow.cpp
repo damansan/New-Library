@@ -52,6 +52,20 @@ void HierarchyWindow::Draw(entt::registry& registry, EditorContext& context)
         {
             context.Select(e);
         }
+
+        // Entity をドラッグできるようにする
+        if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
+        {
+            // Entity ID をペイロードとして渡す
+            ImGui::SetDragDropPayload(
+                "ENTITY",
+                &e,
+                sizeof(entt::entity)
+            );
+            // ドラッグ中のプレビュー
+            ImGui::Text(name.c_str());
+            ImGui::EndDragDropSource();
+        }
     }
 
     // セパレータ以下ウィンドウ末尾までをドロップターゲットに

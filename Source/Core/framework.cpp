@@ -52,8 +52,22 @@ void framework::update(float elapsedTime)
 {
 	ZoneScoped;
 
-	// フリーカメラ更新
-	freeCameraController.Update(elapsedTime, camera);
+	// 右クリック中はデバッグカメラ
+	if (GetAsyncKeyState(VK_RBUTTON) & 0x8000)
+	{
+		editorContext.cameraMode = CameraMode::Debug;
+	}
+	else
+	{
+		// それ以外はゲームカメラ
+		editorContext.cameraMode = CameraMode::Game;
+	}
+
+	// カメラモードに応じて更新
+	if (editorContext.cameraMode == CameraMode::Debug)
+	{
+		freeCameraController.Update(elapsedTime, camera);
+	}
 
 	// コンテキスト生成
 	SceneContext context;

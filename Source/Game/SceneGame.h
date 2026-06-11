@@ -4,6 +4,7 @@
 #include "ECS/Systems/AnimationSystem.h"
 #include "ECS/Systems/InputSystem.h"    
 #include "ECS/Systems/MovementSystem.h" 
+#include "ECS/Systems/CameraSystem.h"
 
 #include "DebugRenderer/DebugRenderer.h"
 
@@ -38,7 +39,8 @@ private:
 	SkyBox skyBox;
 	LightManager lightManager;
 
-
+	// カメラ
+	CameraSystem cameraSystem;
 
 	// ステージ
 	std::unique_ptr<Stage> stage;

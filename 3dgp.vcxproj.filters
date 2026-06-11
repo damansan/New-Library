@@ -200,6 +200,9 @@
     <Filter Include="Sources\Editor\ComponentRegistry">
       <UniqueIdentifier>{0284df2a-6828-42c8-96ed-1fa09f18d31a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\ECS\Systems\CameraSystem">
+      <UniqueIdentifier>{6e60bc16-b148-4742-9df3-be9312b90e4f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Core\framework.cpp">
@@ -325,6 +328,9 @@
     <ClCompile Include="Source\Editor\ComponentRegistryInitializer.cpp">
       <Filter>Sources\Editor\ComponentRegistry</Filter>
     </ClCompile>
+    <ClCompile Include="Source\ECS\Systems\CameraSystem.cpp">
+      <Filter>Sources\ECS\Systems\CameraSystem</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Core\framework.h">
@@ -351,20 +357,11 @@
     <ClInclude Include="Source\Game\SceneGame.h">
       <Filter>Sources\Game\SceneGame</Filter>
     </ClInclude>
-    <ClInclude Include="Source\ECS\Components\TransformComponent.h">
-      <Filter>Sources\ECS\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\ECS\Components\MeshComponent.h">
-      <Filter>Sources\ECS\Components</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Core\ShaderPass.h">
       <Filter>Sources\Core\ShaderPass</Filter>
     </ClInclude>
     <ClInclude Include="Source\Core\ShaderPassLibrary.h">
       <Filter>Sources\Core\ShaderPassLibrary</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\ECS\Components\MaterialComponent.h">
-      <Filter>Sources\ECS\Components</Filter>
     </ClInclude>
     <ClInclude Include="Source\Resource\GpuResourceUtils.h">
       <Filter>Sources\Resource\GpuResourceUtils</Filter>
@@ -377,18 +374,6 @@
     </ClInclude>
     <ClInclude Include="Source\Resource\ResourceManager.h">
       <Filter>Sources\Resource\ResourceManager</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\ECS\Components\StaticMeshComponent.h">
-      <Filter>Sources\ECS\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\ECS\Components\SkinnedMeshComponent.h">
-      <Filter>Sources\ECS\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\ECS\Components\AnimatorComponent.h">
-      <Filter>Sources\ECS\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\ECS\Components\Tags.h">
-      <Filter>Sources\ECS\Components</Filter>
     </ClInclude>
     <ClInclude Include="Source\Core\SceneContext.h">
       <Filter>Sources\Core\SceneContext</Filter>
@@ -444,14 +429,8 @@
     <ClInclude Include="Source\Rendering\LightManager.h">
       <Filter>Sources\Rendering\LightManager</Filter>
     </ClInclude>
-    <ClInclude Include="Source\ECS\Components\InputComponent.h">
-      <Filter>Sources\ECS\Components</Filter>
-    </ClInclude>
     <ClInclude Include="Source\DebugRenderer\DebugRenderer.h">
       <Filter>Sources\DebugRenderer</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\ECS\Components\MovementComponent.h">
-      <Filter>Sources\ECS\Components</Filter>
     </ClInclude>
     <ClInclude Include="Source\ECS\Systems\InputSystem.h">
       <Filter>Sources\ECS\Systems\InputSystem</Filter>
@@ -488,6 +467,39 @@
     </ClInclude>
     <ClInclude Include="Source\Editor\ComponentRegistryInitializer.h">
       <Filter>Sources\Editor\ComponentRegistry</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ECS\Components\AnimatorComponent.h">
+      <Filter>Sources\ECS\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ECS\Components\InputComponent.h">
+      <Filter>Sources\ECS\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ECS\Components\MaterialComponent.h">
+      <Filter>Sources\ECS\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ECS\Components\MeshComponent.h">
+      <Filter>Sources\ECS\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ECS\Components\MovementComponent.h">
+      <Filter>Sources\ECS\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ECS\Components\SkinnedMeshComponent.h">
+      <Filter>Sources\ECS\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ECS\Components\StaticMeshComponent.h">
+      <Filter>Sources\ECS\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ECS\Components\Tags.h">
+      <Filter>Sources\ECS\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ECS\Components\TransformComponent.h">
+      <Filter>Sources\ECS\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ECS\Components\CameraComponent.h">
+      <Filter>Sources\ECS\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ECS\Systems\CameraSystem.h">
+      <Filter>Sources\ECS\Systems\CameraSystem</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

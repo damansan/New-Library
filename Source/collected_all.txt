@@ -1,5 +1,5 @@
 ===== Camera.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\Camera.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Core\Camera.h 
 #pragma once
 #include <DirectXMath.h>
 
@@ -48,7 +48,7 @@ private:
 }; 
  
 ===== framework.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\framework.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Core\framework.h 
 #pragma once
 
 #include <windows.h>
@@ -70,6 +70,8 @@ Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\framework.h
 #include "Editor/ProjectWindow.h"
 #include "Editor/HierarchyWindow.h"
 #include "Editor/InspectorWindow.h"
+
+#include "ECS/Systems/CameraSystem.h"
 
 // ÉEÉBÉìÉhÉEÉTÉCÉY
 #define SCREEN_WIDTH 1280
@@ -117,6 +119,8 @@ private:
 	Camera camera;
 	// FreeCameraControllerÉNÉâÉX
 	FreeCameraController  freeCameraController;
+	// CameraSystem
+	CameraSystem cameraSystem;
 
 	// Editor
 	EditorContext  editorContext;
@@ -134,7 +138,7 @@ private:
 }; 
  
 ===== FreeCameraController.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\FreeCameraController.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Core\FreeCameraController.h 
 #pragma once
 #include <windows.h>
 #include <DirectXMath.h>
@@ -159,7 +163,7 @@ private:
 }; 
  
 ===== Graphics.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\Graphics.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Core\Graphics.h 
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
@@ -240,7 +244,7 @@ private:
 }; 
  
 ===== ImGuiManager.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\ImGuiManager.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Core\ImGuiManager.h 
 #pragma once
 #include <windows.h>
 #include <d3d11.h>
@@ -279,7 +283,7 @@ public:
 }; 
  
 ===== Scene.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\Scene.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Core\Scene.h 
 #pragma once
 #include "entt.hpp"
 #include "Core/SceneContext.h"
@@ -316,7 +320,7 @@ protected:
 }; 
  
 ===== SceneContext.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\SceneContext.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Core\SceneContext.h 
 #pragma once
 #include <d3d11.h>
 #include <DirectXMath.h>
@@ -343,7 +347,7 @@ struct SceneContext
 }; 
  
 ===== SceneManager.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\SceneManager.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Core\SceneManager.h 
 #pragma once
 #include "Scene.h"
 #include <memory>
@@ -383,7 +387,7 @@ private:
 }; 
  
 ===== ShaderPass.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\ShaderPass.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Core\ShaderPass.h 
 #pragma once
 #include <string>
 
@@ -398,7 +402,7 @@ struct ShaderPass
 }; 
  
 ===== ShaderPassLibrary.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\ShaderPassLibrary.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Core\ShaderPassLibrary.h 
 #pragma once
 #include <string>
 #include <unordered_map>
@@ -427,7 +431,7 @@ private:
 }; 
  
 ===== Camera.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\Camera.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Core\Camera.cpp 
 #include "Camera.h"
 
 // èâä˙âª
@@ -486,7 +490,7 @@ void Camera::SetPerspectiveFov(
 } 
  
 ===== framework.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\framework.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Core\framework.cpp 
 #include "framework.h"
 #include "tracy/Tracy.hpp"
 #include "Game/SceneGame.h"
@@ -507,7 +511,6 @@ framework::framework(HWND hwnd) : hwnd(hwnd)
 
 
 	// ÉVÉFÅ[É_Å[ÉpÉXìoò^
-	ShaderPassLibrary::Register("None", { "None", "", "" });
 	ShaderPassLibrary::Register("basic", {
 		"", "Data/Shader/Base_VS.cso", "Data/Shader/Basic_PS.cso"
 		});
@@ -542,8 +545,17 @@ void framework::update(float elapsedTime)
 {
 	ZoneScoped;
 
-	// ÉtÉäÅ[ÉJÉÅÉâçXêV
-	freeCameraController.Update(elapsedTime, camera);
+	// âEÉNÉäÉbÉNíÜÇÕÉfÉoÉbÉOÉJÉÅÉâ
+	if (GetAsyncKeyState(VK_RBUTTON) & 0x8000)
+	{
+		editorContext.cameraMode = CameraMode::Debug;
+	}
+
+	// ÉJÉÅÉâÉÇÅ[ÉhÇ…âûÇ∂ÇƒçXêV
+	if (editorContext.cameraMode == CameraMode::Debug)
+	{
+		freeCameraController.Update(elapsedTime, camera);
+	}
 
 	// ÉRÉìÉeÉLÉXÉgê∂ê¨
 	SceneContext context;
@@ -731,7 +743,7 @@ LRESULT framework::handle_message(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpa
 } 
  
 ===== FreeCameraController.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\FreeCameraController.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Core\FreeCameraController.cpp 
 #include "FreeCameraController.h"
 #include "imgui.h"
 #include <Windows.h>
@@ -838,7 +850,7 @@ void FreeCameraController::Update(float elapsedTime, Camera& camera)
 } 
  
 ===== Graphics.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\Graphics.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Core\Graphics.cpp 
 #include "Graphics.h"
 #include "Utility/misc.h"
 
@@ -1165,7 +1177,7 @@ void Graphics::Cleanup()
 } 
  
 ===== ImGuiManager.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\ImGuiManager.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Core\ImGuiManager.cpp 
 #include "ImGuiManager.h"
 
 ImGuiManager::~ImGuiManager()
@@ -1266,7 +1278,7 @@ bool ImGuiManager::HandleMessage(HWND hWnd, UINT msg, WPARAM wparam, LPARAM lpar
  
  
 ===== SceneManager.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\SceneManager.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Core\SceneManager.cpp 
 #include "SceneManager.h"
 
 // çXêV
@@ -1333,7 +1345,7 @@ void SceneManager::ClearScene()
  
  
 ===== ShaderPassLibrary.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\ShaderPassLibrary.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Core\ShaderPassLibrary.cpp 
 #include "ShaderPassLibrary.h"
 #include <stdexcept>
 #include <vector>
@@ -1371,7 +1383,7 @@ const std::vector<std::string>& ShaderPassLibrary::GetNames()
 } 
  
 ===== DebugRenderer.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\DebugRenderer\DebugRenderer.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\DebugRenderer\DebugRenderer.h 
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
@@ -1443,7 +1455,7 @@ private:
 }; 
  
 ===== DebugRenderer.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\DebugRenderer\DebugRenderer.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\DebugRenderer\DebugRenderer.cpp 
 #include "DebugRenderer.h"
 #include "Resource/GpuResourceUtils.h"
 #include "Utility/misc.h"
@@ -1609,7 +1621,7 @@ void DebugRenderer::Clear()
 } 
  
 ===== AnimatorComponent.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\AnimatorComponent.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\AnimatorComponent.h 
 Ôªø#pragma once
 #include <string>
 
@@ -1629,8 +1641,42 @@ struct AnimatorComponent
     bool        isBlending{ false }; // „Éñ„É¨„É≥„Éâ‰∏≠„Éï„É©„Ç∞
 }; 
  
+===== CameraComponent.h ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\CameraComponent.h 
+#pragma once
+#include "entt.hpp"
+#include <DirectXMath.h>
+
+struct CameraComponent
+{
+    // ÉJÉÅÉâÇÃéÌóﬁ
+    enum class Mode
+    {
+        Follow, // í«è]ÉJÉÅÉâ
+        LookAt, // íçéãÉJÉÅÉâÅiÉçÉbÉNÉIÉìÅj
+        Fixed,  // å≈íËÉJÉÅÉâ
+    };
+    Mode mode = Mode::Follow;
+
+    // í«è]ëŒè€ÇÃ Entity
+    entt::entity target = entt::null;
+
+    // í«è]ÉpÉâÉÅÅ[É^
+    float distance = 5.0f; // ëŒè€Ç©ÇÁÇÃãóó£
+    float height = 2.0f;   // ëŒè€Ç©ÇÁÇÃçÇÇ≥
+    float yaw = 0.0f;      // êÖïΩäp
+    float pitch = 0.3f;    // êÇíºäpÅiè≠Çµå©â∫ÇÎÇ∑Åj
+
+    // í«è]ÇÃääÇÁÇ©Ç≥Åi0Ç…ãﬂÇ¢ÇŸÇ«íxÇÍÇƒí«è]Åj
+    float followSpeed = 10.0f;
+
+    // åªç›ÇÃÉJÉÅÉâà íuÅiï‚ä‘ópÅj
+    DirectX::XMFLOAT3 currentEye = { 0, 0, 0 };
+    DirectX::XMFLOAT3 currentTarget = { 0, 0, 0 };
+}; 
+ 
 ===== InputComponent.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\InputComponent.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\InputComponent.h 
 #pragma once
 struct InputComponent
 {
@@ -1644,7 +1690,7 @@ struct InputComponent
 }; 
  
 ===== MaterialComponent.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\MaterialComponent.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\MaterialComponent.h 
 #pragma once
 #include <vector>
 #include <string>
@@ -1694,7 +1740,7 @@ struct MaterialComponent
 }; 
  
 ===== MeshComponent.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\MeshComponent.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\MeshComponent.h 
 #pragma once
 #include <string>
 
@@ -1708,7 +1754,7 @@ struct MeshComponent
 }; 
  
 ===== MovementComponent.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\MovementComponent.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\MovementComponent.h 
 #pragma once
 #include <DirectXMath.h>
 
@@ -1729,7 +1775,7 @@ struct MovementComponent
 }; 
  
 ===== SkinnedMeshComponent.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\SkinnedMeshComponent.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\SkinnedMeshComponent.h 
 #pragma once
 #include <memory>
 #include <vector>
@@ -1747,7 +1793,7 @@ struct SkinnedMeshComponent
 }; 
  
 ===== StaticMeshComponent.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\StaticMeshComponent.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\StaticMeshComponent.h 
 #pragma once
 #include <memory>
 #include "Resource/Model.h"
@@ -1760,7 +1806,7 @@ struct StaticMeshComponent
 }; 
  
 ===== Tags.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\Tags.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\Tags.h 
 #pragma once
 
 // ÉçÅ[ÉhçœÇ›ÉtÉâÉO
@@ -1773,7 +1819,7 @@ struct InvisibleTag {};
 struct NoShadowTag {}; 
  
 ===== TransformComponent.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\TransformComponent.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\TransformComponent.h 
 #pragma once
 #include <DirectXMath.h>
 
@@ -1795,7 +1841,7 @@ struct TransformComponent
 }; 
  
 ===== AnimationSystem.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\AnimationSystem.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\AnimationSystem.h 
 #pragma once
 #include <d3d11.h>
 #include "entt.hpp"
@@ -1834,8 +1880,34 @@ private:
 		std::vector<std::vector<DirectX::XMFLOAT4X4>>& boneTransforms);
 }; 
  
+===== CameraSystem.h ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\CameraSystem.h 
+#pragma once
+#include "entt.hpp"
+#include "Core/Camera.h"
+#include "ECS/Components/CameraComponent.h"
+#include "ECS/Components/TransformComponent.h"
+
+class CameraSystem
+{
+public:
+    // ÉJÉÅÉâçXêV
+    void Update(entt::registry& registry, float elapsedTime);
+
+    // CameraÉNÉâÉXÇ…åãâ ÇîΩâf
+    void ApplyToCamera(entt::registry& registry, Camera& camera);
+
+private:
+    // í«è]ÉJÉÅÉâ
+    void UpdateFollow(CameraComponent& cam, const TransformComponent& target, float elapsedTime);
+    // íçéãÉJÉÅÉâ
+    void UpdateLookAt(CameraComponent& cam, const TransformComponent& target, float elapsedTime);
+    // å≈íËÉJÉÅÉâ
+    void UpdateFixed(CameraComponent& cam, const TransformComponent& target, float elapsedTime);
+}; 
+ 
 ===== InputSystem.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\InputSystem.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\InputSystem.h 
 #pragma once
 #include "entt.hpp"
 
@@ -1846,7 +1918,7 @@ public:
 }; 
  
 ===== MeshLoaderSystem.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\MeshLoaderSystem.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\MeshLoaderSystem.h 
 #pragma once
 #include <d3d11.h>
 
@@ -1872,7 +1944,7 @@ public:
 }; 
  
 ===== MovementSystem.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\MovementSystem.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\MovementSystem.h 
 #pragma once
 #include "entt.hpp"
 #include "Core/SceneContext.h"
@@ -1884,7 +1956,7 @@ public:
 }; 
  
 ===== RenderSystem.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\RenderSystem.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\RenderSystem.h 
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
@@ -2093,7 +2165,7 @@ private:
 }; 
  
 ===== AnimationSystem.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\AnimationSystem.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\AnimationSystem.cpp 
 #include "AnimationSystem.h"
 #include "tracy/Tracy.hpp"
 
@@ -2370,8 +2442,135 @@ void AnimationSystem::CalcBoneTransforms(
 }
  
  
+===== CameraSystem.cpp ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\CameraSystem.cpp 
+#include "CameraSystem.h"
+#include "ECS/Components/TransformComponent.h"
+
+// ÉJÉÅÉâçXêV
+void CameraSystem::Update(entt::registry& registry, float elapsedTime)
+{
+    auto view = registry.view<CameraComponent, TransformComponent>();
+    view.each([&](auto entity, CameraComponent& cam, TransformComponent& transform)
+        {
+            // í«è]ëŒè€Ç™Ç¢Ç»ÇØÇÍÇŒÉXÉLÉbÉv
+            if (cam.target == entt::null) return;
+            if (!registry.valid(cam.target)) return;
+
+            auto* targetTransform = registry.try_get<TransformComponent>(cam.target);
+            if (!targetTransform) return;
+
+            // èââÒÇæÇØ currentEye Ç∆ currentTarget Çë¶ç¿Ç…ê›íË
+            if (cam.currentEye.x == 0.0f &&
+                cam.currentEye.y == 0.0f &&
+                cam.currentEye.z == 0.0f)
+            {
+                cam.currentTarget = targetTransform->position;
+                cam.currentEye =
+                {
+                    targetTransform->position.x,
+                    targetTransform->position.y + cam.height,
+                    targetTransform->position.z - cam.distance
+                };
+            }
+
+            switch (cam.mode)
+            {
+            case CameraComponent::Mode::Follow:
+                UpdateFollow(cam, *targetTransform, elapsedTime);
+                break;
+
+            case CameraComponent::Mode::LookAt:
+                UpdateLookAt(cam, *targetTransform, elapsedTime);
+                break;
+
+            case CameraComponent::Mode::Fixed:
+                UpdateFixed(cam, *targetTransform, elapsedTime);
+                break;
+            }
+        });
+}
+
+// CameraÉNÉâÉXÇ…åãâ ÇîΩâf
+void CameraSystem::ApplyToCamera(entt::registry& registry, Camera& camera)
+{
+    auto view = registry.view<CameraComponent>();
+
+    for (auto entity : view)
+    {
+        auto& cam = view.get<CameraComponent>(entity);
+
+        // target Ç™ñ¢ê›íËÇ»ÇÁÉXÉLÉbÉv
+        if (cam.target == entt::null) return;
+
+        // eye Ç∆ target Ç™ìØÇ∂à íuÇ»ÇÁÉXÉLÉbÉv
+        if (cam.currentEye.x == cam.currentTarget.x &&
+            cam.currentEye.y == cam.currentTarget.y &&
+            cam.currentEye.z == cam.currentTarget.z) return;
+
+        // Camera ÉNÉâÉXÇ…îΩâf
+        camera.SetLookAt(
+            cam.currentEye,
+            cam.currentTarget,
+            { 0.0f, 1.0f, 0.0f }
+        );
+
+        // ç≈èâÇ…å©Ç¬Ç©Ç¡ÇΩÉJÉÅÉâÇégÇ§
+        break;
+    }
+}
+
+// í«è]ÉJÉÅÉâ
+void CameraSystem::UpdateFollow(CameraComponent& cam, const TransformComponent& target, float elapsedTime)
+{
+    // í«è]ëŒè€ÇÃà íu
+    DirectX::XMFLOAT3 targetPos = target.position;
+
+    // ÉJÉÅÉâÇÃóùëzà íuÇåvéZ
+    float sinYaw = sinf(cam.yaw);
+    float cosYaw = cosf(cam.yaw);
+    float cosPitch = cosf(cam.pitch);
+    float sinPitch = sinf(cam.pitch);
+
+    DirectX::XMFLOAT3 idealEye =
+    {
+        targetPos.x - sinYaw * cosPitch * cam.distance,
+        targetPos.y + sinPitch * cam.distance + cam.height,
+        targetPos.z - cosYaw * cosPitch * cam.distance
+    };
+
+    // ääÇÁÇ©Ç…ï‚ä‘
+    float t = 1.0f - powf(0.001f, elapsedTime * cam.followSpeed);
+
+    cam.currentEye.x += (idealEye.x - cam.currentEye.x) * t;
+    cam.currentEye.y += (idealEye.y - cam.currentEye.y) * t;
+    cam.currentEye.z += (idealEye.z - cam.currentEye.z) * t;
+
+    cam.currentTarget.x += (targetPos.x - cam.currentTarget.x) * t;
+    cam.currentTarget.y += ((targetPos.y + cam.height * 0.5f) - cam.currentTarget.y) * t;
+    cam.currentTarget.z += (targetPos.z - cam.currentTarget.z) * t;
+}
+
+// íçéãÉJÉÅÉâ
+void CameraSystem::UpdateLookAt(CameraComponent& cam, const TransformComponent& target, float elapsedTime)
+{
+    // à íuå≈íËÇ≈É^Å[ÉQÉbÉgÇå©ÇÈ
+    cam.currentTarget = target.position;
+}
+
+// å≈íËÉJÉÅÉâ
+void CameraSystem::UpdateFixed(CameraComponent& cam, const TransformComponent& target, float elapsedTime)
+{
+    // É^Å[ÉQÉbÉgÇæÇØí«Ç§
+    float t = 1.0f - powf(0.001f, elapsedTime * cam.followSpeed);
+    cam.currentTarget.x += (target.position.x - cam.currentTarget.x) * t;
+    cam.currentTarget.y += (target.position.y - cam.currentTarget.y) * t;
+    cam.currentTarget.z += (target.position.z - cam.currentTarget.z) * t;
+}
+ 
+ 
 ===== InputSystem.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\InputSystem.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\InputSystem.cpp 
 #include "InputSystem.h"
 #include "entt.hpp"
 #include "ECS/Components/InputComponent.h"
@@ -2400,7 +2599,7 @@ void InputSystem::Update(entt::registry& registry)
  
  
 ===== MeshLoaderSystem.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\MeshLoaderSystem.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\MeshLoaderSystem.cpp 
 #include "MeshLoaderSystem.h"
 
 void MeshLoaderSystem::Update(
@@ -2459,13 +2658,13 @@ void MeshLoaderSystem::Update(
                     { 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 }
                 );
             }
-            // ÉAÉjÉÅÅ[ÉVÉáÉìèâä˙ê›íË
-            auto& animator = registry.emplace<AnimatorComponent>(entity);
-            if (!model->GetAnimations().empty())
-            {
-                animator.currentAnimation =
-                    model->GetAnimations()[0].name;
-            }
+            //// ÉAÉjÉÅÅ[ÉVÉáÉìèâä˙ê›íË
+            //auto& animator = registry.emplace<AnimatorComponent>(entity);
+            //if (!model->GetAnimations().empty())
+            //{
+            //    animator.currentAnimation =
+            //        model->GetAnimations()[0].name;
+            //}
         }
         else
         {
@@ -2483,7 +2682,7 @@ void MeshLoaderSystem::Update(
 } 
  
 ===== MovementSystem.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\MovementSystem.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\MovementSystem.cpp 
 #include "MovementSystem.h"
 #include "ECS/Components/InputComponent.h"
 #include "ECS/Components/MovementComponent.h"
@@ -2555,7 +2754,7 @@ void MovementSystem::Update(entt::registry& registry, float elapsedTime, const S
  
  
 ===== RenderSystem.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\RenderSystem.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\RenderSystem.cpp 
 #include "RenderSystem.h"
 #include "Resource/GpuResourceUtils.h"
 #include "Utility/misc.h"
@@ -2784,13 +2983,6 @@ void RenderSystem::RenderStaticGeometry(
 			// ÉÇÉfÉãÇ™ñ¢ê›íËÇ»ÇÁÉXÉLÉbÉv
 			if (!staticMesh.model) return;
 
-			// MaterialComponent Ç™ "None" Ç»ÇÁï`âÊÉXÉLÉbÉv
-			if (registry.any_of<MaterialComponent>(entity))
-			{
-				auto& mat = registry.get<MaterialComponent>(entity);
-				if (mat.passes.empty() || mat.passes[0].name == "None") return;
-			}
-
 			// ÉtÉâÉXÉ^ÉÄÉJÉäÉìÉO
 			DirectX::XMFLOAT4X4 worldMatrix{};
 			DirectX::XMStoreFloat4x4(&worldMatrix, transform.GetWorldMatrix());
@@ -2885,13 +3077,6 @@ void RenderSystem::RenderSkinnedGeometry(
 		{
 			// ÉÇÉfÉãÇ™ñ¢ê›íËÇ»ÇÁÉXÉLÉbÉv
 			if (!skinnedMesh.model) return;
-
-			// MaterialComponent Ç™ "None" Ç»ÇÁï`âÊÉXÉLÉbÉv
-			if (registry.any_of<MaterialComponent>(entity))
-			{
-				auto& mat = registry.get<MaterialComponent>(entity);
-				if (mat.passes.empty() || mat.passes[0].name == "None") return;
-			}
 
 			// ÉtÉâÉXÉ^ÉÄÉJÉäÉìÉO
 			DirectX::XMFLOAT4X4 worldMatrix{};
@@ -3191,7 +3376,7 @@ void RenderSystem::LightingPass(
  
  
 ===== ComponentRegistry.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Editor\ComponentRegistry.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Editor\ComponentRegistry.h 
 #pragma once
 #include <string>
 #include <vector>
@@ -3231,7 +3416,7 @@ private:
     }) 
  
 ===== ComponentRegistryInitializer.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Editor\ComponentRegistryInitializer.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Editor\ComponentRegistryInitializer.h 
 #pragma once
 
 class ComponentRegistryInitializer
@@ -3242,16 +3427,26 @@ public:
 }; 
  
 ===== EditorContext.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Editor\EditorContext.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Editor\EditorContext.h 
 #pragma once
 #include <string>
 #include <unordered_map>
 #include "entt.hpp"
 
+// ÉJÉÅÉâÉÇÅ[Éh
+enum class CameraMode
+{
+    Debug,  // ÉfÉoÉbÉOÉJÉÅÉâÅiÉ}ÉEÉXÅEÉLÅ[É{Å[ÉhÅj
+    Game,   // ÉQÅ[ÉÄÉJÉÅÉâ  ÅiÉRÉìÉgÉçÅ[ÉâÅ[Åj
+};
+
 struct EditorContext
 {
     entt::entity selectedEntity = entt::null;
     std::unordered_map<entt::entity, std::string> entityNames;
+
+    // ÉJÉÅÉâÉÇÅ[Éh
+    CameraMode cameraMode = CameraMode::Debug;
 
     std::string GetName(entt::entity e) const
     {
@@ -3275,7 +3470,7 @@ struct EditorContext
 }; 
  
 ===== HierarchyWindow.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Editor\HierarchyWindow.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Editor\HierarchyWindow.h 
 #pragma once
 #include "entt.hpp"
 #include "Editor/EditorContext.h"
@@ -3288,7 +3483,7 @@ public:
 }; 
  
 ===== InspectorWindow.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Editor\InspectorWindow.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Editor\InspectorWindow.h 
 #pragma once
 #include "entt.hpp"
 #include "EditorContext.h"
@@ -3311,7 +3506,7 @@ private:
 }; 
  
 ===== ProjectWindow.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Editor\ProjectWindow.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Editor\ProjectWindow.h 
 #pragma once
 #include <string>
 #include <vector>
@@ -3350,7 +3545,7 @@ private:
 }; 
  
 ===== ComponentRegistry.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Editor\ComponentRegistry.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Editor\ComponentRegistry.cpp 
 #include "ComponentRegistry.h"
 
 std::unordered_map<std::string, ComponentInfo> ComponentRegistry::registry;
@@ -3377,7 +3572,7 @@ const ComponentInfo* ComponentRegistry::Get(const std::string& name)
 } 
  
 ===== ComponentRegistryInitializer.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Editor\ComponentRegistryInitializer.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Editor\ComponentRegistryInitializer.cpp 
 #include "ComponentRegistryInitializer.h"
 #include "Editor/ComponentRegistry.h"
 #include <imgui.h>
@@ -3391,8 +3586,10 @@ Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Editor\ComponentRegistr
 #include "ECS/Components/MaterialComponent.h"
 #include "ECS/Components/InputComponent.h"
 #include "ECS/Components/MovementComponent.h"
+#include "ECS/Components/AnimatorComponent.h"
+#include "ECS/Components/SkinnedMeshComponent.h"
+#include "ECS/Components/CameraComponent.h"
 
-#include "Core/ShaderPassLibrary.h"
 
 void ComponentRegistryInitializer::Initialize()
 {
@@ -3468,51 +3665,20 @@ void ComponentRegistryInitializer::Initialize()
             }
         });
 
-    // É}ÉeÉäÉAÉãÉRÉìÉ|Å[ÉlÉìÉgÇÃìoò^
-    REGISTER_COMPONENT(MaterialComponent, "Material",
-        [](auto& reg, auto e)
-        {
-            auto* mat = reg.try_get<MaterialComponent>(e);
-            if (!mat) return;
-            if (ImGui::CollapsingHeader("Material", ImGuiTreeNodeFlags_DefaultOpen))
-            {
-                ImGui::Text("passes: %d", (int)mat->passes.size());
-                const auto& passNames = ShaderPassLibrary::GetNames();
-
-                for (int i = 0; i < (int)mat->passes.size(); i++)
-                {
-                    auto& pass = mat->passes[i];
-
-                    // "None" Ç»ÇÁëIëéàÇï\é¶
-                    if (pass.name == "None")
-                    {
-                        ImGui::Text("Shader: None");
-                        ImGui::SameLine();
-
-                        if (ImGui::BeginCombo("##shaderSelect", "Select..."))
-                        {
-                            for (const auto& name : passNames)
-                            {
-                                // "None" ÇÕëIëéàÇ…èoÇ≥Ç»Ç¢
-                                if (name == "None") continue;
-
-                                if (ImGui::Selectable(name.c_str()))
-                                {
-                                    // ëIëÇµÇΩÉVÉFÅ[É_Å[Ç…èëÇ´ä∑Ç¶
-                                    pass = ShaderPassLibrary::Get(name);
-                                }
-                            }
-                            ImGui::EndCombo();
-                        }
-                    }
-                    else
-                    {
-                        // ëIëçœÇ›Ç»ÇÁå≈íËÉeÉLÉXÉgÇ≈ï\é¶ÅiïœçXïsâ¬Åj
-                        ImGui::Text("Shader: %s", pass.name.c_str());
-                    }
-                }
-            }
-        });
+    //// É}ÉeÉäÉAÉãÉRÉìÉ|Å[ÉlÉìÉgÇÃìoò^
+    //REGISTER_COMPONENT(MaterialComponent, "Material",
+    //    [](auto& reg, auto e)
+    //    {
+    //        auto* mat = reg.try_get<MaterialComponent>(e);
+    //        if (!mat) return;
+    //        if (ImGui::CollapsingHeader("Material", ImGuiTreeNodeFlags_DefaultOpen))
+    //        {
+    //            for (const auto& pass : mat->passes)
+    //            {
+    //                ImGui::Text("Shader: %s", pass.name.c_str());
+    //            }
+    //        }
+    //    });
 
     // ÉCÉìÉvÉbÉgÉRÉìÉ|Å[ÉlÉìÉgÇÃìoò^
     REGISTER_COMPONENT(InputComponent, "Input",
@@ -3544,10 +3710,161 @@ void ComponentRegistryInitializer::Initialize()
                 ImGui::Checkbox("Is Grounded", &mv->isGrounded);
             }
         });
+
+    // ÉAÉjÉÅÅ[É^Å[ÉRÉìÉ|Å[ÉlÉìÉgÇÃìoò^
+    REGISTER_COMPONENT(AnimatorComponent, "Animator",
+        [](auto& reg, auto e)
+        {
+            auto* anim = reg.try_get<AnimatorComponent>(e);
+            if (!anim) return;
+
+            // SkinnedMeshComponent Ç©ÇÁÉAÉjÉÅÅ[ÉVÉáÉìàÍóóÇéÊìæ
+            auto* skinned = reg.try_get<SkinnedMeshComponent>(e);
+
+            if (ImGui::CollapsingHeader("Animator", ImGuiTreeNodeFlags_DefaultOpen))
+            {
+                // ÉÇÉfÉãÇ™Ç»ÇØÇÍÇŒåxçêï\é¶
+                if (!skinned || !skinned->model)
+                {
+                    ImGui::TextColored(
+                        ImVec4(1, 0.5f, 0, 1),
+                        "No SkinnedMesh found.");
+                    return;
+                }
+
+                const auto& animations = skinned->model->GetAnimations();
+
+                if (animations.empty())
+                {
+                    ImGui::TextColored(
+                        ImVec4(1, 0.5f, 0, 1),
+                        "No animations found.");
+                    return;
+                }
+
+                // ÉAÉjÉÅÅ[ÉVÉáÉìëIëÉhÉçÉbÉvÉ_ÉEÉì
+                if (ImGui::BeginCombo(
+                    "Animation",
+                    anim->currentAnimation.c_str()))
+                {
+                    for (const auto& animation : animations)
+                    {
+                        bool isSelected =
+                            (anim->currentAnimation == animation.name);
+
+                        if (ImGui::Selectable(
+                            animation.name.c_str(), isSelected))
+                        {
+                            anim->currentAnimation = animation.name;
+                            anim->animationTime = 0.0f;
+                            anim->isPlaying = true;
+                            anim->isEnd = false;
+                        }
+                        if (isSelected)
+                            ImGui::SetItemDefaultFocus();
+                    }
+                    ImGui::EndCombo();
+                }
+
+                // çƒê∂ë¨ìx
+                ImGui::SliderFloat("Play Speed", &anim->playSpeed, 0.0f, 3.0f);
+
+                // ÉãÅ[Év
+                ImGui::Checkbox("Loop", &anim->loop);
+
+                // çƒê∂/í‚é~É{É^Éì
+                if (anim->isPlaying)
+                {
+                    if (ImGui::Button("Stop"))
+                        anim->isPlaying = false;
+                }
+                else
+                {
+                    if (ImGui::Button("Play"))
+                    {
+                        anim->isPlaying = true;
+                        anim->isEnd = false;
+                    }
+                }
+            }
+        });
+
+    // ÉJÉÅÉâÉRÉìÉ|Å[ÉlÉìÉgÇÃìoò^
+    ComponentRegistry::Register("Camera",
+        {
+            "Camera",
+            [](auto& reg, auto e)
+            {
+                if (reg.any_of<CameraComponent>(e)) return;
+                reg.emplace<CameraComponent>(e);
+            },
+            [](auto& reg, auto e) { reg.remove<CameraComponent>(e); },
+            [](auto& reg, auto e) { return reg.any_of<CameraComponent>(e); },
+            [](auto& reg, auto e)
+            {
+                auto* cam = reg.try_get<CameraComponent>(e);
+                if (!cam) return;
+
+                if (ImGui::CollapsingHeader("Camera", ImGuiTreeNodeFlags_DefaultOpen))
+                {
+                    // ÉÇÅ[ÉhëIë
+                    const char* modeNames[] = { "Follow", "LookAt", "Fixed" };
+                    int currentMode = (int)cam->mode;
+                    if (ImGui::Combo("Mode", &currentMode, modeNames, 3))
+                    {
+                        cam->mode = (CameraComponent::Mode)currentMode;
+                    }
+                    
+                    // ÉâÉxÉãï\é¶
+                    ImGui::Text("Target");
+                    ImGui::SameLine();
+
+                    // í«è]ëŒè€ï\é¶
+                    std::string targetName = "None";
+                    if (cam->target != entt::null && reg.valid(cam->target))
+                    {
+                        targetName = "Entity " + std::to_string((uint32_t)cam->target);
+                    }
+
+                    // ï\é¶ópÉeÉLÉXÉgÉ{ÉbÉNÉX
+                    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - 60.0f);
+                    ImGui::InputText("##target", targetName.data(),
+                        targetName.size() + 1,
+                        ImGuiInputTextFlags_ReadOnly);
+                    
+                    // InputText ÇÃíºå„Ç…ÉhÉçÉbÉvÉ^Å[ÉQÉbÉgÇê›íË
+                    if (ImGui::BeginDragDropTarget())
+                    {
+                        if (const ImGuiPayload* payload =
+                            ImGui::AcceptDragDropPayload("ENTITY"))
+                        {
+                            entt::entity dropped =
+                                *(const entt::entity*)payload->Data;
+                            cam->target = dropped;
+                        }
+                        ImGui::EndDragDropTarget();
+                    }
+
+                    ImGui::SameLine();
+
+                    // ÉNÉäÉAÉ{É^Éì
+                    if (ImGui::Button("Clear"))
+                    {
+                        cam->target = entt::null;
+                    }
+
+                    // ÉpÉâÉÅÅ[É^
+                    ImGui::DragFloat("Distance", &cam->distance, 0.1f, 0.0f, 50.0f);
+                    ImGui::DragFloat("Height", &cam->height, 0.1f, 0.0f, 20.0f);
+                    ImGui::DragFloat("Follow Speed", &cam->followSpeed, 0.1f, 0.1f, 30.0f);
+                    ImGui::DragFloat("Pitch", &cam->pitch, 0.01f, -1.5f, 1.5f);
+                }
+            }
+        });
 } 
  
 ===== HierarchyWindow.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Editor\HierarchyWindow.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Editor\HierarchyWindow.cpp 
 #include "HierarchyWindow.h"
 #include "imgui_internal.h"
 #include <imgui.h>
@@ -3602,6 +3919,20 @@ void HierarchyWindow::Draw(entt::registry& registry, EditorContext& context)
         {
             context.Select(e);
         }
+
+        // Entity ÇÉhÉâÉbÉOÇ≈Ç´ÇÈÇÊÇ§Ç…Ç∑ÇÈ
+        if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
+        {
+            // Entity ID ÇÉyÉCÉçÅ[ÉhÇ∆ÇµÇƒìnÇ∑
+            ImGui::SetDragDropPayload(
+                "ENTITY",
+                &e,
+                sizeof(entt::entity)
+            );
+            // ÉhÉâÉbÉOíÜÇÃÉvÉåÉrÉÖÅ[
+            ImGui::Text(name.c_str());
+            ImGui::EndDragDropSource();
+        }
     }
 
     // ÉZÉpÉåÅ[É^à»â∫ÉEÉBÉìÉhÉEññîˆÇ‹Ç≈ÇÉhÉçÉbÉvÉ^Å[ÉQÉbÉgÇ…
@@ -3628,11 +3959,7 @@ void HierarchyWindow::Draw(entt::registry& registry, EditorContext& context)
             t.scale = { 1.0f, 1.0f, 1.0f };
 
             registry.emplace<MeshComponent>(e, modelPath);
-
-            // É}ÉeÉäÉAÉãÇÕNoneÇ≈ê∂ê¨ÅiÉVÉFÅ[É_Å[ñ¢ëIëèÛë‘Åj
-            auto& mat = registry.emplace<MaterialComponent>(e);
-            mat.AddPass("None");
-            //registry.emplace<MaterialComponent>(e).AddPass("pbr");
+            registry.emplace<MaterialComponent>(e).AddPass("pbr");
 
             // ÉtÉ@ÉCÉãñºÇ©ÇÁ Entity ñºÇê›íË
             std::filesystem::path p(modelPath);
@@ -3645,7 +3972,7 @@ void HierarchyWindow::Draw(entt::registry& registry, EditorContext& context)
 } 
  
 ===== InspectorWindow.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Editor\InspectorWindow.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Editor\InspectorWindow.cpp 
 #include "InspectorWindow.h"
 #include <imgui.h>
 #include "imgui_internal.h"
@@ -3766,7 +4093,7 @@ void InspectorWindow::DrawAddComponent(entt::registry& registry, EditorContext& 
  
  
 ===== ProjectWindow.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Editor\ProjectWindow.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Editor\ProjectWindow.cpp 
 #include "ProjectWindow.h"
 #include <imgui.h>
 
@@ -4009,7 +4336,7 @@ bool ProjectWindow::IsModelFile(const std::filesystem::path& path)
 } 
  
 ===== Actor.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Game\Actor.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Game\Actor.h 
 #pragma once
 #include "entt.hpp"
 #include "Core/SceneContext.h"
@@ -4039,7 +4366,7 @@ protected:
 }; 
  
 ===== Character.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Game\Character.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Game\Character.h 
 #pragma once
 #include "Actor.h"
 
@@ -4062,7 +4389,7 @@ protected:
 }; 
  
 ===== DamagedHelmet.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Game\DamagedHelmet.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Game\DamagedHelmet.h 
 #pragma once
 #include "Game/Object.h"
 
@@ -4077,7 +4404,7 @@ public:
 }; 
  
 ===== Enemy.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Game\Enemy.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Game\Enemy.h 
 #pragma once
 #include "Character.h"
 
@@ -4093,7 +4420,7 @@ public:
 }; 
  
 ===== Object.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Game\Object.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Game\Object.h 
 #pragma once
 #include "Actor.h"
 
@@ -4108,7 +4435,7 @@ public:
 }; 
  
 ===== Player.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Game\Player.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Game\Player.h 
 #pragma once
 #include "Character.h"
 
@@ -4128,13 +4455,14 @@ private:
 }; 
  
 ===== SceneGame.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Game\SceneGame.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Game\SceneGame.h 
 #pragma once
 #include "Core/Scene.h"
 #include "ECS/Systems/RenderSystem.h"
 #include "ECS/Systems/AnimationSystem.h"
 #include "ECS/Systems/InputSystem.h"    
 #include "ECS/Systems/MovementSystem.h" 
+#include "ECS/Systems/CameraSystem.h"
 
 #include "DebugRenderer/DebugRenderer.h"
 
@@ -4169,7 +4497,7 @@ private:
 	SkyBox skyBox;
 	LightManager lightManager;
 
-
+	//CameraSystem cameraSystem;
 
 	// ÉXÉeÅ[ÉW
 	std::unique_ptr<Stage> stage;
@@ -4181,7 +4509,7 @@ private:
  
  
 ===== Stage.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Game\Stage.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Game\Stage.h 
 #pragma once
 #include "Game/Object.h"
 
@@ -4196,7 +4524,7 @@ public:
 }; 
  
 ===== DamagedHelmet.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Game\DamagedHelmet.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Game\DamagedHelmet.cpp 
 #include "DamagedHelmet.h"
 #include "ECS/Components/TransformComponent.h"
 #include "ECS/Components/MeshComponent.h"
@@ -4221,7 +4549,7 @@ void DamagedHelmet::RenderImGui()
  
  
 ===== Enemy.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Game\Enemy.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Game\Enemy.cpp 
 #include "Enemy.h"
 #include "ECS/Components/TransformComponent.h"
 #include "ECS/Components/MeshComponent.h"
@@ -4248,7 +4576,7 @@ void Enemy::RenderImGui()
 } 
  
 ===== Player.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Game\Player.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Game\Player.cpp 
 #include "Player.h"
 #include "ECS/Components/TransformComponent.h"
 #include "ECS/Components/MeshComponent.h"
@@ -4270,20 +4598,13 @@ void Player::Initialize(entt::registry& registry, const SceneContext& context)
 
 	registry.emplace<MeshComponent>(entity, "Data/Model/PlayerRobot/Map_Robot3.gltf");
 	//registry.emplace<MeshComponent>(entity, "Data/Model/unitychan.glb");
-	registry.emplace<MaterialComponent>(entity).AddPass("basic");
+	registry.emplace<MaterialComponent>(entity).AddPass("pbr");
 	registry.emplace<InputComponent>(entity);
 	registry.emplace<MovementComponent>(entity);
 }
 
 void Player::Update(float elapsedTime, entt::registry& registry, const SceneContext& context)
 {
-	//auto* animator = registry.try_get<AnimatorComponent>(entity);
-	//if (animator)
-	//{
-	//	animator->currentAnimation = "Idle";
-	//	animator->loop = true;
-	//	animator->playSpeed = 1.0f;
-	//}
 }
 
 void Player::RenderImGui()
@@ -4308,7 +4629,7 @@ void Player::RenderImGui()
 } 
  
 ===== SceneGame.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Game\SceneGame.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Game\SceneGame.cpp 
 Ôªø#include "SceneGame.h"
 #include <imgui.h>
 
@@ -4541,7 +4862,7 @@ void SceneGame::RenderImGui()
  
  
 ===== Stage.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Game\Stage.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Game\Stage.cpp 
 #include "Stage.h"
 #include "ECS/Components/TransformComponent.h"
 #include "ECS/Components/MeshComponent.h"
@@ -4564,7 +4885,7 @@ void Stage::RenderImGui()
 } 
  
 ===== GBuffer.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Rendering\GBuffer.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Rendering\GBuffer.h 
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
@@ -4604,7 +4925,7 @@ private:
 }; 
  
 ===== LightManager.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Rendering\LightManager.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Rendering\LightManager.h 
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
@@ -4672,7 +4993,7 @@ private:
 }; 
  
 ===== SkyBox.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Rendering\SkyBox.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Rendering\SkyBox.h 
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
@@ -4741,7 +5062,7 @@ private:
 }; 
  
 ===== GBuffer.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Rendering\GBuffer.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Rendering\GBuffer.cpp 
 #include "GBuffer.h"
 #include "Utility/misc.h"
 
@@ -4815,7 +5136,7 @@ void GBuffer::EndGeometryPass(ID3D11DeviceContext* dc)
 } 
  
 ===== LightManager.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Rendering\LightManager.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Rendering\LightManager.cpp 
 #include "LightManager.h"
 #include "Resource/GpuResourceUtils.h"
 #include "Utility/misc.h"
@@ -4903,7 +5224,7 @@ void LightManager::Bind(ID3D11DeviceContext* dc)
  
  
 ===== SkyBox.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Rendering\SkyBox.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Rendering\SkyBox.cpp 
 #include "SkyBox.h"
 #include "Resource/GpuResourceUtils.h"
 #include "Utility/misc.h"
@@ -5081,7 +5402,7 @@ void SkyBox::Render(
  
  
 ===== GLTFConverter.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\GLTFConverter.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\GLTFConverter.h 
 #pragma once
 #include <memory>
 #include <d3d11.h>
@@ -5130,7 +5451,7 @@ private:
 }; 
  
 ===== GLTFData.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\GLTFData.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\GLTFData.h 
 #pragma once
 #include <string>
 #include <vector>
@@ -5247,7 +5568,7 @@ struct GLTFData
 }; 
  
 ===== GLTFImporter.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\GLTFImporter.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\GLTFImporter.h 
 #pragma once
 #include <memory>
 #include <string>
@@ -5323,7 +5644,7 @@ private:
 }; 
  
 ===== GpuResourceUtils.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\GpuResourceUtils.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\GpuResourceUtils.h 
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
@@ -5401,7 +5722,7 @@ public:
 }; 
  
 ===== Model.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\Model.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\Model.h 
 #pragma once
 
 #include <string>
@@ -5583,7 +5904,7 @@ private:
 }; 
  
 ===== ModelSerializer.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\ModelSerializer.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\ModelSerializer.h 
 #pragma once
 #include <memory>
 #include <string>
@@ -5614,7 +5935,7 @@ public:
 }; 
  
 ===== ResourceManager.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\ResourceManager.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\ResourceManager.h 
 #pragma once
 #include <string>
 #include <memory>
@@ -5653,7 +5974,7 @@ private:
 }; 
  
 ===== GLTFConverter.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\GLTFConverter.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\GLTFConverter.cpp 
 #include "GLTFConverter.h"
 #include "GpuResourceUtils.h"
 #include "Utility/misc.h"
@@ -6026,7 +6347,7 @@ void GLTFConverter::ConvertAnimations(
  
  
 ===== GLTFImporter.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\GLTFImporter.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\GLTFImporter.cpp 
 #include "GLTFImporter.h"
 #include "Utility/misc.h"
 #include <filesystem>
@@ -6841,7 +7162,7 @@ void GLTFImporter::CalcGlobalTransform(
  
  
 ===== GpuResourceUtils.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\GpuResourceUtils.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\GpuResourceUtils.cpp 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 #include "GpuResourceUtils.h"
@@ -7163,7 +7484,7 @@ HRESULT GpuResourceUtils::CreateConstantBuffer(
  
  
 ===== Model.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\Model.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\Model.cpp 
 #include "Model.h"
 
 // ì¸óÕÉåÉCÉAÉEÉgíËã`
@@ -7178,7 +7499,7 @@ const std::vector<D3D11_INPUT_ELEMENT_DESC> Model::InputElementDescs =
 }; 
  
 ===== ModelSerializer.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\ModelSerializer.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\ModelSerializer.cpp 
 #include "ModelSerializer.h"
 #include "Model.h"
 #include "Utility/CerealHelper.h"
@@ -7338,7 +7659,7 @@ std::string ModelSerializer::ToCerealPath(const std::string& gltfPath)
 } 
  
 ===== ResourceManager.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\ResourceManager.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\ResourceManager.cpp 
 #include "ResourceManager.h"
 #include "GLTFImporter.h"
 #include "GLTFConverter.h" 
@@ -7399,7 +7720,7 @@ void ResourceManager::ReleaseAll()
  
  
 ===== CerealHelper.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Utility\CerealHelper.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Utility\CerealHelper.h 
 #pragma once
 #include <DirectXMath.h>
 
@@ -7433,7 +7754,7 @@ namespace DirectX
 } 
  
 ===== high_resolution_timer.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Utility\high_resolution_timer.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Utility\high_resolution_timer.h 
 #pragma once
 
 #include <windows.h>
@@ -7572,7 +7893,7 @@ private:
  
  
 ===== misc.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Utility\misc.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Utility\misc.h 
 #pragma once
 
 #include <windows.h>
@@ -7636,7 +7957,7 @@ public:
  
  
 ===== CerealHelper.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Utility\CerealHelper.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Utility\CerealHelper.cpp 
 #include "CerealHelper.h"
 #include <cereal/archives/binary.hpp>
 
@@ -7717,7 +8038,7 @@ namespace DirectX
 } 
  
 ===== main.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Utility\main.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Utility\main.cpp 
 #include <time.h>
 
 #include "Core/framework.h"

@@ -96,6 +96,12 @@ void SceneGame::Update(float elapsedTime, const SceneContext& context)
 	}
 
 
+	// ゲームカメラモードのときだけ CameraSystem を更新
+	if (context.cameraMode == CameraMode::Game)
+	{
+		cameraSystem.Update(registry, elapsedTime);
+		cameraSystem.ApplyToCamera(registry, *context.camera);
+	}
 
 	{
 		ZoneScopedN("Stage::Update");
