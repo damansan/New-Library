@@ -20,6 +20,7 @@ void SceneGame::Initialize(const SceneContext& context)
 		skyBox.GetSRV(),
 		skyBox.GetLutGgx()
 	);
+
 	lightManager.Initialize(context.device);
 	lightManager.SetDirectionalLight(
 		{ 0.5f, -1.0f, 0.5f },
@@ -27,12 +28,6 @@ void SceneGame::Initialize(const SceneContext& context)
 		1.0f
 	);
 
-	//lightManager.AddPointLight(
-	//	{ 0.0f, 1.0f, 2.0f }, // 位置
-	//	{ 1.0f, 0.0f, 0.0f }, // 色（赤）
-	//	5.0f,                  // 範囲
-	//	3.0f                   // 強度
-	//);
 
 	const int lightCount = 20;
 	const float radius = 5.0f;
@@ -55,51 +50,43 @@ void SceneGame::Initialize(const SceneContext& context)
 			3.0f              // 強度
 		);
 	}
-
-
-	// Stage生成/初期化
-	stage = std::make_unique<Stage>();
-	stage->Initialize(registry, context);
-
-	// Player生成/初期化
-	player = std::make_unique<Player>();
-	player->Initialize(registry, context);
-
-	// Enemy生成/初期化
-	enemy = std::make_unique<Enemy>();
-	enemy->Initialize(registry, context);
 }
 
 void SceneGame::Update(float elapsedTime, const SceneContext& context)
 {
 	ZoneScoped;
+
 	{
+		// コントローラー入力
+		ZoneScopedN("ControllerSystem");
+		controllerSystem.Update(registry, elapsedTime);
+	}
+
+	{
+		// 入力変換
 		ZoneScopedN("InputSystem");
 		inputSystem.Update(registry, controllerSystem.GetSettings());
 	}
 	{
-		ZoneScopedN("ControllerSystem");
-		controllerSystem.Update(registry, elapsedTime);
-	} 
-	{
+		// 移動
 		ZoneScopedN("MovementSystem");
 		movementSystem.Update(registry, elapsedTime, context);
 	}
 	{
-		ZoneScopedN("MeshLoaderSystem");
-
-		// 未ロードのモデルを自動ロード
-		meshLoaderSystem.Update(registry, context.device, *context.resourceManager);
-	}
-
-	{
-		ZoneScopedN("AnimationSystem");
-
 		// アニメーション更新
+		ZoneScopedN("AnimationSystem");
 		animationSystem.Update(registry, elapsedTime);
 	}
 
 	{
+		// モデルロード
+		ZoneScopedN("MeshLoaderSystem");
+		meshLoaderSystem.Update(registry, context.device, *context.resourceManager);
+	}
+
+
+	{
+		// カメラ
 		ZoneScopedN("CameraSystem");
 		if (context.cameraMode == CameraMode::Debug)
 		{
@@ -130,26 +117,6 @@ void SceneGame::Update(float elapsedTime, const SceneContext& context)
 			gameCameraSystem.Update(registry, elapsedTime);
 			gameCameraSystem.ApplyToCamera(registry, *context.camera);
 		}
-	}
-
-
-	{
-		ZoneScopedN("Stage::Update");
-
-		// Stage 更新
-		stage->Update(elapsedTime, registry, context);
-	}
-	{
-		ZoneScopedN("Player::Update");
-
-		// Player 更新
-		player->Update(elapsedTime, registry, context);
-	}
-	{
-		ZoneScopedN("Enemy::Update");
-
-		// Enemy 更新
-		enemy->Update(elapsedTime, registry, context);
 	}
 }
 
@@ -261,6 +228,6 @@ void SceneGame::RenderImGui()
 {
 #ifdef _DEBUG
 	//player->RenderImGui();
-	controllerToolWindow.Draw(registry, controllerSystem);
+	//controllerToolWindow.Draw(registry, controllerSystem);
 #endif
 }

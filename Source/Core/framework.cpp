@@ -62,23 +62,15 @@ void framework::update(float elapsedTime)
 	prevRButton = currRButton;
 
 
-	// コンテキスト生成
-	SceneContext context;
-	context.device = graphics.GetDevice();
-	context.deviceContext = graphics.GetDeviceContext();
-	context.resourceManager = &resourceManager;
-	context.camera = &camera;
-	context.view = camera.GetView();
-	context.projection = camera.GetProjection();
-	context.cameraMode = editorContext.cameraMode;
-	context.editorContext = &editorContext;
+	// SceneContext 更新
+	updateSceneContext();
 
 	// シーン更新
-	sceneManager.Update(elapsedTime, context);
+	sceneManager.Update(elapsedTime, sceneContext);
 
 	// ゲームカメラの結果をcontextに反映
-	context.view = camera.GetView();
-	context.projection = camera.GetProjection();
+	sceneContext.view = camera.GetView();
+	sceneContext.projection = camera.GetProjection();
 }
 
 void framework::updateImGui()
@@ -112,22 +104,8 @@ void framework::render(float elapsedTime)
 	// レンダーターゲット設定
 	graphics.SetRenderTargets();
 
-
-	SceneContext context;
-	context.device = graphics.GetDevice();
-	context.deviceContext = graphics.GetDeviceContext();
-	context.resourceManager = &resourceManager;
-	context.renderTargetView = graphics.GetRenderTargetView();
-	context.depthStencilView = graphics.GetDepthStencilView();
-	context.camera = &camera;
-	context.view = camera.GetView();             
-	context.projection = camera.GetProjection(); 
-	context.screenWidth = static_cast<UINT>(graphics.GetScreenWidth());
-	context.screenHeight = static_cast<UINT>(graphics.GetScreenHeight());
-
-
 	// シーン描画
-	sceneManager.Render(context);
+	sceneManager.Render(sceneContext);
 
 	// ImGui描画
 	imguiManager.EndFrame();
@@ -251,4 +229,21 @@ LRESULT framework::handle_message(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpa
 		return DefWindowProc(hwnd, msg, wparam, lparam);
 	}
 	return 0;
+}
+
+// SceneContext を最新状態に更新する
+void framework::updateSceneContext()
+{
+	sceneContext.device = graphics.GetDevice();
+	sceneContext.deviceContext = graphics.GetDeviceContext();
+	sceneContext.resourceManager = &resourceManager;
+	sceneContext.renderTargetView = graphics.GetRenderTargetView();
+	sceneContext.depthStencilView = graphics.GetDepthStencilView();
+	sceneContext.camera = &camera;
+	sceneContext.view = camera.GetView();
+	sceneContext.projection = camera.GetProjection();
+	sceneContext.screenWidth = static_cast<UINT>(graphics.GetScreenWidth());
+	sceneContext.screenHeight = static_cast<UINT>(graphics.GetScreenHeight());
+	sceneContext.cameraMode = editorContext.cameraMode;
+	sceneContext.editorContext = &editorContext;
 }

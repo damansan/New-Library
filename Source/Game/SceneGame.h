@@ -1,27 +1,24 @@
 #pragma once
 #include "Core/Scene.h"
-#include "ECS/Systems/RenderSystem.h"
-#include "ECS/Systems/AnimationSystem.h"
+
 #include "ECS/Systems/ControllerSystem.h" 
 #include "ECS/Systems/InputSystem.h"    
 #include "ECS/Systems/MovementSystem.h" 
+#include "ECS/Systems/AnimationSystem.h"
+
+#include "ECS/Systems/MeshLoaderSystem.h"
+#include "ECS/Systems/RenderSystem.h"
+
 #include "ECS/Systems/DebugCameraSystem.h"
 #include "ECS/Systems/GameCameraSystem.h" 
-
-#include "Tool/ControllerToolWindow.h" 
-
-#include "DebugRenderer/DebugRenderer.h"
 
 #include "Rendering/SkyBox.h"
 #include "Rendering/LightManager.h"
 
-#include <memory>
+#include "DebugRenderer/DebugRenderer.h"
 
-#include "Game/Stage.h"
-#include "Game/Player.h"
-#include "Game/Enemy.h"
+//#include "Tool/ControllerToolWindow.h" 
 
-#include "Game/DamagedHelmet.h"
 
 class SceneGame : public Scene
 {
@@ -33,25 +30,21 @@ public:
 	void RenderImGui() override;
 
 private:
-	RenderSystem renderSystem;
-	AnimationSystem animationSystem;
-	ControllerSystem  controllerSystem;
-	InputSystem     inputSystem;
-	MovementSystem  movementSystem;
+	ControllerSystem controllerSystem;
+	InputSystem      inputSystem;
+	MovementSystem   movementSystem;
+	AnimationSystem  animationSystem;
+	
+	MeshLoaderSystem meshLoaderSystem;
+	RenderSystem     renderSystem;
+	
 	DebugCameraSystem debugCameraSystem;
 	GameCameraSystem  gameCameraSystem; 
 
-	DebugRenderer debugRenderer;
+	//ControllerToolWindow controllerToolWindow;
 
-	ControllerToolWindow controllerToolWindow;
-
-	SkyBox skyBox;
+	SkyBox       skyBox;
 	LightManager lightManager;
-
-	// ステージ
-	std::unique_ptr<Stage> stage;
-	// プレイヤー
-	std::unique_ptr<Player> player;
-	// エネミー
-	std::unique_ptr<Enemy> enemy;
+	
+	DebugRenderer debugRenderer;
 };

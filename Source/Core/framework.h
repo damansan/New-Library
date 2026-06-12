@@ -54,10 +54,16 @@ private:
 	HWND hwnd;
 	high_resolution_timer timer;
 
+	// SceneContext
+	SceneContext sceneContext;
+	// SceneContext を最新状態に更新する
+	void updateSceneContext();
+
 	// Graphicsクラス
 	Graphics graphics;
 	// ImGuiManagerクラス
 	ImGuiManager imguiManager;
+
 	// SceneManagerクラス
 	SceneManager sceneManager;
 	// ResourceManagerクラス

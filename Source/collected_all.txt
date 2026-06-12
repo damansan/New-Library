@@ -4140,7 +4140,7 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Editor\ComponentRegistryInitia
 #include "ECS/Components/SkinnedMeshComponent.h"
 #include "ECS/Components/FreeCameraComponent.h"
 #include "ECS/Components/GameCameraComponent.h"
-
+#include "ECS/Components/ControllerComponent.h"
 
 void ComponentRegistryInitializer::Initialize()
 {
@@ -4426,6 +4426,26 @@ void ComponentRegistryInitializer::Initialize()
                     ImGui::Separator();
                     ImGui::DragFloat3("Eye",    &cam->base.currentEye.x,    0.1f);
                     ImGui::DragFloat3("Target", &cam->base.currentTarget.x, 0.1f);
+                }
+            }
+        });
+
+    // コントローラーコンポーネントの登録
+    REGISTER_COMPONENT(ControllerComponent, "Controller",
+        [](auto& reg, auto e)
+        {
+            auto* ctrl = reg.try_get<ControllerComponent>(e);
+            if (!ctrl) return;
+            if (ImGui::CollapsingHeader("Controller", ImGuiTreeNodeFlags_DefaultOpen))
+            {
+                if (ctrl->connected)
+                {
+                    const char* typeName = ctrl->type == ControllerType::PS5 ? "PS5 DualSense" : "Xbox";
+                    ImGui::TextColored({ 0.3f, 1.0f, 0.3f, 1.0f }, u8"[%s] 接続中", typeName);
+                }
+                else
+                {
+                    ImGui::TextColored({ 0.6f, 0.6f, 0.6f, 1.0f }, u8"未接続");
                 }
             }
         });
@@ -5283,12 +5303,16 @@ void SceneGame::Update(float elapsedTime, const SceneContext& context)
 {
 	ZoneScoped;
 	{
+		ZoneScopedN("InputSystem");
+		inputSystem.Update(registry, controllerSystem.GetSettings());
+	}
+	{
 		ZoneScopedN("ControllerSystem");
 		controllerSystem.Update(registry, elapsedTime);
 	} 
 	{
 		ZoneScopedN("MovementSystem");
-		inputSystem.Update(registry, controllerSystem.GetSettings());
+		movementSystem.Update(registry, elapsedTime, context);
 	}
 	{
 		ZoneScopedN("MeshLoaderSystem");
@@ -8366,21 +8390,24 @@ private:
 
     // 振動タブ
     void DrawVibrationTab(ControllerSettings& settings, ControllerComponent& ctrl);
-} 
+}; 
  
 ===== ControllerToolWindow.cpp ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\ControllerToolWindow.cpp 
 #include "ControllerToolWindow.h"
 #include <imgui.h>
+#include <cmath>
 
 // 描画
 void ControllerToolWindow::Draw(entt::registry& registry, ControllerSystem& system)
 {
+    ImGui::Begin("Controller Tool");
+
     // ControllerComponentを持つEntit を探す
     auto view = registry.view<ControllerComponent>();
     if (view.empty())
     {
-        ImGui::TextColored({ 1.0f, 0.4f, 0.4f, 1.0f }, "ControllerComponent を持つ Entity がありません");
+        ImGui::TextColored({ 1.0f, 0.4f, 0.4f, 1.0f }, u8"ControllerComponent を持つ Entity がありません");
         ImGui::End();
         return;
     }
@@ -8465,10 +8492,10 @@ void ControllerToolWindow::DrawMonitorTab(const ControllerComponent& ctrl)
             ImGui::SameLine();
         };
 
-    showBtn("×", ControllerButtons::Cross);
-    showBtn("○", ControllerButtons::Circle);
-    showBtn("□", ControllerButtons::Square);
-    showBtn("△", ControllerButtons::Triangle);
+    showBtn(u8"×", ControllerButtons::Cross);
+    showBtn(u8"○", ControllerButtons::Circle);
+    showBtn(u8"□", ControllerButtons::Square);
+    showBtn(u8"△", ControllerButtons::Triangle);
     showBtn("L1", ControllerButtons::L1);
     showBtn("R1", ControllerButtons::R1);
     showBtn("L2", ControllerButtons::L2);
@@ -8483,13 +8510,57 @@ void ControllerToolWindow::DrawMonitorTab(const ControllerComponent& ctrl)
 // スティック設定タブ
 void ControllerToolWindow::DrawStickTab(ControllerSettings& settings, const ControllerComponent& ctrl)
 {
-    ImGui::SeparatorText("Left Stick");
-    ImGui::SliderFloat("Deadzone##LS", &settings.leftStickDeadzone, 0.0f, 1.0f, "%.2f");
+    // スティックビジュアルを描画するヘルパー
+    auto drawStickVisual = [](
+        const char* label,
+        float rawX, float rawY,
+        float deadzone)
+        {
+            const float radius = 60.0f;  // 外円の半径
+            const float dotRadius = 5.0f;  // スティック位置の点の半径
 
-    // 現在値の確認（デッドゾーン適用前の生の値）
-    ImGui::Text("Raw  X: %.3f  Y: %.3f", ctrl.leftStickX, ctrl.leftStickY);
+            ImGui::Text("%s", label);
 
-    // デッドゾーン適用後のプレビュー
+            // 描画の基準座標（円の中心）
+            ImVec2 canvasPos = ImGui::GetCursorScreenPos();
+            ImVec2 center = { canvasPos.x + radius, canvasPos.y + radius };
+
+            ImDrawList* dl = ImGui::GetWindowDrawList();
+
+            // 外側の円（白塗り背景 + 黒枠）
+            dl->AddCircleFilled(center, radius, IM_COL32(40, 40, 40, 255));
+            dl->AddCircle(center, radius, IM_COL32(200, 200, 200, 255), 64, 2.0f);
+
+            // 内側の赤円（デッドゾーン）
+            float dzRadius = radius * deadzone;
+            dl->AddCircle(center, dzRadius, IM_COL32(220, 50, 50, 255), 64, 1.5f);
+
+            // 十字線（中心のガイド）
+            dl->AddLine({ center.x - radius, center.y }, { center.x + radius, center.y },
+                IM_COL32(80, 80, 80, 255), 1.0f);
+            dl->AddLine({ center.x, center.y - radius }, { center.x, center.y + radius },
+                IM_COL32(80, 80, 80, 255), 1.0f);
+
+            // スティック位置の点
+            ImVec2 dotPos =
+            {
+                center.x + rawX * radius,
+                center.y - rawY * radius   // Y軸は画面下がプラスなので反転
+            };
+            dl->AddCircleFilled(dotPos, dotRadius, IM_COL32(255, 255, 255, 255));
+
+            // デッドゾーン内なら点を赤くする
+            float dist = sqrtf(rawX * rawX + rawY * rawY);
+            if (dist < deadzone)
+            {
+                dl->AddCircleFilled(dotPos, dotRadius, IM_COL32(220, 50, 50, 255));
+            }
+
+            // ImGui のカーソルを円の下に進める
+            ImGui::Dummy({ radius * 2.0f, radius * 2.0f });
+        };
+
+    // デッドゾーン適用後の計算
     auto applyDZ = [](float v, float dz) -> float
         {
             if (fabsf(v) < dz) return 0.0f;
@@ -8497,17 +8568,29 @@ void ControllerToolWindow::DrawStickTab(ControllerSettings& settings, const Cont
             return sign * (fabsf(v) - dz) / (1.0f - dz);
         };
 
+    // --- Left Stick ---
+    ImGui::SeparatorText(u8"Left Stick");
+    drawStickVisual("L", ctrl.leftStickX, ctrl.leftStickY, settings.leftStickDeadzone);
+
+    ImGui::SliderFloat(u8"デッドゾーン##LS", &settings.leftStickDeadzone, 0.0f, 1.0f, "%.2f");
+
     float lx = applyDZ(ctrl.leftStickX, settings.leftStickDeadzone);
     float ly = applyDZ(ctrl.leftStickY, settings.leftStickDeadzone);
-    ImGui::Text("Post X: %.3f  Y: %.3f", lx, ly);
+    ImGui::Text(u8"Raw  X: %.3f  Y: %.3f", ctrl.leftStickX, ctrl.leftStickY);
+    ImGui::Text(u8"Post X: %.3f  Y: %.3f", lx, ly);
 
-    ImGui::SeparatorText("Right Stick");
-    ImGui::SliderFloat("Deadzone##RS", &settings.rightStickDeadzone, 0.0f, 1.0f, "%.2f");
+    ImGui::Spacing();
+
+    // --- Right Stick ---
+    ImGui::SeparatorText(u8"Right Stick");
+    drawStickVisual("R", ctrl.rightStickX, ctrl.rightStickY, settings.rightStickDeadzone);
+
+    ImGui::SliderFloat(u8"デッドゾーン##RS", &settings.rightStickDeadzone, 0.0f, 1.0f, "%.2f");
 
     float rx = applyDZ(ctrl.rightStickX, settings.rightStickDeadzone);
     float ry = applyDZ(ctrl.rightStickY, settings.rightStickDeadzone);
-    ImGui::Text("Raw  X: %.3f  Y: %.3f", ctrl.rightStickX, ctrl.rightStickY);
-    ImGui::Text("Post X: %.3f  Y: %.3f", rx, ry);
+    ImGui::Text(u8"Raw  X: %.3f  Y: %.3f", ctrl.rightStickX, ctrl.rightStickY);
+    ImGui::Text(u8"Post X: %.3f  Y: %.3f", rx, ry);
 }
 
 // トリガー設定タブ

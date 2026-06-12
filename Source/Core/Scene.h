@@ -30,5 +30,4 @@ public:
 
 protected:
 	entt::registry registry; // Entity/ComponentŠÇ—
-	MeshLoaderSystem meshLoaderSystem;
 };
