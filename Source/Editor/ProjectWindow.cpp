@@ -3,7 +3,6 @@
 
 #include "ECS/Components/TransformComponent.h"
 #include "ECS/Components/MeshComponent.h"
-#include "ECS/Components/MaterialComponent.h"
 #include <algorithm>
 #include <WICTextureLoader.h>
 
@@ -29,28 +28,6 @@ void ProjectWindow::LoadIcons(ID3D11Device* device)
 void ProjectWindow::Draw(entt::registry& registry, EditorContext& context)
 {
 	ImGui::Begin("Project");
-
-	//// 左右に分割
-	//ImGui::Columns(2, "ProjectColumns", true);
-	//// 左側の幅を固定
-	//ImGui::SetColumnWidth(0, 200.0f);
-
-	//// 左側：フォルダツリー
-	//ImGui::BeginChild("FolderTree", ImVec2(0, 0), false);
-	//DrawFolderTree(rootPath);
-	//ImGui::EndChild();
-
-	//ImGui::NextColumn();
-
-	//// 右側：ファイルグリッド
-
-	//ImGui::BeginChild("FileGrid", ImVec2(0, 0), false);
-	//DrawFileGrid(registry, context);
-	//ImGui::EndChild();
-
-	//ImGui::Columns(1);
-
-	//ImGui::End();
 
 	if (ImGui::BeginTable("ProjectLayout", 2,
 		ImGuiTableFlags_Resizable |

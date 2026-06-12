@@ -1,7 +1,6 @@
 #include "RenderSystem.h"
 #include "Resource/GpuResourceUtils.h"
 #include "Utility/misc.h"
-#include "ECS/Components/MaterialComponent.h"
 
 // 初期化(シェーダー読み込み）
 void RenderSystem::Initialize(ID3D11Device* device)
@@ -29,31 +28,6 @@ void RenderSystem::Initialize(ID3D11Device* device)
 		dummyLayout,
 		skinnedVertexShader
 	);
-
-	// ピクセルシェーダー読み込み(Basic)
-	Microsoft::WRL::ComPtr<ID3D11PixelShader> basicPS;
-	GpuResourceUtils::LoadPixelShader(
-		device, "Data/Shader/Basic_PS.cso", basicPS);
-
-	// ピクセルシェーダー読み込み(Lambert)
-	Microsoft::WRL::ComPtr<ID3D11PixelShader> lambertPS;
-	GpuResourceUtils::LoadPixelShader(
-		device, "Data/Shader/Lambert_PS.cso", lambertPS);
-
-	// ピクセルシェーダー読み込み(PBR)
-	Microsoft::WRL::ComPtr<ID3D11PixelShader> pbrPS;
-	GpuResourceUtils::LoadPixelShader(
-		device, "Data/Shader/PBR_PS.cso", pbrPS);
-
-	// 静的メッシュ用（Base_VS + PS）
-	staticPixelShaders["basic"] = basicPS;
-	staticPixelShaders["lambert"] = lambertPS;
-	staticPixelShaders["pbr"] = pbrPS;
-
-	// スキニング用（Skinning_VS + PS）
-	skinnedPixelShaders["basic"] = basicPS;
-	skinnedPixelShaders["lambert"] = lambertPS;
-	skinnedPixelShaders["pbr"] = pbrPS;
 
 	// シーン定数バッファ生成
 	GpuResourceUtils::CreateConstantBuffer(

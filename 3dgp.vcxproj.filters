@@ -47,12 +47,6 @@
     <Filter Include="Sources\Game\SceneGame">
       <UniqueIdentifier>{65464cfa-23e7-4110-95ce-df8abc882584}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Sources\Core\ShaderPass">
-      <UniqueIdentifier>{c13154b1-7a0b-4ab7-a102-25ad9aa2881a}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Core\ShaderPassLibrary">
-      <UniqueIdentifier>{556e4f86-b158-4dad-a8b7-da1c066cf5cf}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Sources\Resource">
       <UniqueIdentifier>{a5a88041-86ee-429a-8804-0a733f1a3583}</UniqueIdentifier>
     </Filter>
@@ -110,32 +104,11 @@
     <Filter Include="Sources\Resource\GLTFConverter">
       <UniqueIdentifier>{1657cb11-f1cf-455e-b22f-50bd2a08c56c}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Sources\Game\Actor">
-      <UniqueIdentifier>{2d9ae77c-5441-4636-b68f-f2d5956bd44e}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Game\Actor\Character">
-      <UniqueIdentifier>{4c1c4f5e-35c5-4fed-9a2f-95d961859fc7}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Game\Actor\Character\Player">
-      <UniqueIdentifier>{6050a809-ce74-4f52-bc33-442a780e61ab}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Game\Actor\Object">
-      <UniqueIdentifier>{7a795a97-3753-487f-9690-87e422c5ac96}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Game\Actor\Object\Stage">
-      <UniqueIdentifier>{22a1b68c-e484-48d7-b2c2-60c45cb74a44}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Game\Actor\Character\Enemy">
-      <UniqueIdentifier>{47b49f73-6aa9-4026-ada0-35d5edd33049}</UniqueIdentifier>
-    </Filter>
     <Filter Include="External\tracy-0.13.1">
       <UniqueIdentifier>{054ca6fc-d2f6-4f82-9ad5-f6505e353961}</UniqueIdentifier>
     </Filter>
     <Filter Include="Shader\PBR">
       <UniqueIdentifier>{11761a69-1d93-470c-a31f-08939903ff40}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Game\Actor\Object\DamagedHelmet">
-      <UniqueIdentifier>{a01566cb-7eb7-40a3-a661-8fa3da471e8d}</UniqueIdentifier>
     </Filter>
     <Filter Include="Shader\SkyBox">
       <UniqueIdentifier>{1b0ea87d-9bb1-418d-a974-cdd1965c1b74}</UniqueIdentifier>
@@ -253,9 +226,6 @@
     <ClCompile Include="Source\Core\SceneManager.cpp">
       <Filter>Sources\Core\SceneManager</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Core\ShaderPassLibrary.cpp">
-      <Filter>Sources\Core\ShaderPassLibrary</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Resource\GpuResourceUtils.cpp">
       <Filter>Sources\Resource\GpuResourceUtils</Filter>
     </ClCompile>
@@ -286,20 +256,8 @@
     <ClCompile Include="Source\ECS\Systems\AnimationSystem.cpp">
       <Filter>Sources\ECS\Systems\AnimationSystem</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Game\Player.cpp">
-      <Filter>Sources\Game\Actor\Character\Player</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Game\Stage.cpp">
-      <Filter>Sources\Game\Actor\Object\Stage</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Game\Enemy.cpp">
-      <Filter>Sources\Game\Actor\Character\Enemy</Filter>
-    </ClCompile>
     <ClCompile Include="External\tracy-0.13.1\public\TracyClient.cpp">
       <Filter>External\tracy-0.13.1</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Game\DamagedHelmet.cpp">
-      <Filter>Sources\Game\Actor\Object\DamagedHelmet</Filter>
     </ClCompile>
     <ClCompile Include="Source\Rendering\SkyBox.cpp">
       <Filter>Sources\Rendering\SkyBox</Filter>
@@ -309,9 +267,6 @@
     </ClCompile>
     <ClCompile Include="Source\Rendering\LightManager.cpp">
       <Filter>Sources\Rendering\LightManager</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\DebugRenderer\DebugRenderer.cpp">
-      <Filter>Sources\DebugRenderer</Filter>
     </ClCompile>
     <ClCompile Include="Source\ECS\Systems\InputSystem.cpp">
       <Filter>Sources\ECS\Systems\InputSystem</Filter>
@@ -378,12 +333,6 @@
     <ClInclude Include="Source\Game\SceneGame.h">
       <Filter>Sources\Game\SceneGame</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Core\ShaderPass.h">
-      <Filter>Sources\Core\ShaderPass</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Core\ShaderPassLibrary.h">
-      <Filter>Sources\Core\ShaderPassLibrary</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Resource\GpuResourceUtils.h">
       <Filter>Sources\Resource\GpuResourceUtils</Filter>
     </ClInclude>
@@ -417,27 +366,6 @@
     <ClInclude Include="Source\ECS\Systems\AnimationSystem.h">
       <Filter>Sources\ECS\Systems\AnimationSystem</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Game\Character.h">
-      <Filter>Sources\Game\Actor\Character</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Game\Actor.h">
-      <Filter>Sources\Game\Actor</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Game\Player.h">
-      <Filter>Sources\Game\Actor\Character\Player</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Game\Object.h">
-      <Filter>Sources\Game\Actor\Object</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Game\Stage.h">
-      <Filter>Sources\Game\Actor\Object\Stage</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Game\Enemy.h">
-      <Filter>Sources\Game\Actor\Character\Enemy</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Game\DamagedHelmet.h">
-      <Filter>Sources\Game\Actor\Object\DamagedHelmet</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Rendering\SkyBox.h">
       <Filter>Sources\Rendering\SkyBox</Filter>
     </ClInclude>
@@ -446,9 +374,6 @@
     </ClInclude>
     <ClInclude Include="Source\Rendering\LightManager.h">
       <Filter>Sources\Rendering\LightManager</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\DebugRenderer\DebugRenderer.h">
-      <Filter>Sources\DebugRenderer</Filter>
     </ClInclude>
     <ClInclude Include="Source\ECS\Systems\InputSystem.h">
       <Filter>Sources\ECS\Systems\InputSystem</Filter>
@@ -490,9 +415,6 @@
       <Filter>Sources\ECS\Components</Filter>
     </ClInclude>
     <ClInclude Include="Source\ECS\Components\InputComponent.h">
-      <Filter>Sources\ECS\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\ECS\Components\MaterialComponent.h">
       <Filter>Sources\ECS\Components</Filter>
     </ClInclude>
     <ClInclude Include="Source\ECS\Components\MeshComponent.h">

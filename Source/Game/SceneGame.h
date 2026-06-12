@@ -15,7 +15,6 @@
 #include "Rendering/SkyBox.h"
 #include "Rendering/LightManager.h"
 
-#include "DebugRenderer/DebugRenderer.h"
 
 //#include "Tool/ControllerToolWindow.h" 
 
@@ -45,6 +44,4 @@ private:
 
 	SkyBox       skyBox;
 	LightManager lightManager;
-	
-	DebugRenderer debugRenderer;
 };

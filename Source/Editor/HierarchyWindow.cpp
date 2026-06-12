@@ -5,7 +5,6 @@
 
 #include "ECS/Components/TransformComponent.h"
 #include "ECS/Components/MeshComponent.h"
-#include "ECS/Components/MaterialComponent.h"
 
 
 void HierarchyWindow::Draw(entt::registry& registry, EditorContext& context)
@@ -92,7 +91,6 @@ void HierarchyWindow::Draw(entt::registry& registry, EditorContext& context)
             t.scale = { 1.0f, 1.0f, 1.0f };
 
             registry.emplace<MeshComponent>(e, modelPath);
-            registry.emplace<MaterialComponent>(e).AddPass("pbr");
 
             // ÉtÉ@ÉCÉãñºÇ©ÇÁ Entity ñºÇê›íË
             std::filesystem::path p(modelPath);

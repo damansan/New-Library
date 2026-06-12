@@ -16,18 +16,6 @@ framework::framework(HWND hwnd) : hwnd(hwnd)
 	// カメラ初期化
 	camera.Initialize(graphics.GetScreenWidth(), graphics.GetScreenHeight());
 
-
-	// シェーダーパス登録
-	ShaderPassLibrary::Register("basic", {
-		"", "Data/Shader/Base_VS.cso", "Data/Shader/Basic_PS.cso"
-		});
-	ShaderPassLibrary::Register("lambert", {
-		"", "Data/Shader/Base_VS.cso", "Data/Shader/Lambert_PS.cso"
-		});
-	ShaderPassLibrary::Register("pbr", {
-		"", "Data/Shader/Base_VS.cso", "Data/Shader/PBR_PS.cso"
-		});
-
 	// 最初のシーンセット
 	sceneManager.ChangeScene(std::make_unique<SceneGame>());
 

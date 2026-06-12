@@ -31,8 +31,6 @@
     <ClCompile Include="Source\Core\Graphics.cpp" />
     <ClCompile Include="Source\Core\ImGuiManager.cpp" />
     <ClCompile Include="Source\Core\SceneManager.cpp" />
-    <ClCompile Include="Source\Core\ShaderPassLibrary.cpp" />
-    <ClCompile Include="Source\DebugRenderer\DebugRenderer.cpp" />
     <ClCompile Include="Source\ECS\Systems\AnimationSystem.cpp" />
     <ClCompile Include="Source\ECS\Systems\ControllerSystem.cpp" />
     <ClCompile Include="Source\ECS\Systems\DebugCameraSystem.cpp" />
@@ -46,11 +44,7 @@
     <ClCompile Include="Source\Editor\HierarchyWindow.cpp" />
     <ClCompile Include="Source\Editor\InspectorWindow.cpp" />
     <ClCompile Include="Source\Editor\ProjectWindow.cpp" />
-    <ClCompile Include="Source\Game\DamagedHelmet.cpp" />
-    <ClCompile Include="Source\Game\Enemy.cpp" />
-    <ClCompile Include="Source\Game\Player.cpp" />
     <ClCompile Include="Source\Game\SceneGame.cpp" />
-    <ClCompile Include="Source\Game\Stage.cpp" />
     <ClCompile Include="Source\Rendering\GBuffer.cpp" />
     <ClCompile Include="Source\Rendering\LightManager.cpp" />
     <ClCompile Include="Source\Rendering\SkyBox.cpp" />
@@ -74,9 +68,6 @@
     <ClInclude Include="Source\Core\Scene.h" />
     <ClInclude Include="Source\Core\SceneContext.h" />
     <ClInclude Include="Source\Core\SceneManager.h" />
-    <ClInclude Include="Source\Core\ShaderPass.h" />
-    <ClInclude Include="Source\Core\ShaderPassLibrary.h" />
-    <ClInclude Include="Source\DebugRenderer\DebugRenderer.h" />
     <ClInclude Include="Source\ECS\Components\AnimatorComponent.h" />
     <ClInclude Include="Source\ECS\Components\BaseCameraComponent.h" />
     <ClInclude Include="Source\ECS\Components\ControllerComponent.h" />
@@ -84,7 +75,6 @@
     <ClInclude Include="Source\ECS\Components\FreeCameraComponent.h" />
     <ClInclude Include="Source\ECS\Components\GameCameraComponent.h" />
     <ClInclude Include="Source\ECS\Components\InputComponent.h" />
-    <ClInclude Include="Source\ECS\Components\MaterialComponent.h" />
     <ClInclude Include="Source\ECS\Components\MeshComponent.h" />
     <ClInclude Include="Source\ECS\Components\MovementComponent.h" />
     <ClInclude Include="Source\ECS\Components\SkinnedMeshComponent.h" />
@@ -105,14 +95,7 @@
     <ClInclude Include="Source\Editor\HierarchyWindow.h" />
     <ClInclude Include="Source\Editor\InspectorWindow.h" />
     <ClInclude Include="Source\Editor\ProjectWindow.h" />
-    <ClInclude Include="Source\Game\Character.h" />
-    <ClInclude Include="Source\Game\Actor.h" />
-    <ClInclude Include="Source\Game\DamagedHelmet.h" />
-    <ClInclude Include="Source\Game\Enemy.h" />
-    <ClInclude Include="Source\Game\Object.h" />
-    <ClInclude Include="Source\Game\Player.h" />
     <ClInclude Include="Source\Game\SceneGame.h" />
-    <ClInclude Include="Source\Game\Stage.h" />
     <ClInclude Include="Source\Rendering\GBuffer.h" />
     <ClInclude Include="Source\Rendering\LightManager.h" />
     <ClInclude Include="Source\Rendering\SkyBox.h" />

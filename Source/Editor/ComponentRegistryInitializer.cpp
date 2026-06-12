@@ -8,7 +8,6 @@
 
 #include "ECS/Components/TransformComponent.h"
 #include "ECS/Components/MeshComponent.h"
-#include "ECS/Components/MaterialComponent.h"
 
 #include "ECS/Components/InputComponent.h"
 #include "ECS/Components/ControllerComponent.h"
