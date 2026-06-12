@@ -17,6 +17,9 @@ struct EditorContext
 
     // カメラモード
     CameraMode cameraMode = CameraMode::Debug;
+    // 右クリックを押したか
+    bool rightClickPressed = false;  
+
 
     std::string GetName(entt::entity e) const
     {

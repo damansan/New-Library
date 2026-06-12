@@ -62,7 +62,6 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Core\framework.h
 #include "Core/ImGuiManager.h"
 #include "Core/SceneManager.h"
 #include "Core/Camera.h"
-#include "Core/FreeCameraController.h"
 
 #include "Resource/ResourceManager.h"
 
@@ -71,7 +70,6 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Core\framework.h
 #include "Editor/HierarchyWindow.h"
 #include "Editor/InspectorWindow.h"
 
-#include "ECS/Systems/CameraSystem.h"
 
 // ƒEƒBƒ“ƒhƒEƒTƒCƒY
 #define SCREEN_WIDTH 1280
@@ -117,10 +115,6 @@ private:
 	ResourceManager resourceManager;
 	// CameraƒNƒ‰ƒX
 	Camera camera;
-	// FreeCameraControllerƒNƒ‰ƒX
-	FreeCameraController  freeCameraController;
-	// CameraSystem
-	CameraSystem cameraSystem;
 
 	// Editor
 	EditorContext  editorContext;
@@ -557,12 +551,6 @@ void framework::update(float elapsedTime)
 	{
 		// ‚»‚êˆÈŠO‚ÍƒQ[ƒ€ƒJƒƒ‰
 		editorContext.cameraMode = CameraMode::Game;
-	}
-
-	// ƒJƒƒ‰ƒ‚[ƒh‚É‰‚¶‚ÄXV
-	if (editorContext.cameraMode == CameraMode::Debug)
-	{
-		freeCameraController.Update(elapsedTime, camera);
 	}
 
 	// ƒRƒ“ƒeƒLƒXƒg¶¬
@@ -1654,14 +1642,49 @@ struct AnimatorComponent
     bool        isBlending{ false }; // ãƒ–ãƒ¬ãƒ³ãƒ‰ä¸­ãƒ•ãƒ©ã‚°
 }; 
  
-===== CameraComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\CameraComponent.h 
+===== BaseCameraComponent.h ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\BaseCameraComponent.h 
 #pragma once
-#include "entt.hpp"
 #include <DirectXMath.h>
 
-struct CameraComponent
+// ƒJƒƒ‰ƒRƒ“ƒ|[ƒlƒ“ƒg‚Ì‹¤’Êƒf[ƒ^
+struct BaseCameraComponent
 {
+    DirectX::XMFLOAT3 currentEye = { 0.0f, 5.0f, 10.0f };
+    DirectX::XMFLOAT3 currentTarget = { 0.0f, 0.0f,  0.0f };
+};
+ 
+ 
+===== FreeCameraComponent.h ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\FreeCameraComponent.h 
+#pragma once
+#include <windows.h>
+#include "BaseCameraComponent.h"
+
+// ƒfƒoƒbƒO—pƒtƒŠ[ƒJƒƒ‰ƒRƒ“ƒ|[ƒlƒ“ƒg
+struct FreeCameraComponent
+{
+    BaseCameraComponent base;  // ‹¤’Êƒf[ƒ^ieye, targetj
+
+    float cameraSpeed = 5.0f;
+    float yaw = 0.0f;
+    float pitch = 0.0f;
+    bool  firstMouse = true;
+    POINT lastMousePos = {};
+}; 
+ 
+===== GameCameraComponent.h ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\GameCameraComponent.h 
+#pragma once
+#include <DirectXMath.h>
+#include "entt.hpp"
+#include "BaseCameraComponent.h"
+
+// ƒQ[ƒ€ƒJƒƒ‰ƒRƒ“ƒ|[ƒlƒ“ƒg
+struct GameCameraComponent
+{
+    BaseCameraComponent base;  // ‹¤’Êƒf[ƒ^ieye, targetj
+
     // ƒJƒƒ‰‚Ìí—Ş
     enum class Mode
     {
@@ -1675,17 +1698,11 @@ struct CameraComponent
     entt::entity target = entt::null;
 
     // ’Ç]ƒpƒ‰ƒ[ƒ^
-    float distance = 5.0f; // ‘ÎÛ‚©‚ç‚Ì‹——£
-    float height = 2.0f;   // ‘ÎÛ‚©‚ç‚Ì‚‚³
-    float yaw = 0.0f;      // …•½Šp
-    float pitch = 0.3f;    // ‚’¼Špi­‚µŒ©‰º‚ë‚·j
-
-    // ’Ç]‚ÌŠŠ‚ç‚©‚³i0‚É‹ß‚¢‚Ù‚Ç’x‚ê‚Ä’Ç]j
+    float distance = 5.0f;
+    float height = 2.0f;
+    float yaw = 0.0f;
+    float pitch = 0.3f;
     float followSpeed = 10.0f;
-
-    // Œ»İ‚ÌƒJƒƒ‰ˆÊ’ui•âŠÔ—pj
-    DirectX::XMFLOAT3 currentEye = { 0, 0, 0 };
-    DirectX::XMFLOAT3 currentTarget = { 0, 0, 0 };
 }; 
  
 ===== InputComponent.h ===== 
@@ -1897,30 +1914,52 @@ private:
 		std::vector<std::vector<DirectX::XMFLOAT4X4>>& boneTransforms);
 }; 
  
-===== CameraSystem.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\CameraSystem.h 
+===== DebugCameraSystem.h ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\DebugCameraSystem.h 
 #pragma once
 #include "entt.hpp"
 #include "Core/Camera.h"
-#include "ECS/Components/CameraComponent.h"
-#include "ECS/Components/TransformComponent.h"
+#include "ECS/Components/FreeCameraComponent.h"
 
-class CameraSystem
+class DebugCameraSystem
 {
 public:
-    // ƒJƒƒ‰XV
+    // ƒtƒŠ[ƒJƒƒ‰‚ÌXV
     void Update(entt::registry& registry, float elapsedTime);
 
-    // CameraƒNƒ‰ƒX‚ÉŒ‹‰Ê‚ğ”½‰f
+    // Camera ƒNƒ‰ƒX‚ÉŒ‹‰Ê‚ğ”½‰f
+    void ApplyToCamera(entt::registry& registry, Camera& camera);
+
+private:
+    // ƒtƒŠ[ƒJƒƒ‰XVˆ—
+    void UpdateFreeCamera(FreeCameraComponent& free, float elapsedTime);
+}; 
+ 
+===== GameCameraSystem.h ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\GameCameraSystem.h 
+#pragma once
+#include "entt.hpp"
+#include "Core/Camera.h"
+#include "ECS/Components/GameCameraComponent.h"
+#include "ECS/Components/TransformComponent.h"
+#include "ECS/Components/InputComponent.h"
+
+class GameCameraSystem
+{
+public:
+    // ƒQ[ƒ€ƒJƒƒ‰‚ÌXV
+    void Update(entt::registry& registry, float elapsedTime);
+
+    // Camera ƒNƒ‰ƒX‚ÉŒ‹‰Ê‚ğ”½‰f
     void ApplyToCamera(entt::registry& registry, Camera& camera);
 
 private:
     // ’Ç]ƒJƒƒ‰
-    void UpdateFollow(CameraComponent& cam, const TransformComponent& target, float elapsedTime);
+    void UpdateFollow(GameCameraComponent& cam, const TransformComponent& target, float elapsedTime);
     // ’‹ƒJƒƒ‰
-    void UpdateLookAt(CameraComponent& cam, const TransformComponent& target, float elapsedTime);
+    void UpdateLookAt(GameCameraComponent& cam, const TransformComponent& target, float elapsedTime);
     // ŒÅ’èƒJƒƒ‰
-    void UpdateFixed(CameraComponent& cam, const TransformComponent& target, float elapsedTime);
+    void UpdateFixed(GameCameraComponent& cam, const TransformComponent& target, float elapsedTime);
 }; 
  
 ===== InputSystem.h ===== 
@@ -2490,34 +2529,176 @@ void AnimationSystem::CalcBoneTransforms(
 }
  
  
-===== CameraSystem.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\CameraSystem.cpp 
-#include "CameraSystem.h"
-#include "ECS/Components/TransformComponent.h"
-#include "ECS/Components/InputComponent.h"
+===== DebugCameraSystem.cpp ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\DebugCameraSystem.cpp 
+#include "DebugCameraSystem.h"
+#include <imgui.h>
+#include <algorithm>
+#include <cmath>
 
+void DebugCameraSystem::Update(entt::registry& registry, float elapsedTime)
+{
+    auto view = registry.view<FreeCameraComponent>();
+    view.each([&](auto entity, FreeCameraComponent& free)
+        {
+            UpdateFreeCamera(free, elapsedTime);
+        });
+}
+
+void DebugCameraSystem::ApplyToCamera(entt::registry& registry, Camera& camera)
+{
+    auto view = registry.view<FreeCameraComponent>();
+    for (auto entity : view)
+    {
+        auto& free = view.get<FreeCameraComponent>(entity);
+        camera.SetLookAt(
+            free.base.currentEye,
+            free.base.currentTarget,
+            { 0.0f, 1.0f, 0.0f }
+        );
+        // Å‰‚Ì1‚Â‚¾‚¯”½‰f
+        break;
+    }
+}
+
+void DebugCameraSystem::UpdateFreeCamera(FreeCameraComponent& free, float elapsedTime)
+{
+    // ImGuiƒEƒBƒ“ƒhƒE‘€ì’†‚Íˆ—‚µ‚È‚¢
+    if (ImGui::IsWindowFocused(ImGuiFocusedFlags_AnyWindow)) return;
+
+    // ‰EƒNƒŠƒbƒN’†‚¾‚¯‘€ì‚ğó‚¯•t‚¯‚é
+    if (!(GetAsyncKeyState(VK_RBUTTON) & 0x8000))
+    {
+        free.firstMouse = true;
+        return;
+    }
+
+    // ƒzƒC[ƒ‹‚Å‘¬“x•ÏX
+    float wheel = ImGui::GetIO().MouseWheel;
+    if (wheel != 0.0f)
+    {
+        free.cameraSpeed += wheel * 2.0f;
+        free.cameraSpeed = std::clamp(free.cameraSpeed, 0.1f, 100.0f);
+    }
+
+    float move = free.cameraSpeed * elapsedTime;
+
+    // currentEye / currentTarget ‚©‚ç‘OŒã¶‰E‚ğŒvZ
+    DirectX::XMVECTOR eyeV = DirectX::XMLoadFloat3(&free.base.currentEye);
+    DirectX::XMVECTOR targetV = DirectX::XMLoadFloat3(&free.base.currentTarget);
+    DirectX::XMVECTOR frontV = DirectX::XMVector3Normalize(
+        DirectX::XMVectorSubtract(targetV, eyeV));
+    DirectX::XMVECTOR upV = DirectX::XMVectorSet(0, 1, 0, 0);
+    DirectX::XMVECTOR rightV = DirectX::XMVector3Normalize(
+        DirectX::XMVector3Cross(frontV, upV));
+
+    DirectX::XMFLOAT3 front, right;
+    DirectX::XMStoreFloat3(&front, frontV);
+    DirectX::XMStoreFloat3(&right, rightV);
+
+    DirectX::XMFLOAT3 eye = free.base.currentEye;
+    DirectX::XMFLOAT3 target = free.base.currentTarget;
+
+    // WASD ‘OŒã¶‰EˆÚ“®
+    if (GetAsyncKeyState('W') & 0x8000)
+    {
+        eye.x += front.x * move; eye.y += front.y * move; eye.z += front.z * move;
+        target.x += front.x * move; target.y += front.y * move; target.z += front.z * move;
+    }
+    if (GetAsyncKeyState('S') & 0x8000)
+    {
+        eye.x -= front.x * move; eye.y -= front.y * move; eye.z -= front.z * move;
+        target.x -= front.x * move; target.y -= front.y * move; target.z -= front.z * move;
+    }
+    if (GetAsyncKeyState('D') & 0x8000)
+    {
+        eye.x -= right.x * move; eye.y -= right.y * move; eye.z -= right.z * move;
+        target.x -= right.x * move; target.y -= right.y * move; target.z -= right.z * move;
+    }
+    if (GetAsyncKeyState('A') & 0x8000)
+    {
+        eye.x += right.x * move; eye.y += right.y * move; eye.z += right.z * move;
+        target.x += right.x * move; target.y += right.y * move; target.z += right.z * move;
+    }
+
+    // QE ã‰ºˆÚ“®
+    if (GetAsyncKeyState('Q') & 0x8000) { eye.y += move; target.y += move; }
+    if (GetAsyncKeyState('E') & 0x8000) { eye.y -= move; target.y -= move; }
+
+    // ƒ}ƒEƒX‚Å‹“_‰ñ“]
+    POINT mousePos;
+    GetCursorPos(&mousePos);
+
+    if (free.firstMouse)
+    {
+        free.lastMousePos = mousePos;
+        free.firstMouse = false;
+
+        // Œ»İ‚ÌŒü‚«‚©‚ç yaw / pitch ‚ğ•œŒ³
+        DirectX::XMFLOAT3 dir =
+        {
+            target.x - eye.x,
+            target.y - eye.y,
+            target.z - eye.z
+        };
+        float len = sqrtf(dir.x * dir.x + dir.y * dir.y + dir.z * dir.z);
+        if (len > 0.0f)
+        {
+            dir.x /= len; dir.y /= len; dir.z /= len;
+        }
+        free.pitch = asinf(dir.y);
+        free.yaw = atan2f(dir.x, dir.z);
+    }
+
+    float dx = static_cast<float>(mousePos.x - free.lastMousePos.x) * 0.005f;
+    float dy = static_cast<float>(mousePos.y - free.lastMousePos.y) * 0.005f;
+
+    free.yaw += dx;
+    free.pitch -= dy;
+    free.pitch = std::clamp(free.pitch,
+        -DirectX::XM_PIDIV2 + 0.1f,
+        DirectX::XM_PIDIV2 - 0.1f);
+
+    free.lastMousePos = mousePos;
+
+    // ‘O•ûŒüƒxƒNƒgƒ‹‚©‚ç target ‚ğXV
+    DirectX::XMFLOAT3 direction;
+    direction.x = cosf(free.pitch) * sinf(free.yaw);
+    direction.y = sinf(free.pitch);
+    direction.z = cosf(free.pitch) * cosf(free.yaw);
+
+    target.x = eye.x + direction.x;
+    target.y = eye.y + direction.y;
+    target.z = eye.z + direction.z;
+
+    free.base.currentEye = eye;
+    free.base.currentTarget = target;
+} 
+ 
+===== GameCameraSystem.cpp ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\GameCameraSystem.cpp 
+#include "GameCameraSystem.h"
 #include <algorithm>
 
-// ƒJƒƒ‰XV
-void CameraSystem::Update(entt::registry& registry, float elapsedTime)
+void GameCameraSystem::Update(entt::registry& registry, float elapsedTime)
 {
-    auto view = registry.view<CameraComponent, TransformComponent>();
-    view.each([&](auto entity, CameraComponent& cam, TransformComponent& transform)
+    auto view = registry.view<GameCameraComponent, TransformComponent>();
+    view.each([&](auto entity, GameCameraComponent& cam, TransformComponent& transform)
         {
-            // ’Ç]‘ÎÛ‚ª‚¢‚È‚¯‚ê‚ÎƒXƒLƒbƒv
+            // ’Ç]‘ÎÛƒ`ƒFƒbƒN
             if (cam.target == entt::null) return;
             if (!registry.valid(cam.target)) return;
 
             auto* targetTransform = registry.try_get<TransformComponent>(cam.target);
             if (!targetTransform) return;
 
-            // ‰‰ñ‚¾‚¯ currentEye ‚Æ currentTarget ‚ğ‘¦À‚Éİ’è
-            if (cam.currentEye.x == 0.0f &&
-                cam.currentEye.y == 0.0f &&
-                cam.currentEye.z == 0.0f)
+            // ‰‰ñ‚¾‚¯ currentEye / currentTarget ‚ğ‘¦À‚Éİ’è
+            if (cam.base.currentEye.x == 0.0f &&
+                cam.base.currentEye.y == 0.0f &&
+                cam.base.currentEye.z == 0.0f)
             {
-                cam.currentTarget = targetTransform->position;
-                cam.currentEye =
+                cam.base.currentTarget = targetTransform->position;
+                cam.base.currentEye =
                 {
                     targetTransform->position.x,
                     targetTransform->position.y + cam.height,
@@ -2525,71 +2706,64 @@ void CameraSystem::Update(entt::registry& registry, float elapsedTime)
                 };
             }
 
-            // ’Ç]‘ÎÛ‚ÌInputComponent‚©‚çƒJƒƒ‰‘€ì“ü—Í‚ğæ“¾
+            // InputComponent ‚©‚çƒJƒƒ‰‘€ì“ü—Í‚ğæ“¾
             auto* input = registry.try_get<InputComponent>(cam.target);
             if (input)
             {
                 const float rotSpeed = 2.0f;
                 cam.yaw += input->cameraX * rotSpeed * elapsedTime;
                 cam.pitch += input->cameraY * rotSpeed * elapsedTime;
-
-                // pitch ‚Ì§ŒÀ
                 cam.pitch = std::clamp(cam.pitch, -0.8f, 1.0f);
             }
 
             switch (cam.mode)
             {
-            case CameraComponent::Mode::Follow:
+            case GameCameraComponent::Mode::Follow:
                 UpdateFollow(cam, *targetTransform, elapsedTime);
                 break;
-
-            case CameraComponent::Mode::LookAt:
+            case GameCameraComponent::Mode::LookAt:
                 UpdateLookAt(cam, *targetTransform, elapsedTime);
                 break;
-
-            case CameraComponent::Mode::Fixed:
+            case GameCameraComponent::Mode::Fixed:
                 UpdateFixed(cam, *targetTransform, elapsedTime);
                 break;
             }
         });
 }
 
-// CameraƒNƒ‰ƒX‚ÉŒ‹‰Ê‚ğ”½‰f
-void CameraSystem::ApplyToCamera(entt::registry& registry, Camera& camera)
+void GameCameraSystem::ApplyToCamera(entt::registry& registry, Camera& camera)
 {
-    auto view = registry.view<CameraComponent>();
-
+    auto view = registry.view<GameCameraComponent>();
     for (auto entity : view)
     {
-        auto& cam = view.get<CameraComponent>(entity);
+        auto& cam = view.get<GameCameraComponent>(entity);
 
         // target ‚ª–¢İ’è‚È‚çƒXƒLƒbƒv
         if (cam.target == entt::null) return;
 
         // eye ‚Æ target ‚ª“¯‚¶ˆÊ’u‚È‚çƒXƒLƒbƒv
-        if (cam.currentEye.x == cam.currentTarget.x &&
-            cam.currentEye.y == cam.currentTarget.y &&
-            cam.currentEye.z == cam.currentTarget.z) return;
+        if (cam.base.currentEye.x == cam.base.currentTarget.x &&
+            cam.base.currentEye.y == cam.base.currentTarget.y &&
+            cam.base.currentEye.z == cam.base.currentTarget.z) return;
 
-        // Camera ƒNƒ‰ƒX‚É”½‰f
         camera.SetLookAt(
-            cam.currentEye,
-            cam.currentTarget,
+            cam.base.currentEye,
+            cam.base.currentTarget,
             { 0.0f, 1.0f, 0.0f }
         );
-
-        // Å‰‚ÉŒ©‚Â‚©‚Á‚½ƒJƒƒ‰‚ğg‚¤
+        // Å‰‚Ì1‚Â‚¾‚¯”½‰f
         break;
     }
 }
 
 // ’Ç]ƒJƒƒ‰
-void CameraSystem::UpdateFollow(CameraComponent& cam, const TransformComponent& target, float elapsedTime)
+void GameCameraSystem::UpdateFollow(
+    GameCameraComponent& cam,
+    const TransformComponent& target,
+    float elapsedTime)
 {
-    // ’Ç]‘ÎÛ‚ÌˆÊ’u
     DirectX::XMFLOAT3 targetPos = target.position;
 
-    // ƒJƒƒ‰‚Ì—‘zˆÊ’u‚ğŒvZ
     float sinYaw = sinf(cam.yaw);
     float cosYaw = cosf(cam.yaw);
     float cosPitch = cosf(cam.pitch);
@@ -2602,35 +2776,37 @@ void CameraSystem::UpdateFollow(CameraComponent& cam, const TransformComponent& 
         targetPos.z - cosYaw * cosPitch * cam.distance
     };
 
-    // ŠŠ‚ç‚©‚É•âŠÔ
     float t = 1.0f - powf(0.001f, elapsedTime * cam.followSpeed);
 
-    cam.currentEye.x += (idealEye.x - cam.currentEye.x) * t;
-    cam.currentEye.y += (idealEye.y - cam.currentEye.y) * t;
-    cam.currentEye.z += (idealEye.z - cam.currentEye.z) * t;
+    cam.base.currentEye.x += (idealEye.x - cam.base.currentEye.x) * t;
+    cam.base.currentEye.y += (idealEye.y - cam.base.currentEye.y) * t;
+    cam.base.currentEye.z += (idealEye.z - cam.base.currentEye.z) * t;
 
-    cam.currentTarget.x += (targetPos.x - cam.currentTarget.x) * t;
-    cam.currentTarget.y += ((targetPos.y + cam.height * 0.5f) - cam.currentTarget.y) * t;
-    cam.currentTarget.z += (targetPos.z - cam.currentTarget.z) * t;
+    cam.base.currentTarget.x += (targetPos.x - cam.base.currentTarget.x) * t;
+    cam.base.currentTarget.y += ((targetPos.y + cam.height * 0.5f) - cam.base.currentTarget.y) * t;
+    cam.base.currentTarget.z += (targetPos.z - cam.base.currentTarget.z) * t;
 }
 
 // ’‹ƒJƒƒ‰
-void CameraSystem::UpdateLookAt(CameraComponent& cam, const TransformComponent& target, float elapsedTime)
+void GameCameraSystem::UpdateLookAt(
+    GameCameraComponent& cam,
+    const TransformComponent& target,
+    float elapsedTime)
 {
-    // ˆÊ’uŒÅ’è‚Åƒ^[ƒQƒbƒg‚ğŒ©‚é
-    cam.currentTarget = target.position;
+    cam.base.currentTarget = target.position;
 }
 
 // ŒÅ’èƒJƒƒ‰
-void CameraSystem::UpdateFixed(CameraComponent& cam, const TransformComponent& target, float elapsedTime)
+void GameCameraSystem::UpdateFixed(
+    GameCameraComponent& cam,
+    const TransformComponent& target,
+    float elapsedTime)
 {
-    // ƒ^[ƒQƒbƒg‚¾‚¯’Ç‚¤
     float t = 1.0f - powf(0.001f, elapsedTime * cam.followSpeed);
-    cam.currentTarget.x += (target.position.x - cam.currentTarget.x) * t;
-    cam.currentTarget.y += (target.position.y - cam.currentTarget.y) * t;
-    cam.currentTarget.z += (target.position.z - cam.currentTarget.z) * t;
-}
- 
+    cam.base.currentTarget.x += (target.position.x - cam.base.currentTarget.x) * t;
+    cam.base.currentTarget.y += (target.position.y - cam.base.currentTarget.y) * t;
+    cam.base.currentTarget.z += (target.position.z - cam.base.currentTarget.z) * t;
+} 
  
 ===== InputSystem.cpp ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\InputSystem.cpp 
@@ -2769,13 +2945,13 @@ void InputSystem::UpdatePS5(InputComponent& input)
     float lx = ApplyDeadzone(ds5State.leftStick.x / 127.0f);
     float ly = ApplyDeadzone(ds5State.leftStick.y / 127.0f);
     input.moveX += lx;
-    input.moveZ += -ly; // Y è»¸åè»¢
+    input.moveZ += ly; // Y è»¸åè»¢
 
     // å³ã‚¹ãƒ†ã‚£ãƒƒã‚¯ï¼ˆã‚«ãƒ¡ãƒ©ï¼‰
     float rx = ApplyDeadzone(ds5State.rightStick.x / 127.0f);
     float ry = ApplyDeadzone(ds5State.rightStick.y / 127.0f);
     input.cameraX += rx;
-    input.cameraY += ry;
+    input.cameraY += -ry;
 
     // ãƒœã‚¿ãƒ³ï¼ˆÃ— = ã‚¸ãƒ£ãƒ³ãƒ—ã€â–¡ = æ”»æ’ƒã€â—‹ = å›é¿ï¼‰
     input.jump |= (ds5State.buttonsAndDpad & DS5W_ISTATE_BTX_CROSS) != 0;
@@ -2884,11 +3060,11 @@ void MovementSystem::Update(entt::registry& registry, float elapsedTime, const S
         MovementComponent& movement,
         TransformComponent& transform)
         {
-            // --- ƒJƒƒ‰‚Ì‘OŒã¶‰EƒxƒNƒgƒ‹‚ğæ“¾ ---
+            // ƒJƒƒ‰‚Ì‘OŒã¶‰EƒxƒNƒgƒ‹æ“¾ 
             DirectX::XMFLOAT3 front = context.camera->GetFront();
             DirectX::XMFLOAT3 right = context.camera->GetRight();
 
-            // --- XZ•½–Ê‚Å³‹K‰»‚µ’¼‚·iQlƒR[ƒh‚Æ“¯‚¶ˆ—j---
+            // XZ•½–Ê‚Å³‹K‰»‚µ’¼‚·
             float frontLen = sqrtf(front.x * front.x + front.z * front.z);
             float rightLen = sqrtf(right.x * right.x + right.z * right.z);
 
@@ -2897,11 +3073,11 @@ void MovementSystem::Update(entt::registry& registry, float elapsedTime, const S
             float rightX = (rightLen > 0.0f) ? right.x / rightLen : 0.0f;
             float rightZ = (rightLen > 0.0f) ? right.z / rightLen : 0.0f;
 
-            // --- ˆÚ“®ƒxƒNƒgƒ‹‚ğ‡¬ ---
+            // ˆÚ“®ƒxƒNƒgƒ‹‚ğ‡¬
             float vecX = frontX * input.moveZ + rightX * input.moveX;
             float vecZ = frontZ * input.moveZ + rightZ * input.moveX;
 
-            // --- ˆÚ“®ƒxƒNƒgƒ‹‚ğ³‹K‰»‚µ‚Ä‘¬“x‚ğ‚©‚¯‚é ---
+            // ˆÚ“®ƒxƒNƒgƒ‹‚ğ³‹K‰»‚µ‚Ä‘¬“x‚ğ‚©‚¯‚é
             float vecLen = sqrtf(vecX * vecX + vecZ * vecZ);
             if (vecLen > 0.0f)
             {
@@ -2909,26 +3085,20 @@ void MovementSystem::Update(entt::registry& registry, float elapsedTime, const S
                 transform.position.z += (vecZ / vecLen) * movement.moveSpeed * elapsedTime;
             }
 
-            // --- …•½ˆÚ“® ---
-            transform.position.x += (front.x * input.moveZ + right.x * input.moveX)
-                * movement.moveSpeed * elapsedTime;
-            transform.position.z += (front.z * input.moveZ + right.z * input.moveZ)
-                * movement.moveSpeed * elapsedTime;
-
-            // --- d—Í ---
+            // d—Í
             movement.velocity.y += movement.gravity * elapsedTime;
 
-            // --- ƒWƒƒƒ“ƒv ---
+            // ƒWƒƒƒ“ƒv
             if (input.jump && movement.isGrounded)
             {
                 movement.velocity.y = movement.jumpPower;
                 movement.isGrounded = false;
             }
 
-            // --- ‚’¼ˆÚ“®‚Ì”½‰f ---
+            // ‚’¼ˆÚ“®‚Ì”½‰f
             transform.position.y += movement.velocity.y * elapsedTime;
 
-            // --- ‰¼‚Ì’n–Ê”»’èiy=0‚Å~‚ß‚éj ---
+            // ‰¼‚Ì’n–Ê”»’è
             if (transform.position.y <= 0.0f)
             {
                 transform.position.y = 0.0f;
@@ -3774,7 +3944,8 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Editor\ComponentRegistryInitia
 #include "ECS/Components/MovementComponent.h"
 #include "ECS/Components/AnimatorComponent.h"
 #include "ECS/Components/SkinnedMeshComponent.h"
-#include "ECS/Components/CameraComponent.h"
+#include "ECS/Components/FreeCameraComponent.h"
+#include "ECS/Components/GameCameraComponent.h"
 
 
 void ComponentRegistryInitializer::Initialize()
@@ -3975,50 +4146,66 @@ void ComponentRegistryInitializer::Initialize()
             }
         });
 
-    // ƒJƒƒ‰ƒRƒ“ƒ|[ƒlƒ“ƒg‚Ì“o˜^
-    ComponentRegistry::Register("Camera",
+    // ƒtƒŠ[ƒJƒƒ‰ƒRƒ“ƒ|[ƒlƒ“ƒg‚Ì“o˜^
+    REGISTER_COMPONENT(FreeCameraComponent, "FreeCamera",
+        [](auto& reg, auto e)
         {
-            "Camera",
+            auto* cam = reg.try_get<FreeCameraComponent>(e);
+            if (!cam) return;
+
+            if (ImGui::CollapsingHeader("FreeCamera", ImGuiTreeNodeFlags_DefaultOpen))
+            {
+                ImGui::DragFloat("Camera Speed", &cam->cameraSpeed, 0.1f, 0.1f, 100.0f);
+                ImGui::DragFloat("Yaw", &cam->yaw, 0.01f);
+                ImGui::DragFloat("Pitch", &cam->pitch, 0.01f, -1.5f, 1.5f);
+                ImGui::Separator();
+                ImGui::DragFloat3("Eye", &cam->base.currentEye.x, 0.1f);
+                ImGui::DragFloat3("Target", &cam->base.currentTarget.x, 0.1f);
+            }
+        }); 
+
+    // ƒQ[ƒ€ƒJƒƒ‰ƒRƒ“ƒ|[ƒlƒ“ƒg‚Ì“o˜^
+    ComponentRegistry::Register("GameCamera",
+        {
+            "GameCamera",
             [](auto& reg, auto e)
             {
-                if (reg.any_of<CameraComponent>(e)) return;
-                reg.emplace<CameraComponent>(e);
+                if (!reg.any_of<GameCameraComponent>(e))
+                    reg.emplace<GameCameraComponent>(e);
             },
-            [](auto& reg, auto e) { reg.remove<CameraComponent>(e); },
-            [](auto& reg, auto e) { return reg.any_of<CameraComponent>(e); },
+            [](auto& reg, auto e) { reg.remove<GameCameraComponent>(e); },
+            [](auto& reg, auto e) { return reg.any_of<GameCameraComponent>(e); },
             [](auto& reg, auto e)
             {
-                auto* cam = reg.try_get<CameraComponent>(e);
+                auto* cam = reg.try_get<GameCameraComponent>(e);
                 if (!cam) return;
 
-                if (ImGui::CollapsingHeader("Camera", ImGuiTreeNodeFlags_DefaultOpen))
+                if (ImGui::CollapsingHeader("GameCamera", ImGuiTreeNodeFlags_DefaultOpen))
                 {
                     // ƒ‚[ƒh‘I‘ğ
                     const char* modeNames[] = { "Follow", "LookAt", "Fixed" };
                     int currentMode = (int)cam->mode;
                     if (ImGui::Combo("Mode", &currentMode, modeNames, 3))
                     {
-                        cam->mode = (CameraComponent::Mode)currentMode;
+                        cam->mode = (GameCameraComponent::Mode)currentMode;
                     }
-                    
-                    // ƒ‰ƒxƒ‹•\¦
+
+                    // ’Ç]‘ÎÛiƒhƒ‰ƒbƒO•ƒhƒƒbƒv‚Åİ’èj
                     ImGui::Text("Target");
                     ImGui::SameLine();
 
-                    // ’Ç]‘ÎÛ•\¦
                     std::string targetName = "None";
                     if (cam->target != entt::null && reg.valid(cam->target))
                     {
                         targetName = "Entity " + std::to_string((uint32_t)cam->target);
                     }
 
-                    // •\¦—pƒeƒLƒXƒgƒ{ƒbƒNƒX
                     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - 60.0f);
                     ImGui::InputText("##target", targetName.data(),
                         targetName.size() + 1,
                         ImGuiInputTextFlags_ReadOnly);
-                    
-                    // InputText ‚Ì’¼Œã‚Éƒhƒƒbƒvƒ^[ƒQƒbƒg‚ğİ’è
+
+                    // ƒhƒ‰ƒbƒO•ƒhƒƒbƒv‚Å’Ç]‘ÎÛ‚ğİ’è
                     if (ImGui::BeginDragDropTarget())
                     {
                         if (const ImGuiPayload* payload =
@@ -4032,22 +4219,25 @@ void ComponentRegistryInitializer::Initialize()
                     }
 
                     ImGui::SameLine();
-
-                    // ƒNƒŠƒAƒ{ƒ^ƒ“
                     if (ImGui::Button("Clear"))
                     {
                         cam->target = entt::null;
                     }
 
                     // ƒpƒ‰ƒ[ƒ^
-                    ImGui::DragFloat("Distance", &cam->distance, 0.1f, 0.0f, 50.0f);
-                    ImGui::DragFloat("Height", &cam->height, 0.1f, 0.0f, 20.0f);
+                    ImGui::DragFloat("Distance",     &cam->distance,    0.1f, 0.0f, 50.0f);
+                    ImGui::DragFloat("Height",       &cam->height,      0.1f, 0.0f, 20.0f);
                     ImGui::DragFloat("Follow Speed", &cam->followSpeed, 0.1f, 0.1f, 30.0f);
-                    ImGui::DragFloat("Pitch", &cam->pitch, 0.01f, -1.5f, 1.5f);
+                    ImGui::DragFloat("Pitch",        &cam->pitch,       0.01f, -1.5f, 1.5f);
+                    ImGui::Separator();
+                    ImGui::DragFloat3("Eye",    &cam->base.currentEye.x,    0.1f);
+                    ImGui::DragFloat3("Target", &cam->base.currentTarget.x, 0.1f);
                 }
             }
         });
-} 
+}
+
+ 
  
 ===== HierarchyWindow.cpp ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\Editor\HierarchyWindow.cpp 
@@ -4648,7 +4838,8 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Game\SceneGame.h
 #include "ECS/Systems/AnimationSystem.h"
 #include "ECS/Systems/InputSystem.h"    
 #include "ECS/Systems/MovementSystem.h" 
-#include "ECS/Systems/CameraSystem.h"
+#include "ECS/Systems/DebugCameraSystem.h"
+#include "ECS/Systems/GameCameraSystem.h" 
 
 #include "DebugRenderer/DebugRenderer.h"
 
@@ -4677,14 +4868,13 @@ private:
 	AnimationSystem animationSystem;
 	InputSystem     inputSystem;
 	MovementSystem  movementSystem;
+	DebugCameraSystem debugCameraSystem;
+	GameCameraSystem  gameCameraSystem; 
 
 	DebugRenderer debugRenderer;
 
 	SkyBox skyBox;
 	LightManager lightManager;
-
-	// ƒJƒƒ‰
-	CameraSystem cameraSystem;
 
 	// ƒXƒe[ƒW
 	std::unique_ptr<Stage> stage;
@@ -4914,13 +5104,20 @@ void SceneGame::Update(float elapsedTime, const SceneContext& context)
 		animationSystem.Update(registry, elapsedTime);
 	}
 
-
-	// ã‚²ãƒ¼ãƒ ã‚«ãƒ¡ãƒ©ãƒ¢ãƒ¼ãƒ‰ã®ã¨ãã ã‘ CameraSystem ã‚’æ›´æ–°
-	if (context.cameraMode == CameraMode::Game)
 	{
-		cameraSystem.Update(registry, elapsedTime);
-		cameraSystem.ApplyToCamera(registry, *context.camera);
+		ZoneScopedN("CameraSystem");
+		if (context.cameraMode == CameraMode::Debug)
+		{
+			debugCameraSystem.Update(registry, elapsedTime);
+			debugCameraSystem.ApplyToCamera(registry, *context.camera);
+		}
+		else
+		{
+			gameCameraSystem.Update(registry, elapsedTime);
+			gameCameraSystem.ApplyToCamera(registry, *context.camera);
+		}
 	}
+
 
 	{
 		ZoneScopedN("Stage::Update");

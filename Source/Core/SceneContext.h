@@ -24,4 +24,5 @@ struct SceneContext
     UINT screenHeight = 0;
 
     CameraMode cameraMode = CameraMode::Debug;
+    EditorContext* editorContext = nullptr;
 };

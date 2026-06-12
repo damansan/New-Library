@@ -52,22 +52,15 @@ void framework::update(float elapsedTime)
 {
 	ZoneScoped;
 
-	// 右クリック中はデバッグカメラ
-	if (GetAsyncKeyState(VK_RBUTTON) & 0x8000)
+	// 右クリックを押した瞬間Debugモードに切り替え
+	static bool prevRButton = false;
+	bool currRButton = (GetAsyncKeyState(VK_RBUTTON) & 0x8000) != 0;
+	if (currRButton && !prevRButton)
 	{
 		editorContext.cameraMode = CameraMode::Debug;
 	}
-	else
-	{
-		// それ以外はゲームカメラ
-		editorContext.cameraMode = CameraMode::Game;
-	}
+	prevRButton = currRButton;
 
-	// カメラモードに応じて更新
-	if (editorContext.cameraMode == CameraMode::Debug)
-	{
-		freeCameraController.Update(elapsedTime, camera);
-	}
 
 	// コンテキスト生成
 	SceneContext context;
@@ -78,6 +71,7 @@ void framework::update(float elapsedTime)
 	context.view = camera.GetView();
 	context.projection = camera.GetProjection();
 	context.cameraMode = editorContext.cameraMode;
+	context.editorContext = &editorContext;
 
 	// シーン更新
 	sceneManager.Update(elapsedTime, context);

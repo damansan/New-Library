@@ -11,7 +11,6 @@
 #include "Core/ImGuiManager.h"
 #include "Core/SceneManager.h"
 #include "Core/Camera.h"
-#include "Core/FreeCameraController.h"
 
 #include "Resource/ResourceManager.h"
 
@@ -20,7 +19,6 @@
 #include "Editor/HierarchyWindow.h"
 #include "Editor/InspectorWindow.h"
 
-#include "ECS/Systems/CameraSystem.h"
 
 // ウィンドウサイズ
 #define SCREEN_WIDTH 1280
@@ -66,10 +64,6 @@ private:
 	ResourceManager resourceManager;
 	// Cameraクラス
 	Camera camera;
-	// FreeCameraControllerクラス
-	FreeCameraController  freeCameraController;
-	// CameraSystem
-	CameraSystem cameraSystem;
 
 	// Editor
 	EditorContext  editorContext;

@@ -86,9 +86,6 @@
     <Filter Include="Sources\Core\Camera">
       <UniqueIdentifier>{76dfb451-1d60-4db8-aa17-60004c934c2c}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Sources\Core\Camera\FreeCameraController">
-      <UniqueIdentifier>{829fbafd-c251-44a7-95f4-aa7ab697f542}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Shader\Base">
       <UniqueIdentifier>{0478ecab-c2c7-42fb-83f7-f2de25f18e85}</UniqueIdentifier>
     </Filter>
@@ -200,8 +197,17 @@
     <Filter Include="Sources\Editor\ComponentRegistry">
       <UniqueIdentifier>{0284df2a-6828-42c8-96ed-1fa09f18d31a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Sources\ECS\Systems\CameraSystem">
-      <UniqueIdentifier>{6e60bc16-b148-4742-9df3-be9312b90e4f}</UniqueIdentifier>
+    <Filter Include="Sources\ECS\Components\Camera">
+      <UniqueIdentifier>{43f4a366-0d26-43d8-97c6-46e684118e7e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\ECS\Systems\Camera">
+      <UniqueIdentifier>{6852dba2-f126-4ff7-82ae-cab96735ede9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\ECS\Systems\Camera\DebugCameraSystem">
+      <UniqueIdentifier>{a54904db-f57a-495e-b0cd-8ed663a0f187}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\ECS\Systems\Camera\GameCameraSystem">
+      <UniqueIdentifier>{4b9767af-ddd1-4243-a944-103e5fc19c1c}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -265,9 +271,6 @@
     <ClCompile Include="Source\Core\Camera.cpp">
       <Filter>Sources\Core\Camera</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Core\FreeCameraController.cpp">
-      <Filter>Sources\Core\Camera\FreeCameraController</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Resource\GLTFConverter.cpp">
       <Filter>Sources\Resource\GLTFConverter</Filter>
     </ClCompile>
@@ -328,8 +331,11 @@
     <ClCompile Include="Source\Editor\ComponentRegistryInitializer.cpp">
       <Filter>Sources\Editor\ComponentRegistry</Filter>
     </ClCompile>
-    <ClCompile Include="Source\ECS\Systems\CameraSystem.cpp">
-      <Filter>Sources\ECS\Systems\CameraSystem</Filter>
+    <ClCompile Include="Source\ECS\Systems\DebugCameraSystem.cpp">
+      <Filter>Sources\ECS\Systems\Camera\DebugCameraSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\ECS\Systems\GameCameraSystem.cpp">
+      <Filter>Sources\ECS\Systems\Camera\GameCameraSystem</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -386,9 +392,6 @@
     </ClInclude>
     <ClInclude Include="Source\Core\Camera.h">
       <Filter>Sources\Core\Camera</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Core\FreeCameraController.h">
-      <Filter>Sources\Core\Camera\FreeCameraController</Filter>
     </ClInclude>
     <ClInclude Include="Source\Resource\GLTFData.h">
       <Filter>Sources\Resource\GLTFData</Filter>
@@ -495,11 +498,20 @@
     <ClInclude Include="Source\ECS\Components\TransformComponent.h">
       <Filter>Sources\ECS\Components</Filter>
     </ClInclude>
-    <ClInclude Include="Source\ECS\Components\CameraComponent.h">
-      <Filter>Sources\ECS\Components</Filter>
+    <ClInclude Include="Source\ECS\Components\BaseCameraComponent.h">
+      <Filter>Sources\ECS\Components\Camera</Filter>
     </ClInclude>
-    <ClInclude Include="Source\ECS\Systems\CameraSystem.h">
-      <Filter>Sources\ECS\Systems\CameraSystem</Filter>
+    <ClInclude Include="Source\ECS\Components\FreeCameraComponent.h">
+      <Filter>Sources\ECS\Components\Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ECS\Components\GameCameraComponent.h">
+      <Filter>Sources\ECS\Components\Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ECS\Systems\DebugCameraSystem.h">
+      <Filter>Sources\ECS\Systems\Camera\DebugCameraSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ECS\Systems\GameCameraSystem.h">
+      <Filter>Sources\ECS\Systems\Camera\GameCameraSystem</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

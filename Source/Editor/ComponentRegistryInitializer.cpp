@@ -13,7 +13,8 @@
 #include "ECS/Components/MovementComponent.h"
 #include "ECS/Components/AnimatorComponent.h"
 #include "ECS/Components/SkinnedMeshComponent.h"
-#include "ECS/Components/CameraComponent.h"
+#include "ECS/Components/FreeCameraComponent.h"
+#include "ECS/Components/GameCameraComponent.h"
 
 
 void ComponentRegistryInitializer::Initialize()
@@ -214,50 +215,66 @@ void ComponentRegistryInitializer::Initialize()
             }
         });
 
-    // カメラコンポーネントの登録
-    ComponentRegistry::Register("Camera",
+    // フリーカメラコンポーネントの登録
+    REGISTER_COMPONENT(FreeCameraComponent, "FreeCamera",
+        [](auto& reg, auto e)
         {
-            "Camera",
+            auto* cam = reg.try_get<FreeCameraComponent>(e);
+            if (!cam) return;
+
+            if (ImGui::CollapsingHeader("FreeCamera", ImGuiTreeNodeFlags_DefaultOpen))
+            {
+                ImGui::DragFloat("Camera Speed", &cam->cameraSpeed, 0.1f, 0.1f, 100.0f);
+                ImGui::DragFloat("Yaw", &cam->yaw, 0.01f);
+                ImGui::DragFloat("Pitch", &cam->pitch, 0.01f, -1.5f, 1.5f);
+                ImGui::Separator();
+                ImGui::DragFloat3("Eye", &cam->base.currentEye.x, 0.1f);
+                ImGui::DragFloat3("Target", &cam->base.currentTarget.x, 0.1f);
+            }
+        }); 
+
+    // ゲームカメラコンポーネントの登録
+    ComponentRegistry::Register("GameCamera",
+        {
+            "GameCamera",
             [](auto& reg, auto e)
             {
-                if (reg.any_of<CameraComponent>(e)) return;
-                reg.emplace<CameraComponent>(e);
+                if (!reg.any_of<GameCameraComponent>(e))
+                    reg.emplace<GameCameraComponent>(e);
             },
-            [](auto& reg, auto e) { reg.remove<CameraComponent>(e); },
-            [](auto& reg, auto e) { return reg.any_of<CameraComponent>(e); },
+            [](auto& reg, auto e) { reg.remove<GameCameraComponent>(e); },
+            [](auto& reg, auto e) { return reg.any_of<GameCameraComponent>(e); },
             [](auto& reg, auto e)
             {
-                auto* cam = reg.try_get<CameraComponent>(e);
+                auto* cam = reg.try_get<GameCameraComponent>(e);
                 if (!cam) return;
 
-                if (ImGui::CollapsingHeader("Camera", ImGuiTreeNodeFlags_DefaultOpen))
+                if (ImGui::CollapsingHeader("GameCamera", ImGuiTreeNodeFlags_DefaultOpen))
                 {
                     // モード選択
                     const char* modeNames[] = { "Follow", "LookAt", "Fixed" };
                     int currentMode = (int)cam->mode;
                     if (ImGui::Combo("Mode", &currentMode, modeNames, 3))
                     {
-                        cam->mode = (CameraComponent::Mode)currentMode;
+                        cam->mode = (GameCameraComponent::Mode)currentMode;
                     }
-                    
-                    // ラベル表示
+
+                    // 追従対象（ドラッグ＆ドロップで設定）
                     ImGui::Text("Target");
                     ImGui::SameLine();
 
-                    // 追従対象表示
                     std::string targetName = "None";
                     if (cam->target != entt::null && reg.valid(cam->target))
                     {
                         targetName = "Entity " + std::to_string((uint32_t)cam->target);
                     }
 
-                    // 表示用テキストボックス
                     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - 60.0f);
                     ImGui::InputText("##target", targetName.data(),
                         targetName.size() + 1,
                         ImGuiInputTextFlags_ReadOnly);
-                    
-                    // InputText の直後にドロップターゲットを設定
+
+                    // ドラッグ＆ドロップで追従対象を設定
                     if (ImGui::BeginDragDropTarget())
                     {
                         if (const ImGuiPayload* payload =
@@ -271,19 +288,21 @@ void ComponentRegistryInitializer::Initialize()
                     }
 
                     ImGui::SameLine();
-
-                    // クリアボタン
                     if (ImGui::Button("Clear"))
                     {
                         cam->target = entt::null;
                     }
 
                     // パラメータ
-                    ImGui::DragFloat("Distance", &cam->distance, 0.1f, 0.0f, 50.0f);
-                    ImGui::DragFloat("Height", &cam->height, 0.1f, 0.0f, 20.0f);
+                    ImGui::DragFloat("Distance",     &cam->distance,    0.1f, 0.0f, 50.0f);
+                    ImGui::DragFloat("Height",       &cam->height,      0.1f, 0.0f, 20.0f);
                     ImGui::DragFloat("Follow Speed", &cam->followSpeed, 0.1f, 0.1f, 30.0f);
-                    ImGui::DragFloat("Pitch", &cam->pitch, 0.01f, -1.5f, 1.5f);
+                    ImGui::DragFloat("Pitch",        &cam->pitch,       0.01f, -1.5f, 1.5f);
+                    ImGui::Separator();
+                    ImGui::DragFloat3("Eye",    &cam->base.currentEye.x,    0.1f);
+                    ImGui::DragFloat3("Target", &cam->base.currentTarget.x, 0.1f);
                 }
             }
         });
 }
+

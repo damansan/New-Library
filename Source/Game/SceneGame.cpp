@@ -95,13 +95,39 @@ void SceneGame::Update(float elapsedTime, const SceneContext& context)
 		animationSystem.Update(registry, elapsedTime);
 	}
 
-
-	// ゲームカメラモードのときだけ CameraSystem を更新
-	if (context.cameraMode == CameraMode::Game)
 	{
-		cameraSystem.Update(registry, elapsedTime);
-		cameraSystem.ApplyToCamera(registry, *context.camera);
+		ZoneScopedN("CameraSystem");
+		if (context.cameraMode == CameraMode::Debug)
+		{
+			debugCameraSystem.Update(registry, elapsedTime);
+			debugCameraSystem.ApplyToCamera(registry, *context.camera);
+
+			// スティック入力があればGameモードに戻す
+			if (context.editorContext)
+			{
+				auto inputView = registry.view<InputComponent>();
+				for (auto entity : inputView)
+				{
+					auto& input = inputView.get<InputComponent>(entity);
+					const float threshold = 0.2f;
+					if (fabsf(input.moveX) > threshold ||
+						fabsf(input.moveZ) > threshold ||
+						fabsf(input.cameraX) > threshold ||
+						fabsf(input.cameraY) > threshold)
+					{
+						context.editorContext->cameraMode = CameraMode::Game;
+						break;
+					}
+				}
+			}
+		}
+		else
+		{
+			gameCameraSystem.Update(registry, elapsedTime);
+			gameCameraSystem.ApplyToCamera(registry, *context.camera);
+		}
 	}
+
 
 	{
 		ZoneScopedN("Stage::Update");
