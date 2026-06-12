@@ -34,6 +34,7 @@
     <ClCompile Include="Source\Core\ShaderPassLibrary.cpp" />
     <ClCompile Include="Source\DebugRenderer\DebugRenderer.cpp" />
     <ClCompile Include="Source\ECS\Systems\AnimationSystem.cpp" />
+    <ClCompile Include="Source\ECS\Systems\ControllerSystem.cpp" />
     <ClCompile Include="Source\ECS\Systems\DebugCameraSystem.cpp" />
     <ClCompile Include="Source\ECS\Systems\GameCameraSystem.cpp" />
     <ClCompile Include="Source\ECS\Systems\InputSystem.cpp" />
@@ -59,6 +60,7 @@
     <ClCompile Include="Source\Resource\Model.cpp" />
     <ClCompile Include="Source\Resource\ModelSerializer.cpp" />
     <ClCompile Include="Source\Resource\ResourceManager.cpp" />
+    <ClCompile Include="Source\Tool\ControllerToolWindow.cpp" />
     <ClCompile Include="Source\Utility\CerealHelper.cpp" />
     <ClCompile Include="Source\Utility\main.cpp" />
   </ItemGroup>
@@ -77,6 +79,8 @@
     <ClInclude Include="Source\DebugRenderer\DebugRenderer.h" />
     <ClInclude Include="Source\ECS\Components\AnimatorComponent.h" />
     <ClInclude Include="Source\ECS\Components\BaseCameraComponent.h" />
+    <ClInclude Include="Source\ECS\Components\ControllerComponent.h" />
+    <ClInclude Include="Source\ECS\Components\ControllerSettings.h" />
     <ClInclude Include="Source\ECS\Components\FreeCameraComponent.h" />
     <ClInclude Include="Source\ECS\Components\GameCameraComponent.h" />
     <ClInclude Include="Source\ECS\Components\InputComponent.h" />
@@ -88,6 +92,7 @@
     <ClInclude Include="Source\ECS\Components\Tags.h" />
     <ClInclude Include="Source\ECS\Components\TransformComponent.h" />
     <ClInclude Include="Source\ECS\Systems\AnimationSystem.h" />
+    <ClInclude Include="Source\ECS\Systems\ControllerSystem.h" />
     <ClInclude Include="Source\ECS\Systems\DebugCameraSystem.h" />
     <ClInclude Include="Source\ECS\Systems\GameCameraSystem.h" />
     <ClInclude Include="Source\ECS\Systems\InputSystem.h" />
@@ -118,6 +123,7 @@
     <ClInclude Include="Source\Resource\GpuResourceUtils.h" />
     <ClInclude Include="Source\Resource\ModelSerializer.h" />
     <ClInclude Include="Source\Resource\ResourceManager.h" />
+    <ClInclude Include="Source\Tool\ControllerToolWindow.h" />
     <ClInclude Include="Source\Utility\CerealHelper.h" />
     <ClInclude Include="Source\Utility\high_resolution_timer.h" />
     <ClInclude Include="Source\Utility\misc.h" />

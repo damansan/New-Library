@@ -75,8 +75,12 @@ void SceneGame::Update(float elapsedTime, const SceneContext& context)
 	ZoneScoped;
 	{
 		ZoneScopedN("InputSystem");
-		inputSystem.Update(registry,elapsedTime);
+		inputSystem.Update(registry, controllerSystem.GetSettings());
 	}
+	{
+		ZoneScopedN("ControllerSystem");
+		controllerSystem.Update(registry, elapsedTime);
+	} 
 	{
 		ZoneScopedN("MovementSystem");
 		movementSystem.Update(registry, elapsedTime, context);
@@ -256,6 +260,7 @@ void SceneGame::Render(const SceneContext& context)
 void SceneGame::RenderImGui()
 {
 #ifdef _DEBUG
-	player->RenderImGui();
+	//player->RenderImGui();
+	controllerToolWindow.Draw(registry, controllerSystem);
 #endif
 }

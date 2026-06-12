@@ -15,7 +15,7 @@
 #include "ECS/Components/SkinnedMeshComponent.h"
 #include "ECS/Components/FreeCameraComponent.h"
 #include "ECS/Components/GameCameraComponent.h"
-
+#include "ECS/Components/ControllerComponent.h"
 
 void ComponentRegistryInitializer::Initialize()
 {
@@ -301,6 +301,26 @@ void ComponentRegistryInitializer::Initialize()
                     ImGui::Separator();
                     ImGui::DragFloat3("Eye",    &cam->base.currentEye.x,    0.1f);
                     ImGui::DragFloat3("Target", &cam->base.currentTarget.x, 0.1f);
+                }
+            }
+        });
+
+    // コントローラーコンポーネントの登録
+    REGISTER_COMPONENT(ControllerComponent, "Controller",
+        [](auto& reg, auto e)
+        {
+            auto* ctrl = reg.try_get<ControllerComponent>(e);
+            if (!ctrl) return;
+            if (ImGui::CollapsingHeader("Controller", ImGuiTreeNodeFlags_DefaultOpen))
+            {
+                if (ctrl->connected)
+                {
+                    const char* typeName = ctrl->type == ControllerType::PS5 ? "PS5 DualSense" : "Xbox";
+                    ImGui::TextColored({ 0.3f, 1.0f, 0.3f, 1.0f }, u8"[%s] 接続中", typeName);
+                }
+                else
+                {
+                    ImGui::TextColored({ 0.6f, 0.6f, 0.6f, 1.0f }, u8"未接続");
                 }
             }
         });

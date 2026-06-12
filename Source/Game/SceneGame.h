@@ -2,10 +2,13 @@
 #include "Core/Scene.h"
 #include "ECS/Systems/RenderSystem.h"
 #include "ECS/Systems/AnimationSystem.h"
+#include "ECS/Systems/ControllerSystem.h" 
 #include "ECS/Systems/InputSystem.h"    
 #include "ECS/Systems/MovementSystem.h" 
 #include "ECS/Systems/DebugCameraSystem.h"
 #include "ECS/Systems/GameCameraSystem.h" 
+
+#include "Tool/ControllerToolWindow.h" 
 
 #include "DebugRenderer/DebugRenderer.h"
 
@@ -32,12 +35,15 @@ public:
 private:
 	RenderSystem renderSystem;
 	AnimationSystem animationSystem;
+	ControllerSystem  controllerSystem;
 	InputSystem     inputSystem;
 	MovementSystem  movementSystem;
 	DebugCameraSystem debugCameraSystem;
 	GameCameraSystem  gameCameraSystem; 
 
 	DebugRenderer debugRenderer;
+
+	ControllerToolWindow controllerToolWindow;
 
 	SkyBox skyBox;
 	LightManager lightManager;

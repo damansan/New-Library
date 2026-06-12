@@ -131,31 +131,6 @@ private:
 	int updateCountBuf = 0;
 }; 
  
-===== FreeCameraController.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Core\FreeCameraController.h 
-#pragma once
-#include <windows.h>
-#include <DirectXMath.h>
-#include "Camera.h"
-
-class FreeCameraController
-{
-public:
-    FreeCameraController() = default;
-    ~FreeCameraController() = default;
-
-    // XV
-    void Update(float elapsedTime, Camera& camera);
-
-private:
-    float cameraSpeed = 5.0f;
-
-    float yaw = 0.0f;
-    float pitch = 0.0f;
-    bool  firstMouse = true;
-    POINT lastMousePos = {};
-}; 
- 
 ===== Graphics.h ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\Core\Graphics.h 
 #pragma once
@@ -341,6 +316,7 @@ struct SceneContext
     UINT screenHeight = 0;
 
     CameraMode cameraMode = CameraMode::Debug;
+    EditorContext* editorContext = nullptr;
 }; 
  
 ===== SceneManager.h ===== 
@@ -542,16 +518,15 @@ void framework::update(float elapsedTime)
 {
 	ZoneScoped;
 
-	// ‰EƒNƒŠƒbƒN’†‚ÍƒfƒoƒbƒOƒJƒƒ‰
-	if (GetAsyncKeyState(VK_RBUTTON) & 0x8000)
+	// ‰EƒNƒŠƒbƒN‚ğ‰Ÿ‚µ‚½uŠÔDebugƒ‚[ƒh‚ÉØ‚è‘Ö‚¦
+	static bool prevRButton = false;
+	bool currRButton = (GetAsyncKeyState(VK_RBUTTON) & 0x8000) != 0;
+	if (currRButton && !prevRButton)
 	{
 		editorContext.cameraMode = CameraMode::Debug;
 	}
-	else
-	{
-		// ‚»‚êˆÈŠO‚ÍƒQ[ƒ€ƒJƒƒ‰
-		editorContext.cameraMode = CameraMode::Game;
-	}
+	prevRButton = currRButton;
+
 
 	// ƒRƒ“ƒeƒLƒXƒg¶¬
 	SceneContext context;
@@ -562,6 +537,7 @@ void framework::update(float elapsedTime)
 	context.view = camera.GetView();
 	context.projection = camera.GetProjection();
 	context.cameraMode = editorContext.cameraMode;
+	context.editorContext = &editorContext;
 
 	// ƒV[ƒ“XV
 	sceneManager.Update(elapsedTime, context);
@@ -741,113 +717,6 @@ LRESULT framework::handle_message(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpa
 		return DefWindowProc(hwnd, msg, wparam, lparam);
 	}
 	return 0;
-} 
- 
-===== FreeCameraController.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Core\FreeCameraController.cpp 
-#include "FreeCameraController.h"
-#include "imgui.h"
-#include <Windows.h>
-#include <algorithm>
-
-void FreeCameraController::Update(float elapsedTime, Camera& camera)
-{
-    // ImGuiƒEƒBƒ“ƒhƒE‘€ì’†‚Íˆ—‚µ‚È‚¢
-    if (ImGui::IsWindowFocused(ImGuiFocusedFlags_AnyWindow)) return;
-
-    DirectX::XMFLOAT3 eye = camera.GetEye();
-    DirectX::XMFLOAT3 target = camera.GetTarget();
-
-    const DirectX::XMFLOAT3& front = camera.GetFront();
-    const DirectX::XMFLOAT3& right = camera.GetRight();
-
-    float move = cameraSpeed * elapsedTime;
-
-    if (GetAsyncKeyState(VK_RBUTTON) & 0x8000)
-    {
-        // ƒzƒC[ƒ‹‚Å‘¬“x•ÏX
-        float wheel = ImGui::GetIO().MouseWheel;
-        if (wheel != 0.0f)
-        {
-            cameraSpeed += wheel * 2.0f;
-            cameraSpeed = std::clamp(cameraSpeed, 0.1f, 100.0f);
-        }
-
-        // ‘OŒãˆÚ“®iW/Sj
-        if (GetAsyncKeyState('W') & 0x8000)
-        {
-            eye.x += front.x * move; eye.y += front.y * move; eye.z += front.z * move;
-            target.x += front.x * move; target.y += front.y * move; target.z += front.z * move;
-        }
-        if (GetAsyncKeyState('S') & 0x8000)
-        {
-            eye.x -= front.x * move; eye.y -= front.y * move; eye.z -= front.z * move;
-            target.x -= front.x * move; target.y -= front.y * move; target.z -= front.z * move;
-        }
-
-        // ¶‰EˆÚ“®iA/Dj
-        if (GetAsyncKeyState('A') & 0x8000)
-        {
-            eye.x -= right.x * move; eye.y -= right.y * move; eye.z -= right.z * move;
-            target.x -= right.x * move; target.y -= right.y * move; target.z -= right.z * move;
-        }
-        if (GetAsyncKeyState('D') & 0x8000)
-        {
-            eye.x += right.x * move; eye.y += right.y * move; eye.z += right.z * move;
-            target.x += right.x * move; target.y += right.y * move; target.z += right.z * move;
-        }
-
-        // ã‰ºˆÚ“®iQ/Ej
-        if (GetAsyncKeyState('Q') & 0x8000) { eye.y += move; target.y += move; }
-        if (GetAsyncKeyState('E') & 0x8000) { eye.y -= move; target.y -= move; }
-
-        // ƒ}ƒEƒX‹“_‰ñ“]
-        POINT mousePos;
-        GetCursorPos(&mousePos);
-
-        if (firstMouse)
-        {
-            lastMousePos = mousePos;
-            firstMouse = false;
-
-            DirectX::XMFLOAT3 dir = {
-                target.x - eye.x,
-                target.y - eye.y,
-                target.z - eye.z
-            };
-            float len = sqrtf(dir.x * dir.x + dir.y * dir.y + dir.z * dir.z);
-            dir.x /= len; dir.y /= len; dir.z /= len;
-            pitch = asinf(dir.y);
-            yaw = atan2f(dir.x, dir.z);
-        }
-
-        float dx = static_cast<float>(mousePos.x - lastMousePos.x) * 0.005f;
-        float dy = static_cast<float>(mousePos.y - lastMousePos.y) * 0.005f;
-
-        yaw += dx;
-        pitch -= dy;
-        pitch = std::clamp(pitch,
-            -DirectX::XM_PIDIV2 + 0.1f,
-            DirectX::XM_PIDIV2 - 0.1f);
-
-        lastMousePos = mousePos;
-
-        // ‘O•ûŒüƒxƒNƒgƒ‹XV
-        DirectX::XMFLOAT3 direction;
-        direction.x = cosf(pitch) * sinf(yaw);
-        direction.y = sinf(pitch);
-        direction.z = cosf(pitch) * cosf(yaw);
-
-        target.x = eye.x + direction.x;
-        target.y = eye.y + direction.y;
-        target.z = eye.z + direction.z;
-    }
-    else
-    {
-        firstMouse = true;
-    }
-
-    camera.SetLookAt(eye, target, DirectX::XMFLOAT3(0, 1, 0));
 } 
  
 ===== Graphics.cpp ===== 
@@ -1655,6 +1524,124 @@ struct BaseCameraComponent
 };
  
  
+===== ControllerComponent.h ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\ControllerComponent.h 
+#pragma once
+#include <cstdint>
+
+// ƒRƒ“ƒgƒ[ƒ‰[‚Ìí—Ş
+enum class ControllerType
+{
+    None,
+    Xbox,
+    PS5,
+};
+
+// ƒAƒ_ƒvƒeƒBƒuƒgƒŠƒK[‚ÌƒGƒtƒFƒNƒg@
+enum class TriggerEffectType : uint8_t
+{
+    Off = 0,    // –³Œø
+    Rigid = 1,  // ˆê’è’ïR
+    Pulse = 2,  // U“®
+    Slope = 3,  // ŒXÎiˆø‚­‚Ù‚Çd‚­‚È‚éj
+};
+
+// ƒgƒŠƒK[1–{•ª‚Ìo—Íİ’è
+struct TriggerEffect
+{
+    TriggerEffectType type = TriggerEffectType::Off;
+    uint8_t           start = 0;    // Œø‰ÊŠJnˆÊ’u (0`255)
+    uint8_t           end = 255;    // Œø‰ÊI—¹ˆÊ’u (0`255)
+    uint8_t           force = 128;  // ’ïR‚Ì‹­‚³   (0`255)
+    uint8_t           freq = 0;     // U“®ü”g”   (Pulse‚Ì‚Æ‚«g—p)
+};
+
+// U“®o—Íİ’è
+struct VibrationOutput
+{
+    uint8_t leftMotor = 0;  // ¶ƒ‚[ƒ^[ (0`255)
+    uint8_t rightMotor = 0; // ‰Eƒ‚[ƒ^[ (0`255)
+};
+
+// ƒRƒ“ƒgƒ[ƒ‰[‚Ì¶‚Ì“ü—Í’l‚ğ•Û‚·‚éƒRƒ“ƒ|[ƒlƒ“ƒg
+struct ControllerComponent
+{
+    // Ú‘±î•ñ
+    ControllerType type = ControllerType::None;
+    bool           connected = false;
+
+    // ƒXƒeƒBƒbƒNi³‹K‰»Ï‚İ -1.0`1.0Aƒfƒbƒhƒ][ƒ“–¢“K—pj
+    float leftStickX = 0.0f;
+    float leftStickY = 0.0f;
+    float rightStickX = 0.0f;
+    float rightStickY = 0.0f;
+
+    // ƒgƒŠƒK[i³‹K‰»Ï‚İ 0.0`1.0j
+    float leftTrigger = 0.0f;
+    float rightTrigger = 0.0f;
+
+    // ƒ{ƒ^ƒ“iƒrƒbƒgƒtƒ‰ƒOj
+    uint32_t buttons = 0;
+
+    // U“®o—ÍiControllerSystem ‚ª–ˆƒtƒŒ[ƒ€‘—Mj
+    VibrationOutput vibration = {};
+
+    // ƒAƒ_ƒvƒeƒBƒuƒgƒŠƒK[o—ÍiPS5‚Ì‚İj
+    TriggerEffect leftTriggerEffect = {};
+    TriggerEffect rightTriggerEffect = {};
+
+    // ƒ{ƒ^ƒ“”»’èƒwƒ‹ƒp[
+    bool IsPressed(uint32_t mask) const { return (buttons & mask) != 0; }
+};
+
+// ƒ{ƒ^ƒ“‚Ìƒrƒbƒgƒ}ƒXƒN’è”
+namespace ControllerButtons
+{
+    constexpr uint32_t Cross = 1 << 0;     // PS5:~  Xbox:A
+    constexpr uint32_t Circle = 1 << 1;    // PS5:›  Xbox:B
+    constexpr uint32_t Square = 1 << 2;    // PS5:   Xbox:X
+    constexpr uint32_t Triangle = 1 << 3;  // PS5:¢  Xbox:Y
+    constexpr uint32_t L1 = 1 << 4;
+    constexpr uint32_t R1 = 1 << 5;
+    constexpr uint32_t L2 = 1 << 6;  // ƒfƒWƒ^ƒ‹”»’è—p
+    constexpr uint32_t R2 = 1 << 7;  // ƒfƒWƒ^ƒ‹”»’è—p
+    constexpr uint32_t L3 = 1 << 8;  // ƒXƒeƒBƒbƒN‰Ÿ‚µ‚İ
+    constexpr uint32_t R3 = 1 << 9;  // ƒXƒeƒBƒbƒN‰Ÿ‚µ‚İ
+    constexpr uint32_t Options = 1 << 14; // PS5:Options  Xbox:Menu
+    constexpr uint32_t Share = 1 << 15;   // PS5:Create   Xbox:View
+} 
+ 
+===== ControllerSettings.h ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\ControllerSettings.h 
+#pragma once
+#include <cstdint>
+#include "ECS/Components/ControllerComponent.h"
+
+// ƒRƒ“ƒgƒ[ƒ‰[‚Ìİ’è’liJSON•Û‘¶j
+struct ControllerSettings
+{
+	// ƒXƒeƒBƒbƒN ƒfƒbƒhƒ][ƒ“(0.0`1.0)
+	float leftStickDeadzone = 0.2f;
+	float rightStickDeadzone = 0.2f;
+
+	// ƒgƒŠƒK[ ƒfƒbƒhƒ][ƒ“(0.0`1.0)
+	float leftTriggerDeadzone = 0.05f;
+	float rightTriggerDeadzone = 0.05f;
+
+	// L2/R2 ƒfƒWƒ^ƒ‹”»’èè‡’l (0.0`1.0)
+	// ‚Ç‚ê‚¾‚¯ˆø‚¢‚½‚çu‰Ÿ‚µ‚½v‚Æ”»’è‚·‚é‚©
+	float leftTriggerThreshold = 0.5f;
+	float rightTriggerThreshold = 0.5f;
+
+	// ƒAƒ_ƒvƒeƒBƒuƒgƒŠƒK[İ’èiPS5‚Ì‚İj
+	TriggerEffect leftTriggerEffect = {};
+	TriggerEffect rightTriggerEffect = {};
+
+	// U“®İ’è (0`255)
+	uint8_t leftMotor = 0;
+	uint8_t rightMotor = 0;
+}; 
+ 
 ===== FreeCameraComponent.h ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\FreeCameraComponent.h 
 #pragma once
@@ -1914,6 +1901,69 @@ private:
 		std::vector<std::vector<DirectX::XMFLOAT4X4>>& boneTransforms);
 }; 
  
+===== ControllerSystem.h ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\ControllerSystem.h 
+#pragma once
+#pragma comment(lib, "Xinput.lib")
+
+#include <windows.h>
+#include <Xinput.h>
+#include <DualSenseWindows/IO.h>
+
+#include "entt.hpp"
+#include "ECS/Components/ControllerComponent.h"
+#include "ECS/Components/ControllerSettings.h"
+
+class ControllerSystem
+{
+public:
+    ControllerSystem();
+    ~ControllerSystem();
+
+    ControllerSystem(const ControllerSystem&) = delete;
+    ControllerSystem& operator=(const ControllerSystem&) = delete;
+    ControllerSystem(ControllerSystem&&) = delete;
+    ControllerSystem& operator=(ControllerSystem&&) = delete;
+
+    // XV
+    void Update(entt::registry& registry, float elapsedTime);
+
+    // İ’è‚Ö‚ÌQÆiControllerToolWindow ‚©‚ç“Ç‚İ‘‚«‚·‚éj
+    ControllerSettings& GetSettings() { return settings; }
+    const ControllerSettings& GetSettings() const { return settings; }
+
+private:
+    // Xbox “ü—Í‚ğControllerComponent‚É‘‚­
+    void UpdateXboxInput(ControllerComponent& ctrl);
+
+    // PS5 “ü—Í‚ğControllerComponent‚É‘‚­
+    void UpdatePS5Input(ControllerComponent& ctrl);
+
+    // PS5 o—Í‘—MiU“®/ƒAƒ_ƒvƒeƒBƒuƒgƒŠƒK[j
+    void SendPS5Output(ControllerComponent& ctrl);
+
+    // TriggerEffect•ÏŠ·
+    void ApplyTriggerEffect(DS5W::TriggerEffect& dst, const TriggerEffect& src);
+
+    // PS5 Ú‘±s
+    void TryConnectPS5();
+
+    // Xbox
+    bool         xboxConnected = false;
+    XINPUT_STATE xboxState = {};
+
+    // PS5
+    DS5W::DeviceContext  ds5Context = {};
+    DS5W::DS5InputState  ds5InputState = {};
+    DS5W::DS5OutputState ds5OutputState = {};
+    bool                 ds5Connected = false;
+    float                ds5ReconnectTimer = 0.0f;
+    static constexpr float ds5ReconnectInterval = 3.0f;
+
+    // İ’è’l
+    ControllerSettings settings;
+}; 
+ 
 ===== DebugCameraSystem.h ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\DebugCameraSystem.h 
 #pragma once
@@ -1965,43 +2015,32 @@ private:
 ===== InputSystem.h ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\InputSystem.h 
 #pragma once
-#pragma comment(lib, "Xinput.lib")
-#include <windows.h>
-#include <Xinput.h>
-#include <DualSenseWindows/IO.h>
 #include "entt.hpp"
-
 #include "ECS/Components/InputComponent.h"
+#include "ECS/Components/ControllerComponent.h"
+#include "ECS/Components/ControllerSettings.h"
 
 class InputSystem
 {
 public:
-	InputSystem();
-	~InputSystem();
+    InputSystem() = default;
+    ~InputSystem() = default;
 
-	void Update(entt::registry& registry,float elapsedTime);
+    InputSystem(const InputSystem&) = delete;
+    InputSystem& operator=(const InputSystem&) = delete;
+    InputSystem(InputSystem&&) = delete;
+    InputSystem& operator=(InputSystem&&) = delete;
+
+    // XV
+    // ControllerComponent + ControllerSettings ‚ğŒ©‚Ä InputComponent ‚É•ÏŠ·‚·‚é
+    void Update(entt::registry& registry, const ControllerSettings& settings);
 
 private:
-	// ƒfƒbƒhƒ][ƒ“ˆ—
-	float ApplyDeadzone(float value, float deadzone = 0.2f);
-	
-	// Xbox “ü—Í
-	void UpdateXbox(InputComponent& input);
+    // ƒfƒbƒhƒ][ƒ““K—piƒXƒeƒBƒbƒN—pj
+    float ApplyStickDeadzone(float value, float deadzone);
 
-	// PS5 “ü—Í
-	void UpdatePS5(InputComponent& input);
-
-	// Xbox
-	bool xboxConnected = false;
-	XINPUT_STATE xState = {};
-
-	// PS5
-	DS5W::DeviceContext ds5Context;
-	bool ds5Connected = false;
-	DS5W::DS5InputState ds5State = {};
-	// PS5 ÄŒŸõƒ^ƒCƒ}[
-	float ds5ReconnectTimer = 0.0f;
-	const float ds5ReconnectInterval = 3.0f; // 3•b‚É1‰ñ
+    // ƒfƒbƒhƒ][ƒ““K—piƒgƒŠƒK[—pj
+    float ApplyTriggerDeadzone(float value, float deadzone);
 }; 
  
 ===== MeshLoaderSystem.h ===== 
@@ -2529,6 +2568,226 @@ void AnimationSystem::CalcBoneTransforms(
 }
  
  
+===== ControllerSystem.cpp ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\ControllerSystem.cpp 
+#include "ControllerSystem.h"
+#include <cmath>
+#include <algorithm>
+
+// ƒRƒ“ƒXƒgƒ‰ƒNƒ^
+ControllerSystem::ControllerSystem()
+{
+    TryConnectPS5();
+}
+
+// ƒfƒXƒgƒ‰ƒNƒ^
+ControllerSystem::~ControllerSystem()
+{
+    if (ds5Connected)
+    {
+        // I—¹‚ÉƒgƒŠƒK[/U“®‚ğƒŠƒZƒbƒg‚µ‚Ä‚©‚çØ’f
+        DS5W::DS5OutputState reset = {};
+        DS5W::setDeviceOutputState(&ds5Context, &reset);
+        DS5W::freeDeviceContext(&ds5Context);
+        ds5Connected = false;
+    }
+}
+
+// XV
+void ControllerSystem::Update(entt::registry& registry, float elapsedTime)
+{
+    // Xbox Ú‘±Šm”F
+    xboxConnected = XInputGetState(0, &xboxState) == ERROR_SUCCESS;
+
+    // PS5 Ú‘±Šm”F / ÄÚ‘±
+    if (ds5Connected)
+    {
+        DS5W_ReturnValue rv = DS5W::getDeviceInputState(&ds5Context, &ds5InputState);
+        if (DS5W_FAILED(rv))
+        {
+            DS5W::freeDeviceContext(&ds5Context);
+            ds5Connected = false;
+        }
+    }
+    else
+    {
+        ds5ReconnectTimer += elapsedTime;
+        if (ds5ReconnectTimer >= ds5ReconnectInterval)
+        {
+            ds5ReconnectTimer = 0.0f;
+            TryConnectPS5();
+        }
+    }
+
+    // ControllerComponent ‚ğ‚Â Entity ‚ğXV
+    auto view = registry.view<ControllerComponent>();
+    view.each([&](ControllerComponent& ctrl)
+        {
+            // ƒŠƒZƒbƒg
+            ctrl.leftStickX = 0.0f;
+            ctrl.leftStickY = 0.0f;
+            ctrl.rightStickX = 0.0f;
+            ctrl.rightStickY = 0.0f;
+            ctrl.leftTrigger = 0.0f;
+            ctrl.rightTrigger = 0.0f;
+            ctrl.buttons = 0;
+            ctrl.connected = false;
+            ctrl.type = ControllerType::None;
+
+            // PS5 —DæA‚È‚¯‚ê‚Î Xbox
+            if (ds5Connected)
+            {
+                ctrl.type = ControllerType::PS5;
+                ctrl.connected = true;
+                UpdatePS5Input(ctrl);
+                SendPS5Output(ctrl);
+            }
+            else if (xboxConnected)
+            {
+                ctrl.type = ControllerType::Xbox;
+                ctrl.connected = true;
+                UpdateXboxInput(ctrl);
+            }
+        });
+}
+
+// Xbox “ü—Í
+void ControllerSystem::UpdateXboxInput(ControllerComponent& ctrl)
+{
+    const auto& gp = xboxState.Gamepad;
+
+    // ƒXƒeƒBƒbƒNi-32768`32767 ¨ -1.0`1.0j
+    ctrl.leftStickX = gp.sThumbLX / 32767.0f;
+    ctrl.leftStickY = gp.sThumbLY / 32767.0f;
+    ctrl.rightStickX = gp.sThumbRX / 32767.0f;
+    ctrl.rightStickY = gp.sThumbRY / 32767.0f;
+
+    // ƒgƒŠƒK[i0`255 ¨ 0.0`1.0j
+    ctrl.leftTrigger = gp.bLeftTrigger / 255.0f;
+    ctrl.rightTrigger = gp.bRightTrigger / 255.0f;
+
+    // ƒ{ƒ^ƒ“
+    auto btn = gp.wButtons;
+    if (btn & XINPUT_GAMEPAD_A)              ctrl.buttons |= ControllerButtons::Cross;
+    if (btn & XINPUT_GAMEPAD_B)              ctrl.buttons |= ControllerButtons::Circle;
+    if (btn & XINPUT_GAMEPAD_X)              ctrl.buttons |= ControllerButtons::Square;
+    if (btn & XINPUT_GAMEPAD_Y)              ctrl.buttons |= ControllerButtons::Triangle;
+    if (btn & XINPUT_GAMEPAD_LEFT_SHOULDER)  ctrl.buttons |= ControllerButtons::L1;
+    if (btn & XINPUT_GAMEPAD_RIGHT_SHOULDER) ctrl.buttons |= ControllerButtons::R1;
+    if (btn & XINPUT_GAMEPAD_LEFT_THUMB)     ctrl.buttons |= ControllerButtons::L3;
+    if (btn & XINPUT_GAMEPAD_RIGHT_THUMB)    ctrl.buttons |= ControllerButtons::R3;
+    if (btn & XINPUT_GAMEPAD_START)          ctrl.buttons |= ControllerButtons::Options;
+    if (btn & XINPUT_GAMEPAD_BACK)           ctrl.buttons |= ControllerButtons::Share;
+
+    // L2/R2 ƒfƒWƒ^ƒ‹”»’èisettings ‚Ìè‡’l‚ğg‚¤j
+    if (ctrl.leftTrigger >= settings.leftTriggerThreshold)  ctrl.buttons |= ControllerButtons::L2;
+    if (ctrl.rightTrigger >= settings.rightTriggerThreshold) ctrl.buttons |= ControllerButtons::R2;
+}
+
+// PS5 “ü—Í
+void ControllerSystem::UpdatePS5Input(ControllerComponent& ctrl)
+{
+    // ƒXƒeƒBƒbƒNi-128`127 ¨ -1.0`1.0j
+    ctrl.leftStickX = ds5InputState.leftStick.x / 127.0f;
+    ctrl.leftStickY = ds5InputState.leftStick.y / 127.0f;
+    ctrl.rightStickX = ds5InputState.rightStick.x / 127.0f;
+    ctrl.rightStickY = ds5InputState.rightStick.y / 127.0f;
+
+    // ƒgƒŠƒK[i0`255 ¨ 0.0`1.0j
+    ctrl.leftTrigger = ds5InputState.leftTrigger / 255.0f;
+    ctrl.rightTrigger = ds5InputState.rightTrigger / 255.0f;
+
+    // ƒ{ƒ^ƒ“ibuttonsAndDpadj
+    auto btn = ds5InputState.buttonsAndDpad;
+    if (btn & DS5W_ISTATE_BTX_CROSS)    ctrl.buttons |= ControllerButtons::Cross;
+    if (btn & DS5W_ISTATE_BTX_CIRCLE)   ctrl.buttons |= ControllerButtons::Circle;
+    if (btn & DS5W_ISTATE_BTX_SQUARE)   ctrl.buttons |= ControllerButtons::Square;
+    if (btn & DS5W_ISTATE_BTX_TRIANGLE) ctrl.buttons |= ControllerButtons::Triangle;
+
+    // ƒ{ƒ^ƒ“ibuttonsAj
+    auto btnA = ds5InputState.buttonsA;
+    if (btnA & DS5W_ISTATE_BTN_A_LEFT_BUMPER)  ctrl.buttons |= ControllerButtons::L1;
+    if (btnA & DS5W_ISTATE_BTN_A_RIGHT_BUMPER) ctrl.buttons |= ControllerButtons::R1;
+    if (btnA & DS5W_ISTATE_BTN_A_LEFT_STICK)   ctrl.buttons |= ControllerButtons::L3;
+    if (btnA & DS5W_ISTATE_BTN_A_RIGHT_STICK)  ctrl.buttons |= ControllerButtons::R3;
+    if (btnA & DS5W_ISTATE_BTN_A_SELECT)       ctrl.buttons |= ControllerButtons::Share;
+    if (btnA & DS5W_ISTATE_BTN_A_MENU)         ctrl.buttons |= ControllerButtons::Options;
+
+    // L2/R2 ƒfƒWƒ^ƒ‹”»’èisettings ‚Ìè‡’l‚ğg‚¤j
+    if (ctrl.leftTrigger >= settings.leftTriggerThreshold)  ctrl.buttons |= ControllerButtons::L2;
+    if (ctrl.rightTrigger >= settings.rightTriggerThreshold) ctrl.buttons |= ControllerButtons::R2;
+}
+
+// PS5 o—Í‘—M
+void ControllerSystem::SendPS5Output(ControllerComponent& ctrl)
+{
+    ds5OutputState = {};
+
+    // U“®
+    ds5OutputState.leftRumble = ctrl.vibration.leftMotor;
+    ds5OutputState.rightRumble = ctrl.vibration.rightMotor;
+
+    // ƒAƒ_ƒvƒeƒBƒuƒgƒŠƒK[
+    ApplyTriggerEffect(ds5OutputState.leftTriggerEffect, settings.leftTriggerEffect);
+    ApplyTriggerEffect(ds5OutputState.rightTriggerEffect, settings.rightTriggerEffect);
+
+    DS5W::setDeviceOutputState(&ds5Context, &ds5OutputState);
+}
+
+// TriggerEffect•ÏŠ·
+void ControllerSystem::ApplyTriggerEffect(DS5W::TriggerEffect& dst, const TriggerEffect& src)
+{
+    switch (src.type)
+    {
+    case TriggerEffectType::Off:
+        dst.effectType = DS5W::TriggerEffectType::NoResitance;
+        break;
+
+    case TriggerEffectType::Rigid:
+        dst.effectType = DS5W::TriggerEffectType::ContinuousResitance;
+        dst.Continuous.startPosition = src.start;
+        dst.Continuous.force = src.force;
+        break;
+
+    case TriggerEffectType::Pulse:
+        dst.effectType = DS5W::TriggerEffectType::SectionResitance;
+        dst.Section.startPosition = src.start;
+        dst.Section.endPosition = src.end;
+        break;
+
+    case TriggerEffectType::Slope:
+        dst.effectType = DS5W::TriggerEffectType::ContinuousResitance;
+        dst.Continuous.startPosition = src.start;
+        dst.Continuous.force = static_cast<uint8_t>(
+            src.force * (1.0f - src.start / 255.0f));
+        break;
+
+    default:
+        dst.effectType = DS5W::TriggerEffectType::NoResitance;
+        break;
+    }
+}
+
+// PS5 Ú‘±s
+void ControllerSystem::TryConnectPS5()
+{
+    DS5W::DeviceEnumInfo enumInfo[4];
+    unsigned int deviceCount = 0;
+
+    if (DS5W_SUCCESS(DS5W::enumDevices(enumInfo, 4, &deviceCount, true)))
+    {
+        if (deviceCount > 0)
+        {
+            if (DS5W_SUCCESS(DS5W::initDeviceContext(&enumInfo[0], &ds5Context)))
+            {
+                ds5Connected = true;
+            }
+        }
+    }
+}
+
+ 
+ 
 ===== DebugCameraSystem.cpp ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\DebugCameraSystem.cpp 
 #include "DebugCameraSystem.h"
@@ -2814,75 +3073,20 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\InputSystem.cpp
 #include <cmath>
 #include <algorithm>
 
-InputSystem::InputSystem()
+// æ›´æ–°
+void InputSystem::Update(entt::registry& registry, const ControllerSettings& settings)
 {
-    // PS5 ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ©ãƒ¼ã®åˆæœŸæ¤œç´¢
-    DS5W::DeviceEnumInfo enumInfo[4];
-    unsigned int deviceCount = 0;
-
-    if (DS5W_SUCCESS(DS5W::enumDevices(enumInfo, 4, &deviceCount, true)))
+    // ControllerComponent ã‚’æ¢ã™ï¼ˆãªã‘ã‚Œã°ä½•ã‚‚ã—ãªã„ï¼‰
+    ControllerComponent* ctrl = nullptr;
+    auto ctrlView = registry.view<ControllerComponent>();
+    if (!ctrlView.empty())
     {
-        if (deviceCount > 0)
-        {
-            if (DS5W_SUCCESS(DS5W::initDeviceContext(&enumInfo[0], &ds5Context)))
-            {
-                ds5Connected = true;
-            }
-        }
-    }
-}
-InputSystem::~InputSystem()
-{
-    if (ds5Connected)
-    {
-        DS5W::freeDeviceContext(&ds5Context);
-        ds5Connected = false;
-    }
-}
-
-void InputSystem::Update(entt::registry& registry, float elapsedTime)
-{
-    // Xbox ã®æ¥ç¶šç¢ºèªï¼ˆæ¯ãƒ•ãƒ¬ãƒ¼ãƒ ï¼‰
-    xboxConnected = XInputGetState(0, &xState) == ERROR_SUCCESS;
-
-    // PS5 ã®å…¥åŠ›å–å¾—ï¼ˆæ¯ãƒ•ãƒ¬ãƒ¼ãƒ ï¼‰
-    if (ds5Connected)
-    {
-        DS5W_ReturnValue rv = DS5W::getDeviceInputState(&ds5Context, &ds5State);
-        if (DS5W_FAILED(rv))
-        {
-            // åˆ‡æ–­ã•ã‚ŒãŸã‚‰å†æ¥ç¶šã‚’è©¦ã¿ã‚‹
-            ds5Connected = false;
-            DS5W::freeDeviceContext(&ds5Context);
-        }
-    }
-    else
-    {
-        // ã‚¿ã‚¤ãƒãƒ¼ã§å†æ¤œç´¢é »åº¦ã‚’åˆ¶é™
-        ds5ReconnectTimer += elapsedTime;
-        if (ds5ReconnectTimer >= ds5ReconnectInterval)
-        {
-            ds5ReconnectTimer = 0.0f;
-
-            DS5W::DeviceEnumInfo enumInfo[4];
-            unsigned int deviceCount = 0;
-
-            if (DS5W_SUCCESS(DS5W::enumDevices(enumInfo, 4, &deviceCount, true)))
-            {
-                if (deviceCount > 0)
-                {
-                    if (DS5W_SUCCESS(DS5W::initDeviceContext(&enumInfo[0], &ds5Context)))
-                    {
-                        ds5Connected = true;
-                    }
-                }
-            }
-        }
+        ctrl = &ctrlView.get<ControllerComponent>(*ctrlView.begin());
     }
 
-    // å„ Entity ã® InputComponent ã‚’æ›´æ–°
-    auto view = registry.view<InputComponent>();
-    view.each([&](auto entity, InputComponent& input)
+    // InputComponent ã‚’æŒã¤ Entity ã‚’æ›´æ–°
+    auto inputView = registry.view<InputComponent>();
+    inputView.each([&](InputComponent& input)
         {
             // ãƒªã‚»ãƒƒãƒˆ
             input.moveX = 0.0f;
@@ -2893,70 +3097,57 @@ void InputSystem::Update(entt::registry& registry, float elapsedTime)
             input.attack = false;
             input.dodge = false;
 
-            UpdateXbox(input);
-            UpdatePS5(input);
+            // ControllerComponent ãŒãªã‘ã‚Œã°ã‚¹ã‚­ãƒƒãƒ—
+            if (!ctrl || !ctrl->connected) return;
 
-            // ç§»å‹•å…¥åŠ›ã‚’ -1.0ã€œ1.0 ã«ã‚¯ãƒ©ãƒ³ãƒ—
+            // ã‚¹ãƒ†ã‚£ãƒƒã‚¯ï¼ˆãƒ‡ãƒƒãƒ‰ã‚¾ãƒ¼ãƒ³é©ç”¨ï¼‰
+            float lx = ApplyStickDeadzone(ctrl->leftStickX, settings.leftStickDeadzone);
+            float ly = ApplyStickDeadzone(ctrl->leftStickY, settings.leftStickDeadzone);
+            float rx = ApplyStickDeadzone(ctrl->rightStickX, settings.rightStickDeadzone);
+            float ry = ApplyStickDeadzone(ctrl->rightStickY, settings.rightStickDeadzone);
+
+            // ç§»å‹•ï¼ˆå·¦ã‚¹ãƒ†ã‚£ãƒƒã‚¯ï¼‰
+            input.moveX = lx;
+            input.moveZ = ly;
+
+            // ã‚«ãƒ¡ãƒ©ï¼ˆå³ã‚¹ãƒ†ã‚£ãƒƒã‚¯ï¼‰
+            input.cameraX = rx;
+            input.cameraY = -ry;
+
+            // ãƒˆãƒªã‚¬ãƒ¼ï¼ˆãƒ‡ãƒƒãƒ‰ã‚¾ãƒ¼ãƒ³é©ç”¨å¾Œã®å€¤ã§åˆ¤å®šï¼‰
+            float lt = ApplyTriggerDeadzone(ctrl->leftTrigger, settings.leftTriggerDeadzone);
+            float rt = ApplyTriggerDeadzone(ctrl->rightTrigger, settings.rightTriggerDeadzone);
+
+            // ãƒœã‚¿ãƒ³åˆ¤å®š
+            input.jump = ctrl->IsPressed(ControllerButtons::Cross);
+            input.attack = ctrl->IsPressed(ControllerButtons::Square);
+            input.dodge = ctrl->IsPressed(ControllerButtons::Circle);
+
+            // ãƒˆãƒªã‚¬ãƒ¼ã®ãƒ‡ã‚¸ã‚¿ãƒ«åˆ¤å®šï¼ˆé–¾å€¤ã¯ settings ã‹ã‚‰ï¼‰
+            // å¿…è¦ã§ã‚ã‚Œã°ã“ã“ã§ input ã«è¿½åŠ ã®ã‚¢ã‚¯ã‚·ãƒ§ãƒ³ã‚’å‰²ã‚Šå½“ã¦ã‚‰ã‚Œã‚‹
+            // ä¾‹: input.heavyAttack = lt >= 1.0f;
+            (void)lt;
+            (void)rt;
+
+            // ç§»å‹•å…¥åŠ›ã‚’ -1.0ï½1.0 ã«ã‚¯ãƒ©ãƒ³ãƒ—
             input.moveX = std::clamp(input.moveX, -1.0f, 1.0f);
             input.moveZ = std::clamp(input.moveZ, -1.0f, 1.0f);
         });
 }
 
-// ãƒ‡ãƒƒãƒ‰ã‚¾ãƒ¼ãƒ³å‡¦ç†
-float InputSystem::ApplyDeadzone(float value, float deadzone)
+// ãƒ‡ãƒƒãƒ‰ã‚¾ãƒ¼ãƒ³é©ç”¨
+float InputSystem::ApplyStickDeadzone(float value, float deadzone)
 {
     if (fabsf(value) < deadzone) return 0.0f;
-    // ãƒ‡ãƒƒãƒ‰ã‚¾ãƒ¼ãƒ³å¤–ã®å€¤ã‚’ 0.0ï½1.0 ã«æ­£è¦åŒ–
     float sign = value > 0.0f ? 1.0f : -1.0f;
     return sign * (fabsf(value) - deadzone) / (1.0f - deadzone);
 }
 
-// Xbox å…¥åŠ›
-void InputSystem::UpdateXbox(InputComponent& input)
+// ãƒ‡ãƒƒãƒ‰ã‚¾ãƒ¼ãƒ³é©ç”¨
+float InputSystem::ApplyTriggerDeadzone(float value, float deadzone)
 {
-    if (!xboxConnected) return;
-
-    const auto& gp = xState.Gamepad;
-
-    // å·¦ã‚¹ãƒ†ã‚£ãƒƒã‚¯ï¼ˆç§»å‹•ï¼‰
-    float lx = ApplyDeadzone(gp.sThumbLX / 32767.0f);
-    float ly = ApplyDeadzone(gp.sThumbLY / 32767.0f);
-    input.moveX += lx;
-    input.moveZ += ly;
-
-    // å³ã‚¹ãƒ†ã‚£ãƒƒã‚¯ï¼ˆã‚«ãƒ¡ãƒ©ï¼‰
-    float rx = ApplyDeadzone(gp.sThumbRX / 32767.0f);
-    float ry = ApplyDeadzone(gp.sThumbRY / 32767.0f);
-    input.cameraX += rx;
-    input.cameraY += -ry;
-
-    // ãƒœã‚¿ãƒ³
-    input.jump |= (gp.wButtons & XINPUT_GAMEPAD_A) != 0;
-    input.attack |= (gp.wButtons & XINPUT_GAMEPAD_X) != 0;
-    input.dodge |= (gp.wButtons & XINPUT_GAMEPAD_B) != 0;
-}
-
-// PS5 å…¥åŠ›
-void InputSystem::UpdatePS5(InputComponent& input)
-{
-    if (!ds5Connected) return;
-
-    // å·¦ã‚¹ãƒ†ã‚£ãƒƒã‚¯ï¼ˆç§»å‹•ï¼‰-128ã€œ127 ã‚’ -1.0ã€œ1.0 ã«å¤‰æ›
-    float lx = ApplyDeadzone(ds5State.leftStick.x / 127.0f);
-    float ly = ApplyDeadzone(ds5State.leftStick.y / 127.0f);
-    input.moveX += lx;
-    input.moveZ += ly; // Y è»¸åè»¢
-
-    // å³ã‚¹ãƒ†ã‚£ãƒƒã‚¯ï¼ˆã‚«ãƒ¡ãƒ©ï¼‰
-    float rx = ApplyDeadzone(ds5State.rightStick.x / 127.0f);
-    float ry = ApplyDeadzone(ds5State.rightStick.y / 127.0f);
-    input.cameraX += rx;
-    input.cameraY += -ry;
-
-    // ãƒœã‚¿ãƒ³ï¼ˆÃ— = ã‚¸ãƒ£ãƒ³ãƒ—ã€â–¡ = æ”»æ’ƒã€â—‹ = å›é¿ï¼‰
-    input.jump |= (ds5State.buttonsAndDpad & DS5W_ISTATE_BTX_CROSS) != 0;
-    input.attack |= (ds5State.buttonsAndDpad & DS5W_ISTATE_BTX_SQUARE) != 0;
-    input.dodge |= (ds5State.buttonsAndDpad & DS5W_ISTATE_BTX_CIRCLE) != 0;
+    if (value < deadzone) return 0.0f;
+    return (value - deadzone) / (1.0f - deadzone);
 }
  
  
@@ -3803,6 +3994,9 @@ struct EditorContext
 
     // ƒJƒƒ‰ƒ‚[ƒh
     CameraMode cameraMode = CameraMode::Debug;
+    // ‰EƒNƒŠƒbƒN‚ğ‰Ÿ‚µ‚½‚©
+    bool rightClickPressed = false;  
+
 
     std::string GetName(entt::entity e) const
     {
@@ -4836,10 +5030,13 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Game\SceneGame.h
 #include "Core/Scene.h"
 #include "ECS/Systems/RenderSystem.h"
 #include "ECS/Systems/AnimationSystem.h"
+#include "ECS/Systems/ControllerSystem.h" 
 #include "ECS/Systems/InputSystem.h"    
 #include "ECS/Systems/MovementSystem.h" 
 #include "ECS/Systems/DebugCameraSystem.h"
 #include "ECS/Systems/GameCameraSystem.h" 
+
+#include "Tool/ControllerToolWindow.h" 
 
 #include "DebugRenderer/DebugRenderer.h"
 
@@ -4866,12 +5063,15 @@ public:
 private:
 	RenderSystem renderSystem;
 	AnimationSystem animationSystem;
+	ControllerSystem  controllerSystem;
 	InputSystem     inputSystem;
 	MovementSystem  movementSystem;
 	DebugCameraSystem debugCameraSystem;
 	GameCameraSystem  gameCameraSystem; 
 
 	DebugRenderer debugRenderer;
+
+	ControllerToolWindow controllerToolWindow;
 
 	SkyBox skyBox;
 	LightManager lightManager;
@@ -5083,12 +5283,12 @@ void SceneGame::Update(float elapsedTime, const SceneContext& context)
 {
 	ZoneScoped;
 	{
-		ZoneScopedN("InputSystem");
-		inputSystem.Update(registry,elapsedTime);
-	}
+		ZoneScopedN("ControllerSystem");
+		controllerSystem.Update(registry, elapsedTime);
+	} 
 	{
 		ZoneScopedN("MovementSystem");
-		movementSystem.Update(registry, elapsedTime, context);
+		inputSystem.Update(registry, controllerSystem.GetSettings());
 	}
 	{
 		ZoneScopedN("MeshLoaderSystem");
@@ -5110,6 +5310,25 @@ void SceneGame::Update(float elapsedTime, const SceneContext& context)
 		{
 			debugCameraSystem.Update(registry, elapsedTime);
 			debugCameraSystem.ApplyToCamera(registry, *context.camera);
+
+			// ã‚¹ãƒ†ã‚£ãƒƒã‚¯å…¥åŠ›ãŒã‚ã‚Œã°Gameãƒ¢ãƒ¼ãƒ‰ã«æˆ»ã™
+			if (context.editorContext)
+			{
+				auto inputView = registry.view<InputComponent>();
+				for (auto entity : inputView)
+				{
+					auto& input = inputView.get<InputComponent>(entity);
+					const float threshold = 0.2f;
+					if (fabsf(input.moveX) > threshold ||
+						fabsf(input.moveZ) > threshold ||
+						fabsf(input.cameraX) > threshold ||
+						fabsf(input.cameraY) > threshold)
+					{
+						context.editorContext->cameraMode = CameraMode::Game;
+						break;
+					}
+				}
+			}
 		}
 		else
 		{
@@ -5246,7 +5465,8 @@ void SceneGame::Render(const SceneContext& context)
 void SceneGame::RenderImGui()
 {
 #ifdef _DEBUG
-	player->RenderImGui();
+	//player->RenderImGui();
+	controllerToolWindow.Draw(registry, controllerSystem);
 #endif
 }
  
@@ -8106,6 +8326,339 @@ void ResourceManager::ReleaseModel(const std::string& filename)
 void ResourceManager::ReleaseAll()
 {
 	modelCache.clear();
+}
+ 
+ 
+===== ControllerToolWindow.h ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\ControllerToolWindow.h 
+#pragma once
+#include <imgui.h>
+#include "entt.hpp"
+#include "ECS/Components/ControllerComponent.h"
+#include "ECS/Systems/ControllerSystem.h"
+
+class ControllerToolWindow
+{
+public:
+    ControllerToolWindow() = default;
+    ~ControllerToolWindow() = default;
+
+    ControllerToolWindow(const ControllerToolWindow&) = delete;
+    ControllerToolWindow& operator=(const ControllerToolWindow&) = delete;
+    ControllerToolWindow(ControllerToolWindow&&) = delete;
+    ControllerToolWindow& operator=(ControllerToolWindow&&) = delete;
+
+    // •`‰æ
+    void Draw(entt::registry& registry, ControllerSystem& system);
+
+private:
+    // ƒ‚ƒjƒ^[ƒ^ƒuiÚ‘±ó‘Ô/¶‚Ì“ü—Í’lŠm”Fj
+    void DrawMonitorTab(const ControllerComponent& ctrl);
+
+    // ƒXƒeƒBƒbƒNİ’èƒ^ƒuiƒfƒbƒhƒ][ƒ“’²®j
+    void DrawStickTab(ControllerSettings& settings, const ControllerComponent& ctrl);
+
+    // ƒgƒŠƒK[İ’èƒ^ƒuiƒfƒbƒhƒ][ƒ“/”»’èè‡’lj
+    void DrawTriggerTab(ControllerSettings& settings, const ControllerComponent& ctrl);
+
+    // ƒAƒ_ƒvƒeƒBƒuƒgƒŠƒK[ƒ^ƒuiPS5‚Ì‚İj
+    void DrawAdaptiveTriggerTab(ControllerSettings& settings, const ControllerComponent& ctrl);
+
+    // U“®ƒ^ƒu
+    void DrawVibrationTab(ControllerSettings& settings, ControllerComponent& ctrl);
+} 
+ 
+===== ControllerToolWindow.cpp ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\ControllerToolWindow.cpp 
+#include "ControllerToolWindow.h"
+#include <imgui.h>
+
+// •`‰æ
+void ControllerToolWindow::Draw(entt::registry& registry, ControllerSystem& system)
+{
+    // ControllerComponent‚ğ‚ÂEntit ‚ğ’T‚·
+    auto view = registry.view<ControllerComponent>();
+    if (view.empty())
+    {
+        ImGui::TextColored({ 1.0f, 0.4f, 0.4f, 1.0f }, "ControllerComponent ‚ğ‚Â Entity ‚ª‚ ‚è‚Ü‚¹‚ñ");
+        ImGui::End();
+        return;
+    }
+
+    // æ“ª‚Ì Entity ‚ğg‚¤
+    auto entity = *view.begin();
+    auto& ctrl = view.get<ControllerComponent>(entity);
+    auto& settings = system.GetSettings();
+
+    // ƒ^ƒuƒo[
+    if (ImGui::BeginTabBar("ControllerTabs"))
+    {
+        if (ImGui::BeginTabItem("Monitor"))
+        {
+            DrawMonitorTab(ctrl);
+            ImGui::EndTabItem();
+        }
+        if (ImGui::BeginTabItem("Stick"))
+        {
+            DrawStickTab(settings, ctrl);
+            ImGui::EndTabItem();
+        }
+        if (ImGui::BeginTabItem("Trigger"))
+        {
+            DrawTriggerTab(settings, ctrl);
+            ImGui::EndTabItem();
+        }
+        if (ImGui::BeginTabItem("Adaptive"))
+        {
+            DrawAdaptiveTriggerTab(settings, ctrl);
+            ImGui::EndTabItem();
+        }
+        if (ImGui::BeginTabItem("Vibration"))
+        {
+            DrawVibrationTab(settings, ctrl);
+            ImGui::EndTabItem();
+        }
+        ImGui::EndTabBar();
+    }
+
+    ImGui::End();
+}
+
+// ƒ‚ƒjƒ^[ƒ^ƒu
+void ControllerToolWindow::DrawMonitorTab(const ControllerComponent& ctrl)
+{
+    // Ú‘±ó‘Ô
+    if (ctrl.connected)
+    {
+        const char* typeName = ctrl.type == ControllerType::PS5 ? "PS5 DualSense" : "Xbox";
+        ImGui::TextColored({ 0.3f, 1.0f, 0.3f, 1.0f }, u8"[%s] Ú‘±’†", typeName);
+    }
+    else
+    {
+        ImGui::TextColored({ 0.6f, 0.6f, 0.6f, 1.0f }, u8"–¢Ú‘±");
+        return;
+    }
+
+    ImGui::Separator();
+
+    // ƒXƒeƒBƒbƒN
+    ImGui::Text("Left  Stick  X: %.3f  Y: %.3f", ctrl.leftStickX, ctrl.leftStickY);
+    ImGui::Text("Right Stick  X: %.3f  Y: %.3f", ctrl.rightStickX, ctrl.rightStickY);
+
+    ImGui::Separator();
+
+    // ƒgƒŠƒK[
+    ImGui::Text("L2"); ImGui::SameLine();
+    ImGui::ProgressBar(ctrl.leftTrigger, { 150, 0 }, "L2");
+    ImGui::Text("R2"); ImGui::SameLine();
+    ImGui::ProgressBar(ctrl.rightTrigger, { 150, 0 }, "R2");
+
+    ImGui::Separator();
+
+    // ƒ{ƒ^ƒ“
+    auto showBtn = [&](const char* label, uint32_t mask)
+        {
+            bool pressed = ctrl.IsPressed(mask);
+            if (pressed) ImGui::PushStyleColor(ImGuiCol_Button, { 0.2f, 0.8f, 0.2f, 1.0f });
+            ImGui::SmallButton(label);
+            if (pressed) ImGui::PopStyleColor();
+            ImGui::SameLine();
+        };
+
+    showBtn("~", ControllerButtons::Cross);
+    showBtn("›", ControllerButtons::Circle);
+    showBtn(" ", ControllerButtons::Square);
+    showBtn("¢", ControllerButtons::Triangle);
+    showBtn("L1", ControllerButtons::L1);
+    showBtn("R1", ControllerButtons::R1);
+    showBtn("L2", ControllerButtons::L2);
+    showBtn("R2", ControllerButtons::R2);
+    showBtn("L3", ControllerButtons::L3);
+    showBtn("R3", ControllerButtons::R3);
+    showBtn("OPT", ControllerButtons::Options);
+    showBtn("SHR", ControllerButtons::Share);
+    ImGui::NewLine();
+}
+
+// ƒXƒeƒBƒbƒNİ’èƒ^ƒu
+void ControllerToolWindow::DrawStickTab(ControllerSettings& settings, const ControllerComponent& ctrl)
+{
+    ImGui::SeparatorText("Left Stick");
+    ImGui::SliderFloat("Deadzone##LS", &settings.leftStickDeadzone, 0.0f, 1.0f, "%.2f");
+
+    // Œ»İ’l‚ÌŠm”Fiƒfƒbƒhƒ][ƒ““K—p‘O‚Ì¶‚Ì’lj
+    ImGui::Text("Raw  X: %.3f  Y: %.3f", ctrl.leftStickX, ctrl.leftStickY);
+
+    // ƒfƒbƒhƒ][ƒ““K—pŒã‚ÌƒvƒŒƒrƒ…[
+    auto applyDZ = [](float v, float dz) -> float
+        {
+            if (fabsf(v) < dz) return 0.0f;
+            float sign = v > 0.0f ? 1.0f : -1.0f;
+            return sign * (fabsf(v) - dz) / (1.0f - dz);
+        };
+
+    float lx = applyDZ(ctrl.leftStickX, settings.leftStickDeadzone);
+    float ly = applyDZ(ctrl.leftStickY, settings.leftStickDeadzone);
+    ImGui::Text("Post X: %.3f  Y: %.3f", lx, ly);
+
+    ImGui::SeparatorText("Right Stick");
+    ImGui::SliderFloat("Deadzone##RS", &settings.rightStickDeadzone, 0.0f, 1.0f, "%.2f");
+
+    float rx = applyDZ(ctrl.rightStickX, settings.rightStickDeadzone);
+    float ry = applyDZ(ctrl.rightStickY, settings.rightStickDeadzone);
+    ImGui::Text("Raw  X: %.3f  Y: %.3f", ctrl.rightStickX, ctrl.rightStickY);
+    ImGui::Text("Post X: %.3f  Y: %.3f", rx, ry);
+}
+
+// ƒgƒŠƒK[İ’èƒ^ƒu
+void ControllerToolWindow::DrawTriggerTab(ControllerSettings& settings, const ControllerComponent& ctrl)
+{
+    ImGui::SeparatorText(u8"L2 ƒgƒŠƒK[");
+
+    ImGui::SliderFloat(u8"ƒfƒbƒhƒ][ƒ“##LT", &settings.leftTriggerDeadzone, 0.0f, 1.0f, "%.2f");
+    ImGui::SliderFloat(u8"”»’èè‡’l##LT", &settings.leftTriggerThreshold, 0.0f, 1.0f, "%.2f");
+
+    // ¶‚Ì’l
+    ImGui::Text(u8"Raw: %.3f", ctrl.leftTrigger);
+
+    // ƒfƒbƒhƒ][ƒ““K—pŒãƒvƒŒƒrƒ…[
+    auto applyDZ = [](float v, float dz) -> float
+        {
+            if (v < dz) return 0.0f;
+            return (v - dz) / (1.0f - dz);
+        };
+
+    float lt = applyDZ(ctrl.leftTrigger, settings.leftTriggerDeadzone);
+    ImGui::Text(u8"Post: %.3f", lt);
+
+    // ”»’èè‡’l‚Ì‹Šo•\¦
+    ImGui::ProgressBar(ctrl.leftTrigger, { -1, 0 }, "");
+    // è‡’lƒ‰ƒCƒ“‚ğProgressBar‚Ìã‚É•`‰æ
+    {
+        ImVec2 barMin = ImGui::GetItemRectMin();
+        ImVec2 barMax = ImGui::GetItemRectMax();
+        float  x = barMin.x + (barMax.x - barMin.x) * settings.leftTriggerThreshold;
+        ImGui::GetWindowDrawList()->AddLine(
+            { x, barMin.y }, { x, barMax.y },
+            IM_COL32(255, 80, 80, 255), 2.0f
+        );
+    }
+    ImGui::Text(u8"  ª Ôü = ”»’èè‡’l");
+
+    // ƒfƒWƒ^ƒ‹”»’èŒ‹‰Ê
+    bool l2 = ctrl.leftTrigger >= settings.leftTriggerThreshold;
+    ImGui::TextColored(
+        l2 ? ImVec4(0.2f, 1.0f, 0.2f, 1.0f) : ImVec4(0.6f, 0.6f, 0.6f, 1.0f),
+        u8"L2 ”»’è: %s", l2 ? "ON" : "OFF"
+    );
+
+    ImGui::Spacing();
+    ImGui::SeparatorText(u8"R2 ƒgƒŠƒK[");
+
+    ImGui::SliderFloat(u8"ƒfƒbƒhƒ][ƒ“##RT", &settings.rightTriggerDeadzone, 0.0f, 1.0f, "%.2f");
+    ImGui::SliderFloat(u8"”»’èè‡’l##RT", &settings.rightTriggerThreshold, 0.0f, 1.0f, "%.2f");
+
+    ImGui::Text(u8"Raw: %.3f", ctrl.rightTrigger);
+
+    float rt = applyDZ(ctrl.rightTrigger, settings.rightTriggerDeadzone);
+    ImGui::Text(u8"Post: %.3f", rt);
+
+    ImGui::ProgressBar(ctrl.rightTrigger, { -1, 0 }, "");
+    {
+        ImVec2 barMin = ImGui::GetItemRectMin();
+        ImVec2 barMax = ImGui::GetItemRectMax();
+        float  x = barMin.x + (barMax.x - barMin.x) * settings.rightTriggerThreshold;
+        ImGui::GetWindowDrawList()->AddLine(
+            { x, barMin.y }, { x, barMax.y },
+            IM_COL32(255, 80, 80, 255), 2.0f
+        );
+    }
+    ImGui::Text(u8"  ª Ôü = ”»’èè‡’l");
+
+    bool r2 = ctrl.rightTrigger >= settings.rightTriggerThreshold;
+    ImGui::TextColored(
+        r2 ? ImVec4(0.2f, 1.0f, 0.2f, 1.0f) : ImVec4(0.6f, 0.6f, 0.6f, 1.0f),
+        u8"R2 ”»’è: %s", r2 ? "ON" : "OFF"
+    );
+}
+
+// ƒAƒ_ƒvƒeƒBƒuƒgƒŠƒK[ƒ^ƒu
+void ControllerToolWindow::DrawAdaptiveTriggerTab(ControllerSettings& settings, const ControllerComponent& ctrl)
+{
+    if (ctrl.type != ControllerType::PS5)
+    {
+        ImGui::TextColored({ 0.6f, 0.6f, 0.6f, 1.0f }, u8"PS5 Ú‘±‚Ì‚İg—p‚Å‚«‚Ü‚·");
+        return;
+    }
+
+    const char* effectNames[] = { u8"Offi–³Œøj", u8"Rigidiˆê’è’ïRj", u8"PulseiU“®j", u8"SlopeiŒXÎj" };
+
+    auto drawTriggerEffect = [&](const char* label, TriggerEffect& effect)
+        {
+            ImGui::SeparatorText(label);
+
+            int type = (int)effect.type;
+            if (ImGui::Combo(u8"ƒGƒtƒFƒNƒg", &type, effectNames, 4))
+            {
+                effect.type = (TriggerEffectType)type;
+            }
+
+            // OffˆÈŠO‚Ì‚Æ‚«‚¾‚¯ƒpƒ‰ƒ[ƒ^‚ğ•\¦
+            if (effect.type != TriggerEffectType::Off)
+            {
+                int start = effect.start;
+                int end = effect.end;
+                int force = effect.force;
+
+                if (ImGui::SliderInt(u8"ŠJnˆÊ’u##start", &start, 0, 255)) effect.start = (uint8_t)start;
+                if (ImGui::SliderInt(u8"I—¹ˆÊ’u##end", &end, 0, 255)) effect.end = (uint8_t)end;
+                if (ImGui::SliderInt(u8"’ïR‚Ì‹­‚³##force", &force, 0, 255)) effect.force = (uint8_t)force;
+
+                // Pulse ‚Ì‚Æ‚«‚¾‚¯ü”g”‚ğ•\¦
+                if (effect.type == TriggerEffectType::Pulse)
+                {
+                    int freq = effect.freq;
+                    if (ImGui::SliderInt(u8"U“®ü”g”##freq", &freq, 0, 255)) effect.freq = (uint8_t)freq;
+                }
+            }
+        };
+
+    drawTriggerEffect("L2", settings.leftTriggerEffect);
+    ImGui::Spacing();
+    drawTriggerEffect("R2", settings.rightTriggerEffect);
+}
+
+// U“®ƒ^ƒu
+void ControllerToolWindow::DrawVibrationTab(ControllerSettings& settings, ControllerComponent& ctrl)
+{
+    ImGui::SeparatorText(u8"U“®ƒeƒXƒg");
+
+    int left = (int)settings.leftMotor;
+    int right = (int)settings.rightMotor;
+
+    if (ImGui::SliderInt(u8"¶ƒ‚[ƒ^[##vib", &left, 0, 255)) settings.leftMotor = (uint8_t)left;
+    if (ImGui::SliderInt(u8"‰Eƒ‚[ƒ^[##vib", &right, 0, 255)) settings.rightMotor = (uint8_t)right;
+
+    // ƒXƒ‰ƒCƒ_[‚Ì’l‚ğ ControllerComponent ‚É”½‰fiControllerSystem ‚ª–ˆƒtƒŒ[ƒ€‘—Mj
+    ctrl.vibration.leftMotor = settings.leftMotor;
+    ctrl.vibration.rightMotor = settings.rightMotor;
+
+    ImGui::Spacing();
+
+    // ˆêŠ‡’â~ƒ{ƒ^ƒ“
+    if (ImGui::Button(u8"’â~"))
+    {
+        settings.leftMotor = 0;
+        settings.rightMotor = 0;
+        ctrl.vibration.leftMotor = 0;
+        ctrl.vibration.rightMotor = 0;
+    }
+
+    if (ctrl.type != ControllerType::PS5)
+    {
+        ImGui::Spacing();
+        ImGui::TextColored({ 0.6f, 0.6f, 0.6f, 1.0f }, u8"¦ ƒAƒ_ƒvƒeƒBƒuƒgƒŠƒK[‚Í PS5 Ú‘±‚Ì‚İ—LŒø");
+    }
 }
  
  

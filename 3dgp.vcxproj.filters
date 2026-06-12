@@ -209,6 +209,15 @@
     <Filter Include="Sources\ECS\Systems\Camera\GameCameraSystem">
       <UniqueIdentifier>{4b9767af-ddd1-4243-a944-103e5fc19c1c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\ECS\Components\Control">
+      <UniqueIdentifier>{6ef28936-333e-4ece-bf28-6ab61d4dc045}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Tool">
+      <UniqueIdentifier>{23e4b07c-cfcd-4813-a8cf-40c4b46ed99e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\ECS\Systems\ControllerSystem">
+      <UniqueIdentifier>{8bbb39fc-fb3e-496c-b238-9b7e186c167b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Core\framework.cpp">
@@ -336,6 +345,12 @@
     </ClCompile>
     <ClCompile Include="Source\ECS\Systems\GameCameraSystem.cpp">
       <Filter>Sources\ECS\Systems\Camera\GameCameraSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Tool\ControllerToolWindow.cpp">
+      <Filter>Sources\Tool</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\ECS\Systems\ControllerSystem.cpp">
+      <Filter>Sources\ECS\Systems\ControllerSystem</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -512,6 +527,18 @@
     </ClInclude>
     <ClInclude Include="Source\ECS\Systems\GameCameraSystem.h">
       <Filter>Sources\ECS\Systems\Camera\GameCameraSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ECS\Components\ControllerComponent.h">
+      <Filter>Sources\ECS\Components\Control</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ECS\Components\ControllerSettings.h">
+      <Filter>Sources\ECS\Components\Control</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Tool\ControllerToolWindow.h">
+      <Filter>Sources\Tool</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ECS\Systems\ControllerSystem.h">
+      <Filter>Sources\ECS\Systems\ControllerSystem</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
