@@ -133,13 +133,13 @@ void InputSystem::UpdatePS5(InputComponent& input)
     float lx = ApplyDeadzone(ds5State.leftStick.x / 127.0f);
     float ly = ApplyDeadzone(ds5State.leftStick.y / 127.0f);
     input.moveX += lx;
-    input.moveZ += -ly; // Y 軸反転
+    input.moveZ += ly; // Y 軸反転
 
     // 右スティック（カメラ）
     float rx = ApplyDeadzone(ds5State.rightStick.x / 127.0f);
     float ry = ApplyDeadzone(ds5State.rightStick.y / 127.0f);
     input.cameraX += rx;
-    input.cameraY += ry;
+    input.cameraY += -ry;
 
     // ボタン（× = ジャンプ、□ = 攻撃、○ = 回避）
     input.jump |= (ds5State.buttonsAndDpad & DS5W_ISTATE_BTX_CROSS) != 0;

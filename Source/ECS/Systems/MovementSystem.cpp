@@ -13,11 +13,11 @@ void MovementSystem::Update(entt::registry& registry, float elapsedTime, const S
         MovementComponent& movement,
         TransformComponent& transform)
         {
-            // --- カメラの前後左右ベクトルを取得 ---
+            // カメラの前後左右ベクトル取得 
             DirectX::XMFLOAT3 front = context.camera->GetFront();
             DirectX::XMFLOAT3 right = context.camera->GetRight();
 
-            // --- XZ平面で正規化し直す（参考コードと同じ処理）---
+            // XZ平面で正規化し直す
             float frontLen = sqrtf(front.x * front.x + front.z * front.z);
             float rightLen = sqrtf(right.x * right.x + right.z * right.z);
 
@@ -26,11 +26,11 @@ void MovementSystem::Update(entt::registry& registry, float elapsedTime, const S
             float rightX = (rightLen > 0.0f) ? right.x / rightLen : 0.0f;
             float rightZ = (rightLen > 0.0f) ? right.z / rightLen : 0.0f;
 
-            // --- 移動ベクトルを合成 ---
+            // 移動ベクトルを合成
             float vecX = frontX * input.moveZ + rightX * input.moveX;
             float vecZ = frontZ * input.moveZ + rightZ * input.moveX;
 
-            // --- 移動ベクトルを正規化して速度をかける ---
+            // 移動ベクトルを正規化して速度をかける
             float vecLen = sqrtf(vecX * vecX + vecZ * vecZ);
             if (vecLen > 0.0f)
             {
@@ -38,26 +38,20 @@ void MovementSystem::Update(entt::registry& registry, float elapsedTime, const S
                 transform.position.z += (vecZ / vecLen) * movement.moveSpeed * elapsedTime;
             }
 
-            // --- 水平移動 ---
-            transform.position.x += (front.x * input.moveZ + right.x * input.moveX)
-                * movement.moveSpeed * elapsedTime;
-            transform.position.z += (front.z * input.moveZ + right.z * input.moveZ)
-                * movement.moveSpeed * elapsedTime;
-
-            // --- 重力 ---
+            // 重力
             movement.velocity.y += movement.gravity * elapsedTime;
 
-            // --- ジャンプ ---
+            // ジャンプ
             if (input.jump && movement.isGrounded)
             {
                 movement.velocity.y = movement.jumpPower;
                 movement.isGrounded = false;
             }
 
-            // --- 垂直移動の反映 ---
+            // 垂直移動の反映
             transform.position.y += movement.velocity.y * elapsedTime;
 
-            // --- 仮の地面判定（y=0で止める） ---
+            // 仮の地面判定
             if (transform.position.y <= 0.0f)
             {
                 transform.position.y = 0.0f;
