@@ -528,12 +528,6 @@ void RenderSystem::LightingPass(
 	// フルスクリーン描画
 	dc->Draw(4, 0);
 
-	//// SRVの束縛を解除
-	//ID3D11ShaderResourceView* nullSrvs[9] = {};
-	//dc->PSSetShaderResources(0, 9, nullSrvs);
-
-	//// IBLスロットも明示的に解除
-	//dc->PSSetShaderResources(6, 3, nullSrvs);
 	// SRVの束縛を解除
 	ID3D11ShaderResourceView* nullSrvs[9] = {};
 	dc->PSSetShaderResources(0, 9, nullSrvs);
