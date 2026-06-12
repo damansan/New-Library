@@ -8,6 +8,7 @@
 
 #include "ECS/Components/TransformComponent.h"
 #include "ECS/Components/MeshComponent.h"
+#include "ECS/Components/MaterialComponent.h"
 
 #include "ECS/Components/InputComponent.h"
 #include "ECS/Components/ControllerComponent.h"
@@ -88,6 +89,28 @@ void ComponentRegistryInitializer::Initialize()
 					}
 				}
 			}));
+
+	// マテリアルコンポーネントの登録
+	ComponentRegistry::Register("Material",
+		{
+			"Material",
+			[](auto& reg, auto e) { if (!reg.any_of<MaterialComponent>(e)) reg.emplace<MaterialComponent>(e); },
+			[](auto& reg, auto e) { reg.remove<MaterialComponent>(e); },
+			[](auto& reg, auto e) { return reg.any_of<MaterialComponent>(e); },
+			[](auto& reg, auto e)
+			{
+				auto* mat = reg.try_get<MaterialComponent>(e);
+				if (!mat) return;
+				if (!ImGui::CollapsingHeader("Material", ImGuiTreeNodeFlags_DefaultOpen)) return;
+
+				const char* shaderNames[] = { "Default (PBR)", "Basic" };
+				int current = (int)mat->shadingModel;
+				if (ImGui::Combo("Shader", &current, shaderNames, 2))
+				{
+					mat->shadingModel = (ShadingModel)current;
+				}
+			}
+		});
 
 	// ムーブメントコンポーネントの登録
 	REGISTER_COMPONENT(MovementComponent, "Movement",

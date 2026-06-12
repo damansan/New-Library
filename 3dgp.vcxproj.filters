@@ -170,9 +170,6 @@
     <Filter Include="Sources\Editor\ComponentRegistry">
       <UniqueIdentifier>{0284df2a-6828-42c8-96ed-1fa09f18d31a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Sources\ECS\Components\Camera">
-      <UniqueIdentifier>{43f4a366-0d26-43d8-97c6-46e684118e7e}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Sources\ECS\Systems\Camera">
       <UniqueIdentifier>{6852dba2-f126-4ff7-82ae-cab96735ede9}</UniqueIdentifier>
     </Filter>
@@ -181,9 +178,6 @@
     </Filter>
     <Filter Include="Sources\ECS\Systems\Camera\GameCameraSystem">
       <UniqueIdentifier>{4b9767af-ddd1-4243-a944-103e5fc19c1c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\ECS\Components\Control">
-      <UniqueIdentifier>{6ef28936-333e-4ece-bf28-6ab61d4dc045}</UniqueIdentifier>
     </Filter>
     <Filter Include="Sources\Tool">
       <UniqueIdentifier>{23e4b07c-cfcd-4813-a8cf-40c4b46ed99e}</UniqueIdentifier>
@@ -435,26 +429,11 @@
     <ClInclude Include="Source\ECS\Components\TransformComponent.h">
       <Filter>Sources\ECS\Components</Filter>
     </ClInclude>
-    <ClInclude Include="Source\ECS\Components\BaseCameraComponent.h">
-      <Filter>Sources\ECS\Components\Camera</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\ECS\Components\FreeCameraComponent.h">
-      <Filter>Sources\ECS\Components\Camera</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\ECS\Components\GameCameraComponent.h">
-      <Filter>Sources\ECS\Components\Camera</Filter>
-    </ClInclude>
     <ClInclude Include="Source\ECS\Systems\DebugCameraSystem.h">
       <Filter>Sources\ECS\Systems\Camera\DebugCameraSystem</Filter>
     </ClInclude>
     <ClInclude Include="Source\ECS\Systems\GameCameraSystem.h">
       <Filter>Sources\ECS\Systems\Camera\GameCameraSystem</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\ECS\Components\ControllerComponent.h">
-      <Filter>Sources\ECS\Components\Control</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\ECS\Components\ControllerSettings.h">
-      <Filter>Sources\ECS\Components\Control</Filter>
     </ClInclude>
     <ClInclude Include="Source\Tool\ControllerToolWindow.h">
       <Filter>Sources\Tool</Filter>
@@ -462,9 +441,27 @@
     <ClInclude Include="Source\ECS\Systems\ControllerSystem.h">
       <Filter>Sources\ECS\Systems\ControllerSystem</Filter>
     </ClInclude>
+    <ClInclude Include="Source\ECS\Components\ControllerComponent.h">
+      <Filter>Sources\ECS\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ECS\Components\ControllerSettings.h">
+      <Filter>Sources\ECS\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ECS\Components\BaseCameraComponent.h">
+      <Filter>Sources\ECS\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ECS\Components\FreeCameraComponent.h">
+      <Filter>Sources\ECS\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ECS\Components\GameCameraComponent.h">
+      <Filter>Sources\ECS\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ECS\Components\MaterialComponent.h">
+      <Filter>Sources\ECS\Components</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="Shader\Base_VS.hlsl">
+    <FxCompile Include="Shader\Static_VS.hlsl">
       <Filter>Shader\Base</Filter>
     </FxCompile>
     <FxCompile Include="Shader\Basic_PS.hlsl">
@@ -499,6 +496,9 @@
     </FxCompile>
     <FxCompile Include="Shader\Lighting_VS.hlsl">
       <Filter>Shader\Lighting</Filter>
+    </FxCompile>
+    <FxCompile Include="Shader\Gbuffer_Basic_PS.hlsl">
+      <Filter>Shader\Basic</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>

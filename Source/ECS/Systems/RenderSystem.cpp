@@ -8,17 +8,17 @@ void RenderSystem::Initialize(ID3D11Device* device)
 	// 入力レイアウト
 	const std::vector<D3D11_INPUT_ELEMENT_DESC>& inputElementDescs = Model::InputElementDescs;
 
-	// 静的頂点シェーダー読み込み
+	// 静的メッシュ用頂点シェーダー
 	GpuResourceUtils::LoadVertexShader(
 		device,
-		"Data/Shader/Base_VS.cso",
+		"Data/Shader/Static_VS.cso",
 		inputElementDescs.data(),
 		static_cast<UINT>(inputElementDescs.size()),
 		inputLayout,
 		vertexShader
 	);
 
-	// スキニング頂点シェーダー読み込み
+	// スキニング用頂点シェーダー
 	Microsoft::WRL::ComPtr<ID3D11InputLayout> dummyLayout;
 	GpuResourceUtils::LoadVertexShader(
 		device,
@@ -28,6 +28,17 @@ void RenderSystem::Initialize(ID3D11Device* device)
 		dummyLayout,
 		skinnedVertexShader
 	);
+
+	// GBufferシェーダーをマップに登録
+	Microsoft::WRL::ComPtr<ID3D11PixelShader> ps;
+
+	GpuResourceUtils::LoadPixelShader(
+		device, "Data/Shader/Gbuffer_PS.cso", ps);
+	gBufferPixelShaders["gbuffer_default"] = ps;
+
+	GpuResourceUtils::LoadPixelShader(
+		device, "Data/Shader/Gbuffer_Basic_PS.cso", ps);
+	gBufferPixelShaders["gbuffer_basic"] = ps;
 
 	// シーン定数バッファ生成
 	GpuResourceUtils::CreateConstantBuffer(
@@ -123,11 +134,6 @@ void RenderSystem::Initialize(ID3D11Device* device)
 	// 黒 (Emissive用)
 	GpuResourceUtils::CreateDummyTexture(device, dummyBlack, 0xFF000000, 1);
 
-
-	// Gbuffer用PixelShader読み込み
-	GpuResourceUtils::LoadPixelShader(
-		device, "Data/Shader/Gbuffer_PS.cso", gBufferPS);
-
 	// Lightingパス用シェーダー読み込み
 	Microsoft::WRL::ComPtr<ID3D11InputLayout> dummyLayoutL;
 	GpuResourceUtils::LoadVertexShader(
@@ -185,201 +191,201 @@ void RenderSystem::Render(
 	LightingPass(dc, rtv, dsv);
 }
 
-// 静的メッシュ描画
-void RenderSystem::RenderStaticGeometry(
-	entt::registry& registry,
-	ID3D11DeviceContext* dc,
-	bool transparent,
-	const Frustum& frustum)
-{
-	// TransformComponent + StaticMeshComponent を持つEntityを取得
-	auto view = registry.view<TransformComponent, StaticMeshComponent>();
-
-	view.each([&](auto entity, TransformComponent& transform, StaticMeshComponent& staticMesh)
-		{
-			// モデルが未設定ならスキップ
-			if (!staticMesh.model) return;
-
-			// フラスタムカリング
-			DirectX::XMFLOAT4X4 worldMatrix{};
-			DirectX::XMStoreFloat4x4(&worldMatrix, transform.GetWorldMatrix());
-			if (!IsInFrustum(frustum, staticMesh.model->GetBoundingBox(), worldMatrix)) return;
-
-			// ワールド行列を定数バッファに設定
-			CbObject cbObjectData{};
-			cbObjectData.world = worldMatrix;
-
-			dc->UpdateSubresource(cbObject.Get(), 0, nullptr, &cbObjectData, 0, 0);
-			dc->VSSetConstantBuffers(1, 1, cbObject.GetAddressOf());
-
-			// メッシュ単位で描画
-			for (auto& mesh : staticMesh.model->GetMeshes())
-			{
-				// 透明フラグとマテリアルのalphaModeが一致するメッシュだけ描画
-				if (mesh.material)
-				{
-					bool isTransparent =
-						mesh.material->alphaMode == Model::Material::AlphaMode::Blend ||
-						mesh.material->alphaMode == Model::Material::AlphaMode::Mask;
-					if (isTransparent != transparent) continue;
-				}
-				else
-				{
-					if (transparent) continue;
-				}
-
-				// 頂点バッファ設定
-				UINT stride = sizeof(Model::Vertex);
-				UINT offset = 0;
-				dc->IASetVertexBuffers(
-					0, 1,
-					mesh.vertexBuffer.GetAddressOf(),
-					&stride, &offset
-				);
-
-				// インデックスバッファ設定
-				dc->IASetIndexBuffer(
-					mesh.indexBuffer.Get(),
-					DXGI_FORMAT_R32_UINT, 0
-				);
-
-				// PBR用テクスチャを一括でセット
-				ID3D11ShaderResourceView* srvs[5] =
-				{
-					// t0: Albedo
-					(mesh.material && mesh.material->baseMap)
-						? mesh.material->baseMap.Get()
-						: dummyWhite.Get(),
-
-					// t1: 法線マップ
-					(mesh.material && mesh.material->normalMap)
-						? mesh.material->normalMap.Get()
-						: dummyNormal.Get(),
-
-					// t2: MetallicRoughness
-					(mesh.material && mesh.material->metallicRoughnessMap)
-						? mesh.material->metallicRoughnessMap.Get()
-						: dummyWhite.Get(),
-
-					// t3: Occlusion
-					(mesh.material && mesh.material->occlusionMap)
-						? mesh.material->occlusionMap.Get()
-						: dummyWhite.Get(),
-
-					// t4: Emissive
-					(mesh.material && mesh.material->emissiveMap)
-						? mesh.material->emissiveMap.Get()
-						: dummyBlack.Get(),
-				};
-				dc->PSSetShaderResources(0, 5, srvs);
-				
-				dc->DrawIndexed(static_cast<UINT>(mesh.indices.size()), 0, 0);
-			}
-
-		});
-}
-
-// スキニングメッシュ描画
-void RenderSystem::RenderSkinnedGeometry(
-	entt::registry& registry,
-	ID3D11DeviceContext* dc,
-	bool transparent,
-	const Frustum& frustum)
-{
-	auto view = registry.view<TransformComponent, SkinnedMeshComponent>();
-
-	view.each([&](auto entity,
-		TransformComponent& transform,
-		SkinnedMeshComponent& skinnedMesh)
-		{
-			// モデルが未設定ならスキップ
-			if (!skinnedMesh.model) return;
-
-			// フラスタムカリング
-			DirectX::XMFLOAT4X4 worldMatrix{};
-			DirectX::XMStoreFloat4x4(&worldMatrix, transform.GetWorldMatrix());
-			if (!IsInFrustum(frustum, skinnedMesh.model->GetBoundingBox(), worldMatrix)) return;
-
-			// ワールド行列を定数バッファに設定
-			CbObject cbObjectData{};
-			cbObjectData.world = worldMatrix;
-			dc->UpdateSubresource(cbObject.Get(), 0, nullptr, &cbObjectData, 0, 0);
-			dc->VSSetConstantBuffers(1, 1, cbObject.GetAddressOf());
-
-			// メッシュ描画（メッシュごとに対応するボーン行列を転送）
-			const auto& meshes = skinnedMesh.model->GetMeshes();
-			for (int m = 0; m < (int)meshes.size(); m++)
-			{
-				const auto& mesh = meshes[m];
-
-				// 透明フラグとマテリアルのalphaModeが一致するメッシュだけ描画
-				if (mesh.material)
-				{
-					bool isTransparent =
-						mesh.material->alphaMode == Model::Material::AlphaMode::Blend ||
-						mesh.material->alphaMode == Model::Material::AlphaMode::Mask;
-					if (isTransparent != transparent) continue;
-				}
-				else
-				{
-					if (transparent) continue;
-				}
-
-				CbSkinning cbSkinningData{};
-				if (m < (int)skinnedMesh.boneTransforms.size() &&
-					!skinnedMesh.boneTransforms[m].empty())
-				{
-					const auto& bt = skinnedMesh.boneTransforms[m];
-					size_t boneCount = (std::min)(bt.size(), (size_t)MAX_BONES);
-					for (size_t i = 0; i < boneCount; i++)
-					{
-						cbSkinningData.boneTransforms[i] = bt[i];
-					}
-				}
-				else
-				{
-					// bones=0 のメッシュはノードのグローバルトランスフォームを使う
-					const auto& nodes = skinnedMesh.model->GetNodes();
-					int nodeIndex = mesh.nodeIndex;
-					if (nodeIndex >= 0 && nodeIndex < (int)nodes.size())
-					{
-						cbSkinningData.boneTransforms[0] =
-							nodes[nodeIndex].globalTransform;
-					}
-					else
-					{
-						cbSkinningData.boneTransforms[0] =
-						{ 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 };
-					}
-				}
-				dc->UpdateSubresource(cbSkinning.Get(), 0, nullptr, &cbSkinningData, 0, 0);
-				dc->VSSetConstantBuffers(2, 1, cbSkinning.GetAddressOf());
-
-				UINT stride = sizeof(Model::Vertex);
-				UINT offset = 0;
-				dc->IASetVertexBuffers(0, 1, mesh.vertexBuffer.GetAddressOf(), &stride, &offset);
-				dc->IASetIndexBuffer(mesh.indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
-
-				// PBR用テクスチャを一括でセット
-				ID3D11ShaderResourceView* srvs[5] =
-				{
-					(mesh.material && mesh.material->baseMap)
-						? mesh.material->baseMap.Get() : dummyWhite.Get(),
-					(mesh.material && mesh.material->normalMap)
-						? mesh.material->normalMap.Get() : dummyNormal.Get(),
-					(mesh.material && mesh.material->metallicRoughnessMap)
-						? mesh.material->metallicRoughnessMap.Get() : dummyWhite.Get(),
-					(mesh.material && mesh.material->occlusionMap)
-						? mesh.material->occlusionMap.Get() : dummyWhite.Get(),
-					(mesh.material && mesh.material->emissiveMap)
-						? mesh.material->emissiveMap.Get() : dummyBlack.Get(),
-				};
-				dc->PSSetShaderResources(0, 5, srvs);
-				
-				dc->DrawIndexed(static_cast<UINT>(mesh.indices.size()), 0, 0);
-			}
-		});
-}
+//// 静的メッシュ描画
+//void RenderSystem::RenderStaticGeometry(
+//	entt::registry& registry,
+//	ID3D11DeviceContext* dc,
+//	bool transparent,
+//	const Frustum& frustum)
+//{
+//	// TransformComponent + StaticMeshComponent を持つEntityを取得
+//	auto view = registry.view<TransformComponent, StaticMeshComponent>();
+//
+//	view.each([&](auto entity, TransformComponent& transform, StaticMeshComponent& staticMesh)
+//		{
+//			// モデルが未設定ならスキップ
+//			if (!staticMesh.model) return;
+//
+//			// フラスタムカリング
+//			DirectX::XMFLOAT4X4 worldMatrix{};
+//			DirectX::XMStoreFloat4x4(&worldMatrix, transform.GetWorldMatrix());
+//			if (!IsInFrustum(frustum, staticMesh.model->GetBoundingBox(), worldMatrix)) return;
+//
+//			// ワールド行列を定数バッファに設定
+//			CbObject cbObjectData{};
+//			cbObjectData.world = worldMatrix;
+//
+//			dc->UpdateSubresource(cbObject.Get(), 0, nullptr, &cbObjectData, 0, 0);
+//			dc->VSSetConstantBuffers(1, 1, cbObject.GetAddressOf());
+//
+//			// メッシュ単位で描画
+//			for (auto& mesh : staticMesh.model->GetMeshes())
+//			{
+//				// 透明フラグとマテリアルのalphaModeが一致するメッシュだけ描画
+//				if (mesh.material)
+//				{
+//					bool isTransparent =
+//						mesh.material->alphaMode == Model::Material::AlphaMode::Blend ||
+//						mesh.material->alphaMode == Model::Material::AlphaMode::Mask;
+//					if (isTransparent != transparent) continue;
+//				}
+//				else
+//				{
+//					if (transparent) continue;
+//				}
+//
+//				// 頂点バッファ設定
+//				UINT stride = sizeof(Model::Vertex);
+//				UINT offset = 0;
+//				dc->IASetVertexBuffers(
+//					0, 1,
+//					mesh.vertexBuffer.GetAddressOf(),
+//					&stride, &offset
+//				);
+//
+//				// インデックスバッファ設定
+//				dc->IASetIndexBuffer(
+//					mesh.indexBuffer.Get(),
+//					DXGI_FORMAT_R32_UINT, 0
+//				);
+//
+//				// PBR用テクスチャを一括でセット
+//				ID3D11ShaderResourceView* srvs[5] =
+//				{
+//					// t0: Albedo
+//					(mesh.material && mesh.material->baseMap)
+//						? mesh.material->baseMap.Get()
+//						: dummyWhite.Get(),
+//
+//					// t1: 法線マップ
+//					(mesh.material && mesh.material->normalMap)
+//						? mesh.material->normalMap.Get()
+//						: dummyNormal.Get(),
+//
+//					// t2: MetallicRoughness
+//					(mesh.material && mesh.material->metallicRoughnessMap)
+//						? mesh.material->metallicRoughnessMap.Get()
+//						: dummyWhite.Get(),
+//
+//					// t3: Occlusion
+//					(mesh.material && mesh.material->occlusionMap)
+//						? mesh.material->occlusionMap.Get()
+//						: dummyWhite.Get(),
+//
+//					// t4: Emissive
+//					(mesh.material && mesh.material->emissiveMap)
+//						? mesh.material->emissiveMap.Get()
+//						: dummyBlack.Get(),
+//				};
+//				dc->PSSetShaderResources(0, 5, srvs);
+//				
+//				dc->DrawIndexed(static_cast<UINT>(mesh.indices.size()), 0, 0);
+//			}
+//
+//		});
+//}
+//
+//// スキニングメッシュ描画
+//void RenderSystem::RenderSkinnedGeometry(
+//	entt::registry& registry,
+//	ID3D11DeviceContext* dc,
+//	bool transparent,
+//	const Frustum& frustum)
+//{
+//	auto view = registry.view<TransformComponent, SkinnedMeshComponent>();
+//
+//	view.each([&](auto entity,
+//		TransformComponent& transform,
+//		SkinnedMeshComponent& skinnedMesh)
+//		{
+//			// モデルが未設定ならスキップ
+//			if (!skinnedMesh.model) return;
+//
+//			// フラスタムカリング
+//			DirectX::XMFLOAT4X4 worldMatrix{};
+//			DirectX::XMStoreFloat4x4(&worldMatrix, transform.GetWorldMatrix());
+//			if (!IsInFrustum(frustum, skinnedMesh.model->GetBoundingBox(), worldMatrix)) return;
+//
+//			// ワールド行列を定数バッファに設定
+//			CbObject cbObjectData{};
+//			cbObjectData.world = worldMatrix;
+//			dc->UpdateSubresource(cbObject.Get(), 0, nullptr, &cbObjectData, 0, 0);
+//			dc->VSSetConstantBuffers(1, 1, cbObject.GetAddressOf());
+//
+//			// メッシュ描画（メッシュごとに対応するボーン行列を転送）
+//			const auto& meshes = skinnedMesh.model->GetMeshes();
+//			for (int m = 0; m < (int)meshes.size(); m++)
+//			{
+//				const auto& mesh = meshes[m];
+//
+//				// 透明フラグとマテリアルのalphaModeが一致するメッシュだけ描画
+//				if (mesh.material)
+//				{
+//					bool isTransparent =
+//						mesh.material->alphaMode == Model::Material::AlphaMode::Blend ||
+//						mesh.material->alphaMode == Model::Material::AlphaMode::Mask;
+//					if (isTransparent != transparent) continue;
+//				}
+//				else
+//				{
+//					if (transparent) continue;
+//				}
+//
+//				CbSkinning cbSkinningData{};
+//				if (m < (int)skinnedMesh.boneTransforms.size() &&
+//					!skinnedMesh.boneTransforms[m].empty())
+//				{
+//					const auto& bt = skinnedMesh.boneTransforms[m];
+//					size_t boneCount = (std::min)(bt.size(), (size_t)MAX_BONES);
+//					for (size_t i = 0; i < boneCount; i++)
+//					{
+//						cbSkinningData.boneTransforms[i] = bt[i];
+//					}
+//				}
+//				else
+//				{
+//					// bones=0 のメッシュはノードのグローバルトランスフォームを使う
+//					const auto& nodes = skinnedMesh.model->GetNodes();
+//					int nodeIndex = mesh.nodeIndex;
+//					if (nodeIndex >= 0 && nodeIndex < (int)nodes.size())
+//					{
+//						cbSkinningData.boneTransforms[0] =
+//							nodes[nodeIndex].globalTransform;
+//					}
+//					else
+//					{
+//						cbSkinningData.boneTransforms[0] =
+//						{ 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 };
+//					}
+//				}
+//				dc->UpdateSubresource(cbSkinning.Get(), 0, nullptr, &cbSkinningData, 0, 0);
+//				dc->VSSetConstantBuffers(2, 1, cbSkinning.GetAddressOf());
+//
+//				UINT stride = sizeof(Model::Vertex);
+//				UINT offset = 0;
+//				dc->IASetVertexBuffers(0, 1, mesh.vertexBuffer.GetAddressOf(), &stride, &offset);
+//				dc->IASetIndexBuffer(mesh.indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+//
+//				// PBR用テクスチャを一括でセット
+//				ID3D11ShaderResourceView* srvs[5] =
+//				{
+//					(mesh.material && mesh.material->baseMap)
+//						? mesh.material->baseMap.Get() : dummyWhite.Get(),
+//					(mesh.material && mesh.material->normalMap)
+//						? mesh.material->normalMap.Get() : dummyNormal.Get(),
+//					(mesh.material && mesh.material->metallicRoughnessMap)
+//						? mesh.material->metallicRoughnessMap.Get() : dummyWhite.Get(),
+//					(mesh.material && mesh.material->occlusionMap)
+//						? mesh.material->occlusionMap.Get() : dummyWhite.Get(),
+//					(mesh.material && mesh.material->emissiveMap)
+//						? mesh.material->emissiveMap.Get() : dummyBlack.Get(),
+//				};
+//				dc->PSSetShaderResources(0, 5, srvs);
+//				
+//				dc->DrawIndexed(static_cast<UINT>(mesh.indices.size()), 0, 0);
+//			}
+//		});
+//}
 
 // フラスタム計算
 RenderSystem::Frustum RenderSystem::CalcFrustum(
@@ -515,19 +521,153 @@ void RenderSystem::GeometryPass(
 
 	// 不透明パス
 	dc->OMSetDepthStencilState(depthStencilState.Get(), 0);
-	//dc->OMSetBlendState(blendState.Get(), blendFactor, 0xFFFFFFFF);
 	dc->OMSetBlendState(blendStateOpaque.Get(), blendFactor, 0xFFFFFFFF);
 
-	// GBuffer_PSをセット
-	dc->PSSetShader(gBufferPS.Get(), nullptr, 0);
+	//// 静的メッシュ描画
+	//dc->VSSetShader(vertexShader.Get(), nullptr, 0);
+	//RenderStaticGeometry(registry, dc, false, frustum);
 
-	// 静的メッシュ描画
-	dc->VSSetShader(vertexShader.Get(), nullptr, 0);
-	RenderStaticGeometry(registry, dc, false, frustum);
+	//// スキニングメッシュ描画
+	//dc->VSSetShader(skinnedVertexShader.Get(), nullptr, 0);
+	//RenderSkinnedGeometry(registry, dc, false, frustum);
 
-	// スキニングメッシュ描画
-	dc->VSSetShader(skinnedVertexShader.Get(), nullptr, 0);
-	RenderSkinnedGeometry(registry, dc, false, frustum);
+	 // デフォルトシェーダーを取得
+	auto& defaultPS = gBufferPixelShaders.at("gbuffer_default");
+
+	// エンティティごとにシェーダーを切り替えながら静的メッシュ描画
+	auto staticView = registry.view<TransformComponent, StaticMeshComponent>();
+	staticView.each([&](auto entity,
+		TransformComponent& transform,
+		StaticMeshComponent& staticMesh)
+		{
+			if (!staticMesh.model) return;
+
+			DirectX::XMFLOAT4X4 worldMatrix{};
+			DirectX::XMStoreFloat4x4(&worldMatrix, transform.GetWorldMatrix());
+			if (!IsInFrustum(frustum, staticMesh.model->GetBoundingBox(), worldMatrix)) return;
+
+			// MaterialComponentがあればそのシェーダーを使う、なければデフォルト
+			auto* mat = registry.try_get<MaterialComponent>(entity);
+			const char* shaderName = mat ? mat->GetShaderName() : "gbuffer_default";
+
+			auto it = gBufferPixelShaders.find(shaderName);
+			auto& ps = (it != gBufferPixelShaders.end()) ? it->second : defaultPS;
+			dc->PSSetShader(ps.Get(), nullptr, 0);
+
+			dc->VSSetShader(vertexShader.Get(), nullptr, 0);
+
+			CbObject cbObjectData{};
+			cbObjectData.world = worldMatrix;
+			dc->UpdateSubresource(cbObject.Get(), 0, nullptr, &cbObjectData, 0, 0);
+			dc->VSSetConstantBuffers(1, 1, cbObject.GetAddressOf());
+
+			for (auto& mesh : staticMesh.model->GetMeshes())
+			{
+				if (mesh.material)
+				{
+					bool isTransparent =
+						mesh.material->alphaMode == Model::Material::AlphaMode::Blend ||
+						mesh.material->alphaMode == Model::Material::AlphaMode::Mask;
+					if (isTransparent) continue;
+				}
+
+				UINT stride = sizeof(Model::Vertex);
+				UINT offset = 0;
+				dc->IASetVertexBuffers(0, 1, mesh.vertexBuffer.GetAddressOf(), &stride, &offset);
+				dc->IASetIndexBuffer(mesh.indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+
+				ID3D11ShaderResourceView* srvs[5] =
+				{
+					(mesh.material && mesh.material->baseMap) ? mesh.material->baseMap.Get() : dummyWhite.Get(),
+					(mesh.material && mesh.material->normalMap) ? mesh.material->normalMap.Get() : dummyNormal.Get(),
+					(mesh.material && mesh.material->metallicRoughnessMap) ? mesh.material->metallicRoughnessMap.Get() : dummyWhite.Get(),
+					(mesh.material && mesh.material->occlusionMap) ? mesh.material->occlusionMap.Get() : dummyWhite.Get(),
+					(mesh.material && mesh.material->emissiveMap) ? mesh.material->emissiveMap.Get() : dummyBlack.Get(),
+				};
+				dc->PSSetShaderResources(0, 5, srvs);
+				dc->DrawIndexed(static_cast<UINT>(mesh.indices.size()), 0, 0);
+			}
+			//RenderMeshes(staticMesh.model->GetMeshes(), dc, false, nullptr, 0);
+		});
+
+	// エンティティごとにシェーダーを切り替えながらスキニングメッシュ描画
+	auto skinnedView = registry.view<TransformComponent, SkinnedMeshComponent>();
+	skinnedView.each([&](auto entity,
+		TransformComponent& transform,
+		SkinnedMeshComponent& skinnedMesh)
+		{
+			if (!skinnedMesh.model) return;
+
+			DirectX::XMFLOAT4X4 worldMatrix{};
+			DirectX::XMStoreFloat4x4(&worldMatrix, transform.GetWorldMatrix());
+			if (!IsInFrustum(frustum, skinnedMesh.model->GetBoundingBox(), worldMatrix)) return;
+
+			// MaterialComponentがあればそのシェーダーを使う、なければデフォルト
+			auto* mat = registry.try_get<MaterialComponent>(entity);
+			const char* shaderName = mat ? mat->GetShaderName() : "gbuffer_default";
+
+			auto it = gBufferPixelShaders.find(shaderName);
+			auto& ps = (it != gBufferPixelShaders.end()) ? it->second : defaultPS;
+			dc->PSSetShader(ps.Get(), nullptr, 0);
+
+			dc->VSSetShader(skinnedVertexShader.Get(), nullptr, 0);
+
+			CbObject cbObjectData{};
+			cbObjectData.world = worldMatrix;
+			dc->UpdateSubresource(cbObject.Get(), 0, nullptr, &cbObjectData, 0, 0);
+			dc->VSSetConstantBuffers(1, 1, cbObject.GetAddressOf());
+
+			const auto& meshes = skinnedMesh.model->GetMeshes();
+			for (int m = 0; m < (int)meshes.size(); m++)
+			{
+				const auto& mesh = meshes[m];
+
+				if (mesh.material)
+				{
+					bool isTransparent =
+						mesh.material->alphaMode == Model::Material::AlphaMode::Blend ||
+						mesh.material->alphaMode == Model::Material::AlphaMode::Mask;
+					if (isTransparent) continue;
+				}
+
+				CbSkinning cbSkinningData{};
+				if (m < (int)skinnedMesh.boneTransforms.size() && !skinnedMesh.boneTransforms[m].empty())
+				{
+					const auto& bt = skinnedMesh.boneTransforms[m];
+					size_t boneCount = (std::min)(bt.size(), (size_t)MAX_BONES);
+					for (size_t i = 0; i < boneCount; i++)
+						cbSkinningData.boneTransforms[i] = bt[i];
+				}
+				else
+				{
+					const auto& nodes = skinnedMesh.model->GetNodes();
+					int nodeIndex = mesh.nodeIndex;
+					if (nodeIndex >= 0 && nodeIndex < (int)nodes.size())
+						cbSkinningData.boneTransforms[0] = nodes[nodeIndex].globalTransform;
+					else
+						cbSkinningData.boneTransforms[0] = { 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 };
+				}
+				dc->UpdateSubresource(cbSkinning.Get(), 0, nullptr, &cbSkinningData, 0, 0);
+				dc->VSSetConstantBuffers(2, 1, cbSkinning.GetAddressOf());
+
+				UINT stride = sizeof(Model::Vertex);
+				UINT offset = 0;
+				dc->IASetVertexBuffers(0, 1, mesh.vertexBuffer.GetAddressOf(), &stride, &offset);
+				dc->IASetIndexBuffer(mesh.indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+
+				ID3D11ShaderResourceView* srvs[5] =
+				{
+					(mesh.material && mesh.material->baseMap) ? mesh.material->baseMap.Get() : dummyWhite.Get(),
+					(mesh.material && mesh.material->normalMap) ? mesh.material->normalMap.Get() : dummyNormal.Get(),
+					(mesh.material && mesh.material->metallicRoughnessMap) ? mesh.material->metallicRoughnessMap.Get() : dummyWhite.Get(),
+					(mesh.material && mesh.material->occlusionMap) ? mesh.material->occlusionMap.Get() : dummyWhite.Get(),
+					(mesh.material && mesh.material->emissiveMap) ? mesh.material->emissiveMap.Get() : dummyBlack.Get(),
+				};
+				dc->PSSetShaderResources(0, 5, srvs);
+				dc->DrawIndexed(static_cast<UINT>(mesh.indices.size()), 0, 0);
+			}
+			//RenderSkinnedMeshes(skinnedMesh, dc, false);
+		});
 
 	// Geometryパス終了
 	gBuffer.EndGeometryPass(dc);

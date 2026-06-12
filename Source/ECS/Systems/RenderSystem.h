@@ -7,6 +7,7 @@
 #include "ECS/Components/TransformComponent.h"
 #include "ECS/Components/StaticMeshComponent.h"
 #include "ECS/Components/SkinnedMeshComponent.h"
+#include "ECS/Components/MaterialComponent.h"
 #include "ECS/Components/Tags.h"
 
 #include "Resource/Model.h"
@@ -92,24 +93,6 @@ private:
     {
         FrustumPlane planes[6]; // Left, Right, Top, Bottom, Near, Far
     };
-
-
-    // 静的メッシュ描画
-    void RenderStaticGeometry(
-        entt::registry& registry,
-        ID3D11DeviceContext* dc,
-        bool transparent,
-        const Frustum& frustum
-    );
-
-    // スキニングメッシュ描画
-    void RenderSkinnedGeometry(
-        entt::registry& registry,
-        ID3D11DeviceContext* dc,
-        bool transparent,
-        const Frustum& frustum
-    );
-
     
     // フラスタム計算（ViewProjection行列から）
     Frustum CalcFrustum(
@@ -171,9 +154,10 @@ private:
     UINT screenWidth = 0;
     UINT screenHeight = 0;
 
-    // Geometryパス用PixelShader
-    Microsoft::WRL::ComPtr<ID3D11PixelShader> gBufferPS;
-
+    // GBufferシェーダーマップ
+    std::unordered_map<std::string,
+        Microsoft::WRL::ComPtr<ID3D11PixelShader>> gBufferPixelShaders;
+    
     // Lightingパス用
     Microsoft::WRL::ComPtr<ID3D11VertexShader> lightingVS;
     Microsoft::WRL::ComPtr<ID3D11PixelShader>  lightingPS;

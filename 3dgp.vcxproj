@@ -75,6 +75,7 @@
     <ClInclude Include="Source\ECS\Components\FreeCameraComponent.h" />
     <ClInclude Include="Source\ECS\Components\GameCameraComponent.h" />
     <ClInclude Include="Source\ECS\Components\InputComponent.h" />
+    <ClInclude Include="Source\ECS\Components\MaterialComponent.h" />
     <ClInclude Include="Source\ECS\Components\MeshComponent.h" />
     <ClInclude Include="Source\ECS\Components\MovementComponent.h" />
     <ClInclude Include="Source\ECS\Components\SkinnedMeshComponent.h" />
@@ -112,7 +113,13 @@
     <ClInclude Include="Source\Utility\misc.h" />
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="Shader\Base_VS.hlsl">
+    <FxCompile Include="Shader\Gbuffer_Basic_PS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="Shader\Static_VS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>

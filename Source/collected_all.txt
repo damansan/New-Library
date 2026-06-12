@@ -306,22 +306,22 @@ Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\SceneContext.h
 // •K—v‚È‚à‚Ì‚ª‘‚¦‚½‚ç‚±‚±‚É’Ç‰Á‚·‚é
 struct SceneContext
 {
-    ID3D11Device* device = nullptr;               // DX11ƒfƒoƒCƒX
-    ID3D11DeviceContext* deviceContext = nullptr;
-    ResourceManager* resourceManager = nullptr;   // ƒŠƒ\[ƒXŠÇ—
+	ID3D11Device* device = nullptr;               // DX11ƒfƒoƒCƒX
+	ID3D11DeviceContext* deviceContext = nullptr;
+	ResourceManager* resourceManager = nullptr;   // ƒŠƒ\[ƒXŠÇ—
 
-    ID3D11RenderTargetView* renderTargetView = nullptr;
-    ID3D11DepthStencilView* depthStencilView = nullptr;
-    
-    Camera* camera = nullptr;
-    DirectX::XMFLOAT4X4 view;
-    DirectX::XMFLOAT4X4 projection;
+	ID3D11RenderTargetView* renderTargetView = nullptr;
+	ID3D11DepthStencilView* depthStencilView = nullptr;
 
-    UINT screenWidth = 0;
-    UINT screenHeight = 0;
+	Camera* camera = nullptr;
+	DirectX::XMFLOAT4X4 view = {};
+	DirectX::XMFLOAT4X4 projection = {};
 
-    CameraMode cameraMode = CameraMode::Debug;
-    EditorContext* editorContext = nullptr;
+	UINT screenWidth = 0;
+	UINT screenHeight = 0;
+
+	CameraMode cameraMode = CameraMode::Debug;
+	EditorContext* editorContext = nullptr;
 }; 
  
 ===== SceneManager.h ===== 
@@ -1379,6 +1379,33 @@ struct InputComponent
     bool dodge = false;
 }; 
  
+===== MaterialComponent.h ===== 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\MaterialComponent.h 
+#pragma once
+#include <cstdint>
+
+// g—p‚·‚éGBufferƒVƒF[ƒ_[‚Ìí—Ş
+enum class ShadingModel : uint8_t
+{
+    Default = 0,
+    Basic,      
+};
+
+struct MaterialComponent
+{
+    ShadingModel shadingModel = ShadingModel::Default;
+
+    // ƒVƒF[ƒ_[–¼‚É•ÏŠ·‚·‚éƒwƒ‹ƒp[
+    const char* GetShaderName() const
+    {
+        switch (shadingModel)
+        {
+        case ShadingModel::Basic:   return "gbuffer_basic";
+        default:                    return "gbuffer_default";
+        }
+    }
+}; 
+ 
 ===== MeshComponent.h ===== 
 Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\MeshComponent.h 
 #pragma once
@@ -1711,6 +1738,7 @@ Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\RenderSyste
 #include "ECS/Components/TransformComponent.h"
 #include "ECS/Components/StaticMeshComponent.h"
 #include "ECS/Components/SkinnedMeshComponent.h"
+#include "ECS/Components/MaterialComponent.h"
 #include "ECS/Components/Tags.h"
 
 #include "Resource/Model.h"
@@ -1796,24 +1824,6 @@ private:
     {
         FrustumPlane planes[6]; // Left, Right, Top, Bottom, Near, Far
     };
-
-
-    // Ã“IƒƒbƒVƒ…•`‰æ
-    void RenderStaticGeometry(
-        entt::registry& registry,
-        ID3D11DeviceContext* dc,
-        bool transparent,
-        const Frustum& frustum
-    );
-
-    // ƒXƒLƒjƒ“ƒOƒƒbƒVƒ…•`‰æ
-    void RenderSkinnedGeometry(
-        entt::registry& registry,
-        ID3D11DeviceContext* dc,
-        bool transparent,
-        const Frustum& frustum
-    );
-
     
     // ƒtƒ‰ƒXƒ^ƒ€ŒvZiViewProjections—ñ‚©‚çj
     Frustum CalcFrustum(
@@ -1875,9 +1885,10 @@ private:
     UINT screenWidth = 0;
     UINT screenHeight = 0;
 
-    // GeometryƒpƒX—pPixelShader
-    Microsoft::WRL::ComPtr<ID3D11PixelShader> gBufferPS;
-
+    // GBufferƒVƒF[ƒ_[ƒ}ƒbƒv
+    std::unordered_map<std::string,
+        Microsoft::WRL::ComPtr<ID3D11PixelShader>> gBufferPixelShaders;
+    
     // LightingƒpƒX—p
     Microsoft::WRL::ComPtr<ID3D11VertexShader> lightingVS;
     Microsoft::WRL::ComPtr<ID3D11PixelShader>  lightingPS;
@@ -2923,17 +2934,17 @@ void RenderSystem::Initialize(ID3D11Device* device)
 	// “ü—ÍƒŒƒCƒAƒEƒg
 	const std::vector<D3D11_INPUT_ELEMENT_DESC>& inputElementDescs = Model::InputElementDescs;
 
-	// Ã“I’¸“_ƒVƒF[ƒ_[“Ç‚İ‚İ
+	// Ã“IƒƒbƒVƒ…—p’¸“_ƒVƒF[ƒ_[
 	GpuResourceUtils::LoadVertexShader(
 		device,
-		"Data/Shader/Base_VS.cso",
+		"Data/Shader/Static_VS.cso",
 		inputElementDescs.data(),
 		static_cast<UINT>(inputElementDescs.size()),
 		inputLayout,
 		vertexShader
 	);
 
-	// ƒXƒLƒjƒ“ƒO’¸“_ƒVƒF[ƒ_[“Ç‚İ‚İ
+	// ƒXƒLƒjƒ“ƒO—p’¸“_ƒVƒF[ƒ_[
 	Microsoft::WRL::ComPtr<ID3D11InputLayout> dummyLayout;
 	GpuResourceUtils::LoadVertexShader(
 		device,
@@ -2943,6 +2954,17 @@ void RenderSystem::Initialize(ID3D11Device* device)
 		dummyLayout,
 		skinnedVertexShader
 	);
+
+	// GBufferƒVƒF[ƒ_[‚ğƒ}ƒbƒv‚É“o˜^
+	Microsoft::WRL::ComPtr<ID3D11PixelShader> ps;
+
+	GpuResourceUtils::LoadPixelShader(
+		device, "Data/Shader/Gbuffer_PS.cso", ps);
+	gBufferPixelShaders["gbuffer_default"] = ps;
+
+	GpuResourceUtils::LoadPixelShader(
+		device, "Data/Shader/Gbuffer_Basic_PS.cso", ps);
+	gBufferPixelShaders["gbuffer_basic"] = ps;
 
 	// ƒV[ƒ“’è”ƒoƒbƒtƒ@¶¬
 	GpuResourceUtils::CreateConstantBuffer(
@@ -3038,11 +3060,6 @@ void RenderSystem::Initialize(ID3D11Device* device)
 	// • (Emissive—p)
 	GpuResourceUtils::CreateDummyTexture(device, dummyBlack, 0xFF000000, 1);
 
-
-	// Gbuffer—pPixelShader“Ç‚İ‚İ
-	GpuResourceUtils::LoadPixelShader(
-		device, "Data/Shader/Gbuffer_PS.cso", gBufferPS);
-
 	// LightingƒpƒX—pƒVƒF[ƒ_[“Ç‚İ‚İ
 	Microsoft::WRL::ComPtr<ID3D11InputLayout> dummyLayoutL;
 	GpuResourceUtils::LoadVertexShader(
@@ -3100,201 +3117,201 @@ void RenderSystem::Render(
 	LightingPass(dc, rtv, dsv);
 }
 
-// Ã“IƒƒbƒVƒ…•`‰æ
-void RenderSystem::RenderStaticGeometry(
-	entt::registry& registry,
-	ID3D11DeviceContext* dc,
-	bool transparent,
-	const Frustum& frustum)
-{
-	// TransformComponent + StaticMeshComponent ‚ğ‚ÂEntity‚ğæ“¾
-	auto view = registry.view<TransformComponent, StaticMeshComponent>();
-
-	view.each([&](auto entity, TransformComponent& transform, StaticMeshComponent& staticMesh)
-		{
-			// ƒ‚ƒfƒ‹‚ª–¢İ’è‚È‚çƒXƒLƒbƒv
-			if (!staticMesh.model) return;
-
-			// ƒtƒ‰ƒXƒ^ƒ€ƒJƒŠƒ“ƒO
-			DirectX::XMFLOAT4X4 worldMatrix{};
-			DirectX::XMStoreFloat4x4(&worldMatrix, transform.GetWorldMatrix());
-			if (!IsInFrustum(frustum, staticMesh.model->GetBoundingBox(), worldMatrix)) return;
-
-			// ƒ[ƒ‹ƒhs—ñ‚ğ’è”ƒoƒbƒtƒ@‚Éİ’è
-			CbObject cbObjectData{};
-			cbObjectData.world = worldMatrix;
-
-			dc->UpdateSubresource(cbObject.Get(), 0, nullptr, &cbObjectData, 0, 0);
-			dc->VSSetConstantBuffers(1, 1, cbObject.GetAddressOf());
-
-			// ƒƒbƒVƒ…’PˆÊ‚Å•`‰æ
-			for (auto& mesh : staticMesh.model->GetMeshes())
-			{
-				// “§–¾ƒtƒ‰ƒO‚Æƒ}ƒeƒŠƒAƒ‹‚ÌalphaMode‚ªˆê’v‚·‚éƒƒbƒVƒ…‚¾‚¯•`‰æ
-				if (mesh.material)
-				{
-					bool isTransparent =
-						mesh.material->alphaMode == Model::Material::AlphaMode::Blend ||
-						mesh.material->alphaMode == Model::Material::AlphaMode::Mask;
-					if (isTransparent != transparent) continue;
-				}
-				else
-				{
-					if (transparent) continue;
-				}
-
-				// ’¸“_ƒoƒbƒtƒ@İ’è
-				UINT stride = sizeof(Model::Vertex);
-				UINT offset = 0;
-				dc->IASetVertexBuffers(
-					0, 1,
-					mesh.vertexBuffer.GetAddressOf(),
-					&stride, &offset
-				);
-
-				// ƒCƒ“ƒfƒbƒNƒXƒoƒbƒtƒ@İ’è
-				dc->IASetIndexBuffer(
-					mesh.indexBuffer.Get(),
-					DXGI_FORMAT_R32_UINT, 0
-				);
-
-				// PBR—pƒeƒNƒXƒ`ƒƒ‚ğˆêŠ‡‚ÅƒZƒbƒg
-				ID3D11ShaderResourceView* srvs[5] =
-				{
-					// t0: Albedo
-					(mesh.material && mesh.material->baseMap)
-						? mesh.material->baseMap.Get()
-						: dummyWhite.Get(),
-
-					// t1: –@üƒ}ƒbƒv
-					(mesh.material && mesh.material->normalMap)
-						? mesh.material->normalMap.Get()
-						: dummyNormal.Get(),
-
-					// t2: MetallicRoughness
-					(mesh.material && mesh.material->metallicRoughnessMap)
-						? mesh.material->metallicRoughnessMap.Get()
-						: dummyWhite.Get(),
-
-					// t3: Occlusion
-					(mesh.material && mesh.material->occlusionMap)
-						? mesh.material->occlusionMap.Get()
-						: dummyWhite.Get(),
-
-					// t4: Emissive
-					(mesh.material && mesh.material->emissiveMap)
-						? mesh.material->emissiveMap.Get()
-						: dummyBlack.Get(),
-				};
-				dc->PSSetShaderResources(0, 5, srvs);
-				
-				dc->DrawIndexed(static_cast<UINT>(mesh.indices.size()), 0, 0);
-			}
-
-		});
-}
-
-// ƒXƒLƒjƒ“ƒOƒƒbƒVƒ…•`‰æ
-void RenderSystem::RenderSkinnedGeometry(
-	entt::registry& registry,
-	ID3D11DeviceContext* dc,
-	bool transparent,
-	const Frustum& frustum)
-{
-	auto view = registry.view<TransformComponent, SkinnedMeshComponent>();
-
-	view.each([&](auto entity,
-		TransformComponent& transform,
-		SkinnedMeshComponent& skinnedMesh)
-		{
-			// ƒ‚ƒfƒ‹‚ª–¢İ’è‚È‚çƒXƒLƒbƒv
-			if (!skinnedMesh.model) return;
-
-			// ƒtƒ‰ƒXƒ^ƒ€ƒJƒŠƒ“ƒO
-			DirectX::XMFLOAT4X4 worldMatrix{};
-			DirectX::XMStoreFloat4x4(&worldMatrix, transform.GetWorldMatrix());
-			if (!IsInFrustum(frustum, skinnedMesh.model->GetBoundingBox(), worldMatrix)) return;
-
-			// ƒ[ƒ‹ƒhs—ñ‚ğ’è”ƒoƒbƒtƒ@‚Éİ’è
-			CbObject cbObjectData{};
-			cbObjectData.world = worldMatrix;
-			dc->UpdateSubresource(cbObject.Get(), 0, nullptr, &cbObjectData, 0, 0);
-			dc->VSSetConstantBuffers(1, 1, cbObject.GetAddressOf());
-
-			// ƒƒbƒVƒ…•`‰æiƒƒbƒVƒ…‚²‚Æ‚É‘Î‰‚·‚éƒ{[ƒ“s—ñ‚ğ“]‘—j
-			const auto& meshes = skinnedMesh.model->GetMeshes();
-			for (int m = 0; m < (int)meshes.size(); m++)
-			{
-				const auto& mesh = meshes[m];
-
-				// “§–¾ƒtƒ‰ƒO‚Æƒ}ƒeƒŠƒAƒ‹‚ÌalphaMode‚ªˆê’v‚·‚éƒƒbƒVƒ…‚¾‚¯•`‰æ
-				if (mesh.material)
-				{
-					bool isTransparent =
-						mesh.material->alphaMode == Model::Material::AlphaMode::Blend ||
-						mesh.material->alphaMode == Model::Material::AlphaMode::Mask;
-					if (isTransparent != transparent) continue;
-				}
-				else
-				{
-					if (transparent) continue;
-				}
-
-				CbSkinning cbSkinningData{};
-				if (m < (int)skinnedMesh.boneTransforms.size() &&
-					!skinnedMesh.boneTransforms[m].empty())
-				{
-					const auto& bt = skinnedMesh.boneTransforms[m];
-					size_t boneCount = (std::min)(bt.size(), (size_t)MAX_BONES);
-					for (size_t i = 0; i < boneCount; i++)
-					{
-						cbSkinningData.boneTransforms[i] = bt[i];
-					}
-				}
-				else
-				{
-					// bones=0 ‚ÌƒƒbƒVƒ…‚Íƒm[ƒh‚ÌƒOƒ[ƒoƒ‹ƒgƒ‰ƒ“ƒXƒtƒH[ƒ€‚ğg‚¤
-					const auto& nodes = skinnedMesh.model->GetNodes();
-					int nodeIndex = mesh.nodeIndex;
-					if (nodeIndex >= 0 && nodeIndex < (int)nodes.size())
-					{
-						cbSkinningData.boneTransforms[0] =
-							nodes[nodeIndex].globalTransform;
-					}
-					else
-					{
-						cbSkinningData.boneTransforms[0] =
-						{ 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 };
-					}
-				}
-				dc->UpdateSubresource(cbSkinning.Get(), 0, nullptr, &cbSkinningData, 0, 0);
-				dc->VSSetConstantBuffers(2, 1, cbSkinning.GetAddressOf());
-
-				UINT stride = sizeof(Model::Vertex);
-				UINT offset = 0;
-				dc->IASetVertexBuffers(0, 1, mesh.vertexBuffer.GetAddressOf(), &stride, &offset);
-				dc->IASetIndexBuffer(mesh.indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
-
-				// PBR—pƒeƒNƒXƒ`ƒƒ‚ğˆêŠ‡‚ÅƒZƒbƒg
-				ID3D11ShaderResourceView* srvs[5] =
-				{
-					(mesh.material && mesh.material->baseMap)
-						? mesh.material->baseMap.Get() : dummyWhite.Get(),
-					(mesh.material && mesh.material->normalMap)
-						? mesh.material->normalMap.Get() : dummyNormal.Get(),
-					(mesh.material && mesh.material->metallicRoughnessMap)
-						? mesh.material->metallicRoughnessMap.Get() : dummyWhite.Get(),
-					(mesh.material && mesh.material->occlusionMap)
-						? mesh.material->occlusionMap.Get() : dummyWhite.Get(),
-					(mesh.material && mesh.material->emissiveMap)
-						? mesh.material->emissiveMap.Get() : dummyBlack.Get(),
-				};
-				dc->PSSetShaderResources(0, 5, srvs);
-				
-				dc->DrawIndexed(static_cast<UINT>(mesh.indices.size()), 0, 0);
-			}
-		});
-}
+//// Ã“IƒƒbƒVƒ…•`‰æ
+//void RenderSystem::RenderStaticGeometry(
+//	entt::registry& registry,
+//	ID3D11DeviceContext* dc,
+//	bool transparent,
+//	const Frustum& frustum)
+//{
+//	// TransformComponent + StaticMeshComponent ‚ğ‚ÂEntity‚ğæ“¾
+//	auto view = registry.view<TransformComponent, StaticMeshComponent>();
+//
+//	view.each([&](auto entity, TransformComponent& transform, StaticMeshComponent& staticMesh)
+//		{
+//			// ƒ‚ƒfƒ‹‚ª–¢İ’è‚È‚çƒXƒLƒbƒv
+//			if (!staticMesh.model) return;
+//
+//			// ƒtƒ‰ƒXƒ^ƒ€ƒJƒŠƒ“ƒO
+//			DirectX::XMFLOAT4X4 worldMatrix{};
+//			DirectX::XMStoreFloat4x4(&worldMatrix, transform.GetWorldMatrix());
+//			if (!IsInFrustum(frustum, staticMesh.model->GetBoundingBox(), worldMatrix)) return;
+//
+//			// ƒ[ƒ‹ƒhs—ñ‚ğ’è”ƒoƒbƒtƒ@‚Éİ’è
+//			CbObject cbObjectData{};
+//			cbObjectData.world = worldMatrix;
+//
+//			dc->UpdateSubresource(cbObject.Get(), 0, nullptr, &cbObjectData, 0, 0);
+//			dc->VSSetConstantBuffers(1, 1, cbObject.GetAddressOf());
+//
+//			// ƒƒbƒVƒ…’PˆÊ‚Å•`‰æ
+//			for (auto& mesh : staticMesh.model->GetMeshes())
+//			{
+//				// “§–¾ƒtƒ‰ƒO‚Æƒ}ƒeƒŠƒAƒ‹‚ÌalphaMode‚ªˆê’v‚·‚éƒƒbƒVƒ…‚¾‚¯•`‰æ
+//				if (mesh.material)
+//				{
+//					bool isTransparent =
+//						mesh.material->alphaMode == Model::Material::AlphaMode::Blend ||
+//						mesh.material->alphaMode == Model::Material::AlphaMode::Mask;
+//					if (isTransparent != transparent) continue;
+//				}
+//				else
+//				{
+//					if (transparent) continue;
+//				}
+//
+//				// ’¸“_ƒoƒbƒtƒ@İ’è
+//				UINT stride = sizeof(Model::Vertex);
+//				UINT offset = 0;
+//				dc->IASetVertexBuffers(
+//					0, 1,
+//					mesh.vertexBuffer.GetAddressOf(),
+//					&stride, &offset
+//				);
+//
+//				// ƒCƒ“ƒfƒbƒNƒXƒoƒbƒtƒ@İ’è
+//				dc->IASetIndexBuffer(
+//					mesh.indexBuffer.Get(),
+//					DXGI_FORMAT_R32_UINT, 0
+//				);
+//
+//				// PBR—pƒeƒNƒXƒ`ƒƒ‚ğˆêŠ‡‚ÅƒZƒbƒg
+//				ID3D11ShaderResourceView* srvs[5] =
+//				{
+//					// t0: Albedo
+//					(mesh.material && mesh.material->baseMap)
+//						? mesh.material->baseMap.Get()
+//						: dummyWhite.Get(),
+//
+//					// t1: –@üƒ}ƒbƒv
+//					(mesh.material && mesh.material->normalMap)
+//						? mesh.material->normalMap.Get()
+//						: dummyNormal.Get(),
+//
+//					// t2: MetallicRoughness
+//					(mesh.material && mesh.material->metallicRoughnessMap)
+//						? mesh.material->metallicRoughnessMap.Get()
+//						: dummyWhite.Get(),
+//
+//					// t3: Occlusion
+//					(mesh.material && mesh.material->occlusionMap)
+//						? mesh.material->occlusionMap.Get()
+//						: dummyWhite.Get(),
+//
+//					// t4: Emissive
+//					(mesh.material && mesh.material->emissiveMap)
+//						? mesh.material->emissiveMap.Get()
+//						: dummyBlack.Get(),
+//				};
+//				dc->PSSetShaderResources(0, 5, srvs);
+//				
+//				dc->DrawIndexed(static_cast<UINT>(mesh.indices.size()), 0, 0);
+//			}
+//
+//		});
+//}
+//
+//// ƒXƒLƒjƒ“ƒOƒƒbƒVƒ…•`‰æ
+//void RenderSystem::RenderSkinnedGeometry(
+//	entt::registry& registry,
+//	ID3D11DeviceContext* dc,
+//	bool transparent,
+//	const Frustum& frustum)
+//{
+//	auto view = registry.view<TransformComponent, SkinnedMeshComponent>();
+//
+//	view.each([&](auto entity,
+//		TransformComponent& transform,
+//		SkinnedMeshComponent& skinnedMesh)
+//		{
+//			// ƒ‚ƒfƒ‹‚ª–¢İ’è‚È‚çƒXƒLƒbƒv
+//			if (!skinnedMesh.model) return;
+//
+//			// ƒtƒ‰ƒXƒ^ƒ€ƒJƒŠƒ“ƒO
+//			DirectX::XMFLOAT4X4 worldMatrix{};
+//			DirectX::XMStoreFloat4x4(&worldMatrix, transform.GetWorldMatrix());
+//			if (!IsInFrustum(frustum, skinnedMesh.model->GetBoundingBox(), worldMatrix)) return;
+//
+//			// ƒ[ƒ‹ƒhs—ñ‚ğ’è”ƒoƒbƒtƒ@‚Éİ’è
+//			CbObject cbObjectData{};
+//			cbObjectData.world = worldMatrix;
+//			dc->UpdateSubresource(cbObject.Get(), 0, nullptr, &cbObjectData, 0, 0);
+//			dc->VSSetConstantBuffers(1, 1, cbObject.GetAddressOf());
+//
+//			// ƒƒbƒVƒ…•`‰æiƒƒbƒVƒ…‚²‚Æ‚É‘Î‰‚·‚éƒ{[ƒ“s—ñ‚ğ“]‘—j
+//			const auto& meshes = skinnedMesh.model->GetMeshes();
+//			for (int m = 0; m < (int)meshes.size(); m++)
+//			{
+//				const auto& mesh = meshes[m];
+//
+//				// “§–¾ƒtƒ‰ƒO‚Æƒ}ƒeƒŠƒAƒ‹‚ÌalphaMode‚ªˆê’v‚·‚éƒƒbƒVƒ…‚¾‚¯•`‰æ
+//				if (mesh.material)
+//				{
+//					bool isTransparent =
+//						mesh.material->alphaMode == Model::Material::AlphaMode::Blend ||
+//						mesh.material->alphaMode == Model::Material::AlphaMode::Mask;
+//					if (isTransparent != transparent) continue;
+//				}
+//				else
+//				{
+//					if (transparent) continue;
+//				}
+//
+//				CbSkinning cbSkinningData{};
+//				if (m < (int)skinnedMesh.boneTransforms.size() &&
+//					!skinnedMesh.boneTransforms[m].empty())
+//				{
+//					const auto& bt = skinnedMesh.boneTransforms[m];
+//					size_t boneCount = (std::min)(bt.size(), (size_t)MAX_BONES);
+//					for (size_t i = 0; i < boneCount; i++)
+//					{
+//						cbSkinningData.boneTransforms[i] = bt[i];
+//					}
+//				}
+//				else
+//				{
+//					// bones=0 ‚ÌƒƒbƒVƒ…‚Íƒm[ƒh‚ÌƒOƒ[ƒoƒ‹ƒgƒ‰ƒ“ƒXƒtƒH[ƒ€‚ğg‚¤
+//					const auto& nodes = skinnedMesh.model->GetNodes();
+//					int nodeIndex = mesh.nodeIndex;
+//					if (nodeIndex >= 0 && nodeIndex < (int)nodes.size())
+//					{
+//						cbSkinningData.boneTransforms[0] =
+//							nodes[nodeIndex].globalTransform;
+//					}
+//					else
+//					{
+//						cbSkinningData.boneTransforms[0] =
+//						{ 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 };
+//					}
+//				}
+//				dc->UpdateSubresource(cbSkinning.Get(), 0, nullptr, &cbSkinningData, 0, 0);
+//				dc->VSSetConstantBuffers(2, 1, cbSkinning.GetAddressOf());
+//
+//				UINT stride = sizeof(Model::Vertex);
+//				UINT offset = 0;
+//				dc->IASetVertexBuffers(0, 1, mesh.vertexBuffer.GetAddressOf(), &stride, &offset);
+//				dc->IASetIndexBuffer(mesh.indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+//
+//				// PBR—pƒeƒNƒXƒ`ƒƒ‚ğˆêŠ‡‚ÅƒZƒbƒg
+//				ID3D11ShaderResourceView* srvs[5] =
+//				{
+//					(mesh.material && mesh.material->baseMap)
+//						? mesh.material->baseMap.Get() : dummyWhite.Get(),
+//					(mesh.material && mesh.material->normalMap)
+//						? mesh.material->normalMap.Get() : dummyNormal.Get(),
+//					(mesh.material && mesh.material->metallicRoughnessMap)
+//						? mesh.material->metallicRoughnessMap.Get() : dummyWhite.Get(),
+//					(mesh.material && mesh.material->occlusionMap)
+//						? mesh.material->occlusionMap.Get() : dummyWhite.Get(),
+//					(mesh.material && mesh.material->emissiveMap)
+//						? mesh.material->emissiveMap.Get() : dummyBlack.Get(),
+//				};
+//				dc->PSSetShaderResources(0, 5, srvs);
+//				
+//				dc->DrawIndexed(static_cast<UINT>(mesh.indices.size()), 0, 0);
+//			}
+//		});
+//}
 
 // ƒtƒ‰ƒXƒ^ƒ€ŒvZ
 RenderSystem::Frustum RenderSystem::CalcFrustum(
@@ -3430,19 +3447,153 @@ void RenderSystem::GeometryPass(
 
 	// •s“§–¾ƒpƒX
 	dc->OMSetDepthStencilState(depthStencilState.Get(), 0);
-	//dc->OMSetBlendState(blendState.Get(), blendFactor, 0xFFFFFFFF);
 	dc->OMSetBlendState(blendStateOpaque.Get(), blendFactor, 0xFFFFFFFF);
 
-	// GBuffer_PS‚ğƒZƒbƒg
-	dc->PSSetShader(gBufferPS.Get(), nullptr, 0);
+	//// Ã“IƒƒbƒVƒ…•`‰æ
+	//dc->VSSetShader(vertexShader.Get(), nullptr, 0);
+	//RenderStaticGeometry(registry, dc, false, frustum);
 
-	// Ã“IƒƒbƒVƒ…•`‰æ
-	dc->VSSetShader(vertexShader.Get(), nullptr, 0);
-	RenderStaticGeometry(registry, dc, false, frustum);
+	//// ƒXƒLƒjƒ“ƒOƒƒbƒVƒ…•`‰æ
+	//dc->VSSetShader(skinnedVertexShader.Get(), nullptr, 0);
+	//RenderSkinnedGeometry(registry, dc, false, frustum);
 
-	// ƒXƒLƒjƒ“ƒOƒƒbƒVƒ…•`‰æ
-	dc->VSSetShader(skinnedVertexShader.Get(), nullptr, 0);
-	RenderSkinnedGeometry(registry, dc, false, frustum);
+	 // ƒfƒtƒHƒ‹ƒgƒVƒF[ƒ_[‚ğæ“¾
+	auto& defaultPS = gBufferPixelShaders.at("gbuffer_default");
+
+	// ƒGƒ“ƒeƒBƒeƒB‚²‚Æ‚ÉƒVƒF[ƒ_[‚ğØ‚è‘Ö‚¦‚È‚ª‚çÃ“IƒƒbƒVƒ…•`‰æ
+	auto staticView = registry.view<TransformComponent, StaticMeshComponent>();
+	staticView.each([&](auto entity,
+		TransformComponent& transform,
+		StaticMeshComponent& staticMesh)
+		{
+			if (!staticMesh.model) return;
+
+			DirectX::XMFLOAT4X4 worldMatrix{};
+			DirectX::XMStoreFloat4x4(&worldMatrix, transform.GetWorldMatrix());
+			if (!IsInFrustum(frustum, staticMesh.model->GetBoundingBox(), worldMatrix)) return;
+
+			// MaterialComponent‚ª‚ ‚ê‚Î‚»‚ÌƒVƒF[ƒ_[‚ğg‚¤A‚È‚¯‚ê‚ÎƒfƒtƒHƒ‹ƒg
+			auto* mat = registry.try_get<MaterialComponent>(entity);
+			const char* shaderName = mat ? mat->GetShaderName() : "gbuffer_default";
+
+			auto it = gBufferPixelShaders.find(shaderName);
+			auto& ps = (it != gBufferPixelShaders.end()) ? it->second : defaultPS;
+			dc->PSSetShader(ps.Get(), nullptr, 0);
+
+			dc->VSSetShader(vertexShader.Get(), nullptr, 0);
+
+			CbObject cbObjectData{};
+			cbObjectData.world = worldMatrix;
+			dc->UpdateSubresource(cbObject.Get(), 0, nullptr, &cbObjectData, 0, 0);
+			dc->VSSetConstantBuffers(1, 1, cbObject.GetAddressOf());
+
+			for (auto& mesh : staticMesh.model->GetMeshes())
+			{
+				if (mesh.material)
+				{
+					bool isTransparent =
+						mesh.material->alphaMode == Model::Material::AlphaMode::Blend ||
+						mesh.material->alphaMode == Model::Material::AlphaMode::Mask;
+					if (isTransparent) continue;
+				}
+
+				UINT stride = sizeof(Model::Vertex);
+				UINT offset = 0;
+				dc->IASetVertexBuffers(0, 1, mesh.vertexBuffer.GetAddressOf(), &stride, &offset);
+				dc->IASetIndexBuffer(mesh.indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+
+				ID3D11ShaderResourceView* srvs[5] =
+				{
+					(mesh.material && mesh.material->baseMap) ? mesh.material->baseMap.Get() : dummyWhite.Get(),
+					(mesh.material && mesh.material->normalMap) ? mesh.material->normalMap.Get() : dummyNormal.Get(),
+					(mesh.material && mesh.material->metallicRoughnessMap) ? mesh.material->metallicRoughnessMap.Get() : dummyWhite.Get(),
+					(mesh.material && mesh.material->occlusionMap) ? mesh.material->occlusionMap.Get() : dummyWhite.Get(),
+					(mesh.material && mesh.material->emissiveMap) ? mesh.material->emissiveMap.Get() : dummyBlack.Get(),
+				};
+				dc->PSSetShaderResources(0, 5, srvs);
+				dc->DrawIndexed(static_cast<UINT>(mesh.indices.size()), 0, 0);
+			}
+			//RenderMeshes(staticMesh.model->GetMeshes(), dc, false, nullptr, 0);
+		});
+
+	// ƒGƒ“ƒeƒBƒeƒB‚²‚Æ‚ÉƒVƒF[ƒ_[‚ğØ‚è‘Ö‚¦‚È‚ª‚çƒXƒLƒjƒ“ƒOƒƒbƒVƒ…•`‰æ
+	auto skinnedView = registry.view<TransformComponent, SkinnedMeshComponent>();
+	skinnedView.each([&](auto entity,
+		TransformComponent& transform,
+		SkinnedMeshComponent& skinnedMesh)
+		{
+			if (!skinnedMesh.model) return;
+
+			DirectX::XMFLOAT4X4 worldMatrix{};
+			DirectX::XMStoreFloat4x4(&worldMatrix, transform.GetWorldMatrix());
+			if (!IsInFrustum(frustum, skinnedMesh.model->GetBoundingBox(), worldMatrix)) return;
+
+			// MaterialComponent‚ª‚ ‚ê‚Î‚»‚ÌƒVƒF[ƒ_[‚ğg‚¤A‚È‚¯‚ê‚ÎƒfƒtƒHƒ‹ƒg
+			auto* mat = registry.try_get<MaterialComponent>(entity);
+			const char* shaderName = mat ? mat->GetShaderName() : "gbuffer_default";
+
+			auto it = gBufferPixelShaders.find(shaderName);
+			auto& ps = (it != gBufferPixelShaders.end()) ? it->second : defaultPS;
+			dc->PSSetShader(ps.Get(), nullptr, 0);
+
+			dc->VSSetShader(skinnedVertexShader.Get(), nullptr, 0);
+
+			CbObject cbObjectData{};
+			cbObjectData.world = worldMatrix;
+			dc->UpdateSubresource(cbObject.Get(), 0, nullptr, &cbObjectData, 0, 0);
+			dc->VSSetConstantBuffers(1, 1, cbObject.GetAddressOf());
+
+			const auto& meshes = skinnedMesh.model->GetMeshes();
+			for (int m = 0; m < (int)meshes.size(); m++)
+			{
+				const auto& mesh = meshes[m];
+
+				if (mesh.material)
+				{
+					bool isTransparent =
+						mesh.material->alphaMode == Model::Material::AlphaMode::Blend ||
+						mesh.material->alphaMode == Model::Material::AlphaMode::Mask;
+					if (isTransparent) continue;
+				}
+
+				CbSkinning cbSkinningData{};
+				if (m < (int)skinnedMesh.boneTransforms.size() && !skinnedMesh.boneTransforms[m].empty())
+				{
+					const auto& bt = skinnedMesh.boneTransforms[m];
+					size_t boneCount = (std::min)(bt.size(), (size_t)MAX_BONES);
+					for (size_t i = 0; i < boneCount; i++)
+						cbSkinningData.boneTransforms[i] = bt[i];
+				}
+				else
+				{
+					const auto& nodes = skinnedMesh.model->GetNodes();
+					int nodeIndex = mesh.nodeIndex;
+					if (nodeIndex >= 0 && nodeIndex < (int)nodes.size())
+						cbSkinningData.boneTransforms[0] = nodes[nodeIndex].globalTransform;
+					else
+						cbSkinningData.boneTransforms[0] = { 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 };
+				}
+				dc->UpdateSubresource(cbSkinning.Get(), 0, nullptr, &cbSkinningData, 0, 0);
+				dc->VSSetConstantBuffers(2, 1, cbSkinning.GetAddressOf());
+
+				UINT stride = sizeof(Model::Vertex);
+				UINT offset = 0;
+				dc->IASetVertexBuffers(0, 1, mesh.vertexBuffer.GetAddressOf(), &stride, &offset);
+				dc->IASetIndexBuffer(mesh.indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+
+				ID3D11ShaderResourceView* srvs[5] =
+				{
+					(mesh.material && mesh.material->baseMap) ? mesh.material->baseMap.Get() : dummyWhite.Get(),
+					(mesh.material && mesh.material->normalMap) ? mesh.material->normalMap.Get() : dummyNormal.Get(),
+					(mesh.material && mesh.material->metallicRoughnessMap) ? mesh.material->metallicRoughnessMap.Get() : dummyWhite.Get(),
+					(mesh.material && mesh.material->occlusionMap) ? mesh.material->occlusionMap.Get() : dummyWhite.Get(),
+					(mesh.material && mesh.material->emissiveMap) ? mesh.material->emissiveMap.Get() : dummyBlack.Get(),
+				};
+				dc->PSSetShaderResources(0, 5, srvs);
+				dc->DrawIndexed(static_cast<UINT>(mesh.indices.size()), 0, 0);
+			}
+			//RenderSkinnedMeshes(skinnedMesh, dc, false);
+		});
 
 	// GeometryƒpƒXI—¹
 	gBuffer.EndGeometryPass(dc);
@@ -3708,6 +3859,7 @@ Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Editor\ComponentRegistr
 
 #include "ECS/Components/TransformComponent.h"
 #include "ECS/Components/MeshComponent.h"
+#include "ECS/Components/MaterialComponent.h"
 
 #include "ECS/Components/InputComponent.h"
 #include "ECS/Components/ControllerComponent.h"
@@ -3788,6 +3940,28 @@ void ComponentRegistryInitializer::Initialize()
 					}
 				}
 			}));
+
+	// ƒ}ƒeƒŠƒAƒ‹ƒRƒ“ƒ|[ƒlƒ“ƒg‚Ì“o˜^
+	ComponentRegistry::Register("Material",
+		{
+			"Material",
+			[](auto& reg, auto e) { if (!reg.any_of<MaterialComponent>(e)) reg.emplace<MaterialComponent>(e); },
+			[](auto& reg, auto e) { reg.remove<MaterialComponent>(e); },
+			[](auto& reg, auto e) { return reg.any_of<MaterialComponent>(e); },
+			[](auto& reg, auto e)
+			{
+				auto* mat = reg.try_get<MaterialComponent>(e);
+				if (!mat) return;
+				if (!ImGui::CollapsingHeader("Material", ImGuiTreeNodeFlags_DefaultOpen)) return;
+
+				const char* shaderNames[] = { "Default (PBR)", "Basic" };
+				int current = (int)mat->shadingModel;
+				if (ImGui::Combo("Shader", &current, shaderNames, 2))
+				{
+					mat->shadingModel = (ShadingModel)current;
+				}
+			}
+		});
 
 	// ƒ€[ƒuƒƒ“ƒgƒRƒ“ƒ|[ƒlƒ“ƒg‚Ì“o˜^
 	REGISTER_COMPONENT(MovementComponent, "Movement",
@@ -4171,7 +4345,6 @@ Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Editor\ProjectWindow.cp
 
 #include "ECS/Components/TransformComponent.h"
 #include "ECS/Components/MeshComponent.h"
-#include "ECS/Components/MaterialComponent.h"
 #include <algorithm>
 #include <WICTextureLoader.h>
 
@@ -4197,28 +4370,6 @@ void ProjectWindow::LoadIcons(ID3D11Device* device)
 void ProjectWindow::Draw(entt::registry& registry, EditorContext& context)
 {
 	ImGui::Begin("Project");
-
-	//// ¶‰E‚É•ªŠ„
-	//ImGui::Columns(2, "ProjectColumns", true);
-	//// ¶‘¤‚Ì•‚ğŒÅ’è
-	//ImGui::SetColumnWidth(0, 200.0f);
-
-	//// ¶‘¤FƒtƒHƒ‹ƒ_ƒcƒŠ[
-	//ImGui::BeginChild("FolderTree", ImVec2(0, 0), false);
-	//DrawFolderTree(rootPath);
-	//ImGui::EndChild();
-
-	//ImGui::NextColumn();
-
-	//// ‰E‘¤Fƒtƒ@ƒCƒ‹ƒOƒŠƒbƒh
-
-	//ImGui::BeginChild("FileGrid", ImVec2(0, 0), false);
-	//DrawFileGrid(registry, context);
-	//ImGui::EndChild();
-
-	//ImGui::Columns(1);
-
-	//ImGui::End();
 
 	if (ImGui::BeginTable("ProjectLayout", 2,
 		ImGuiTableFlags_Resizable |
@@ -4472,8 +4623,8 @@ void SceneGame::Initialize(const SceneContext& context)
 	// SkyBoxåˆæœŸåŒ–
 	skyBox.Initialize(
 		context.device,
-		//"Data/SkyBox/BlueSky"
-		"Data/SkyBox/DynamicSky"
+		"Data/SkyBox/BlueSky"
+		//"Data/SkyBox/DynamicSky"
 	);
 	// IBLãƒ†ã‚¯ã‚¹ãƒãƒ£ã‚»ãƒƒãƒˆ
 	renderSystem.SetIBLTextures(
