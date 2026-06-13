@@ -212,6 +212,7 @@ LRESULT framework::handle_message(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpa
 		timer.start();
 		// ウィンドウサイズ変更時にバッファ再生成
 		graphics.ResizeBuffers();
+		updateSceneContext();
 		break;
 	default:
 		return DefWindowProc(hwnd, msg, wparam, lparam);
@@ -222,6 +223,14 @@ LRESULT framework::handle_message(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpa
 // SceneContext を最新状態に更新する
 void framework::updateSceneContext()
 {
+	// ウィンドウサイズに合わせてカメラのアスペクト比を更新
+	//camera.SetPerspectiveFov(
+	//	DirectX::XMConvertToRadians(camera.GetViewingAngle()),
+	//	graphics.GetScreenWidth() / graphics.GetScreenHeight(),
+	//	0.1f,
+	//	1000.0f
+	//);
+
 	sceneContext.device = graphics.GetDevice();
 	sceneContext.deviceContext = graphics.GetDeviceContext();
 	sceneContext.resourceManager = &resourceManager;
