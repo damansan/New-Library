@@ -224,12 +224,12 @@ LRESULT framework::handle_message(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpa
 void framework::updateSceneContext()
 {
 	// ウィンドウサイズに合わせてカメラのアスペクト比を更新
-	//camera.SetPerspectiveFov(
-	//	DirectX::XMConvertToRadians(camera.GetViewingAngle()),
-	//	graphics.GetScreenWidth() / graphics.GetScreenHeight(),
-	//	0.1f,
-	//	1000.0f
-	//);
+	camera.SetPerspectiveFov(
+		DirectX::XMConvertToRadians(camera.GetViewingAngle()),
+		graphics.GetScreenWidth() / graphics.GetScreenHeight(),
+		0.1f,
+		1000.0f
+	);
 
 	sceneContext.device = graphics.GetDevice();
 	sceneContext.deviceContext = graphics.GetDeviceContext();

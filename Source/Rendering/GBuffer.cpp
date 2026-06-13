@@ -3,6 +3,13 @@
 
 void GBuffer::Initialize(ID3D11Device* device, UINT width, UINT height)
 {
+    for (UINT i = 0; i < BUFFER_COUNT; i++)
+    {
+        rtvs[i].Reset();
+        srvs[i].Reset();
+        rtvPtrs[i] = nullptr;
+    }
+
     // GBufferのフォーマット定義
     DXGI_FORMAT formats[BUFFER_COUNT] =
     {

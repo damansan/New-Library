@@ -140,9 +140,6 @@
     <Filter Include="Sources\ECS\Systems\InputSystem">
       <UniqueIdentifier>{81216e75-0473-4f8d-b425-d5c760c69d33}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Sources\ECS\Systems\MovementSystem">
-      <UniqueIdentifier>{4e0d7caa-8bb9-4429-b709-00c4339d3742}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Sources\Utility\CerealHelper">
       <UniqueIdentifier>{ec682482-b10b-4925-908f-ef5913aaea45}</UniqueIdentifier>
     </Filter>
@@ -184,6 +181,9 @@
     </Filter>
     <Filter Include="Sources\ECS\Systems\ControllerSystem">
       <UniqueIdentifier>{8bbb39fc-fb3e-496c-b238-9b7e186c167b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\ECS\Systems\MovementSystem">
+      <UniqueIdentifier>{4e0d7caa-8bb9-4429-b709-00c4339d3742}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
