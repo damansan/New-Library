@@ -19,6 +19,7 @@
 #include "Editor/HierarchyWindow.h"
 #include "Editor/InspectorWindow.h"
 
+#include "Tool/Studio/StudioWindow.h"
 
 // ウィンドウサイズ
 #define SCREEN_WIDTH 1280
@@ -76,6 +77,9 @@ private:
 	ProjectWindow  projectWindow;
 	HierarchyWindow hierarchyWindow;
 	InspectorWindow inspectorWindow;
+
+	// Studio
+	std::unique_ptr<StudioWindow> studioWindow;
 
 private:
 	// VSync ON OFF

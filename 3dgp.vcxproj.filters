@@ -134,9 +134,6 @@
     <Filter Include="Sources\Rendering\LightManager">
       <UniqueIdentifier>{eea5f1f4-67d2-4d9b-8709-0c60219fde2f}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Sources\DebugRenderer">
-      <UniqueIdentifier>{3ca9e856-3e00-48c7-bd0b-ed44345bee7b}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Sources\ECS\Systems\InputSystem">
       <UniqueIdentifier>{81216e75-0473-4f8d-b425-d5c760c69d33}</UniqueIdentifier>
     </Filter>
@@ -184,6 +181,21 @@
     </Filter>
     <Filter Include="Sources\ECS\Systems\MovementSystem">
       <UniqueIdentifier>{4e0d7caa-8bb9-4429-b709-00c4339d3742}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Tool\Studio">
+      <UniqueIdentifier>{21076735-99c0-40a6-a825-56b47ffbeba3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Tool\Studio\StudioCamera">
+      <UniqueIdentifier>{5f433240-d923-4a85-96fe-a1aa1f3dd2a5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Tool\Studio\StudioContext">
+      <UniqueIdentifier>{c403652a-f411-49a1-8725-f18b04f749dd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Tool\Studio\IStudioAttachment">
+      <UniqueIdentifier>{4f33eebb-58ea-4140-9491-5a4c2e634ed0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Tool\Studio\StudioWindow">
+      <UniqueIdentifier>{95ef4beb-a82d-4bbb-a310-00525aa9dc09}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -300,6 +312,12 @@
     </ClCompile>
     <ClCompile Include="Source\ECS\Systems\ControllerSystem.cpp">
       <Filter>Sources\ECS\Systems\ControllerSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Tool\Studio\StudioCamera.cpp">
+      <Filter>Sources\Tool\Studio\StudioCamera</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Tool\Studio\StudioWindow.cpp">
+      <Filter>Sources\Tool\Studio\StudioWindow</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -458,6 +476,18 @@
     </ClInclude>
     <ClInclude Include="Source\ECS\Components\MaterialComponent.h">
       <Filter>Sources\ECS\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Tool\Studio\StudioCamera.h">
+      <Filter>Sources\Tool\Studio\StudioCamera</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Tool\Studio\StudioContext.h">
+      <Filter>Sources\Tool\Studio\StudioContext</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Tool\Studio\IStudioAttachment.h">
+      <Filter>Sources\Tool\Studio\IStudioAttachment</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Tool\Studio\StudioWindow.h">
+      <Filter>Sources\Tool\Studio\StudioWindow</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -19,10 +19,15 @@ framework::framework(HWND hwnd) : hwnd(hwnd)
 	// 最初のシーンセット
 	sceneManager.ChangeScene(std::make_unique<SceneGame>());
 
-	// ProjectWindow 初期化
+	// ProjectWindow初期化
 	projectWindow.Initialize("Data/Model");
 	projectWindow.LoadIcons(graphics.GetDevice());
 	ComponentRegistryInitializer::Initialize();
+
+	// Studio初期化
+	studioWindow = std::make_unique<StudioWindow>();
+	studioWindow->Initialize(graphics.GetDevice());
+	studioWindow->GetContext().deviceContext = graphics.GetDeviceContext();
 
 
 #ifndef _DEBUG
@@ -56,9 +61,13 @@ void framework::update(float elapsedTime)
 	// シーン更新
 	sceneManager.Update(elapsedTime, sceneContext);
 
+	// Studio更新
+	studioWindow->Update(elapsedTime);
+
 	// ゲームカメラの結果をcontextに反映
 	sceneContext.view = camera.GetView();
 	sceneContext.projection = camera.GetProjection();
+
 }
 
 void framework::updateImGui()
@@ -80,6 +89,8 @@ void framework::updateImGui()
 		hierarchyWindow.Draw(scene->GetRegistry(), editorContext);
 		inspectorWindow.Draw(scene->GetRegistry(), editorContext);
 	}
+
+	studioWindow->DrawWindow("Studio");
 #endif
 }
 
@@ -94,6 +105,12 @@ void framework::render(float elapsedTime)
 
 	// シーン描画
 	sceneManager.Render(sceneContext);
+
+	// Studio描画
+	studioWindow->Render();
+
+	// メインRTVを再セット
+	graphics.SetRenderTargets();
 
 	// ImGui描画
 	imguiManager.EndFrame();

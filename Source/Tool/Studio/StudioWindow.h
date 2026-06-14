@@ -1,0 +1,58 @@
+#pragma once
+#include <d3d11.h>
+#include <wrl.h>
+#include <vector>
+#include <memory>
+
+#include "StudioCamera.h"
+#include "StudioContext.h"
+#include "IStudioAttachment.h"
+
+class StudioWindow
+{
+public:
+    void Initialize(ID3D11Device* device, UINT width = 1280, UINT height = 720);
+
+    // 更新
+    void Update(float elapsedTime);
+
+    // 描画
+    void Render();
+
+    // ImGui描画
+    void DrawWindow(const char* windowName = "Studio");
+
+    // アタッチメント追加
+    void AddAttachment(std::unique_ptr<IStudioAttachment> attachment);
+
+    // contextへのアクセス
+    StudioContext& GetContext() { return context; }
+
+private:
+    // 描画先の切り替え
+    void Begin();
+    void End();
+
+    Microsoft::WRL::ComPtr<ID3D11Texture2D>          renderTexture;
+    Microsoft::WRL::ComPtr<ID3D11RenderTargetView>   rtv;
+    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv;
+    Microsoft::WRL::ComPtr<ID3D11Texture2D>          depthTexture;
+    Microsoft::WRL::ComPtr<ID3D11DepthStencilView>   dsv;
+
+    // カメラ
+    StudioCamera camera;
+
+    // アタッチメント群
+    std::vector<std::unique_ptr<IStudioAttachment>> attachments;
+
+    // アタッチメント間共有データ
+    StudioContext context;
+
+    // ウィンドウ状態
+    UINT  renderWidth = 1280;
+    UINT  renderHeight = 720;
+    bool  isHovered = false;
+
+    // ビューポート保存
+    D3D11_VIEWPORT savedViewport = {};
+};
