@@ -208,6 +208,20 @@ LRESULT framework::handle_message(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpa
 	case WM_ENTERSIZEMOVE:
 		timer.stop();
 		break;
+	case WM_SIZE:
+		if (wparam == SIZE_MINIMIZED)
+		{
+			// 最小化時はタイマー停止のみ（リサイズ不要）
+			timer.stop();
+		}
+		else
+		{
+			// 最大化/復元/通常リサイズ時
+			timer.start();
+			graphics.ResizeBuffers();
+			updateSceneContext();
+		}
+		break;
 	case WM_EXITSIZEMOVE:
 		timer.start();
 		// ウィンドウサイズ変更時にバッファ再生成

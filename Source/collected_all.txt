@@ -639,6 +639,7 @@ LRESULT framework::handle_message(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpa
 		timer.start();
 		// ウィンドウサイズ変更時にバッファ再生成
 		graphics.ResizeBuffers();
+		updateSceneContext();
 		break;
 	default:
 		return DefWindowProc(hwnd, msg, wparam, lparam);
@@ -649,6 +650,14 @@ LRESULT framework::handle_message(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpa
 // SceneContext を最新状態に更新する
 void framework::updateSceneContext()
 {
+	// ウィンドウサイズに合わせてカメラのアスペクト比を更新
+	camera.SetPerspectiveFov(
+		DirectX::XMConvertToRadians(camera.GetViewingAngle()),
+		graphics.GetScreenWidth() / graphics.GetScreenHeight(),
+		0.1f,
+		1000.0f
+	);
+
 	sceneContext.device = graphics.GetDevice();
 	sceneContext.deviceContext = graphics.GetDeviceContext();
 	sceneContext.resourceManager = &resourceManager;
@@ -4802,6 +4811,14 @@ Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Rendering\GBuffer.cpp
 
 void GBuffer::Initialize(ID3D11Device* device, UINT width, UINT height)
 {
+    // 既存リソースを解放してから再生成
+    for (UINT i = 0; i < BUFFER_COUNT; i++)
+    {
+        rtvs[i].Reset();
+        srvs[i].Reset();
+        rtvPtrs[i] = nullptr;
+    }
+
     // GBufferのフォーマット定義
     DXGI_FORMAT formats[BUFFER_COUNT] =
     {
@@ -8204,8 +8221,13 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_  HINSTANCE prev_instance, _
 	RECT rc{ 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT };
 	AdjustWindowRect(&rc, WS_OVERLAPPEDWINDOW, FALSE);
 
+	//HWND hwnd = CreateWindowExW(0, APPLICATION_NAME, L"",
+	//	WS_OVERLAPPEDWINDOW ^ WS_MAXIMIZEBOX ^ WS_THICKFRAME | WS_VISIBLE,
+	//	CW_USEDEFAULT, CW_USEDEFAULT,
+	//	rc.right - rc.left, rc.bottom - rc.top, NULL, NULL, instance, NULL);
+
 	HWND hwnd = CreateWindowExW(0, APPLICATION_NAME, L"",
-		WS_OVERLAPPEDWINDOW ^ WS_MAXIMIZEBOX ^ WS_THICKFRAME | WS_VISIBLE,
+		WS_OVERLAPPEDWINDOW | WS_VISIBLE,
 		CW_USEDEFAULT, CW_USEDEFAULT,
 		rc.right - rc.left, rc.bottom - rc.top, NULL, NULL, instance, NULL);
 

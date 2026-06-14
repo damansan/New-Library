@@ -3,6 +3,7 @@
 
 void GBuffer::Initialize(ID3D11Device* device, UINT width, UINT height)
 {
+    // Šù‘¶ƒŠƒ\[ƒX‚ğ‰ğ•ú‚µ‚Ä‚©‚çÄ¶¬
     for (UINT i = 0; i < BUFFER_COUNT; i++)
     {
         rtvs[i].Reset();
