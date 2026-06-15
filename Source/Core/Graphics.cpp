@@ -52,6 +52,7 @@ void Graphics::Initialize(HWND hWnd)
 	scDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;     // テアリング許可
 
 
+#if 0
 	// デバイス/スワップチェイン生成
 	D3D_FEATURE_LEVEL featureLevel;
 	hr = D3D11CreateDeviceAndSwapChain(
@@ -69,6 +70,56 @@ void Graphics::Initialize(HWND hWnd)
 		immediateContext.GetAddressOf()
 	);
 	_ASSERT_EXPR(SUCCEEDED(hr), hr_trace(hr));
+
+#else
+	// アダプター選択
+	Microsoft::WRL::ComPtr<IDXGIFactory1> factory;
+	CreateDXGIFactory1(__uuidof(IDXGIFactory1), (void**)factory.GetAddressOf());
+
+	Microsoft::WRL::ComPtr<IDXGIAdapter1> selectedAdapter;
+	Microsoft::WRL::ComPtr<IDXGIAdapter1> adapter;
+
+	for (UINT i = 0; factory->EnumAdapters1(i, adapter.GetAddressOf()) != DXGI_ERROR_NOT_FOUND; i++)
+	{
+		DXGI_ADAPTER_DESC1 desc;
+		adapter->GetDesc1(&desc);
+
+		// ソフトウェアアダプターは除外
+		if (desc.Flags & DXGI_ADAPTER_FLAG_SOFTWARE)
+		{
+			adapter.Reset();
+			continue;
+		}
+
+		// NVIDIA or AMD (即決定)
+		if (desc.VendorId == 0x10DE || desc.VendorId == 0x1002)
+		{
+			selectedAdapter = adapter;
+			break;
+		}
+		adapter.Reset();
+	}
+
+	// デバイス/スワップチェイン生成
+	D3D_FEATURE_LEVEL featureLevel;
+	hr = D3D11CreateDeviceAndSwapChain(
+		selectedAdapter.Get(),
+		selectedAdapter ? D3D_DRIVER_TYPE_UNKNOWN    // NVIDIA/AMD見つかった
+		: D3D_DRIVER_TYPE_HARDWARE,                  // 見つからなかったらWindowsに任せる
+		nullptr,
+		createDeviceFlags,
+		featureLevels,
+		ARRAYSIZE(featureLevels),
+		D3D11_SDK_VERSION,
+		&scDesc,
+		swapChain.GetAddressOf(),
+		device.GetAddressOf(),
+		&featureLevel,
+		immediateContext.GetAddressOf()
+	);
+	_ASSERT_EXPR(SUCCEEDED(hr), hr_trace(hr));
+
+#endif
 
 
 	// レンダーターゲットビュー生成
