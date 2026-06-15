@@ -1,6 +1,7 @@
 #pragma once
 #include <d3d11.h>
 #include <DirectXMath.h>
+#include "entt.hpp"
 #include "StudioContext.h"
 
 class IStudioAttachment
@@ -11,14 +12,18 @@ public:
     // çXêV
     virtual void Update(float elapsedTime, StudioContext& context) {}
 
-    // 3Dï`âÊÅiStudioWindowÇÃRTVÇ…ï`âÊÇ≥ÇÍÇÈÅj
+    // 3Dï`âÊ
     virtual void OnRender(
         ID3D11DeviceContext* dc,
         const DirectX::XMFLOAT4X4& view,
         const DirectX::XMFLOAT4X4& projection,
-        StudioContext& context) {
-    }
+        entt::registry& registry,
+        StudioContext& context) 
+    {}
 
     // ImGuiï`âÊ
-    virtual void DrawGUI(StudioContext& context) {}
+    virtual void DrawGUI(
+        entt::registry& registry,
+        StudioContext& context)
+    {}
 };

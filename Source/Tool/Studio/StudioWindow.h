@@ -8,6 +8,13 @@
 #include "StudioContext.h"
 #include "IStudioAttachment.h"
 
+#include "entt.hpp"
+#include "ECS/Systems/RenderSystem.h"
+#include "Rendering/LightManager.h"
+#include "Resource/ResourceManager.h"
+
+#include "StudioModelViewer.h"
+
 class StudioWindow
 {
 public:
@@ -47,6 +54,13 @@ private:
 
     // アタッチメント間共有データ
     StudioContext context;
+
+    entt::registry    studioRegistry;
+    RenderSystem      renderSystem;
+    LightManager      lightManager;
+    ResourceManager   resourceManager;
+    
+    StudioModelViewer modelViewer;
 
     // ウィンドウ状態
     UINT  renderWidth = 1280;

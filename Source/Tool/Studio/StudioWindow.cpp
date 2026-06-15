@@ -6,9 +6,12 @@ void StudioWindow::Initialize(ID3D11Device* device, UINT width, UINT height)
 {
 	renderWidth = width;
 	renderHeight = height;
-
-	// contextにdeviceをセット
 	context.device = device;
+
+	renderSystem.Initialize(device);
+	lightManager.Initialize(device);
+
+	modelViewer.Initialize(device, &resourceManager);
 
 	HRESULT hr;
 
@@ -57,6 +60,8 @@ void StudioWindow::Update(float elapsedTime)
 	// カメラ更新
 	camera.Update(isHovered, elapsedTime);
 
+	modelViewer.Update(elapsedTime, context);
+
 	// アタッチメント更新
 	for (auto& attachment : attachments)
 	{
@@ -67,8 +72,39 @@ void StudioWindow::Update(float elapsedTime)
 // 描画
 void StudioWindow::Render()
 {
+	ID3D11DeviceContext* dc = context.deviceContext;
+	if (!dc) return;
+
 	// 描画先を自前RTVに切り替え
 	Begin();
+
+	// CbScene更新
+	CbScene cbSceneData{};
+	cbSceneData.view = camera.GetView();
+	cbSceneData.projection = camera.GetProjection();
+	const auto& eye = camera.GetEye();
+	cbSceneData.cameraPosition = { eye.x, eye.y, eye.z, 0.0f };
+
+	dc->UpdateSubresource(renderSystem.GetCbScene(), 0, nullptr, &cbSceneData, 0, 0);
+	dc->VSSetConstantBuffers(0, 1, renderSystem.GetCbSceneAddress());
+	dc->PSSetConstantBuffers(0, 1, renderSystem.GetCbSceneAddress());
+
+	// ライトをGPUに転送
+	lightManager.Bind(dc);
+
+	// フラスタム更新
+	renderSystem.SetFrustum(camera.GetView(), camera.GetProjection());
+
+	// 描画
+	renderSystem.Render(
+		studioRegistry,
+		dc,
+		rtv.Get(),
+		dsv.Get(),
+		context.device,
+		renderWidth,
+		renderHeight
+	);
 
 	// アタッチメントの3D描画
 	for (auto& attachment : attachments)
@@ -77,6 +113,7 @@ void StudioWindow::Render()
 			context.deviceContext,
 			camera.GetView(),
 			camera.GetProjection(),
+			studioRegistry,
 			context
 		);
 	}
@@ -106,10 +143,13 @@ void StudioWindow::DrawWindow(const char* windowName)
 		region
 	);
 
+	// ModelViewerのGUI描画
+	modelViewer.DrawGUI(studioRegistry, context);
+
 	// アタッチメントのGUI描画
 	for (auto& attachment : attachments)
 	{
-		attachment->DrawGUI(context);
+		attachment->DrawGUI(studioRegistry, context);
 	}
 
 	ImGui::End();

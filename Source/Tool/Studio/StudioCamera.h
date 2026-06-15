@@ -15,6 +15,7 @@ public:
 
     const DirectX::XMFLOAT4X4& GetView()       const { return view; }
     const DirectX::XMFLOAT4X4& GetProjection() const { return projection; }
+    const DirectX::XMFLOAT3& GetEye()          const { return eye; }
 
     bool IsControlling() const { return isControlling; }
 

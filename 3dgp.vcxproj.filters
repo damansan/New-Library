@@ -200,6 +200,9 @@
     <Filter Include="Sources\Tool\Studio\StudioRenderer">
       <UniqueIdentifier>{4aad1ea4-4b17-45bf-adbb-61198e3bed22}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\Tool\Studio\StudioModelViewer">
+      <UniqueIdentifier>{fab950c5-da0a-4b40-8600-27a987cc85cf}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Core\framework.cpp">
@@ -324,6 +327,9 @@
     </ClCompile>
     <ClCompile Include="Source\Tool\Studio\StudioRenderer.cpp">
       <Filter>Sources\Tool\Studio\StudioRenderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Tool\Studio\StudioModelViewer.cpp">
+      <Filter>Sources\Tool\Studio\StudioModelViewer</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -497,6 +503,9 @@
     </ClInclude>
     <ClInclude Include="Source\Tool\Studio\StudioRenderer.h">
       <Filter>Sources\Tool\Studio\StudioRenderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Tool\Studio\StudioModelViewer.h">
+      <Filter>Sources\Tool\Studio\StudioModelViewer</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
