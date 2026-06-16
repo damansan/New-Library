@@ -200,6 +200,9 @@
     <Filter Include="Sources\Tool\Studio\StudioModelViewer">
       <UniqueIdentifier>{fab950c5-da0a-4b40-8600-27a987cc85cf}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\Tool\Studio\StudioSharedContext">
+      <UniqueIdentifier>{a345db3a-4eb5-4140-bd44-403a18595211}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Core\framework.cpp">
@@ -497,6 +500,9 @@
     </ClInclude>
     <ClInclude Include="Source\Tool\Studio\StudioModelViewer.h">
       <Filter>Sources\Tool\Studio\StudioModelViewer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Tool\Studio\StudioSharedContext.h">
+      <Filter>Sources\Tool\Studio\StudioSharedContext</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

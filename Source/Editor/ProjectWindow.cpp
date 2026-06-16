@@ -172,6 +172,13 @@ void ProjectWindow::DrawFileGrid(entt::registry& registry, EditorContext& contex
 		ImGui::PushID(index);
 		ImGui::InvisibleButton("##icon", ImVec2(iconSize, iconSize));
 
+		// ダブルクリックでStudioを開くリクエスト
+		if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(0))
+		{
+			context.studioRequest.pending = true;
+			context.studioRequest.assetPath = modelPath;
+		}
+
 		// ドラッグ開始
 		if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
 		{

@@ -38,12 +38,13 @@ public:
         entt::registry& registry,
         StudioContext& context) override;
 
+    // モデルをロードしてregistryにEntityを作る
+    void LoadModel(entt::registry& registry, const std::string& path);
+
 private:
     // ファイルダイアログを開いてパスを返す
     std::string OpenFileDialog();
 
-    // モデルをロードしてregistryにEntityを作る
-    void LoadModel(entt::registry& registry, const std::string& path);
 
     // 現在ロード中のモデルパス
     std::string currentModelPath;

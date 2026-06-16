@@ -19,7 +19,9 @@
 #include "Editor/HierarchyWindow.h"
 #include "Editor/InspectorWindow.h"
 
+#include "Tool/Studio/StudioSharedContext.h"
 #include "Tool/Studio/StudioWindow.h"
+#include <vector>
 
 // ウィンドウサイズ
 #define SCREEN_WIDTH 1280
@@ -79,15 +81,13 @@ private:
 	InspectorWindow inspectorWindow;
 
 	// Studio
-	std::unique_ptr<StudioWindow> studioWindow;
+	StudioSharedContext        studioShared;
+	std::vector<std::unique_ptr<StudioWindow>> studioWindows;
+	void openStudioWindow(const std::string& assetPath = "");
 
 private:
 	// VSync ON OFF
 	bool vsync = true;
-
-	// 画面切り替え
-	enum class AppMode { Game, Studio };
-	AppMode appMode = AppMode::Game;
 
 	// Update計測
 	int updateCount = 0;

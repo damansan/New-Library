@@ -22,26 +22,26 @@ void StudioModelViewer::DrawGUI(
     entt::registry& registry, 
     StudioContext& context)
 {
-    ImGui::Begin("Model Viewer");
+    //ImGui::Begin("Model Viewer");
 
-    // ロードボタン
-    if (ImGui::Button("Load Model"))
-    {
-        std::string path = OpenFileDialog();
-        if (!path.empty())
-        {
-            LoadModel(registry, path);
-        }
-    }
+    //// ロードボタン
+    //if (ImGui::Button("Load Model"))
+    //{
+    //    std::string path = OpenFileDialog();
+    //    if (!path.empty())
+    //    {
+    //        LoadModel(registry, path);
+    //    }
+    //}
 
-    // 現在のモデルパスを表示
-    if (!currentModelPath.empty())
-    {
-        ImGui::SameLine();
-        ImGui::TextUnformatted(currentModelPath.c_str());
-    }
+    //// 現在のモデルパスを表示
+    //if (!currentModelPath.empty())
+    //{
+    //    ImGui::SameLine();
+    //    ImGui::TextUnformatted(currentModelPath.c_str());
+    //}
 
-    ImGui::End();
+    //ImGui::End();
 }
 
 // ファイルダイアログ
@@ -82,8 +82,6 @@ void StudioModelViewer::LoadModel(
     entt::registry& registry,
     const std::string& path)
 {
-    OutputDebugStringA(("Studio LoadModel path: " + path + "\n").c_str());
-
     // 既存のEntityを削除
     if (modelEntity != entt::null)
     {

@@ -24,11 +24,8 @@ framework::framework(HWND hwnd) : hwnd(hwnd)
 	projectWindow.LoadIcons(graphics.GetDevice());
 	ComponentRegistryInitializer::Initialize();
 
-	// Studio初期化
-	studioWindow = std::make_unique<StudioWindow>();
-	studioWindow->Initialize(graphics.GetDevice());
-	studioWindow->GetContext().deviceContext = graphics.GetDeviceContext();
-
+	// Studio共有リソース初期化
+	studioShared.Initialize(graphics.GetDevice());
 
 #ifndef _DEBUG
 	// リリース時はボーダーレスフルスクリーンで起動
@@ -62,7 +59,10 @@ void framework::update(float elapsedTime)
 	sceneManager.Update(elapsedTime, sceneContext);
 
 	// Studio更新
-	studioWindow->Update(elapsedTime);
+	for (auto& win : studioWindows)
+	{
+		win->Update(elapsedTime);
+	}
 
 	// ゲームカメラの結果をcontextに反映
 	sceneContext.view = camera.GetView();
@@ -77,6 +77,11 @@ void framework::updateImGui()
 
 	ImGui::Begin("System");
 	ImGui::Checkbox("VSync", &vsync);
+
+	//if (ImGui::Button("Studio Open"))
+	//{
+	//	openStudioWindow();
+	//}
 	ImGui::End();
 
 	// シーンImGui描画
@@ -90,7 +95,27 @@ void framework::updateImGui()
 		inspectorWindow.Draw(scene->GetRegistry(), editorContext);
 	}
 
-	studioWindow->DrawWindow("Studio");
+	// StudioOpenRequestを処理
+	if (editorContext.studioRequest.pending)
+	{
+		openStudioWindow(editorContext.studioRequest.assetPath);
+		editorContext.studioRequest.pending = false;
+		editorContext.studioRequest.assetPath = "";
+	}
+	for (int i = 0; i < (int)studioWindows.size(); i++)
+	{
+		std::string title = "Studio##" + std::to_string(i);
+		studioWindows[i]->DrawWindow(title.c_str());
+	}
+	// 閉じるリクエストが出たウィンドウを削除
+	studioWindows.erase(
+		std::remove_if(studioWindows.begin(), studioWindows.end(),
+			[](const std::unique_ptr<StudioWindow>& w)
+			{
+				return w->IsCloseRequested();
+			}),
+		studioWindows.end()
+	);
 #endif
 }
 
@@ -107,7 +132,10 @@ void framework::render(float elapsedTime)
 	sceneManager.Render(sceneContext);
 
 	// Studio描画
-	studioWindow->Render();
+	for (auto& win : studioWindows)
+	{
+		win->Render();
+	}
 
 	// メインRTVを再セット
 	graphics.SetRenderTargets();
@@ -274,4 +302,20 @@ void framework::updateSceneContext()
 	sceneContext.screenHeight = static_cast<UINT>(graphics.GetScreenHeight());
 	sceneContext.cameraMode = editorContext.cameraMode;
 	sceneContext.editorContext = &editorContext;
+}
+
+// Studioを開く
+void framework::openStudioWindow(const std::string& assetPath)
+{
+	auto win = std::make_unique<StudioWindow>();
+	win->Initialize(graphics.GetDevice(), &studioShared);
+	win->GetContext().deviceContext = graphics.GetDeviceContext();
+
+	// パスが指定されていたらモデルをロード
+	if (!assetPath.empty())
+	{
+		win->LoadAsset(assetPath);
+	}
+
+	studioWindows.push_back(std::move(win));
 }

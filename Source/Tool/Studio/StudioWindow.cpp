@@ -2,72 +2,89 @@
 #include <imgui.h>
 #include <cassert>
 
-void StudioWindow::Initialize(ID3D11Device* device, UINT width, UINT height)
+void StudioWindow::Initialize(ID3D11Device* device, StudioSharedContext* shared, UINT width, UINT height)
 {
 	renderWidth = width;
 	renderHeight = height;
 	context.device = device;
+	this->shared = shared;
 
 	renderSystem.Initialize(device);
 	lightManager.Initialize(device);
 
-	skyBox.Initialize(device, "Data/SkyBox/DynamicSky");
 	// IBLテクスチャセット
 	renderSystem.SetIBLTextures(
-		skyBox.GetDiffuseIem(),
-		skyBox.GetSRV(),
-		skyBox.GetLutGgx()
+		shared->skyBox.GetDiffuseIem(),
+		shared->skyBox.GetSRV(),
+		shared->skyBox.GetLutGgx()
 	);
 
-	modelViewer.Initialize(device, &resourceManager);
+	modelViewer.Initialize(device, &shared->resourceManager);
 
-	HRESULT hr;
+	ResizeRenderTarget();
 
-	// カラーテクスチャ生成
-	{
-		D3D11_TEXTURE2D_DESC desc{};
-		desc.Width = renderWidth;
-		desc.Height = renderHeight;
-		desc.MipLevels = 1;
-		desc.ArraySize = 1;
-		desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-		desc.SampleDesc.Count = 1;
-		desc.Usage = D3D11_USAGE_DEFAULT;
-		desc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+	//HRESULT hr;
 
-		hr = device->CreateTexture2D(&desc, nullptr, renderTexture.GetAddressOf());
-		assert(SUCCEEDED(hr));
-		hr = device->CreateRenderTargetView(renderTexture.Get(), nullptr, rtv.GetAddressOf());
-		assert(SUCCEEDED(hr));
-		hr = device->CreateShaderResourceView(renderTexture.Get(), nullptr, srv.GetAddressOf());
-		assert(SUCCEEDED(hr));
-	}
+	//// カラーテクスチャ生成
+	//{
+	//	D3D11_TEXTURE2D_DESC desc{};
+	//	desc.Width = renderWidth;
+	//	desc.Height = renderHeight;
+	//	desc.MipLevels = 1;
+	//	desc.ArraySize = 1;
+	//	desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	//	desc.SampleDesc.Count = 1;
+	//	desc.Usage = D3D11_USAGE_DEFAULT;
+	//	desc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
 
-	// 深度テクスチャ生成
-	{
-		D3D11_TEXTURE2D_DESC desc{};
-		desc.Width = renderWidth;
-		desc.Height = renderHeight;
-		desc.MipLevels = 1;
-		desc.ArraySize = 1;
-		desc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-		desc.SampleDesc.Count = 1;
-		desc.Usage = D3D11_USAGE_DEFAULT;
-		desc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+	//	hr = device->CreateTexture2D(&desc, nullptr, renderTexture.GetAddressOf());
+	//	assert(SUCCEEDED(hr));
+	//	hr = device->CreateRenderTargetView(renderTexture.Get(), nullptr, rtv.GetAddressOf());
+	//	assert(SUCCEEDED(hr));
+	//	hr = device->CreateShaderResourceView(renderTexture.Get(), nullptr, srv.GetAddressOf());
+	//	assert(SUCCEEDED(hr));
+	//}
 
-		hr = device->CreateTexture2D(&desc, nullptr, depthTexture.GetAddressOf());
-		assert(SUCCEEDED(hr));
-		hr = device->CreateDepthStencilView(depthTexture.Get(), nullptr, dsv.GetAddressOf());
-		assert(SUCCEEDED(hr));
-	}
+	//// 深度テクスチャ生成
+	//{
+	//	D3D11_TEXTURE2D_DESC desc{};
+	//	desc.Width = renderWidth;
+	//	desc.Height = renderHeight;
+	//	desc.MipLevels = 1;
+	//	desc.ArraySize = 1;
+	//	desc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	//	desc.SampleDesc.Count = 1;
+	//	desc.Usage = D3D11_USAGE_DEFAULT;
+	//	desc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+
+	//	hr = device->CreateTexture2D(&desc, nullptr, depthTexture.GetAddressOf());
+	//	assert(SUCCEEDED(hr));
+	//	hr = device->CreateDepthStencilView(depthTexture.Get(), nullptr, dsv.GetAddressOf());
+	//	assert(SUCCEEDED(hr));
+	//}
 }
 
 // 更新
 void StudioWindow::Update(float elapsedTime)
 {
+	// リサイズデバウンス（0.1秒変化がなければ実行）
+	if (needsResize)
+	{
+		resizeTimer += elapsedTime;
+		if (resizeTimer >= 0.1f)
+		{
+			renderWidth = pendingWidth;
+			renderHeight = pendingHeight;
+			ResizeRenderTarget();
+			needsResize = false;
+			resizeTimer = 0.0f;
+		}
+	}
+
 	// カメラ更新
 	camera.Update(isHovered, elapsedTime);
 
+	// モデルビュワー確認
 	modelViewer.Update(elapsedTime, context);
 
 	// アタッチメント更新
@@ -130,13 +147,12 @@ void StudioWindow::Render()
 		);
 	}
 	// スカイボックス描画
-	skyBox.Render(
+	shared->skyBox.Render(
 		dc,
 		camera.GetView(),
 		camera.GetProjection(),
 		camera.GetEye()
 	);
-
 
 	// アタッチメントの3D描画
 	for (auto& attachment : attachments)
@@ -157,32 +173,71 @@ void StudioWindow::Render()
 // ImGui描画
 void StudioWindow::DrawWindow(const char* windowName)
 {
-	ImGui::Begin(windowName);
+	//ImGui::Begin(windowName);
 
-	// ウィンドウがホバーされているか
+	//// ウィンドウがホバーされているか
+	//isHovered = ImGui::IsWindowHovered();
+
+	//// 描画領域のサイズを取得してカメラのアスペクト比を更新
+	//ImVec2 region = ImGui::GetContentRegionAvail();
+	//if (region.x > 0 && region.y > 0)
+	//{
+	//	camera.UpdateAspect(region.x, region.y);
+	//}
+
+	//// 3D描画結果をImGuiに貼り付け
+	//ImGui::Image(
+	//	reinterpret_cast<ImTextureID>(srv.Get()),
+	//	region
+	//);
+
+	//// ModelViewerのGUI描画
+	//modelViewer.DrawGUI(studioRegistry, context);
+
+	//// アタッチメントのGUI描画
+	//for (auto& attachment : attachments)
+	//{
+	//	attachment->DrawGUI(studioRegistry, context);
+	//}
+
+	//ImGui::End();
+
+	bool open = true;
+	ImGui::Begin(windowName, &open);
+	if (!open) closeRequested = true;
+
 	isHovered = ImGui::IsWindowHovered();
 
-	// 描画領域のサイズを取得してカメラのアスペクト比を更新
 	ImVec2 region = ImGui::GetContentRegionAvail();
-	if (region.x > 0 && region.y > 0)
+	if (region.x > 1 && region.y > 1)
 	{
 		camera.UpdateAspect(region.x, region.y);
+
+		UINT w = static_cast<UINT>(region.x);
+		UINT h = static_cast<UINT>(region.y);
+
+		// サイズが変わっていたらデバウンスタイマーをリセットしてフラグを立てる
+		if (w != renderWidth || h != renderHeight)
+		{
+			pendingWidth = w;
+			pendingHeight = h;
+			needsResize = true;
+			resizeTimer = 0.0f;  // 変化があるたびにリセット
+		}
 	}
 
-	// 3D描画結果をImGuiに貼り付け
+	float dispW = needsResize ? static_cast<float>(pendingWidth) : static_cast<float>(renderWidth);
+	float dispH = needsResize ? static_cast<float>(pendingHeight) : static_cast<float>(renderHeight);
+
 	ImGui::Image(
 		reinterpret_cast<ImTextureID>(srv.Get()),
-		region
+		ImVec2(dispW, dispH)
 	);
 
-	// ModelViewerのGUI描画
 	modelViewer.DrawGUI(studioRegistry, context);
 
-	// アタッチメントのGUI描画
 	for (auto& attachment : attachments)
-	{
 		attachment->DrawGUI(studioRegistry, context);
-	}
 
 	ImGui::End();
 }
@@ -191,6 +246,12 @@ void StudioWindow::DrawWindow(const char* windowName)
 void StudioWindow::AddAttachment(std::unique_ptr<IStudioAttachment> attachment)
 {
 	attachments.push_back(std::move(attachment));
+}
+
+// アセット読み込み
+void StudioWindow::LoadAsset(const std::string& assetPath)
+{
+	modelViewer.LoadModel(studioRegistry, assetPath);
 }
 
 void StudioWindow::Begin()
@@ -229,4 +290,57 @@ void StudioWindow::End()
 	// 描画先をメインに戻す
 	ID3D11RenderTargetView* nullRTV = nullptr;
 	dc->OMSetRenderTargets(1, &nullRTV, nullptr);
+}
+void StudioWindow::ResizeRenderTarget()
+{
+	ID3D11Device* device = context.device;
+	if (!device) return;
+	if (renderWidth == 0 || renderHeight == 0) return;
+
+	// 古いリソースを解放
+	srv.Reset();
+	rtv.Reset();
+	renderTexture.Reset();
+	dsv.Reset();
+	depthTexture.Reset();
+
+	HRESULT hr;
+
+	// カラーテクスチャ再生成
+	{
+		D3D11_TEXTURE2D_DESC desc{};
+		desc.Width = renderWidth;
+		desc.Height = renderHeight;
+		desc.MipLevels = 1;
+		desc.ArraySize = 1;
+		desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+		desc.SampleDesc.Count = 1;
+		desc.Usage = D3D11_USAGE_DEFAULT;
+		desc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+
+		hr = device->CreateTexture2D(&desc, nullptr, renderTexture.GetAddressOf());
+		assert(SUCCEEDED(hr));
+		hr = device->CreateRenderTargetView(renderTexture.Get(), nullptr, rtv.GetAddressOf());
+		assert(SUCCEEDED(hr));
+		hr = device->CreateShaderResourceView(renderTexture.Get(), nullptr, srv.GetAddressOf());
+		assert(SUCCEEDED(hr));
+	}
+
+	// 深度テクスチャ再生成
+	{
+		D3D11_TEXTURE2D_DESC desc{};
+		desc.Width = renderWidth;
+		desc.Height = renderHeight;
+		desc.MipLevels = 1;
+		desc.ArraySize = 1;
+		desc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+		desc.SampleDesc.Count = 1;
+		desc.Usage = D3D11_USAGE_DEFAULT;
+		desc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+
+		hr = device->CreateTexture2D(&desc, nullptr, depthTexture.GetAddressOf());
+		assert(SUCCEEDED(hr));
+		hr = device->CreateDepthStencilView(depthTexture.Get(), nullptr, dsv.GetAddressOf());
+		assert(SUCCEEDED(hr));
+	}
 }

@@ -10,6 +10,13 @@ enum class CameraMode
     Game,   // ゲームカメラ  （コントローラー）
 };
 
+// Studioウィンドウを開くリクエスト
+struct StudioOpenRequest
+{
+    bool        pending = false;
+    std::string assetPath;
+};
+
 struct EditorContext
 {
     entt::entity selectedEntity = entt::null;
@@ -20,6 +27,8 @@ struct EditorContext
     // 右クリックを押したか
     bool rightClickPressed = false;  
 
+    // Studioウィンドウ開くリクエスト
+    StudioOpenRequest studioRequest;
 
     std::string GetName(entt::entity e) const
     {

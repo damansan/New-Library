@@ -70,7 +70,9 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Core\framework.h
 #include "Editor/HierarchyWindow.h"
 #include "Editor/InspectorWindow.h"
 
+#include "Tool/Studio/StudioSharedContext.h"
 #include "Tool/Studio/StudioWindow.h"
+#include <vector>
 
 // ウィンドウサイズ
 #define SCREEN_WIDTH 1280
@@ -130,11 +132,16 @@ private:
 	InspectorWindow inspectorWindow;
 
 	// Studio
-	std::unique_ptr<StudioWindow> studioWindow;
+	StudioSharedContext        studioShared;
+	std::vector<std::unique_ptr<StudioWindow>> studioWindows;
 
 private:
 	// VSync ON OFF
-	bool vsync = false;
+	bool vsync = true;
+
+	// 画面切り替え
+	enum class AppMode { Game, Studio };
+	AppMode appMode = AppMode::Game;
 
 	// Update計測
 	int updateCount = 0;
@@ -455,11 +462,13 @@ framework::framework(HWND hwnd) : hwnd(hwnd)
 	projectWindow.LoadIcons(graphics.GetDevice());
 	ComponentRegistryInitializer::Initialize();
 
+	// Studio共有リソース初期化
+	studioShared.Initialize(graphics.GetDevice());
 	// Studio初期化
-	studioWindow = std::make_unique<StudioWindow>();
-	studioWindow->Initialize(graphics.GetDevice());
-	studioWindow->GetContext().deviceContext = graphics.GetDeviceContext();
-
+	auto win = std::make_unique<StudioWindow>();
+	win->Initialize(graphics.GetDevice(), &studioShared);
+	win->GetContext().deviceContext = graphics.GetDeviceContext();
+	studioWindows.push_back(std::move(win));
 
 #ifndef _DEBUG
 	// リリース時はボーダーレスフルスクリーンで起動
@@ -493,7 +502,10 @@ void framework::update(float elapsedTime)
 	sceneManager.Update(elapsedTime, sceneContext);
 
 	// Studio更新
-	studioWindow->Update(elapsedTime);
+	for (auto& win : studioWindows)
+	{
+		win->Update(elapsedTime);
+	}
 
 	// ゲームカメラの結果をcontextに反映
 	sceneContext.view = camera.GetView();
@@ -520,8 +532,11 @@ void framework::updateImGui()
 		hierarchyWindow.Draw(scene->GetRegistry(), editorContext);
 		inspectorWindow.Draw(scene->GetRegistry(), editorContext);
 	}
-
-	studioWindow->DrawWindow("Studio");
+	for (int i = 0; i < (int)studioWindows.size(); i++)
+	{
+		std::string title = "Studio##" + std::to_string(i);
+		studioWindows[i]->DrawWindow(title.c_str());
+	}
 #endif
 }
 
@@ -538,7 +553,10 @@ void framework::render(float elapsedTime)
 	sceneManager.Render(sceneContext);
 
 	// Studio描画
-	studioWindow->Render();
+	for (auto& win : studioWindows)
+	{
+		win->Render();
+	}
 
 	// メインRTVを再セット
 	graphics.SetRenderTargets();
@@ -3610,6 +3628,13 @@ enum class CameraMode
     Game,   // ゲームカメラ  （コントローラー）
 };
 
+// Studioウィンドウを開くリクエスト
+struct StudioOpenRequest
+{
+    bool        pending = false;
+    std::string assetPath;
+};
+
 struct EditorContext
 {
     entt::entity selectedEntity = entt::null;
@@ -3620,6 +3645,8 @@ struct EditorContext
     // 右クリックを押したか
     bool rightClickPressed = false;  
 
+    // Studioウィンドウ開くリクエスト
+    StudioOpenRequest studioRequest;
 
     std::string GetName(entt::entity e) const
     {
@@ -8196,6 +8223,24 @@ private:
     };
 }; 
  
+===== StudioSharedContext.h ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioSharedContext.h 
+#pragma once
+#include <d3d11.h>
+#include "Rendering/SkyBox.h"
+#include "Resource/ResourceManager.h"
+
+struct StudioSharedContext
+{
+    SkyBox          skyBox;
+    ResourceManager resourceManager;
+
+    void Initialize(ID3D11Device* device)
+    {
+        skyBox.Initialize(device, "Data/SkyBox/DynamicSky");
+    }
+}; 
+ 
 ===== StudioWindow.h ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioWindow.h 
 #pragma once
@@ -8213,12 +8258,13 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioWindow.h
 #include "Rendering/LightManager.h"
 #include "Resource/ResourceManager.h"
 
+#include "StudioSharedContext.h"
 #include "StudioModelViewer.h"
 
 class StudioWindow
 {
 public:
-    void Initialize(ID3D11Device* device, UINT width = 1280, UINT height = 720);
+    void Initialize(ID3D11Device* device, StudioSharedContext* shared, UINT width = 1280, UINT height = 720);
 
     // 更新
     void Update(float elapsedTime);
@@ -8239,6 +8285,7 @@ private:
     // 描画先の切り替え
     void Begin();
     void End();
+    void ResizeRenderTarget();
 
     Microsoft::WRL::ComPtr<ID3D11Texture2D>          renderTexture;
     Microsoft::WRL::ComPtr<ID3D11RenderTargetView>   rtv;
@@ -8260,6 +8307,7 @@ private:
     LightManager      lightManager;
     ResourceManager   resourceManager;
     
+    StudioSharedContext* shared = nullptr;
     StudioModelViewer modelViewer;
 
     // ウィンドウ状態
@@ -8267,8 +8315,16 @@ private:
     UINT  renderHeight = 720;
     bool  isHovered = false;
 
+    // リサイズ用デバウンス
+    float resizeTimer = 0.0f;
+    bool  needsResize = false;
+    UINT  pendingWidth = 0;
+    UINT  pendingHeight = 0;
+
     // ビューポート保存
     D3D11_VIEWPORT savedViewport = {};
+    int            renderSkipCount = 0;
+
 }; 
  
 ===== StudioCamera.cpp ===== 
@@ -8282,185 +8338,149 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioCamera.cpp
 // コンストラクタ
 StudioCamera::StudioCamera()
 {
-    // 初期のeye/targetからyaw/pitchを計算
-    DirectX::XMFLOAT3 dir =
-    {
-        target.x - eye.x,
-        target.y - eye.y,
-        target.z - eye.z
-    };
-    float len = sqrtf(dir.x * dir.x + dir.y * dir.y + dir.z * dir.z);
-    if (len > 0.0f) { dir.x /= len; dir.y /= len; dir.z /= len; }
+	// 初期のeye/targetからyaw/pitchを計算
+	DirectX::XMFLOAT3 dir =
+	{
+		target.x - eye.x,
+		target.y - eye.y,
+		target.z - eye.z
+	};
+	float len = sqrtf(dir.x * dir.x + dir.y * dir.y + dir.z * dir.z);
+	if (len > 0.0f) { dir.x /= len; dir.y /= len; dir.z /= len; }
 
-    yaw = atan2f(dir.x, dir.z);
-    pitch = asinf(dir.y);
+	yaw = atan2f(dir.x, dir.z);
+	pitch = asinf(dir.y);
 
-    // 初期射影行列
-    UpdateProjectionMatrix();
-    UpdateViewMatrix();
+	// 初期射影行列
+	UpdateProjectionMatrix();
+	UpdateViewMatrix();
 }
 
 // 更新
 void StudioCamera::Update(bool isWindowHovered, float elapsedTime)
 {
-    // 右クリックでウィンドウ内にいるとき操作開始
-    if (isWindowHovered && ImGui::IsMouseClicked(ImGuiMouseButton_Right))
-    {
-        isControlling = true;
-    }
-    // 右クリックを離したら操作終了
-    if (!ImGui::IsMouseDown(ImGuiMouseButton_Right))
-    {
-        isControlling = false;
-        firstMouse = true;
-        return;
-    }
-    // ウィンドウホバー中に右クリックを押し始めた瞬間だけ操作開始
-    if (!isControlling)
-    {
-        if (isWindowHovered)
-            isControlling = true;
-        else
-            return;
-    }
-    // if (!isControlling) return;
+	// 右クリックを離したら操作終了
+	if (!ImGui::IsMouseDown(ImGuiMouseButton_Right))
+	{
+		isControlling = false;
+		firstMouse = true;
+		return;
+	}
+	// ウィンドウホバー中に右クリックを押し始めた瞬間だけ操作開始
+	if (!isControlling)
+	{
+		if (isWindowHovered)
+			isControlling = true;
+		else
+			return;
+	}
 
-    float move = speed * elapsedTime;
+	// if (!isControlling) return;
 
-    // ホイールで速度変更
-    float wheel = ImGui::GetIO().MouseWheel;
-    if (wheel != 0.0f)
-    {
-        speed += wheel * 2.0f;
-        speed = std::clamp(speed, 0.1f, 100.0f);
-    }
+	// ホイールで速度変更
+	float wheel = ImGui::GetIO().MouseWheel;
+	if (wheel != 0.0f)
+	{
+		speed += wheel * 2.0f;
+		speed = std::clamp(speed, 0.1f, 100.0f);
+	}
 
-    DirectX::XMFLOAT3 front = GetFront();
-    DirectX::XMFLOAT3 right = GetRight();
+	float move = speed * elapsedTime;
+	DirectX::XMFLOAT3 front = GetFront();
+	DirectX::XMFLOAT3 right = GetRight();
 
-    // WASD + QE移動
-    if (GetAsyncKeyState('W') & 0x8000)
-    {
-        eye.x += front.x * move; eye.y += front.y * move; eye.z += front.z * move;
-        target.x += front.x * move; target.y += front.y * move; target.z += front.z * move;
-    }
-    if (GetAsyncKeyState('S') & 0x8000)
-    {
-        eye.x -= front.x * move; eye.y -= front.y * move; eye.z -= front.z * move;
-        target.x -= front.x * move; target.y -= front.y * move; target.z -= front.z * move;
-    }
-    if (GetAsyncKeyState('D') & 0x8000)
-    {
-        eye.x += right.x * move; eye.y += right.y * move; eye.z += right.z * move;
-        target.x += right.x * move; target.y += right.y * move; target.z += right.z * move;
-    }
-    if (GetAsyncKeyState('A') & 0x8000)
-    {
-        eye.x -= right.x * move; eye.y -= right.y * move; eye.z -= right.z * move;
-        target.x -= right.x * move; target.y -= right.y * move; target.z -= right.z * move;
-    }
-    if (GetAsyncKeyState('Q') & 0x8000) { eye.y += move; target.y += move; }
-    if (GetAsyncKeyState('E') & 0x8000) { eye.y -= move; target.y -= move; }
+	auto MoveEyeTarget = [&](const DirectX::XMFLOAT3& axis, float amount)
+		{
+			eye.x += axis.x * amount; eye.y += axis.y * amount; eye.z += axis.z * amount;
+			target.x += axis.x * amount; target.y += axis.y * amount; target.z += axis.z * amount;
+		};
 
-    // マウス回転
-    POINT mousePos;
-    GetCursorPos(&mousePos);
+	if (GetAsyncKeyState('W') & 0x8000)  MoveEyeTarget(front, move);
+	if (GetAsyncKeyState('S') & 0x8000)  MoveEyeTarget(front, -move);
+	if (GetAsyncKeyState('D') & 0x8000)  MoveEyeTarget(right, move);
+	if (GetAsyncKeyState('A') & 0x8000)  MoveEyeTarget(right, -move);
+	if (GetAsyncKeyState('Q') & 0x8000) { eye.y += move; target.y += move; }
+	if (GetAsyncKeyState('E') & 0x8000) { eye.y -= move; target.y -= move; }
 
-    if (firstMouse)
-    {
-        lastMouseX = mousePos.x;
-        lastMouseY = mousePos.y;
-        firstMouse = false;
+	// マウス回転
+	POINT mousePos;
+	GetCursorPos(&mousePos);
 
-        DirectX::XMFLOAT3 dir =
-        {
-            target.x - eye.x,
-            target.y - eye.y,
-            target.z - eye.z
-        };
-        float len = sqrtf(dir.x * dir.x + dir.y * dir.y + dir.z * dir.z);
-        if (len > 0.0f) { dir.x /= len; dir.y /= len; dir.z /= len; }
-        pitch = asinf(dir.y);
-        yaw = atan2f(dir.x, dir.z);
-    }
+	if (firstMouse)
+	{
+		lastMouseX = mousePos.x;
+		lastMouseY = mousePos.y;
+		firstMouse = false;
 
-    float dx = static_cast<float>(mousePos.x - lastMouseX) * 0.005f;
-    float dy = static_cast<float>(mousePos.y - lastMouseY) * 0.005f;
-    yaw += dx;
-    pitch -= dy;
-    pitch = std::clamp(pitch,
-        -DirectX::XM_PIDIV2 + 0.1f,
-        DirectX::XM_PIDIV2 - 0.1f);
+		DirectX::XMFLOAT3 dir =
+		{
+			target.x - eye.x,
+			target.y - eye.y,
+			target.z - eye.z
+		};
+		float len = sqrtf(dir.x * dir.x + dir.y * dir.y + dir.z * dir.z);
+		if (len > 0.0f) { dir.x /= len; dir.y /= len; dir.z /= len; }
+		pitch = asinf(std::clamp(dir.y, -1.0f, 1.0f));
+		yaw = atan2f(dir.x, dir.z);
+	}
 
-    lastMouseX = mousePos.x;
-    lastMouseY = mousePos.y;
+	yaw += static_cast<float>(mousePos.x - lastMouseX) * 0.005f;
+	pitch -= static_cast<float>(mousePos.y - lastMouseY) * 0.005f;
+	pitch = std::clamp(pitch, -DirectX::XM_PIDIV2 + 0.1f, DirectX::XM_PIDIV2 - 0.1f);
 
-    // targetを更新
-    DirectX::XMFLOAT3 direction =
-    {
-        cosf(pitch) * sinf(yaw),
-        sinf(pitch),
-        cosf(pitch) * cosf(yaw)
-    };
-    target.x = eye.x + direction.x;
-    target.y = eye.y + direction.y;
-    target.z = eye.z + direction.z;
+	lastMouseX = mousePos.x;
+	lastMouseY = mousePos.y;
 
-    UpdateViewMatrix();
+	// target を eye + 向きベクトルで更新
+	target =
+	{
+		eye.x + cosf(pitch) * sinf(yaw),
+		eye.y + sinf(pitch),
+		eye.z + cosf(pitch) * cosf(yaw)
+	};
+
+	UpdateViewMatrix();
 }
 
 // 毎フレームウィンドウサイズを渡して比率を更新する
 void StudioCamera::UpdateAspect(float width, float height)
 {
-    if (height <= 0.0f) 
-    {
-        return;
-    }
-    aspect = width / height;
-    UpdateProjectionMatrix();
+	if (height <= 0.0f) return;
+	aspect = width / height;
+	UpdateProjectionMatrix();
 }
 
 void StudioCamera::UpdateViewMatrix()
 {
-    DirectX::XMVECTOR Eye = DirectX::XMLoadFloat3(&eye);
-    DirectX::XMVECTOR Target = DirectX::XMLoadFloat3(&target);
-    DirectX::XMVECTOR Up = DirectX::XMVectorSet(0, 1, 0, 0);
-    DirectX::XMStoreFloat4x4(&view,
-        DirectX::XMMatrixLookAtLH(Eye, Target, Up));
+	DirectX::XMVECTOR Eye = DirectX::XMLoadFloat3(&eye);
+	DirectX::XMVECTOR Target = DirectX::XMLoadFloat3(&target);
+	DirectX::XMVECTOR Up = DirectX::XMVectorSet(0, 1, 0, 0);
+	DirectX::XMStoreFloat4x4(&view, DirectX::XMMatrixLookAtLH(Eye, Target, Up));
 }
 void StudioCamera::UpdateProjectionMatrix()
 {
-    DirectX::XMStoreFloat4x4(&projection,
-        DirectX::XMMatrixPerspectiveFovLH(
-            DirectX::XMConvertToRadians(45.0f),
-            aspect, 0.1f, 1000.0f));
+	DirectX::XMStoreFloat4x4(&projection,
+		DirectX::XMMatrixPerspectiveFovLH(
+			DirectX::XMConvertToRadians(45.0f),
+			aspect, 0.1f, 1000.0f));
 }
 
 DirectX::XMFLOAT3 StudioCamera::GetFront() const
 {
-    DirectX::XMFLOAT3 front =
-    {
-        target.x - eye.x,
-        target.y - eye.y,
-        target.z - eye.z
-    };
-    float len = sqrtf(
-        front.x * front.x +
-        front.y * front.y +
-        front.z * front.z);
-    if (len > 0.0f) { front.x /= len; front.y /= len; front.z /= len; }
-    return front;
+	DirectX::XMVECTOR Eye = DirectX::XMLoadFloat3(&eye);
+	DirectX::XMVECTOR Target = DirectX::XMLoadFloat3(&target);
+	DirectX::XMFLOAT3 front;
+	DirectX::XMStoreFloat3(&front, DirectX::XMVector3Normalize(DirectX::XMVectorSubtract(Target, Eye)));
+	return front;
 }
 DirectX::XMFLOAT3 StudioCamera::GetRight() const
 {
-    DirectX::XMFLOAT3 front = GetFront();
-    DirectX::XMVECTOR Front = DirectX::XMLoadFloat3(&front);
-    DirectX::XMVECTOR Up = DirectX::XMVectorSet(0, 1, 0, 0);
-    DirectX::XMVECTOR Right = DirectX::XMVector3Normalize(
-        DirectX::XMVector3Cross(Up, Front));
-    DirectX::XMFLOAT3 right;
-    DirectX::XMStoreFloat3(&right, Right);
-    return right;
+	DirectX::XMFLOAT3 front = GetFront();
+	DirectX::XMVECTOR Front = DirectX::XMLoadFloat3(&front);
+	DirectX::XMVECTOR Up = DirectX::XMVectorSet(0, 1, 0, 0);
+	DirectX::XMFLOAT3 right;
+	DirectX::XMStoreFloat3(&right, DirectX::XMVector3Normalize(DirectX::XMVector3Cross(Up, Front)));
+	return right;
 } 
  
 ===== StudioModelViewer.cpp ===== 
@@ -8531,17 +8551,13 @@ std::string StudioModelViewer::OpenFileDialog()
         char currentDir[MAX_PATH] = {};
         GetCurrentDirectoryA(MAX_PATH, currentDir);
 
-        OutputDebugStringA(("absPath raw: " + std::string(path) + "\n").c_str());
-        OutputDebugStringA(("currentDir: " + std::string(currentDir) + "\n").c_str());
-
         std::string absPath = path;
         std::string basePath = std::string(currentDir) + "\\";
         if (absPath.find(basePath) == 0)
             absPath = absPath.substr(basePath.size());
+
         // バックスラッシュをスラッシュに統一
         std::replace(absPath.begin(), absPath.end(), '\\', '/');
-
-        OutputDebugStringA(("result path: " + absPath + "\n").c_str());
 
         return absPath;
     }
@@ -8715,64 +8731,89 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioWindow.cpp
 #include <imgui.h>
 #include <cassert>
 
-void StudioWindow::Initialize(ID3D11Device* device, UINT width, UINT height)
+void StudioWindow::Initialize(ID3D11Device* device, StudioSharedContext* shared, UINT width, UINT height)
 {
 	renderWidth = width;
 	renderHeight = height;
 	context.device = device;
+	this->shared = shared;
 
 	renderSystem.Initialize(device);
 	lightManager.Initialize(device);
 
-	modelViewer.Initialize(device, &resourceManager);
+	// IBLテクスチャセット
+	renderSystem.SetIBLTextures(
+		shared->skyBox.GetDiffuseIem(),
+		shared->skyBox.GetSRV(),
+		shared->skyBox.GetLutGgx()
+	);
 
-	HRESULT hr;
+	modelViewer.Initialize(device, &shared->resourceManager);
 
-	// カラーテクスチャ生成
-	{
-		D3D11_TEXTURE2D_DESC desc{};
-		desc.Width = renderWidth;
-		desc.Height = renderHeight;
-		desc.MipLevels = 1;
-		desc.ArraySize = 1;
-		desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-		desc.SampleDesc.Count = 1;
-		desc.Usage = D3D11_USAGE_DEFAULT;
-		desc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+	ResizeRenderTarget();
 
-		hr = device->CreateTexture2D(&desc, nullptr, renderTexture.GetAddressOf());
-		assert(SUCCEEDED(hr));
-		hr = device->CreateRenderTargetView(renderTexture.Get(), nullptr, rtv.GetAddressOf());
-		assert(SUCCEEDED(hr));
-		hr = device->CreateShaderResourceView(renderTexture.Get(), nullptr, srv.GetAddressOf());
-		assert(SUCCEEDED(hr));
-	}
+	//HRESULT hr;
 
-	// 深度テクスチャ生成
-	{
-		D3D11_TEXTURE2D_DESC desc{};
-		desc.Width = renderWidth;
-		desc.Height = renderHeight;
-		desc.MipLevels = 1;
-		desc.ArraySize = 1;
-		desc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-		desc.SampleDesc.Count = 1;
-		desc.Usage = D3D11_USAGE_DEFAULT;
-		desc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+	//// カラーテクスチャ生成
+	//{
+	//	D3D11_TEXTURE2D_DESC desc{};
+	//	desc.Width = renderWidth;
+	//	desc.Height = renderHeight;
+	//	desc.MipLevels = 1;
+	//	desc.ArraySize = 1;
+	//	desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	//	desc.SampleDesc.Count = 1;
+	//	desc.Usage = D3D11_USAGE_DEFAULT;
+	//	desc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
 
-		hr = device->CreateTexture2D(&desc, nullptr, depthTexture.GetAddressOf());
-		assert(SUCCEEDED(hr));
-		hr = device->CreateDepthStencilView(depthTexture.Get(), nullptr, dsv.GetAddressOf());
-		assert(SUCCEEDED(hr));
-	}
+	//	hr = device->CreateTexture2D(&desc, nullptr, renderTexture.GetAddressOf());
+	//	assert(SUCCEEDED(hr));
+	//	hr = device->CreateRenderTargetView(renderTexture.Get(), nullptr, rtv.GetAddressOf());
+	//	assert(SUCCEEDED(hr));
+	//	hr = device->CreateShaderResourceView(renderTexture.Get(), nullptr, srv.GetAddressOf());
+	//	assert(SUCCEEDED(hr));
+	//}
+
+	//// 深度テクスチャ生成
+	//{
+	//	D3D11_TEXTURE2D_DESC desc{};
+	//	desc.Width = renderWidth;
+	//	desc.Height = renderHeight;
+	//	desc.MipLevels = 1;
+	//	desc.ArraySize = 1;
+	//	desc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	//	desc.SampleDesc.Count = 1;
+	//	desc.Usage = D3D11_USAGE_DEFAULT;
+	//	desc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+
+	//	hr = device->CreateTexture2D(&desc, nullptr, depthTexture.GetAddressOf());
+	//	assert(SUCCEEDED(hr));
+	//	hr = device->CreateDepthStencilView(depthTexture.Get(), nullptr, dsv.GetAddressOf());
+	//	assert(SUCCEEDED(hr));
+	//}
 }
 
 // 更新
 void StudioWindow::Update(float elapsedTime)
 {
+	// リサイズデバウンス（0.1秒変化がなければ実行）
+	if (needsResize)
+	{
+		resizeTimer += elapsedTime;
+		if (resizeTimer >= 0.1f)
+		{
+			renderWidth = pendingWidth;
+			renderHeight = pendingHeight;
+			ResizeRenderTarget();
+			needsResize = false;
+			resizeTimer = 0.0f;
+		}
+	}
+
 	// カメラ更新
 	camera.Update(isHovered, elapsedTime);
 
+	// モデルビュワー確認
 	modelViewer.Update(elapsedTime, context);
 
 	// アタッチメント更新
@@ -8785,6 +8826,18 @@ void StudioWindow::Update(float elapsedTime)
 // 描画
 void StudioWindow::Render()
 {
+	// ホバー中は毎フレーム、離れたら1/10
+	if (!isHovered)
+	{
+		renderSkipCount++;
+		if (renderSkipCount < 10) return;
+		renderSkipCount = 0;
+	}
+	else
+	{
+		renderSkipCount = 0;
+	}
+
 	ID3D11DeviceContext* dc = context.deviceContext;
 	if (!dc) return;
 
@@ -8808,15 +8861,26 @@ void StudioWindow::Render()
 	// フラスタム更新
 	renderSystem.SetFrustum(camera.GetView(), camera.GetProjection());
 
-	// 描画
-	renderSystem.Render(
-		studioRegistry,
+	// モデルがある時だけRenderSystemを走らせる
+	if (!studioRegistry.storage<TransformComponent>().empty())
+	{
+		// 描画
+		renderSystem.Render(
+			studioRegistry,
+			dc,
+			rtv.Get(),
+			dsv.Get(),
+			context.device,
+			renderWidth,
+			renderHeight
+		);
+	}
+	// スカイボックス描画
+	shared->skyBox.Render(
 		dc,
-		rtv.Get(),
-		dsv.Get(),
-		context.device,
-		renderWidth,
-		renderHeight
+		camera.GetView(),
+		camera.GetProjection(),
+		camera.GetEye()
 	);
 
 	// アタッチメントの3D描画
@@ -8838,32 +8902,69 @@ void StudioWindow::Render()
 // ImGui描画
 void StudioWindow::DrawWindow(const char* windowName)
 {
+	//ImGui::Begin(windowName);
+
+	//// ウィンドウがホバーされているか
+	//isHovered = ImGui::IsWindowHovered();
+
+	//// 描画領域のサイズを取得してカメラのアスペクト比を更新
+	//ImVec2 region = ImGui::GetContentRegionAvail();
+	//if (region.x > 0 && region.y > 0)
+	//{
+	//	camera.UpdateAspect(region.x, region.y);
+	//}
+
+	//// 3D描画結果をImGuiに貼り付け
+	//ImGui::Image(
+	//	reinterpret_cast<ImTextureID>(srv.Get()),
+	//	region
+	//);
+
+	//// ModelViewerのGUI描画
+	//modelViewer.DrawGUI(studioRegistry, context);
+
+	//// アタッチメントのGUI描画
+	//for (auto& attachment : attachments)
+	//{
+	//	attachment->DrawGUI(studioRegistry, context);
+	//}
+
+	//ImGui::End();
+
 	ImGui::Begin(windowName);
 
-	// ウィンドウがホバーされているか
 	isHovered = ImGui::IsWindowHovered();
 
-	// 描画領域のサイズを取得してカメラのアスペクト比を更新
 	ImVec2 region = ImGui::GetContentRegionAvail();
-	if (region.x > 0 && region.y > 0)
+	if (region.x > 1 && region.y > 1)
 	{
 		camera.UpdateAspect(region.x, region.y);
+
+		UINT w = static_cast<UINT>(region.x);
+		UINT h = static_cast<UINT>(region.y);
+
+		// サイズが変わっていたらデバウンスタイマーをリセットしてフラグを立てる
+		if (w != renderWidth || h != renderHeight)
+		{
+			pendingWidth = w;
+			pendingHeight = h;
+			needsResize = true;
+			resizeTimer = 0.0f;  // 変化があるたびにリセット
+		}
 	}
 
-	// 3D描画結果をImGuiに貼り付け
+	float dispW = needsResize ? static_cast<float>(pendingWidth) : static_cast<float>(renderWidth);
+	float dispH = needsResize ? static_cast<float>(pendingHeight) : static_cast<float>(renderHeight);
+
 	ImGui::Image(
 		reinterpret_cast<ImTextureID>(srv.Get()),
-		region
+		ImVec2(dispW, dispH)
 	);
 
-	// ModelViewerのGUI描画
 	modelViewer.DrawGUI(studioRegistry, context);
 
-	// アタッチメントのGUI描画
 	for (auto& attachment : attachments)
-	{
 		attachment->DrawGUI(studioRegistry, context);
-	}
 
 	ImGui::End();
 }
@@ -8910,7 +9011,61 @@ void StudioWindow::End()
 	// 描画先をメインに戻す
 	ID3D11RenderTargetView* nullRTV = nullptr;
 	dc->OMSetRenderTargets(1, &nullRTV, nullptr);
-} 
+}
+void StudioWindow::ResizeRenderTarget()
+{
+	ID3D11Device* device = context.device;
+	if (!device) return;
+	if (renderWidth == 0 || renderHeight == 0) return;
+
+	// 古いリソースを解放
+	srv.Reset();
+	rtv.Reset();
+	renderTexture.Reset();
+	dsv.Reset();
+	depthTexture.Reset();
+
+	HRESULT hr;
+
+	// カラーテクスチャ再生成
+	{
+		D3D11_TEXTURE2D_DESC desc{};
+		desc.Width = renderWidth;
+		desc.Height = renderHeight;
+		desc.MipLevels = 1;
+		desc.ArraySize = 1;
+		desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+		desc.SampleDesc.Count = 1;
+		desc.Usage = D3D11_USAGE_DEFAULT;
+		desc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+
+		hr = device->CreateTexture2D(&desc, nullptr, renderTexture.GetAddressOf());
+		assert(SUCCEEDED(hr));
+		hr = device->CreateRenderTargetView(renderTexture.Get(), nullptr, rtv.GetAddressOf());
+		assert(SUCCEEDED(hr));
+		hr = device->CreateShaderResourceView(renderTexture.Get(), nullptr, srv.GetAddressOf());
+		assert(SUCCEEDED(hr));
+	}
+
+	// 深度テクスチャ再生成
+	{
+		D3D11_TEXTURE2D_DESC desc{};
+		desc.Width = renderWidth;
+		desc.Height = renderHeight;
+		desc.MipLevels = 1;
+		desc.ArraySize = 1;
+		desc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+		desc.SampleDesc.Count = 1;
+		desc.Usage = D3D11_USAGE_DEFAULT;
+		desc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+
+		hr = device->CreateTexture2D(&desc, nullptr, depthTexture.GetAddressOf());
+		assert(SUCCEEDED(hr));
+		hr = device->CreateDepthStencilView(depthTexture.Get(), nullptr, dsv.GetAddressOf());
+		assert(SUCCEEDED(hr));
+	}
+}
+ 
  
 ===== CerealHelper.h ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\Utility\CerealHelper.h 
