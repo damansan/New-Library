@@ -11,6 +11,14 @@ void StudioWindow::Initialize(ID3D11Device* device, UINT width, UINT height)
 	renderSystem.Initialize(device);
 	lightManager.Initialize(device);
 
+	skyBox.Initialize(device, "Data/SkyBox/DynamicSky");
+	// IBLテクスチャセット
+	renderSystem.SetIBLTextures(
+		skyBox.GetDiffuseIem(),
+		skyBox.GetSRV(),
+		skyBox.GetLutGgx()
+	);
+
 	modelViewer.Initialize(device, &resourceManager);
 
 	HRESULT hr;
@@ -72,6 +80,18 @@ void StudioWindow::Update(float elapsedTime)
 // 描画
 void StudioWindow::Render()
 {
+	// ホバー中は毎フレーム、離れたら1/10
+	if (!isHovered)
+	{
+		renderSkipCount++;
+		if (renderSkipCount < 10) return;
+		renderSkipCount = 0;
+	}
+	else
+	{
+		renderSkipCount = 0;
+	}
+
 	ID3D11DeviceContext* dc = context.deviceContext;
 	if (!dc) return;
 
@@ -95,16 +115,28 @@ void StudioWindow::Render()
 	// フラスタム更新
 	renderSystem.SetFrustum(camera.GetView(), camera.GetProjection());
 
-	// 描画
-	renderSystem.Render(
-		studioRegistry,
+	// モデルがある時だけRenderSystemを走らせる
+	if (!studioRegistry.storage<TransformComponent>().empty())
+	{
+		// 描画
+		renderSystem.Render(
+			studioRegistry,
+			dc,
+			rtv.Get(),
+			dsv.Get(),
+			context.device,
+			renderWidth,
+			renderHeight
+		);
+	}
+	// スカイボックス描画
+	skyBox.Render(
 		dc,
-		rtv.Get(),
-		dsv.Get(),
-		context.device,
-		renderWidth,
-		renderHeight
+		camera.GetView(),
+		camera.GetProjection(),
+		camera.GetEye()
 	);
+
 
 	// アタッチメントの3D描画
 	for (auto& attachment : attachments)

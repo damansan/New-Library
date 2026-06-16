@@ -13,6 +13,7 @@
 #include "Rendering/LightManager.h"
 #include "Resource/ResourceManager.h"
 
+#include "Rendering/SkyBox.h"
 #include "StudioModelViewer.h"
 
 class StudioWindow
@@ -60,6 +61,7 @@ private:
     LightManager      lightManager;
     ResourceManager   resourceManager;
     
+    SkyBox            skyBox;
     StudioModelViewer modelViewer;
 
     // ウィンドウ状態
@@ -69,4 +71,6 @@ private:
 
     // ビューポート保存
     D3D11_VIEWPORT savedViewport = {};
+    int            renderSkipCount = 0;
+
 };

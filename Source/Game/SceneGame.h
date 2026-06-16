@@ -16,7 +16,7 @@
 #include "Rendering/LightManager.h"
 
 
-//#include "Tool/ControllerToolWindow.h" 
+#include "Tool/ControllerToolWindow.h" 
 
 
 class SceneGame : public Scene
@@ -40,7 +40,7 @@ private:
 	DebugCameraSystem debugCameraSystem;
 	GameCameraSystem  gameCameraSystem; 
 
-	//ControllerToolWindow controllerToolWindow;
+	ControllerToolWindow controllerToolWindow;
 
 	SkyBox       skyBox;
 	LightManager lightManager;

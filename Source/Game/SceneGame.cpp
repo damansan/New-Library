@@ -198,6 +198,6 @@ void SceneGame::RenderImGui()
 {
 #ifdef _DEBUG
 	//player->RenderImGui();
-	//controllerToolWindow.Draw(registry, controllerSystem);
+	controllerToolWindow.Draw(registry, controllerSystem);
 #endif
 }

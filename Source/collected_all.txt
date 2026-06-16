@@ -4475,7 +4475,7 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Game\SceneGame.h
 #include "Rendering/LightManager.h"
 
 
-//#include "Tool/ControllerToolWindow.h" 
+#include "Tool/ControllerToolWindow.h" 
 
 
 class SceneGame : public Scene
@@ -4499,7 +4499,7 @@ private:
 	DebugCameraSystem debugCameraSystem;
 	GameCameraSystem  gameCameraSystem; 
 
-	//ControllerToolWindow controllerToolWindow;
+	ControllerToolWindow controllerToolWindow;
 
 	SkyBox       skyBox;
 	LightManager lightManager;
@@ -4708,7 +4708,7 @@ void SceneGame::RenderImGui()
 {
 #ifdef _DEBUG
 	//player->RenderImGui();
-	//controllerToolWindow.Draw(registry, controllerSystem);
+	controllerToolWindow.Draw(registry, controllerSystem);
 #endif
 }
  
@@ -8315,7 +8315,15 @@ void StudioCamera::Update(bool isWindowHovered, float elapsedTime)
         firstMouse = true;
         return;
     }
-    if (!isControlling) return;
+    // ウィンドウホバー中に右クリックを押し始めた瞬間だけ操作開始
+    if (!isControlling)
+    {
+        if (isWindowHovered)
+            isControlling = true;
+        else
+            return;
+    }
+    // if (!isControlling) return;
 
     float move = speed * elapsedTime;
 
@@ -8515,11 +8523,27 @@ std::string StudioModelViewer::OpenFileDialog()
     ofn.lpstrFile = path;
     ofn.nMaxFile = MAX_PATH;
     ofn.lpstrTitle = "Open Model";
-    ofn.Flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST;
+    ofn.Flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | OFN_NOCHANGEDIR;
 
     if (GetOpenFileNameA(&ofn))
     {
-        return std::string(path);
+        // 絶対パスをカレントディレクトリからの相対パスに変換
+        char currentDir[MAX_PATH] = {};
+        GetCurrentDirectoryA(MAX_PATH, currentDir);
+
+        OutputDebugStringA(("absPath raw: " + std::string(path) + "\n").c_str());
+        OutputDebugStringA(("currentDir: " + std::string(currentDir) + "\n").c_str());
+
+        std::string absPath = path;
+        std::string basePath = std::string(currentDir) + "\\";
+        if (absPath.find(basePath) == 0)
+            absPath = absPath.substr(basePath.size());
+        // バックスラッシュをスラッシュに統一
+        std::replace(absPath.begin(), absPath.end(), '\\', '/');
+
+        OutputDebugStringA(("result path: " + absPath + "\n").c_str());
+
+        return absPath;
     }
     return {};
 }
@@ -8529,6 +8553,8 @@ void StudioModelViewer::LoadModel(
     entt::registry& registry,
     const std::string& path)
 {
+    OutputDebugStringA(("Studio LoadModel path: " + path + "\n").c_str());
+
     // 既存のEntityを削除
     if (modelEntity != entt::null)
     {

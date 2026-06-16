@@ -56,11 +56,23 @@ std::string StudioModelViewer::OpenFileDialog()
     ofn.lpstrFile = path;
     ofn.nMaxFile = MAX_PATH;
     ofn.lpstrTitle = "Open Model";
-    ofn.Flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST;
+    ofn.Flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | OFN_NOCHANGEDIR;
 
     if (GetOpenFileNameA(&ofn))
     {
-        return std::string(path);
+        // 絶対パスをカレントディレクトリからの相対パスに変換
+        char currentDir[MAX_PATH] = {};
+        GetCurrentDirectoryA(MAX_PATH, currentDir);
+
+        std::string absPath = path;
+        std::string basePath = std::string(currentDir) + "\\";
+        if (absPath.find(basePath) == 0)
+            absPath = absPath.substr(basePath.size());
+
+        // バックスラッシュをスラッシュに統一
+        std::replace(absPath.begin(), absPath.end(), '\\', '/');
+
+        return absPath;
     }
     return {};
 }
@@ -70,6 +82,8 @@ void StudioModelViewer::LoadModel(
     entt::registry& registry,
     const std::string& path)
 {
+    OutputDebugStringA(("Studio LoadModel path: " + path + "\n").c_str());
+
     // 既存のEntityを削除
     if (modelEntity != entt::null)
     {

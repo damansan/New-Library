@@ -83,7 +83,11 @@ private:
 
 private:
 	// VSync ON OFF
-	bool vsync = false;
+	bool vsync = true;
+
+	// ‰æ–ÊØ‚è‘Ö‚¦
+	enum class AppMode { Game, Studio };
+	AppMode appMode = AppMode::Game;
 
 	// UpdateŒv‘ª
 	int updateCount = 0;
