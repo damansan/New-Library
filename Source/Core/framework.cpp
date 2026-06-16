@@ -102,10 +102,10 @@ void framework::updateImGui()
 		editorContext.studioRequest.pending = false;
 		editorContext.studioRequest.assetPath = "";
 	}
-	for (int i = 0; i < (int)studioWindows.size(); i++)
+	for (auto& win : studioWindows)
 	{
-		std::string title = "Studio##" + std::to_string(i);
-		studioWindows[i]->DrawWindow(title.c_str());
+		std::string title = "Studio##" + std::to_string(win->GetWindowId());
+		win->DrawWindow(title.c_str());
 	}
 	// 閉じるリクエストが出たウィンドウを削除
 	studioWindows.erase(
@@ -310,6 +310,7 @@ void framework::openStudioWindow(const std::string& assetPath)
 	auto win = std::make_unique<StudioWindow>();
 	win->Initialize(graphics.GetDevice(), &studioShared);
 	win->GetContext().deviceContext = graphics.GetDeviceContext();
+	win->SetWindowId(nextStudioWindowId++);
 
 	// パスが指定されていたらモデルをロード
 	if (!assetPath.empty())

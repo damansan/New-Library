@@ -41,7 +41,8 @@ public:
 
     // 削除リクエスト
     bool IsCloseRequested() const { return closeRequested; }
-
+    void SetWindowId(int id) { windowId = id; }
+    int  GetWindowId()  const { return windowId; }
 private:
     // 描画先の切り替え
     void Begin();
@@ -72,6 +73,7 @@ private:
     StudioModelViewer modelViewer;
 
     // ウィンドウ状態
+    int   windowId = 0;
     UINT  renderWidth = 1280;
     UINT  renderHeight = 720;
     bool  isHovered = false;

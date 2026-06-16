@@ -219,6 +219,9 @@ void StudioWindow::DrawWindow(const char* windowName)
 		// サイズが変わっていたらデバウンスタイマーをリセットしてフラグを立てる
 		if (w != renderWidth || h != renderHeight)
 		{
+			ImGui::Text("render: %d x %d", renderWidth, renderHeight);
+			ImGui::Text("region: %.0f x %.0f", region.x, region.y);
+			ImGui::Text("needsResize: %d", needsResize);
 			pendingWidth = w;
 			pendingHeight = h;
 			needsResize = true;

@@ -84,7 +84,7 @@ private:
 	StudioSharedContext        studioShared;
 	std::vector<std::unique_ptr<StudioWindow>> studioWindows;
 	void openStudioWindow(const std::string& assetPath = "");
-
+	int nextStudioWindowId = 0;
 private:
 	// VSync ON OFF
 	bool vsync = true;
