@@ -19,49 +19,9 @@ void StudioWindow::Initialize(ID3D11Device* device, StudioSharedContext* shared,
 		shared->skyBox.GetLutGgx()
 	);
 
-	modelViewer.Initialize(device, &shared->resourceManager);
+	stadoiModelViewer.Initialize(device, &shared->resourceManager);
 
 	ResizeRenderTarget();
-
-	//HRESULT hr;
-
-	//// カラーテクスチャ生成
-	//{
-	//	D3D11_TEXTURE2D_DESC desc{};
-	//	desc.Width = renderWidth;
-	//	desc.Height = renderHeight;
-	//	desc.MipLevels = 1;
-	//	desc.ArraySize = 1;
-	//	desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-	//	desc.SampleDesc.Count = 1;
-	//	desc.Usage = D3D11_USAGE_DEFAULT;
-	//	desc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
-
-	//	hr = device->CreateTexture2D(&desc, nullptr, renderTexture.GetAddressOf());
-	//	assert(SUCCEEDED(hr));
-	//	hr = device->CreateRenderTargetView(renderTexture.Get(), nullptr, rtv.GetAddressOf());
-	//	assert(SUCCEEDED(hr));
-	//	hr = device->CreateShaderResourceView(renderTexture.Get(), nullptr, srv.GetAddressOf());
-	//	assert(SUCCEEDED(hr));
-	//}
-
-	//// 深度テクスチャ生成
-	//{
-	//	D3D11_TEXTURE2D_DESC desc{};
-	//	desc.Width = renderWidth;
-	//	desc.Height = renderHeight;
-	//	desc.MipLevels = 1;
-	//	desc.ArraySize = 1;
-	//	desc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-	//	desc.SampleDesc.Count = 1;
-	//	desc.Usage = D3D11_USAGE_DEFAULT;
-	//	desc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
-
-	//	hr = device->CreateTexture2D(&desc, nullptr, depthTexture.GetAddressOf());
-	//	assert(SUCCEEDED(hr));
-	//	hr = device->CreateDepthStencilView(depthTexture.Get(), nullptr, dsv.GetAddressOf());
-	//	assert(SUCCEEDED(hr));
-	//}
 }
 
 // 更新
@@ -84,8 +44,9 @@ void StudioWindow::Update(float elapsedTime)
 	// カメラ更新
 	camera.Update(isHovered, elapsedTime);
 
-	// モデルビュワー確認
-	modelViewer.Update(elapsedTime, context);
+	// モデルビュワー更新
+	stadoiModelViewer.Update(elapsedTime, context);
+	animationSystem.Update(studioRegistry, elapsedTime);
 
 	// アタッチメント更新
 	for (auto& attachment : attachments)
@@ -173,38 +134,21 @@ void StudioWindow::Render()
 // ImGui描画
 void StudioWindow::DrawWindow(const char* windowName)
 {
-	//ImGui::Begin(windowName);
-
-	//// ウィンドウがホバーされているか
-	//isHovered = ImGui::IsWindowHovered();
-
-	//// 描画領域のサイズを取得してカメラのアスペクト比を更新
-	//ImVec2 region = ImGui::GetContentRegionAvail();
-	//if (region.x > 0 && region.y > 0)
-	//{
-	//	camera.UpdateAspect(region.x, region.y);
-	//}
-
-	//// 3D描画結果をImGuiに貼り付け
-	//ImGui::Image(
-	//	reinterpret_cast<ImTextureID>(srv.Get()),
-	//	region
-	//);
-
-	//// ModelViewerのGUI描画
-	//modelViewer.DrawGUI(studioRegistry, context);
-
-	//// アタッチメントのGUI描画
-	//for (auto& attachment : attachments)
-	//{
-	//	attachment->DrawGUI(studioRegistry, context);
-	//}
-
-	//ImGui::End();
-
 	bool open = true;
-	ImGui::Begin(windowName, &open);
+	//ImGui::Begin(windowName, &open);
+	ImGui::Begin(windowName, &open, ImGuiWindowFlags_MenuBar);
 	if (!open) closeRequested = true;
+
+	// メニューバー
+	if (ImGui::BeginMenuBar())
+	{
+		if (ImGui::BeginMenu("Window"))
+		{
+			ImGui::MenuItem("Animator", nullptr, &context.showAnimator);
+			ImGui::EndMenu();
+		}
+		ImGui::EndMenuBar();
+	}
 
 	isHovered = ImGui::IsWindowHovered();
 
@@ -222,7 +166,7 @@ void StudioWindow::DrawWindow(const char* windowName)
 		}
 		else if (w != renderWidth || h != renderHeight)
 		{
-			//ImGui::Text("render: %d x %d", renderWidth, renderHeight);
+			ImGui::Text("render: %d x %d", renderWidth, renderHeight);
 			//ImGui::Text("region: %.0f x %.0f", region.x, region.y);
 			//ImGui::Text("needsResize: %d", needsResize);
 			pendingWidth = w;
@@ -230,29 +174,24 @@ void StudioWindow::DrawWindow(const char* windowName)
 			needsResize = true;
 			resizeTimer = 0.0f;
 		}
-
-		//// サイズが変わっていたらデバウンスタイマーをリセットしてフラグを立てる
-		//if (w != renderWidth || h != renderHeight)
-		//{
-		//	ImGui::Text("render: %d x %d", renderWidth, renderHeight);
-		//	ImGui::Text("region: %.0f x %.0f", region.x, region.y);
-		//	ImGui::Text("needsResize: %d", needsResize);
-		//	pendingWidth = w;
-		//	pendingHeight = h;
-		//	needsResize = true;
-		//	resizeTimer = 0.0f;  // 変化があるたびにリセット
-		//}
 	}
 
-	float dispW = needsResize ? static_cast<float>(pendingWidth) : static_cast<float>(renderWidth);
-	float dispH = needsResize ? static_cast<float>(pendingHeight) : static_cast<float>(renderHeight);
+	// Animator表示(左サイドバー)
+	if (context.showAnimator)
+	{
+		studioAnimator.DrawGUI(studioRegistry, context);
+		ImGui::SameLine();
+	}
 
+	// 3Dビュー（残り領域）
+	ImVec2 viewSize = ImGui::GetContentRegionAvail();
 	ImGui::Image(
 		reinterpret_cast<ImTextureID>(srv.Get()),
-		ImVec2(dispW, dispH)
+		viewSize
 	);
 
-	modelViewer.DrawGUI(studioRegistry, context);
+	// 機能描画
+	stadoiModelViewer.DrawGUI(studioRegistry, context);
 
 	for (auto& attachment : attachments)
 		attachment->DrawGUI(studioRegistry, context);
@@ -269,7 +208,7 @@ void StudioWindow::AddAttachment(std::unique_ptr<IStudioAttachment> attachment)
 // アセット読み込み
 void StudioWindow::LoadAsset(const std::string& assetPath)
 {
-	modelViewer.LoadModel(studioRegistry, assetPath);
+	stadoiModelViewer.LoadModel(studioRegistry, assetPath);
 }
 
 void StudioWindow::Begin()

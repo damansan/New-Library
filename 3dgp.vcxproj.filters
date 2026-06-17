@@ -203,6 +203,12 @@
     <Filter Include="Sources\Tool\Studio\StudioSharedContext">
       <UniqueIdentifier>{a345db3a-4eb5-4140-bd44-403a18595211}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\Tool\Studio\StudioAnimator">
+      <UniqueIdentifier>{eefaf2c0-a7b4-4579-a7ca-15af4f8228b1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Tool\Studio\StudioTimeline">
+      <UniqueIdentifier>{a416fbb5-b919-48e7-8ec9-4231c54beaad}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Core\framework.cpp">
@@ -327,6 +333,9 @@
     </ClCompile>
     <ClCompile Include="Source\Tool\Studio\StudioModelViewer.cpp">
       <Filter>Sources\Tool\Studio\StudioModelViewer</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Tool\Studio\StudioAnimator.cpp">
+      <Filter>Sources\Tool\Studio\StudioAnimator</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -503,6 +512,12 @@
     </ClInclude>
     <ClInclude Include="Source\Tool\Studio\StudioSharedContext.h">
       <Filter>Sources\Tool\Studio\StudioSharedContext</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Tool\Studio\StudioAnimator.h">
+      <Filter>Sources\Tool\Studio\StudioAnimator</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Tool\Studio\StudioTimeline.h">
+      <Filter>Sources\Tool\Studio\StudioTimeline</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

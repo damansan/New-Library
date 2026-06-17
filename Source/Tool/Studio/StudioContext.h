@@ -14,4 +14,7 @@ struct StudioContext
     float       animTime = 0.0f;
     float       animLength = 0.0f;
     bool        isPlaying = false;
+
+    // パネル表示フラグ
+    bool showAnimator = false;
 };

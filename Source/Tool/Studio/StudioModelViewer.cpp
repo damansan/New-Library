@@ -1,7 +1,10 @@
 #include "StudioModelViewer.h"
+
 #include <windows.h>
 #include <commdlg.h>
 #include <imgui.h>
+
+#include "ECS/Components/AnimatorComponent.h"
 
 // 初期化
 void StudioModelViewer::Initialize(
@@ -124,6 +127,15 @@ void StudioModelViewer::LoadModel(
     {
         auto& staticMesh = registry.emplace<StaticMeshComponent>(modelEntity);
         staticMesh.model = model;
+    }
+
+    // スキニングありの場合はAnimatorComponentを付与
+    if (model->HasSkin() && !model->GetAnimations().empty())
+    {
+        auto& animator = registry.emplace<AnimatorComponent>(modelEntity);
+        animator.currentAnimation = model->GetAnimations()[0].name;
+        animator.isPlaying = false;
+        animator.loop = false;
     }
 
     // ロード済みフラグ

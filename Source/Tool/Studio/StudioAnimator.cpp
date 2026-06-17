@@ -1,0 +1,95 @@
+#include "Tool/Studio/StudioAnimator.h"
+#include <imgui.h>
+
+
+void StudioAnimator::DrawGUI(
+    entt::registry& registry,
+    StudioContext& context)
+{
+    if (!context.showAnimator) return;
+
+    // 左サイドバーとしてChildウィンドウを描画
+    std::string childName = "AnimatorPanel##" + std::to_string(windowId);
+    ImGui::BeginChild(childName.c_str(), ImVec2(200, 0), true);
+
+    ImGui::Text("Animator");
+    ImGui::Separator();
+
+    auto view = registry.view<SkinnedMeshComponent, AnimatorComponent>();
+
+    if (view.begin() == view.end())
+    {
+        ImGui::TextColored({ 1, 0.5f, 0, 1 }, "No skinned model.");
+        ImGui::EndChild();
+        return;
+    }
+
+    auto entity = *view.begin();
+    auto& skinned = view.get<SkinnedMeshComponent>(entity);
+    auto& animator = view.get<AnimatorComponent>(entity);
+
+    if (!skinned.model)
+    {
+        ImGui::TextColored({ 1, 0.5f, 0, 1 }, "Model not loaded.");
+        ImGui::EndChild();
+        return;
+    }
+
+    const auto& animations = skinned.model->GetAnimations();
+    if (animations.empty())
+    {
+        ImGui::TextColored({ 1, 0.5f, 0, 1 }, "No animations.");
+        ImGui::EndChild();
+        return;
+    }
+
+    ImGui::Text("Animations : %d", (int)animations.size());
+    ImGui::Separator();
+
+    //for (const auto& anim : animations)
+    //{
+    //    bool isSelected = (animator.currentAnimation == anim.name);
+
+    //    if (isSelected)
+    //    {
+    //        ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_ButtonHovered));
+    //    }
+
+    //    if (ImGui::Button(anim.name.c_str(), ImVec2(-1, 0)))
+    //    {
+    //        animator.currentAnimation = anim.name;
+    //        animator.animationTime = 0.0f;
+    //        animator.isPlaying = true;
+    //        animator.isEnd = false;
+    //        animator.loop = false;
+    //    }
+
+    //    if (isSelected)
+    //    {
+    //        ImGui::PopStyleColor();
+    //    }
+    //}
+
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 1));
+
+    for (const auto& anim : animations)
+    {
+        bool isSelected = (animator.currentAnimation == anim.name);
+
+        if (ImGui::Selectable(anim.name.c_str(), isSelected))
+        {
+            animator.currentAnimation = anim.name;
+            animator.animationTime = 0.0f;
+            animator.isPlaying = true;
+            animator.isEnd = false;
+            animator.loop = false;
+        }
+
+        if (isSelected)
+            ImGui::SetItemDefaultFocus();
+    }
+
+    ImGui::PopStyleVar();
+
+    ImGui::EndChild();
+}

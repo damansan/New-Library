@@ -8361,6 +8361,7 @@ private:
     UINT  renderHeight = 720;
     bool  isHovered = false;
     bool  closeRequested = false;
+    bool  isFirstFrame = true;
 
     // リサイズ用デバウンス
     float resizeTimer = 0.0f;
@@ -8947,35 +8948,6 @@ void StudioWindow::Render()
 // ImGui描画
 void StudioWindow::DrawWindow(const char* windowName)
 {
-	//ImGui::Begin(windowName);
-
-	//// ウィンドウがホバーされているか
-	//isHovered = ImGui::IsWindowHovered();
-
-	//// 描画領域のサイズを取得してカメラのアスペクト比を更新
-	//ImVec2 region = ImGui::GetContentRegionAvail();
-	//if (region.x > 0 && region.y > 0)
-	//{
-	//	camera.UpdateAspect(region.x, region.y);
-	//}
-
-	//// 3D描画結果をImGuiに貼り付け
-	//ImGui::Image(
-	//	reinterpret_cast<ImTextureID>(srv.Get()),
-	//	region
-	//);
-
-	//// ModelViewerのGUI描画
-	//modelViewer.DrawGUI(studioRegistry, context);
-
-	//// アタッチメントのGUI描画
-	//for (auto& attachment : attachments)
-	//{
-	//	attachment->DrawGUI(studioRegistry, context);
-	//}
-
-	//ImGui::End();
-
 	bool open = true;
 	ImGui::Begin(windowName, &open);
 	if (!open) closeRequested = true;
@@ -8990,16 +8962,19 @@ void StudioWindow::DrawWindow(const char* windowName)
 		UINT w = static_cast<UINT>(region.x);
 		UINT h = static_cast<UINT>(region.y);
 
-		// サイズが変わっていたらデバウンスタイマーをリセットしてフラグを立てる
-		if (w != renderWidth || h != renderHeight)
+		if (isFirstFrame)
 		{
-			ImGui::Text("render: %d x %d", renderWidth, renderHeight);
-			ImGui::Text("region: %.0f x %.0f", region.x, region.y);
-			ImGui::Text("needsResize: %d", needsResize);
+			isFirstFrame = false;  // 初回フレームはスキップして次から有効
+		}
+		else if (w != renderWidth || h != renderHeight)
+		{
+			//ImGui::Text("render: %d x %d", renderWidth, renderHeight);
+			//ImGui::Text("region: %.0f x %.0f", region.x, region.y);
+			//ImGui::Text("needsResize: %d", needsResize);
 			pendingWidth = w;
 			pendingHeight = h;
 			needsResize = true;
-			resizeTimer = 0.0f;  // 変化があるたびにリセット
+			resizeTimer = 0.0f;
 		}
 	}
 

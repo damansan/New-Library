@@ -55,6 +55,7 @@
     <ClCompile Include="Source\Resource\ModelSerializer.cpp" />
     <ClCompile Include="Source\Resource\ResourceManager.cpp" />
     <ClCompile Include="Source\Tool\ControllerToolWindow.cpp" />
+    <ClCompile Include="Source\Tool\Studio\StudioAnimator.cpp" />
     <ClCompile Include="Source\Tool\Studio\StudioCamera.cpp" />
     <ClCompile Include="Source\Tool\Studio\StudioModelViewer.cpp" />
     <ClCompile Include="Source\Tool\Studio\StudioWindow.cpp" />
@@ -112,10 +113,12 @@
     <ClInclude Include="Source\Resource\ResourceManager.h" />
     <ClInclude Include="Source\Tool\ControllerToolWindow.h" />
     <ClInclude Include="Source\Tool\Studio\IStudioAttachment.h" />
+    <ClInclude Include="Source\Tool\Studio\StudioAnimator.h" />
     <ClInclude Include="Source\Tool\Studio\StudioCamera.h" />
     <ClInclude Include="Source\Tool\Studio\StudioContext.h" />
     <ClInclude Include="Source\Tool\Studio\StudioModelViewer.h" />
     <ClInclude Include="Source\Tool\Studio\StudioSharedContext.h" />
+    <ClInclude Include="Source\Tool\Studio\StudioTimeline.h" />
     <ClInclude Include="Source\Tool\Studio\StudioWindow.h" />
     <ClInclude Include="Source\Utility\CerealHelper.h" />
     <ClInclude Include="Source\Utility\high_resolution_timer.h" />

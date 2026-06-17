@@ -10,11 +10,15 @@
 
 #include "entt.hpp"
 #include "ECS/Systems/RenderSystem.h"
+#include "ECS/Systems/AnimationSystem.h"
+
 #include "Rendering/LightManager.h"
 #include "Resource/ResourceManager.h"
 
 #include "StudioSharedContext.h"
 #include "StudioModelViewer.h"
+#include "StudioAnimator.h"
+
 
 class StudioWindow
 {
@@ -41,7 +45,11 @@ public:
 
     // 削除リクエスト
     bool IsCloseRequested() const { return closeRequested; }
-    void SetWindowId(int id) { windowId = id; }
+    void SetWindowId(int id) 
+    {
+        windowId = id; 
+        studioAnimator.SetWindowId(id);
+    }
     int  GetWindowId()  const { return windowId; }
 private:
     // 描画先の切り替え
@@ -66,11 +74,16 @@ private:
 
     entt::registry    studioRegistry;
     RenderSystem      renderSystem;
+    AnimationSystem   animationSystem;
     LightManager      lightManager;
     ResourceManager   resourceManager;
     
     StudioSharedContext* shared = nullptr;
-    StudioModelViewer modelViewer;
+
+    // 機能
+    StudioModelViewer stadoiModelViewer;
+    StudioAnimator    studioAnimator;
+
 
     // ウィンドウ状態
     int   windowId = 0;
@@ -79,6 +92,7 @@ private:
     bool  isHovered = false;
     bool  closeRequested = false;
     bool  isFirstFrame = true;
+
 
     // リサイズ用デバウンス
     float resizeTimer = 0.0f;
