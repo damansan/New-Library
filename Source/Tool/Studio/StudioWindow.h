@@ -78,6 +78,7 @@ private:
     UINT  renderHeight = 720;
     bool  isHovered = false;
     bool  closeRequested = false;
+    bool  isFirstFrame = true;
 
     // リサイズ用デバウンス
     float resizeTimer = 0.0f;

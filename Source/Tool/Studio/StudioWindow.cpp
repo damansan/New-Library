@@ -216,17 +216,32 @@ void StudioWindow::DrawWindow(const char* windowName)
 		UINT w = static_cast<UINT>(region.x);
 		UINT h = static_cast<UINT>(region.y);
 
-		// サイズが変わっていたらデバウンスタイマーをリセットしてフラグを立てる
-		if (w != renderWidth || h != renderHeight)
+		if (isFirstFrame)
 		{
-			ImGui::Text("render: %d x %d", renderWidth, renderHeight);
-			ImGui::Text("region: %.0f x %.0f", region.x, region.y);
-			ImGui::Text("needsResize: %d", needsResize);
+			isFirstFrame = false;  // 初回フレームはスキップして次から有効
+		}
+		else if (w != renderWidth || h != renderHeight)
+		{
+			//ImGui::Text("render: %d x %d", renderWidth, renderHeight);
+			//ImGui::Text("region: %.0f x %.0f", region.x, region.y);
+			//ImGui::Text("needsResize: %d", needsResize);
 			pendingWidth = w;
 			pendingHeight = h;
 			needsResize = true;
-			resizeTimer = 0.0f;  // 変化があるたびにリセット
+			resizeTimer = 0.0f;
 		}
+
+		//// サイズが変わっていたらデバウンスタイマーをリセットしてフラグを立てる
+		//if (w != renderWidth || h != renderHeight)
+		//{
+		//	ImGui::Text("render: %d x %d", renderWidth, renderHeight);
+		//	ImGui::Text("region: %.0f x %.0f", region.x, region.y);
+		//	ImGui::Text("needsResize: %d", needsResize);
+		//	pendingWidth = w;
+		//	pendingHeight = h;
+		//	needsResize = true;
+		//	resizeTimer = 0.0f;  // 変化があるたびにリセット
+		//}
 	}
 
 	float dispW = needsResize ? static_cast<float>(pendingWidth) : static_cast<float>(renderWidth);

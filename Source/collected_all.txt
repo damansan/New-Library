@@ -134,14 +134,11 @@ private:
 	// Studio
 	StudioSharedContext        studioShared;
 	std::vector<std::unique_ptr<StudioWindow>> studioWindows;
-
+	void openStudioWindow(const std::string& assetPath = "");
+	int nextStudioWindowId = 0;
 private:
 	// VSync ON OFF
 	bool vsync = true;
-
-	// 画面切り替え
-	enum class AppMode { Game, Studio };
-	AppMode appMode = AppMode::Game;
 
 	// Update計測
 	int updateCount = 0;
@@ -464,11 +461,6 @@ framework::framework(HWND hwnd) : hwnd(hwnd)
 
 	// Studio共有リソース初期化
 	studioShared.Initialize(graphics.GetDevice());
-	// Studio初期化
-	auto win = std::make_unique<StudioWindow>();
-	win->Initialize(graphics.GetDevice(), &studioShared);
-	win->GetContext().deviceContext = graphics.GetDeviceContext();
-	studioWindows.push_back(std::move(win));
 
 #ifndef _DEBUG
 	// リリース時はボーダーレスフルスクリーンで起動
@@ -520,6 +512,11 @@ void framework::updateImGui()
 
 	ImGui::Begin("System");
 	ImGui::Checkbox("VSync", &vsync);
+
+	//if (ImGui::Button("Studio Open"))
+	//{
+	//	openStudioWindow();
+	//}
 	ImGui::End();
 
 	// シーンImGui描画
@@ -532,11 +529,28 @@ void framework::updateImGui()
 		hierarchyWindow.Draw(scene->GetRegistry(), editorContext);
 		inspectorWindow.Draw(scene->GetRegistry(), editorContext);
 	}
-	for (int i = 0; i < (int)studioWindows.size(); i++)
+
+	// StudioOpenRequestを処理
+	if (editorContext.studioRequest.pending)
 	{
-		std::string title = "Studio##" + std::to_string(i);
-		studioWindows[i]->DrawWindow(title.c_str());
+		openStudioWindow(editorContext.studioRequest.assetPath);
+		editorContext.studioRequest.pending = false;
+		editorContext.studioRequest.assetPath = "";
 	}
+	for (auto& win : studioWindows)
+	{
+		std::string title = "Studio##" + std::to_string(win->GetWindowId());
+		win->DrawWindow(title.c_str());
+	}
+	// 閉じるリクエストが出たウィンドウを削除
+	studioWindows.erase(
+		std::remove_if(studioWindows.begin(), studioWindows.end(),
+			[](const std::unique_ptr<StudioWindow>& w)
+			{
+				return w->IsCloseRequested();
+			}),
+		studioWindows.end()
+	);
 #endif
 }
 
@@ -724,7 +738,23 @@ void framework::updateSceneContext()
 	sceneContext.cameraMode = editorContext.cameraMode;
 	sceneContext.editorContext = &editorContext;
 }
- 
+
+// Studioを開く
+void framework::openStudioWindow(const std::string& assetPath)
+{
+	auto win = std::make_unique<StudioWindow>();
+	win->Initialize(graphics.GetDevice(), &studioShared);
+	win->GetContext().deviceContext = graphics.GetDeviceContext();
+	win->SetWindowId(nextStudioWindowId++);
+
+	// パスが指定されていたらモデルをロード
+	if (!assetPath.empty())
+	{
+		win->LoadAsset(assetPath);
+	}
+
+	studioWindows.push_back(std::move(win));
+} 
  
 ===== Graphics.cpp ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\Core\Graphics.cpp 
@@ -4438,6 +4468,13 @@ void ProjectWindow::DrawFileGrid(entt::registry& registry, EditorContext& contex
 		ImGui::PushID(index);
 		ImGui::InvisibleButton("##icon", ImVec2(iconSize, iconSize));
 
+		// ダブルクリックでStudioを開くリクエスト
+		if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(0))
+		{
+			context.studioRequest.pending = true;
+			context.studioRequest.assetPath = modelPath;
+		}
+
 		// ドラッグ開始
 		if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
 		{
@@ -8118,12 +8155,13 @@ public:
         entt::registry& registry,
         StudioContext& context) override;
 
+    // モデルをロードしてregistryにEntityを作る
+    void LoadModel(entt::registry& registry, const std::string& path);
+
 private:
     // ファイルダイアログを開いてパスを返す
     std::string OpenFileDialog();
 
-    // モデルをロードしてregistryにEntityを作る
-    void LoadModel(entt::registry& registry, const std::string& path);
 
     // 現在ロード中のモデルパス
     std::string currentModelPath;
@@ -8281,6 +8319,13 @@ public:
     // contextへのアクセス
     StudioContext& GetContext() { return context; }
 
+    // アセット読み込み
+    void LoadAsset(const std::string& assetPath);
+
+    // 削除リクエスト
+    bool IsCloseRequested() const { return closeRequested; }
+    void SetWindowId(int id) { windowId = id; }
+    int  GetWindowId()  const { return windowId; }
 private:
     // 描画先の切り替え
     void Begin();
@@ -8311,9 +8356,11 @@ private:
     StudioModelViewer modelViewer;
 
     // ウィンドウ状態
+    int   windowId = 0;
     UINT  renderWidth = 1280;
     UINT  renderHeight = 720;
     bool  isHovered = false;
+    bool  closeRequested = false;
 
     // リサイズ用デバウンス
     float resizeTimer = 0.0f;
@@ -8509,26 +8556,26 @@ void StudioModelViewer::DrawGUI(
     entt::registry& registry, 
     StudioContext& context)
 {
-    ImGui::Begin("Model Viewer");
+    //ImGui::Begin("Model Viewer");
 
-    // ロードボタン
-    if (ImGui::Button("Load Model"))
-    {
-        std::string path = OpenFileDialog();
-        if (!path.empty())
-        {
-            LoadModel(registry, path);
-        }
-    }
+    //// ロードボタン
+    //if (ImGui::Button("Load Model"))
+    //{
+    //    std::string path = OpenFileDialog();
+    //    if (!path.empty())
+    //    {
+    //        LoadModel(registry, path);
+    //    }
+    //}
 
-    // 現在のモデルパスを表示
-    if (!currentModelPath.empty())
-    {
-        ImGui::SameLine();
-        ImGui::TextUnformatted(currentModelPath.c_str());
-    }
+    //// 現在のモデルパスを表示
+    //if (!currentModelPath.empty())
+    //{
+    //    ImGui::SameLine();
+    //    ImGui::TextUnformatted(currentModelPath.c_str());
+    //}
 
-    ImGui::End();
+    //ImGui::End();
 }
 
 // ファイルダイアログ
@@ -8569,8 +8616,6 @@ void StudioModelViewer::LoadModel(
     entt::registry& registry,
     const std::string& path)
 {
-    OutputDebugStringA(("Studio LoadModel path: " + path + "\n").c_str());
-
     // 既存のEntityを削除
     if (modelEntity != entt::null)
     {
@@ -8931,7 +8976,9 @@ void StudioWindow::DrawWindow(const char* windowName)
 
 	//ImGui::End();
 
-	ImGui::Begin(windowName);
+	bool open = true;
+	ImGui::Begin(windowName, &open);
+	if (!open) closeRequested = true;
 
 	isHovered = ImGui::IsWindowHovered();
 
@@ -8946,6 +8993,9 @@ void StudioWindow::DrawWindow(const char* windowName)
 		// サイズが変わっていたらデバウンスタイマーをリセットしてフラグを立てる
 		if (w != renderWidth || h != renderHeight)
 		{
+			ImGui::Text("render: %d x %d", renderWidth, renderHeight);
+			ImGui::Text("region: %.0f x %.0f", region.x, region.y);
+			ImGui::Text("needsResize: %d", needsResize);
 			pendingWidth = w;
 			pendingHeight = h;
 			needsResize = true;
@@ -8973,6 +9023,12 @@ void StudioWindow::DrawWindow(const char* windowName)
 void StudioWindow::AddAttachment(std::unique_ptr<IStudioAttachment> attachment)
 {
 	attachments.push_back(std::move(attachment));
+}
+
+// アセット読み込み
+void StudioWindow::LoadAsset(const std::string& assetPath)
+{
+	modelViewer.LoadModel(studioRegistry, assetPath);
 }
 
 void StudioWindow::Begin()
