@@ -18,7 +18,7 @@
 #include "StudioSharedContext.h"
 #include "StudioModelViewer.h"
 #include "StudioAnimator.h"
-
+#include "StudioTimeline.h"
 
 class StudioWindow
 {
@@ -49,6 +49,7 @@ public:
     {
         windowId = id; 
         studioAnimator.SetWindowId(id);
+        studioTimeline.SetWindowId(id);
     }
     int  GetWindowId()  const { return windowId; }
 private:
@@ -83,6 +84,7 @@ private:
     // 機能
     StudioModelViewer stadoiModelViewer;
     StudioAnimator    studioAnimator;
+    StudioTimeline    studioTimeline;
 
 
     // ウィンドウ状態
@@ -92,6 +94,7 @@ private:
     bool  isHovered = false;
     bool  closeRequested = false;
     bool  isFirstFrame = true;
+    bool  firstDockSetup = true;
 
 
     // リサイズ用デバウンス

@@ -72,6 +72,44 @@ void AnimationSystem::Update(
 		});
 }
 
+// 時間を進めずに、指定した時刻のポーズだけ計算する
+void AnimationSystem::EvaluatePose(entt::registry& registry)
+{
+	ZoneScoped;
+
+	auto view = registry.view<AnimatorComponent, SkinnedMeshComponent>();
+	view.each(
+		[&](auto entity,
+			AnimatorComponent& animator,
+			SkinnedMeshComponent& skinned)
+		{
+			if (!skinned.model) return;
+
+			const auto& animations = skinned.model->GetAnimations();
+			if (animations.empty()) return;
+
+			int animIndex = -1;
+			for (int i = 0; i < (int)animations.size(); i++)
+			{
+				if (animations[i].name == animator.currentAnimation)
+				{
+					animIndex = i;
+					break;
+				}
+			}
+			if (animIndex < 0) return;
+
+			const auto& animation = animations[animIndex];
+
+			// ボーン行列だけ計算（時間は進めない）
+			CalcBoneTransforms(
+				*skinned.model,
+				animation,
+				animator.animationTime,
+				skinned.boneTransforms);
+		});
+}
+
 // キーフレーム補間（位置）
 DirectX::XMFLOAT3 AnimationSystem::InterpolatePosition(
 	const std::vector<Model::VectorKeyframe>& keyframes,

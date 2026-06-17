@@ -337,6 +337,9 @@
     <ClCompile Include="Source\Tool\Studio\StudioAnimator.cpp">
       <Filter>Sources\Tool\Studio\StudioAnimator</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Tool\Studio\StudioTimeline.cpp">
+      <Filter>Sources\Tool\Studio\StudioTimeline</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Core\framework.h">

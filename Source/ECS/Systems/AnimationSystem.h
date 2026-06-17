@@ -13,6 +13,9 @@ public:
 		entt::registry& registry,
 		float elapsedTime);
 
+	// 時間を進めずに、指定した時刻のポーズだけ計算する
+	void AnimationSystem::EvaluatePose(entt::registry& registry);
+
 private:
 	// キーフレーム補間（位置）
 	static DirectX::XMFLOAT3 InterpolatePosition(

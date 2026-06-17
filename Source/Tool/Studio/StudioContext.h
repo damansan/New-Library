@@ -17,4 +17,8 @@ struct StudioContext
 
     // パネル表示フラグ
     bool showAnimator = false;
+    bool showTimeline = false;
+
+    // タイムラインでスクラブ操作されたフラグ
+    bool requestPoseUpdate = false;
 };

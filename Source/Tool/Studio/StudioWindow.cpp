@@ -1,5 +1,6 @@
-#include "Tool/Studio/StudioWindow.h"
+#include "StudioWindow.h"
 #include <imgui.h>
+#include <imgui_internal.h>
 #include <cassert>
 
 void StudioWindow::Initialize(ID3D11Device* device, StudioSharedContext* shared, UINT width, UINT height)
@@ -46,7 +47,17 @@ void StudioWindow::Update(float elapsedTime)
 
 	// モデルビュワー更新
 	stadoiModelViewer.Update(elapsedTime, context);
-	animationSystem.Update(studioRegistry, elapsedTime);
+
+	if (context.requestPoseUpdate)
+	{
+		// スクラブ操作時は時間を進めずポーズだけ更新
+		animationSystem.EvaluatePose(studioRegistry);
+		context.requestPoseUpdate = false;
+	}
+	else
+	{
+		animationSystem.Update(studioRegistry, elapsedTime);
+	}
 
 	// アタッチメント更新
 	for (auto& attachment : attachments)
@@ -135,9 +146,11 @@ void StudioWindow::Render()
 void StudioWindow::DrawWindow(const char* windowName)
 {
 	bool open = true;
-	//ImGui::Begin(windowName, &open);
 	ImGui::Begin(windowName, &open, ImGuiWindowFlags_MenuBar);
 	if (!open) closeRequested = true;
+
+	// Studioウィンドウ全体でホバー判定
+	isHovered = ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_DockHierarchy);
 
 	// メニューバー
 	if (ImGui::BeginMenuBar())
@@ -145,12 +158,46 @@ void StudioWindow::DrawWindow(const char* windowName)
 		if (ImGui::BeginMenu("Window"))
 		{
 			ImGui::MenuItem("Animator", nullptr, &context.showAnimator);
+			ImGui::MenuItem("Timeline", nullptr, &context.showTimeline);
 			ImGui::EndMenu();
 		}
 		ImGui::EndMenuBar();
 	}
 
-	isHovered = ImGui::IsWindowHovered();
+	// このStudio専用のDockSpace
+	std::string dockSpaceName = "StudioDockSpace##" + std::to_string(windowId);
+	ImGuiID dockSpaceId = ImGui::GetID(dockSpaceName.c_str());
+	ImGui::DockSpace(dockSpaceId, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
+
+	// 初回フレームだけデフォルトレイアウトを組む
+	if (firstDockSetup)
+	{
+		firstDockSetup = false;
+
+		ImGui::DockBuilderRemoveNode(dockSpaceId);
+		ImGui::DockBuilderAddNode(dockSpaceId, ImGuiDockNodeFlags_None);
+		ImGui::DockBuilderSetNodeSize(dockSpaceId, ImVec2(1280, 720));
+
+		ImGuiID dockMain = dockSpaceId;
+		ImGuiID dockLeft = ImGui::DockBuilderSplitNode(
+			dockMain, ImGuiDir_Left, 0.2f, nullptr, &dockMain);
+		ImGuiID dockBottom = ImGui::DockBuilderSplitNode(
+			dockMain, ImGuiDir_Down, 0.2f, nullptr, &dockMain);
+
+		std::string viewportName = "Viewport##" + std::to_string(windowId);
+		std::string animatorName = "Animator##" + std::to_string(windowId);
+		std::string timelineName = "Timeline##" + std::to_string(windowId);
+
+		ImGui::DockBuilderDockWindow(viewportName.c_str(), dockMain);
+		ImGui::DockBuilderDockWindow(animatorName.c_str(), dockLeft);
+		ImGui::DockBuilderDockWindow(timelineName.c_str(), dockBottom);
+
+		ImGui::DockBuilderFinish(dockSpaceId);
+	}
+
+	// Viewportパネル
+	std::string viewportName = "Viewport##" + std::to_string(windowId);
+	ImGui::Begin(viewportName.c_str());
 
 	ImVec2 region = ImGui::GetContentRegionAvail();
 	if (region.x > 1 && region.y > 1)
@@ -162,13 +209,10 @@ void StudioWindow::DrawWindow(const char* windowName)
 
 		if (isFirstFrame)
 		{
-			isFirstFrame = false;  // 初回フレームはスキップして次から有効
+			isFirstFrame = false;
 		}
 		else if (w != renderWidth || h != renderHeight)
 		{
-			ImGui::Text("render: %d x %d", renderWidth, renderHeight);
-			//ImGui::Text("region: %.0f x %.0f", region.x, region.y);
-			//ImGui::Text("needsResize: %d", needsResize);
 			pendingWidth = w;
 			pendingHeight = h;
 			needsResize = true;
@@ -176,27 +220,28 @@ void StudioWindow::DrawWindow(const char* windowName)
 		}
 	}
 
-	// Animator表示(左サイドバー)
+	ImGui::Image(reinterpret_cast<ImTextureID>(srv.Get()), region);
+
+	ImGui::End(); // Viewport
+
+	// Animatorパネル
 	if (context.showAnimator)
 	{
 		studioAnimator.DrawGUI(studioRegistry, context);
-		ImGui::SameLine();
 	}
 
-	// 3Dビュー（残り領域）
-	ImVec2 viewSize = ImGui::GetContentRegionAvail();
-	ImGui::Image(
-		reinterpret_cast<ImTextureID>(srv.Get()),
-		viewSize
-	);
+	// Timelineパネル
+	if (context.showTimeline)
+	{
+		studioTimeline.DrawGUI(studioRegistry, context);
+	}
 
-	// 機能描画
 	stadoiModelViewer.DrawGUI(studioRegistry, context);
 
 	for (auto& attachment : attachments)
 		attachment->DrawGUI(studioRegistry, context);
 
-	ImGui::End();
+	ImGui::End(); // Studio
 }
 
 // アタッチメント追加

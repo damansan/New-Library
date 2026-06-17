@@ -8,9 +8,8 @@ void StudioAnimator::DrawGUI(
 {
     if (!context.showAnimator) return;
 
-    // 左サイドバーとしてChildウィンドウを描画
-    std::string childName = "AnimatorPanel##" + std::to_string(windowId);
-    ImGui::BeginChild(childName.c_str(), ImVec2(200, 0), true);
+    std::string panelName = "Animator##" + std::to_string(windowId);
+    ImGui::Begin(panelName.c_str());
 
     ImGui::Text("Animator");
     ImGui::Separator();
@@ -20,7 +19,7 @@ void StudioAnimator::DrawGUI(
     if (view.begin() == view.end())
     {
         ImGui::TextColored({ 1, 0.5f, 0, 1 }, "No skinned model.");
-        ImGui::EndChild();
+        ImGui::End();
         return;
     }
 
@@ -31,7 +30,7 @@ void StudioAnimator::DrawGUI(
     if (!skinned.model)
     {
         ImGui::TextColored({ 1, 0.5f, 0, 1 }, "Model not loaded.");
-        ImGui::EndChild();
+        ImGui::End();
         return;
     }
 
@@ -39,7 +38,7 @@ void StudioAnimator::DrawGUI(
     if (animations.empty())
     {
         ImGui::TextColored({ 1, 0.5f, 0, 1 }, "No animations.");
-        ImGui::EndChild();
+        ImGui::End();
         return;
     }
 
@@ -82,7 +81,6 @@ void StudioAnimator::DrawGUI(
             animator.animationTime = 0.0f;
             animator.isPlaying = true;
             animator.isEnd = false;
-            animator.loop = false;
         }
 
         if (isSelected)
@@ -91,5 +89,5 @@ void StudioAnimator::DrawGUI(
 
     ImGui::PopStyleVar();
 
-    ImGui::EndChild();
+    ImGui::End();
 }

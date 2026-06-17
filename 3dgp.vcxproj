@@ -58,6 +58,7 @@
     <ClCompile Include="Source\Tool\Studio\StudioAnimator.cpp" />
     <ClCompile Include="Source\Tool\Studio\StudioCamera.cpp" />
     <ClCompile Include="Source\Tool\Studio\StudioModelViewer.cpp" />
+    <ClCompile Include="Source\Tool\Studio\StudioTimeline.cpp" />
     <ClCompile Include="Source\Tool\Studio\StudioWindow.cpp" />
     <ClCompile Include="Source\Utility\CerealHelper.cpp" />
     <ClCompile Include="Source\Utility\main.cpp" />
