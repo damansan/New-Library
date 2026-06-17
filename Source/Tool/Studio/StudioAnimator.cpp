@@ -45,30 +45,6 @@ void StudioAnimator::DrawGUI(
     ImGui::Text("Animations : %d", (int)animations.size());
     ImGui::Separator();
 
-    //for (const auto& anim : animations)
-    //{
-    //    bool isSelected = (animator.currentAnimation == anim.name);
-
-    //    if (isSelected)
-    //    {
-    //        ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_ButtonHovered));
-    //    }
-
-    //    if (ImGui::Button(anim.name.c_str(), ImVec2(-1, 0)))
-    //    {
-    //        animator.currentAnimation = anim.name;
-    //        animator.animationTime = 0.0f;
-    //        animator.isPlaying = true;
-    //        animator.isEnd = false;
-    //        animator.loop = false;
-    //    }
-
-    //    if (isSelected)
-    //    {
-    //        ImGui::PopStyleColor();
-    //    }
-    //}
-
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 1));
 
     for (const auto& anim : animations)
