@@ -167,7 +167,49 @@ void RenderSystem::Render(
 	UINT width, 
 	UINT height)
 {
-	// GBuffer初期化
+
+	RenderGeometryAndLighting(registry, dc, rtv, dsv, device, width, height);
+	ForwardTransparentPass(registry, dc, rtv, dsv, cachedFrustum);
+
+	//// GBuffer初期化
+	//if (screenWidth != width || screenHeight != height || screenWidth == 0)
+	//{
+	//	screenWidth = width;
+	//	screenHeight = height;
+	//	gBuffer.Initialize(device, width, height);
+	//}
+
+	//Frustum frustum = cachedFrustum;
+
+	//// Geometryパス
+	//GeometryPass(registry, dc, dsv, frustum);
+
+	//// IBL用テクスチャセット
+	//ID3D11ShaderResourceView* iblSrvs[3] =
+	//{
+	//	iblDiffuseIem,
+	//	iblSpecularPmrem,
+	//	iblLutGgx,
+	//};
+	//dc->PSSetShaderResources(6, 3, iblSrvs);
+
+	//// Lightingパス
+	//LightingPass(dc, rtv, dsv);
+
+	//// ForwardTransparentパス（半透明をフォワードで描画）
+	//ForwardTransparentPass(registry, dc, rtv, dsv, frustum);
+}
+
+// ライトとジオメトリの描画
+void RenderSystem::RenderGeometryAndLighting(
+	entt::registry& registry,
+	ID3D11DeviceContext* dc,
+	ID3D11RenderTargetView* rtv,
+	ID3D11DepthStencilView* dsv,
+	ID3D11Device* device,
+	UINT width,
+	UINT height)
+{
 	if (screenWidth != width || screenHeight != height || screenWidth == 0)
 	{
 		screenWidth = width;
@@ -175,12 +217,8 @@ void RenderSystem::Render(
 		gBuffer.Initialize(device, width, height);
 	}
 
-	Frustum frustum = cachedFrustum;
+	GeometryPass(registry, dc, dsv, cachedFrustum);
 
-	// Geometryパス
-	GeometryPass(registry, dc, dsv, frustum);
-
-	// IBL用テクスチャセット
 	ID3D11ShaderResourceView* iblSrvs[3] =
 	{
 		iblDiffuseIem,
@@ -189,11 +227,17 @@ void RenderSystem::Render(
 	};
 	dc->PSSetShaderResources(6, 3, iblSrvs);
 
-	// Lightingパス
 	LightingPass(dc, rtv, dsv);
+}
 
-	// ForwardTransparentパス（半透明をフォワードで描画）
-	ForwardTransparentPass(registry, dc, rtv, dsv, frustum);
+// 半透明の描画
+void RenderSystem::RenderTransparent(
+	entt::registry& registry,
+	ID3D11DeviceContext* dc,
+	ID3D11RenderTargetView* rtv, 
+	ID3D11DepthStencilView* dsv)
+{
+	ForwardTransparentPass(registry, dc, rtv, dsv, cachedFrustum);
 }
 
 // フラスタム計算

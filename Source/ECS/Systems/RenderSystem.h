@@ -50,6 +50,26 @@ public:
         UINT height
     );
 
+    // ライトとジオメトリの描画
+    void RenderGeometryAndLighting(
+        entt::registry& registry,
+        ID3D11DeviceContext* dc,
+        ID3D11RenderTargetView* rtv,
+        ID3D11DepthStencilView* dsv,
+        ID3D11Device* device,
+        UINT width,
+        UINT height
+    );
+
+    // 半透明の描画
+    void RenderTransparent(
+        entt::registry& registry,
+        ID3D11DeviceContext* dc,
+        ID3D11RenderTargetView* rtv,
+        ID3D11DepthStencilView* dsv
+    );
+
+
     // フラスタムをScene側からセット
     void SetFrustum(
         const DirectX::XMFLOAT4X4& view,

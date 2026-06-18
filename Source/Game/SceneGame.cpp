@@ -157,11 +157,10 @@ void SceneGame::Render(const SceneContext& context)
 	// フラスタム計算
 	renderSystem.SetFrustum(context.view, context.projection);
 
+	// Geometry + Lightingパス
 	{
-		ZoneScopedN("RenderSystem::Render");
-
-		// 描画
-		renderSystem.Render(
+		ZoneScopedN("RenderSystem::RenderGeometryAndLighting");
+		renderSystem.RenderGeometryAndLighting(
 			registry,
 			context.deviceContext,
 			context.renderTargetView,
@@ -172,24 +171,62 @@ void SceneGame::Render(const SceneContext& context)
 		);
 	}
 
+	// スカイボックス
 	{
 		ZoneScopedN("SkyBox::Render");
-
-		// カメラ位置を取得
 		DirectX::XMFLOAT3 eye = { 0.0f, 0.0f, 0.0f };
 		if (context.camera)
 		{
 			const auto& e = context.camera->GetEye();
 			eye = { e.x, e.y, e.z };
 		}
+		skyBox.Render(context.deviceContext, context.view, context.projection, eye);
+	}
 
-		skyBox.Render(
+	// 半透明パス
+	{
+		ZoneScopedN("RenderSystem::RenderTransparent");
+		renderSystem.RenderTransparent(
+			registry,
 			context.deviceContext,
-			context.view,
-			context.projection,
-			eye
+			context.renderTargetView,
+			context.depthStencilView
 		);
 	}
+
+	//{
+	//	ZoneScopedN("RenderSystem::Render");
+
+	//	// 描画
+	//	renderSystem.Render(
+	//		registry,
+	//		context.deviceContext,
+	//		context.renderTargetView,
+	//		context.depthStencilView,
+	//		context.device,
+	//		context.screenWidth,
+	//		context.screenHeight
+	//	);
+	//}
+
+	//{
+	//	ZoneScopedN("SkyBox::Render");
+
+	//	// カメラ位置を取得
+	//	DirectX::XMFLOAT3 eye = { 0.0f, 0.0f, 0.0f };
+	//	if (context.camera)
+	//	{
+	//		const auto& e = context.camera->GetEye();
+	//		eye = { e.x, e.y, e.z };
+	//	}
+
+	//	skyBox.Render(
+	//		context.deviceContext,
+	//		context.view,
+	//		context.projection,
+	//		eye
+	//	);
+	//}
 
 
 }
