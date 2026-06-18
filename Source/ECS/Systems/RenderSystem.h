@@ -165,6 +165,9 @@ private:
     // フルスクリーン描画用ラスタライザー
     Microsoft::WRL::ComPtr<ID3D11RasterizerState> rasterizerStateNoCull;
 
+    // ForwardTransparentパス用
+    Microsoft::WRL::ComPtr<ID3D11PixelShader> forwardTransparentPS;
+
     // Geometryパス
     void GeometryPass(
         entt::registry& registry,
@@ -178,5 +181,14 @@ private:
         ID3D11DeviceContext* dc,
         ID3D11RenderTargetView* rtv,
         ID3D11DepthStencilView* dsv
+    );
+
+    // ForwardTransparentパス
+    void ForwardTransparentPass(
+        entt::registry& registry,
+        ID3D11DeviceContext* dc,
+        ID3D11RenderTargetView* rtv,
+        ID3D11DepthStencilView* dsv,
+        const Frustum& frustum
     );
 };

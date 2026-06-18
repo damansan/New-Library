@@ -3,9 +3,6 @@ cbuffer CbScene : register(b0)
 {
     row_major float4x4 view;
     row_major float4x4 projection;
-    float4 lightDirection;
-    float4 lightColor;
-    float4 ambientColor;
     float4 cameraPosition;
 };
 

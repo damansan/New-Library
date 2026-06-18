@@ -1,14 +1,14 @@
-#include "RenderSystem.h"
+ï»¿#include "RenderSystem.h"
 #include "Resource/GpuResourceUtils.h"
 #include "Utility/misc.h"
 
-// ‰Šú‰»(ƒVƒF[ƒ_[“Ç‚İ‚İj
+// åˆæœŸåŒ–(ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼èª­ã¿è¾¼ã¿ï¼‰
 void RenderSystem::Initialize(ID3D11Device* device)
 {
-	// “ü—ÍƒŒƒCƒAƒEƒg
+	// å…¥åŠ›ãƒ¬ã‚¤ã‚¢ã‚¦ãƒˆ
 	const std::vector<D3D11_INPUT_ELEMENT_DESC>& inputElementDescs = Model::InputElementDescs;
 
-	// Ã“IƒƒbƒVƒ…—p’¸“_ƒVƒF[ƒ_[
+	// é™çš„ãƒ¡ãƒƒã‚·ãƒ¥ç”¨é ‚ç‚¹ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼
 	GpuResourceUtils::LoadVertexShader(
 		device,
 		"Data/Shader/Static_VS.cso",
@@ -18,7 +18,7 @@ void RenderSystem::Initialize(ID3D11Device* device)
 		vertexShader
 	);
 
-	// ƒXƒLƒjƒ“ƒO—p’¸“_ƒVƒF[ƒ_[
+	// ã‚¹ã‚­ãƒ‹ãƒ³ã‚°ç”¨é ‚ç‚¹ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼
 	Microsoft::WRL::ComPtr<ID3D11InputLayout> dummyLayout;
 	GpuResourceUtils::LoadVertexShader(
 		device,
@@ -29,7 +29,7 @@ void RenderSystem::Initialize(ID3D11Device* device)
 		skinnedVertexShader
 	);
 
-	// GBufferƒVƒF[ƒ_[‚ğƒ}ƒbƒv‚É“o˜^
+	// GBufferã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã‚’ãƒãƒƒãƒ—ã«ç™»éŒ²
 	Microsoft::WRL::ComPtr<ID3D11PixelShader> psDefault;
 	GpuResourceUtils::LoadPixelShader(device, "Data/Shader/Gbuffer_PS.cso", psDefault);
 	gBufferPixelShaders["gbuffer_default"] = psDefault;
@@ -38,31 +38,31 @@ void RenderSystem::Initialize(ID3D11Device* device)
 	GpuResourceUtils::LoadPixelShader(device, "Data/Shader/Gbuffer_Basic_PS.cso", psBasic);
 	gBufferPixelShaders["gbuffer_basic"] = psBasic;
 
-	// ƒV[ƒ“’è”ƒoƒbƒtƒ@¶¬
+	// ã‚·ãƒ¼ãƒ³å®šæ•°ãƒãƒƒãƒ•ã‚¡ç”Ÿæˆ
 	GpuResourceUtils::CreateConstantBuffer(
 		device,
 		sizeof(CbScene),
 		cbScene
 	);
 
-	// ƒIƒuƒWƒFƒNƒg’è”ƒoƒbƒtƒ@¶¬
+	// ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆå®šæ•°ãƒãƒƒãƒ•ã‚¡ç”Ÿæˆ
 	GpuResourceUtils::CreateConstantBuffer(
 		device,
 		sizeof(CbObject),
 		cbObject
 	);
 
-	// ƒXƒLƒjƒ“ƒO’è”ƒoƒbƒtƒ@¶¬
+	// ã‚¹ã‚­ãƒ‹ãƒ³ã‚°å®šæ•°ãƒãƒƒãƒ•ã‚¡ç”Ÿæˆ
 	GpuResourceUtils::CreateConstantBuffer(
 		device,
 		sizeof(CbSkinning),
 		cbSkinning
 	);
 
-	// ƒTƒ“ƒvƒ‰[ƒXƒe[ƒg¶¬
+	// ã‚µãƒ³ãƒ—ãƒ©ãƒ¼ã‚¹ãƒ†ãƒ¼ãƒˆç”Ÿæˆ
 	D3D11_SAMPLER_DESC samplerDesc{};
-	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR; // üŒ`•âŠÔ
-	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;    // UVŒJ‚è•Ô‚µ
+	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR; // ç·šå½¢è£œé–“
+	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;    // UVç¹°ã‚Šè¿”ã—
 	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
 	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
 	samplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
@@ -73,37 +73,37 @@ void RenderSystem::Initialize(ID3D11Device* device)
 		samplerState.GetAddressOf()
 	);
 
-	// ƒ‰ƒXƒ^ƒ‰ƒCƒU[ƒXƒe[ƒg¶¬
+	// ãƒ©ã‚¹ã‚¿ãƒ©ã‚¤ã‚¶ãƒ¼ã‚¹ãƒ†ãƒ¼ãƒˆç”Ÿæˆ
 	D3D11_RASTERIZER_DESC rasterizerDesc{};
-	rasterizerDesc.FillMode = D3D11_FILL_SOLID; // “h‚è‚Â‚Ô‚µ
-	rasterizerDesc.CullMode = D3D11_CULL_BACK;  // — –ÊƒJƒŠƒ“ƒO
+	rasterizerDesc.FillMode = D3D11_FILL_SOLID; // å¡—ã‚Šã¤ã¶ã—
+	rasterizerDesc.CullMode = D3D11_CULL_BACK;  // è£é¢ã‚«ãƒªãƒ³ã‚°
 	rasterizerDesc.FrontCounterClockwise = FALSE;
 	device->CreateRasterizerState(
 		&rasterizerDesc,
 		rasterizerState.GetAddressOf()
 	);
 
-	// [“xƒXƒeƒ“ƒVƒ‹ƒXƒe[ƒg¶¬
+	// æ·±åº¦ã‚¹ãƒ†ãƒ³ã‚·ãƒ«ã‚¹ãƒ†ãƒ¼ãƒˆç”Ÿæˆ
 	D3D11_DEPTH_STENCIL_DESC depthStencilDesc{};
-	depthStencilDesc.DepthEnable = TRUE;                          // [“xƒeƒXƒg—LŒø
-	depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL; // [“x‘‚«‚İ—LŒø
-	depthStencilDesc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;     // ˆÈ‰º‚È‚ç•`‰æ
+	depthStencilDesc.DepthEnable = TRUE;                          // æ·±åº¦ãƒ†ã‚¹ãƒˆæœ‰åŠ¹
+	depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL; // æ·±åº¦æ›¸ãè¾¼ã¿æœ‰åŠ¹
+	depthStencilDesc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;     // ä»¥ä¸‹ãªã‚‰æç”»
 	device->CreateDepthStencilState(
 		&depthStencilDesc,
 		depthStencilState.GetAddressOf()
 	);
 
-	// ”¼“§–¾—p[“xƒXƒeƒ“ƒVƒ‹ƒXƒe[ƒgi[“xƒeƒXƒgONA[“x‘‚«‚İOFFj
+	// åŠé€æ˜ç”¨æ·±åº¦ã‚¹ãƒ†ãƒ³ã‚·ãƒ«ã‚¹ãƒ†ãƒ¼ãƒˆï¼ˆæ·±åº¦ãƒ†ã‚¹ãƒˆONã€æ·±åº¦æ›¸ãè¾¼ã¿OFFï¼‰
 	D3D11_DEPTH_STENCIL_DESC depthStencilDescTransparent{};
 	depthStencilDescTransparent.DepthEnable = TRUE;
-	depthStencilDescTransparent.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO; // ‘‚«‚İOFF
+	depthStencilDescTransparent.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO; // æ›¸ãè¾¼ã¿OFF
 	depthStencilDescTransparent.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
 	device->CreateDepthStencilState(
 		&depthStencilDescTransparent,
 		depthStencilStateTransparent.GetAddressOf()
 	);
 
-	// ƒuƒŒƒ“ƒhƒXƒe[ƒg¶¬iƒAƒ‹ƒtƒ@ƒuƒŒƒ“ƒhj
+	// ãƒ–ãƒ¬ãƒ³ãƒ‰ã‚¹ãƒ†ãƒ¼ãƒˆç”Ÿæˆï¼ˆã‚¢ãƒ«ãƒ•ã‚¡ãƒ–ãƒ¬ãƒ³ãƒ‰ï¼‰
 	D3D11_BLEND_DESC blendDesc{};
 	blendDesc.AlphaToCoverageEnable = FALSE;
 	blendDesc.IndependentBlendEnable = FALSE;
@@ -116,7 +116,7 @@ void RenderSystem::Initialize(ID3D11Device* device)
 	blendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
 	blendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 	device->CreateBlendState(&blendDesc, blendState.GetAddressOf());
-	// GBuffer—piƒuƒŒƒ“ƒh‚È‚µj
+	// GBufferç”¨ï¼ˆãƒ–ãƒ¬ãƒ³ãƒ‰ãªã—ï¼‰
 	D3D11_BLEND_DESC blendDescOpaque{};
 	blendDescOpaque.AlphaToCoverageEnable = FALSE;
 	blendDescOpaque.IndependentBlendEnable = FALSE;
@@ -124,15 +124,15 @@ void RenderSystem::Initialize(ID3D11Device* device)
 	blendDescOpaque.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 	device->CreateBlendState(&blendDescOpaque, blendStateOpaque.GetAddressOf());
 
-	// ƒ_ƒ~[ƒeƒNƒXƒ`ƒƒ¶¬
-	// ”’ (Albedo / Occlusion—p)
+	// ãƒ€ãƒŸãƒ¼ãƒ†ã‚¯ã‚¹ãƒãƒ£ç”Ÿæˆ
+	// ç™½ (Albedo / Occlusionç”¨)
 	GpuResourceUtils::CreateDummyTexture(device, dummyWhite, 0xFFFFFFFF, 1);
-	// –@üƒ}ƒbƒv—p (R=128, G=128, B=255 ¨ ³–ÊŒü‚«–@ü)
+	// æ³•ç·šãƒãƒƒãƒ—ç”¨ (R=128, G=128, B=255 â†’ æ­£é¢å‘ãæ³•ç·š)
 	GpuResourceUtils::CreateDummyTexture(device, dummyNormal, 0xFFFF8080, 1);
-	// • (Emissive—p)
+	// é»’ (Emissiveç”¨)
 	GpuResourceUtils::CreateDummyTexture(device, dummyBlack, 0xFF000000, 1);
 
-	// LightingƒpƒX—pƒVƒF[ƒ_[“Ç‚İ‚İ
+	// Lightingãƒ‘ã‚¹ç”¨ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼èª­ã¿è¾¼ã¿
 	Microsoft::WRL::ComPtr<ID3D11InputLayout> dummyLayoutL;
 	GpuResourceUtils::LoadVertexShader(
 		device,
@@ -144,7 +144,11 @@ void RenderSystem::Initialize(ID3D11Device* device)
 	GpuResourceUtils::LoadPixelShader(
 		device, "Data/Shader/Lighting_PS.cso", lightingPS);
 
-	// ƒJƒŠƒ“ƒO‚È‚µƒ‰ƒXƒ^ƒ‰ƒCƒU[
+	// ForwardTransparentãƒ‘ã‚¹ç”¨ãƒ”ã‚¯ã‚»ãƒ«ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼èª­ã¿è¾¼ã¿
+	GpuResourceUtils::LoadPixelShader(
+		device, "Data/Shader/PBR_PS.cso", forwardTransparentPS);
+
+	// ã‚«ãƒªãƒ³ã‚°ãªã—ãƒ©ã‚¹ã‚¿ãƒ©ã‚¤ã‚¶ãƒ¼
 	D3D11_RASTERIZER_DESC noCullDesc{};
 	noCullDesc.FillMode = D3D11_FILL_SOLID;
 	noCullDesc.CullMode = D3D11_CULL_NONE;
@@ -153,7 +157,7 @@ void RenderSystem::Initialize(ID3D11Device* device)
 		&noCullDesc, rasterizerStateNoCull.GetAddressOf());
 }
 
-// •`‰æ
+// æç”»
 void RenderSystem::Render(
 	entt::registry& registry, 
 	ID3D11DeviceContext* dc, 
@@ -163,7 +167,7 @@ void RenderSystem::Render(
 	UINT width, 
 	UINT height)
 {
-	// GBuffer‰Šú‰»
+	// GBufferåˆæœŸåŒ–
 	if (screenWidth != width || screenHeight != height || screenWidth == 0)
 	{
 		screenWidth = width;
@@ -173,10 +177,10 @@ void RenderSystem::Render(
 
 	Frustum frustum = cachedFrustum;
 
-	// GeometryƒpƒX
+	// Geometryãƒ‘ã‚¹
 	GeometryPass(registry, dc, dsv, frustum);
 
-	// IBL—pƒeƒNƒXƒ`ƒƒƒZƒbƒg
+	// IBLç”¨ãƒ†ã‚¯ã‚¹ãƒãƒ£ã‚»ãƒƒãƒˆ
 	ID3D11ShaderResourceView* iblSrvs[3] =
 	{
 		iblDiffuseIem,
@@ -185,16 +189,19 @@ void RenderSystem::Render(
 	};
 	dc->PSSetShaderResources(6, 3, iblSrvs);
 
-	// LightingƒpƒX
+	// Lightingãƒ‘ã‚¹
 	LightingPass(dc, rtv, dsv);
+
+	// ForwardTransparentãƒ‘ã‚¹ï¼ˆåŠé€æ˜ã‚’ãƒ•ã‚©ãƒ¯ãƒ¼ãƒ‰ã§æç”»ï¼‰
+	ForwardTransparentPass(registry, dc, rtv, dsv, frustum);
 }
 
-// ƒtƒ‰ƒXƒ^ƒ€ŒvZ
+// ãƒ•ãƒ©ã‚¹ã‚¿ãƒ è¨ˆç®—
 RenderSystem::Frustum RenderSystem::CalcFrustum(
 	const DirectX::XMFLOAT4X4& view,
 	const DirectX::XMFLOAT4X4& projection)
 {
-	// ViewProjections—ñ‚ğŒvZ
+	// ViewProjectionè¡Œåˆ—ã‚’è¨ˆç®—
 	DirectX::XMMATRIX v = DirectX::XMLoadFloat4x4(&view);
 	DirectX::XMMATRIX p = DirectX::XMLoadFloat4x4(&projection);
 	DirectX::XMMATRIX vp = v * p;
@@ -223,7 +230,7 @@ RenderSystem::Frustum RenderSystem::CalcFrustum(
 	frustum.planes[5].normal = { m._14 - m._13, m._24 - m._23, m._34 - m._33 };
 	frustum.planes[5].distance = m._44 - m._43;
 
-	// Še•½–Ê‚ğ³‹K‰»
+	// å„å¹³é¢ã‚’æ­£è¦åŒ–
 	for (auto& plane : frustum.planes)
 	{
 		float len = sqrtf(
@@ -243,13 +250,13 @@ RenderSystem::Frustum RenderSystem::CalcFrustum(
 	return frustum;
 }
 
-// ƒoƒEƒ“ƒfƒBƒ“ƒOƒ{ƒbƒNƒX‚ªƒtƒ‰ƒXƒ^ƒ€“à‚É‚ ‚é‚©”»’è
+// ãƒã‚¦ãƒ³ãƒ‡ã‚£ãƒ³ã‚°ãƒœãƒƒã‚¯ã‚¹ãŒãƒ•ãƒ©ã‚¹ã‚¿ãƒ å†…ã«ã‚ã‚‹ã‹åˆ¤å®š
 bool RenderSystem::IsInFrustum(
 	const Frustum& frustum,
 	const Model::BoundingBox& bbox,
 	const DirectX::XMFLOAT4X4& world)
 {
-	// ƒ[ƒ‹ƒh‹óŠÔ‚Å‚ÌAABB8’¸“_‚ğŒvZ
+	// ãƒ¯ãƒ¼ãƒ«ãƒ‰ç©ºé–“ã§ã®AABB8é ‚ç‚¹ã‚’è¨ˆç®—
 	DirectX::XMVECTOR corners[8];
 	DirectX::XMMATRIX w = DirectX::XMLoadFloat4x4(&world);
 
@@ -270,7 +277,7 @@ bool RenderSystem::IsInFrustum(
 	corners[7] = DirectX::XMVector3TransformCoord(
 		DirectX::XMVectorSet(bbox.max.x, bbox.max.y, bbox.max.z, 1), w);
 
-	// Še•½–Ê‚É‘Î‚µ‚Ä‘S’¸“_‚ªŠO‘¤‚É‚ ‚ê‚ÎƒJƒŠƒ“ƒO
+	// å„å¹³é¢ã«å¯¾ã—ã¦å…¨é ‚ç‚¹ãŒå¤–å´ã«ã‚ã‚Œã°ã‚«ãƒªãƒ³ã‚°
 	for (const auto& plane : frustum.planes)
 	{
 		DirectX::XMVECTOR n = DirectX::XMVectorSet(
@@ -286,7 +293,7 @@ bool RenderSystem::IsInFrustum(
 				outsideCount++;
 			}
 		}
-		// 8’¸“_‘S‚ÄŠO‘¤‚È‚çƒtƒ‰ƒXƒ^ƒ€ŠO‚Æ‚·‚é
+		// 8é ‚ç‚¹å…¨ã¦å¤–å´ãªã‚‰ãƒ•ãƒ©ã‚¹ã‚¿ãƒ å¤–ã¨ã™ã‚‹
 		if (outsideCount == 8)
 		{
 			return false;
@@ -295,17 +302,17 @@ bool RenderSystem::IsInFrustum(
 	return true;
 }
 
-// GeometryƒpƒX
+// Geometryãƒ‘ã‚¹
 void RenderSystem::GeometryPass(
 	entt::registry& registry,
 	ID3D11DeviceContext* dc, 
 	ID3D11DepthStencilView* dsv,
 	const Frustum& frustum)
 {
-	// Gƒoƒbƒtƒ@‚ÌRTV‚ğƒZƒbƒg{ƒNƒŠƒA
+	// Gãƒãƒƒãƒ•ã‚¡ã®RTVã‚’ã‚»ãƒƒãƒˆï¼‹ã‚¯ãƒªã‚¢
 	gBuffer.BeginGeometryPass(dc, dsv);
 
-	// ƒrƒ…[ƒ|[ƒgİ’è
+	// ãƒ“ãƒ¥ãƒ¼ãƒãƒ¼ãƒˆè¨­å®š
 	D3D11_VIEWPORT vp{};
 	vp.Width = static_cast<float>(screenWidth);
 	vp.Height = static_cast<float>(screenHeight);
@@ -313,7 +320,7 @@ void RenderSystem::GeometryPass(
 	vp.MaxDepth = 1.0f;
 	dc->RSSetViewports(1, &vp);
 
-	// ‹¤’ÊƒXƒe[ƒgİ’è
+	// å…±é€šã‚¹ãƒ†ãƒ¼ãƒˆè¨­å®š
 	dc->RSSetState(rasterizerState.Get());
 	dc->PSSetSamplers(0, 1, samplerState.GetAddressOf());
 	dc->IASetInputLayout(inputLayout.Get());
@@ -321,22 +328,22 @@ void RenderSystem::GeometryPass(
 
 	float blendFactor[4] = {};
 
-	// •s“§–¾ƒpƒX
+	// ä¸é€æ˜ãƒ‘ã‚¹
 	dc->OMSetDepthStencilState(depthStencilState.Get(), 0);
 	dc->OMSetBlendState(blendStateOpaque.Get(), blendFactor, 0xFFFFFFFF);
 
-	//// Ã“IƒƒbƒVƒ…•`‰æ
+	//// é™çš„ãƒ¡ãƒƒã‚·ãƒ¥æç”»
 	//dc->VSSetShader(vertexShader.Get(), nullptr, 0);
 	//RenderStaticGeometry(registry, dc, false, frustum);
 
-	//// ƒXƒLƒjƒ“ƒOƒƒbƒVƒ…•`‰æ
+	//// ã‚¹ã‚­ãƒ‹ãƒ³ã‚°ãƒ¡ãƒƒã‚·ãƒ¥æç”»
 	//dc->VSSetShader(skinnedVertexShader.Get(), nullptr, 0);
 	//RenderSkinnedGeometry(registry, dc, false, frustum);
 
-	 // ƒfƒtƒHƒ‹ƒgƒVƒF[ƒ_[‚ğæ“¾
+	 // ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã‚’å–å¾—
 	auto& defaultPS = gBufferPixelShaders.at("gbuffer_default");
 
-	// ƒGƒ“ƒeƒBƒeƒB‚²‚Æ‚ÉƒVƒF[ƒ_[‚ğØ‚è‘Ö‚¦‚È‚ª‚çÃ“IƒƒbƒVƒ…•`‰æ
+	// ã‚¨ãƒ³ãƒ†ã‚£ãƒ†ã‚£ã”ã¨ã«ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã‚’åˆ‡ã‚Šæ›¿ãˆãªãŒã‚‰é™çš„ãƒ¡ãƒƒã‚·ãƒ¥æç”»
 	auto staticView = registry.view<TransformComponent, StaticMeshComponent>();
 	staticView.each([&](auto entity,
 		TransformComponent& transform,
@@ -348,7 +355,7 @@ void RenderSystem::GeometryPass(
 			DirectX::XMStoreFloat4x4(&worldMatrix, transform.GetWorldMatrix());
 			if (!IsInFrustum(frustum, staticMesh.model->GetBoundingBox(), worldMatrix)) return;
 
-			// MaterialComponent‚ª‚ ‚ê‚Î‚»‚ÌƒVƒF[ƒ_[‚ğg‚¤A‚È‚¯‚ê‚ÎƒfƒtƒHƒ‹ƒg
+			// MaterialComponentãŒã‚ã‚Œã°ãã®ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã‚’ä½¿ã†ã€ãªã‘ã‚Œã°ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆ
 			auto* mat = registry.try_get<MaterialComponent>(entity);
 			const char* shaderName = mat ? mat->GetShaderName() : "gbuffer_default";
 
@@ -392,7 +399,7 @@ void RenderSystem::GeometryPass(
 			//RenderMeshes(staticMesh.model->GetMeshes(), dc, false, nullptr, 0);
 		});
 
-	// ƒGƒ“ƒeƒBƒeƒB‚²‚Æ‚ÉƒVƒF[ƒ_[‚ğØ‚è‘Ö‚¦‚È‚ª‚çƒXƒLƒjƒ“ƒOƒƒbƒVƒ…•`‰æ
+	// ã‚¨ãƒ³ãƒ†ã‚£ãƒ†ã‚£ã”ã¨ã«ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã‚’åˆ‡ã‚Šæ›¿ãˆãªãŒã‚‰ã‚¹ã‚­ãƒ‹ãƒ³ã‚°ãƒ¡ãƒƒã‚·ãƒ¥æç”»
 	auto skinnedView = registry.view<TransformComponent, SkinnedMeshComponent>();
 	skinnedView.each([&](auto entity,
 		TransformComponent& transform,
@@ -404,7 +411,7 @@ void RenderSystem::GeometryPass(
 			DirectX::XMStoreFloat4x4(&worldMatrix, transform.GetWorldMatrix());
 			if (!IsInFrustum(frustum, skinnedMesh.model->GetBoundingBox(), worldMatrix)) return;
 
-			// MaterialComponent‚ª‚ ‚ê‚Î‚»‚ÌƒVƒF[ƒ_[‚ğg‚¤A‚È‚¯‚ê‚ÎƒfƒtƒHƒ‹ƒg
+			// MaterialComponentãŒã‚ã‚Œã°ãã®ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã‚’ä½¿ã†ã€ãªã‘ã‚Œã°ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆ
 			auto* mat = registry.try_get<MaterialComponent>(entity);
 			const char* shaderName = mat ? mat->GetShaderName() : "gbuffer_default";
 
@@ -471,20 +478,20 @@ void RenderSystem::GeometryPass(
 			//RenderSkinnedMeshes(skinnedMesh, dc, false);
 		});
 
-	// GeometryƒpƒXI—¹
+	// Geometryãƒ‘ã‚¹çµ‚äº†
 	gBuffer.EndGeometryPass(dc);
 }
 
-// LightingƒpƒX
+// Lightingãƒ‘ã‚¹
 void RenderSystem::LightingPass(
 	ID3D11DeviceContext* dc,
 	ID3D11RenderTargetView* rtv,
 	ID3D11DepthStencilView* dsv)
 {
-	// ƒƒCƒ“RTV‚ÉƒZƒbƒg
+	// ãƒ¡ã‚¤ãƒ³RTVã«ã‚»ãƒƒãƒˆ
 	dc->OMSetRenderTargets(1, &rtv, dsv);
 
-	// ƒrƒ…[ƒ|[ƒgİ’è
+	// ãƒ“ãƒ¥ãƒ¼ãƒãƒ¼ãƒˆè¨­å®š
 	D3D11_VIEWPORT vp{};
 	vp.Width = static_cast<float>(screenWidth);
 	vp.Height = static_cast<float>(screenHeight);
@@ -492,7 +499,7 @@ void RenderSystem::LightingPass(
 	vp.MaxDepth = 1.0f;
 	dc->RSSetViewports(1, &vp);
 
-	// Gƒoƒbƒtƒ@‚ğSRV‚Æ‚µ‚ÄƒZƒbƒg
+	// Gãƒãƒƒãƒ•ã‚¡ã‚’SRVã¨ã—ã¦ã‚»ãƒƒãƒˆ
 	ID3D11ShaderResourceView* gbSrvs[6] =
 	{
 		gBuffer.GetAlbedoSRV(),
@@ -504,31 +511,191 @@ void RenderSystem::LightingPass(
 	};
 	dc->PSSetShaderResources(0, 6, gbSrvs);
 
-	// LightingƒVƒF[ƒ_[ƒZƒbƒg
+	// Lightingã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã‚»ãƒƒãƒˆ
 	dc->VSSetShader(lightingVS.Get(), nullptr, 0);
 	dc->PSSetShader(lightingPS.Get(), nullptr, 0);
 
-	// “ü—ÍƒŒƒCƒAƒEƒg‚È‚µ
+	// å…¥åŠ›ãƒ¬ã‚¤ã‚¢ã‚¦ãƒˆãªã—
 	dc->IASetInputLayout(nullptr);
 	dc->IASetPrimitiveTopology(
 		D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
-	// ƒJƒŠƒ“ƒO‚È‚µƒ‰ƒXƒ^ƒ‰ƒCƒU[
+	// ã‚«ãƒªãƒ³ã‚°ãªã—ãƒ©ã‚¹ã‚¿ãƒ©ã‚¤ã‚¶ãƒ¼
 	dc->RSSetState(rasterizerStateNoCull.Get());
 
-	// [“x‘‚«‚İOFF
+	// æ·±åº¦æ›¸ãè¾¼ã¿OFF
 	dc->OMSetDepthStencilState(
 		depthStencilStateTransparent.Get(), 0);
 
-	// CbScene‚ğƒsƒNƒZƒ‹ƒVƒF[ƒ_[‚ÉƒZƒbƒg
+	// CbSceneã‚’ãƒ”ã‚¯ã‚»ãƒ«ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã«ã‚»ãƒƒãƒˆ
 	dc->PSSetConstantBuffers(0, 1, cbScene.GetAddressOf());
-	// ƒTƒ“ƒvƒ‰[‚àƒZƒbƒg
+	// ã‚µãƒ³ãƒ—ãƒ©ãƒ¼ã‚‚ã‚»ãƒƒãƒˆ
 	dc->PSSetSamplers(0, 1, samplerState.GetAddressOf());
 
-	// ƒtƒ‹ƒXƒNƒŠ[ƒ“•`‰æ
+	// ãƒ•ãƒ«ã‚¹ã‚¯ãƒªãƒ¼ãƒ³æç”»
 	dc->Draw(4, 0);
 
-	// SRV‚Ì‘©”›‚ğ‰ğœ
+	// SRVã®æŸç¸›ã‚’è§£é™¤
 	ID3D11ShaderResourceView* nullSrvs[9] = {};
 	dc->PSSetShaderResources(0, 9, nullSrvs);
+}
+
+// ForwardTransparentãƒ‘ã‚¹
+void RenderSystem::ForwardTransparentPass(
+	entt::registry& registry, 
+	ID3D11DeviceContext* dc,
+	ID3D11RenderTargetView* rtv, 
+	ID3D11DepthStencilView* dsv,
+	const Frustum& frustum)
+{
+	// ãƒ¡ã‚¤ãƒ³RTVï¼‹æ·±åº¦ãƒãƒƒãƒ•ã‚¡ã«ç›´æ¥ã‚»ãƒƒãƒˆï¼ˆGBufferã‚’çµŒç”±ã—ãªã„ï¼‰
+	dc->OMSetRenderTargets(1, &rtv, dsv);
+
+	// ãƒ“ãƒ¥ãƒ¼ãƒãƒ¼ãƒˆè¨­å®š
+	D3D11_VIEWPORT vp{};
+	vp.Width = static_cast<float>(screenWidth);
+	vp.Height = static_cast<float>(screenHeight);
+	vp.MinDepth = 0.0f;
+	vp.MaxDepth = 1.0f;
+	dc->RSSetViewports(1, &vp);
+
+	// å…±é€šã‚¹ãƒ†ãƒ¼ãƒˆè¨­å®š
+	dc->RSSetState(rasterizerState.Get());
+	dc->PSSetSamplers(0, 1, samplerState.GetAddressOf());
+	dc->IASetInputLayout(inputLayout.Get());
+	dc->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	// æ·±åº¦ãƒ†ã‚¹ãƒˆONãƒ»æ›¸ãè¾¼ã¿OFFã€ã‚¢ãƒ«ãƒ•ã‚¡ãƒ–ãƒ¬ãƒ³ãƒ‰ON
+	dc->OMSetDepthStencilState(depthStencilStateTransparent.Get(), 0);
+	float blendFactor[4] = {};
+	dc->OMSetBlendState(blendState.Get(), blendFactor, 0xFFFFFFFF);
+
+	// IBLç”¨ãƒ†ã‚¯ã‚¹ãƒãƒ£ã‚’å†ã‚»ãƒƒãƒˆ
+	// ï¼ˆLightingPassã®æœ«å°¾ã§t0ã€œt8ãŒnullã‚¯ãƒªã‚¢ã•ã‚Œã¦ã„ã‚‹ãŸã‚ã€ã“ã“ã§æ”¹ã‚ã¦ã‚»ãƒƒãƒˆã™ã‚‹ï¼‰
+	ID3D11ShaderResourceView* iblSrvs[3] =
+	{
+		iblDiffuseIem,
+		iblSpecularPmrem,
+		iblLutGgx,
+	};
+	dc->PSSetShaderResources(5, 3, iblSrvs);
+
+	// ãƒ•ã‚©ãƒ¯ãƒ¼ãƒ‰PBRç”¨ãƒ”ã‚¯ã‚»ãƒ«ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã‚’å›ºå®šã§ã‚»ãƒƒãƒˆ
+	dc->PSSetShader(forwardTransparentPS.Get(), nullptr, 0);
+
+	// é™çš„ãƒ¡ãƒƒã‚·ãƒ¥ï¼ˆåŠé€æ˜ã®ã¿ï¼‰
+	auto staticView = registry.view<TransformComponent, StaticMeshComponent>();
+	staticView.each([&](auto entity,
+		TransformComponent& transform,
+		StaticMeshComponent& staticMesh)
+		{
+			if (!staticMesh.model) return;
+
+			DirectX::XMFLOAT4X4 worldMatrix{};
+			DirectX::XMStoreFloat4x4(&worldMatrix, transform.GetWorldMatrix());
+			if (!IsInFrustum(frustum, staticMesh.model->GetBoundingBox(), worldMatrix)) return;
+
+			dc->VSSetShader(vertexShader.Get(), nullptr, 0);
+
+			CbObject cbObjectData{};
+			cbObjectData.world = worldMatrix;
+			dc->UpdateSubresource(cbObject.Get(), 0, nullptr, &cbObjectData, 0, 0);
+			dc->VSSetConstantBuffers(1, 1, cbObject.GetAddressOf());
+
+			for (auto& mesh : staticMesh.model->GetMeshes())
+			{
+				// åŠé€æ˜ã®ãƒ¡ãƒƒã‚·ãƒ¥ã ã‘ã‚’æç”»ã™ã‚‹ï¼ˆä¸é€æ˜ã¯GeometryPassã§æç”»æ¸ˆã¿ï¼‰
+				bool isTransparent = mesh.material &&
+					(mesh.material->alphaMode == Model::Material::AlphaMode::Blend ||
+						mesh.material->alphaMode == Model::Material::AlphaMode::Mask);
+				if (!isTransparent) continue;
+
+				UINT stride = sizeof(Model::Vertex);
+				UINT offset = 0;
+				dc->IASetVertexBuffers(0, 1, mesh.vertexBuffer.GetAddressOf(), &stride, &offset);
+				dc->IASetIndexBuffer(mesh.indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+
+				ID3D11ShaderResourceView* srvs[5] =
+				{
+					(mesh.material && mesh.material->baseMap) ? mesh.material->baseMap.Get() : dummyWhite.Get(),
+					(mesh.material && mesh.material->normalMap) ? mesh.material->normalMap.Get() : dummyNormal.Get(),
+					(mesh.material && mesh.material->metallicRoughnessMap) ? mesh.material->metallicRoughnessMap.Get() : dummyWhite.Get(),
+					(mesh.material && mesh.material->occlusionMap) ? mesh.material->occlusionMap.Get() : dummyWhite.Get(),
+					(mesh.material && mesh.material->emissiveMap) ? mesh.material->emissiveMap.Get() : dummyBlack.Get(),
+				};
+				dc->PSSetShaderResources(0, 5, srvs);
+				dc->DrawIndexed(static_cast<UINT>(mesh.indices.size()), 0, 0);
+			}
+		});
+
+	// ã‚¹ã‚­ãƒ‹ãƒ³ã‚°ãƒ¡ãƒƒã‚·ãƒ¥ï¼ˆåŠé€æ˜ã®ã¿ï¼‰
+	auto skinnedView = registry.view<TransformComponent, SkinnedMeshComponent>();
+	skinnedView.each([&](auto entity,
+		TransformComponent& transform,
+		SkinnedMeshComponent& skinnedMesh)
+		{
+			if (!skinnedMesh.model) return;
+
+			DirectX::XMFLOAT4X4 worldMatrix{};
+			DirectX::XMStoreFloat4x4(&worldMatrix, transform.GetWorldMatrix());
+			if (!IsInFrustum(frustum, skinnedMesh.model->GetBoundingBox(), worldMatrix)) return;
+
+			dc->VSSetShader(skinnedVertexShader.Get(), nullptr, 0);
+
+			CbObject cbObjectData{};
+			cbObjectData.world = worldMatrix;
+			dc->UpdateSubresource(cbObject.Get(), 0, nullptr, &cbObjectData, 0, 0);
+			dc->VSSetConstantBuffers(1, 1, cbObject.GetAddressOf());
+
+			const auto& meshes = skinnedMesh.model->GetMeshes();
+			for (int m = 0; m < (int)meshes.size(); m++)
+			{
+				const auto& mesh = meshes[m];
+
+				bool isTransparent = mesh.material &&
+					(mesh.material->alphaMode == Model::Material::AlphaMode::Blend ||
+						mesh.material->alphaMode == Model::Material::AlphaMode::Mask);
+				if (!isTransparent) continue;
+
+				CbSkinning cbSkinningData{};
+				if (m < (int)skinnedMesh.boneTransforms.size() && !skinnedMesh.boneTransforms[m].empty())
+				{
+					const auto& bt = skinnedMesh.boneTransforms[m];
+					size_t boneCount = (std::min)(bt.size(), (size_t)MAX_BONES);
+					for (size_t i = 0; i < boneCount; i++)
+						cbSkinningData.boneTransforms[i] = bt[i];
+				}
+				else
+				{
+					const auto& nodes = skinnedMesh.model->GetNodes();
+					int nodeIndex = mesh.nodeIndex;
+					if (nodeIndex >= 0 && nodeIndex < (int)nodes.size())
+						cbSkinningData.boneTransforms[0] = nodes[nodeIndex].globalTransform;
+					else
+						cbSkinningData.boneTransforms[0] = { 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 };
+				}
+				dc->UpdateSubresource(cbSkinning.Get(), 0, nullptr, &cbSkinningData, 0, 0);
+				dc->VSSetConstantBuffers(2, 1, cbSkinning.GetAddressOf());
+
+				UINT stride = sizeof(Model::Vertex);
+				UINT offset = 0;
+				dc->IASetVertexBuffers(0, 1, mesh.vertexBuffer.GetAddressOf(), &stride, &offset);
+				dc->IASetIndexBuffer(mesh.indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+
+				ID3D11ShaderResourceView* srvs[5] =
+				{
+					(mesh.material && mesh.material->baseMap) ? mesh.material->baseMap.Get() : dummyWhite.Get(),
+					(mesh.material && mesh.material->normalMap) ? mesh.material->normalMap.Get() : dummyNormal.Get(),
+					(mesh.material && mesh.material->metallicRoughnessMap) ? mesh.material->metallicRoughnessMap.Get() : dummyWhite.Get(),
+					(mesh.material && mesh.material->occlusionMap) ? mesh.material->occlusionMap.Get() : dummyWhite.Get(),
+					(mesh.material && mesh.material->emissiveMap) ? mesh.material->emissiveMap.Get() : dummyBlack.Get(),
+				};
+				dc->PSSetShaderResources(0, 5, srvs);
+				dc->DrawIndexed(static_cast<UINT>(mesh.indices.size()), 0, 0);
+			}
+		});
+
+	// SRVã®æŸç¸›ã‚’è§£é™¤ï¼ˆãƒãƒ†ãƒªã‚¢ãƒ«5æšï¼‹IBL3æšï¼t0ã€œt7ï¼‰
+	ID3D11ShaderResourceView* nullSrvs[8] = {};
+	dc->PSSetShaderResources(0, 8, nullSrvs);
 }

@@ -28,20 +28,6 @@ void StudioWindow::Initialize(ID3D11Device* device, StudioSharedContext* shared,
 // 更新
 void StudioWindow::Update(float elapsedTime)
 {
-	//// リサイズデバウンス（0.1秒変化がなければ実行）
-	//if (needsResize)
-	//{
-	//	resizeTimer += elapsedTime;
-	//	if (resizeTimer >= 0.1f)
-	//	{
-	//		renderWidth = pendingWidth;
-	//		renderHeight = pendingHeight;
-	//		ResizeRenderTarget();
-	//		needsResize = false;
-	//		resizeTimer = 0.0f;
-	//	}
-	//}
-
 	// カメラ更新
 	camera.Update(isHovered, elapsedTime);
 

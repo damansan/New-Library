@@ -1,0 +1,905 @@
+===== Basic_PS.hlsl ===== 
+Path: Basic_PS.hlsl 
+Texture2D baseMap : register(t0);
+SamplerState samplerState : register(s0);
+
+struct VS_OUT
+{
+    float4 position : SV_POSITION;
+    float3 normal   : NORMAL;
+    float4 tangent  : TANGENT;
+    float2 texcoord : TEXCOORD;
+    float3 worldPos : WORLD_POSITION;
+};
+
+float4 main(VS_OUT pin) : SV_TARGET
+{
+    // ベースカラーのみ返す
+    return baseMap.Sample(samplerState, pin.texcoord);
+} 
+ 
+===== Debug_PS.hlsl ===== 
+Path: Debug_PS.hlsl 
+struct PS_IN
+{
+    float4 position : SV_POSITION;
+    float4 color : COLOR;
+};
+
+float4 main(PS_IN pin) : SV_TARGET
+{
+    return pin.color;
+} 
+ 
+===== Debug_VS.hlsl ===== 
+Path: Debug_VS.hlsl 
+cbuffer CbDebug : register(b0)
+{
+    row_major float4x4 viewProjection;
+};
+
+struct VS_IN
+{
+    float3 position : POSITION;
+    float4 color : COLOR;
+};
+
+struct VS_OUT
+{
+    float4 position : SV_POSITION;
+    float4 color : COLOR;
+};
+
+VS_OUT main(VS_IN vin)
+{
+    VS_OUT vout;
+    vout.position = mul(float4(vin.position, 1.0f), viewProjection);
+    vout.color = vin.color;
+    return vout;
+} 
+ 
+===== Gbuffer_Basic_PS.hlsl ===== 
+Path: Gbuffer_Basic_PS.hlsl 
+Texture2D baseMap : register(t0);
+Texture2D normalMap : register(t1);
+
+SamplerState samplerState : register(s0);
+
+struct VS_OUT
+{
+    float4 position : SV_POSITION;
+    float3 normal : NORMAL;
+    float4 tangent : TANGENT;
+    float2 texcoord : TEXCOORD;
+    float3 worldPos : WORLD_POSITION;
+};
+
+struct PS_OUT
+{
+    float4 albedo : SV_TARGET0;
+    float4 normal : SV_TARGET1;
+    float4 position : SV_TARGET2;
+    float4 roughnessMetallic : SV_TARGET3;
+    float4 emissive : SV_TARGET4;
+    float occlusion : SV_TARGET5;
+};
+
+PS_OUT main(VS_OUT pin)
+{
+    PS_OUT pout;
+
+    // Albedo（ガンマ補正でリニア空間へ）
+    float4 baseColor = baseMap.Sample(samplerState, pin.texcoord);
+    baseColor.rgb = pow(max(baseColor.rgb, 0.0001f), 2.2f);
+    pout.albedo = baseColor;
+    
+    // 法線
+    float3 N = normalize(pin.normal);
+    pout.normal = float4(N * 0.5f + 0.5f, 1.0f);
+
+    // ワールド座標
+    pout.position = float4(pin.worldPos, 1.0f);
+
+    // Roughness/Metallic
+    pout.roughnessMetallic = float4(1.0f, 0.0f, 0.0f, 1.0f);
+
+    // Emissive
+    pout.emissive = float4(0.0f, 0.0f, 0.0f, 1.0f);
+
+    // Occlusion
+    pout.occlusion = 1.0f;
+
+    return pout;
+} 
+ 
+===== Gbuffer_PS.hlsl ===== 
+Path: Gbuffer_PS.hlsl 
+Texture2D baseMap              : register(t0); // Albedo
+Texture2D normalMap            : register(t1); // 法線マップ
+Texture2D metallicRoughnessMap : register(t2); // G:Roughness B:Metallic
+Texture2D occlusionMap         : register(t3); // R:Occlusion
+Texture2D emissiveMap          : register(t4); // Emissive
+
+SamplerState samplerState      : register(s0);
+
+struct VS_OUT
+{
+    float4 position : SV_POSITION;
+    float3 normal   : NORMAL;
+    float4 tangent  : TANGENT;
+    float2 texcoord : TEXCOORD;
+    float3 worldPos : WORLD_POSITION;
+};
+
+// 出力構造体
+struct PS_OUT
+{
+    float4 albedo            : SV_TARGET0; // Albedo
+    float4 normal            : SV_TARGET1; // Normal（ワールド空間）
+    float4 position          : SV_TARGET2; // WorldPosition
+    float4 roughnessMetallic : SV_TARGET3; // R:Roughness G:Metallic
+    float4 emissive          : SV_TARGET4; // Emissive
+    float occlusion          : SV_TARGET5; // Occlusion
+};
+
+PS_OUT main(VS_OUT pin)
+{
+    PS_OUT pout;
+
+    // Albedo
+    float4 baseColor = baseMap.Sample(samplerState, pin.texcoord);
+    baseColor.rgb = pow(max(baseColor.rgb, 0.0001f), 2.2f);
+    pout.albedo = baseColor;
+
+    // 法線マッピング
+    float3 N = normalize(pin.normal);
+    float3 T = normalize(pin.tangent.xyz);
+    float sigma = pin.tangent.w;
+
+    T = normalize(T - N * dot(N, T));
+    float3 B = normalize(cross(N, T) * sigma);
+
+    float3 normalSample = normalMap.Sample(samplerState, pin.texcoord).xyz;
+    normalSample = normalSample * 2.0f - 1.0f;
+    N = normalize(normalSample.x * T
+                + normalSample.y * B
+                + normalSample.z * N);
+
+    pout.normal = float4(N * 0.5f + 0.5f, 1.0f);
+
+    // ワールド座標
+    pout.position = float4(pin.worldPos, 1.0f);
+
+    // MetallicRoughness
+    float4 mr = metallicRoughnessMap.Sample(samplerState, pin.texcoord);
+    pout.roughnessMetallic = float4(
+        max(mr.g, 0.01f), // R: Roughness
+        mr.b, // G: Metallic
+        0.0f,
+        1.0f
+    );
+
+    // Emissive
+    float3 emissive = emissiveMap.Sample(samplerState, pin.texcoord).rgb;
+    emissive = pow(max(emissive, 0.0001f), 2.2f);
+    pout.emissive = float4(emissive, 1.0f);
+    pout.occlusion = occlusionMap.Sample(samplerState, pin.texcoord).r;
+
+    return pout;
+} 
+ 
+===== Lambert_PS.hlsl ===== 
+Path: Lambert_PS.hlsl 
+cbuffer CbScene : register(b0)
+{
+    row_major float4x4 view;
+    row_major float4x4 projection;
+    float4 lightDirection;
+    float4 lightColor;
+    float4 ambientColor;
+    float4 cameraPosition;
+};
+
+Texture2D baseMap : register(t0);
+SamplerState samplerState : register(s0);
+
+struct VS_OUT
+{
+    float4 position : SV_POSITION;
+    float3 normal   : NORMAL;
+    float4 tangent  : TANGENT;
+    float2 texcoord : TEXCOORD;
+    float3 worldPos : WORLD_POSITION;
+};
+
+float4 main(VS_OUT pin) : SV_TARGET
+{
+    // ベースカラー取得
+    float4 baseColor = baseMap.Sample(samplerState, pin.texcoord);
+
+    // 法線正規化
+    float3 N = normalize(pin.normal);
+
+    // ライト方向正規化（逆方向）
+    float3 L = normalize(-lightDirection.xyz);
+
+    // ランバート拡散光
+    float diffuse = max(dot(N, L), 0.0f);
+
+    // 最終カラー計算
+    float3 color =
+        baseColor.rgb * lightColor.rgb * diffuse +
+        baseColor.rgb * ambientColor.rgb;
+
+    return float4(color, baseColor.a);
+} 
+ 
+===== Lighting_PS.hlsl ===== 
+Path: Lighting_PS.hlsl 
+#include "PBR_Functions.hlsli"
+#include "IBL_Functions.hlsli"
+
+cbuffer CbScene : register(b0)
+{
+    row_major float4x4 view;
+    row_major float4x4 projection;
+    //float4 lightDirection;
+    //float4 lightColor;
+    //float4 ambientColor;
+    float4 cameraPosition;
+};
+
+struct DirectionalLight
+{
+    float4 direction; // xyz=方向 w=未使用
+    float4 color; // xyz=色 w=強度
+};
+struct PointLight
+{
+    float4 position; // xyz=位置 w=範囲
+    float4 color; // xyz=色 w=強度
+};
+
+#define MAX_POINT_LIGHTS 64
+
+cbuffer CbLights : register(b1)
+{
+    DirectionalLight directionalLight;
+    PointLight pointLights[MAX_POINT_LIGHTS];
+    int pointLightCount;
+    float3 cbPadding;
+};
+
+// Gバッファ
+Texture2D gbAlbedo            : register(t0);
+Texture2D gbNormal            : register(t1);
+Texture2D gbPosition          : register(t2);
+Texture2D gbRoughnessMetallic : register(t3);
+Texture2D gbEmissive          : register(t4);
+Texture2D gbOcclusion         : register(t5);
+
+// IBL用テクスチャ
+TextureCube diffuseIem    : register(t6);
+TextureCube specularPmrem : register(t7);
+Texture2D lutGgx          : register(t8);
+
+SamplerState samplerState : register(s0);
+
+struct VS_OUT
+{
+    float4 position : SV_POSITION;
+    float2 texcoord : TEXCOORD;
+};
+
+float4 main(VS_OUT pin) : SV_TARGET
+{
+    float2 uv = pin.texcoord;
+
+    // Gバッファから情報を読み出す
+    float4 albedo = gbAlbedo.Sample(samplerState, uv);
+    float3 N = gbNormal.Sample(samplerState, uv).xyz;
+    float3 worldPos = gbPosition.Sample(samplerState, uv).xyz;
+    float4 roughnessMetallic = gbRoughnessMetallic.Sample(samplerState, uv);
+    float3 emissive = gbEmissive.Sample(samplerState, uv).rgb;
+    float  occlusion = gbOcclusion.Sample(samplerState, uv).r;
+
+    // 法線デコード
+    N = normalize(N * 2.0f - 1.0f);
+
+    float roughness = roughnessMetallic.r;
+    float metalness = roughnessMetallic.g;
+
+    // PBRパラメーター計算
+    float3 diffuse_reflectance = lerp(albedo.rgb, 0.0f, metalness);
+    float3 F0 = lerp(0.04f, albedo.rgb, metalness);
+
+    // ベクトル計算
+    float3 V = normalize(cameraPosition.xyz - worldPos);
+    float3 diffuse = 0;
+    float3 specular = 0;
+    
+    // 平行光源
+    {
+        float3 L = normalize(-directionalLight.direction.xyz);
+        float3 LC = directionalLight.color.rgb * directionalLight.color.a;
+        float3 d = 0;
+        float3 s = 0;
+        DirectBRDF(diffuse_reflectance, F0, N, V, L, LC, roughness, d, s);
+        diffuse += d;
+        specular += s;
+    }
+
+    // ポイントライト
+    for (int i = 0; i < pointLightCount; i++)
+    {
+        float3 toLight = pointLights[i].position.xyz - worldPos;
+        float dist = length(toLight);
+        float range = pointLights[i].position.w;
+
+        if (dist > range)
+            continue;
+
+        float attenuation = 1.0f - saturate(dist / range);
+        attenuation *= attenuation;
+
+        float3 L = normalize(toLight);
+        float3 LC = pointLights[i].color.rgb
+              * pointLights[i].color.a
+              * attenuation;
+
+        float3 d = 0;
+        float3 s = 0;
+        DirectBRDF(diffuse_reflectance, F0, N, V, L, LC, roughness, d, s);
+        diffuse += d;
+        specular += s;
+    }
+    
+    //float3 L = normalize(-lightDirection.xyz);
+    //float3 LC = lightColor.rgb * lightColor.a;
+
+    //// 直接光のPBRライティング
+    //float3 diffuse = 0;
+    //float3 specular = 0;
+    //DirectBRDF(diffuse_reflectance, F0, N, V, L, LC,
+    //           roughness, diffuse, specular);
+
+    // 間接光（IBL）
+    float3 iblDiffuse = IBL_Diffuse(
+        diffuseIem, samplerState, N,
+        diffuse_reflectance, F0, V);
+
+    float3 iblSpecular = IBL_Specular(
+        specularPmrem, lutGgx, samplerState,
+        N, V, F0, roughness);
+
+    float3 ambient = iblDiffuse + iblSpecular;
+
+    // Occlusion適用
+    diffuse *= occlusion;
+    specular *= occlusion;
+    ambient *= occlusion;
+
+    // 最終カラー合成
+    float3 color = diffuse + specular + ambient + emissive;
+
+    // ガンマ補正
+    color = pow(max(color, 0.0001f), 1.0f / 2.2f);
+
+    return float4(color, albedo.a);
+} 
+ 
+===== Lighting_VS.hlsl ===== 
+Path: Lighting_VS.hlsl 
+struct VS_OUT
+{
+    float4 position : SV_POSITION;
+    float2 texcoord : TEXCOORD;
+};
+
+VS_OUT main(uint vertexID : SV_VertexID)
+{
+    VS_OUT vout;
+
+    // 頂点IDから座標とUVを生成（三角形2枚で画面全体を覆う）
+    // vertexID: 0→左下 1→左上 2→右下 3→右上
+    float2 pos;
+    pos.x = (vertexID & 1) ? 1.0f : -1.0f;
+    pos.y = (vertexID & 2) ? 1.0f : -1.0f;
+
+    vout.position = float4(pos, 0.0f, 1.0f);
+
+    // UV座標
+    vout.texcoord.x = (pos.x + 1.0f) * 0.5f;
+    vout.texcoord.y = (1.0f - pos.y) * 0.5f;
+
+    return vout;
+} 
+ 
+===== PBR_PS.hlsl ===== 
+Path: PBR_PS.hlsl 
+#include "PBR_Functions.hlsli"
+#include "IBL_Functions.hlsli" 
+
+cbuffer CbScene : register(b0)
+{
+    row_major float4x4 view;
+    row_major float4x4 projection;
+    float4 lightDirection;
+    float4 lightColor;
+    float4 ambientColor;
+    float4 cameraPosition;
+};
+
+// テクスチャ
+Texture2D baseMap              : register(t0); // Albedo
+Texture2D normalMap            : register(t1); // 法線マップ
+Texture2D metallicRoughnessMap : register(t2); // G:Roughness B:Metallic
+Texture2D occlusionMap         : register(t3); // R:Occlusion
+Texture2D emissiveMap          : register(t4); // Emissive
+// IBL用テクスチャ
+TextureCube diffuseIem    : register(t5); // Diffuse IBL
+TextureCube specularPmrem : register(t6); // Specular IBL
+Texture2D lutGgx          : register(t7); // BRDF LUT
+
+SamplerState samplerState : register(s0);
+
+struct VS_OUT
+{
+    float4 position : SV_POSITION;
+    float3 normal   : NORMAL;
+    float4 tangent  : TANGENT;
+    float2 texcoord : TEXCOORD;
+    float3 worldPos : WORLD_POSITION;
+};
+
+float4 main(VS_OUT pin) : SV_TARGET
+{
+    // Albedo取得 + ガンマ補正(sRGB -> Linear)
+    float4 baseColor = baseMap.Sample(samplerState, pin.texcoord);
+    baseColor.rgb = pow(max(baseColor.rgb, 0.0001f), GAMMA);
+    
+    // Emissive取得 + ガンマ補正(sRGB -> Linear)
+    float3 emissive = emissiveMap.Sample(samplerState, pin.texcoord).rgb;
+    emissive = pow(max(emissive, 0.0001f), GAMMA);
+    
+    // MetallicRoughness取得
+    // glTF準拠: G=Roughness, B=Metallic
+    float4 mr = metallicRoughnessMap.Sample(samplerState, pin.texcoord);
+    float roughness = max(mr.g, 0.01f); // 最小値を設ける
+    float metalness = mr.b;
+
+    // Occlusion取得
+    float occlusion = occlusionMap.Sample(samplerState, pin.texcoord).r;
+    
+    // 法線マッピング
+    float3 N = normalize(pin.normal);
+    float3 T = normalize(pin.tangent.xyz);
+    float sigma = pin.tangent.w; // 接線の符号
+
+    // グラムシュミット直交化
+    T = normalize(T - N * dot(N, T));
+    float3 B = normalize(cross(N, T) * sigma); // 従法線
+    
+    // 法線マップをサンプリングして接線空間 -> ワールド空間へ
+    float3 normalSample = normalMap.Sample(samplerState, pin.texcoord).xyz;
+    normalSample = normalSample * 2.0f - 1.0f; // [0,1] -> [-1,1]
+    N = normalize(normalSample.x * T
+                + normalSample.y * B
+                + normalSample.z * N);
+    
+    // PBRパラメーター計算
+    // 拡散反射率（金属は拡散反射しない）
+    float3 diffuse_reflectance = lerp(baseColor.rgb, 0.0f, metalness);
+
+    // 垂直入射時のフレネル反射率
+    // 非金属でも最低4%は鏡面反射する
+    float3 F0 = lerp(0.04f, baseColor.rgb, metalness);
+
+    // ベクトル計算
+    float3 V = normalize(cameraPosition.xyz - pin.worldPos); // 視線方向
+    float3 L = normalize(-lightDirection.xyz); // 光源方向
+    float3 LC = lightColor.rgb * lightColor.a; // ライトカラー
+    
+    // 直接光のPBRライティング
+    float3 diffuse = 0;
+    float3 specular = 0;
+    DirectBRDF(diffuse_reflectance, F0, N, V, L, LC, roughness, diffuse, specular);
+    
+    
+    // 間接光（アンビエント）
+    float3 ambient = 0;
+    float3 iblDiffuse = IBL_Diffuse(
+    diffuseIem, samplerState, N,
+    diffuse_reflectance, F0, V);
+
+    float3 iblSpecular = IBL_Specular(
+    specularPmrem, lutGgx, samplerState,
+    N, V, F0, roughness);
+
+    ambient = iblDiffuse + iblSpecular;
+    
+    
+    // Occlusion適用
+    diffuse *= occlusion;
+    specular *= occlusion;
+    ambient *= occlusion;
+
+    // 最終カラー合成
+    float3 color = diffuse + specular + ambient + emissive;
+    
+    // ガンマ補正(Linear -> sRGB)
+    color = pow(max(color, 0.0001f), 1.0f / GAMMA);
+
+    return float4(color, baseColor.a);
+    
+} 
+ 
+===== Skinning_VS.hlsl ===== 
+Path: Skinning_VS.hlsl 
+// 定数バッファ0：シーン情報
+cbuffer CbScene : register(b0)
+{
+    row_major float4x4 view;
+    row_major float4x4 projection;
+    float4 lightDirection;
+    float4 lightColor;
+    float4 ambientColor;
+    float4 cameraPosition;
+};
+
+// 定数バッファ1：オブジェクト情報
+cbuffer CbObject : register(b1)
+{
+    row_major float4x4 world;
+};
+
+// 定数バッファ2：ボーン行列
+#define MAX_BONES 256
+cbuffer CbSkinning : register(b2)
+{
+    row_major float4x4 boneTransforms[MAX_BONES];
+};
+
+// 頂点入力
+struct VS_IN
+{
+    float3 position   : POSITION;
+    float3 normal     : NORMAL;
+    float4 tangent    : TANGENT;
+    float2 texcoord   : TEXCOORD;
+    float4 boneWeight : WEIGHTS;
+    uint4 boneIndex   : BONES;
+};
+
+// 頂点出力
+struct VS_OUT
+{
+    float4 position : SV_POSITION;
+    float3 normal   : NORMAL;
+    float4 tangent  : TANGENT;
+    float2 texcoord : TEXCOORD;
+    float3 worldPos : WORLD_POSITION;
+};
+
+VS_OUT main(VS_IN vin)
+{
+    VS_OUT vout;
+
+    // スキニング計算
+    float4 pos = float4(vin.position, 1.0f);
+    float4 normal = float4(vin.normal, 0.0f);
+    float4 tangent = float4(vin.tangent.xyz, 0.0f);
+    
+    float4 skinnedPos = float4(0, 0, 0, 0);
+    float4 skinnedNormal = float4(0, 0, 0, 0);
+    float4 skinnedTangent = float4(0, 0, 0, 0);
+    
+    // 4ボーン分のブレンド
+    for (int i = 0; i < 4; i++)
+    {
+        float weight = vin.boneWeight[i];
+        uint index = vin.boneIndex[i];
+
+        skinnedPos += weight * mul(pos, boneTransforms[index]);
+        skinnedNormal += weight * mul(normal, boneTransforms[index]);
+        skinnedTangent += weight * mul(tangent, boneTransforms[index]);
+    }
+
+    // ワールド変換
+    float4 worldPos = mul(skinnedPos, world);
+    vout.worldPos = worldPos.xyz;
+    vout.position = mul(mul(worldPos, view), projection);
+    
+    // 法線・接線をワールド空間へ
+    vout.normal = normalize(mul(skinnedNormal.xyz, (float3x3) world));
+    vout.tangent.xyz = normalize(mul(skinnedTangent.xyz, (float3x3) world));
+    vout.tangent.w = vin.tangent.w;
+    
+    vout.texcoord = vin.texcoord;
+    
+    return vout;
+} 
+ 
+===== SkyBox_PS.hlsl ===== 
+Path: SkyBox_PS.hlsl 
+TextureCube skyMap : register(t10); // 他のテクスチャと被らないスロット
+SamplerState samplerState : register(s0);
+
+struct VS_OUT
+{
+    float4 position : SV_POSITION;
+    float3 texcoord : TEXCOORD;
+};
+
+float4 main(VS_OUT pin) : SV_TARGET
+{
+    float3 color = skyMap.Sample(samplerState, pin.texcoord).rgb;
+
+    // ガンマ補正
+    color = pow(max(color, 0.0001f), 1.0f / 2.2f);
+
+    return float4(color, 1.0f);
+} 
+ 
+===== SkyBox_VS.hlsl ===== 
+Path: SkyBox_VS.hlsl 
+cbuffer CbSkyBox : register(b0)
+{
+    row_major float4x4 view;
+    row_major float4x4 projection;
+    float4 cameraPosition;
+    float4 padding;
+};
+
+struct VS_IN
+{
+    float3 position : POSITION;
+};
+
+struct VS_OUT
+{
+    float4 position : SV_POSITION;
+    float3 texcoord : TEXCOORD;
+};
+
+VS_OUT main(VS_IN vin)
+{
+    VS_OUT vout;
+
+    // 頂点座標をそのままサンプリング方向として保存
+    vout.texcoord = vin.position;
+
+    // カメラ位置に追従（worldは使わない）
+    float3 worldPos = vin.position + cameraPosition.xyz;
+
+    float4 viewPos = mul(float4(worldPos, 1.0f), view);
+    float4 clipPos = mul(viewPos, projection);
+
+    // 深度値を常に最大(1.0)にする
+    vout.position = clipPos.xyww;
+
+    return vout;
+} 
+ 
+===== Static_VS.hlsl ===== 
+Path: Static_VS.hlsl 
+// シーン情報
+cbuffer CbScene : register(b0)
+{
+    row_major float4x4 view;
+    row_major float4x4 projection;
+    float4 cameraPosition;
+};
+
+// オブジェクト情報
+cbuffer CbObject : register(b1)
+{
+    row_major float4x4 world;
+};
+
+// 頂点入力
+struct VS_IN
+{
+    float3 position : POSITION;
+    float3 normal : NORMAL;
+    float4 tangent : TANGENT;
+    float2 texcoord : TEXCOORD;
+    float4 boneWeight : WEIGHTS;
+    uint4 boneIndex : BONES;
+};
+
+// 頂点出力
+struct VS_OUT
+{
+    float4 position : SV_POSITION;
+    float3 normal : NORMAL;
+    float4 tangent : TANGENT;
+    float2 texcoord : TEXCOORD;
+    float3 worldPos : WORLD_POSITION;
+};
+
+VS_OUT main(VS_IN vin)
+{
+    VS_OUT vout;
+
+    float4 pos = float4(vin.position, 1.0f);
+    pos = mul(pos, world);
+    vout.worldPos = pos.xyz;
+    pos = mul(pos, view);
+    pos = mul(pos, projection);
+    vout.position = pos;
+
+    vout.normal = normalize(mul(vin.normal, (float3x3) world));
+    vout.tangent.xyz = normalize(mul(vin.tangent.xyz, (float3x3) world));
+    vout.tangent.w = vin.tangent.w;
+    vout.texcoord = vin.texcoord;
+
+    return vout;
+} 
+ 
+===== IBL_Functions.hlsli ===== 
+Path: IBL_Functions.hlsli 
+// Diffuse IBL
+// irradianceMap: 事前畳み込み済みのDiffuse環境マップ
+// N            : 法線ベクトル（ワールド空間）
+float3 IBL_Diffuse(
+    TextureCube irradianceMap,
+    SamplerState samplerState,
+    float3 N,
+    float3 diffuse_reflectance,
+    float3 F0,
+    float3 V)
+{
+    // フレネル項
+    float NdotV = max(0.0001f, dot(N, V));
+    float3 F = F0 + (max(1.0f - 0.0f, F0) - F0) * pow(clamp(1.0f - NdotV, 0.0f, 1.0f), 5.0f);
+
+    // kd
+    float3 kd = (1.0f - F);
+
+    // 法線方向でIrradianceマップをサンプリング
+    float3 irradiance = irradianceMap.Sample(samplerState, N).rgb;
+
+    return kd * diffuse_reflectance * irradiance;
+}
+
+// Specular IBL
+// prefilteredMap: roughnessごとにMipがある事前フィルタリング済みマップ
+// brdfLut       : GGX BRDFのLookUpTable
+// N             : 法線ベクトル
+// V             : 視線ベクトル
+// F0            : 垂直入射時のフレネル反射率
+// roughness     : 粗さ
+float3 IBL_Specular(
+    TextureCube prefilteredMap,
+    Texture2D brdfLut,
+    SamplerState samplerState,
+    float3 N,
+    float3 V,
+    float3 F0,
+    float roughness)
+{
+    float NdotV = max(0.0001f, dot(N, V));
+
+    // 反射方向
+    float3 R = reflect(-V, N);
+
+    // roughnessに応じてMipレベルを選択
+    float mipLevel = roughness * 10.0f;
+
+    // 事前フィルタリング済み環境マップをサンプリング
+    float3 prefilteredColor = prefilteredMap.SampleLevel(
+        samplerState, R, mipLevel).rgb;
+
+    // BRDF LUTをサンプリング
+    float2 brdf = brdfLut.Sample(samplerState,
+        float2(NdotV, roughness)).rg;
+
+    // フレネル項
+    float3 F = F0 + (max(1.0f - roughness, F0) - F0) *
+               pow(clamp(1.0f - NdotV, 0.0f, 1.0f), 5.0f);
+
+    return prefilteredColor * (F * brdf.x + brdf.y);
+} 
+ 
+===== PBR_Functions.hlsli ===== 
+Path: PBR_Functions.hlsli 
+#ifndef PI
+#define PI 3.14159265358979323846f
+#endif
+
+#ifndef GAMMA
+#define GAMMA 2.2f
+#endif
+
+// フレネル項 (Schlickの近似式)
+
+// F0    : 垂直入射時の反射率
+// VdotH : 視線ベクトルとハーフベクトルの内積
+float3 CalcFresnel(float3 F0, float VdotH)
+{
+    return F0 + (1.0f - F0) * pow(clamp(1.0f - VdotH, 0.0f, 1.0f), 5.0f);
+}
+
+// 拡散反射BRDF (正規化ランバート)
+
+// VdotH              : 視線とハーフベクトルの内積
+// F0                 : 垂直入射時のフレネル反射率
+// diffuse_reflectance: 拡散反射率
+float3 DiffuseBRDF(float VdotH, float3 F0, float3 diffuse_reflectance)
+{
+    return (1.0f - CalcFresnel(F0, VdotH)) * (diffuse_reflectance / PI);
+}
+
+// D項: 法線分布関数 (GGX)
+
+// NdotH    : 法線とハーフベクトルの内積
+// roughness: 粗さ
+float CalcNDF(float NdotH, float roughness)
+{
+    float a = roughness * roughness;
+    float a2 = a * a;
+    float d = (NdotH * NdotH) * (a2 - 1.0f) + 1.0f;
+    return a2 / (PI * d * d);
+}
+
+// G項: 幾何減衰項 (Smith-Schlick)
+
+// NdotL    : 法線と光源ベクトルの内積
+// NdotV    : 法線と視線ベクトルの内積
+// roughness: 粗さ
+float CalcGeometry(float NdotL, float NdotV, float roughness)
+{
+    float r = roughness * 0.5f;
+    float shadowing = NdotL / (NdotL * (1.0f - r) + r);
+    float masking = NdotV / (NdotV * (1.0f - r) + r);
+    return shadowing * masking;
+}
+
+// 鏡面反射BRDF (Cook-Torranceモデル)
+
+// NdotV    : 法線と視線ベクトルの内積
+// NdotL    : 法線と光源ベクトルの内積
+// NdotH    : 法線とハーフベクトルの内積
+// VdotH    : 視線とハーフベクトルの内積
+// F0       : 垂直入射時のフレネル反射率
+// roughness: 粗さ
+float3 SpecularBRDF(float NdotV, float NdotL, float NdotH, float VdotH,
+                    float3 F0, float roughness)
+{
+    float D = CalcNDF(NdotH, roughness);
+    float G = CalcGeometry(NdotL, NdotV, roughness);
+    float3 F = CalcFresnel(F0, VdotH);
+    return (D * G * F) / (NdotL * NdotV * 4.0f);
+}
+
+// 直接光のPBRライティング
+
+// diffuse_reflectance: 拡散反射率
+// F0                 : 垂直入射時のフレネル反射率
+// N                  : 法線 (正規化済み)
+// V                  : 視線ベクトル (カメラ方向, 正規化済み)
+// L                  : 光源方向ベクトル (光源へ向かう, 正規化済み)
+// light_color        : ライトカラー
+// roughness          : 粗さ
+void DirectBRDF(
+    float3 diffuse_reflectance,
+    float3 F0,
+    float3 N, float3 V, float3 L,
+    float3 light_color,
+    float roughness,
+    out float3 out_diffuse,
+    out float3 out_specular)
+{
+    float3 H = normalize(L + V);
+    float NdotV = max(0.0001f, dot(N, V));
+    float NdotL = max(0.0001f, dot(N, L));
+    float NdotH = max(0.0001f, dot(N, H));
+    float VdotH = max(0.0001f, dot(V, H));
+
+    float3 irradiance = light_color * NdotL;
+
+    out_diffuse = DiffuseBRDF(VdotH, F0, diffuse_reflectance) * irradiance;
+    out_specular = SpecularBRDF(NdotV, NdotL, NdotH, VdotH, F0, roughness) * irradiance;
+} 
+ 
