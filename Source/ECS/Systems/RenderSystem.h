@@ -1,6 +1,7 @@
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
+#include <functional>
 
 #include "entt.hpp"
 
@@ -13,17 +14,17 @@
 #include "Resource/Model.h"
 #include "Rendering/GBuffer.h"
 
-// ’è”ƒoƒbƒtƒ@\‘¢‘Ì
+// ï¿½è”ï¿½oï¿½bï¿½tï¿½@ï¿½\ï¿½ï¿½ï¿½ï¿½
 struct CbScene
 {
-    DirectX::XMFLOAT4X4 view;             // ƒrƒ…[s—ñ
-    DirectX::XMFLOAT4X4 projection;       // ƒvƒƒWƒFƒNƒVƒ‡ƒ“s—ñ
-    DirectX::XMFLOAT4   cameraPosition;   // ƒJƒƒ‰ˆÊ’uiw–¢g—pj
+    DirectX::XMFLOAT4X4 view;             // ï¿½rï¿½ï¿½ï¿½[ï¿½sï¿½ï¿½
+    DirectX::XMFLOAT4X4 projection;       // ï¿½vï¿½ï¿½ï¿½Wï¿½Fï¿½Nï¿½Vï¿½ï¿½ï¿½ï¿½ï¿½sï¿½ï¿½
+    DirectX::XMFLOAT4   cameraPosition;   // ï¿½Jï¿½ï¿½ï¿½ï¿½ï¿½Ê’uï¿½iwï¿½ï¿½ï¿½gï¿½pï¿½j
 };
 
 struct CbObject
 {
-    DirectX::XMFLOAT4X4 world;      // ƒ[ƒ‹ƒhs—ñ
+    DirectX::XMFLOAT4X4 world;      // ï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½hï¿½sï¿½ï¿½
 };
 
 #define MAX_BONES 256
@@ -36,10 +37,10 @@ struct CbSkinning
 class RenderSystem
 {
 public:
-    // ‰Šú‰»(ƒVƒF[ƒ_[“Ç‚İ‚İj
+    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½(ï¿½Vï¿½Fï¿½[ï¿½_ï¿½[ï¿½Ç‚İï¿½ï¿½İj
     void Initialize(ID3D11Device* device);
 
-    // •`‰æ
+    // ï¿½`ï¿½ï¿½
     void Render(
         entt::registry& registry,
         ID3D11DeviceContext* dc,
@@ -50,7 +51,7 @@ public:
         UINT height
     );
 
-    // ƒtƒ‰ƒXƒ^ƒ€‚ğScene‘¤‚©‚çƒZƒbƒg
+    // ï¿½tï¿½ï¿½ï¿½Xï¿½^ï¿½ï¿½ï¿½ï¿½Sceneï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Zï¿½bï¿½g
     void SetFrustum(
         const DirectX::XMFLOAT4X4& view,
         const DirectX::XMFLOAT4X4& projection)
@@ -58,7 +59,7 @@ public:
         cachedFrustum = CalcFrustum(view, projection);
     }
 
-    // IBLƒeƒNƒXƒ`ƒƒƒZƒbƒg
+    // IBLï¿½eï¿½Nï¿½Xï¿½`ï¿½ï¿½ï¿½Zï¿½bï¿½g
     void SetIBLTextures(
         ID3D11ShaderResourceView* diffuseIem,
         ID3D11ShaderResourceView* specularPmrem,
@@ -69,11 +70,17 @@ public:
         iblLutGgx = lutGgx;
     }
 
-    // ’è”ƒoƒbƒtƒ@ƒQƒbƒ^[
+    // LightingPasså¾Œãƒ»ForwardTransparentPasså‰ã«å‘¼ã°ã‚Œã‚‹ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯ï¼ˆã‚¹ã‚«ã‚¤ãƒœãƒƒã‚¯ã‚¹æç”»ç”¨ï¼‰
+    void SetPreTransparentCallback(std::function<void()> callback)
+    {
+        preTransparentCallback = std::move(callback);
+    }
+
+    // ï¿½è”ï¿½oï¿½bï¿½tï¿½@ï¿½Qï¿½bï¿½^ï¿½[
     ID3D11Buffer* GetCbScene() { return cbScene.Get(); }
     ID3D11Buffer** GetCbSceneAddress() { return cbScene.GetAddressOf(); }
 
-    // ‰æ–ÊƒTƒCƒYƒZƒbƒg
+    // ï¿½ï¿½ÊƒTï¿½Cï¿½Yï¿½Zï¿½bï¿½g
     void SetScreenSize(UINT width, UINT height)
     {
         screenWidth = width;
@@ -81,26 +88,26 @@ public:
     }
 private:
 
-    // ƒtƒ‰ƒXƒ^ƒ€•½–Ê
+    // ï¿½tï¿½ï¿½ï¿½Xï¿½^ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     struct FrustumPlane
     {
         DirectX::XMFLOAT3 normal;
         float distance;
     };
 
-    // ƒtƒ‰ƒXƒ^ƒ€i6•½–Êj
+    // ï¿½tï¿½ï¿½ï¿½Xï¿½^ï¿½ï¿½ï¿½i6ï¿½ï¿½ï¿½Êj
     struct Frustum
     {
         FrustumPlane planes[6]; // Left, Right, Top, Bottom, Near, Far
     };
     
-    // ƒtƒ‰ƒXƒ^ƒ€ŒvZiViewProjections—ñ‚©‚çj
+    // ï¿½tï¿½ï¿½ï¿½Xï¿½^ï¿½ï¿½ï¿½vï¿½Zï¿½iViewProjectionï¿½sï¿½ñ‚©‚ï¿½j
     Frustum CalcFrustum(
         const DirectX::XMFLOAT4X4& view,
         const DirectX::XMFLOAT4X4& projection
     );
 
-    // ƒoƒEƒ“ƒfƒBƒ“ƒOƒ{ƒbƒNƒX‚ªƒtƒ‰ƒXƒ^ƒ€“à‚É‚ ‚é‚©”»’è
+    // ï¿½oï¿½Eï¿½ï¿½ï¿½fï¿½Bï¿½ï¿½ï¿½Oï¿½{ï¿½bï¿½Nï¿½Xï¿½ï¿½ï¿½tï¿½ï¿½ï¿½Xï¿½^ï¿½ï¿½ï¿½ï¿½ï¿½É‚ï¿½ï¿½é‚©ï¿½ï¿½ï¿½ï¿½
     bool IsInFrustum(
         const Frustum& frustum,
         const Model::BoundingBox& bbox,
@@ -108,41 +115,44 @@ private:
     );
 
     
-    // ’¸“_ƒVƒF[ƒ_[
+    // ï¿½ï¿½ï¿½_ï¿½Vï¿½Fï¿½[ï¿½_ï¿½[
     Microsoft::WRL::ComPtr<ID3D11VertexShader> vertexShader;
-    // ƒXƒLƒjƒ“ƒO—p’¸“_ƒVƒF[ƒ_[
+    // ï¿½Xï¿½Lï¿½jï¿½ï¿½ï¿½Oï¿½pï¿½ï¿½ï¿½_ï¿½Vï¿½Fï¿½[ï¿½_ï¿½[
     Microsoft::WRL::ComPtr<ID3D11VertexShader> skinnedVertexShader;
 
-    // “ü—ÍƒŒƒCƒAƒEƒg
+    // ï¿½ï¿½ï¿½Íƒï¿½ï¿½Cï¿½Aï¿½Eï¿½g
     Microsoft::WRL::ComPtr<ID3D11InputLayout>  inputLayout;
 
-    // ’è”ƒoƒbƒtƒ@
-    Microsoft::WRL::ComPtr<ID3D11Buffer> cbScene;    // ƒV[ƒ“î•ñ
-    Microsoft::WRL::ComPtr<ID3D11Buffer> cbObject;   // ƒIƒuƒWƒFƒNƒgî•ñ
-    Microsoft::WRL::ComPtr<ID3D11Buffer> cbSkinning; // ƒXƒLƒjƒ“ƒO’è”ƒoƒbƒtƒ@
+    // ï¿½è”ï¿½oï¿½bï¿½tï¿½@
+    Microsoft::WRL::ComPtr<ID3D11Buffer> cbScene;    // ï¿½Vï¿½[ï¿½ï¿½ï¿½ï¿½ï¿½
+    Microsoft::WRL::ComPtr<ID3D11Buffer> cbObject;   // ï¿½Iï¿½uï¿½Wï¿½Fï¿½Nï¿½gï¿½ï¿½ï¿½
+    Microsoft::WRL::ComPtr<ID3D11Buffer> cbSkinning; // ï¿½Xï¿½Lï¿½jï¿½ï¿½ï¿½Oï¿½è”ï¿½oï¿½bï¿½tï¿½@
 
-    // ƒTƒ“ƒvƒ‰[ƒXƒe[ƒg
+    // ï¿½Tï¿½ï¿½ï¿½vï¿½ï¿½ï¿½[ï¿½Xï¿½eï¿½[ï¿½g
     Microsoft::WRL::ComPtr<ID3D11SamplerState>      samplerState;
-    // ƒ‰ƒXƒ^ƒ‰ƒCƒU[ƒXƒe[ƒg
+    // ï¿½ï¿½ï¿½Xï¿½^ï¿½ï¿½ï¿½Cï¿½Uï¿½[ï¿½Xï¿½eï¿½[ï¿½g
     Microsoft::WRL::ComPtr<ID3D11RasterizerState>   rasterizerState;
-    // [“xƒXƒeƒ“ƒVƒ‹ƒXƒe[ƒg
+    // ï¿½[ï¿½xï¿½Xï¿½eï¿½ï¿½ï¿½Vï¿½ï¿½ï¿½Xï¿½eï¿½[ï¿½g
     Microsoft::WRL::ComPtr<ID3D11DepthStencilState> depthStencilState;
-    // ”¼“§–¾—p[“xƒXƒeƒ“ƒVƒ‹ƒXƒe[ƒg
+    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½pï¿½[ï¿½xï¿½Xï¿½eï¿½ï¿½ï¿½Vï¿½ï¿½ï¿½Xï¿½eï¿½[ï¿½g
     Microsoft::WRL::ComPtr<ID3D11DepthStencilState> depthStencilStateTransparent;
-    // ƒuƒŒƒ“ƒhƒXƒe[ƒg
+    // ï¿½uï¿½ï¿½ï¿½ï¿½ï¿½hï¿½Xï¿½eï¿½[ï¿½g
     Microsoft::WRL::ComPtr<ID3D11BlendState>        blendState;
-    // GBuffer—piƒuƒŒƒ“ƒh‚È‚µj
+    // GBufferï¿½pï¿½iï¿½uï¿½ï¿½ï¿½ï¿½ï¿½hï¿½È‚ï¿½ï¿½j
     Microsoft::WRL::ComPtr<ID3D11BlendState>        blendStateOpaque;  
 
-    // ƒ_ƒ~[ƒeƒNƒXƒ`ƒƒ
-    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> dummyWhite;  // Albedo/Occlusion—p
-    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> dummyNormal; // –@üƒ}ƒbƒv—p (0.5,0.5,1.0)
-    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> dummyBlack;  // Emissive—p
+    // ï¿½_ï¿½~ï¿½[ï¿½eï¿½Nï¿½Xï¿½`ï¿½ï¿½
+    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> dummyWhite;  // Albedo/Occlusionï¿½p
+    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> dummyNormal; // ï¿½@ï¿½ï¿½ï¿½}ï¿½bï¿½vï¿½p (0.5,0.5,1.0)
+    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> dummyBlack;  // Emissiveï¿½p
 
-    // IBL—pƒeƒNƒXƒ`ƒƒ
+    // IBLï¿½pï¿½eï¿½Nï¿½Xï¿½`ï¿½ï¿½
     ID3D11ShaderResourceView* iblDiffuseIem = nullptr;
     ID3D11ShaderResourceView* iblSpecularPmrem = nullptr;
     ID3D11ShaderResourceView* iblLutGgx = nullptr;
+
+    // LightingPasså¾Œãƒ»ForwardTransparentPasså‰ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯
+    std::function<void()> preTransparentCallback;
 
     Frustum cachedFrustum;
 
@@ -150,25 +160,25 @@ private:
     // GBuffer
     GBuffer gBuffer;
 
-    // ‰æ–ÊƒTƒCƒY
+    // ï¿½ï¿½ÊƒTï¿½Cï¿½Y
     UINT screenWidth = 0;
     UINT screenHeight = 0;
 
-    // GBufferƒVƒF[ƒ_[ƒ}ƒbƒv
+    // GBufferï¿½Vï¿½Fï¿½[ï¿½_ï¿½[ï¿½}ï¿½bï¿½v
     std::unordered_map<std::string,
         Microsoft::WRL::ComPtr<ID3D11PixelShader>> gBufferPixelShaders;
     
-    // LightingƒpƒX—p
+    // Lightingï¿½pï¿½Xï¿½p
     Microsoft::WRL::ComPtr<ID3D11VertexShader> lightingVS;
     Microsoft::WRL::ComPtr<ID3D11PixelShader>  lightingPS;
 
-    // ƒtƒ‹ƒXƒNƒŠ[ƒ“•`‰æ—pƒ‰ƒXƒ^ƒ‰ƒCƒU[
+    // ï¿½tï¿½ï¿½ï¿½Xï¿½Nï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½`ï¿½ï¿½pï¿½ï¿½ï¿½Xï¿½^ï¿½ï¿½ï¿½Cï¿½Uï¿½[
     Microsoft::WRL::ComPtr<ID3D11RasterizerState> rasterizerStateNoCull;
 
-    // ForwardTransparentƒpƒX—p
+    // ForwardTransparentï¿½pï¿½Xï¿½p
     Microsoft::WRL::ComPtr<ID3D11PixelShader> forwardTransparentPS;
 
-    // GeometryƒpƒX
+    // Geometryï¿½pï¿½X
     void GeometryPass(
         entt::registry& registry,
         ID3D11DeviceContext* dc,
@@ -176,14 +186,14 @@ private:
         const Frustum& frustum
     );
 
-    // LightingƒpƒX
+    // Lightingï¿½pï¿½X
     void LightingPass(
         ID3D11DeviceContext* dc,
         ID3D11RenderTargetView* rtv,
         ID3D11DepthStencilView* dsv
     );
 
-    // ForwardTransparentƒpƒX
+    // ForwardTransparentï¿½pï¿½X
     void ForwardTransparentPass(
         entt::registry& registry,
         ID3D11DeviceContext* dc,
