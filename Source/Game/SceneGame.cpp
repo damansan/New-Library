@@ -20,7 +20,6 @@ void SceneGame::Initialize(const SceneContext& context)
 		skyBox.GetLutGgx()
 	);
 
-
 	lightManager.Initialize(context.device);
 	lightManager.SetDirectionalLight(
 		{ 0.5f, -1.0f, 0.5f },
@@ -158,21 +157,6 @@ void SceneGame::Render(const SceneContext& context)
 	// フラスタム計算
 	renderSystem.SetFrustum(context.view, context.projection);
 
-	// スカイボックスをLightingPass後・半透明パス前に差し込む
-	{
-		DirectX::XMFLOAT3 eye = { 0.0f, 0.0f, 0.0f };
-		if (context.camera)
-		{
-			const auto& e = context.camera->GetEye();
-			eye = { e.x, e.y, e.z };
-		}
-		renderSystem.SetPreTransparentCallback([this, dc = context.deviceContext,
-			view = context.view, proj = context.projection, eye]()
-		{
-			skyBox.Render(dc, view, proj, eye);
-		});
-	}
-
 	{
 		ZoneScopedN("RenderSystem::Render");
 
@@ -188,8 +172,27 @@ void SceneGame::Render(const SceneContext& context)
 		);
 	}
 
-}
+	{
+		ZoneScopedN("SkyBox::Render");
 
+		// カメラ位置を取得
+		DirectX::XMFLOAT3 eye = { 0.0f, 0.0f, 0.0f };
+		if (context.camera)
+		{
+			const auto& e = context.camera->GetEye();
+			eye = { e.x, e.y, e.z };
+		}
+
+		skyBox.Render(
+			context.deviceContext,
+			context.view,
+			context.projection,
+			eye
+		);
+	}
+
+
+}
 
 void SceneGame::RenderImGui()
 {

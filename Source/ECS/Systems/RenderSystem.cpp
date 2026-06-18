@@ -192,10 +192,6 @@ void RenderSystem::Render(
 	// Lightingパス
 	LightingPass(dc, rtv, dsv);
 
-	// スカイボックスなど（半透明より先に描画するオブジェクト）
-	if (preTransparentCallback)
-		preTransparentCallback();
-
 	// ForwardTransparentパス（半透明をフォワードで描画）
 	ForwardTransparentPass(registry, dc, rtv, dsv, frustum);
 }
