@@ -1667,6 +1667,9 @@ public:
 		entt::registry& registry,
 		float elapsedTime);
 
+	// ŠÔ‚ği‚ß‚¸‚ÉAw’è‚µ‚½‚Ìƒ|[ƒY‚¾‚¯ŒvZ‚·‚é
+	void AnimationSystem::EvaluatePose(entt::registry& registry);
+
 private:
 	// ƒL[ƒtƒŒ[ƒ€•âŠÔiˆÊ’uj
 	static DirectX::XMFLOAT3 InterpolatePosition(
@@ -2123,6 +2126,44 @@ void AnimationSystem::Update(
 			}
 
 			// ƒ{[ƒ“s—ñ‚ğŒvZ
+			CalcBoneTransforms(
+				*skinned.model,
+				animation,
+				animator.animationTime,
+				skinned.boneTransforms);
+		});
+}
+
+// ŠÔ‚ği‚ß‚¸‚ÉAw’è‚µ‚½‚Ìƒ|[ƒY‚¾‚¯ŒvZ‚·‚é
+void AnimationSystem::EvaluatePose(entt::registry& registry)
+{
+	ZoneScoped;
+
+	auto view = registry.view<AnimatorComponent, SkinnedMeshComponent>();
+	view.each(
+		[&](auto entity,
+			AnimatorComponent& animator,
+			SkinnedMeshComponent& skinned)
+		{
+			if (!skinned.model) return;
+
+			const auto& animations = skinned.model->GetAnimations();
+			if (animations.empty()) return;
+
+			int animIndex = -1;
+			for (int i = 0; i < (int)animations.size(); i++)
+			{
+				if (animations[i].name == animator.currentAnimation)
+				{
+					animIndex = i;
+					break;
+				}
+			}
+			if (animIndex < 0) return;
+
+			const auto& animation = animations[animIndex];
+
+			// ƒ{[ƒ“s—ñ‚¾‚¯ŒvZiŠÔ‚Íi‚ß‚È‚¢j
 			CalcBoneTransforms(
 				*skinned.model,
 				animation,
@@ -8044,6 +8085,30 @@ public:
     {}
 }; 
  
+===== StudioAnimator.h ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioAnimator.h 
+#pragma once
+#include "IStudioAttachment.h"
+#include "ECS/Components/AnimatorComponent.h"
+#include "ECS/Components/SkinnedMeshComponent.h"
+
+class StudioAnimator : public IStudioAttachment
+{
+public:
+    StudioAnimator() = default;
+    ~StudioAnimator() = default;
+
+    void SetWindowId(int id) { windowId = id; }
+
+    // ImGui•`‰æ
+    void DrawGUI(
+        entt::registry& registry,
+        StudioContext& context) override;
+
+private:
+    int windowId = 0;
+}; 
+ 
 ===== StudioCamera.h ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioCamera.h 
 #pragma once
@@ -8111,6 +8176,13 @@ struct StudioContext
     float       animTime = 0.0f;
     float       animLength = 0.0f;
     bool        isPlaying = false;
+
+    // ƒpƒlƒ‹•\¦ƒtƒ‰ƒO
+    bool showAnimator = false;
+    bool showTimeline = false;
+
+    // ƒ^ƒCƒ€ƒ‰ƒCƒ“‚ÅƒXƒNƒ‰ƒu‘€ì‚³‚ê‚½ƒtƒ‰ƒO
+    bool requestPoseUpdate = false;
 }; 
  
 ===== StudioModelViewer.h ===== 
@@ -8279,6 +8351,29 @@ struct StudioSharedContext
     }
 }; 
  
+===== StudioTimeline.h ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioTimeline.h 
+#pragma once
+#include "IStudioAttachment.h"
+#include "ECS/Components/AnimatorComponent.h"
+#include "ECS/Components/SkinnedMeshComponent.h"
+
+class StudioTimeline : public IStudioAttachment
+{
+public:
+    StudioTimeline() = default;
+    ~StudioTimeline() = default;
+
+    void SetWindowId(int id) { windowId = id; }
+
+    void DrawGUI(
+        entt::registry& registry,
+        StudioContext& context) override;
+
+private:
+    int windowId = 0;
+}; 
+ 
 ===== StudioWindow.h ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioWindow.h 
 #pragma once
@@ -8293,11 +8388,15 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioWindow.h
 
 #include "entt.hpp"
 #include "ECS/Systems/RenderSystem.h"
+#include "ECS/Systems/AnimationSystem.h"
+
 #include "Rendering/LightManager.h"
 #include "Resource/ResourceManager.h"
 
 #include "StudioSharedContext.h"
 #include "StudioModelViewer.h"
+#include "StudioAnimator.h"
+#include "StudioTimeline.h"
 
 class StudioWindow
 {
@@ -8324,7 +8423,12 @@ public:
 
     // íœƒŠƒNƒGƒXƒg
     bool IsCloseRequested() const { return closeRequested; }
-    void SetWindowId(int id) { windowId = id; }
+    void SetWindowId(int id) 
+    {
+        windowId = id; 
+        studioAnimator.SetWindowId(id);
+        studioTimeline.SetWindowId(id);
+    }
     int  GetWindowId()  const { return windowId; }
 private:
     // •`‰ææ‚ÌØ‚è‘Ö‚¦
@@ -8349,11 +8453,17 @@ private:
 
     entt::registry    studioRegistry;
     RenderSystem      renderSystem;
+    AnimationSystem   animationSystem;
     LightManager      lightManager;
     ResourceManager   resourceManager;
     
     StudioSharedContext* shared = nullptr;
-    StudioModelViewer modelViewer;
+
+    // ‹@”\
+    StudioModelViewer stadoiModelViewer;
+    StudioAnimator    studioAnimator;
+    StudioTimeline    studioTimeline;
+
 
     // ƒEƒBƒ“ƒhƒEó‘Ô
     int   windowId = 0;
@@ -8362,6 +8472,8 @@ private:
     bool  isHovered = false;
     bool  closeRequested = false;
     bool  isFirstFrame = true;
+    bool  firstDockSetup = true;
+
 
     // ƒŠƒTƒCƒY—pƒfƒoƒEƒ“ƒX
     float resizeTimer = 0.0f;
@@ -8374,6 +8486,78 @@ private:
     int            renderSkipCount = 0;
 
 }; 
+ 
+===== StudioAnimator.cpp ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioAnimator.cpp 
+#include "Tool/Studio/StudioAnimator.h"
+#include <imgui.h>
+
+
+void StudioAnimator::DrawGUI(
+    entt::registry& registry,
+    StudioContext& context)
+{
+    if (!context.showAnimator) return;
+
+    std::string panelName = "Animator##" + std::to_string(windowId);
+    ImGui::Begin(panelName.c_str());
+
+    ImGui::Text("Animator");
+    ImGui::Separator();
+
+    auto view = registry.view<SkinnedMeshComponent, AnimatorComponent>();
+
+    if (view.begin() == view.end())
+    {
+        ImGui::TextColored({ 1, 0.5f, 0, 1 }, "No skinned model.");
+        ImGui::End();
+        return;
+    }
+
+    auto entity = *view.begin();
+    auto& skinned = view.get<SkinnedMeshComponent>(entity);
+    auto& animator = view.get<AnimatorComponent>(entity);
+
+    if (!skinned.model)
+    {
+        ImGui::TextColored({ 1, 0.5f, 0, 1 }, "Model not loaded.");
+        ImGui::End();
+        return;
+    }
+
+    const auto& animations = skinned.model->GetAnimations();
+    if (animations.empty())
+    {
+        ImGui::TextColored({ 1, 0.5f, 0, 1 }, "No animations.");
+        ImGui::End();
+        return;
+    }
+
+    ImGui::Text("Animations : %d", (int)animations.size());
+    ImGui::Separator();
+
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 1));
+
+    for (const auto& anim : animations)
+    {
+        bool isSelected = (animator.currentAnimation == anim.name);
+
+        if (ImGui::Selectable(anim.name.c_str(), isSelected))
+        {
+            animator.currentAnimation = anim.name;
+            animator.animationTime = 0.0f;
+            animator.isPlaying = true;
+            animator.isEnd = false;
+        }
+
+        if (isSelected)
+            ImGui::SetItemDefaultFocus();
+    }
+
+    ImGui::PopStyleVar();
+
+    ImGui::End();
+} 
  
 ===== StudioCamera.cpp ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioCamera.cpp 
@@ -8534,9 +8718,12 @@ DirectX::XMFLOAT3 StudioCamera::GetRight() const
 ===== StudioModelViewer.cpp ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioModelViewer.cpp 
 #include "StudioModelViewer.h"
+
 #include <windows.h>
 #include <commdlg.h>
 #include <imgui.h>
+
+#include "ECS/Components/AnimatorComponent.h"
 
 // ‰Šú‰»
 void StudioModelViewer::Initialize(
@@ -8661,6 +8848,15 @@ void StudioModelViewer::LoadModel(
         staticMesh.model = model;
     }
 
+    // ƒXƒLƒjƒ“ƒO‚ ‚è‚Ìê‡‚ÍAnimatorComponent‚ğ•t—^
+    if (model->HasSkin() && !model->GetAnimations().empty())
+    {
+        auto& animator = registry.emplace<AnimatorComponent>(modelEntity);
+        animator.currentAnimation = model->GetAnimations()[0].name;
+        animator.isPlaying = false;
+        animator.loop = false;
+    }
+
     // ƒ[ƒhÏ‚İƒtƒ‰ƒO
     registry.emplace<MeshLoadedTag>(modelEntity);
 
@@ -8771,10 +8967,111 @@ void StudioRenderer::DrawModel(
 }
  
  
+===== StudioTimeline.cpp ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioTimeline.cpp 
+ï»¿#include "StudioTimeline.h"
+#include <imgui.h>
+#include <string>
+
+void StudioTimeline::DrawGUI(entt::registry& registry, StudioContext& context)
+{
+    if (!context.showTimeline) return;
+
+    std::string panelName = "Timeline##" + std::to_string(windowId);
+    ImGui::Begin(panelName.c_str());
+
+    auto view = registry.view<SkinnedMeshComponent, AnimatorComponent>();
+
+    if (view.begin() == view.end())
+    {
+        ImGui::Text("No skinned model.");
+        ImGui::End();
+        return;
+    }
+
+    auto entity = *view.begin();
+    auto& skinned = view.get<SkinnedMeshComponent>(entity);
+    auto& animator = view.get<AnimatorComponent>(entity);
+
+    if (!skinned.model)
+    {
+        ImGui::End();
+        return;
+    }
+
+    // ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³é•·ã‚’å–å¾—
+    float animLength = 0.0f;
+    const auto& animations = skinned.model->GetAnimations();
+    for (const auto& anim : animations)
+    {
+        if (anim.name == animator.currentAnimation)
+        {
+            animLength = anim.secondsLength;
+            break;
+        }
+    }
+
+    // å…ˆé ­ã«æˆ»ã‚‹
+    if (ImGui::Button("<<"))
+    {
+        animator.animationTime = 0.0f;
+        animator.isPlaying = false;
+        animator.isEnd = false;
+    }
+    ImGui::SameLine();
+
+    // å†ç”Ÿ/åœæ­¢
+    if (animator.isPlaying)
+    {
+        if (ImGui::Button(u8"â– "))
+        {
+            animator.isPlaying = false;
+        }
+    }
+    else
+    {
+        if (ImGui::Button(u8"â–¶"))
+        {
+            if (animator.animationTime >= animLength)
+                animator.animationTime = 0.0f;
+            animator.isPlaying = true;
+            animator.isEnd = false;
+        }
+    }
+    ImGui::SameLine();
+
+    // ãƒ«ãƒ¼ãƒ—
+    ImGui::Checkbox("Loop", &animator.loop);
+    ImGui::SameLine();
+
+    // ç¾åœ¨ã®ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³åï¼ˆç·‘è‰²ï¼‰
+    ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f),
+        animator.currentAnimation.c_str());
+
+    // æ™‚åˆ»è¡¨ç¤º
+    ImGui::Text("%.2f / %.2f s", animator.animationTime, animLength);
+    ImGui::SameLine();
+
+    // å†ç”Ÿæ™‚åˆ»ã‚¹ãƒ©ã‚¤ãƒ€ãƒ¼ï¼ˆå…¨å¹…ï¼‰
+    ImGui::SetNextItemWidth(-1);
+    if (ImGui::SliderFloat("##animTime",
+        &animator.animationTime, 0.0f, animLength))
+    {
+        // ã‚¹ã‚¯ãƒ©ãƒ–ä¸­ã¯åœæ­¢ã—ã¦ãƒãƒ¼ã‚ºã‚’ç¢ºèª
+        animator.isPlaying = false;
+        animator.isEnd = false;
+        context.requestPoseUpdate = true;
+    }
+
+    ImGui::End();
+}
+ 
+ 
 ===== StudioWindow.cpp ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioWindow.cpp 
-#include "Tool/Studio/StudioWindow.h"
+#include "StudioWindow.h"
 #include <imgui.h>
+#include <imgui_internal.h>
 #include <cassert>
 
 void StudioWindow::Initialize(ID3D11Device* device, StudioSharedContext* shared, UINT width, UINT height)
@@ -8794,49 +9091,9 @@ void StudioWindow::Initialize(ID3D11Device* device, StudioSharedContext* shared,
 		shared->skyBox.GetLutGgx()
 	);
 
-	modelViewer.Initialize(device, &shared->resourceManager);
+	stadoiModelViewer.Initialize(device, &shared->resourceManager);
 
 	ResizeRenderTarget();
-
-	//HRESULT hr;
-
-	//// ƒJƒ‰[ƒeƒNƒXƒ`ƒƒ¶¬
-	//{
-	//	D3D11_TEXTURE2D_DESC desc{};
-	//	desc.Width = renderWidth;
-	//	desc.Height = renderHeight;
-	//	desc.MipLevels = 1;
-	//	desc.ArraySize = 1;
-	//	desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-	//	desc.SampleDesc.Count = 1;
-	//	desc.Usage = D3D11_USAGE_DEFAULT;
-	//	desc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
-
-	//	hr = device->CreateTexture2D(&desc, nullptr, renderTexture.GetAddressOf());
-	//	assert(SUCCEEDED(hr));
-	//	hr = device->CreateRenderTargetView(renderTexture.Get(), nullptr, rtv.GetAddressOf());
-	//	assert(SUCCEEDED(hr));
-	//	hr = device->CreateShaderResourceView(renderTexture.Get(), nullptr, srv.GetAddressOf());
-	//	assert(SUCCEEDED(hr));
-	//}
-
-	//// [“xƒeƒNƒXƒ`ƒƒ¶¬
-	//{
-	//	D3D11_TEXTURE2D_DESC desc{};
-	//	desc.Width = renderWidth;
-	//	desc.Height = renderHeight;
-	//	desc.MipLevels = 1;
-	//	desc.ArraySize = 1;
-	//	desc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-	//	desc.SampleDesc.Count = 1;
-	//	desc.Usage = D3D11_USAGE_DEFAULT;
-	//	desc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
-
-	//	hr = device->CreateTexture2D(&desc, nullptr, depthTexture.GetAddressOf());
-	//	assert(SUCCEEDED(hr));
-	//	hr = device->CreateDepthStencilView(depthTexture.Get(), nullptr, dsv.GetAddressOf());
-	//	assert(SUCCEEDED(hr));
-	//}
 }
 
 // XV
@@ -8859,8 +9116,19 @@ void StudioWindow::Update(float elapsedTime)
 	// ƒJƒƒ‰XV
 	camera.Update(isHovered, elapsedTime);
 
-	// ƒ‚ƒfƒ‹ƒrƒ…ƒ[Šm”F
-	modelViewer.Update(elapsedTime, context);
+	// ƒ‚ƒfƒ‹ƒrƒ…ƒ[XV
+	stadoiModelViewer.Update(elapsedTime, context);
+
+	if (context.requestPoseUpdate)
+	{
+		// ƒXƒNƒ‰ƒu‘€ì‚ÍŠÔ‚ği‚ß‚¸ƒ|[ƒY‚¾‚¯XV
+		animationSystem.EvaluatePose(studioRegistry);
+		context.requestPoseUpdate = false;
+	}
+	else
+	{
+		animationSystem.Update(studioRegistry, elapsedTime);
+	}
 
 	// ƒAƒ^ƒbƒ`ƒƒ“ƒgXV
 	for (auto& attachment : attachments)
@@ -8949,10 +9217,58 @@ void StudioWindow::Render()
 void StudioWindow::DrawWindow(const char* windowName)
 {
 	bool open = true;
-	ImGui::Begin(windowName, &open);
+	ImGui::Begin(windowName, &open, ImGuiWindowFlags_MenuBar);
 	if (!open) closeRequested = true;
 
-	isHovered = ImGui::IsWindowHovered();
+	// StudioƒEƒBƒ“ƒhƒE‘S‘Ì‚Åƒzƒo[”»’è
+	isHovered = ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_DockHierarchy);
+
+	// ƒƒjƒ…[ƒo[
+	if (ImGui::BeginMenuBar())
+	{
+		if (ImGui::BeginMenu("Window"))
+		{
+			ImGui::MenuItem("Animator", nullptr, &context.showAnimator);
+			ImGui::MenuItem("Timeline", nullptr, &context.showTimeline);
+			ImGui::EndMenu();
+		}
+		ImGui::EndMenuBar();
+	}
+
+	// ‚±‚ÌStudioê—p‚ÌDockSpace
+	std::string dockSpaceName = "StudioDockSpace##" + std::to_string(windowId);
+	ImGuiID dockSpaceId = ImGui::GetID(dockSpaceName.c_str());
+	ImGui::DockSpace(dockSpaceId, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
+
+	// ‰‰ñƒtƒŒ[ƒ€‚¾‚¯ƒfƒtƒHƒ‹ƒgƒŒƒCƒAƒEƒg‚ğ‘g‚Ş
+	if (firstDockSetup)
+	{
+		firstDockSetup = false;
+
+		ImGui::DockBuilderRemoveNode(dockSpaceId);
+		ImGui::DockBuilderAddNode(dockSpaceId, ImGuiDockNodeFlags_None);
+		ImGui::DockBuilderSetNodeSize(dockSpaceId, ImVec2(1280, 720));
+
+		ImGuiID dockMain = dockSpaceId;
+		ImGuiID dockLeft = ImGui::DockBuilderSplitNode(
+			dockMain, ImGuiDir_Left, 0.2f, nullptr, &dockMain);
+		ImGuiID dockBottom = ImGui::DockBuilderSplitNode(
+			dockMain, ImGuiDir_Down, 0.2f, nullptr, &dockMain);
+
+		std::string viewportName = "Viewport##" + std::to_string(windowId);
+		std::string animatorName = "Animator##" + std::to_string(windowId);
+		std::string timelineName = "Timeline##" + std::to_string(windowId);
+
+		ImGui::DockBuilderDockWindow(viewportName.c_str(), dockMain);
+		ImGui::DockBuilderDockWindow(animatorName.c_str(), dockLeft);
+		ImGui::DockBuilderDockWindow(timelineName.c_str(), dockBottom);
+
+		ImGui::DockBuilderFinish(dockSpaceId);
+	}
+
+	// Viewportƒpƒlƒ‹
+	std::string viewportName = "Viewport##" + std::to_string(windowId);
+	ImGui::Begin(viewportName.c_str());
 
 	ImVec2 region = ImGui::GetContentRegionAvail();
 	if (region.x > 1 && region.y > 1)
@@ -8964,13 +9280,10 @@ void StudioWindow::DrawWindow(const char* windowName)
 
 		if (isFirstFrame)
 		{
-			isFirstFrame = false;  // ‰‰ñƒtƒŒ[ƒ€‚ÍƒXƒLƒbƒv‚µ‚ÄŸ‚©‚ç—LŒø
+			isFirstFrame = false;
 		}
 		else if (w != renderWidth || h != renderHeight)
 		{
-			//ImGui::Text("render: %d x %d", renderWidth, renderHeight);
-			//ImGui::Text("region: %.0f x %.0f", region.x, region.y);
-			//ImGui::Text("needsResize: %d", needsResize);
 			pendingWidth = w;
 			pendingHeight = h;
 			needsResize = true;
@@ -8978,20 +9291,28 @@ void StudioWindow::DrawWindow(const char* windowName)
 		}
 	}
 
-	float dispW = needsResize ? static_cast<float>(pendingWidth) : static_cast<float>(renderWidth);
-	float dispH = needsResize ? static_cast<float>(pendingHeight) : static_cast<float>(renderHeight);
+	ImGui::Image(reinterpret_cast<ImTextureID>(srv.Get()), region);
 
-	ImGui::Image(
-		reinterpret_cast<ImTextureID>(srv.Get()),
-		ImVec2(dispW, dispH)
-	);
+	ImGui::End(); // Viewport
 
-	modelViewer.DrawGUI(studioRegistry, context);
+	// Animatorƒpƒlƒ‹
+	if (context.showAnimator)
+	{
+		studioAnimator.DrawGUI(studioRegistry, context);
+	}
+
+	// Timelineƒpƒlƒ‹
+	if (context.showTimeline)
+	{
+		studioTimeline.DrawGUI(studioRegistry, context);
+	}
+
+	stadoiModelViewer.DrawGUI(studioRegistry, context);
 
 	for (auto& attachment : attachments)
 		attachment->DrawGUI(studioRegistry, context);
 
-	ImGui::End();
+	ImGui::End(); // Studio
 }
 
 // ƒAƒ^ƒbƒ`ƒƒ“ƒg’Ç‰Á
@@ -9003,7 +9324,7 @@ void StudioWindow::AddAttachment(std::unique_ptr<IStudioAttachment> attachment)
 // ƒAƒZƒbƒg“Ç‚İ‚İ
 void StudioWindow::LoadAsset(const std::string& assetPath)
 {
-	modelViewer.LoadModel(studioRegistry, assetPath);
+	stadoiModelViewer.LoadModel(studioRegistry, assetPath);
 }
 
 void StudioWindow::Begin()
