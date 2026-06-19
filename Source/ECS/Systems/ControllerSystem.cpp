@@ -1,19 +1,19 @@
-#include "ControllerSystem.h"
+ï»¿#include "ControllerSystem.h"
 #include <cmath>
 #include <algorithm>
 
-// ƒRƒ“ƒXƒgƒ‰ƒNƒ^
+// ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 ControllerSystem::ControllerSystem()
 {
     TryConnectPS5();
 }
 
-// ƒfƒXƒgƒ‰ƒNƒ^
+// ãƒ‡ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 ControllerSystem::~ControllerSystem()
 {
     if (ds5Connected)
     {
-        // I—¹‚ÉƒgƒŠƒK[/U“®‚ğƒŠƒZƒbƒg‚µ‚Ä‚©‚çØ’f
+        // çµ‚äº†æ™‚ã«ãƒˆãƒªã‚¬ãƒ¼/æŒ¯å‹•ã‚’ãƒªã‚»ãƒƒãƒˆã—ã¦ã‹ã‚‰åˆ‡æ–­
         DS5W::DS5OutputState reset = {};
         DS5W::setDeviceOutputState(&ds5Context, &reset);
         DS5W::freeDeviceContext(&ds5Context);
@@ -21,13 +21,13 @@ ControllerSystem::~ControllerSystem()
     }
 }
 
-// XV
+// æ›´æ–°
 void ControllerSystem::Update(entt::registry& registry, float elapsedTime)
 {
-    // Xbox Ú‘±Šm”F
+    // Xbox æ¥ç¶šç¢ºèª
     xboxConnected = XInputGetState(0, &xboxState) == ERROR_SUCCESS;
 
-    // PS5 Ú‘±Šm”F / ÄÚ‘±
+    // PS5 æ¥ç¶šç¢ºèª / å†æ¥ç¶š
     if (ds5Connected)
     {
         DS5W_ReturnValue rv = DS5W::getDeviceInputState(&ds5Context, &ds5InputState);
@@ -47,11 +47,11 @@ void ControllerSystem::Update(entt::registry& registry, float elapsedTime)
         }
     }
 
-    // ControllerComponent ‚ğ‚Â Entity ‚ğXV
+    // ControllerComponent ã‚’æŒã¤ Entity ã‚’æ›´æ–°
     auto view = registry.view<ControllerComponent>();
     view.each([&](ControllerComponent& ctrl)
         {
-            // ƒŠƒZƒbƒg
+            // ãƒªã‚»ãƒƒãƒˆ
             ctrl.leftStickX = 0.0f;
             ctrl.leftStickY = 0.0f;
             ctrl.rightStickX = 0.0f;
@@ -62,7 +62,7 @@ void ControllerSystem::Update(entt::registry& registry, float elapsedTime)
             ctrl.connected = false;
             ctrl.type = ControllerType::None;
 
-            // PS5 —DæA‚È‚¯‚ê‚Î Xbox
+            // PS5 å„ªå…ˆã€ãªã‘ã‚Œã° Xbox
             if (ds5Connected)
             {
                 ctrl.type = ControllerType::PS5;
@@ -79,22 +79,22 @@ void ControllerSystem::Update(entt::registry& registry, float elapsedTime)
         });
 }
 
-// Xbox “ü—Í
+// Xbox å…¥åŠ›
 void ControllerSystem::UpdateXboxInput(ControllerComponent& ctrl)
 {
     const auto& gp = xboxState.Gamepad;
 
-    // ƒXƒeƒBƒbƒNi-32768`32767 ¨ -1.0`1.0j
+    // ã‚¹ãƒ†ã‚£ãƒƒã‚¯ï¼ˆ-32768ï½32767 â†’ -1.0ï½1.0ï¼‰
     ctrl.leftStickX = gp.sThumbLX / 32767.0f;
     ctrl.leftStickY = gp.sThumbLY / 32767.0f;
     ctrl.rightStickX = gp.sThumbRX / 32767.0f;
     ctrl.rightStickY = gp.sThumbRY / 32767.0f;
 
-    // ƒgƒŠƒK[i0`255 ¨ 0.0`1.0j
+    // ãƒˆãƒªã‚¬ãƒ¼ï¼ˆ0ï½255 â†’ 0.0ï½1.0ï¼‰
     ctrl.leftTrigger = gp.bLeftTrigger / 255.0f;
     ctrl.rightTrigger = gp.bRightTrigger / 255.0f;
 
-    // ƒ{ƒ^ƒ“
+    // ãƒœã‚¿ãƒ³
     auto btn = gp.wButtons;
     if (btn & XINPUT_GAMEPAD_A)              ctrl.buttons |= ControllerButtons::Cross;
     if (btn & XINPUT_GAMEPAD_B)              ctrl.buttons |= ControllerButtons::Circle;
@@ -107,32 +107,32 @@ void ControllerSystem::UpdateXboxInput(ControllerComponent& ctrl)
     if (btn & XINPUT_GAMEPAD_START)          ctrl.buttons |= ControllerButtons::Options;
     if (btn & XINPUT_GAMEPAD_BACK)           ctrl.buttons |= ControllerButtons::Share;
 
-    // L2/R2 ƒfƒWƒ^ƒ‹”»’èisettings ‚Ìè‡’l‚ğg‚¤j
+    // L2/R2 ãƒ‡ã‚¸ã‚¿ãƒ«åˆ¤å®šï¼ˆsettings ã®é–¾å€¤ã‚’ä½¿ã†ï¼‰
     if (ctrl.leftTrigger >= settings.leftTriggerThreshold)  ctrl.buttons |= ControllerButtons::L2;
     if (ctrl.rightTrigger >= settings.rightTriggerThreshold) ctrl.buttons |= ControllerButtons::R2;
 }
 
-// PS5 “ü—Í
+// PS5 å…¥åŠ›
 void ControllerSystem::UpdatePS5Input(ControllerComponent& ctrl)
 {
-    // ƒXƒeƒBƒbƒNi-128`127 ¨ -1.0`1.0j
+    // ã‚¹ãƒ†ã‚£ãƒƒã‚¯ï¼ˆ-128ï½127 â†’ -1.0ï½1.0ï¼‰
     ctrl.leftStickX = ds5InputState.leftStick.x / 127.0f;
     ctrl.leftStickY = ds5InputState.leftStick.y / 127.0f;
     ctrl.rightStickX = ds5InputState.rightStick.x / 127.0f;
     ctrl.rightStickY = ds5InputState.rightStick.y / 127.0f;
 
-    // ƒgƒŠƒK[i0`255 ¨ 0.0`1.0j
+    // ãƒˆãƒªã‚¬ãƒ¼ï¼ˆ0ï½255 â†’ 0.0ï½1.0ï¼‰
     ctrl.leftTrigger = ds5InputState.leftTrigger / 255.0f;
     ctrl.rightTrigger = ds5InputState.rightTrigger / 255.0f;
 
-    // ƒ{ƒ^ƒ“ibuttonsAndDpadj
+    // ãƒœã‚¿ãƒ³ï¼ˆbuttonsAndDpadï¼‰
     auto btn = ds5InputState.buttonsAndDpad;
     if (btn & DS5W_ISTATE_BTX_CROSS)    ctrl.buttons |= ControllerButtons::Cross;
     if (btn & DS5W_ISTATE_BTX_CIRCLE)   ctrl.buttons |= ControllerButtons::Circle;
     if (btn & DS5W_ISTATE_BTX_SQUARE)   ctrl.buttons |= ControllerButtons::Square;
     if (btn & DS5W_ISTATE_BTX_TRIANGLE) ctrl.buttons |= ControllerButtons::Triangle;
 
-    // ƒ{ƒ^ƒ“ibuttonsAj
+    // ãƒœã‚¿ãƒ³ï¼ˆbuttonsAï¼‰
     auto btnA = ds5InputState.buttonsA;
     if (btnA & DS5W_ISTATE_BTN_A_LEFT_BUMPER)  ctrl.buttons |= ControllerButtons::L1;
     if (btnA & DS5W_ISTATE_BTN_A_RIGHT_BUMPER) ctrl.buttons |= ControllerButtons::R1;
@@ -141,62 +141,54 @@ void ControllerSystem::UpdatePS5Input(ControllerComponent& ctrl)
     if (btnA & DS5W_ISTATE_BTN_A_SELECT)       ctrl.buttons |= ControllerButtons::Share;
     if (btnA & DS5W_ISTATE_BTN_A_MENU)         ctrl.buttons |= ControllerButtons::Options;
 
-    // L2/R2 ƒfƒWƒ^ƒ‹”»’èisettings ‚Ìè‡’l‚ğg‚¤j
+    // L2/R2 ãƒ‡ã‚¸ã‚¿ãƒ«åˆ¤å®šï¼ˆsettings ã®é–¾å€¤ã‚’ä½¿ã†ï¼‰
     if (ctrl.leftTrigger >= settings.leftTriggerThreshold)  ctrl.buttons |= ControllerButtons::L2;
     if (ctrl.rightTrigger >= settings.rightTriggerThreshold) ctrl.buttons |= ControllerButtons::R2;
 }
 
-// PS5 o—Í‘—M
+// PS5 å‡ºåŠ›é€ä¿¡
 void ControllerSystem::SendPS5Output(ControllerComponent& ctrl)
 {
     ds5OutputState = {};
 
-    // U“®
+    // æŒ¯å‹•
     ds5OutputState.leftRumble = ctrl.vibration.leftMotor;
     ds5OutputState.rightRumble = ctrl.vibration.rightMotor;
 
-    // ƒAƒ_ƒvƒeƒBƒuƒgƒŠƒK[
-    ApplyTriggerEffect(ds5OutputState.leftTriggerEffect, settings.leftTriggerEffect);
-    ApplyTriggerEffect(ds5OutputState.rightTriggerEffect, settings.rightTriggerEffect);
+    // ã‚¢ãƒ€ãƒ—ãƒ†ã‚£ãƒ–ãƒˆãƒªã‚¬ãƒ¼
+    ApplyTriggerEffect(ds5OutputState.leftTriggerEffect, settings.leftTriggerEffect, ctrl.leftTrigger);
+    ApplyTriggerEffect(ds5OutputState.rightTriggerEffect, settings.rightTriggerEffect, ctrl.rightTrigger);
 
     DS5W::setDeviceOutputState(&ds5Context, &ds5OutputState);
 }
 
-// TriggerEffect•ÏŠ·
-void ControllerSystem::ApplyTriggerEffect(DS5W::TriggerEffect& dst, const TriggerEffect& src)
+// TriggerEffectå¤‰æ›
+void ControllerSystem::ApplyTriggerEffect(DS5W::TriggerEffect& dst, const TriggerEffect& src, float currentValue)
 {
-    switch (src.type)
+    float startNorm = src.start / 255.0f;
+    float endNorm = src.end / 255.0f;
+
+    // åŒºé–“ã®å¤–ãªã‚‰åŠ¹æœãªã—
+    if (endNorm <= startNorm || currentValue < startNorm || currentValue > endNorm)
     {
-    case TriggerEffectType::Off:
         dst.effectType = DS5W::TriggerEffectType::NoResitance;
-        break;
-
-    case TriggerEffectType::Rigid:
-        dst.effectType = DS5W::TriggerEffectType::ContinuousResitance;
-        dst.Continuous.startPosition = src.start;
-        dst.Continuous.force = src.force;
-        break;
-
-    case TriggerEffectType::Pulse:
-        dst.effectType = DS5W::TriggerEffectType::SectionResitance;
-        dst.Section.startPosition = src.start;
-        dst.Section.endPosition = src.end;
-        break;
-
-    case TriggerEffectType::Slope:
-        dst.effectType = DS5W::TriggerEffectType::ContinuousResitance;
-        dst.Continuous.startPosition = src.start;
-        dst.Continuous.force = static_cast<uint8_t>(
-            src.force * (1.0f - src.start / 255.0f));
-        break;
-
-    default:
-        dst.effectType = DS5W::TriggerEffectType::NoResitance;
-        break;
+        return;
     }
+
+    // åŒºé–“å†…ã§ã®ç›¸å¯¾ä½ç½®(0.0ã€œ1.0)ã«å¤‰æ›ã—ã¦ã‚«ãƒ¼ãƒ–ã‚’ã‚µãƒ³ãƒ—ãƒªãƒ³ã‚°
+    float localPos = (currentValue - startNorm) / (endNorm - startNorm);
+    float forceValue = SampleCurve(src.forcePoints, localPos);     // 0.0ã€œ1.0
+    float vibValue = SampleCurve(src.vibrationPoints, localPos);   // 0.0ã€œ1.0
+
+    dst.effectType = DS5W::TriggerEffectType::EffectEx;
+    dst.EffectEx.startPosition = src.start;
+    dst.EffectEx.keepEffect = true;
+    dst.EffectEx.beginForce = dst.EffectEx.middleForce = dst.EffectEx.endForce =
+        static_cast<uint8_t>(forceValue * 255.0f);
+    dst.EffectEx.frequency = static_cast<uint8_t>(vibValue * 255.0f);
 }
 
-// PS5 Ú‘±s
+// PS5 æ¥ç¶šè©¦è¡Œ
 void ControllerSystem::TryConnectPS5()
 {
     DS5W::DeviceEnumInfo enumInfo[4];

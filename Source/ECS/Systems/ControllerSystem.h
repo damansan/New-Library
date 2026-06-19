@@ -38,7 +38,7 @@ private:
     void SendPS5Output(ControllerComponent& ctrl);
 
     // TriggerEffect•ÏŠ·
-    void ApplyTriggerEffect(DS5W::TriggerEffect& dst, const TriggerEffect& src);
+    void ApplyTriggerEffect(DS5W::TriggerEffect& dst, const TriggerEffect& src, float currentValue);
 
     // PS5 Ú‘±s
     void TryConnectPS5();

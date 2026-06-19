@@ -1,7 +1,8 @@
-#pragma once
+ï»¿#pragma once
 #include <cstdint>
+#include <vector>
 
-// ƒRƒ“ƒgƒ[ƒ‰[‚Ìí—Ş
+// ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ©ãƒ¼ã®ç¨®é¡
 enum class ControllerType
 {
     None,
@@ -9,76 +10,114 @@ enum class ControllerType
     PS5,
 };
 
-// ƒAƒ_ƒvƒeƒBƒuƒgƒŠƒK[‚ÌƒGƒtƒFƒNƒg@
-enum class TriggerEffectType : uint8_t
+// ã‚«ãƒ¼ãƒ–ä¸Šã®1ç‚¹ï¼ˆåŒºé–“å†…ã®ä½ç½®ã¨ã€ãã“ã§ã®å¼·ã•ï¼‰
+struct CurvePoint
 {
-    Off = 0,    // –³Œø
-    Rigid = 1,  // ˆê’è’ïR
-    Pulse = 2,  // U“®
-    Slope = 3,  // ŒXÎiˆø‚­‚Ù‚Çd‚­‚È‚éj
+    float position = 0.0f; // åŒºé–“å†…ã®ä½ç½® (0.0ã€œ1.0)
+    float value = 0.0f;    // å¼·ã•         (0.0ã€œ1.0)
 };
 
-// ƒgƒŠƒK[1–{•ª‚Ìo—Íİ’è
+// ãƒˆãƒªã‚¬ãƒ¼1æœ¬åˆ†ã®å‡ºåŠ›è¨­å®š
 struct TriggerEffect
 {
-    TriggerEffectType type = TriggerEffectType::Off;
-    uint8_t           start = 0;    // Œø‰ÊŠJnˆÊ’u (0`255)
-    uint8_t           end = 255;    // Œø‰ÊI—¹ˆÊ’u (0`255)
-    uint8_t           force = 128;  // ’ïR‚Ì‹­‚³   (0`255)
-    uint8_t           freq = 0;     // U“®ü”g”   (Pulse‚Ì‚Æ‚«g—p)
+    uint8_t start = 0;    // åŠ¹æœåŒºé–“ã®é–‹å§‹ä½ç½® (0ã€œ255)
+    uint8_t end = 255;    // åŠ¹æœåŒºé–“ã®çµ‚äº†ä½ç½® (0ã€œ255)
+
+    // åŒºé–“å†…ã§ã®æŠµæŠ—åŠ›ã®å¤‰åŒ–ã‚«ãƒ¼ãƒ–ï¼ˆãƒ‡ãƒ•ã‚©ãƒ«ãƒˆã¯ä¸­é–“ã®é«˜ã•ã§å¹³ã‚‰ï¼‰
+    std::vector<CurvePoint> forcePoints =
+    {
+        { 0.0f, 0.5f },
+        { 1.0f, 0.5f },
+    };
+
+    // åŒºé–“å†…ã§ã®æŒ¯å‹•ã®å¼·ã•ã®å¤‰åŒ–ã‚«ãƒ¼ãƒ–ï¼ˆãƒ‡ãƒ•ã‚©ãƒ«ãƒˆã¯æŒ¯å‹•ãªã—ï¼‰
+    std::vector<CurvePoint> vibrationPoints =
+    {
+        { 0.0f, 0.0f },
+        { 1.0f, 0.0f },
+    };
 };
 
-// U“®o—Íİ’è
+// ã‚«ãƒ¼ãƒ–ä¸Šã®æŒ‡å®špositionã«ãŠã‘ã‚‹å€¤ã‚’ç·šå½¢è£œé–“ã§æ±‚ã‚ã‚‹
+inline float SampleCurve(const std::vector<CurvePoint>& points, float position)
+{
+    if (points.empty())
+    {
+        return 0.0f;
+    }
+    if (points.size() == 1 || position <= points.front().position)
+    {
+        return points.front().value;
+    }
+    if (position >= points.back().position)
+    {
+        return points.back().value;
+    }
+
+    for (size_t i = 0; i + 1 < points.size(); ++i)
+    {
+        const CurvePoint& a = points[i];
+        const CurvePoint& b = points[i + 1];
+        if (position >= a.position && position <= b.position)
+        {
+            float t = (position - a.position) / (b.position - a.position);
+            return a.value + (b.value - a.value) * t;
+        }
+    }
+    return points.back().value;
+}
+
+// æŒ¯å‹•å‡ºåŠ›è¨­å®š
 struct VibrationOutput
 {
-    uint8_t leftMotor = 0;  // ¶ƒ‚[ƒ^[ (0`255)
-    uint8_t rightMotor = 0; // ‰Eƒ‚[ƒ^[ (0`255)
+    uint8_t leftMotor = 0;  // å·¦ãƒ¢ãƒ¼ã‚¿ãƒ¼ (0ï½255)
+    uint8_t rightMotor = 0; // å³ãƒ¢ãƒ¼ã‚¿ãƒ¼ (0ï½255)
 };
 
-// ƒRƒ“ƒgƒ[ƒ‰[‚Ì¶‚Ì“ü—Í’l‚ğ•Û‚·‚éƒRƒ“ƒ|[ƒlƒ“ƒg
+// ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ©ãƒ¼ã®ç”Ÿã®å…¥åŠ›å€¤ã‚’ä¿æŒã™ã‚‹ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆ
 struct ControllerComponent
 {
-    // Ú‘±î•ñ
+    // æ¥ç¶šæƒ…å ±
     ControllerType type = ControllerType::None;
     bool           connected = false;
 
-    // ƒXƒeƒBƒbƒNi³‹K‰»Ï‚İ -1.0`1.0Aƒfƒbƒhƒ][ƒ“–¢“K—pj
+    // ã‚¹ãƒ†ã‚£ãƒƒã‚¯ï¼ˆæ­£è¦åŒ–æ¸ˆã¿ -1.0ï½1.0ã€ãƒ‡ãƒƒãƒ‰ã‚¾ãƒ¼ãƒ³æœªé©ç”¨ï¼‰
     float leftStickX = 0.0f;
     float leftStickY = 0.0f;
     float rightStickX = 0.0f;
     float rightStickY = 0.0f;
 
-    // ƒgƒŠƒK[i³‹K‰»Ï‚İ 0.0`1.0j
+    // ãƒˆãƒªã‚¬ãƒ¼ï¼ˆæ­£è¦åŒ–æ¸ˆã¿ 0.0ï½1.0ï¼‰
     float leftTrigger = 0.0f;
     float rightTrigger = 0.0f;
 
-    // ƒ{ƒ^ƒ“iƒrƒbƒgƒtƒ‰ƒOj
+    // ãƒœã‚¿ãƒ³ï¼ˆãƒ“ãƒƒãƒˆãƒ•ãƒ©ã‚°ï¼‰
     uint32_t buttons = 0;
 
-    // U“®o—ÍiControllerSystem ‚ª–ˆƒtƒŒ[ƒ€‘—Mj
+    // æŒ¯å‹•å‡ºåŠ›ï¼ˆControllerSystem ãŒæ¯ãƒ•ãƒ¬ãƒ¼ãƒ é€ä¿¡ï¼‰
     VibrationOutput vibration = {};
 
-    // ƒAƒ_ƒvƒeƒBƒuƒgƒŠƒK[o—ÍiPS5‚Ì‚İj
+    // ã‚¢ãƒ€ãƒ—ãƒ†ã‚£ãƒ–ãƒˆãƒªã‚¬ãƒ¼å‡ºåŠ›ï¼ˆPS5ã®ã¿ï¼‰
     TriggerEffect leftTriggerEffect = {};
     TriggerEffect rightTriggerEffect = {};
 
-    // ƒ{ƒ^ƒ“”»’èƒwƒ‹ƒp[
+    // ãƒœã‚¿ãƒ³åˆ¤å®šãƒ˜ãƒ«ãƒ‘ãƒ¼
     bool IsPressed(uint32_t mask) const { return (buttons & mask) != 0; }
 };
 
-// ƒ{ƒ^ƒ“‚Ìƒrƒbƒgƒ}ƒXƒN’è”
+// ãƒœã‚¿ãƒ³ã®ãƒ“ãƒƒãƒˆãƒã‚¹ã‚¯å®šæ•°
 namespace ControllerButtons
 {
-    constexpr uint32_t Cross = 1 << 0;     // PS5:~  Xbox:A
-    constexpr uint32_t Circle = 1 << 1;    // PS5:›  Xbox:B
-    constexpr uint32_t Square = 1 << 2;    // PS5:   Xbox:X
-    constexpr uint32_t Triangle = 1 << 3;  // PS5:¢  Xbox:Y
+    constexpr uint32_t Cross = 1 << 0;     // PS5:Ã—  Xbox:A
+    constexpr uint32_t Circle = 1 << 1;    // PS5:â—‹  Xbox:B
+    constexpr uint32_t Square = 1 << 2;    // PS5:â–¡  Xbox:X
+    constexpr uint32_t Triangle = 1 << 3;  // PS5:â–³  Xbox:Y
     constexpr uint32_t L1 = 1 << 4;
     constexpr uint32_t R1 = 1 << 5;
-    constexpr uint32_t L2 = 1 << 6;  // ƒfƒWƒ^ƒ‹”»’è—p
-    constexpr uint32_t R2 = 1 << 7;  // ƒfƒWƒ^ƒ‹”»’è—p
-    constexpr uint32_t L3 = 1 << 8;  // ƒXƒeƒBƒbƒN‰Ÿ‚µ‚İ
-    constexpr uint32_t R3 = 1 << 9;  // ƒXƒeƒBƒbƒN‰Ÿ‚µ‚İ
+    constexpr uint32_t L2 = 1 << 6;  // ãƒ‡ã‚¸ã‚¿ãƒ«åˆ¤å®šç”¨
+    constexpr uint32_t R2 = 1 << 7;  // ãƒ‡ã‚¸ã‚¿ãƒ«åˆ¤å®šç”¨
+    constexpr uint32_t L3 = 1 << 8;  // ã‚¹ãƒ†ã‚£ãƒƒã‚¯æŠ¼ã—è¾¼ã¿
+    constexpr uint32_t R3 = 1 << 9;  // ã‚¹ãƒ†ã‚£ãƒƒã‚¯æŠ¼ã—è¾¼ã¿
     constexpr uint32_t Options = 1 << 14; // PS5:Options  Xbox:Menu
     constexpr uint32_t Share = 1 << 15;   // PS5:Create   Xbox:View
 }
