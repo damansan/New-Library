@@ -1,5 +1,5 @@
 ===== Camera.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Core\Camera.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\Camera.h 
 #pragma once
 #include <DirectXMath.h>
 
@@ -48,7 +48,7 @@ private:
 }; 
  
 ===== framework.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Core\framework.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\framework.h 
 #pragma once
 
 #include <windows.h>
@@ -146,7 +146,7 @@ private:
 }; 
  
 ===== Graphics.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Core\Graphics.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\Graphics.h 
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
@@ -227,7 +227,7 @@ private:
 }; 
  
 ===== ImGuiManager.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Core\ImGuiManager.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\ImGuiManager.h 
 #pragma once
 #include <windows.h>
 #include <d3d11.h>
@@ -266,7 +266,7 @@ public:
 }; 
  
 ===== Scene.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Core\Scene.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\Scene.h 
 #pragma once
 #include "entt.hpp"
 #include "Core/SceneContext.h"
@@ -302,7 +302,7 @@ protected:
 }; 
  
 ===== SceneContext.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Core\SceneContext.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\SceneContext.h 
 #pragma once
 #include <d3d11.h>
 #include <DirectXMath.h>
@@ -333,7 +333,7 @@ struct SceneContext
 }; 
  
 ===== SceneManager.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Core\SceneManager.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\SceneManager.h 
 #pragma once
 #include "Scene.h"
 #include <memory>
@@ -373,7 +373,7 @@ private:
 }; 
  
 ===== Camera.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Core\Camera.cpp 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\Camera.cpp 
 #include "Camera.h"
 
 // ‰Šú‰»
@@ -432,7 +432,7 @@ void Camera::SetPerspectiveFov(
 } 
  
 ===== framework.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Core\framework.cpp 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\framework.cpp 
 #include "framework.h"
 #include "tracy/Tracy.hpp"
 #include "Game/SceneGame.h"
@@ -757,7 +757,7 @@ void framework::openStudioWindow(const std::string& assetPath)
 } 
  
 ===== Graphics.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Core\Graphics.cpp 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\Graphics.cpp 
 #include "Graphics.h"
 #include "Utility/misc.h"
 
@@ -1135,7 +1135,7 @@ void Graphics::Cleanup()
 } 
  
 ===== ImGuiManager.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Core\ImGuiManager.cpp 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\ImGuiManager.cpp 
 #include "ImGuiManager.h"
 
 ImGuiManager::~ImGuiManager()
@@ -1236,7 +1236,7 @@ bool ImGuiManager::HandleMessage(HWND hWnd, UINT msg, WPARAM wparam, LPARAM lpar
  
  
 ===== SceneManager.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Core\SceneManager.cpp 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\SceneManager.cpp 
 #include "SceneManager.h"
 
 // XV
@@ -1303,7 +1303,7 @@ void SceneManager::ClearScene()
  
  
 ===== AnimatorComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\AnimatorComponent.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\AnimatorComponent.h 
 ï»¿#pragma once
 #include <string>
 
@@ -1324,7 +1324,7 @@ struct AnimatorComponent
 }; 
  
 ===== BaseCameraComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\BaseCameraComponent.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\BaseCameraComponent.h 
 #pragma once
 #include <DirectXMath.h>
 
@@ -1337,11 +1337,11 @@ struct BaseCameraComponent
  
  
 ===== ControllerComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\ControllerComponent.h 
-#pragma once
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\ControllerComponent.h 
+ï»¿#pragma once
 #include <cstdint>
 
-// ƒRƒ“ƒgƒ[ƒ‰[‚Ìí—Ş
+// ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ©ãƒ¼ã®ç¨®é¡
 enum class ControllerType
 {
     None,
@@ -1349,85 +1349,51 @@ enum class ControllerType
     PS5,
 };
 
-// ƒAƒ_ƒvƒeƒBƒuƒgƒŠƒK[‚ÌƒGƒtƒFƒNƒg@
-enum class TriggerEffectType : uint8_t
-{
-    Off = 0,    // –³Œø
-    Rigid = 1,  // ˆê’è’ïR
-    Pulse = 2,  // U“®
-    Slope = 3,  // ŒXÎiˆø‚­‚Ù‚Çd‚­‚È‚éj
-};
-
-// ƒgƒŠƒK[1–{•ª‚Ìo—Íİ’è
-struct TriggerEffect
-{
-    TriggerEffectType type = TriggerEffectType::Off;
-    uint8_t           start = 0;    // Œø‰ÊŠJnˆÊ’u (0`255)
-    uint8_t           end = 255;    // Œø‰ÊI—¹ˆÊ’u (0`255)
-    uint8_t           force = 128;  // ’ïR‚Ì‹­‚³   (0`255)
-    uint8_t           freq = 0;     // U“®ü”g”   (Pulse‚Ì‚Æ‚«g—p)
-};
-
-// U“®o—Íİ’è
-struct VibrationOutput
-{
-    uint8_t leftMotor = 0;  // ¶ƒ‚[ƒ^[ (0`255)
-    uint8_t rightMotor = 0; // ‰Eƒ‚[ƒ^[ (0`255)
-};
-
-// ƒRƒ“ƒgƒ[ƒ‰[‚Ì¶‚Ì“ü—Í’l‚ğ•Û‚·‚éƒRƒ“ƒ|[ƒlƒ“ƒg
+// ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ©ãƒ¼ã®ç”Ÿã®å…¥åŠ›å€¤ã‚’ä¿æŒã™ã‚‹ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆ
 struct ControllerComponent
 {
-    // Ú‘±î•ñ
+    // æ¥ç¶šæƒ…å ±
     ControllerType type = ControllerType::None;
     bool           connected = false;
 
-    // ƒXƒeƒBƒbƒNi³‹K‰»Ï‚İ -1.0`1.0Aƒfƒbƒhƒ][ƒ“–¢“K—pj
+    // ã‚¹ãƒ†ã‚£ãƒƒã‚¯ï¼ˆæ­£è¦åŒ–æ¸ˆã¿ -1.0ï½1.0ã€ãƒ‡ãƒƒãƒ‰ã‚¾ãƒ¼ãƒ³æœªé©ç”¨ï¼‰
     float leftStickX = 0.0f;
     float leftStickY = 0.0f;
     float rightStickX = 0.0f;
     float rightStickY = 0.0f;
 
-    // ƒgƒŠƒK[i³‹K‰»Ï‚İ 0.0`1.0j
+    // ãƒˆãƒªã‚¬ãƒ¼ï¼ˆæ­£è¦åŒ–æ¸ˆã¿ 0.0ï½1.0ï¼‰
     float leftTrigger = 0.0f;
     float rightTrigger = 0.0f;
 
-    // ƒ{ƒ^ƒ“iƒrƒbƒgƒtƒ‰ƒOj
+    // ãƒœã‚¿ãƒ³ï¼ˆãƒ“ãƒƒãƒˆãƒ•ãƒ©ã‚°ï¼‰
     uint32_t buttons = 0;
 
-    // U“®o—ÍiControllerSystem ‚ª–ˆƒtƒŒ[ƒ€‘—Mj
-    VibrationOutput vibration = {};
-
-    // ƒAƒ_ƒvƒeƒBƒuƒgƒŠƒK[o—ÍiPS5‚Ì‚İj
-    TriggerEffect leftTriggerEffect = {};
-    TriggerEffect rightTriggerEffect = {};
-
-    // ƒ{ƒ^ƒ“”»’èƒwƒ‹ƒp[
+    // ãƒœã‚¿ãƒ³åˆ¤å®šãƒ˜ãƒ«ãƒ‘ãƒ¼
     bool IsPressed(uint32_t mask) const { return (buttons & mask) != 0; }
 };
 
-// ƒ{ƒ^ƒ“‚Ìƒrƒbƒgƒ}ƒXƒN’è”
+// ãƒœã‚¿ãƒ³ã®ãƒ“ãƒƒãƒˆãƒã‚¹ã‚¯å®šæ•°
 namespace ControllerButtons
 {
-    constexpr uint32_t Cross = 1 << 0;     // PS5:~  Xbox:A
-    constexpr uint32_t Circle = 1 << 1;    // PS5:›  Xbox:B
-    constexpr uint32_t Square = 1 << 2;    // PS5:   Xbox:X
-    constexpr uint32_t Triangle = 1 << 3;  // PS5:¢  Xbox:Y
+    constexpr uint32_t Cross = 1 << 0;     // PS5:Ã—  Xbox:A
+    constexpr uint32_t Circle = 1 << 1;    // PS5:â—‹  Xbox:B
+    constexpr uint32_t Square = 1 << 2;    // PS5:â–¡  Xbox:X
+    constexpr uint32_t Triangle = 1 << 3;  // PS5:â–³  Xbox:Y
     constexpr uint32_t L1 = 1 << 4;
     constexpr uint32_t R1 = 1 << 5;
-    constexpr uint32_t L2 = 1 << 6;  // ƒfƒWƒ^ƒ‹”»’è—p
-    constexpr uint32_t R2 = 1 << 7;  // ƒfƒWƒ^ƒ‹”»’è—p
-    constexpr uint32_t L3 = 1 << 8;  // ƒXƒeƒBƒbƒN‰Ÿ‚µ‚İ
-    constexpr uint32_t R3 = 1 << 9;  // ƒXƒeƒBƒbƒN‰Ÿ‚µ‚İ
+    constexpr uint32_t L2 = 1 << 6;  // ãƒ‡ã‚¸ã‚¿ãƒ«åˆ¤å®šç”¨
+    constexpr uint32_t R2 = 1 << 7;  // ãƒ‡ã‚¸ã‚¿ãƒ«åˆ¤å®šç”¨
+    constexpr uint32_t L3 = 1 << 8;  // ã‚¹ãƒ†ã‚£ãƒƒã‚¯æŠ¼ã—è¾¼ã¿
+    constexpr uint32_t R3 = 1 << 9;  // ã‚¹ãƒ†ã‚£ãƒƒã‚¯æŠ¼ã—è¾¼ã¿
     constexpr uint32_t Options = 1 << 14; // PS5:Options  Xbox:Menu
     constexpr uint32_t Share = 1 << 15;   // PS5:Create   Xbox:View
 } 
  
 ===== ControllerSettings.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\ControllerSettings.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\ControllerSettings.h 
 #pragma once
 #include <cstdint>
-#include "ECS/Components/ControllerComponent.h"
 
 // ƒRƒ“ƒgƒ[ƒ‰[‚Ìİ’è’liJSON•Û‘¶j
 struct ControllerSettings
@@ -1444,18 +1410,10 @@ struct ControllerSettings
 	// ‚Ç‚ê‚¾‚¯ˆø‚¢‚½‚çu‰Ÿ‚µ‚½v‚Æ”»’è‚·‚é‚©
 	float leftTriggerThreshold = 0.5f;
 	float rightTriggerThreshold = 0.5f;
-
-	// ƒAƒ_ƒvƒeƒBƒuƒgƒŠƒK[İ’èiPS5‚Ì‚İj
-	TriggerEffect leftTriggerEffect = {};
-	TriggerEffect rightTriggerEffect = {};
-
-	// U“®İ’è (0`255)
-	uint8_t leftMotor = 0;
-	uint8_t rightMotor = 0;
 }; 
  
 ===== FreeCameraComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\FreeCameraComponent.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\FreeCameraComponent.h 
 #pragma once
 #include <windows.h>
 #include "BaseCameraComponent.h"
@@ -1473,7 +1431,7 @@ struct FreeCameraComponent
 }; 
  
 ===== GameCameraComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\GameCameraComponent.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\GameCameraComponent.h 
 #pragma once
 #include <DirectXMath.h>
 #include "entt.hpp"
@@ -1505,7 +1463,7 @@ struct GameCameraComponent
 }; 
  
 ===== InputComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\InputComponent.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\InputComponent.h 
 #pragma once
 struct InputComponent
 {
@@ -1523,7 +1481,7 @@ struct InputComponent
 }; 
  
 ===== MaterialComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\MaterialComponent.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\MaterialComponent.h 
 #pragma once
 #include <cstdint>
 
@@ -1550,7 +1508,7 @@ struct MaterialComponent
 }; 
  
 ===== MeshComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\MeshComponent.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\MeshComponent.h 
 #pragma once
 #include <string>
 
@@ -1564,7 +1522,7 @@ struct MeshComponent
 }; 
  
 ===== MovementComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\MovementComponent.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\MovementComponent.h 
 #pragma once
 #include <DirectXMath.h>
 
@@ -1585,7 +1543,7 @@ struct MovementComponent
 }; 
  
 ===== SkinnedMeshComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\SkinnedMeshComponent.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\SkinnedMeshComponent.h 
 #pragma once
 #include <memory>
 #include <vector>
@@ -1603,7 +1561,7 @@ struct SkinnedMeshComponent
 }; 
  
 ===== StaticMeshComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\StaticMeshComponent.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\StaticMeshComponent.h 
 #pragma once
 #include <memory>
 #include "Resource/Model.h"
@@ -1616,7 +1574,7 @@ struct StaticMeshComponent
 }; 
  
 ===== Tags.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\Tags.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\Tags.h 
 #pragma once
 
 // ƒ[ƒhÏ‚İƒtƒ‰ƒO
@@ -1629,7 +1587,7 @@ struct InvisibleTag {};
 struct NoShadowTag {}; 
  
 ===== TransformComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\TransformComponent.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\TransformComponent.h 
 #pragma once
 #include <DirectXMath.h>
 
@@ -1651,7 +1609,7 @@ struct TransformComponent
 }; 
  
 ===== AnimationSystem.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\AnimationSystem.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\AnimationSystem.h 
 #pragma once
 #include <d3d11.h>
 #include "entt.hpp"
@@ -1694,7 +1652,7 @@ private:
 }; 
  
 ===== ControllerSystem.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\ControllerSystem.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\ControllerSystem.h 
 #pragma once
 #pragma comment(lib, "Xinput.lib")
 
@@ -1731,12 +1689,6 @@ private:
     // PS5 “ü—Í‚ğControllerComponent‚É‘‚­
     void UpdatePS5Input(ControllerComponent& ctrl);
 
-    // PS5 o—Í‘—MiU“®/ƒAƒ_ƒvƒeƒBƒuƒgƒŠƒK[j
-    void SendPS5Output(ControllerComponent& ctrl);
-
-    // TriggerEffect•ÏŠ·
-    void ApplyTriggerEffect(DS5W::TriggerEffect& dst, const TriggerEffect& src);
-
     // PS5 Ú‘±s
     void TryConnectPS5();
 
@@ -1757,7 +1709,7 @@ private:
 }; 
  
 ===== DebugCameraSystem.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\DebugCameraSystem.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\DebugCameraSystem.h 
 #pragma once
 #include "entt.hpp"
 #include "Core/Camera.h"
@@ -1778,7 +1730,7 @@ private:
 }; 
  
 ===== GameCameraSystem.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\GameCameraSystem.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\GameCameraSystem.h 
 #pragma once
 #include "entt.hpp"
 #include "Core/Camera.h"
@@ -1805,7 +1757,7 @@ private:
 }; 
  
 ===== InputSystem.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\InputSystem.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\InputSystem.h 
 #pragma once
 #include "entt.hpp"
 #include "ECS/Components/InputComponent.h"
@@ -1836,7 +1788,7 @@ private:
 }; 
  
 ===== MeshLoaderSystem.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\MeshLoaderSystem.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\MeshLoaderSystem.h 
 #pragma once
 #include <d3d11.h>
 
@@ -1862,7 +1814,7 @@ public:
 }; 
  
 ===== MovementSystem.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\MovementSystem.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\MovementSystem.h 
 #pragma once
 #include "entt.hpp"
 #include "Core/SceneContext.h"
@@ -1874,7 +1826,7 @@ public:
 }; 
  
 ===== RenderSystem.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\RenderSystem.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\RenderSystem.h 
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
@@ -1893,173 +1845,184 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\RenderSystem.h
 // ’è”ƒoƒbƒtƒ@\‘¢‘Ì
 struct CbScene
 {
-    DirectX::XMFLOAT4X4 view;             // ƒrƒ…[s—ñ
-    DirectX::XMFLOAT4X4 projection;       // ƒvƒƒWƒFƒNƒVƒ‡ƒ“s—ñ
-    DirectX::XMFLOAT4   cameraPosition;   // ƒJƒƒ‰ˆÊ’uiw–¢g—pj
+	DirectX::XMFLOAT4X4 view;             // ƒrƒ…[s—ñ
+	DirectX::XMFLOAT4X4 projection;       // ƒvƒƒWƒFƒNƒVƒ‡ƒ“s—ñ
+	DirectX::XMFLOAT4   cameraPosition;   // ƒJƒƒ‰ˆÊ’uiw–¢g—pj
 };
 
 struct CbObject
 {
-    DirectX::XMFLOAT4X4 world;      // ƒ[ƒ‹ƒhs—ñ
+	DirectX::XMFLOAT4X4 world;      // ƒ[ƒ‹ƒhs—ñ
 };
 
 #define MAX_BONES 256
+
 struct CbSkinning
 {
-    DirectX::XMFLOAT4X4 boneTransforms[MAX_BONES];
+	DirectX::XMFLOAT4X4 boneTransforms[MAX_BONES];
 };
 
 
 class RenderSystem
 {
 public:
-    // ‰Šú‰»(ƒVƒF[ƒ_[“Ç‚İ‚İj
-    void Initialize(ID3D11Device* device);
+	// ‰Šú‰»
+	void Initialize(ID3D11Device* device);
 
-    // •`‰æ
-    void Render(
-        entt::registry& registry,
-        ID3D11DeviceContext* dc,
-        ID3D11RenderTargetView* rtv,
-        ID3D11DepthStencilView* dsv,
-        ID3D11Device* device,
-        UINT width,
-        UINT height
-    );
+	// •`‰æ
+	void Render(
+		entt::registry& registry,
+		ID3D11DeviceContext* dc,
+		ID3D11RenderTargetView* rtv,
+		ID3D11DepthStencilView* dsv,
+		ID3D11Device* device,
+		UINT width,
+		UINT height
+	);
 
-    // ƒtƒ‰ƒXƒ^ƒ€‚ğScene‘¤‚©‚çƒZƒbƒg
-    void SetFrustum(
-        const DirectX::XMFLOAT4X4& view,
-        const DirectX::XMFLOAT4X4& projection)
-    {
-        cachedFrustum = CalcFrustum(view, projection);
-    }
+	// ƒtƒ‰ƒXƒ^ƒ€‚ğScene‘¤‚©‚çƒZƒbƒg
+	void SetFrustum(
+		const DirectX::XMFLOAT4X4& view,
+		const DirectX::XMFLOAT4X4& projection)
+	{
+		cachedFrustum = CalcFrustum(view, projection);
+	}
 
-    // IBLƒeƒNƒXƒ`ƒƒƒZƒbƒg
-    void SetIBLTextures(
-        ID3D11ShaderResourceView* diffuseIem,
-        ID3D11ShaderResourceView* specularPmrem,
-        ID3D11ShaderResourceView* lutGgx)
-    {
-        iblDiffuseIem = diffuseIem;
-        iblSpecularPmrem = specularPmrem;
-        iblLutGgx = lutGgx;
-    }
+	// IBLƒeƒNƒXƒ`ƒƒƒZƒbƒg
+	void SetIBLTextures(
+		ID3D11ShaderResourceView* diffuseIem,
+		ID3D11ShaderResourceView* specularPmrem,
+		ID3D11ShaderResourceView* lutGgx)
+	{
+		iblDiffuseIem = diffuseIem;
+		iblSpecularPmrem = specularPmrem;
+		iblLutGgx = lutGgx;
+	}
 
-    // ’è”ƒoƒbƒtƒ@ƒQƒbƒ^[
-    ID3D11Buffer* GetCbScene() { return cbScene.Get(); }
-    ID3D11Buffer** GetCbSceneAddress() { return cbScene.GetAddressOf(); }
+	// ’è”ƒoƒbƒtƒ@ƒQƒbƒ^[
+	ID3D11Buffer* GetCbScene() { return cbScene.Get(); }
+	ID3D11Buffer** GetCbSceneAddress() { return cbScene.GetAddressOf(); }
 
-    // ‰æ–ÊƒTƒCƒYƒZƒbƒg
-    void SetScreenSize(UINT width, UINT height)
-    {
-        screenWidth = width;
-        screenHeight = height;
-    }
 private:
 
-    // ƒtƒ‰ƒXƒ^ƒ€•½–Ê
-    struct FrustumPlane
-    {
-        DirectX::XMFLOAT3 normal;
-        float distance;
-    };
+	// ƒtƒ‰ƒXƒ^ƒ€•½–Ê
+	struct FrustumPlane
+	{
+		DirectX::XMFLOAT3 normal;
+		float distance;
+	};
 
-    // ƒtƒ‰ƒXƒ^ƒ€i6•½–Êj
-    struct Frustum
-    {
-        FrustumPlane planes[6]; // Left, Right, Top, Bottom, Near, Far
-    };
-    
-    // ƒtƒ‰ƒXƒ^ƒ€ŒvZiViewProjections—ñ‚©‚çj
-    Frustum CalcFrustum(
-        const DirectX::XMFLOAT4X4& view,
-        const DirectX::XMFLOAT4X4& projection
-    );
+	// ƒtƒ‰ƒXƒ^ƒ€i6•½–Êj
+	struct Frustum
+	{
+		FrustumPlane planes[6]; // Left, Right, Top, Bottom, Near, Far
+	};
 
-    // ƒoƒEƒ“ƒfƒBƒ“ƒOƒ{ƒbƒNƒX‚ªƒtƒ‰ƒXƒ^ƒ€“à‚É‚ ‚é‚©”»’è
-    bool IsInFrustum(
-        const Frustum& frustum,
-        const Model::BoundingBox& bbox,
-        const DirectX::XMFLOAT4X4& world
-    );
+	// ƒtƒ‰ƒXƒ^ƒ€ŒvZiViewProjections—ñ‚©‚çj
+	Frustum CalcFrustum(
+		const DirectX::XMFLOAT4X4& view,
+		const DirectX::XMFLOAT4X4& projection
+	);
 
-    
-    // ’¸“_ƒVƒF[ƒ_[
-    Microsoft::WRL::ComPtr<ID3D11VertexShader> vertexShader;
-    // ƒXƒLƒjƒ“ƒO—p’¸“_ƒVƒF[ƒ_[
-    Microsoft::WRL::ComPtr<ID3D11VertexShader> skinnedVertexShader;
-
-    // “ü—ÍƒŒƒCƒAƒEƒg
-    Microsoft::WRL::ComPtr<ID3D11InputLayout>  inputLayout;
-
-    // ’è”ƒoƒbƒtƒ@
-    Microsoft::WRL::ComPtr<ID3D11Buffer> cbScene;    // ƒV[ƒ“î•ñ
-    Microsoft::WRL::ComPtr<ID3D11Buffer> cbObject;   // ƒIƒuƒWƒFƒNƒgî•ñ
-    Microsoft::WRL::ComPtr<ID3D11Buffer> cbSkinning; // ƒXƒLƒjƒ“ƒO’è”ƒoƒbƒtƒ@
-
-    // ƒTƒ“ƒvƒ‰[ƒXƒe[ƒg
-    Microsoft::WRL::ComPtr<ID3D11SamplerState>      samplerState;
-    // ƒ‰ƒXƒ^ƒ‰ƒCƒU[ƒXƒe[ƒg
-    Microsoft::WRL::ComPtr<ID3D11RasterizerState>   rasterizerState;
-    // [“xƒXƒeƒ“ƒVƒ‹ƒXƒe[ƒg
-    Microsoft::WRL::ComPtr<ID3D11DepthStencilState> depthStencilState;
-    // ”¼“§–¾—p[“xƒXƒeƒ“ƒVƒ‹ƒXƒe[ƒg
-    Microsoft::WRL::ComPtr<ID3D11DepthStencilState> depthStencilStateTransparent;
-    // ƒuƒŒƒ“ƒhƒXƒe[ƒg
-    Microsoft::WRL::ComPtr<ID3D11BlendState>        blendState;
-    // GBuffer—piƒuƒŒƒ“ƒh‚È‚µj
-    Microsoft::WRL::ComPtr<ID3D11BlendState>        blendStateOpaque;  
-
-    // ƒ_ƒ~[ƒeƒNƒXƒ`ƒƒ
-    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> dummyWhite;  // Albedo/Occlusion—p
-    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> dummyNormal; // –@üƒ}ƒbƒv—p (0.5,0.5,1.0)
-    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> dummyBlack;  // Emissive—p
-
-    // IBL—pƒeƒNƒXƒ`ƒƒ
-    ID3D11ShaderResourceView* iblDiffuseIem = nullptr;
-    ID3D11ShaderResourceView* iblSpecularPmrem = nullptr;
-    ID3D11ShaderResourceView* iblLutGgx = nullptr;
-
-    Frustum cachedFrustum;
+	// ƒoƒEƒ“ƒfƒBƒ“ƒOƒ{ƒbƒNƒX‚ªƒtƒ‰ƒXƒ^ƒ€“à‚É‚ ‚é‚©”»’è
+	bool IsInFrustum(
+		const Frustum& frustum,
+		const Model::BoundingBox& bbox,
+		const DirectX::XMFLOAT4X4& world
+	);
 
 
-    // GBuffer
-    GBuffer gBuffer;
+	// GeometryƒpƒX
+	void GeometryPass(
+		entt::registry& registry,
+		ID3D11DeviceContext* dc,
+		ID3D11DepthStencilView* dsv,
+		const Frustum& frustum
+	);
 
-    // ‰æ–ÊƒTƒCƒY
-    UINT screenWidth = 0;
-    UINT screenHeight = 0;
+	// LightingƒpƒX
+	void LightingPass(
+		ID3D11DeviceContext* dc,
+		ID3D11RenderTargetView* rtv,
+		ID3D11DepthStencilView* dsv
+	);
 
-    // GBufferƒVƒF[ƒ_[ƒ}ƒbƒv
-    std::unordered_map<std::string,
-        Microsoft::WRL::ComPtr<ID3D11PixelShader>> gBufferPixelShaders;
-    
-    // LightingƒpƒX—p
-    Microsoft::WRL::ComPtr<ID3D11VertexShader> lightingVS;
-    Microsoft::WRL::ComPtr<ID3D11PixelShader>  lightingPS;
+	// ”¼“§–¾ƒpƒX(ƒtƒHƒ[ƒhƒŒƒ“ƒ_ƒŠƒ“ƒO)
+	void ForwardTransparentPass(
+		entt::registry& registry,
+		ID3D11DeviceContext* dc,
+		ID3D11RenderTargetView* rtv,
+		ID3D11DepthStencilView* dsv,
+		const Frustum& frustum
+	);
 
-    // ƒtƒ‹ƒXƒNƒŠ[ƒ“•`‰æ—pƒ‰ƒXƒ^ƒ‰ƒCƒU[
-    Microsoft::WRL::ComPtr<ID3D11RasterizerState> rasterizerStateNoCull;
 
-    // GeometryƒpƒX
-    void GeometryPass(
-        entt::registry& registry,
-        ID3D11DeviceContext* dc,
-        ID3D11DepthStencilView* dsv,
-        const Frustum& frustum
-    );
+	Microsoft::WRL::ComPtr<ID3D11VertexShader> staticVertexShader;   // Ã“IƒƒbƒVƒ…—p
+	Microsoft::WRL::ComPtr<ID3D11VertexShader> skinnedVertexShader;  // ƒXƒLƒjƒ“ƒOƒƒbƒVƒ…—p
+	Microsoft::WRL::ComPtr<ID3D11VertexShader> lightingVS;           // LightingƒpƒX—p’¸“_ƒVƒF[ƒ_[
+	Microsoft::WRL::ComPtr<ID3D11PixelShader>  lightingPS;           // LightingƒpƒX—pƒsƒNƒZƒ‹ƒVƒF[ƒ_[
+	Microsoft::WRL::ComPtr<ID3D11PixelShader>  forwardTransparentPS; // ”¼“§–¾ƒtƒHƒ[ƒh—p(PBR)
 
-    // LightingƒpƒX
-    void LightingPass(
-        ID3D11DeviceContext* dc,
-        ID3D11RenderTargetView* rtv,
-        ID3D11DepthStencilView* dsv
-    );
+	// GBufferƒVƒF[ƒ_[ƒ}ƒbƒv
+	std::unordered_map<std::string, Microsoft::WRL::ComPtr<ID3D11PixelShader>> gBufferPixelShaders;
+	
+	// “ü—ÍƒŒƒCƒAƒEƒg
+	Microsoft::WRL::ComPtr<ID3D11InputLayout>  inputLayout;
+
+
+
+	// ƒTƒ“ƒvƒ‰[ƒXƒe[ƒg
+	Microsoft::WRL::ComPtr<ID3D11SamplerState>      samplerState;
+	// ƒ‰ƒXƒ^ƒ‰ƒCƒU[ƒXƒe[ƒg
+	Microsoft::WRL::ComPtr<ID3D11RasterizerState>   rasterizerState;
+	// ƒ‰ƒXƒ^ƒ‰ƒCƒU[ƒXƒe[ƒg(ƒtƒ‹ƒXƒNƒŠ[ƒ“•`‰æ—p)
+	Microsoft::WRL::ComPtr<ID3D11RasterizerState>   rasterizerStateNoCull;
+
+	// [“xƒXƒeƒ“ƒVƒ‹ƒXƒe[ƒg
+	Microsoft::WRL::ComPtr<ID3D11DepthStencilState> depthStencilState;  
+	// [“xƒXƒeƒ“ƒVƒ‹ƒXƒe[ƒg(”¼“§–¾—p)
+	Microsoft::WRL::ComPtr<ID3D11DepthStencilState> depthStencilStateTransparent; 
+	
+	// GeometryPass
+	Microsoft::WRL::ComPtr<ID3D11DepthStencilState> depthStencilStateGeometry;   
+	// LightingPass
+	Microsoft::WRL::ComPtr<ID3D11DepthStencilState> depthStencilStateLighting;
+
+	// ƒAƒ‹ƒtƒ@ƒuƒŒƒ“ƒh(”¼“§–¾—p)
+	Microsoft::WRL::ComPtr<ID3D11BlendState> blendState;
+	// GBuffer—p(ƒuƒŒƒ“ƒh‚È‚µ)
+	Microsoft::WRL::ComPtr<ID3D11BlendState> blendStateOpaque;
+
+
+	// ’è”ƒoƒbƒtƒ@
+	Microsoft::WRL::ComPtr<ID3D11Buffer> cbScene;    // ƒV[ƒ“î•ñ
+	Microsoft::WRL::ComPtr<ID3D11Buffer> cbObject;   // ƒIƒuƒWƒFƒNƒgî•ñ
+	Microsoft::WRL::ComPtr<ID3D11Buffer> cbSkinning; // ƒXƒLƒjƒ“ƒO’è”ƒoƒbƒtƒ@
+
+
+	// ƒ_ƒ~[ƒeƒNƒXƒ`ƒƒ
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> dummyWhite;  // Albedo/Occlusion—p
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> dummyNormal; // –@üƒ}ƒbƒv—p
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> dummyBlack;  // Emissive—p
+
+	// IBL—pƒeƒNƒXƒ`ƒƒ
+	ID3D11ShaderResourceView* iblDiffuseIem    = nullptr;
+	ID3D11ShaderResourceView* iblSpecularPmrem = nullptr;
+	ID3D11ShaderResourceView* iblLutGgx        = nullptr;
+
+
+	// ƒtƒ‰ƒXƒ^ƒ€
+	Frustum cachedFrustum;
+	// GBuffer
+	GBuffer gBuffer;
+
+	// ‰æ–ÊƒTƒCƒY
+	UINT screenWidth = 0;
+	UINT screenHeight = 0;
 }; 
  
 ===== AnimationSystem.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\AnimationSystem.cpp 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\AnimationSystem.cpp 
 #include "AnimationSystem.h"
 #include "tracy/Tracy.hpp"
 
@@ -2375,37 +2338,34 @@ void AnimationSystem::CalcBoneTransforms(
  
  
 ===== ControllerSystem.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\ControllerSystem.cpp 
-#include "ControllerSystem.h"
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\ControllerSystem.cpp 
+ï»¿#include "ControllerSystem.h"
 #include <cmath>
 #include <algorithm>
 
-// ƒRƒ“ƒXƒgƒ‰ƒNƒ^
+// ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 ControllerSystem::ControllerSystem()
 {
     TryConnectPS5();
 }
 
-// ƒfƒXƒgƒ‰ƒNƒ^
+// ãƒ‡ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 ControllerSystem::~ControllerSystem()
 {
     if (ds5Connected)
     {
-        // I—¹‚ÉƒgƒŠƒK[/U“®‚ğƒŠƒZƒbƒg‚µ‚Ä‚©‚çØ’f
-        DS5W::DS5OutputState reset = {};
-        DS5W::setDeviceOutputState(&ds5Context, &reset);
         DS5W::freeDeviceContext(&ds5Context);
         ds5Connected = false;
     }
 }
 
-// XV
+// æ›´æ–°
 void ControllerSystem::Update(entt::registry& registry, float elapsedTime)
 {
-    // Xbox Ú‘±Šm”F
+    // Xbox æ¥ç¶šç¢ºèª
     xboxConnected = XInputGetState(0, &xboxState) == ERROR_SUCCESS;
 
-    // PS5 Ú‘±Šm”F / ÄÚ‘±
+    // PS5 æ¥ç¶šç¢ºèª / å†æ¥ç¶š
     if (ds5Connected)
     {
         DS5W_ReturnValue rv = DS5W::getDeviceInputState(&ds5Context, &ds5InputState);
@@ -2425,11 +2385,11 @@ void ControllerSystem::Update(entt::registry& registry, float elapsedTime)
         }
     }
 
-    // ControllerComponent ‚ğ‚Â Entity ‚ğXV
+    // ControllerComponent ã‚’æŒã¤ Entity ã‚’æ›´æ–°
     auto view = registry.view<ControllerComponent>();
     view.each([&](ControllerComponent& ctrl)
         {
-            // ƒŠƒZƒbƒg
+            // ãƒªã‚»ãƒƒãƒˆ
             ctrl.leftStickX = 0.0f;
             ctrl.leftStickY = 0.0f;
             ctrl.rightStickX = 0.0f;
@@ -2440,13 +2400,12 @@ void ControllerSystem::Update(entt::registry& registry, float elapsedTime)
             ctrl.connected = false;
             ctrl.type = ControllerType::None;
 
-            // PS5 —DæA‚È‚¯‚ê‚Î Xbox
+            // PS5 å„ªå…ˆã€ãªã‘ã‚Œã° Xbox
             if (ds5Connected)
             {
                 ctrl.type = ControllerType::PS5;
                 ctrl.connected = true;
                 UpdatePS5Input(ctrl);
-                SendPS5Output(ctrl);
             }
             else if (xboxConnected)
             {
@@ -2457,22 +2416,22 @@ void ControllerSystem::Update(entt::registry& registry, float elapsedTime)
         });
 }
 
-// Xbox “ü—Í
+// Xbox å…¥åŠ›
 void ControllerSystem::UpdateXboxInput(ControllerComponent& ctrl)
 {
     const auto& gp = xboxState.Gamepad;
 
-    // ƒXƒeƒBƒbƒNi-32768`32767 ¨ -1.0`1.0j
+    // ã‚¹ãƒ†ã‚£ãƒƒã‚¯ï¼ˆ-32768ï½32767 â†’ -1.0ï½1.0ï¼‰
     ctrl.leftStickX = gp.sThumbLX / 32767.0f;
     ctrl.leftStickY = gp.sThumbLY / 32767.0f;
     ctrl.rightStickX = gp.sThumbRX / 32767.0f;
     ctrl.rightStickY = gp.sThumbRY / 32767.0f;
 
-    // ƒgƒŠƒK[i0`255 ¨ 0.0`1.0j
+    // ãƒˆãƒªã‚¬ãƒ¼ï¼ˆ0ï½255 â†’ 0.0ï½1.0ï¼‰
     ctrl.leftTrigger = gp.bLeftTrigger / 255.0f;
     ctrl.rightTrigger = gp.bRightTrigger / 255.0f;
 
-    // ƒ{ƒ^ƒ“
+    // ãƒœã‚¿ãƒ³
     auto btn = gp.wButtons;
     if (btn & XINPUT_GAMEPAD_A)              ctrl.buttons |= ControllerButtons::Cross;
     if (btn & XINPUT_GAMEPAD_B)              ctrl.buttons |= ControllerButtons::Circle;
@@ -2485,32 +2444,32 @@ void ControllerSystem::UpdateXboxInput(ControllerComponent& ctrl)
     if (btn & XINPUT_GAMEPAD_START)          ctrl.buttons |= ControllerButtons::Options;
     if (btn & XINPUT_GAMEPAD_BACK)           ctrl.buttons |= ControllerButtons::Share;
 
-    // L2/R2 ƒfƒWƒ^ƒ‹”»’èisettings ‚Ìè‡’l‚ğg‚¤j
+    // L2/R2 ãƒ‡ã‚¸ã‚¿ãƒ«åˆ¤å®šï¼ˆsettings ã®é–¾å€¤ã‚’ä½¿ã†ï¼‰
     if (ctrl.leftTrigger >= settings.leftTriggerThreshold)  ctrl.buttons |= ControllerButtons::L2;
     if (ctrl.rightTrigger >= settings.rightTriggerThreshold) ctrl.buttons |= ControllerButtons::R2;
 }
 
-// PS5 “ü—Í
+// PS5 å…¥åŠ›
 void ControllerSystem::UpdatePS5Input(ControllerComponent& ctrl)
 {
-    // ƒXƒeƒBƒbƒNi-128`127 ¨ -1.0`1.0j
+    // ã‚¹ãƒ†ã‚£ãƒƒã‚¯ï¼ˆ-128ï½127 â†’ -1.0ï½1.0ï¼‰
     ctrl.leftStickX = ds5InputState.leftStick.x / 127.0f;
     ctrl.leftStickY = ds5InputState.leftStick.y / 127.0f;
     ctrl.rightStickX = ds5InputState.rightStick.x / 127.0f;
     ctrl.rightStickY = ds5InputState.rightStick.y / 127.0f;
 
-    // ƒgƒŠƒK[i0`255 ¨ 0.0`1.0j
+    // ãƒˆãƒªã‚¬ãƒ¼ï¼ˆ0ï½255 â†’ 0.0ï½1.0ï¼‰
     ctrl.leftTrigger = ds5InputState.leftTrigger / 255.0f;
     ctrl.rightTrigger = ds5InputState.rightTrigger / 255.0f;
 
-    // ƒ{ƒ^ƒ“ibuttonsAndDpadj
+    // ãƒœã‚¿ãƒ³ï¼ˆbuttonsAndDpadï¼‰
     auto btn = ds5InputState.buttonsAndDpad;
     if (btn & DS5W_ISTATE_BTX_CROSS)    ctrl.buttons |= ControllerButtons::Cross;
     if (btn & DS5W_ISTATE_BTX_CIRCLE)   ctrl.buttons |= ControllerButtons::Circle;
     if (btn & DS5W_ISTATE_BTX_SQUARE)   ctrl.buttons |= ControllerButtons::Square;
     if (btn & DS5W_ISTATE_BTX_TRIANGLE) ctrl.buttons |= ControllerButtons::Triangle;
 
-    // ƒ{ƒ^ƒ“ibuttonsAj
+    // ãƒœã‚¿ãƒ³ï¼ˆbuttonsAï¼‰
     auto btnA = ds5InputState.buttonsA;
     if (btnA & DS5W_ISTATE_BTN_A_LEFT_BUMPER)  ctrl.buttons |= ControllerButtons::L1;
     if (btnA & DS5W_ISTATE_BTN_A_RIGHT_BUMPER) ctrl.buttons |= ControllerButtons::R1;
@@ -2519,62 +2478,12 @@ void ControllerSystem::UpdatePS5Input(ControllerComponent& ctrl)
     if (btnA & DS5W_ISTATE_BTN_A_SELECT)       ctrl.buttons |= ControllerButtons::Share;
     if (btnA & DS5W_ISTATE_BTN_A_MENU)         ctrl.buttons |= ControllerButtons::Options;
 
-    // L2/R2 ƒfƒWƒ^ƒ‹”»’èisettings ‚Ìè‡’l‚ğg‚¤j
+    // L2/R2 ãƒ‡ã‚¸ã‚¿ãƒ«åˆ¤å®šï¼ˆsettings ã®é–¾å€¤ã‚’ä½¿ã†ï¼‰
     if (ctrl.leftTrigger >= settings.leftTriggerThreshold)  ctrl.buttons |= ControllerButtons::L2;
     if (ctrl.rightTrigger >= settings.rightTriggerThreshold) ctrl.buttons |= ControllerButtons::R2;
 }
 
-// PS5 o—Í‘—M
-void ControllerSystem::SendPS5Output(ControllerComponent& ctrl)
-{
-    ds5OutputState = {};
-
-    // U“®
-    ds5OutputState.leftRumble = ctrl.vibration.leftMotor;
-    ds5OutputState.rightRumble = ctrl.vibration.rightMotor;
-
-    // ƒAƒ_ƒvƒeƒBƒuƒgƒŠƒK[
-    ApplyTriggerEffect(ds5OutputState.leftTriggerEffect, settings.leftTriggerEffect);
-    ApplyTriggerEffect(ds5OutputState.rightTriggerEffect, settings.rightTriggerEffect);
-
-    DS5W::setDeviceOutputState(&ds5Context, &ds5OutputState);
-}
-
-// TriggerEffect•ÏŠ·
-void ControllerSystem::ApplyTriggerEffect(DS5W::TriggerEffect& dst, const TriggerEffect& src)
-{
-    switch (src.type)
-    {
-    case TriggerEffectType::Off:
-        dst.effectType = DS5W::TriggerEffectType::NoResitance;
-        break;
-
-    case TriggerEffectType::Rigid:
-        dst.effectType = DS5W::TriggerEffectType::ContinuousResitance;
-        dst.Continuous.startPosition = src.start;
-        dst.Continuous.force = src.force;
-        break;
-
-    case TriggerEffectType::Pulse:
-        dst.effectType = DS5W::TriggerEffectType::SectionResitance;
-        dst.Section.startPosition = src.start;
-        dst.Section.endPosition = src.end;
-        break;
-
-    case TriggerEffectType::Slope:
-        dst.effectType = DS5W::TriggerEffectType::ContinuousResitance;
-        dst.Continuous.startPosition = src.start;
-        dst.Continuous.force = static_cast<uint8_t>(
-            src.force * (1.0f - src.start / 255.0f));
-        break;
-
-    default:
-        dst.effectType = DS5W::TriggerEffectType::NoResitance;
-        break;
-    }
-}
-
-// PS5 Ú‘±s
+// PS5 æ¥ç¶šè©¦è¡Œ
 void ControllerSystem::TryConnectPS5()
 {
     DS5W::DeviceEnumInfo enumInfo[4];
@@ -2595,7 +2504,7 @@ void ControllerSystem::TryConnectPS5()
  
  
 ===== DebugCameraSystem.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\DebugCameraSystem.cpp 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\DebugCameraSystem.cpp 
 #include "DebugCameraSystem.h"
 #include <imgui.h>
 #include <algorithm>
@@ -2741,7 +2650,7 @@ void DebugCameraSystem::UpdateFreeCamera(FreeCameraComponent& free, float elapse
 } 
  
 ===== GameCameraSystem.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\GameCameraSystem.cpp 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\GameCameraSystem.cpp 
 #include "GameCameraSystem.h"
 #include <algorithm>
 
@@ -2874,7 +2783,7 @@ void GameCameraSystem::UpdateFixed(
 } 
  
 ===== InputSystem.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\InputSystem.cpp 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\InputSystem.cpp 
 ï»¿#include "InputSystem.h"
 #include <cmath>
 #include <algorithm>
@@ -2958,7 +2867,7 @@ float InputSystem::ApplyTriggerDeadzone(float value, float deadzone)
  
  
 ===== MeshLoaderSystem.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\MeshLoaderSystem.cpp 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\MeshLoaderSystem.cpp 
 #include "MeshLoaderSystem.h"
 
 void MeshLoaderSystem::Update(
@@ -3041,7 +2950,7 @@ void MeshLoaderSystem::Update(
 } 
  
 ===== MovementSystem.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\MovementSystem.cpp 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\MovementSystem.cpp 
 #include "MovementSystem.h"
 #include "ECS/Components/InputComponent.h"
 #include "ECS/Components/MovementComponent.h"
@@ -3107,39 +3016,34 @@ void MovementSystem::Update(entt::registry& registry, float elapsedTime, const S
  
  
 ===== RenderSystem.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\RenderSystem.cpp 
-#include "RenderSystem.h"
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\RenderSystem.cpp 
+ï»¿#include "RenderSystem.h"
 #include "Resource/GpuResourceUtils.h"
 #include "Utility/misc.h"
 
-// ‰Šú‰»(ƒVƒF[ƒ_[“Ç‚İ‚İj
+
+// åˆæœŸåŒ–
 void RenderSystem::Initialize(ID3D11Device* device)
 {
-	// “ü—ÍƒŒƒCƒAƒEƒg
+	// å…¥åŠ›ãƒ¬ã‚¤ã‚¢ã‚¦ãƒˆ
 	const std::vector<D3D11_INPUT_ELEMENT_DESC>& inputElementDescs = Model::InputElementDescs;
 
-	// Ã“IƒƒbƒVƒ…—p’¸“_ƒVƒF[ƒ_[
-	GpuResourceUtils::LoadVertexShader(
-		device,
-		"Data/Shader/Static_VS.cso",
-		inputElementDescs.data(),
-		static_cast<UINT>(inputElementDescs.size()),
-		inputLayout,
-		vertexShader
-	);
 
-	// ƒXƒLƒjƒ“ƒO—p’¸“_ƒVƒF[ƒ_[
+	// é ‚ç‚¹ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼
+	GpuResourceUtils::LoadVertexShader(
+		device, "Data/Shader/Static_VS.cso",
+		inputElementDescs.data(), static_cast<UINT>(inputElementDescs.size()),
+		inputLayout, staticVertexShader
+	);
+	// é ‚ç‚¹ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼(ã‚¹ã‚­ãƒ‹ãƒ³ã‚°)
 	Microsoft::WRL::ComPtr<ID3D11InputLayout> dummyLayout;
 	GpuResourceUtils::LoadVertexShader(
-		device,
-		"Data/Shader/Skinning_VS.cso",
-		inputElementDescs.data(),
-		static_cast<UINT>(inputElementDescs.size()),
-		dummyLayout,
-		skinnedVertexShader
+		device, "Data/Shader/Skinning_VS.cso",
+		inputElementDescs.data(), static_cast<UINT>(inputElementDescs.size()),
+		dummyLayout, skinnedVertexShader
 	);
 
-	// GBufferƒVƒF[ƒ_[‚ğƒ}ƒbƒv‚É“o˜^
+	// GBufferç”¨ãƒ”ã‚¯ã‚»ãƒ«ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼
 	Microsoft::WRL::ComPtr<ID3D11PixelShader> psDefault;
 	GpuResourceUtils::LoadPixelShader(device, "Data/Shader/Gbuffer_PS.cso", psDefault);
 	gBufferPixelShaders["gbuffer_default"] = psDefault;
@@ -3148,75 +3052,94 @@ void RenderSystem::Initialize(ID3D11Device* device)
 	GpuResourceUtils::LoadPixelShader(device, "Data/Shader/Gbuffer_Basic_PS.cso", psBasic);
 	gBufferPixelShaders["gbuffer_basic"] = psBasic;
 
-	// ƒV[ƒ“’è”ƒoƒbƒtƒ@¶¬
-	GpuResourceUtils::CreateConstantBuffer(
-		device,
-		sizeof(CbScene),
-		cbScene
+	// Lightingãƒ‘ã‚¹ç”¨ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼
+	Microsoft::WRL::ComPtr<ID3D11InputLayout> dummyLayoutL;
+	GpuResourceUtils::LoadVertexShader(
+		device, "Data/Shader/Lighting_VS.cso",
+		nullptr, 0, dummyLayoutL, lightingVS
+	);
+	GpuResourceUtils::LoadPixelShader(
+		device, "Data/Shader/Lighting_PS.cso", lightingPS
 	);
 
-	// ƒIƒuƒWƒFƒNƒg’è”ƒoƒbƒtƒ@¶¬
-	GpuResourceUtils::CreateConstantBuffer(
-		device,
-		sizeof(CbObject),
-		cbObject
-	);
+	// åŠé€æ˜ãƒ•ã‚©ãƒ¯ãƒ¼ãƒ‰ç”¨ãƒ”ã‚¯ã‚»ãƒ«ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼(PBR)
+	GpuResourceUtils::LoadPixelShader(device, "Data/Shader/PBR_PS.cso", forwardTransparentPS);
 
-	// ƒXƒLƒjƒ“ƒO’è”ƒoƒbƒtƒ@¶¬
-	GpuResourceUtils::CreateConstantBuffer(
-		device,
-		sizeof(CbSkinning),
-		cbSkinning
-	);
+	// å®šæ•°ãƒãƒƒãƒ•ã‚¡
+	GpuResourceUtils::CreateConstantBuffer(device, sizeof(CbScene), cbScene);
+	GpuResourceUtils::CreateConstantBuffer(device, sizeof(CbObject), cbObject);
+	GpuResourceUtils::CreateConstantBuffer(device, sizeof(CbSkinning), cbSkinning);
 
-	// ƒTƒ“ƒvƒ‰[ƒXƒe[ƒg¶¬
+	// ã‚µãƒ³ãƒ—ãƒ©ãƒ¼ã‚¹ãƒ†ãƒ¼ãƒˆ
 	D3D11_SAMPLER_DESC samplerDesc{};
-	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR; // üŒ`•âŠÔ
-	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;    // UVŒJ‚è•Ô‚µ
+	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
 	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
 	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
 	samplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
 	samplerDesc.MinLOD = 0;
 	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
-	device->CreateSamplerState(
-		&samplerDesc,
-		samplerState.GetAddressOf()
-	);
+	device->CreateSamplerState(&samplerDesc, samplerState.GetAddressOf());
 
-	// ƒ‰ƒXƒ^ƒ‰ƒCƒU[ƒXƒe[ƒg¶¬
+	// ãƒ©ã‚¹ã‚¿ãƒ©ã‚¤ã‚¶ãƒ¼ã‚¹ãƒ†ãƒ¼ãƒˆ(è£é¢ã‚«ãƒªãƒ³ã‚°ï¼‰
 	D3D11_RASTERIZER_DESC rasterizerDesc{};
-	rasterizerDesc.FillMode = D3D11_FILL_SOLID; // “h‚è‚Â‚Ô‚µ
-	rasterizerDesc.CullMode = D3D11_CULL_BACK;  // — –ÊƒJƒŠƒ“ƒO
+	rasterizerDesc.FillMode = D3D11_FILL_SOLID;
+	rasterizerDesc.CullMode = D3D11_CULL_BACK;
 	rasterizerDesc.FrontCounterClockwise = FALSE;
-	device->CreateRasterizerState(
-		&rasterizerDesc,
-		rasterizerState.GetAddressOf()
-	);
+	device->CreateRasterizerState(&rasterizerDesc, rasterizerState.GetAddressOf());
 
-	// [“xƒXƒeƒ“ƒVƒ‹ƒXƒe[ƒg¶¬
-	D3D11_DEPTH_STENCIL_DESC depthStencilDesc{};
-	depthStencilDesc.DepthEnable = TRUE;                          // [“xƒeƒXƒg—LŒø
-	depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL; // [“x‘‚«‚İ—LŒø
-	depthStencilDesc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;     // ˆÈ‰º‚È‚ç•`‰æ
-	device->CreateDepthStencilState(
-		&depthStencilDesc,
-		depthStencilState.GetAddressOf()
-	);
+	// ãƒ©ã‚¹ã‚¿ãƒ©ã‚¤ã‚¶ãƒ¼ã‚¹ãƒ†ãƒ¼ãƒˆ(ã‚«ãƒªãƒ³ã‚°ãªã—ãƒ»ãƒ•ãƒ«ã‚¹ã‚¯ãƒªãƒ¼ãƒ³ç”¨ï¼‰
+	D3D11_RASTERIZER_DESC noCullDesc{};
+	noCullDesc.FillMode = D3D11_FILL_SOLID;
+	noCullDesc.CullMode = D3D11_CULL_NONE;
+	noCullDesc.FrontCounterClockwise = FALSE;
+	device->CreateRasterizerState(&noCullDesc, rasterizerStateNoCull.GetAddressOf());
 
-	// ”¼“§–¾—p[“xƒXƒeƒ“ƒVƒ‹ƒXƒe[ƒgi[“xƒeƒXƒgONA[“x‘‚«‚İOFFj
-	D3D11_DEPTH_STENCIL_DESC depthStencilDescTransparent{};
-	depthStencilDescTransparent.DepthEnable = TRUE;
-	depthStencilDescTransparent.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO; // ‘‚«‚İOFF
-	depthStencilDescTransparent.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
-	device->CreateDepthStencilState(
-		&depthStencilDescTransparent,
-		depthStencilStateTransparent.GetAddressOf()
-	);
+	// æ·±åº¦ã‚¹ãƒ†ãƒ³ã‚·ãƒ«ã‚¹ãƒ†ãƒ¼ãƒˆ
+	D3D11_DEPTH_STENCIL_DESC dsDesc{};
+	dsDesc.DepthEnable = TRUE;
+	dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+	dsDesc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
+	device->CreateDepthStencilState(&dsDesc, depthStencilState.GetAddressOf());
 
-	// ƒuƒŒƒ“ƒhƒXƒe[ƒg¶¬iƒAƒ‹ƒtƒ@ƒuƒŒƒ“ƒhj
+	// æ·±åº¦ã‚¹ãƒ†ãƒ³ã‚·ãƒ«ã‚¹ãƒ†ãƒ¼ãƒˆ(åŠé€æ˜ç”¨ãƒ»æ·±åº¦æ›¸ãè¾¼ã¿OFFï¼‰
+	D3D11_DEPTH_STENCIL_DESC dsTransparent{};
+	dsTransparent.DepthEnable = TRUE;
+	dsTransparent.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
+	dsTransparent.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
+	device->CreateDepthStencilState(&dsTransparent, depthStencilStateTransparent.GetAddressOf());
+
+	// æ·±åº¦ã‚¹ãƒ†ãƒ³ã‚·ãƒ«ã‚¹ãƒ†ãƒ¼ãƒˆ(GeometryPassç”¨)
+	D3D11_DEPTH_STENCIL_DESC dsGeom{};
+	dsGeom.DepthEnable = TRUE;
+	dsGeom.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+	dsGeom.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
+	dsGeom.StencilEnable = TRUE;
+	dsGeom.StencilWriteMask = 0xFF;
+	dsGeom.StencilReadMask = 0xFF;
+	dsGeom.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+	dsGeom.FrontFace.StencilPassOp = D3D11_STENCIL_OP_REPLACE;
+	dsGeom.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+	dsGeom.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
+	dsGeom.BackFace = dsGeom.FrontFace;
+	device->CreateDepthStencilState(&dsGeom, depthStencilStateGeometry.GetAddressOf());
+
+	// æ·±åº¦ã‚¹ãƒ†ãƒ³ã‚·ãƒ«ã‚¹ãƒ†ãƒ¼ãƒˆ(LightingPassç”¨)
+	D3D11_DEPTH_STENCIL_DESC dsLight{};
+	dsLight.DepthEnable = FALSE;
+	dsLight.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
+	dsLight.StencilEnable = TRUE;
+	dsLight.StencilReadMask = 0xFF;
+	dsLight.StencilWriteMask = 0x00;
+	dsLight.FrontFace.StencilFunc = D3D11_COMPARISON_EQUAL;
+	dsLight.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+	dsLight.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+	dsLight.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
+	dsLight.BackFace = dsLight.FrontFace;
+	device->CreateDepthStencilState(&dsLight, depthStencilStateLighting.GetAddressOf());
+
+	// ãƒ–ãƒ¬ãƒ³ãƒ‰ã‚¹ãƒ†ãƒ¼ãƒˆ(ã‚¢ãƒ«ãƒ•ã‚¡ãƒ–ãƒ¬ãƒ³ãƒ‰ãƒ»åŠé€æ˜ç”¨ï¼‰
 	D3D11_BLEND_DESC blendDesc{};
-	blendDesc.AlphaToCoverageEnable = FALSE;
-	blendDesc.IndependentBlendEnable = FALSE;
 	blendDesc.RenderTarget[0].BlendEnable = TRUE;
 	blendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
 	blendDesc.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
@@ -3226,54 +3149,30 @@ void RenderSystem::Initialize(ID3D11Device* device)
 	blendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
 	blendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 	device->CreateBlendState(&blendDesc, blendState.GetAddressOf());
-	// GBuffer—piƒuƒŒƒ“ƒh‚È‚µj
+
+	// ãƒ–ãƒ¬ãƒ³ãƒ‰ã‚¹ãƒ†ãƒ¼ãƒˆ(ãƒ–ãƒ¬ãƒ³ãƒ‰ãªã—ãƒ»GBufferç”¨ï¼‰
 	D3D11_BLEND_DESC blendDescOpaque{};
-	blendDescOpaque.AlphaToCoverageEnable = FALSE;
-	blendDescOpaque.IndependentBlendEnable = FALSE;
 	blendDescOpaque.RenderTarget[0].BlendEnable = FALSE;
 	blendDescOpaque.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 	device->CreateBlendState(&blendDescOpaque, blendStateOpaque.GetAddressOf());
 
-	// ƒ_ƒ~[ƒeƒNƒXƒ`ƒƒ¶¬
-	// ”’ (Albedo / Occlusion—p)
-	GpuResourceUtils::CreateDummyTexture(device, dummyWhite, 0xFFFFFFFF, 1);
-	// –@üƒ}ƒbƒv—p (R=128, G=128, B=255 ¨ ³–ÊŒü‚«–@ü)
-	GpuResourceUtils::CreateDummyTexture(device, dummyNormal, 0xFFFF8080, 1);
-	// • (Emissive—p)
-	GpuResourceUtils::CreateDummyTexture(device, dummyBlack, 0xFF000000, 1);
-
-	// LightingƒpƒX—pƒVƒF[ƒ_[“Ç‚İ‚İ
-	Microsoft::WRL::ComPtr<ID3D11InputLayout> dummyLayoutL;
-	GpuResourceUtils::LoadVertexShader(
-		device,
-		"Data/Shader/Lighting_VS.cso",
-		nullptr, 0,
-		dummyLayoutL,
-		lightingVS
-	);
-	GpuResourceUtils::LoadPixelShader(
-		device, "Data/Shader/Lighting_PS.cso", lightingPS);
-
-	// ƒJƒŠƒ“ƒO‚È‚µƒ‰ƒXƒ^ƒ‰ƒCƒU[
-	D3D11_RASTERIZER_DESC noCullDesc{};
-	noCullDesc.FillMode = D3D11_FILL_SOLID;
-	noCullDesc.CullMode = D3D11_CULL_NONE;
-	noCullDesc.FrontCounterClockwise = FALSE;
-	device->CreateRasterizerState(
-		&noCullDesc, rasterizerStateNoCull.GetAddressOf());
+	// ãƒ€ãƒŸãƒ¼ãƒ†ã‚¯ã‚¹ãƒãƒ£
+	GpuResourceUtils::CreateDummyTexture(device, dummyWhite, 0xFFFFFFFF, 1);  // Albedo/Occlusionç”¨
+	GpuResourceUtils::CreateDummyTexture(device, dummyNormal, 0xFFFF8080, 1); // æ³•ç·š
+	GpuResourceUtils::CreateDummyTexture(device, dummyBlack, 0xFF000000, 1);  // Emissiveç”¨
 }
 
-// •`‰æ
+// æç”»
 void RenderSystem::Render(
-	entt::registry& registry, 
-	ID3D11DeviceContext* dc, 
+	entt::registry& registry,
+	ID3D11DeviceContext* dc,
 	ID3D11RenderTargetView* rtv,
-	ID3D11DepthStencilView* dsv, 
-	ID3D11Device* device,
+	ID3D11DepthStencilView* dsv,
+	ID3D11Device* device, 
 	UINT width, 
 	UINT height)
 {
-	// GBuffer‰Šú‰»
+	// GBufferåˆæœŸåŒ–
 	if (screenWidth != width || screenHeight != height || screenWidth == 0)
 	{
 		screenWidth = width;
@@ -3281,59 +3180,39 @@ void RenderSystem::Render(
 		gBuffer.Initialize(device, width, height);
 	}
 
-	Frustum frustum = cachedFrustum;
+	// ä¸é€æ˜ã‚¸ã‚ªãƒ¡ãƒˆãƒªã‚’GBufferã¸
+	GeometryPass(registry, dc, dsv, cachedFrustum);
 
-	// GeometryƒpƒX
-	GeometryPass(registry, dc, dsv, frustum);
-
-	// IBL—pƒeƒNƒXƒ`ƒƒƒZƒbƒg
-	ID3D11ShaderResourceView* iblSrvs[3] =
-	{
-		iblDiffuseIem,
-		iblSpecularPmrem,
-		iblLutGgx,
-	};
+	// IBLãƒ†ã‚¯ã‚¹ãƒãƒ£ã‚’LightingPassã¨ForwardTransparentPassã¸
+	ID3D11ShaderResourceView* iblSrvs[3] = { iblDiffuseIem, iblSpecularPmrem, iblLutGgx };
 	dc->PSSetShaderResources(6, 3, iblSrvs);
 
-	// LightingƒpƒX
+	// Lightingãƒ‘ã‚¹
 	LightingPass(dc, rtv, dsv);
+
+	// åŠé€æ˜ã‚’ãƒ•ã‚©ãƒ¯ãƒ¼ãƒ‰ã§åˆæˆ
+	ForwardTransparentPass(registry, dc, rtv, dsv, cachedFrustum);
 }
 
-// ƒtƒ‰ƒXƒ^ƒ€ŒvZ
+// ãƒ•ãƒ©ã‚¹ã‚¿ãƒ è¨ˆç®—
 RenderSystem::Frustum RenderSystem::CalcFrustum(
 	const DirectX::XMFLOAT4X4& view,
 	const DirectX::XMFLOAT4X4& projection)
 {
-	// ViewProjections—ñ‚ğŒvZ
-	DirectX::XMMATRIX v = DirectX::XMLoadFloat4x4(&view);
-	DirectX::XMMATRIX p = DirectX::XMLoadFloat4x4(&projection);
-	DirectX::XMMATRIX vp = v * p;
-
+	// ViewProjectionè¡Œåˆ—ã‚’è¨ˆç®—
+	DirectX::XMMATRIX vp = DirectX::XMLoadFloat4x4(&view) * DirectX::XMLoadFloat4x4(&projection);
 	DirectX::XMFLOAT4X4 m;
 	DirectX::XMStoreFloat4x4(&m, vp);
 
 	Frustum frustum;
+	frustum.planes[0] = { { m._14 + m._11, m._24 + m._21, m._34 + m._31 }, m._44 + m._41 }; // Left
+	frustum.planes[1] = { { m._14 - m._11, m._24 - m._21, m._34 - m._31 }, m._44 - m._41 }; // Right
+	frustum.planes[2] = { { m._14 + m._12, m._24 + m._22, m._34 + m._32 }, m._44 + m._42 }; // Bottom
+	frustum.planes[3] = { { m._14 - m._12, m._24 - m._22, m._34 - m._32 }, m._44 - m._42 }; // Top
+	frustum.planes[4] = { { m._13,         m._23,         m._33         }, m._43         }; // Near
+	frustum.planes[5] = { { m._14 - m._13, m._24 - m._23, m._34 - m._33 }, m._44 - m._43 }; // Far
 
-	// Left
-	frustum.planes[0].normal = { m._14 + m._11, m._24 + m._21, m._34 + m._31 };
-	frustum.planes[0].distance = m._44 + m._41;
-	// Right
-	frustum.planes[1].normal = { m._14 - m._11, m._24 - m._21, m._34 - m._31 };
-	frustum.planes[1].distance = m._44 - m._41;
-	// Bottom
-	frustum.planes[2].normal = { m._14 + m._12, m._24 + m._22, m._34 + m._32 };
-	frustum.planes[2].distance = m._44 + m._42;
-	// Top
-	frustum.planes[3].normal = { m._14 - m._12, m._24 - m._22, m._34 - m._32 };
-	frustum.planes[3].distance = m._44 - m._42;
-	// Near
-	frustum.planes[4].normal = { m._13, m._23, m._33 };
-	frustum.planes[4].distance = m._43;
-	// Far
-	frustum.planes[5].normal = { m._14 - m._13, m._24 - m._23, m._34 - m._33 };
-	frustum.planes[5].distance = m._44 - m._43;
-
-	// Še•½–Ê‚ğ³‹K‰»
+	// å„å¹³é¢ã‚’æ­£è¦åŒ–
 	for (auto& plane : frustum.planes)
 	{
 		float len = sqrtf(
@@ -3349,55 +3228,40 @@ RenderSystem::Frustum RenderSystem::CalcFrustum(
 			plane.distance /= len;
 		}
 	}
-
 	return frustum;
 }
 
-// ƒoƒEƒ“ƒfƒBƒ“ƒOƒ{ƒbƒNƒX‚ªƒtƒ‰ƒXƒ^ƒ€“à‚É‚ ‚é‚©”»’è
-bool RenderSystem::IsInFrustum(
-	const Frustum& frustum,
-	const Model::BoundingBox& bbox,
-	const DirectX::XMFLOAT4X4& world)
+// ãƒã‚¦ãƒ³ãƒ‡ã‚£ãƒ³ã‚°ãƒœãƒƒã‚¯ã‚¹ãŒãƒ•ãƒ©ã‚¹ã‚¿ãƒ å†…ã«ã‚ã‚‹ã‹åˆ¤å®š
+bool RenderSystem::IsInFrustum(const Frustum& frustum, const Model::BoundingBox& bbox, const DirectX::XMFLOAT4X4& world)
 {
-	// ƒ[ƒ‹ƒh‹óŠÔ‚Å‚ÌAABB8’¸“_‚ğŒvZ
-	DirectX::XMVECTOR corners[8];
+	// ãƒ¯ãƒ¼ãƒ«ãƒ‰ç©ºé–“ã§ã®AABB8é ‚ç‚¹ã‚’è¨ˆç®—
 	DirectX::XMMATRIX w = DirectX::XMLoadFloat4x4(&world);
+	DirectX::XMVECTOR corners[8] =
+	{
+		DirectX::XMVector3TransformCoord(DirectX::XMVectorSet(bbox.min.x, bbox.min.y, bbox.min.z, 1), w),
+		DirectX::XMVector3TransformCoord(DirectX::XMVectorSet(bbox.max.x, bbox.min.y, bbox.min.z, 1), w),
+		DirectX::XMVector3TransformCoord(DirectX::XMVectorSet(bbox.min.x, bbox.max.y, bbox.min.z, 1), w),
+		DirectX::XMVector3TransformCoord(DirectX::XMVectorSet(bbox.max.x, bbox.max.y, bbox.min.z, 1), w),
+		DirectX::XMVector3TransformCoord(DirectX::XMVectorSet(bbox.min.x, bbox.min.y, bbox.max.z, 1), w),
+		DirectX::XMVector3TransformCoord(DirectX::XMVectorSet(bbox.max.x, bbox.min.y, bbox.max.z, 1), w),
+		DirectX::XMVector3TransformCoord(DirectX::XMVectorSet(bbox.min.x, bbox.max.y, bbox.max.z, 1), w),
+		DirectX::XMVector3TransformCoord(DirectX::XMVectorSet(bbox.max.x, bbox.max.y, bbox.max.z, 1), w),
+	};
 
-	corners[0] = DirectX::XMVector3TransformCoord(
-		DirectX::XMVectorSet(bbox.min.x, bbox.min.y, bbox.min.z, 1), w);
-	corners[1] = DirectX::XMVector3TransformCoord(
-		DirectX::XMVectorSet(bbox.max.x, bbox.min.y, bbox.min.z, 1), w);
-	corners[2] = DirectX::XMVector3TransformCoord(
-		DirectX::XMVectorSet(bbox.min.x, bbox.max.y, bbox.min.z, 1), w);
-	corners[3] = DirectX::XMVector3TransformCoord(
-		DirectX::XMVectorSet(bbox.max.x, bbox.max.y, bbox.min.z, 1), w);
-	corners[4] = DirectX::XMVector3TransformCoord(
-		DirectX::XMVectorSet(bbox.min.x, bbox.min.y, bbox.max.z, 1), w);
-	corners[5] = DirectX::XMVector3TransformCoord(
-		DirectX::XMVectorSet(bbox.max.x, bbox.min.y, bbox.max.z, 1), w);
-	corners[6] = DirectX::XMVector3TransformCoord(
-		DirectX::XMVectorSet(bbox.min.x, bbox.max.y, bbox.max.z, 1), w);
-	corners[7] = DirectX::XMVector3TransformCoord(
-		DirectX::XMVectorSet(bbox.max.x, bbox.max.y, bbox.max.z, 1), w);
-
-	// Še•½–Ê‚É‘Î‚µ‚Ä‘S’¸“_‚ªŠO‘¤‚É‚ ‚ê‚ÎƒJƒŠƒ“ƒO
+	// å„å¹³é¢ã«å¯¾ã—ã¦å…¨é ‚ç‚¹ãŒå¤–å´ã«ã‚ã‚Œã°ã‚«ãƒªãƒ³ã‚°
 	for (const auto& plane : frustum.planes)
 	{
-		DirectX::XMVECTOR n = DirectX::XMVectorSet(
-			plane.normal.x, plane.normal.y, plane.normal.z, 0);
-
+		DirectX::XMVECTOR n = DirectX::XMVectorSet(plane.normal.x, plane.normal.y, plane.normal.z, 0);
 		int outsideCount = 0;
 		for (const auto& corner : corners)
 		{
-			float dot = DirectX::XMVectorGetX(
-				DirectX::XMVector3Dot(n, corner));
-			if (dot + plane.distance < 0.0f)
+			if (DirectX::XMVectorGetX(DirectX::XMVector3Dot(n, corner)) + plane.distance < 0.0f)
 			{
 				outsideCount++;
 			}
 		}
-		// 8’¸“_‘S‚ÄŠO‘¤‚È‚çƒtƒ‰ƒXƒ^ƒ€ŠO‚Æ‚·‚é
-		if (outsideCount == 8)
+		// 8é ‚ç‚¹å…¨ã¦å¤–å´ãªã‚‰ãƒ•ãƒ©ã‚¹ã‚¿ãƒ å¤–ã¨ã™ã‚‹
+		if (outsideCount == 8) 
 		{
 			return false;
 		}
@@ -3405,17 +3269,17 @@ bool RenderSystem::IsInFrustum(
 	return true;
 }
 
-// GeometryƒpƒX
+// Geometryãƒ‘ã‚¹
 void RenderSystem::GeometryPass(
 	entt::registry& registry,
 	ID3D11DeviceContext* dc, 
-	ID3D11DepthStencilView* dsv,
+	ID3D11DepthStencilView* dsv, 
 	const Frustum& frustum)
 {
-	// Gƒoƒbƒtƒ@‚ÌRTV‚ğƒZƒbƒg{ƒNƒŠƒA
+	// Gãƒãƒƒãƒ•ã‚¡ã®RTVã‚’ã‚»ãƒƒãƒˆï¼‹ã‚¯ãƒªã‚¢
 	gBuffer.BeginGeometryPass(dc, dsv);
 
-	// ƒrƒ…[ƒ|[ƒgİ’è
+	// ãƒ“ãƒ¥ãƒ¼ãƒãƒ¼ãƒˆè¨­å®š
 	D3D11_VIEWPORT vp{};
 	vp.Width = static_cast<float>(screenWidth);
 	vp.Height = static_cast<float>(screenHeight);
@@ -3423,34 +3287,22 @@ void RenderSystem::GeometryPass(
 	vp.MaxDepth = 1.0f;
 	dc->RSSetViewports(1, &vp);
 
-	// ‹¤’ÊƒXƒe[ƒgİ’è
+	// å…±é€šã‚¹ãƒ†ãƒ¼ãƒˆè¨­å®š
 	dc->RSSetState(rasterizerState.Get());
 	dc->PSSetSamplers(0, 1, samplerState.GetAddressOf());
 	dc->IASetInputLayout(inputLayout.Get());
 	dc->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
+	// ä¸é€æ˜ãƒ‘ã‚¹ 
 	float blendFactor[4] = {};
-
-	// •s“§–¾ƒpƒX
-	dc->OMSetDepthStencilState(depthStencilState.Get(), 0);
+	dc->OMSetDepthStencilState(depthStencilStateGeometry.Get(), 1);
 	dc->OMSetBlendState(blendStateOpaque.Get(), blendFactor, 0xFFFFFFFF);
 
-	//// Ã“IƒƒbƒVƒ…•`‰æ
-	//dc->VSSetShader(vertexShader.Get(), nullptr, 0);
-	//RenderStaticGeometry(registry, dc, false, frustum);
-
-	//// ƒXƒLƒjƒ“ƒOƒƒbƒVƒ…•`‰æ
-	//dc->VSSetShader(skinnedVertexShader.Get(), nullptr, 0);
-	//RenderSkinnedGeometry(registry, dc, false, frustum);
-
-	 // ƒfƒtƒHƒ‹ƒgƒVƒF[ƒ_[‚ğæ“¾
 	auto& defaultPS = gBufferPixelShaders.at("gbuffer_default");
 
-	// ƒGƒ“ƒeƒBƒeƒB‚²‚Æ‚ÉƒVƒF[ƒ_[‚ğØ‚è‘Ö‚¦‚È‚ª‚çÃ“IƒƒbƒVƒ…•`‰æ
+	// é™çš„ãƒ¡ãƒƒã‚·ãƒ¥(ä¸é€æ˜ï¼‰
 	auto staticView = registry.view<TransformComponent, StaticMeshComponent>();
-	staticView.each([&](auto entity,
-		TransformComponent& transform,
-		StaticMeshComponent& staticMesh)
+	staticView.each([&](auto entity, TransformComponent& transform, StaticMeshComponent& staticMesh)
 		{
 			if (!staticMesh.model) return;
 
@@ -3458,15 +3310,12 @@ void RenderSystem::GeometryPass(
 			DirectX::XMStoreFloat4x4(&worldMatrix, transform.GetWorldMatrix());
 			if (!IsInFrustum(frustum, staticMesh.model->GetBoundingBox(), worldMatrix)) return;
 
-			// MaterialComponent‚ª‚ ‚ê‚Î‚»‚ÌƒVƒF[ƒ_[‚ğg‚¤A‚È‚¯‚ê‚ÎƒfƒtƒHƒ‹ƒg
 			auto* mat = registry.try_get<MaterialComponent>(entity);
 			const char* shaderName = mat ? mat->GetShaderName() : "gbuffer_default";
-
 			auto it = gBufferPixelShaders.find(shaderName);
 			auto& ps = (it != gBufferPixelShaders.end()) ? it->second : defaultPS;
 			dc->PSSetShader(ps.Get(), nullptr, 0);
-
-			dc->VSSetShader(vertexShader.Get(), nullptr, 0);
+			dc->VSSetShader(staticVertexShader.Get(), nullptr, 0);
 
 			CbObject cbObjectData{};
 			cbObjectData.world = worldMatrix;
@@ -3483,8 +3332,7 @@ void RenderSystem::GeometryPass(
 					if (isTransparent) continue;
 				}
 
-				UINT stride = sizeof(Model::Vertex);
-				UINT offset = 0;
+				UINT stride = sizeof(Model::Vertex), offset = 0;
 				dc->IASetVertexBuffers(0, 1, mesh.vertexBuffer.GetAddressOf(), &stride, &offset);
 				dc->IASetIndexBuffer(mesh.indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
 
@@ -3499,14 +3347,11 @@ void RenderSystem::GeometryPass(
 				dc->PSSetShaderResources(0, 5, srvs);
 				dc->DrawIndexed(static_cast<UINT>(mesh.indices.size()), 0, 0);
 			}
-			//RenderMeshes(staticMesh.model->GetMeshes(), dc, false, nullptr, 0);
 		});
 
-	// ƒGƒ“ƒeƒBƒeƒB‚²‚Æ‚ÉƒVƒF[ƒ_[‚ğØ‚è‘Ö‚¦‚È‚ª‚çƒXƒLƒjƒ“ƒOƒƒbƒVƒ…•`‰æ
+	// ã‚¹ã‚­ãƒ‹ãƒ³ã‚°ãƒ¡ãƒƒã‚·ãƒ¥(ä¸é€æ˜ï¼‰
 	auto skinnedView = registry.view<TransformComponent, SkinnedMeshComponent>();
-	skinnedView.each([&](auto entity,
-		TransformComponent& transform,
-		SkinnedMeshComponent& skinnedMesh)
+	skinnedView.each([&](auto entity, TransformComponent& transform, SkinnedMeshComponent& skinnedMesh)
 		{
 			if (!skinnedMesh.model) return;
 
@@ -3514,14 +3359,11 @@ void RenderSystem::GeometryPass(
 			DirectX::XMStoreFloat4x4(&worldMatrix, transform.GetWorldMatrix());
 			if (!IsInFrustum(frustum, skinnedMesh.model->GetBoundingBox(), worldMatrix)) return;
 
-			// MaterialComponent‚ª‚ ‚ê‚Î‚»‚ÌƒVƒF[ƒ_[‚ğg‚¤A‚È‚¯‚ê‚ÎƒfƒtƒHƒ‹ƒg
 			auto* mat = registry.try_get<MaterialComponent>(entity);
 			const char* shaderName = mat ? mat->GetShaderName() : "gbuffer_default";
-
 			auto it = gBufferPixelShaders.find(shaderName);
 			auto& ps = (it != gBufferPixelShaders.end()) ? it->second : defaultPS;
 			dc->PSSetShader(ps.Get(), nullptr, 0);
-
 			dc->VSSetShader(skinnedVertexShader.Get(), nullptr, 0);
 
 			CbObject cbObjectData{};
@@ -3533,7 +3375,6 @@ void RenderSystem::GeometryPass(
 			for (int m = 0; m < (int)meshes.size(); m++)
 			{
 				const auto& mesh = meshes[m];
-
 				if (mesh.material)
 				{
 					bool isTransparent =
@@ -3562,8 +3403,7 @@ void RenderSystem::GeometryPass(
 				dc->UpdateSubresource(cbSkinning.Get(), 0, nullptr, &cbSkinningData, 0, 0);
 				dc->VSSetConstantBuffers(2, 1, cbSkinning.GetAddressOf());
 
-				UINT stride = sizeof(Model::Vertex);
-				UINT offset = 0;
+				UINT stride = sizeof(Model::Vertex), offset = 0;
 				dc->IASetVertexBuffers(0, 1, mesh.vertexBuffer.GetAddressOf(), &stride, &offset);
 				dc->IASetIndexBuffer(mesh.indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
 
@@ -3578,23 +3418,18 @@ void RenderSystem::GeometryPass(
 				dc->PSSetShaderResources(0, 5, srvs);
 				dc->DrawIndexed(static_cast<UINT>(mesh.indices.size()), 0, 0);
 			}
-			//RenderSkinnedMeshes(skinnedMesh, dc, false);
 		});
 
-	// GeometryƒpƒXI—¹
 	gBuffer.EndGeometryPass(dc);
 }
 
-// LightingƒpƒX
-void RenderSystem::LightingPass(
-	ID3D11DeviceContext* dc,
-	ID3D11RenderTargetView* rtv,
-	ID3D11DepthStencilView* dsv)
+// Lightingãƒ‘ã‚¹
+void RenderSystem::LightingPass(ID3D11DeviceContext* dc, ID3D11RenderTargetView* rtv, ID3D11DepthStencilView* dsv)
 {
-	// ƒƒCƒ“RTV‚ÉƒZƒbƒg
+	// ãƒ¡ã‚¤ãƒ³RTVã«ã‚»ãƒƒãƒˆ
 	dc->OMSetRenderTargets(1, &rtv, dsv);
 
-	// ƒrƒ…[ƒ|[ƒgİ’è
+	// ãƒ“ãƒ¥ãƒ¼ãƒãƒ¼ãƒˆè¨­å®š
 	D3D11_VIEWPORT vp{};
 	vp.Width = static_cast<float>(screenWidth);
 	vp.Height = static_cast<float>(screenHeight);
@@ -3602,7 +3437,7 @@ void RenderSystem::LightingPass(
 	vp.MaxDepth = 1.0f;
 	dc->RSSetViewports(1, &vp);
 
-	// Gƒoƒbƒtƒ@‚ğSRV‚Æ‚µ‚ÄƒZƒbƒg
+	// Gãƒãƒƒãƒ•ã‚¡ã‚’SRVã¨ã—ã¦ã‚»ãƒƒãƒˆ
 	ID3D11ShaderResourceView* gbSrvs[6] =
 	{
 		gBuffer.GetAlbedoSRV(),
@@ -3614,38 +3449,178 @@ void RenderSystem::LightingPass(
 	};
 	dc->PSSetShaderResources(0, 6, gbSrvs);
 
-	// LightingƒVƒF[ƒ_[ƒZƒbƒg
+	// Lightingã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã‚»ãƒƒãƒˆ
 	dc->VSSetShader(lightingVS.Get(), nullptr, 0);
 	dc->PSSetShader(lightingPS.Get(), nullptr, 0);
 
-	// “ü—ÍƒŒƒCƒAƒEƒg‚È‚µ
+	// å…¥åŠ›ãƒ¬ã‚¤ã‚¢ã‚¦ãƒˆãªã—
 	dc->IASetInputLayout(nullptr);
-	dc->IASetPrimitiveTopology(
-		D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+	dc->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
-	// ƒJƒŠƒ“ƒO‚È‚µƒ‰ƒXƒ^ƒ‰ƒCƒU[
+	// ã‚«ãƒªãƒ³ã‚°ãªã—ãƒ©ã‚¹ã‚¿ãƒ©ã‚¤ã‚¶ãƒ¼
 	dc->RSSetState(rasterizerStateNoCull.Get());
 
-	// [“x‘‚«‚İOFF
-	dc->OMSetDepthStencilState(
-		depthStencilStateTransparent.Get(), 0);
+	// æ·±åº¦æ›¸ãè¾¼ã¿OFF
+	dc->OMSetDepthStencilState(depthStencilStateLighting.Get(), 1);
 
-	// CbScene‚ğƒsƒNƒZƒ‹ƒVƒF[ƒ_[‚ÉƒZƒbƒg
+	// CbSceneã‚’ãƒ”ã‚¯ã‚»ãƒ«ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã«ã‚»ãƒƒãƒˆ
 	dc->PSSetConstantBuffers(0, 1, cbScene.GetAddressOf());
-	// ƒTƒ“ƒvƒ‰[‚àƒZƒbƒg
+
+	// ã‚µãƒ³ãƒ—ãƒ©ãƒ¼ã‚‚ã‚»ãƒƒãƒˆ
 	dc->PSSetSamplers(0, 1, samplerState.GetAddressOf());
 
-	// ƒtƒ‹ƒXƒNƒŠ[ƒ“•`‰æ
+	// ãƒ•ãƒ«ã‚¹ã‚¯ãƒªãƒ¼ãƒ³æç”»
 	dc->Draw(4, 0);
 
-	// SRV‚Ì‘©”›‚ğ‰ğœ
+	// GBufferSRVã®æŸç¸›ã‚’è§£é™¤
 	ID3D11ShaderResourceView* nullSrvs[9] = {};
 	dc->PSSetShaderResources(0, 9, nullSrvs);
+}
+
+// åŠé€æ˜ãƒ‘ã‚¹(ãƒ•ã‚©ãƒ¯ãƒ¼ãƒ‰ãƒ¬ãƒ³ãƒ€ãƒªãƒ³ã‚°)
+void RenderSystem::ForwardTransparentPass(
+	entt::registry& registry,
+	ID3D11DeviceContext* dc,
+	ID3D11RenderTargetView* rtv,
+	ID3D11DepthStencilView* dsv,
+	const Frustum& frustum)
+{
+	dc->OMSetRenderTargets(1, &rtv, dsv);
+
+	D3D11_VIEWPORT vp{};
+	vp.Width = static_cast<float>(screenWidth);
+	vp.Height = static_cast<float>(screenHeight);
+	vp.MinDepth = 0.0f;
+	vp.MaxDepth = 1.0f;
+	dc->RSSetViewports(1, &vp);
+
+	dc->RSSetState(rasterizerState.Get());
+	dc->PSSetSamplers(0, 1, samplerState.GetAddressOf());
+	dc->IASetInputLayout(inputLayout.Get());
+	dc->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	float blendFactor[4] = {};
+	dc->OMSetDepthStencilState(depthStencilStateTransparent.Get(), 0);
+	dc->OMSetBlendState(blendState.Get(), blendFactor, 0xFFFFFFFF);
+
+	// LightingPassæœ«å°¾ã§SRVãŒã‚¯ãƒªã‚¢ã•ã‚Œã¦ã„ã‚‹ãŸã‚æ”¹ã‚ã¦ã‚»ãƒƒãƒˆ
+	ID3D11ShaderResourceView* iblSrvs[3] = { iblDiffuseIem, iblSpecularPmrem, iblLutGgx };
+	dc->PSSetShaderResources(5, 3, iblSrvs);
+
+	dc->PSSetShader(forwardTransparentPS.Get(), nullptr, 0);
+
+	// é™çš„ãƒ¡ãƒƒã‚·ãƒ¥(åŠé€æ˜ï¼‰
+	auto staticView = registry.view<TransformComponent, StaticMeshComponent>();
+	staticView.each([&](auto entity, TransformComponent& transform, StaticMeshComponent& staticMesh)
+		{
+			if (!staticMesh.model) return;
+
+			DirectX::XMFLOAT4X4 worldMatrix{};
+			DirectX::XMStoreFloat4x4(&worldMatrix, transform.GetWorldMatrix());
+			if (!IsInFrustum(frustum, staticMesh.model->GetBoundingBox(), worldMatrix)) return;
+
+			dc->VSSetShader(staticVertexShader.Get(), nullptr, 0);
+
+			CbObject cbObjectData{};
+			cbObjectData.world = worldMatrix;
+			dc->UpdateSubresource(cbObject.Get(), 0, nullptr, &cbObjectData, 0, 0);
+			dc->VSSetConstantBuffers(1, 1, cbObject.GetAddressOf());
+
+			for (auto& mesh : staticMesh.model->GetMeshes())
+			{
+				bool isTransparent = mesh.material &&
+					(mesh.material->alphaMode == Model::Material::AlphaMode::Blend ||
+						mesh.material->alphaMode == Model::Material::AlphaMode::Mask);
+				if (!isTransparent) continue;
+
+				UINT stride = sizeof(Model::Vertex), offset = 0;
+				dc->IASetVertexBuffers(0, 1, mesh.vertexBuffer.GetAddressOf(), &stride, &offset);
+				dc->IASetIndexBuffer(mesh.indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+
+				ID3D11ShaderResourceView* srvs[5] =
+				{
+					(mesh.material && mesh.material->baseMap) ? mesh.material->baseMap.Get() : dummyWhite.Get(),
+					(mesh.material && mesh.material->normalMap) ? mesh.material->normalMap.Get() : dummyNormal.Get(),
+					(mesh.material && mesh.material->metallicRoughnessMap) ? mesh.material->metallicRoughnessMap.Get() : dummyWhite.Get(),
+					(mesh.material && mesh.material->occlusionMap) ? mesh.material->occlusionMap.Get() : dummyWhite.Get(),
+					(mesh.material && mesh.material->emissiveMap) ? mesh.material->emissiveMap.Get() : dummyBlack.Get(),
+				};
+				dc->PSSetShaderResources(0, 5, srvs);
+				dc->DrawIndexed(static_cast<UINT>(mesh.indices.size()), 0, 0);
+			}
+		});
+
+	// ã‚¹ã‚­ãƒ‹ãƒ³ã‚°ãƒ¡ãƒƒã‚·ãƒ¥(åŠé€æ˜ï¼‰
+	auto skinnedView = registry.view<TransformComponent, SkinnedMeshComponent>();
+	skinnedView.each([&](auto entity, TransformComponent& transform, SkinnedMeshComponent& skinnedMesh)
+		{
+			if (!skinnedMesh.model) return;
+
+			DirectX::XMFLOAT4X4 worldMatrix{};
+			DirectX::XMStoreFloat4x4(&worldMatrix, transform.GetWorldMatrix());
+			if (!IsInFrustum(frustum, skinnedMesh.model->GetBoundingBox(), worldMatrix)) return;
+
+			dc->VSSetShader(skinnedVertexShader.Get(), nullptr, 0);
+
+			CbObject cbObjectData{};
+			cbObjectData.world = worldMatrix;
+			dc->UpdateSubresource(cbObject.Get(), 0, nullptr, &cbObjectData, 0, 0);
+			dc->VSSetConstantBuffers(1, 1, cbObject.GetAddressOf());
+
+			const auto& meshes = skinnedMesh.model->GetMeshes();
+			for (int m = 0; m < (int)meshes.size(); m++)
+			{
+				const auto& mesh = meshes[m];
+				bool isTransparent = mesh.material &&
+					(mesh.material->alphaMode == Model::Material::AlphaMode::Blend ||
+						mesh.material->alphaMode == Model::Material::AlphaMode::Mask);
+				if (!isTransparent) continue;
+
+				CbSkinning cbSkinningData{};
+				if (m < (int)skinnedMesh.boneTransforms.size() && !skinnedMesh.boneTransforms[m].empty())
+				{
+					const auto& bt = skinnedMesh.boneTransforms[m];
+					size_t boneCount = (std::min)(bt.size(), (size_t)MAX_BONES);
+					for (size_t i = 0; i < boneCount; i++)
+						cbSkinningData.boneTransforms[i] = bt[i];
+				}
+				else
+				{
+					const auto& nodes = skinnedMesh.model->GetNodes();
+					int nodeIndex = mesh.nodeIndex;
+					if (nodeIndex >= 0 && nodeIndex < (int)nodes.size())
+						cbSkinningData.boneTransforms[0] = nodes[nodeIndex].globalTransform;
+					else
+						cbSkinningData.boneTransforms[0] = { 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 };
+				}
+				dc->UpdateSubresource(cbSkinning.Get(), 0, nullptr, &cbSkinningData, 0, 0);
+				dc->VSSetConstantBuffers(2, 1, cbSkinning.GetAddressOf());
+
+				UINT stride = sizeof(Model::Vertex), offset = 0;
+				dc->IASetVertexBuffers(0, 1, mesh.vertexBuffer.GetAddressOf(), &stride, &offset);
+				dc->IASetIndexBuffer(mesh.indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+
+				ID3D11ShaderResourceView* srvs[5] =
+				{
+					(mesh.material && mesh.material->baseMap) ? mesh.material->baseMap.Get() : dummyWhite.Get(),
+					(mesh.material && mesh.material->normalMap) ? mesh.material->normalMap.Get() : dummyNormal.Get(),
+					(mesh.material && mesh.material->metallicRoughnessMap) ? mesh.material->metallicRoughnessMap.Get() : dummyWhite.Get(),
+					(mesh.material && mesh.material->occlusionMap) ? mesh.material->occlusionMap.Get() : dummyWhite.Get(),
+					(mesh.material && mesh.material->emissiveMap) ? mesh.material->emissiveMap.Get() : dummyBlack.Get(),
+				};
+				dc->PSSetShaderResources(0, 5, srvs);
+				dc->DrawIndexed(static_cast<UINT>(mesh.indices.size()), 0, 0);
+			}
+		});
+
+	// SRVã®æŸç¸›è§£é™¤ï¼ˆt0ã€œt7ï¼‰
+	ID3D11ShaderResourceView* nullSrvs[8] = {};
+	dc->PSSetShaderResources(0, 8, nullSrvs);
 }
  
  
 ===== ComponentRegistry.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Editor\ComponentRegistry.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Editor\ComponentRegistry.h 
 #pragma once
 #include <string>
 #include <vector>
@@ -3675,7 +3650,7 @@ private:
 }; 
  
 ===== ComponentRegistryInitializer.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Editor\ComponentRegistryInitializer.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Editor\ComponentRegistryInitializer.h 
 #pragma once
 
 class ComponentRegistryInitializer
@@ -3686,7 +3661,7 @@ public:
 }; 
  
 ===== EditorContext.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Editor\EditorContext.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Editor\EditorContext.h 
 #pragma once
 #include <string>
 #include <unordered_map>
@@ -3741,7 +3716,7 @@ struct EditorContext
 }; 
  
 ===== HierarchyWindow.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Editor\HierarchyWindow.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Editor\HierarchyWindow.h 
 #pragma once
 #include "entt.hpp"
 #include "Editor/EditorContext.h"
@@ -3754,7 +3729,7 @@ public:
 }; 
  
 ===== InspectorWindow.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Editor\InspectorWindow.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Editor\InspectorWindow.h 
 #pragma once
 #include "entt.hpp"
 #include "EditorContext.h"
@@ -3777,7 +3752,7 @@ private:
 }; 
  
 ===== ProjectWindow.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Editor\ProjectWindow.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Editor\ProjectWindow.h 
 #pragma once
 #include <string>
 #include <vector>
@@ -3816,7 +3791,7 @@ private:
 }; 
  
 ===== ComponentRegistry.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Editor\ComponentRegistry.cpp 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Editor\ComponentRegistry.cpp 
 #include "ComponentRegistry.h"
 
 std::unordered_map<std::string, ComponentInfo> ComponentRegistry::registry;
@@ -3843,7 +3818,7 @@ const ComponentInfo* ComponentRegistry::Get(const std::string& name)
 } 
  
 ===== ComponentRegistryInitializer.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Editor\ComponentRegistryInitializer.cpp 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Editor\ComponentRegistryInitializer.cpp 
 #include "ComponentRegistryInitializer.h"
 #include "Editor/ComponentRegistry.h"
 #include <imgui.h>
@@ -4107,7 +4082,7 @@ void ComponentRegistryInitializer::Initialize()
 }; 
  
 ===== HierarchyWindow.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Editor\HierarchyWindow.cpp 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Editor\HierarchyWindow.cpp 
 #include "HierarchyWindow.h"
 #include "imgui_internal.h"
 #include <imgui.h>
@@ -4213,7 +4188,7 @@ void HierarchyWindow::Draw(entt::registry& registry, EditorContext& context)
 } 
  
 ===== InspectorWindow.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Editor\InspectorWindow.cpp 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Editor\InspectorWindow.cpp 
 #include "InspectorWindow.h"
 #include <imgui.h>
 #include "imgui_internal.h"
@@ -4334,7 +4309,7 @@ void InspectorWindow::DrawAddComponent(entt::registry& registry, EditorContext& 
  
  
 ===== ProjectWindow.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Editor\ProjectWindow.cpp 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Editor\ProjectWindow.cpp 
 #include "ProjectWindow.h"
 #include <imgui.h>
 
@@ -4561,7 +4536,7 @@ bool ProjectWindow::IsModelFile(const std::filesystem::path& path)
 } 
  
 ===== SceneGame.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Game\SceneGame.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Game\SceneGame.h 
 #pragma once
 #include "Core/Scene.h"
 
@@ -4580,7 +4555,6 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Game\SceneGame.h
 #include "Rendering/LightManager.h"
 
 
-#include "Tool/ControllerToolWindow.h" 
 
 
 class SceneGame : public Scene
@@ -4604,7 +4578,6 @@ private:
 	DebugCameraSystem debugCameraSystem;
 	GameCameraSystem  gameCameraSystem; 
 
-	ControllerToolWindow controllerToolWindow;
 
 	SkyBox       skyBox;
 	LightManager lightManager;
@@ -4612,7 +4585,7 @@ private:
  
  
 ===== SceneGame.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Game\SceneGame.cpp 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Game\SceneGame.cpp 
 ï»¿#include "SceneGame.h"
 #include <imgui.h>
 
@@ -4772,10 +4745,22 @@ void SceneGame::Render(const SceneContext& context)
 	// ãƒ•ãƒ©ã‚¹ã‚¿ãƒ è¨ˆç®—
 	renderSystem.SetFrustum(context.view, context.projection);
 
+
+	// ã‚¹ã‚«ã‚¤ãƒœãƒƒã‚¯ã‚¹
+	{
+		ZoneScopedN("SkyBox::Render");
+		DirectX::XMFLOAT3 eye = { 0.0f, 0.0f, 0.0f };
+		if (context.camera)
+		{
+			const auto& e = context.camera->GetEye();
+			eye = { e.x, e.y, e.z };
+		}
+		skyBox.Render(context.deviceContext, context.view, context.projection, eye);
+	}
+
+	// æç”»
 	{
 		ZoneScopedN("RenderSystem::Render");
-
-		// æç”»
 		renderSystem.Render(
 			registry,
 			context.deviceContext,
@@ -4787,39 +4772,18 @@ void SceneGame::Render(const SceneContext& context)
 		);
 	}
 
-	{
-		ZoneScopedN("SkyBox::Render");
-
-		// ã‚«ãƒ¡ãƒ©ä½ç½®ã‚’å–å¾—
-		DirectX::XMFLOAT3 eye = { 0.0f, 0.0f, 0.0f };
-		if (context.camera)
-		{
-			const auto& e = context.camera->GetEye();
-			eye = { e.x, e.y, e.z };
-		}
-
-		skyBox.Render(
-			context.deviceContext,
-			context.view,
-			context.projection,
-			eye
-		);
-	}
-
-
 }
 
 void SceneGame::RenderImGui()
 {
 #ifdef _DEBUG
-	//player->RenderImGui();
-	controllerToolWindow.Draw(registry, controllerSystem);
+
 #endif
 }
  
  
 ===== GBuffer.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Rendering\GBuffer.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Rendering\GBuffer.h 
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
@@ -4859,7 +4823,7 @@ private:
 }; 
  
 ===== LightManager.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Rendering\LightManager.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Rendering\LightManager.h 
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
@@ -4927,7 +4891,7 @@ private:
 }; 
  
 ===== SkyBox.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Rendering\SkyBox.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Rendering\SkyBox.h 
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
@@ -4996,7 +4960,7 @@ private:
 }; 
  
 ===== GBuffer.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Rendering\GBuffer.cpp 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Rendering\GBuffer.cpp 
 #include "GBuffer.h"
 #include "Utility/misc.h"
 
@@ -5078,7 +5042,7 @@ void GBuffer::EndGeometryPass(ID3D11DeviceContext* dc)
 } 
  
 ===== LightManager.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Rendering\LightManager.cpp 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Rendering\LightManager.cpp 
 #include "LightManager.h"
 #include "Resource/GpuResourceUtils.h"
 #include "Utility/misc.h"
@@ -5166,7 +5130,7 @@ void LightManager::Bind(ID3D11DeviceContext* dc)
  
  
 ===== SkyBox.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Rendering\SkyBox.cpp 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Rendering\SkyBox.cpp 
 #include "SkyBox.h"
 #include "Resource/GpuResourceUtils.h"
 #include "Utility/misc.h"
@@ -5344,7 +5308,7 @@ void SkyBox::Render(
  
  
 ===== GLTFConverter.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\GLTFConverter.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\GLTFConverter.h 
 #pragma once
 #include <memory>
 #include <d3d11.h>
@@ -5393,7 +5357,7 @@ private:
 }; 
  
 ===== GLTFData.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\GLTFData.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\GLTFData.h 
 #pragma once
 #include <string>
 #include <vector>
@@ -5510,7 +5474,7 @@ struct GLTFData
 }; 
  
 ===== GLTFImporter.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\GLTFImporter.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\GLTFImporter.h 
 #pragma once
 #include <memory>
 #include <string>
@@ -5586,7 +5550,7 @@ private:
 }; 
  
 ===== GpuResourceUtils.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\GpuResourceUtils.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\GpuResourceUtils.h 
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
@@ -5664,7 +5628,7 @@ public:
 }; 
  
 ===== Model.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\Model.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\Model.h 
 #pragma once
 
 #include <string>
@@ -5846,7 +5810,7 @@ private:
 }; 
  
 ===== ModelSerializer.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\ModelSerializer.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\ModelSerializer.h 
 #pragma once
 #include <memory>
 #include <string>
@@ -5877,7 +5841,7 @@ public:
 }; 
  
 ===== ResourceManager.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\ResourceManager.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\ResourceManager.h 
 #pragma once
 #include <string>
 #include <memory>
@@ -5916,7 +5880,7 @@ private:
 }; 
  
 ===== GLTFConverter.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\GLTFConverter.cpp 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\GLTFConverter.cpp 
 #include "GLTFConverter.h"
 #include "GpuResourceUtils.h"
 #include "Utility/misc.h"
@@ -6289,7 +6253,7 @@ void GLTFConverter::ConvertAnimations(
  
  
 ===== GLTFImporter.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\GLTFImporter.cpp 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\GLTFImporter.cpp 
 #include "GLTFImporter.h"
 #include "Utility/misc.h"
 #include <filesystem>
@@ -7104,7 +7068,7 @@ void GLTFImporter::CalcGlobalTransform(
  
  
 ===== GpuResourceUtils.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\GpuResourceUtils.cpp 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\GpuResourceUtils.cpp 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 #include "GpuResourceUtils.h"
@@ -7426,7 +7390,7 @@ HRESULT GpuResourceUtils::CreateConstantBuffer(
  
  
 ===== Model.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\Model.cpp 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\Model.cpp 
 #include "Model.h"
 
 // “ü—ÍƒŒƒCƒAƒEƒg’è‹`
@@ -7441,7 +7405,7 @@ const std::vector<D3D11_INPUT_ELEMENT_DESC> Model::InputElementDescs =
 }; 
  
 ===== ModelSerializer.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\ModelSerializer.cpp 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\ModelSerializer.cpp 
 #include "ModelSerializer.h"
 #include "Model.h"
 #include "Utility/CerealHelper.h"
@@ -7601,7 +7565,7 @@ std::string ModelSerializer::ToCerealPath(const std::string& gltfPath)
 } 
  
 ===== ResourceManager.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\ResourceManager.cpp 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\ResourceManager.cpp 
 #include "ResourceManager.h"
 #include "GLTFImporter.h"
 #include "GLTFConverter.h" 
@@ -7661,400 +7625,8 @@ void ResourceManager::ReleaseAll()
 }
  
  
-===== ControllerToolWindow.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\ControllerToolWindow.h 
-#pragma once
-#include <imgui.h>
-#include "entt.hpp"
-#include "ECS/Components/ControllerComponent.h"
-#include "ECS/Systems/ControllerSystem.h"
-
-class ControllerToolWindow
-{
-public:
-    ControllerToolWindow() = default;
-    ~ControllerToolWindow() = default;
-
-    ControllerToolWindow(const ControllerToolWindow&) = delete;
-    ControllerToolWindow& operator=(const ControllerToolWindow&) = delete;
-    ControllerToolWindow(ControllerToolWindow&&) = delete;
-    ControllerToolWindow& operator=(ControllerToolWindow&&) = delete;
-
-    // •`‰æ
-    void Draw(entt::registry& registry, ControllerSystem& system);
-
-private:
-    // ƒ‚ƒjƒ^[ƒ^ƒuiÚ‘±ó‘Ô/¶‚Ì“ü—Í’lŠm”Fj
-    void DrawMonitorTab(const ControllerComponent& ctrl);
-
-    // ƒXƒeƒBƒbƒNİ’èƒ^ƒuiƒfƒbƒhƒ][ƒ“’²®j
-    void DrawStickTab(ControllerSettings& settings, const ControllerComponent& ctrl);
-
-    // ƒgƒŠƒK[İ’èƒ^ƒuiƒfƒbƒhƒ][ƒ“/”»’èè‡’lj
-    void DrawTriggerTab(ControllerSettings& settings, const ControllerComponent& ctrl);
-
-    // ƒAƒ_ƒvƒeƒBƒuƒgƒŠƒK[ƒ^ƒuiPS5‚Ì‚İj
-    void DrawAdaptiveTriggerTab(ControllerSettings& settings, const ControllerComponent& ctrl);
-
-    // U“®ƒ^ƒu
-    void DrawVibrationTab(ControllerSettings& settings, ControllerComponent& ctrl);
-}; 
- 
-===== ControllerToolWindow.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\ControllerToolWindow.cpp 
-#include "ControllerToolWindow.h"
-#include <imgui.h>
-#include <cmath>
-
-// •`‰æ
-void ControllerToolWindow::Draw(entt::registry& registry, ControllerSystem& system)
-{
-    ImGui::Begin("Controller Tool");
-
-    // ControllerComponent‚ğ‚ÂEntit ‚ğ’T‚·
-    auto view = registry.view<ControllerComponent>();
-    if (view.empty())
-    {
-        ImGui::TextColored({ 1.0f, 0.4f, 0.4f, 1.0f }, u8"ControllerComponent ‚ğ‚Â Entity ‚ª‚ ‚è‚Ü‚¹‚ñ");
-        ImGui::End();
-        return;
-    }
-
-    // æ“ª‚Ì Entity ‚ğg‚¤
-    auto entity = *view.begin();
-    auto& ctrl = view.get<ControllerComponent>(entity);
-    auto& settings = system.GetSettings();
-
-    // ƒ^ƒuƒo[
-    if (ImGui::BeginTabBar("ControllerTabs"))
-    {
-        if (ImGui::BeginTabItem("Monitor"))
-        {
-            DrawMonitorTab(ctrl);
-            ImGui::EndTabItem();
-        }
-        if (ImGui::BeginTabItem("Stick"))
-        {
-            DrawStickTab(settings, ctrl);
-            ImGui::EndTabItem();
-        }
-        if (ImGui::BeginTabItem("Trigger"))
-        {
-            DrawTriggerTab(settings, ctrl);
-            ImGui::EndTabItem();
-        }
-        if (ImGui::BeginTabItem("Adaptive"))
-        {
-            DrawAdaptiveTriggerTab(settings, ctrl);
-            ImGui::EndTabItem();
-        }
-        if (ImGui::BeginTabItem("Vibration"))
-        {
-            DrawVibrationTab(settings, ctrl);
-            ImGui::EndTabItem();
-        }
-        ImGui::EndTabBar();
-    }
-
-    ImGui::End();
-}
-
-// ƒ‚ƒjƒ^[ƒ^ƒu
-void ControllerToolWindow::DrawMonitorTab(const ControllerComponent& ctrl)
-{
-    // Ú‘±ó‘Ô
-    if (ctrl.connected)
-    {
-        const char* typeName = ctrl.type == ControllerType::PS5 ? "PS5 DualSense" : "Xbox";
-        ImGui::TextColored({ 0.3f, 1.0f, 0.3f, 1.0f }, u8"[%s] Ú‘±’†", typeName);
-    }
-    else
-    {
-        ImGui::TextColored({ 0.6f, 0.6f, 0.6f, 1.0f }, u8"–¢Ú‘±");
-        return;
-    }
-
-    ImGui::Separator();
-
-    // ƒXƒeƒBƒbƒN
-    ImGui::Text("Left  Stick  X: %.3f  Y: %.3f", ctrl.leftStickX, ctrl.leftStickY);
-    ImGui::Text("Right Stick  X: %.3f  Y: %.3f", ctrl.rightStickX, ctrl.rightStickY);
-
-    ImGui::Separator();
-
-    // ƒgƒŠƒK[
-    ImGui::Text("L2"); ImGui::SameLine();
-    ImGui::ProgressBar(ctrl.leftTrigger, { 150, 0 }, "L2");
-    ImGui::Text("R2"); ImGui::SameLine();
-    ImGui::ProgressBar(ctrl.rightTrigger, { 150, 0 }, "R2");
-
-    ImGui::Separator();
-
-    // ƒ{ƒ^ƒ“
-    auto showBtn = [&](const char* label, uint32_t mask)
-        {
-            bool pressed = ctrl.IsPressed(mask);
-            if (pressed) ImGui::PushStyleColor(ImGuiCol_Button, { 0.2f, 0.8f, 0.2f, 1.0f });
-            ImGui::SmallButton(label);
-            if (pressed) ImGui::PopStyleColor();
-            ImGui::SameLine();
-        };
-
-    showBtn(u8"~", ControllerButtons::Cross);
-    showBtn(u8"›", ControllerButtons::Circle);
-    showBtn(u8" ", ControllerButtons::Square);
-    showBtn(u8"¢", ControllerButtons::Triangle);
-    showBtn("L1", ControllerButtons::L1);
-    showBtn("R1", ControllerButtons::R1);
-    showBtn("L2", ControllerButtons::L2);
-    showBtn("R2", ControllerButtons::R2);
-    showBtn("L3", ControllerButtons::L3);
-    showBtn("R3", ControllerButtons::R3);
-    showBtn("OPT", ControllerButtons::Options);
-    showBtn("SHR", ControllerButtons::Share);
-    ImGui::NewLine();
-}
-
-// ƒXƒeƒBƒbƒNİ’èƒ^ƒu
-void ControllerToolWindow::DrawStickTab(ControllerSettings& settings, const ControllerComponent& ctrl)
-{
-    // ƒXƒeƒBƒbƒNƒrƒWƒ…ƒAƒ‹‚ğ•`‰æ‚·‚éƒwƒ‹ƒp[
-    auto drawStickVisual = [](
-        const char* label,
-        float rawX, float rawY,
-        float deadzone)
-        {
-            const float radius = 60.0f;  // ŠO‰~‚Ì”¼Œa
-            const float dotRadius = 5.0f;  // ƒXƒeƒBƒbƒNˆÊ’u‚Ì“_‚Ì”¼Œa
-
-            ImGui::Text("%s", label);
-
-            // •`‰æ‚ÌŠî€À•Wi‰~‚Ì’†Sj
-            ImVec2 canvasPos = ImGui::GetCursorScreenPos();
-            ImVec2 center = { canvasPos.x + radius, canvasPos.y + radius };
-
-            ImDrawList* dl = ImGui::GetWindowDrawList();
-
-            // ŠO‘¤‚Ì‰~i”’“h‚è”wŒi + •˜gj
-            dl->AddCircleFilled(center, radius, IM_COL32(40, 40, 40, 255));
-            dl->AddCircle(center, radius, IM_COL32(200, 200, 200, 255), 64, 2.0f);
-
-            // “à‘¤‚ÌÔ‰~iƒfƒbƒhƒ][ƒ“j
-            float dzRadius = radius * deadzone;
-            dl->AddCircle(center, dzRadius, IM_COL32(220, 50, 50, 255), 64, 1.5f);
-
-            // \šüi’†S‚ÌƒKƒCƒhj
-            dl->AddLine({ center.x - radius, center.y }, { center.x + radius, center.y },
-                IM_COL32(80, 80, 80, 255), 1.0f);
-            dl->AddLine({ center.x, center.y - radius }, { center.x, center.y + radius },
-                IM_COL32(80, 80, 80, 255), 1.0f);
-
-            // ƒXƒeƒBƒbƒNˆÊ’u‚Ì“_
-            ImVec2 dotPos =
-            {
-                center.x + rawX * radius,
-                center.y - rawY * radius   // Y²‚Í‰æ–Ê‰º‚ªƒvƒ‰ƒX‚È‚Ì‚Å”½“]
-            };
-            dl->AddCircleFilled(dotPos, dotRadius, IM_COL32(255, 255, 255, 255));
-
-            // ƒfƒbƒhƒ][ƒ““à‚È‚ç“_‚ğÔ‚­‚·‚é
-            float dist = sqrtf(rawX * rawX + rawY * rawY);
-            if (dist < deadzone)
-            {
-                dl->AddCircleFilled(dotPos, dotRadius, IM_COL32(220, 50, 50, 255));
-            }
-
-            // ImGui ‚ÌƒJ[ƒ\ƒ‹‚ğ‰~‚Ì‰º‚Éi‚ß‚é
-            ImGui::Dummy({ radius * 2.0f, radius * 2.0f });
-        };
-
-    // ƒfƒbƒhƒ][ƒ““K—pŒã‚ÌŒvZ
-    auto applyDZ = [](float v, float dz) -> float
-        {
-            if (fabsf(v) < dz) return 0.0f;
-            float sign = v > 0.0f ? 1.0f : -1.0f;
-            return sign * (fabsf(v) - dz) / (1.0f - dz);
-        };
-
-    // --- Left Stick ---
-    ImGui::SeparatorText(u8"Left Stick");
-    drawStickVisual("L", ctrl.leftStickX, ctrl.leftStickY, settings.leftStickDeadzone);
-
-    ImGui::SliderFloat(u8"ƒfƒbƒhƒ][ƒ“##LS", &settings.leftStickDeadzone, 0.0f, 1.0f, "%.2f");
-
-    float lx = applyDZ(ctrl.leftStickX, settings.leftStickDeadzone);
-    float ly = applyDZ(ctrl.leftStickY, settings.leftStickDeadzone);
-    ImGui::Text(u8"Raw  X: %.3f  Y: %.3f", ctrl.leftStickX, ctrl.leftStickY);
-    ImGui::Text(u8"Post X: %.3f  Y: %.3f", lx, ly);
-
-    ImGui::Spacing();
-
-    // --- Right Stick ---
-    ImGui::SeparatorText(u8"Right Stick");
-    drawStickVisual("R", ctrl.rightStickX, ctrl.rightStickY, settings.rightStickDeadzone);
-
-    ImGui::SliderFloat(u8"ƒfƒbƒhƒ][ƒ“##RS", &settings.rightStickDeadzone, 0.0f, 1.0f, "%.2f");
-
-    float rx = applyDZ(ctrl.rightStickX, settings.rightStickDeadzone);
-    float ry = applyDZ(ctrl.rightStickY, settings.rightStickDeadzone);
-    ImGui::Text(u8"Raw  X: %.3f  Y: %.3f", ctrl.rightStickX, ctrl.rightStickY);
-    ImGui::Text(u8"Post X: %.3f  Y: %.3f", rx, ry);
-}
-
-// ƒgƒŠƒK[İ’èƒ^ƒu
-void ControllerToolWindow::DrawTriggerTab(ControllerSettings& settings, const ControllerComponent& ctrl)
-{
-    ImGui::SeparatorText(u8"L2 ƒgƒŠƒK[");
-
-    ImGui::SliderFloat(u8"ƒfƒbƒhƒ][ƒ“##LT", &settings.leftTriggerDeadzone, 0.0f, 1.0f, "%.2f");
-    ImGui::SliderFloat(u8"”»’èè‡’l##LT", &settings.leftTriggerThreshold, 0.0f, 1.0f, "%.2f");
-
-    // ¶‚Ì’l
-    ImGui::Text(u8"Raw: %.3f", ctrl.leftTrigger);
-
-    // ƒfƒbƒhƒ][ƒ““K—pŒãƒvƒŒƒrƒ…[
-    auto applyDZ = [](float v, float dz) -> float
-        {
-            if (v < dz) return 0.0f;
-            return (v - dz) / (1.0f - dz);
-        };
-
-    float lt = applyDZ(ctrl.leftTrigger, settings.leftTriggerDeadzone);
-    ImGui::Text(u8"Post: %.3f", lt);
-
-    // ”»’èè‡’l‚Ì‹Šo•\¦
-    ImGui::ProgressBar(ctrl.leftTrigger, { -1, 0 }, "");
-    // è‡’lƒ‰ƒCƒ“‚ğProgressBar‚Ìã‚É•`‰æ
-    {
-        ImVec2 barMin = ImGui::GetItemRectMin();
-        ImVec2 barMax = ImGui::GetItemRectMax();
-        float  x = barMin.x + (barMax.x - barMin.x) * settings.leftTriggerThreshold;
-        ImGui::GetWindowDrawList()->AddLine(
-            { x, barMin.y }, { x, barMax.y },
-            IM_COL32(255, 80, 80, 255), 2.0f
-        );
-    }
-    ImGui::Text(u8"  ª Ôü = ”»’èè‡’l");
-
-    // ƒfƒWƒ^ƒ‹”»’èŒ‹‰Ê
-    bool l2 = ctrl.leftTrigger >= settings.leftTriggerThreshold;
-    ImGui::TextColored(
-        l2 ? ImVec4(0.2f, 1.0f, 0.2f, 1.0f) : ImVec4(0.6f, 0.6f, 0.6f, 1.0f),
-        u8"L2 ”»’è: %s", l2 ? "ON" : "OFF"
-    );
-
-    ImGui::Spacing();
-    ImGui::SeparatorText(u8"R2 ƒgƒŠƒK[");
-
-    ImGui::SliderFloat(u8"ƒfƒbƒhƒ][ƒ“##RT", &settings.rightTriggerDeadzone, 0.0f, 1.0f, "%.2f");
-    ImGui::SliderFloat(u8"”»’èè‡’l##RT", &settings.rightTriggerThreshold, 0.0f, 1.0f, "%.2f");
-
-    ImGui::Text(u8"Raw: %.3f", ctrl.rightTrigger);
-
-    float rt = applyDZ(ctrl.rightTrigger, settings.rightTriggerDeadzone);
-    ImGui::Text(u8"Post: %.3f", rt);
-
-    ImGui::ProgressBar(ctrl.rightTrigger, { -1, 0 }, "");
-    {
-        ImVec2 barMin = ImGui::GetItemRectMin();
-        ImVec2 barMax = ImGui::GetItemRectMax();
-        float  x = barMin.x + (barMax.x - barMin.x) * settings.rightTriggerThreshold;
-        ImGui::GetWindowDrawList()->AddLine(
-            { x, barMin.y }, { x, barMax.y },
-            IM_COL32(255, 80, 80, 255), 2.0f
-        );
-    }
-    ImGui::Text(u8"  ª Ôü = ”»’èè‡’l");
-
-    bool r2 = ctrl.rightTrigger >= settings.rightTriggerThreshold;
-    ImGui::TextColored(
-        r2 ? ImVec4(0.2f, 1.0f, 0.2f, 1.0f) : ImVec4(0.6f, 0.6f, 0.6f, 1.0f),
-        u8"R2 ”»’è: %s", r2 ? "ON" : "OFF"
-    );
-}
-
-// ƒAƒ_ƒvƒeƒBƒuƒgƒŠƒK[ƒ^ƒu
-void ControllerToolWindow::DrawAdaptiveTriggerTab(ControllerSettings& settings, const ControllerComponent& ctrl)
-{
-    if (ctrl.type != ControllerType::PS5)
-    {
-        ImGui::TextColored({ 0.6f, 0.6f, 0.6f, 1.0f }, u8"PS5 Ú‘±‚Ì‚İg—p‚Å‚«‚Ü‚·");
-        return;
-    }
-
-    const char* effectNames[] = { u8"Offi–³Œøj", u8"Rigidiˆê’è’ïRj", u8"PulseiU“®j", u8"SlopeiŒXÎj" };
-
-    auto drawTriggerEffect = [&](const char* label, TriggerEffect& effect)
-        {
-            ImGui::SeparatorText(label);
-
-            int type = (int)effect.type;
-            if (ImGui::Combo(u8"ƒGƒtƒFƒNƒg", &type, effectNames, 4))
-            {
-                effect.type = (TriggerEffectType)type;
-            }
-
-            // OffˆÈŠO‚Ì‚Æ‚«‚¾‚¯ƒpƒ‰ƒ[ƒ^‚ğ•\¦
-            if (effect.type != TriggerEffectType::Off)
-            {
-                int start = effect.start;
-                int end = effect.end;
-                int force = effect.force;
-
-                if (ImGui::SliderInt(u8"ŠJnˆÊ’u##start", &start, 0, 255)) effect.start = (uint8_t)start;
-                if (ImGui::SliderInt(u8"I—¹ˆÊ’u##end", &end, 0, 255)) effect.end = (uint8_t)end;
-                if (ImGui::SliderInt(u8"’ïR‚Ì‹­‚³##force", &force, 0, 255)) effect.force = (uint8_t)force;
-
-                // Pulse ‚Ì‚Æ‚«‚¾‚¯ü”g”‚ğ•\¦
-                if (effect.type == TriggerEffectType::Pulse)
-                {
-                    int freq = effect.freq;
-                    if (ImGui::SliderInt(u8"U“®ü”g”##freq", &freq, 0, 255)) effect.freq = (uint8_t)freq;
-                }
-            }
-        };
-
-    drawTriggerEffect("L2", settings.leftTriggerEffect);
-    ImGui::Spacing();
-    drawTriggerEffect("R2", settings.rightTriggerEffect);
-}
-
-// U“®ƒ^ƒu
-void ControllerToolWindow::DrawVibrationTab(ControllerSettings& settings, ControllerComponent& ctrl)
-{
-    ImGui::SeparatorText(u8"U“®ƒeƒXƒg");
-
-    int left = (int)settings.leftMotor;
-    int right = (int)settings.rightMotor;
-
-    if (ImGui::SliderInt(u8"¶ƒ‚[ƒ^[##vib", &left, 0, 255)) settings.leftMotor = (uint8_t)left;
-    if (ImGui::SliderInt(u8"‰Eƒ‚[ƒ^[##vib", &right, 0, 255)) settings.rightMotor = (uint8_t)right;
-
-    // ƒXƒ‰ƒCƒ_[‚Ì’l‚ğ ControllerComponent ‚É”½‰fiControllerSystem ‚ª–ˆƒtƒŒ[ƒ€‘—Mj
-    ctrl.vibration.leftMotor = settings.leftMotor;
-    ctrl.vibration.rightMotor = settings.rightMotor;
-
-    ImGui::Spacing();
-
-    // ˆêŠ‡’â~ƒ{ƒ^ƒ“
-    if (ImGui::Button(u8"’â~"))
-    {
-        settings.leftMotor = 0;
-        settings.rightMotor = 0;
-        ctrl.vibration.leftMotor = 0;
-        ctrl.vibration.rightMotor = 0;
-    }
-
-    if (ctrl.type != ControllerType::PS5)
-    {
-        ImGui::Spacing();
-        ImGui::TextColored({ 0.6f, 0.6f, 0.6f, 1.0f }, u8"¦ ƒAƒ_ƒvƒeƒBƒuƒgƒŠƒK[‚Í PS5 Ú‘±‚Ì‚İ—LŒø");
-    }
-}
- 
- 
 ===== IStudioAttachment.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\IStudioAttachment.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Tool\Studio\IStudioAttachment.h 
 #pragma once
 #include <d3d11.h>
 #include <DirectXMath.h>
@@ -8086,7 +7658,7 @@ public:
 }; 
  
 ===== StudioAnimator.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioAnimator.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Tool\Studio\StudioAnimator.h 
 #pragma once
 #include "IStudioAttachment.h"
 #include "ECS/Components/AnimatorComponent.h"
@@ -8110,7 +7682,7 @@ private:
 }; 
  
 ===== StudioCamera.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioCamera.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Tool\Studio\StudioCamera.h 
 #pragma once
 #include <DirectXMath.h>
 
@@ -8159,7 +7731,7 @@ private:
 }; 
  
 ===== StudioContext.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioContext.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Tool\Studio\StudioContext.h 
 #pragma once
 #include <d3d11.h>
 #include <string>
@@ -8186,7 +7758,7 @@ struct StudioContext
 }; 
  
 ===== StudioModelViewer.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioModelViewer.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Tool\Studio\StudioModelViewer.h 
 #pragma once
 #include <string>
 #include <d3d11.h>
@@ -8247,7 +7819,7 @@ private:
 }; 
  
 ===== StudioSharedContext.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioSharedContext.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Tool\Studio\StudioSharedContext.h 
 #pragma once
 #include <d3d11.h>
 #include "Rendering/SkyBox.h"
@@ -8265,7 +7837,7 @@ struct StudioSharedContext
 }; 
  
 ===== StudioTimeline.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioTimeline.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Tool\Studio\StudioTimeline.h 
 #pragma once
 #include "IStudioAttachment.h"
 #include "ECS/Components/AnimatorComponent.h"
@@ -8288,7 +7860,7 @@ private:
 }; 
  
 ===== StudioWindow.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioWindow.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Tool\Studio\StudioWindow.h 
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
@@ -8401,7 +7973,7 @@ private:
 }; 
  
 ===== StudioAnimator.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioAnimator.cpp 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Tool\Studio\StudioAnimator.cpp 
 #include "Tool/Studio/StudioAnimator.h"
 #include <imgui.h>
 
@@ -8473,7 +8045,7 @@ void StudioAnimator::DrawGUI(
 } 
  
 ===== StudioCamera.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioCamera.cpp 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Tool\Studio\StudioCamera.cpp 
 #include "StudioCamera.h"
 #include <imgui.h>
 #include <Windows.h>
@@ -8629,7 +8201,7 @@ DirectX::XMFLOAT3 StudioCamera::GetRight() const
 } 
  
 ===== StudioModelViewer.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioModelViewer.cpp 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Tool\Studio\StudioModelViewer.cpp 
 #include "StudioModelViewer.h"
 
 #include <windows.h>
@@ -8778,7 +8350,7 @@ void StudioModelViewer::LoadModel(
  
  
 ===== StudioTimeline.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioTimeline.cpp 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Tool\Studio\StudioTimeline.cpp 
 ï»¿#include "StudioTimeline.h"
 #include <imgui.h>
 #include <string>
@@ -8878,7 +8450,7 @@ void StudioTimeline::DrawGUI(entt::registry& registry, StudioContext& context)
  
  
 ===== StudioWindow.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioWindow.cpp 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Tool\Studio\StudioWindow.cpp 
 #include "StudioWindow.h"
 #include <imgui.h>
 #include <imgui_internal.h>
@@ -9216,7 +8788,7 @@ void StudioWindow::ResizeRenderTarget()
  
  
 ===== CerealHelper.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Utility\CerealHelper.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Utility\CerealHelper.h 
 #pragma once
 #include <DirectXMath.h>
 
@@ -9250,7 +8822,7 @@ namespace DirectX
 } 
  
 ===== high_resolution_timer.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Utility\high_resolution_timer.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Utility\high_resolution_timer.h 
 #pragma once
 
 #include <windows.h>
@@ -9389,7 +8961,7 @@ private:
  
  
 ===== misc.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Utility\misc.h 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Utility\misc.h 
 #pragma once
 
 #include <windows.h>
@@ -9453,7 +9025,7 @@ public:
  
  
 ===== CerealHelper.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Utility\CerealHelper.cpp 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Utility\CerealHelper.cpp 
 #include "CerealHelper.h"
 #include <cereal/archives/binary.hpp>
 
@@ -9534,7 +9106,7 @@ namespace DirectX
 } 
  
 ===== main.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Utility\main.cpp 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Utility\main.cpp 
 #include <time.h>
 
 #include "Core/framework.h"

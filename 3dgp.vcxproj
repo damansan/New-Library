@@ -54,7 +54,7 @@
     <ClCompile Include="Source\Resource\Model.cpp" />
     <ClCompile Include="Source\Resource\ModelSerializer.cpp" />
     <ClCompile Include="Source\Resource\ResourceManager.cpp" />
-    <ClCompile Include="Source\Tool\ControllerToolWindow.cpp" />
+    <ClCompile Include="Source\Tool\AdaptiveTriggerToolWindow.cpp" />
     <ClCompile Include="Source\Tool\Studio\StudioAnimator.cpp" />
     <ClCompile Include="Source\Tool\Studio\StudioCamera.cpp" />
     <ClCompile Include="Source\Tool\Studio\StudioModelViewer.cpp" />
@@ -64,8 +64,14 @@
     <ClCompile Include="Source\Utility\main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="External\DualSense-Windows-main\VS19_Solution\DualSenseWindows\include\DualSenseWindows\Device.h" />
+    <ClInclude Include="External\DualSense-Windows-main\VS19_Solution\DualSenseWindows\include\DualSenseWindows\DS5State.h" />
+    <ClInclude Include="External\DualSense-Windows-main\VS19_Solution\DualSenseWindows\include\DualSenseWindows\DSW_Api.h" />
+    <ClInclude Include="External\DualSense-Windows-main\VS19_Solution\DualSenseWindows\include\DualSenseWindows\Helpers.h" />
+    <ClInclude Include="External\DualSense-Windows-main\VS19_Solution\DualSenseWindows\include\DualSenseWindows\IO.h" />
     <ClInclude Include="External\entt-main\single_include\entt\entt.hpp" />
     <ClInclude Include="External\json-3.12.0\single_include\nlohmann\json.hpp" />
+    <ClInclude Include="Source\Controller\AdaptiveTrigger.h" />
     <ClInclude Include="Source\Core\Camera.h" />
     <ClInclude Include="Source\Core\framework.h" />
     <ClInclude Include="Source\Core\Graphics.h" />
@@ -112,7 +118,7 @@
     <ClInclude Include="Source\Resource\GpuResourceUtils.h" />
     <ClInclude Include="Source\Resource\ModelSerializer.h" />
     <ClInclude Include="Source\Resource\ResourceManager.h" />
-    <ClInclude Include="Source\Tool\ControllerToolWindow.h" />
+    <ClInclude Include="Source\Tool\AdaptiveTriggerToolWindow.h" />
     <ClInclude Include="Source\Tool\Studio\IStudioAttachment.h" />
     <ClInclude Include="Source\Tool\Studio\StudioAnimator.h" />
     <ClInclude Include="Source\Tool\Studio\StudioCamera.h" />

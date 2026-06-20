@@ -26,9 +26,6 @@
     <Filter Include="External\imgui-docking\backends">
       <UniqueIdentifier>{b67ded63-317b-429c-bab8-0ec5491ff767}</UniqueIdentifier>
     </Filter>
-    <Filter Include="External\entt-main">
-      <UniqueIdentifier>{55738d4a-41b7-4726-ba78-e0ba6e927136}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Sources\Core\Scene">
       <UniqueIdentifier>{818a02ce-1e53-4b13-9baa-2ae2aee427b2}</UniqueIdentifier>
     </Filter>
@@ -209,6 +206,18 @@
     <Filter Include="Sources\Tool\Studio\StudioTimeline">
       <UniqueIdentifier>{a416fbb5-b919-48e7-8ec9-4231c54beaad}</UniqueIdentifier>
     </Filter>
+    <Filter Include="External\DualSense-Windows">
+      <UniqueIdentifier>{a642a7d8-01cc-49ef-85d4-d1a9603e1792}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="External\entt">
+      <UniqueIdentifier>{55738d4a-41b7-4726-ba78-e0ba6e927136}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Controller">
+      <UniqueIdentifier>{978c7c42-5b8d-4f00-8245-0d5eda95177a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Controller\AdaptiveTrigger">
+      <UniqueIdentifier>{2f5c2900-8742-4188-ba83-d0fbe51b5b3c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Core\framework.cpp">
@@ -319,9 +328,6 @@
     <ClCompile Include="Source\ECS\Systems\GameCameraSystem.cpp">
       <Filter>Sources\ECS\Systems\Camera\GameCameraSystem</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Tool\ControllerToolWindow.cpp">
-      <Filter>Sources\Tool</Filter>
-    </ClCompile>
     <ClCompile Include="Source\ECS\Systems\ControllerSystem.cpp">
       <Filter>Sources\ECS\Systems\ControllerSystem</Filter>
     </ClCompile>
@@ -339,6 +345,9 @@
     </ClCompile>
     <ClCompile Include="Source\Tool\Studio\StudioTimeline.cpp">
       <Filter>Sources\Tool\Studio\StudioTimeline</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Tool\AdaptiveTriggerToolWindow.cpp">
+      <Filter>Sources\Tool</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -424,7 +433,7 @@
       <Filter>External\json-3.12.0</Filter>
     </ClInclude>
     <ClInclude Include="External\entt-main\single_include\entt\entt.hpp">
-      <Filter>External\entt-main</Filter>
+      <Filter>External\entt</Filter>
     </ClInclude>
     <ClInclude Include="Source\Editor\ProjectWindow.h">
       <Filter>Sources\Editor\ProjectWindow</Filter>
@@ -474,9 +483,6 @@
     <ClInclude Include="Source\ECS\Systems\GameCameraSystem.h">
       <Filter>Sources\ECS\Systems\Camera\GameCameraSystem</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Tool\ControllerToolWindow.h">
-      <Filter>Sources\Tool</Filter>
-    </ClInclude>
     <ClInclude Include="Source\ECS\Systems\ControllerSystem.h">
       <Filter>Sources\ECS\Systems\ControllerSystem</Filter>
     </ClInclude>
@@ -521,6 +527,27 @@
     </ClInclude>
     <ClInclude Include="Source\Tool\Studio\StudioTimeline.h">
       <Filter>Sources\Tool\Studio\StudioTimeline</Filter>
+    </ClInclude>
+    <ClInclude Include="External\DualSense-Windows-main\VS19_Solution\DualSenseWindows\include\DualSenseWindows\Device.h">
+      <Filter>External\DualSense-Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="External\DualSense-Windows-main\VS19_Solution\DualSenseWindows\include\DualSenseWindows\DS5State.h">
+      <Filter>External\DualSense-Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="External\DualSense-Windows-main\VS19_Solution\DualSenseWindows\include\DualSenseWindows\DSW_Api.h">
+      <Filter>External\DualSense-Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="External\DualSense-Windows-main\VS19_Solution\DualSenseWindows\include\DualSenseWindows\Helpers.h">
+      <Filter>External\DualSense-Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="External\DualSense-Windows-main\VS19_Solution\DualSenseWindows\include\DualSenseWindows\IO.h">
+      <Filter>External\DualSense-Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Controller\AdaptiveTrigger.h">
+      <Filter>Sources\Controller\AdaptiveTrigger</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Tool\AdaptiveTriggerToolWindow.h">
+      <Filter>Sources\Tool</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -23,10 +23,13 @@ public:
     // 更新
     void Update(entt::registry& registry, float elapsedTime);
 
-    // 設定への参照（ControllerToolWindow から読み書きする）
+    // 設定への参照
     ControllerSettings& GetSettings() { return settings; }
     const ControllerSettings& GetSettings() const { return settings; }
 
+    int GetDebugSendCount() const { return debugSendCount; }
+    const DS5W::TriggerEffect& GetLastLeftEffect() const { return lastLeftEffect; }
+    const DS5W::TriggerEffect& GetLastRightEffect() const { return lastRightEffect; }
 private:
     // Xbox 入力をControllerComponentに書く
     void UpdateXboxInput(ControllerComponent& ctrl);
@@ -34,11 +37,14 @@ private:
     // PS5 入力をControllerComponentに書く
     void UpdatePS5Input(ControllerComponent& ctrl);
 
-    // PS5 出力送信（振動/アダプティブトリガー）
+    // PS5 出力送信
     void SendPS5Output(ControllerComponent& ctrl);
 
-    // TriggerEffect変換
-    void ApplyTriggerEffect(DS5W::TriggerEffect& dst, const TriggerEffect& src, float currentValue);
+    // AdaptiveTrigger::TriggerEffectからDS5W::TriggerEffectへの変換
+    void ApplyTriggerEffect(DS5W::TriggerEffect& dst, const AdaptiveTrigger::TriggerEffect& src, float currentPosition);
+
+    // 2つのTriggerEffectが同じ内容かどうか比較する
+    bool IsSameTriggerEffect(const DS5W::TriggerEffect& a, const DS5W::TriggerEffect& b);
 
     // PS5 接続試行
     void TryConnectPS5();
@@ -55,6 +61,13 @@ private:
     float                ds5ReconnectTimer = 0.0f;
     static constexpr float ds5ReconnectInterval = 3.0f;
 
+    DS5W::TriggerEffect lastLeftEffect = {};
+    DS5W::TriggerEffect lastRightEffect = {};
+
+    int debugSendCount = 0;
+
+
     // 設定値
     ControllerSettings settings;
+
 };

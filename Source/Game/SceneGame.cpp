@@ -189,7 +189,33 @@ void SceneGame::Render(const SceneContext& context)
 void SceneGame::RenderImGui()
 {
 #ifdef _DEBUG
-	//player->RenderImGui();
-	controllerToolWindow.Draw(registry, controllerSystem);
+	auto printEffect = [](const char* label, const DS5W::TriggerEffect& e)
+		{
+			ImGui::Text("%s effectType: %d", label, static_cast<int>(e.effectType));
+			if (e.effectType == DS5W::TriggerEffectType::ContinuousResitance)
+			{
+				ImGui::Text("  startPosition: %d  force: %d", e.Continuous.startPosition, e.Continuous.force);
+			}
+			else if (e.effectType == DS5W::TriggerEffectType::EffectEx)
+			{
+				ImGui::Text("  startPosition: %d  begin: %d  middle: %d  end: %d",
+					e.EffectEx.startPosition, e.EffectEx.beginForce, e.EffectEx.middleForce, e.EffectEx.endForce);
+			}
+		};
+
+	auto view = registry.view<ControllerComponent>();
+	for (auto entity : view)
+	{
+		auto& ctrl = view.get<ControllerComponent>(entity);
+		adaptiveTriggerToolWindow.Draw(ctrl);
+
+		ImGui::Begin("Debug");
+		ImGui::Text(u8"送信回数: %d", controllerSystem.GetDebugSendCount());
+		printEffect("L2", controllerSystem.GetLastLeftEffect());
+		printEffect("R2", controllerSystem.GetLastRightEffect());
+		ImGui::End();
+
+		break;
+	}
 #endif
 }

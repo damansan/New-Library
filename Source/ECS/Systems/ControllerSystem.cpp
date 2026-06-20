@@ -13,9 +13,6 @@ ControllerSystem::~ControllerSystem()
 {
     if (ds5Connected)
     {
-        // 終了時にトリガー/振動をリセットしてから切断
-        DS5W::DS5OutputState reset = {};
-        DS5W::setDeviceOutputState(&ds5Context, &reset);
         DS5W::freeDeviceContext(&ds5Context);
         ds5Connected = false;
     }
@@ -115,24 +112,24 @@ void ControllerSystem::UpdateXboxInput(ControllerComponent& ctrl)
 // PS5 入力
 void ControllerSystem::UpdatePS5Input(ControllerComponent& ctrl)
 {
-    // スティック（-128～127 → -1.0～1.0）
+    // スティック
     ctrl.leftStickX = ds5InputState.leftStick.x / 127.0f;
     ctrl.leftStickY = ds5InputState.leftStick.y / 127.0f;
     ctrl.rightStickX = ds5InputState.rightStick.x / 127.0f;
     ctrl.rightStickY = ds5InputState.rightStick.y / 127.0f;
 
-    // トリガー（0～255 → 0.0～1.0）
+    // トリガー
     ctrl.leftTrigger = ds5InputState.leftTrigger / 255.0f;
     ctrl.rightTrigger = ds5InputState.rightTrigger / 255.0f;
 
-    // ボタン（buttonsAndDpad）
+    // ボタン
     auto btn = ds5InputState.buttonsAndDpad;
     if (btn & DS5W_ISTATE_BTX_CROSS)    ctrl.buttons |= ControllerButtons::Cross;
     if (btn & DS5W_ISTATE_BTX_CIRCLE)   ctrl.buttons |= ControllerButtons::Circle;
     if (btn & DS5W_ISTATE_BTX_SQUARE)   ctrl.buttons |= ControllerButtons::Square;
     if (btn & DS5W_ISTATE_BTX_TRIANGLE) ctrl.buttons |= ControllerButtons::Triangle;
 
-    // ボタン（buttonsA）
+    // ボタン
     auto btnA = ds5InputState.buttonsA;
     if (btnA & DS5W_ISTATE_BTN_A_LEFT_BUMPER)  ctrl.buttons |= ControllerButtons::L1;
     if (btnA & DS5W_ISTATE_BTN_A_RIGHT_BUMPER) ctrl.buttons |= ControllerButtons::R1;
@@ -141,7 +138,7 @@ void ControllerSystem::UpdatePS5Input(ControllerComponent& ctrl)
     if (btnA & DS5W_ISTATE_BTN_A_SELECT)       ctrl.buttons |= ControllerButtons::Share;
     if (btnA & DS5W_ISTATE_BTN_A_MENU)         ctrl.buttons |= ControllerButtons::Options;
 
-    // L2/R2 デジタル判定（settings の閾値を使う）
+    // L2/R2 デジタル判定
     if (ctrl.leftTrigger >= settings.leftTriggerThreshold)  ctrl.buttons |= ControllerButtons::L2;
     if (ctrl.rightTrigger >= settings.rightTriggerThreshold) ctrl.buttons |= ControllerButtons::R2;
 }
@@ -149,43 +146,64 @@ void ControllerSystem::UpdatePS5Input(ControllerComponent& ctrl)
 // PS5 出力送信
 void ControllerSystem::SendPS5Output(ControllerComponent& ctrl)
 {
+    DS5W::TriggerEffect newLeft = {};
+    DS5W::TriggerEffect newRight = {};
+
+    ApplyTriggerEffect(newLeft, ctrl.leftTriggerEffect);
+    ApplyTriggerEffect(newRight, ctrl.rightTriggerEffect);
+
+    bool changed =
+        !IsSameTriggerEffect(newLeft, lastLeftEffect) ||
+        !IsSameTriggerEffect(newRight, lastRightEffect);
+
+    // 前回と同じ内容なら送信しない
+    if (!changed)
+    {
+        return;
+    }
+
     ds5OutputState = {};
-
-    // 振動
-    ds5OutputState.leftRumble = ctrl.vibration.leftMotor;
-    ds5OutputState.rightRumble = ctrl.vibration.rightMotor;
-
-    // アダプティブトリガー
-    ApplyTriggerEffect(ds5OutputState.leftTriggerEffect, settings.leftTriggerEffect, ctrl.leftTrigger);
-    ApplyTriggerEffect(ds5OutputState.rightTriggerEffect, settings.rightTriggerEffect, ctrl.rightTrigger);
+    ds5OutputState.leftTriggerEffect = newLeft;
+    ds5OutputState.rightTriggerEffect = newRight;
 
     DS5W::setDeviceOutputState(&ds5Context, &ds5OutputState);
+    debugSendCount++;
+
+    lastLeftEffect = newLeft;
+    lastRightEffect = newRight;
 }
 
-// TriggerEffect変換
-void ControllerSystem::ApplyTriggerEffect(DS5W::TriggerEffect& dst, const TriggerEffect& src, float currentValue)
+// AdaptiveTrigger::TriggerEffectからDS5W::TriggerEffectへの変換
+void ControllerSystem::ApplyTriggerEffect(DS5W::TriggerEffect& dst, const AdaptiveTrigger::TriggerEffect& src, float currentPosition)
 {
-    float startNorm = src.start / 255.0f;
-    float endNorm = src.end / 255.0f;
+    float force = AdaptiveTrigger::ComputeForce(src, currentPosition);
 
-    // 区間の外なら効果なし
-    if (endNorm <= startNorm || currentValue < startNorm || currentValue > endNorm)
+    if (force <= 0.0f)
     {
         dst.effectType = DS5W::TriggerEffectType::NoResitance;
         return;
     }
 
-    // 区間内での相対位置(0.0〜1.0)に変換してカーブをサンプリング
-    float localPos = (currentValue - startNorm) / (endNorm - startNorm);
-    float forceValue = SampleCurve(src.forcePoints, localPos);     // 0.0〜1.0
-    float vibValue = SampleCurve(src.vibrationPoints, localPos);   // 0.0〜1.0
+    dst.effectType = DS5W::TriggerEffectType::ContinuousResitance;
+    dst.Continuous.startPosition = 0; // 固定（動かさない）
+    dst.Continuous.force = static_cast<unsigned char>(force * 255.0f);
+}
 
-    dst.effectType = DS5W::TriggerEffectType::EffectEx;
-    dst.EffectEx.startPosition = src.start;
-    dst.EffectEx.keepEffect = true;
-    dst.EffectEx.beginForce = dst.EffectEx.middleForce = dst.EffectEx.endForce =
-        static_cast<uint8_t>(forceValue * 255.0f);
-    dst.EffectEx.frequency = static_cast<uint8_t>(vibValue * 255.0f);
+bool ControllerSystem::IsSameTriggerEffect(const DS5W::TriggerEffect& a, const DS5W::TriggerEffect& b)
+{
+    if (a.effectType != b.effectType)
+    {
+        return false;
+    }
+    if (a.effectType == DS5W::TriggerEffectType::EffectEx)
+    {
+        return a.EffectEx.startPosition == b.EffectEx.startPosition &&
+            a.EffectEx.beginForce == b.EffectEx.beginForce &&
+            a.EffectEx.middleForce == b.EffectEx.middleForce &&
+            a.EffectEx.endForce == b.EffectEx.endForce;
+    }
+    // NoResitanceなど、それ以外は種類が同じなら同じとみなす
+    return true;
 }
 
 // PS5 接続試行
