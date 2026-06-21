@@ -1,6 +1,7 @@
 #include "AdaptiveTriggerToolWindow.h"
 #include <imgui.h>
 #include <algorithm>
+#include <cmath>
 
 void AdaptiveTriggerToolWindow::Draw(ControllerComponent& ctrl)
 {
@@ -10,123 +11,149 @@ void AdaptiveTriggerToolWindow::Draw(ControllerComponent& ctrl)
         return;
     }
 
-    DrawTriggerCurve("L2", ctrl.leftTriggerEffect, ctrl.leftTrigger, leftDraggingIndex);
+    DrawTriggerSection("L2", ctrl.leftTriggerEffect, leftZone, leftRangeDrag);
     ImGui::Spacing();
-    DrawTriggerCurve("R2", ctrl.rightTriggerEffect, ctrl.rightTrigger, rightDraggingIndex);
+    DrawTriggerSection("R2", ctrl.rightTriggerEffect, rightZone, rightRangeDrag);
 
     ImGui::End();
 }
 
-void AdaptiveTriggerToolWindow::DrawTriggerCurve(const char* label, AdaptiveTrigger::TriggerEffect& effect, float currentValue, int& draggingIndex)
+void AdaptiveTriggerToolWindow::DrawTriggerSection(const char* label, AdaptiveTrigger::TriggerEffect& effect, ZoneState& zone, RangeDragState& rangeDrag)
 {
     ImGui::PushID(label);
-    ImGui::SeparatorText(label);
 
+    ImGui::Text(label);
+
+    if (!zone.exists)
+    {
+        ImGui::SameLine(ImGui::GetContentRegionAvail().x - 80.0f + ImGui::GetCursorPosX());
+        if (ImGui::Button(u8"+ ゾーン追加"))
+        {
+            zone.exists = true;
+            zone.start = 0.0f;
+            zone.end = 1.0f;
+            zone.force = 0.5f;
+        }
+    }
+    else
+    {
+        ImGui::SameLine(ImGui::GetContentRegionAvail().x - 60.0f + ImGui::GetCursorPosX());
+        if (ImGui::Button(u8"削除"))
+        {
+            zone.exists = false;
+        }
+    }
+
+    float width = ImGui::GetContentRegionAvail().x;
+    DrawRangeBar(zone, width, rangeDrag);
+
+    if (zone.exists)
+    {
+        ImGui::SliderFloat(u8"強さ", &zone.force, 0.0f, 1.0f);
+    }
+
+    // ゾーンの状態を、出力用のforcePointsへ一方的に書き込む（同期はしない）
     auto& points = effect.forcePoints;
+    points.clear();
+    if (zone.exists)
+    {
+        const float fadeWidth = 0.02f; // 境界の幅（広げてブレに強くする）
 
-    ImVec2 graphSize(ImGui::GetContentRegionAvail().x, 150.0f);
-    ImVec2 graphPos = ImGui::GetCursorScreenPos();
+        if (zone.start > 0.0f)
+        {
+            points.push_back({ std::max(0.0f, zone.start - fadeWidth), 0.0f });
+        }
+        points.push_back({ zone.start, zone.force });
+        points.push_back({ zone.end, zone.force });
+        if (zone.end < 1.0f)
+        {
+            points.push_back({ std::min(1.0f, zone.end + fadeWidth), 0.0f });
+        }
+    }
 
-    // グラフ全体で1つだけInvisibleButtonを作る
-    ImGui::InvisibleButton("##graphBg", graphSize);
-    bool bgClicked = ImGui::IsItemClicked(); // クリックした瞬間だけtrue
-    bool bgActive = ImGui::IsItemActive();   // 押している間ずっとtrue
+    ImGui::PopID();
+}
+
+void AdaptiveTriggerToolWindow::DrawRangeBar(ZoneState& zone, float width, RangeDragState& rangeDrag)
+{
+    ImVec2 pos = ImGui::GetCursorScreenPos();
+    const float height = 24.0f;
+    ImDrawList* drawList = ImGui::GetWindowDrawList();
+
+    drawList->AddRectFilled(pos, ImVec2(pos.x + width, pos.y + height), IM_COL32(60, 60, 60, 255), 4.0f);
+
+    ImGui::InvisibleButton("##rangeBar", ImVec2(width, height));
+    bool barClicked = ImGui::IsItemClicked();
+    bool barActive = ImGui::IsItemActive();
     ImVec2 mousePos = ImGui::GetMousePos();
 
-    ImDrawList* drawList = ImGui::GetWindowDrawList();
-    drawList->AddRect(graphPos, ImVec2(graphPos.x + graphSize.x, graphPos.y + graphSize.y), IM_COL32(150, 150, 150, 255));
-
-    // position(0~1)/value(0~1) ⇔ 画面座標 の変換
-    auto ToScreen = [&](const AdaptiveTrigger::CurvePoint& p) -> ImVec2
-        {
-            return ImVec2(graphPos.x + p.position * graphSize.x, graphPos.y + (1.0f - p.value) * graphSize.y);
-        };
-    auto FromScreen = [&](ImVec2 screen) -> AdaptiveTrigger::CurvePoint
-        {
-            AdaptiveTrigger::CurvePoint p;
-            p.position = std::clamp((screen.x - graphPos.x) / graphSize.x, 0.0f, 1.0f);
-            p.value = std::clamp(1.0f - (screen.y - graphPos.y) / graphSize.y, 0.0f, 1.0f);
-            return p;
-        };
-
-    // ポイント同士を線で繋ぐ
-    for (size_t i = 0; i + 1 < points.size(); ++i)
+    if (zone.exists)
     {
-        drawList->AddLine(ToScreen(points[i]), ToScreen(points[i + 1]), IM_COL32(217, 90, 48, 255), 2.0f);
-    }
-    // ポイントを丸で描画（drawListだけなのでImGuiのカーソルには影響しない）
-    for (size_t i = 0; i < points.size(); ++i)
-    {
-        drawList->AddCircleFilled(ToScreen(points[i]), 5.0f, IM_COL32(217, 90, 48, 255));
-    }
+        float x1 = pos.x + zone.start * width;
+        float x2 = pos.x + zone.end * width;
 
-    const float pickRadius = 8.0f;
+        drawList->AddRectFilled(ImVec2(x1, pos.y), ImVec2(x2, pos.y + height), IM_COL32(217, 90, 48, 255));
 
-    // クリックした瞬間：既存のポイントの近くかどうかを自分で判定する
-    if (bgClicked)
-    {
-        draggingIndex = -1;
-        for (size_t i = 0; i < points.size(); ++i)
+        const float handleHalf = 3.0f;
+        drawList->AddRectFilled(ImVec2(x1 - handleHalf, pos.y - 3.0f), ImVec2(x1 + handleHalf, pos.y + height + 3.0f), IM_COL32(255, 255, 255, 255));
+        drawList->AddRectFilled(ImVec2(x2 - handleHalf, pos.y - 3.0f), ImVec2(x2 + handleHalf, pos.y + height + 3.0f), IM_COL32(255, 255, 255, 255));
+
+        const float pickRange = 8.0f;
+
+        if (barClicked)
         {
-            ImVec2 screenPos = ToScreen(points[i]);
-            float dx = mousePos.x - screenPos.x;
-            float dy = mousePos.y - screenPos.y;
-            if ((dx * dx + dy * dy) <= (pickRadius * pickRadius))
+            if (std::abs(mousePos.x - x1) <= pickRange)
             {
-                draggingIndex = static_cast<int>(i);
-                break;
+                rangeDrag.mode = RangeDragState::Mode::Left;
+            }
+            else if (std::abs(mousePos.x - x2) <= pickRange)
+            {
+                rangeDrag.mode = RangeDragState::Mode::Right;
+            }
+            else if (mousePos.x >= x1 && mousePos.x <= x2)
+            {
+                rangeDrag.mode = RangeDragState::Mode::Move;
+                rangeDrag.startMouseX = mousePos.x;
+                rangeDrag.startZoneStart = zone.start;
+                rangeDrag.startZoneEnd = zone.end;
+            }
+            else
+            {
+                rangeDrag.mode = RangeDragState::Mode::None;
             }
         }
 
-        // 近くにポイントが無ければ、新しいポイントを追加する
-        if (draggingIndex == -1)
+        if (barActive)
         {
-            points.push_back(FromScreen(mousePos));
-            draggingIndex = static_cast<int>(points.size()) - 1;
+            float mouseNormX = std::clamp((mousePos.x - pos.x) / width, 0.0f, 1.0f);
+
+            if (rangeDrag.mode == RangeDragState::Mode::Left)
+            {
+                zone.start = std::clamp(mouseNormX, 0.0f, zone.end - 0.01f);
+            }
+            else if (rangeDrag.mode == RangeDragState::Mode::Right)
+            {
+                zone.end = std::clamp(mouseNormX, zone.start + 0.01f, 1.0f);
+            }
+            else if (rangeDrag.mode == RangeDragState::Mode::Move)
+            {
+                float rawDelta = (mousePos.x - rangeDrag.startMouseX) / width;
+                float zoneWidth = rangeDrag.startZoneEnd - rangeDrag.startZoneStart;
+                float clampedDelta = std::clamp(rawDelta, -rangeDrag.startZoneStart, 1.0f - rangeDrag.startZoneEnd);
+                zone.start = rangeDrag.startZoneStart + clampedDelta;
+                zone.end = rangeDrag.startZoneStart + clampedDelta + zoneWidth;
+            }
+        }
+
+        if (!ImGui::IsMouseDown(ImGuiMouseButton_Left))
+        {
+            rangeDrag.mode = RangeDragState::Mode::None;
         }
     }
 
-    // ドラッグ中：マウスを押している間、対象のポイントを追従させる
-    if (bgActive && draggingIndex >= 0 && draggingIndex < static_cast<int>(points.size()))
-    {
-        points[draggingIndex] = FromScreen(mousePos);
-    }
+    ImGui::Dummy(ImVec2(width, height));
 
-    // マウスを離したらドラッグ終了
-    if (!ImGui::IsMouseDown(ImGuiMouseButton_Left))
-    {
-        draggingIndex = -1;
-    }
-
-    // ドラッグ中でない時だけ並び替える（ドラッグ中に並びが変わるとindexがズレるため）
-    if (draggingIndex == -1)
-    {
-        std::sort(points.begin(), points.end(),
-            [](const AdaptiveTrigger::CurvePoint& a, const AdaptiveTrigger::CurvePoint& b)
-            {
-                return a.position < b.position;
-            });
-    }
-
-    float force = AdaptiveTrigger::ComputeForce(effect, currentValue);
-    ImGui::Text(u8"現在地: %.3f", currentValue);
-    ImGui::Text(u8"出力中の力: %.3f (送信値: %d)", force, static_cast<int>(force * 255.0f));
-
-    auto zones = AdaptiveTrigger::DetectZones(points);
-    for (size_t i = 0; i < zones.size(); ++i)
-    {
-        auto type = AdaptiveTrigger::ClassifyZone(zones[i]);
-        const char* typeName =
-            type == AdaptiveTrigger::ResistanceType::Constant ? u8"一定抵抗" :
-            type == AdaptiveTrigger::ResistanceType::Changing ? u8"変化抵抗" : u8"複雑";
-
-        float zoneStart = zones[i].points.front().position;
-        float zoneEnd = zones[i].points.back().position;
-        bool isCurrentZone = (currentValue >= zoneStart && currentValue <= zoneEnd);
-
-        ImGui::Text(u8"ゾーン%zu: %s (%.2f~%.2f) %s",
-            i + 1, typeName, zoneStart, zoneEnd,
-            isCurrentZone ? u8"<- 現在地" : u8"");
-    }
-    ImGui::PopID();
+    ImGui::TextDisabled("0");
+    ImGui::SameLine(width - 24.0f);
+    ImGui::TextDisabled("255");
 }

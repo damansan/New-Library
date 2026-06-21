@@ -149,8 +149,8 @@ void ControllerSystem::SendPS5Output(ControllerComponent& ctrl)
     DS5W::TriggerEffect newLeft = {};
     DS5W::TriggerEffect newRight = {};
 
-    ApplyTriggerEffect(newLeft, ctrl.leftTriggerEffect);
-    ApplyTriggerEffect(newRight, ctrl.rightTriggerEffect);
+    ApplyTriggerEffect(newLeft, ctrl.leftTriggerEffect, ctrl.leftTrigger);
+    ApplyTriggerEffect(newRight, ctrl.rightTriggerEffect, ctrl.rightTrigger);
 
     bool changed =
         !IsSameTriggerEffect(newLeft, lastLeftEffect) ||
@@ -167,7 +167,6 @@ void ControllerSystem::SendPS5Output(ControllerComponent& ctrl)
     ds5OutputState.rightTriggerEffect = newRight;
 
     DS5W::setDeviceOutputState(&ds5Context, &ds5OutputState);
-    debugSendCount++;
 
     lastLeftEffect = newLeft;
     lastRightEffect = newRight;
@@ -189,18 +188,17 @@ void ControllerSystem::ApplyTriggerEffect(DS5W::TriggerEffect& dst, const Adapti
     dst.Continuous.force = static_cast<unsigned char>(force * 255.0f);
 }
 
+// 2つのTriggerEffectが同じ内容かどうか比較する
 bool ControllerSystem::IsSameTriggerEffect(const DS5W::TriggerEffect& a, const DS5W::TriggerEffect& b)
 {
     if (a.effectType != b.effectType)
     {
         return false;
     }
-    if (a.effectType == DS5W::TriggerEffectType::EffectEx)
+    if (a.effectType == DS5W::TriggerEffectType::ContinuousResitance)
     {
-        return a.EffectEx.startPosition == b.EffectEx.startPosition &&
-            a.EffectEx.beginForce == b.EffectEx.beginForce &&
-            a.EffectEx.middleForce == b.EffectEx.middleForce &&
-            a.EffectEx.endForce == b.EffectEx.endForce;
+        return a.Continuous.startPosition == b.Continuous.startPosition &&
+            a.Continuous.force == b.Continuous.force;
     }
     // NoResitanceなど、それ以外は種類が同じなら同じとみなす
     return true;

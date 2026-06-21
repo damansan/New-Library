@@ -1,3 +1,150 @@
+===== AdaptiveTrigger.h ===== 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Controller\AdaptiveTrigger.h 
+#pragma once
+#include <vector>
+#include <cmath>
+#include <algorithm>
+
+namespace AdaptiveTrigger
+{
+    struct CurvePoint
+    {
+        // ‰Ÿ‚µ‚İ—Ê
+        float position = 0.0f; // (0,0`1.0)
+        // ’ïR‚Ì‹­‚³
+        float value = 0.0f;    // (0.0`1.0)
+    };
+
+    struct TriggerEffect
+    {
+        // o—ÍƒŠƒXƒg
+        std::vector<CurvePoint> forcePoints;
+    };
+
+    // Œ»İ’n(‰Ÿ‚µ‚İ—Ê)‚©‚ç‘OŒã‚É‘¶İ‚·‚éƒ|ƒCƒ“ƒg‚ğüŒ`•âŠ®‚µ‚ÄŒ»İ‚Ì’ïR’l‚ğ‹‚ß‚é
+    inline float SampleCurve(const std::vector<CurvePoint>& points, float position)
+    {
+        // –³’ïR
+        if (points.empty())
+        {
+            return 0.0f;
+        }
+        // “_‚ª1‚Â‚¾‚¯A‚Ü‚½‚Í position ‚ªÅ‰‚Ì“_‚æ‚èè‘O‚Ì‚ÍÅ‰‚Ì“_‚Ì’l‚ğ‚»‚Ì‚Ü‚Üg‚¤
+        if (points.size() == 1 || position <= points.front().position)
+        {
+            return points.front().value;
+        }
+        // position ‚ªÅŒã‚Ì“_‚æ‚èŒã‚ë‚È‚çÅŒã‚Ì“_‚Ì’l‚ğ‚»‚Ì‚Ü‚Üg‚¤
+        if (position >= points.back().position)
+        {
+            return points.back().value;
+        }
+
+        // ŠY“–‚·‚é2“_‚ğ’T‚µ‚Ä‚»‚ÌŠÔ‚ğüŒ`•âŠÔ‚·‚é
+        for (size_t i = 0; i + 1 < points.size(); ++i)
+        {
+            const CurvePoint& a = points[i];
+            const CurvePoint& b = points[i + 1];
+            if (position >= a.position && position <= b.position)
+            {
+                float t = (position - a.position) / (b.position - a.position);
+                return a.value + (b.value - a.value) * t;
+            }
+        }
+        return points.back().value;
+    }
+}
+
+namespace AdaptiveTrigger
+{
+    struct Zone
+    {
+        // ‚±‚Ìƒ][ƒ“‚É‘®‚·‚éƒ|ƒCƒ“ƒg‚ÌƒŠƒXƒg
+        std::vector<CurvePoint> points;
+    };
+
+    // ƒŒƒ“ƒW“à‚Ìƒ][ƒ“‚ğŒŸo‚·‚é
+    inline std::vector<Zone> DetectZones(const std::vector<CurvePoint>& points)
+    {
+        // ŒŸo‚µ‚½ƒ][ƒ“‚ÌƒŠƒXƒg
+        std::vector<Zone> zones;
+		// Œ»İ‚Ìƒ][ƒ“
+        Zone current;
+
+        // ƒŒƒ“ƒW“à‚Ìƒ|ƒCƒ“ƒg‚ğæ“ª‚©‚ç‡‚É‘–¸‚·‚é
+        for (const auto& p : points)
+        {
+			// ’ïR’l‚ª0‚æ‚è‘å‚«‚¯‚ê‚ÎŒ»İ‚Ìƒ][ƒ“‚É’Ç‰Á‚·‚é
+            if (p.value > 0.0f)
+            {
+                current.points.push_back(p);
+            }
+            else
+            {
+				// ’ïR’l‚ª0‚È‚ç’ïR‚ª‚È‚¢êŠ‚Ö—ˆ‚½
+                if (!current.points.empty())
+                {
+                    // ˆê‹æØ‚è‚Æ‚·‚é
+                    zones.push_back(current);
+					// Œ»İ‚Ìƒ][ƒ“‚ğƒŠƒZƒbƒg
+                    current.points.clear();
+                }
+            }
+        }
+
+		// ‰Ÿ‚µ‚İØ‚Á‚½‚É’ïR’l0ˆÈã‚ª‚ ‚ê‚Î‚»‚Ì’n“_‚ğÅŒã‚Ìƒ][ƒ“‚Æ‚·‚é
+        if (!current.points.empty())
+        {
+            zones.push_back(current);
+        }
+
+        return zones;
+    }
+}
+
+namespace AdaptiveTrigger
+{
+    // “¯‚¶’l‚Æ‚İ‚È‚·Œë·‚Ì”ÍˆÍ
+    constexpr float ValueEpsilon = 0.05f;
+
+    // ƒ][ƒ“‚Ì”»’èŒ‹‰Ê
+    enum class ResistanceType
+    {
+        Constant, // ˆê’è’ïR
+        Changing, // •Ï‰»’ïR
+        Complex,  // •¡G‚ÈƒJ[ƒu
+    };
+
+    // ƒ][ƒ“‚Ìí—Ş‚ğ”»’è‚·‚é
+    inline ResistanceType ClassifyZone(const Zone& zone)
+    {
+		// ƒ|ƒCƒ“ƒg‚ª‚R“_ˆÈã‚È‚ç•¡G‚ÈƒJ[ƒu‚Æ‚İ‚È‚·
+        if (zone.points.size() >= 3)
+        {
+            return ResistanceType::Complex;
+        }
+
+		// 2“_ˆÈ‰º‚È‚çAÅ‰‚ÆÅŒã‚Ì’l‚Ì·‚ğŒ©‚Äˆê’è’ïR‚©”»’f‚·‚é
+        float diff = std::abs(zone.points.front().value - zone.points.back().value);
+        if (diff < ValueEpsilon)
+        {
+            return ResistanceType::Constant;
+        }
+        return ResistanceType::Changing;
+    }
+}
+
+namespace AdaptiveTrigger
+{
+    inline float ComputeForce(const TriggerEffect& effect, float currentPosition)
+    {
+        // Œ»İ’n‚Ì’ïR’l‚ğæ“¾
+        float force = SampleCurve(effect.forcePoints, currentPosition);
+        // ”ÍˆÍŠO•ÛŒ¯
+        return std::clamp(force, 0.0f, 1.0f); 
+    }
+} 
+ 
 ===== Camera.h ===== 
 Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\Camera.h 
 #pragma once
@@ -1340,6 +1487,7 @@ struct BaseCameraComponent
 Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\ControllerComponent.h 
 ï»¿#pragma once
 #include <cstdint>
+#include "Controller/AdaptiveTrigger.h"
 
 // ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ©ãƒ¼ã®ç¨®é¡
 enum class ControllerType
@@ -1356,18 +1504,22 @@ struct ControllerComponent
     ControllerType type = ControllerType::None;
     bool           connected = false;
 
-    // ã‚¹ãƒ†ã‚£ãƒƒã‚¯ï¼ˆæ­£è¦åŒ–æ¸ˆã¿ -1.0ï½1.0ã€ãƒ‡ãƒƒãƒ‰ã‚¾ãƒ¼ãƒ³æœªé©ç”¨ï¼‰
+    // ã‚¹ãƒ†ã‚£ãƒƒã‚¯
     float leftStickX = 0.0f;
     float leftStickY = 0.0f;
     float rightStickX = 0.0f;
     float rightStickY = 0.0f;
 
-    // ãƒˆãƒªã‚¬ãƒ¼ï¼ˆæ­£è¦åŒ–æ¸ˆã¿ 0.0ï½1.0ï¼‰
+    // ãƒˆãƒªã‚¬ãƒ¼
     float leftTrigger = 0.0f;
     float rightTrigger = 0.0f;
 
-    // ãƒœã‚¿ãƒ³ï¼ˆãƒ“ãƒƒãƒˆãƒ•ãƒ©ã‚°ï¼‰
+    // ãƒœã‚¿ãƒ³
     uint32_t buttons = 0;
+
+    // ã‚¢ãƒ€ãƒ—ãƒ†ã‚£ãƒ–ãƒˆãƒªã‚¬ãƒ¼å‡ºåŠ›
+    AdaptiveTrigger::TriggerEffect leftTriggerEffect = {};
+    AdaptiveTrigger::TriggerEffect rightTriggerEffect = {};
 
     // ãƒœã‚¿ãƒ³åˆ¤å®šãƒ˜ãƒ«ãƒ‘ãƒ¼
     bool IsPressed(uint32_t mask) const { return (buttons & mask) != 0; }
@@ -1398,16 +1550,15 @@ Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\Controll
 // ƒRƒ“ƒgƒ[ƒ‰[‚Ìİ’è’liJSON•Û‘¶j
 struct ControllerSettings
 {
-	// ƒXƒeƒBƒbƒN ƒfƒbƒhƒ][ƒ“(0.0`1.0)
+	// ƒXƒeƒBƒbƒN ƒfƒbƒhƒ][ƒ“
 	float leftStickDeadzone = 0.2f;
 	float rightStickDeadzone = 0.2f;
 
-	// ƒgƒŠƒK[ ƒfƒbƒhƒ][ƒ“(0.0`1.0)
+	// ƒgƒŠƒK[ ƒfƒbƒhƒ][ƒ“
 	float leftTriggerDeadzone = 0.05f;
 	float rightTriggerDeadzone = 0.05f;
 
-	// L2/R2 ƒfƒWƒ^ƒ‹”»’èè‡’l (0.0`1.0)
-	// ‚Ç‚ê‚¾‚¯ˆø‚¢‚½‚çu‰Ÿ‚µ‚½v‚Æ”»’è‚·‚é‚©
+	// L2/R2 ƒfƒWƒ^ƒ‹”»’èè‡’l 
 	float leftTriggerThreshold = 0.5f;
 	float rightTriggerThreshold = 0.5f;
 }; 
@@ -1678,16 +1829,28 @@ public:
     // XV
     void Update(entt::registry& registry, float elapsedTime);
 
-    // İ’è‚Ö‚ÌQÆiControllerToolWindow ‚©‚ç“Ç‚İ‘‚«‚·‚éj
+    // İ’è‚Ö‚ÌQÆ
     ControllerSettings& GetSettings() { return settings; }
     const ControllerSettings& GetSettings() const { return settings; }
 
+    int GetDebugSendCount() const { return debugSendCount; }
+    const DS5W::TriggerEffect& GetLastLeftEffect() const { return lastLeftEffect; }
+    const DS5W::TriggerEffect& GetLastRightEffect() const { return lastRightEffect; }
 private:
     // Xbox “ü—Í‚ğControllerComponent‚É‘‚­
     void UpdateXboxInput(ControllerComponent& ctrl);
 
     // PS5 “ü—Í‚ğControllerComponent‚É‘‚­
     void UpdatePS5Input(ControllerComponent& ctrl);
+
+    // PS5 o—Í‘—M
+    void SendPS5Output(ControllerComponent& ctrl);
+
+    // AdaptiveTrigger::TriggerEffect‚©‚çDS5W::TriggerEffect‚Ö‚Ì•ÏŠ·
+    void ApplyTriggerEffect(DS5W::TriggerEffect& dst, const AdaptiveTrigger::TriggerEffect& src, float currentPosition);
+
+    // 2‚Â‚ÌTriggerEffect‚ª“¯‚¶“à—e‚©‚Ç‚¤‚©”äŠr‚·‚é
+    bool IsSameTriggerEffect(const DS5W::TriggerEffect& a, const DS5W::TriggerEffect& b);
 
     // PS5 Ú‘±s
     void TryConnectPS5();
@@ -1704,8 +1867,15 @@ private:
     float                ds5ReconnectTimer = 0.0f;
     static constexpr float ds5ReconnectInterval = 3.0f;
 
+    DS5W::TriggerEffect lastLeftEffect = {};
+    DS5W::TriggerEffect lastRightEffect = {};
+
+    int debugSendCount = 0;
+
+
     // İ’è’l
     ControllerSettings settings;
+
 }; 
  
 ===== DebugCameraSystem.h ===== 
@@ -2406,6 +2576,7 @@ void ControllerSystem::Update(entt::registry& registry, float elapsedTime)
                 ctrl.type = ControllerType::PS5;
                 ctrl.connected = true;
                 UpdatePS5Input(ctrl);
+                SendPS5Output(ctrl);
             }
             else if (xboxConnected)
             {
@@ -2452,24 +2623,24 @@ void ControllerSystem::UpdateXboxInput(ControllerComponent& ctrl)
 // PS5 å…¥åŠ›
 void ControllerSystem::UpdatePS5Input(ControllerComponent& ctrl)
 {
-    // ã‚¹ãƒ†ã‚£ãƒƒã‚¯ï¼ˆ-128ï½127 â†’ -1.0ï½1.0ï¼‰
+    // ã‚¹ãƒ†ã‚£ãƒƒã‚¯
     ctrl.leftStickX = ds5InputState.leftStick.x / 127.0f;
     ctrl.leftStickY = ds5InputState.leftStick.y / 127.0f;
     ctrl.rightStickX = ds5InputState.rightStick.x / 127.0f;
     ctrl.rightStickY = ds5InputState.rightStick.y / 127.0f;
 
-    // ãƒˆãƒªã‚¬ãƒ¼ï¼ˆ0ï½255 â†’ 0.0ï½1.0ï¼‰
+    // ãƒˆãƒªã‚¬ãƒ¼
     ctrl.leftTrigger = ds5InputState.leftTrigger / 255.0f;
     ctrl.rightTrigger = ds5InputState.rightTrigger / 255.0f;
 
-    // ãƒœã‚¿ãƒ³ï¼ˆbuttonsAndDpadï¼‰
+    // ãƒœã‚¿ãƒ³
     auto btn = ds5InputState.buttonsAndDpad;
     if (btn & DS5W_ISTATE_BTX_CROSS)    ctrl.buttons |= ControllerButtons::Cross;
     if (btn & DS5W_ISTATE_BTX_CIRCLE)   ctrl.buttons |= ControllerButtons::Circle;
     if (btn & DS5W_ISTATE_BTX_SQUARE)   ctrl.buttons |= ControllerButtons::Square;
     if (btn & DS5W_ISTATE_BTX_TRIANGLE) ctrl.buttons |= ControllerButtons::Triangle;
 
-    // ãƒœã‚¿ãƒ³ï¼ˆbuttonsAï¼‰
+    // ãƒœã‚¿ãƒ³
     auto btnA = ds5InputState.buttonsA;
     if (btnA & DS5W_ISTATE_BTN_A_LEFT_BUMPER)  ctrl.buttons |= ControllerButtons::L1;
     if (btnA & DS5W_ISTATE_BTN_A_RIGHT_BUMPER) ctrl.buttons |= ControllerButtons::R1;
@@ -2478,9 +2649,77 @@ void ControllerSystem::UpdatePS5Input(ControllerComponent& ctrl)
     if (btnA & DS5W_ISTATE_BTN_A_SELECT)       ctrl.buttons |= ControllerButtons::Share;
     if (btnA & DS5W_ISTATE_BTN_A_MENU)         ctrl.buttons |= ControllerButtons::Options;
 
-    // L2/R2 ãƒ‡ã‚¸ã‚¿ãƒ«åˆ¤å®šï¼ˆsettings ã®é–¾å€¤ã‚’ä½¿ã†ï¼‰
+    // L2/R2 ãƒ‡ã‚¸ã‚¿ãƒ«åˆ¤å®š
     if (ctrl.leftTrigger >= settings.leftTriggerThreshold)  ctrl.buttons |= ControllerButtons::L2;
     if (ctrl.rightTrigger >= settings.rightTriggerThreshold) ctrl.buttons |= ControllerButtons::R2;
+}
+
+// PS5 å‡ºåŠ›é€ä¿¡
+void ControllerSystem::SendPS5Output(ControllerComponent& ctrl)
+{
+    DS5W::TriggerEffect newLeft = {};
+    DS5W::TriggerEffect newRight = {};
+
+    ApplyTriggerEffect(newLeft, ctrl.leftTriggerEffect, ctrl.leftTrigger);
+    ApplyTriggerEffect(newRight, ctrl.rightTriggerEffect, ctrl.rightTrigger);
+
+    bool changed =
+        !IsSameTriggerEffect(newLeft, lastLeftEffect) ||
+        !IsSameTriggerEffect(newRight, lastRightEffect);
+
+    // å‰å›ã¨åŒã˜å†…å®¹ãªã‚‰é€ä¿¡ã—ãªã„
+    if (!changed)
+    {
+        return;
+    }
+
+    ds5OutputState = {};
+    ds5OutputState.leftTriggerEffect = newLeft;
+    ds5OutputState.rightTriggerEffect = newRight;
+
+    DS5W::setDeviceOutputState(&ds5Context, &ds5OutputState);
+    debugSendCount++;
+
+    lastLeftEffect = newLeft;
+    lastRightEffect = newRight;
+}
+
+// AdaptiveTrigger::TriggerEffectã‹ã‚‰DS5W::TriggerEffectã¸ã®å¤‰æ›
+void ControllerSystem::ApplyTriggerEffect(DS5W::TriggerEffect& dst, const AdaptiveTrigger::TriggerEffect& src, float currentPosition)
+{
+    float force = AdaptiveTrigger::ComputeForce(src, currentPosition);
+
+    if (force <= 0.0f)
+    {
+        dst.effectType = DS5W::TriggerEffectType::NoResitance;
+        return;
+    }
+
+    dst.effectType = DS5W::TriggerEffectType::ContinuousResitance;
+    dst.Continuous.startPosition = 0; // å›ºå®šï¼ˆå‹•ã‹ã•ãªã„ï¼‰
+    dst.Continuous.force = static_cast<unsigned char>(force * 255.0f);
+}
+
+bool ControllerSystem::IsSameTriggerEffect(const DS5W::TriggerEffect& a, const DS5W::TriggerEffect& b)
+{
+    if (a.effectType != b.effectType)
+    {
+        return false;
+    }
+    if (a.effectType == DS5W::TriggerEffectType::EffectEx)
+    {
+        return a.EffectEx.startPosition == b.EffectEx.startPosition &&
+            a.EffectEx.beginForce == b.EffectEx.beginForce &&
+            a.EffectEx.middleForce == b.EffectEx.middleForce &&
+            a.EffectEx.endForce == b.EffectEx.endForce;
+    }
+    if (a.effectType == DS5W::TriggerEffectType::ContinuousResitance)
+    {
+        return a.Continuous.startPosition == b.Continuous.startPosition &&
+            a.Continuous.force == b.Continuous.force;
+    }
+    // NoResitanceãªã©ã€ãã‚Œä»¥å¤–ã¯ç¨®é¡ãŒåŒã˜ãªã‚‰åŒã˜ã¨ã¿ãªã™
+    return true;
 }
 
 // PS5 æ¥ç¶šè©¦è¡Œ
@@ -4555,7 +4794,7 @@ Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Game\SceneGame.h
 #include "Rendering/LightManager.h"
 
 
-
+#include "Tool/AdaptiveTriggerToolWindow.h"
 
 class SceneGame : public Scene
 {
@@ -4578,6 +4817,7 @@ private:
 	DebugCameraSystem debugCameraSystem;
 	GameCameraSystem  gameCameraSystem; 
 
+	AdaptiveTriggerToolWindow adaptiveTriggerToolWindow;
 
 	SkyBox       skyBox;
 	LightManager lightManager;
@@ -4777,10 +5017,36 @@ void SceneGame::Render(const SceneContext& context)
 void SceneGame::RenderImGui()
 {
 #ifdef _DEBUG
+	auto printEffect = [](const char* label, const DS5W::TriggerEffect& e)
+		{
+			ImGui::Text("%s effectType: %d", label, static_cast<int>(e.effectType));
+			if (e.effectType == DS5W::TriggerEffectType::ContinuousResitance)
+			{
+				ImGui::Text("  startPosition: %d  force: %d", e.Continuous.startPosition, e.Continuous.force);
+			}
+			else if (e.effectType == DS5W::TriggerEffectType::EffectEx)
+			{
+				ImGui::Text("  startPosition: %d  begin: %d  middle: %d  end: %d",
+					e.EffectEx.startPosition, e.EffectEx.beginForce, e.EffectEx.middleForce, e.EffectEx.endForce);
+			}
+		};
 
+	auto view = registry.view<ControllerComponent>();
+	for (auto entity : view)
+	{
+		auto& ctrl = view.get<ControllerComponent>(entity);
+		adaptiveTriggerToolWindow.Draw(ctrl);
+
+		ImGui::Begin("Debug");
+		ImGui::Text(u8"é€ä¿¡å›æ•°: %d", controllerSystem.GetDebugSendCount());
+		printEffect("L2", controllerSystem.GetLastLeftEffect());
+		printEffect("R2", controllerSystem.GetLastRightEffect());
+		ImGui::End();
+
+		break;
+	}
 #endif
-}
- 
+} 
  
 ===== GBuffer.h ===== 
 Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Rendering\GBuffer.h 
@@ -7624,6 +7890,160 @@ void ResourceManager::ReleaseAll()
 	modelCache.clear();
 }
  
+ 
+===== AdaptiveTriggerToolWindow.h ===== 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Tool\AdaptiveTriggerToolWindow.h 
+#pragma once
+#include "ECS/Components/ControllerComponent.h"
+
+class AdaptiveTriggerToolWindow
+{
+public:
+    void Draw(ControllerComponent& ctrl);
+
+private:
+    // L2/R2‹¤’Ê‚ÌƒJ[ƒu•ÒWˆ—i1‚Â‚ÌŠÖ”‚ğ2‰ñŒÄ‚Ô‚±‚Æ‚Åd•¡‚ğ”ğ‚¯‚éj
+    void DrawTriggerCurve(const char* label, AdaptiveTrigger::TriggerEffect& effect, float currentValue, int& draggingIndex);
+
+    // ƒhƒ‰ƒbƒO’†‚Ìƒ|ƒCƒ“ƒg‚ÌƒCƒ“ƒfƒbƒNƒXiƒhƒ‰ƒbƒO‚µ‚Ä‚¢‚È‚¢‚Í-1j
+    int leftDraggingIndex = -1;
+    int rightDraggingIndex = -1;
+}; 
+ 
+===== AdaptiveTriggerToolWindow.cpp ===== 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Tool\AdaptiveTriggerToolWindow.cpp 
+#include "AdaptiveTriggerToolWindow.h"
+#include <imgui.h>
+#include <algorithm>
+
+void AdaptiveTriggerToolWindow::Draw(ControllerComponent& ctrl)
+{
+    if (!ImGui::Begin("Adaptive Trigger Tool"))
+    {
+        ImGui::End();
+        return;
+    }
+
+    DrawTriggerCurve("L2", ctrl.leftTriggerEffect, ctrl.leftTrigger, leftDraggingIndex);
+    ImGui::Spacing();
+    DrawTriggerCurve("R2", ctrl.rightTriggerEffect, ctrl.rightTrigger, rightDraggingIndex);
+
+    ImGui::End();
+}
+
+void AdaptiveTriggerToolWindow::DrawTriggerCurve(const char* label, AdaptiveTrigger::TriggerEffect& effect, float currentValue, int& draggingIndex)
+{
+    ImGui::PushID(label);
+    ImGui::SeparatorText(label);
+
+    auto& points = effect.forcePoints;
+
+    ImVec2 graphSize(ImGui::GetContentRegionAvail().x, 150.0f);
+    ImVec2 graphPos = ImGui::GetCursorScreenPos();
+
+    // ƒOƒ‰ƒt‘S‘Ì‚Å1‚Â‚¾‚¯InvisibleButton‚ğì‚é
+    ImGui::InvisibleButton("##graphBg", graphSize);
+    bool bgClicked = ImGui::IsItemClicked(); // ƒNƒŠƒbƒN‚µ‚½uŠÔ‚¾‚¯true
+    bool bgActive = ImGui::IsItemActive();   // ‰Ÿ‚µ‚Ä‚¢‚éŠÔ‚¸‚Á‚Ætrue
+    ImVec2 mousePos = ImGui::GetMousePos();
+
+    ImDrawList* drawList = ImGui::GetWindowDrawList();
+    drawList->AddRect(graphPos, ImVec2(graphPos.x + graphSize.x, graphPos.y + graphSize.y), IM_COL32(150, 150, 150, 255));
+
+    // position(0~1)/value(0~1) Ì ‰æ–ÊÀ•W ‚Ì•ÏŠ·
+    auto ToScreen = [&](const AdaptiveTrigger::CurvePoint& p) -> ImVec2
+        {
+            return ImVec2(graphPos.x + p.position * graphSize.x, graphPos.y + (1.0f - p.value) * graphSize.y);
+        };
+    auto FromScreen = [&](ImVec2 screen) -> AdaptiveTrigger::CurvePoint
+        {
+            AdaptiveTrigger::CurvePoint p;
+            p.position = std::clamp((screen.x - graphPos.x) / graphSize.x, 0.0f, 1.0f);
+            p.value = std::clamp(1.0f - (screen.y - graphPos.y) / graphSize.y, 0.0f, 1.0f);
+            return p;
+        };
+
+    // ƒ|ƒCƒ“ƒg“¯m‚ğü‚ÅŒq‚®
+    for (size_t i = 0; i + 1 < points.size(); ++i)
+    {
+        drawList->AddLine(ToScreen(points[i]), ToScreen(points[i + 1]), IM_COL32(217, 90, 48, 255), 2.0f);
+    }
+    // ƒ|ƒCƒ“ƒg‚ğŠÛ‚Å•`‰æidrawList‚¾‚¯‚È‚Ì‚ÅImGui‚ÌƒJ[ƒ\ƒ‹‚É‚Í‰e‹¿‚µ‚È‚¢j
+    for (size_t i = 0; i < points.size(); ++i)
+    {
+        drawList->AddCircleFilled(ToScreen(points[i]), 5.0f, IM_COL32(217, 90, 48, 255));
+    }
+
+    const float pickRadius = 8.0f;
+
+    // ƒNƒŠƒbƒN‚µ‚½uŠÔFŠù‘¶‚Ìƒ|ƒCƒ“ƒg‚Ì‹ß‚­‚©‚Ç‚¤‚©‚ğ©•ª‚Å”»’è‚·‚é
+    if (bgClicked)
+    {
+        draggingIndex = -1;
+        for (size_t i = 0; i < points.size(); ++i)
+        {
+            ImVec2 screenPos = ToScreen(points[i]);
+            float dx = mousePos.x - screenPos.x;
+            float dy = mousePos.y - screenPos.y;
+            if ((dx * dx + dy * dy) <= (pickRadius * pickRadius))
+            {
+                draggingIndex = static_cast<int>(i);
+                break;
+            }
+        }
+
+        // ‹ß‚­‚Éƒ|ƒCƒ“ƒg‚ª–³‚¯‚ê‚ÎAV‚µ‚¢ƒ|ƒCƒ“ƒg‚ğ’Ç‰Á‚·‚é
+        if (draggingIndex == -1)
+        {
+            points.push_back(FromScreen(mousePos));
+            draggingIndex = static_cast<int>(points.size()) - 1;
+        }
+    }
+
+    // ƒhƒ‰ƒbƒO’†Fƒ}ƒEƒX‚ğ‰Ÿ‚µ‚Ä‚¢‚éŠÔA‘ÎÛ‚Ìƒ|ƒCƒ“ƒg‚ğ’Ç]‚³‚¹‚é
+    if (bgActive && draggingIndex >= 0 && draggingIndex < static_cast<int>(points.size()))
+    {
+        points[draggingIndex] = FromScreen(mousePos);
+    }
+
+    // ƒ}ƒEƒX‚ğ—£‚µ‚½‚çƒhƒ‰ƒbƒOI—¹
+    if (!ImGui::IsMouseDown(ImGuiMouseButton_Left))
+    {
+        draggingIndex = -1;
+    }
+
+    // ƒhƒ‰ƒbƒO’†‚Å‚È‚¢‚¾‚¯•À‚Ñ‘Ö‚¦‚éiƒhƒ‰ƒbƒO’†‚É•À‚Ñ‚ª•Ï‚í‚é‚Æindex‚ªƒYƒŒ‚é‚½‚ßj
+    if (draggingIndex == -1)
+    {
+        std::sort(points.begin(), points.end(),
+            [](const AdaptiveTrigger::CurvePoint& a, const AdaptiveTrigger::CurvePoint& b)
+            {
+                return a.position < b.position;
+            });
+    }
+
+    float force = AdaptiveTrigger::ComputeForce(effect, currentValue);
+    ImGui::Text(u8"Œ»İ’n: %.3f", currentValue);
+    ImGui::Text(u8"o—Í’†‚Ì—Í: %.3f (‘—M’l: %d)", force, static_cast<int>(force * 255.0f));
+
+    auto zones = AdaptiveTrigger::DetectZones(points);
+    for (size_t i = 0; i < zones.size(); ++i)
+    {
+        auto type = AdaptiveTrigger::ClassifyZone(zones[i]);
+        const char* typeName =
+            type == AdaptiveTrigger::ResistanceType::Constant ? u8"ˆê’è’ïR" :
+            type == AdaptiveTrigger::ResistanceType::Changing ? u8"•Ï‰»’ïR" : u8"•¡G";
+
+        float zoneStart = zones[i].points.front().position;
+        float zoneEnd = zones[i].points.back().position;
+        bool isCurrentZone = (currentValue >= zoneStart && currentValue <= zoneEnd);
+
+        ImGui::Text(u8"ƒ][ƒ“%zu: %s (%.2f~%.2f) %s",
+            i + 1, typeName, zoneStart, zoneEnd,
+            isCurrentZone ? u8"<- Œ»İ’n" : u8"");
+    }
+    ImGui::PopID();
+} 
  
 ===== IStudioAttachment.h ===== 
 Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Tool\Studio\IStudioAttachment.h 

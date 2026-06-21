@@ -27,9 +27,6 @@ public:
     ControllerSettings& GetSettings() { return settings; }
     const ControllerSettings& GetSettings() const { return settings; }
 
-    int GetDebugSendCount() const { return debugSendCount; }
-    const DS5W::TriggerEffect& GetLastLeftEffect() const { return lastLeftEffect; }
-    const DS5W::TriggerEffect& GetLastRightEffect() const { return lastRightEffect; }
 private:
     // Xbox “ü—Í‚ğControllerComponent‚É‘‚­
     void UpdateXboxInput(ControllerComponent& ctrl);
@@ -63,9 +60,6 @@ private:
 
     DS5W::TriggerEffect lastLeftEffect = {};
     DS5W::TriggerEffect lastRightEffect = {};
-
-    int debugSendCount = 0;
-
 
     // İ’è’l
     ControllerSettings settings;
