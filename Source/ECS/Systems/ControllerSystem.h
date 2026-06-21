@@ -38,7 +38,7 @@ private:
     void SendPS5Output(ControllerComponent& ctrl);
 
     // AdaptiveTrigger::TriggerEffect‚©‚çDS5W::TriggerEffect‚Ö‚Ì•ÏŠ·
-    void ApplyTriggerEffect(DS5W::TriggerEffect& dst, const AdaptiveTrigger::TriggerEffect& src, float currentPosition);
+    void ApplyTriggerEffect(DS5W::TriggerEffect& dst, const AdaptiveTrigger::TriggerEffect& src);
 
     // 2‚Â‚ÌTriggerEffect‚ª“¯‚¶“à—e‚©‚Ç‚¤‚©”äŠr‚·‚é
     bool IsSameTriggerEffect(const DS5W::TriggerEffect& a, const DS5W::TriggerEffect& b);

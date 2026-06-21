@@ -149,8 +149,8 @@ void ControllerSystem::SendPS5Output(ControllerComponent& ctrl)
     DS5W::TriggerEffect newLeft = {};
     DS5W::TriggerEffect newRight = {};
 
-    ApplyTriggerEffect(newLeft, ctrl.leftTriggerEffect, ctrl.leftTrigger);
-    ApplyTriggerEffect(newRight, ctrl.rightTriggerEffect, ctrl.rightTrigger);
+    ApplyTriggerEffect(newLeft, ctrl.leftTriggerEffect);
+    ApplyTriggerEffect(newRight, ctrl.rightTriggerEffect);
 
     bool changed =
         !IsSameTriggerEffect(newLeft, lastLeftEffect) ||
@@ -173,18 +173,23 @@ void ControllerSystem::SendPS5Output(ControllerComponent& ctrl)
 }
 
 // AdaptiveTrigger::TriggerEffectからDS5W::TriggerEffectへの変換
-void ControllerSystem::ApplyTriggerEffect(DS5W::TriggerEffect& dst, const AdaptiveTrigger::TriggerEffect& src, float currentPosition)
+void ControllerSystem::ApplyTriggerEffect(DS5W::TriggerEffect& dst, const AdaptiveTrigger::TriggerEffect& src)
 {
-    float force = AdaptiveTrigger::ComputeForce(src, currentPosition);
+    // ゾーンを検出して、最初のゾーンの「開始位置・強さ」をハードウェアにそのまま渡す
+    auto zones = AdaptiveTrigger::DetectZones(src.forcePoints);
 
-    if (force <= 0.0f)
+    if (zones.empty())
     {
         dst.effectType = DS5W::TriggerEffectType::NoResitance;
         return;
     }
 
+    const auto& zone = zones.front();
+    float startPos = zone.points.front().position;
+    float force = zone.points.front().value;
+
     dst.effectType = DS5W::TriggerEffectType::ContinuousResitance;
-    dst.Continuous.startPosition = 0; // 固定（動かさない）
+    dst.Continuous.startPosition = static_cast<unsigned char>(startPos * 255.0f);
     dst.Continuous.force = static_cast<unsigned char>(force * 255.0f);
 }
 
