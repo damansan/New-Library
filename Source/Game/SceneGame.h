@@ -22,7 +22,7 @@ class SceneGame : public Scene
 {
 public:
 	void Initialize(const SceneContext& context) override;
-	void Finalize()override {}
+	void Finalize()override;
 	void Update(float elapsedTime, const SceneContext& context) override;
 	void Render(const SceneContext& context)override;
 	void RenderImGui() override;
@@ -32,12 +32,12 @@ private:
 	InputSystem      inputSystem;
 	MovementSystem   movementSystem;
 	AnimationSystem  animationSystem;
-	
+
 	MeshLoaderSystem meshLoaderSystem;
 	RenderSystem     renderSystem;
-	
+
 	DebugCameraSystem debugCameraSystem;
-	GameCameraSystem  gameCameraSystem; 
+	GameCameraSystem  gameCameraSystem;
 
 	AdaptiveTriggerToolWindow adaptiveTriggerToolWindow;
 

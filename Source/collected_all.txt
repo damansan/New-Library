@@ -209,6 +209,7 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Core\framework.h
 #include "Core/ImGuiManager.h"
 #include "Core/SceneManager.h"
 #include "Core/Camera.h"
+#include "Core/PhysX.h"
 
 #include "Resource/ResourceManager.h"
 
@@ -231,12 +232,10 @@ public:
 	framework(HWND hwnd);
 	~framework();
 
-
 	framework(const framework&) = delete;                // ƒRƒs[ƒRƒ“ƒXƒgƒ‰ƒNƒ^‹Ö~
 	framework& operator=(const framework&) = delete;     // ƒRƒs[‘ã“ü‹Ö~
 	framework(framework&&) noexcept = delete;            // ƒ€[ƒuƒRƒ“ƒXƒgƒ‰ƒNƒ^‹Ö~
 	framework& operator=(framework&&) noexcept = delete; // ƒ€[ƒu‘ã“ü‹Ö~
-
 
 	void update(float elapsedTime);
 	void updateImGui();
@@ -255,15 +254,21 @@ private:
 	HWND hwnd;
 	high_resolution_timer timer;
 
+
+
 	// SceneContext
 	SceneContext sceneContext;
 	// SceneContext ‚ğÅVó‘Ô‚ÉXV‚·‚é
 	void updateSceneContext();
 
+
+
 	// GraphicsƒNƒ‰ƒX
 	Graphics graphics;
 	// ImGuiManagerƒNƒ‰ƒX
 	ImGuiManager imguiManager;
+
+
 
 	// SceneManagerƒNƒ‰ƒX
 	SceneManager sceneManager;
@@ -271,6 +276,9 @@ private:
 	ResourceManager resourceManager;
 	// CameraƒNƒ‰ƒX
 	Camera camera;
+	// PhysXƒNƒ‰ƒX
+	PhysX physX;
+
 
 	// Editor
 	EditorContext  editorContext;
@@ -283,6 +291,7 @@ private:
 	std::vector<std::unique_ptr<StudioWindow>> studioWindows;
 	void openStudioWindow(const std::string& assetPath = "");
 	int nextStudioWindowId = 0;
+
 private:
 	// VSync ON OFF
 	bool vsync = true;
@@ -412,11 +421,54 @@ public:
     bool HandleMessage(HWND hWnd, UINT msg, WPARAM wparam, LPARAM lparam);
 }; 
  
+===== PhysX.h ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Core\PhysX.h 
+#pragma once
+#include <PxPhysicsAPI.h>
+
+class PhysX
+{
+public:
+	PhysX() = default;
+	~PhysX() = default;
+
+	PhysX(const PhysX&) = delete;                // ƒRƒs[ƒRƒ“ƒXƒgƒ‰ƒNƒ^‹Ö~
+	PhysX& operator=(const PhysX&) = delete;     // ƒRƒs[‘ã“ü‹Ö~
+	PhysX(PhysX&&) noexcept = delete;            // ƒ€[ƒuƒRƒ“ƒXƒgƒ‰ƒNƒ^‹Ö~
+	PhysX& operator=(PhysX&&) noexcept = delete; // ƒ€[ƒu‘ã“ü‹Ö~
+
+	// ‰Šú‰»
+	void Initialize();
+	// I—¹ˆ—
+	void Cleanup();
+
+	// PxPhysicsæ“¾
+	physx::PxPhysics* GetPhysics() { return physics; }
+	// CPUƒfƒBƒXƒpƒbƒ`ƒƒæ“¾
+	physx::PxDefaultCpuDispatcher* GetDispatcher() { return dispatcher; }
+	// ƒfƒtƒHƒ‹ƒgƒ}ƒeƒŠƒAƒ‹æ“¾
+	physx::PxMaterial* GetDefaultMaterial() { return defaultMaterial; }
+
+private:
+	physx::PxDefaultAllocator      allocator;        // ƒAƒƒP[ƒ^
+	physx::PxDefaultErrorCallback  errorCallback;    // ƒGƒ‰[ƒR[ƒ‹ƒoƒbƒN
+
+	physx::PxPvd* pvd = nullptr;                     // PhysXVisualDebuggerÚ‘±
+	physx::PxPvdTransport* pvdTransport = nullptr;   // PhysXVisualDebuggerÚ‘±—pƒgƒ‰ƒ“ƒXƒ|[ƒg
+
+	physx::PxFoundation* foundation = nullptr;
+	physx::PxPhysics* physics = nullptr;
+	physx::PxDefaultCpuDispatcher* dispatcher = nullptr;
+	physx::PxMaterial* defaultMaterial = nullptr;
+
+}; 
+ 
 ===== Scene.h ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\Core\Scene.h 
 #pragma once
 #include "entt.hpp"
-#include "Core/SceneContext.h"
+#include "SceneContext.h"
+#include "PhysX.h"
 #include "ECS/Systems/MeshLoaderSystem.h"
 
 class Scene
@@ -443,9 +495,20 @@ public:
 
 	// ƒŒƒWƒXƒgƒŠæ“¾
 	entt::registry& GetRegistry() { return registry; }
+	// •¨—ƒV[ƒ“æ“¾
+	physx::PxScene* GetPhysicsScene() { return pxScene; }
 
 protected:
-	entt::registry registry; // Entity/ComponentŠÇ—
+
+	// Entity/ComponentŠÇ—
+	entt::registry registry; 
+
+	// •¨—ƒV[ƒ“‚Ìì¬
+	void InitializePhysicsScene(PhysX& physX);
+	// •¨—ƒV[ƒ“‚Ì”jŠü
+	void FinalizePhysicsScene();
+	// •¨—ƒ[ƒ‹ƒh–{‘Ì
+	physx::PxScene* pxScene = nullptr; 
 }; 
  
 ===== SceneContext.h ===== 
@@ -454,7 +517,9 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Core\SceneContext.h
 #include <d3d11.h>
 #include <DirectXMath.h>
 #include "Resource/ResourceManager.h"
-#include "Core/Camera.h"
+#include "Camera.h"
+#include "PhysX.h"
+
 #include "Editor/EditorContext.h"
 
 // SceneŒn‚É“n‚·ƒRƒ“ƒeƒLƒXƒg
@@ -464,6 +529,7 @@ struct SceneContext
 	ID3D11Device* device = nullptr;               // DX11ƒfƒoƒCƒX
 	ID3D11DeviceContext* deviceContext = nullptr;
 	ResourceManager* resourceManager = nullptr;   // ƒŠƒ\[ƒXŠÇ—
+	PhysX* physX = nullptr;                       // •¨—(PhysX)
 
 	ID3D11RenderTargetView* renderTargetView = nullptr;
 	ID3D11DepthStencilView* depthStencilView = nullptr;
@@ -591,6 +657,9 @@ framework::framework(HWND hwnd) : hwnd(hwnd)
 {
 	// Graphics‰Šú‰»
 	graphics.Initialize(hwnd);
+	
+	// PhysX‰Šú‰»
+	physX.Initialize();
 
 	// ImGuiManager‰Šú‰»
 	imguiManager.Initialize(hwnd, graphics.GetDevice(), graphics.GetDeviceContext());
@@ -618,6 +687,9 @@ framework::framework(HWND hwnd) : hwnd(hwnd)
 framework::~framework()
 {
 	sceneManager.ClearScene();
+	
+	// PhysXI—¹ˆ—
+	physX.Cleanup();
 }
 
 void framework::update(float elapsedTime)
@@ -875,6 +947,8 @@ void framework::updateSceneContext()
 	sceneContext.device = graphics.GetDevice();
 	sceneContext.deviceContext = graphics.GetDeviceContext();
 	sceneContext.resourceManager = &resourceManager;
+	sceneContext.physX = &physX;
+
 	sceneContext.renderTargetView = graphics.GetRenderTargetView();
 	sceneContext.depthStencilView = graphics.GetDepthStencilView();
 	sceneContext.camera = &camera;
@@ -1379,6 +1453,81 @@ void ImGuiManager::Shutdown()
 bool ImGuiManager::HandleMessage(HWND hWnd, UINT msg, WPARAM wparam, LPARAM lparam)
 {
 	return ImGui_ImplWin32_WndProcHandler(hWnd, msg, wparam, lparam);
+}
+ 
+ 
+===== PhysX.cpp ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Core\PhysX.cpp 
+#include "PhysX.h"
+
+using namespace physx;
+
+// ‰Šú‰»
+void PhysX::Initialize()
+{
+	// Foundatioì¬
+	foundation = PxCreateFoundation(PX_PHYSICS_VERSION, allocator, errorCallback);
+
+	// PhysXVisualDebugger‚ÉÚ‘±
+	pvd = PxCreatePvd(*foundation);
+	pvdTransport = PxDefaultPvdSocketTransportCreate("127.0.0.1", 5425, 10);
+	pvd->connect(*pvdTransport, physx::PxPvdInstrumentationFlag::eALL);
+
+	// PxPhysics–{‘Ìì¬
+	physics = PxCreatePhysics(PX_PHYSICS_VERSION, *foundation, PxTolerancesScale(), true, pvd);
+
+	// ƒVƒ~ƒ…ƒŒ[ƒVƒ‡ƒ“‚ğCPUƒXƒŒƒbƒh‚ÉŠ„‚èU‚éƒfƒBƒXƒpƒbƒ`ƒƒ‚ğì¬
+	dispatcher = PxDefaultCpuDispatcherCreate(1); // ƒXƒŒƒbƒh”‚P
+
+	// ƒfƒtƒHƒ‹ƒgƒ}ƒeƒŠƒAƒ‹(Ã–€C, “®–€C, ”½”­ŒW”)ì¬
+	defaultMaterial = physics->createMaterial(0.5f, 0.5f, 0.6f);
+}
+// I—¹ˆ—
+void PhysX::Cleanup()
+{
+	// ì¬‚µ‚½‡‚Æ‹t‡‚É‰ğ•ú‚·‚é
+	if (defaultMaterial) { defaultMaterial->release(); defaultMaterial = nullptr; }
+	if (dispatcher)      { dispatcher->release();      dispatcher      = nullptr; }
+	if (physics)         { physics->release();         physics         = nullptr; }
+	if (pvd)             { pvd->disconnect();
+				           pvd->release();             pvd             = nullptr; }
+	if (pvdTransport)    { pvdTransport->release();    pvdTransport    = nullptr; }
+	if (foundation)      { foundation->release();      foundation      = nullptr; }
+}
+ 
+ 
+===== Scene.cpp ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Core\Scene.cpp 
+#include "Scene.h"
+
+// •¨—ƒV[ƒ“‚Ìì¬
+void Scene::InitializePhysicsScene(PhysX& physX)
+{
+	// ƒV[ƒ“‘g‚İ—§‚Ä
+	physx::PxSceneDesc sceneDesc(physX.GetPhysics()->getTolerancesScale());
+	sceneDesc.gravity = physx::PxVec3(0.0f, -9.81f, 0.0f);
+	sceneDesc.cpuDispatcher = physX.GetDispatcher();
+	sceneDesc.filterShader = physx::PxDefaultSimulationFilterShader;
+
+	pxScene = physX.GetPhysics()->createScene(sceneDesc);
+
+	// PhysXVisualDebugger‚É‘—‚éî•ñ‚ğİ’è
+	if (physx::PxPvdSceneClient* pvdClient = pxScene->getScenePvdClient())
+	{
+		pvdClient->setScenePvdFlag(physx::PxPvdSceneFlag::eTRANSMIT_CONSTRAINTS, true);
+		pvdClient->setScenePvdFlag(physx::PxPvdSceneFlag::eTRANSMIT_CONTACTS, true);
+		pvdClient->setScenePvdFlag(physx::PxPvdSceneFlag::eTRANSMIT_SCENEQUERIES, true);
+	}
+}
+
+// •¨—ƒV[ƒ“‚Ì”jŠü
+void Scene::FinalizePhysicsScene()
+{
+	if (pxScene)
+	{
+		pxScene->release();
+		pxScene = nullptr;
+	}
 }
  
  
@@ -4801,7 +4950,7 @@ class SceneGame : public Scene
 {
 public:
 	void Initialize(const SceneContext& context) override;
-	void Finalize()override {}
+	void Finalize()override;
 	void Update(float elapsedTime, const SceneContext& context) override;
 	void Render(const SceneContext& context)override;
 	void RenderImGui() override;
@@ -4811,12 +4960,12 @@ private:
 	InputSystem      inputSystem;
 	MovementSystem   movementSystem;
 	AnimationSystem  animationSystem;
-	
+
 	MeshLoaderSystem meshLoaderSystem;
 	RenderSystem     renderSystem;
-	
+
 	DebugCameraSystem debugCameraSystem;
-	GameCameraSystem  gameCameraSystem; 
+	GameCameraSystem  gameCameraSystem;
 
 	AdaptiveTriggerToolWindow adaptiveTriggerToolWindow;
 
@@ -4834,13 +4983,16 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Game\SceneGame.cpp
 
 void SceneGame::Initialize(const SceneContext& context)
 {
+	// ç‰©ç†ã‚·ãƒ¼ãƒ³åˆæœŸåŒ–
+	InitializePhysicsScene(*context.physX);
+	// æç”»ã‚·ã‚¹ãƒ†ãƒ åˆæœŸåŒ–
 	renderSystem.Initialize(context.device);
 
 	// SkyBoxåˆæœŸåŒ–
 	skyBox.Initialize(
 		context.device,
-		//"Data/SkyBox/BlueSky"
-		"Data/SkyBox/DynamicSky"
+		"Data/SkyBox/BlueSky"
+		//"Data/SkyBox/DynamicSky"
 	);
 	// IBLãƒ†ã‚¯ã‚¹ãƒãƒ£ã‚»ãƒƒãƒˆ
 	renderSystem.SetIBLTextures(
@@ -4878,6 +5030,12 @@ void SceneGame::Initialize(const SceneContext& context)
 			3.0f              // å¼·åº¦
 		);
 	}
+}
+
+void SceneGame::Finalize()
+{
+	// ç‰©ç†ã‚·ãƒ¼ãƒ³çµ‚äº†å‡¦ç†
+	FinalizePhysicsScene();
 }
 
 void SceneGame::Update(float elapsedTime, const SceneContext& context)

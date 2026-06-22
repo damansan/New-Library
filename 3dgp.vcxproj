@@ -30,6 +30,8 @@
     <ClCompile Include="Source\Core\framework.cpp" />
     <ClCompile Include="Source\Core\Graphics.cpp" />
     <ClCompile Include="Source\Core\ImGuiManager.cpp" />
+    <ClCompile Include="Source\Core\PhysX.cpp" />
+    <ClCompile Include="Source\Core\Scene.cpp" />
     <ClCompile Include="Source\Core\SceneManager.cpp" />
     <ClCompile Include="Source\ECS\Systems\AnimationSystem.cpp" />
     <ClCompile Include="Source\ECS\Systems\ControllerSystem.cpp" />
@@ -76,6 +78,7 @@
     <ClInclude Include="Source\Core\framework.h" />
     <ClInclude Include="Source\Core\Graphics.h" />
     <ClInclude Include="Source\Core\ImGuiManager.h" />
+    <ClInclude Include="Source\Core\PhysX.h" />
     <ClInclude Include="Source\Core\Scene.h" />
     <ClInclude Include="Source\Core\SceneContext.h" />
     <ClInclude Include="Source\Core\SceneManager.h" />
@@ -314,9 +317,9 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>_DEBUG;_WINDOWS;TRACY_ENABLE;%(PreprocessorDefinitions);DS5W_USE_LIB</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_WINDOWS;TRACY_ENABLE;%(PreprocessorDefinitions);DS5W_USE_LIB;PX_PHYSX_STATIC_LIB</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)Source;$(ProjectDir)External/imgui-docking;$(ProjectDir)External/imgui-docking/backends;$(ProjectDir)External/entt-main/single_include/entt;$(ProjectDir)External/GLTF;$(ProjectDir)External/tracy-0.13.1/public;$(ProjectDir)External/json-3.12.0/single_include/nlohmann;$(ProjectDir)External/DualSense-Windows-main/VS19_Solution/DualSenseWindows/include;.\External\DirectXTK-main\Inc;.\External\DirectXTex-may2026\DirectXTex;.\External\cereal-master\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)Source;$(ProjectDir)External/imgui-docking;$(ProjectDir)External/imgui-docking/backends;$(ProjectDir)External/entt-main/single_include/entt;$(ProjectDir)External/GLTF;$(ProjectDir)External/tracy-0.13.1/public;$(ProjectDir)External/json-3.12.0/single_include/nlohmann;$(ProjectDir)External/DualSense-Windows-main/VS19_Solution/DualSenseWindows/include;.\External\DirectXTK-main\Inc;.\External\DirectXTex-may2026\DirectXTex;.\External\cereal-master\include;.\External\PhysX\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
@@ -326,8 +329,8 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories);.\External\DirectXTK-main\Bin\Desktop_2022_Win10\x64\Debug;.\External\DirectXTex-may2026\DirectXTex\Bin\Desktop_2022_Win10\x64\Debug;.\External\DualSense-Windows-main\VS19_Solution\bin\DualSenseWindows\Debug-x64</AdditionalLibraryDirectories>
-      <AdditionalDependencies>d3d11.lib;dxgi.lib;user32.lib;gdi32.lib;DirectXTK.lib;DirectXTex.lib;ds5w_x64.lib;hid.lib;setupapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories);.\External\DirectXTK-main\Bin\Desktop_2022_Win10\x64\Debug;.\External\DirectXTex-may2026\DirectXTex\Bin\Desktop_2022_Win10\x64\Debug;.\External\DualSense-Windows-main\VS19_Solution\bin\DualSenseWindows\Debug-x64;.\External\PhysX\bin\win.x86_64.vc143.mt\debug</AdditionalLibraryDirectories>
+      <AdditionalDependencies>d3d11.lib;dxgi.lib;user32.lib;gdi32.lib;DirectXTK.lib;DirectXTex.lib;ds5w_x64.lib;hid.lib;setupapi.lib;PhysX_static_64.lib;PhysXCharacterKinematic_static_64.lib;PhysXCommon_static_64.lib;PhysXCooking_static_64.lib;PhysXExtensions_static_64.lib;PhysXFoundation_static_64.lib;PhysXPvdSDK_static_64.lib;PVDRuntime_64.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <FxCompile>
       <ShaderModel>5.0</ShaderModel>
@@ -370,9 +373,9 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions);DS5W_USE_LIB</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions);DS5W_USE_LIB;PX_PHYSX_STATIC_LIB</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)Source;$(ProjectDir)External/imgui-docking;$(ProjectDir)External/imgui-docking/backends;$(ProjectDir)External/entt-main/single_include/entt;$(ProjectDir)External/GLTF;$(ProjectDir)External/tracy-0.13.1/public;$(ProjectDir)External/json-3.12.0/single_include/nlohmann;$(ProjectDir)External/DualSense-Windows-main/VS19_Solution/DualSenseWindows/include;.\External\DirectXTK-main\Inc;.\External\DirectXTex-may2026\DirectXTex;.\External\cereal-master\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)Source;$(ProjectDir)External/imgui-docking;$(ProjectDir)External/imgui-docking/backends;$(ProjectDir)External/entt-main/single_include/entt;$(ProjectDir)External/GLTF;$(ProjectDir)External/tracy-0.13.1/public;$(ProjectDir)External/json-3.12.0/single_include/nlohmann;$(ProjectDir)External/DualSense-Windows-main/VS19_Solution/DualSenseWindows/include;.\External\DirectXTK-main\Inc;.\External\DirectXTex-may2026\DirectXTex;.\External\cereal-master\include;.\External\PhysX\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -382,8 +385,8 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>.\External\DirectXTK-main\Bin\Desktop_2022_Win10\x64\Release;.\External\DirectXTex-may2026\DirectXTex\Bin\Desktop_2022_Win10\x64\Release;.\External\DualSense-Windows-main\VS19_Solution\bin\DualSenseWindows\Release-x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>d3d11.lib;dxgi.lib;user32.lib;gdi32.lib;DirectXTK.lib;DirectXTex.lib;ds5w_x64.lib;hid.lib;setupapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>.\External\DirectXTK-main\Bin\Desktop_2022_Win10\x64\Release;.\External\DirectXTex-may2026\DirectXTex\Bin\Desktop_2022_Win10\x64\Release;.\External\DualSense-Windows-main\VS19_Solution\bin\DualSenseWindows\Release-x64;.\External\PhysX\bin\win.x86_64.vc143.mt\release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>d3d11.lib;dxgi.lib;user32.lib;gdi32.lib;DirectXTK.lib;DirectXTex.lib;ds5w_x64.lib;hid.lib;setupapi.lib;PhysX_static_64.lib;PhysXCharacterKinematic_static_64.lib;PhysXCommon_static_64.lib;PhysXCooking_static_64.lib;PhysXExtensions_static_64.lib;PhysXFoundation_static_64.lib;PhysXPvdSDK_static_64.lib;PVDRuntime_64.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <FxCompile>
       <ShaderModel>5.0</ShaderModel>

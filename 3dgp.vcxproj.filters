@@ -218,6 +218,9 @@
     <Filter Include="Sources\Controller\AdaptiveTrigger">
       <UniqueIdentifier>{2f5c2900-8742-4188-ba83-d0fbe51b5b3c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\Core\PhysX">
+      <UniqueIdentifier>{7b37c787-a13c-4b06-bde0-de1bf7da7717}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Core\framework.cpp">
@@ -348,6 +351,12 @@
     </ClCompile>
     <ClCompile Include="Source\Tool\AdaptiveTriggerToolWindow.cpp">
       <Filter>Sources\Tool</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Core\PhysX.cpp">
+      <Filter>Sources\Core\PhysX</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Core\Scene.cpp">
+      <Filter>Sources\Core\Scene</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -548,6 +557,9 @@
     </ClInclude>
     <ClInclude Include="Source\Tool\AdaptiveTriggerToolWindow.h">
       <Filter>Sources\Tool</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Core\PhysX.h">
+      <Filter>Sources\Core\PhysX</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

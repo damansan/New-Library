@@ -1,6 +1,7 @@
 #pragma once
 #include "entt.hpp"
-#include "Core/SceneContext.h"
+#include "SceneContext.h"
+#include "PhysX.h"
 #include "ECS/Systems/MeshLoaderSystem.h"
 
 class Scene
@@ -27,7 +28,20 @@ public:
 
 	// レジストリ取得
 	entt::registry& GetRegistry() { return registry; }
+	// 物理シーン取得
+	physx::PxScene* GetPhysicsScene() { return pxScene; }
 
 protected:
-	entt::registry registry; // Entity/Component管理
+
+	// Entity/Component管理
+	entt::registry registry; 
+
+	// 物理シーンの作成
+	void InitializePhysicsScene(PhysX& physX);
+	// 物理シーンの破棄
+	void FinalizePhysicsScene();
+	// 物理シーンの更新
+	void UpdatePhysicsScene(float elapsedTime);
+	// 物理ワールド本体
+	physx::PxScene* pxScene = nullptr; 
 };

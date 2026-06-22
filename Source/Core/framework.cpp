@@ -9,6 +9,9 @@ framework::framework(HWND hwnd) : hwnd(hwnd)
 {
 	// Graphics‰Šú‰»
 	graphics.Initialize(hwnd);
+	
+	// PhysX‰Šú‰»
+	physX.Initialize();
 
 	// ImGuiManager‰Šú‰»
 	imguiManager.Initialize(hwnd, graphics.GetDevice(), graphics.GetDeviceContext());
@@ -36,6 +39,9 @@ framework::framework(HWND hwnd) : hwnd(hwnd)
 framework::~framework()
 {
 	sceneManager.ClearScene();
+	
+	// PhysXI—¹ˆ—
+	physX.Cleanup();
 }
 
 void framework::update(float elapsedTime)
@@ -78,10 +84,6 @@ void framework::updateImGui()
 	ImGui::Begin("System");
 	ImGui::Checkbox("VSync", &vsync);
 
-	//if (ImGui::Button("Studio Open"))
-	//{
-	//	openStudioWindow();
-	//}
 	ImGui::End();
 
 	// ƒV[ƒ“ImGui•`‰æ
@@ -293,6 +295,8 @@ void framework::updateSceneContext()
 	sceneContext.device = graphics.GetDevice();
 	sceneContext.deviceContext = graphics.GetDeviceContext();
 	sceneContext.resourceManager = &resourceManager;
+	sceneContext.physX = &physX;
+
 	sceneContext.renderTargetView = graphics.GetRenderTargetView();
 	sceneContext.depthStencilView = graphics.GetDepthStencilView();
 	sceneContext.camera = &camera;

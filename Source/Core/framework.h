@@ -11,6 +11,7 @@
 #include "Core/ImGuiManager.h"
 #include "Core/SceneManager.h"
 #include "Core/Camera.h"
+#include "Core/PhysX.h"
 
 #include "Resource/ResourceManager.h"
 
@@ -33,12 +34,10 @@ public:
 	framework(HWND hwnd);
 	~framework();
 
-
 	framework(const framework&) = delete;                // コピーコンストラクタ禁止
 	framework& operator=(const framework&) = delete;     // コピー代入禁止
 	framework(framework&&) noexcept = delete;            // ムーブコンストラクタ禁止
 	framework& operator=(framework&&) noexcept = delete; // ムーブ代入禁止
-
 
 	void update(float elapsedTime);
 	void updateImGui();
@@ -57,15 +56,21 @@ private:
 	HWND hwnd;
 	high_resolution_timer timer;
 
+
+
 	// SceneContext
 	SceneContext sceneContext;
 	// SceneContext を最新状態に更新する
 	void updateSceneContext();
 
+
+
 	// Graphicsクラス
 	Graphics graphics;
 	// ImGuiManagerクラス
 	ImGuiManager imguiManager;
+
+
 
 	// SceneManagerクラス
 	SceneManager sceneManager;
@@ -73,6 +78,9 @@ private:
 	ResourceManager resourceManager;
 	// Cameraクラス
 	Camera camera;
+	// PhysXクラス
+	PhysX physX;
+
 
 	// Editor
 	EditorContext  editorContext;
@@ -85,6 +93,7 @@ private:
 	std::vector<std::unique_ptr<StudioWindow>> studioWindows;
 	void openStudioWindow(const std::string& assetPath = "");
 	int nextStudioWindowId = 0;
+
 private:
 	// VSync ON OFF
 	bool vsync = true;

@@ -2,7 +2,9 @@
 #include <d3d11.h>
 #include <DirectXMath.h>
 #include "Resource/ResourceManager.h"
-#include "Core/Camera.h"
+#include "Camera.h"
+#include "PhysX.h"
+
 #include "Editor/EditorContext.h"
 
 // Scene系に渡すコンテキスト
@@ -12,6 +14,7 @@ struct SceneContext
 	ID3D11Device* device = nullptr;               // DX11デバイス
 	ID3D11DeviceContext* deviceContext = nullptr;
 	ResourceManager* resourceManager = nullptr;   // リソース管理
+	PhysX* physX = nullptr;                       // 物理(PhysX)
 
 	ID3D11RenderTargetView* renderTargetView = nullptr;
 	ID3D11DepthStencilView* depthStencilView = nullptr;

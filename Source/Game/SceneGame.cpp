@@ -5,13 +5,16 @@
 
 void SceneGame::Initialize(const SceneContext& context)
 {
+	// 物理シーン初期化
+	InitializePhysicsScene(*context.physX);
+	// 描画システム初期化
 	renderSystem.Initialize(context.device);
 
 	// SkyBox初期化
 	skyBox.Initialize(
 		context.device,
-		//"Data/SkyBox/BlueSky"
-		"Data/SkyBox/DynamicSky"
+		"Data/SkyBox/BlueSky"
+		//"Data/SkyBox/DynamicSky"
 	);
 	// IBLテクスチャセット
 	renderSystem.SetIBLTextures(
@@ -51,9 +54,22 @@ void SceneGame::Initialize(const SceneContext& context)
 	}
 }
 
+void SceneGame::Finalize()
+{
+	// 物理シーン終了処理
+	FinalizePhysicsScene();
+}
+
 void SceneGame::Update(float elapsedTime, const SceneContext& context)
 {
 	ZoneScoped;
+
+	{
+		// PhysX更新
+		ZoneScopedN("UpdatePhysX");
+		UpdatePhysicsScene(elapsedTime);
+	}
+
 
 	{
 		// コントローラー入力
