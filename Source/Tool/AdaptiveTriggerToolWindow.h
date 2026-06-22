@@ -8,13 +8,14 @@ public:
     void Draw(ControllerComponent& ctrl);
 
 private:
-    // ゾーンの状態（ポイント配列とは同期させない、独立したテスト用データ）
+    // ゾーンの状態
     struct ZoneState
     {
         bool  exists = false;
         float start = 0.0f;
         float end = 1.0f;
-        float force = 0.5f;
+        std::vector<AdaptiveTrigger::CurvePoint> localPoints;
+        int   selectedIndex = -1;
     };
 
     struct RangeDragState
@@ -26,8 +27,10 @@ private:
         float startZoneEnd = 0.0f;
     };
 
-    void DrawTriggerSection(const char* label, AdaptiveTrigger::TriggerEffect& effect, ZoneState& zone, RangeDragState& rangeDrag);
-    void DrawRangeBar(ZoneState& zone, float width, RangeDragState& rangeDrag);
+    void DrawTriggerSection(const char* label, AdaptiveTrigger::TriggerEffect& effect, ZoneState& zone, RangeDragState& rangeDrag, float currentValue);
+    void DrawRangeBar(ZoneState& zone, float width, RangeDragState& rangeDrag, float currentValue);
+    void DrawGraph(std::vector<AdaptiveTrigger::CurvePoint>& points, int& selectedIndex, int& otherSelectedIndex, float localCurrentValue, bool showIndicator);
+    void DrawSelectedPointPanel(std::vector<AdaptiveTrigger::CurvePoint>& points, int& selectedIndex);
 
     ZoneState leftZone;
     ZoneState rightZone;

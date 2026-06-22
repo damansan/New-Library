@@ -10,6 +10,10 @@ struct StudioSharedContext
 
     void Initialize(ID3D11Device* device)
     {
-        skyBox.Initialize(device, "Data/SkyBox/DynamicSky");
+        skyBox.Initialize(
+            device, 		
+            "Data/SkyBox/BlueSky"
+            //"Data/SkyBox/DynamicSky"
+        );
     }
 };
