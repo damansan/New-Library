@@ -1,5 +1,5 @@
 ===== AdaptiveTrigger.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Controller\AdaptiveTrigger.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Controller\AdaptiveTrigger.h 
 #pragma once
 #include <vector>
 #include <cmath>
@@ -146,7 +146,7 @@ namespace AdaptiveTrigger
 } 
  
 ===== Camera.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\Camera.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Core\Camera.h 
 #pragma once
 #include <DirectXMath.h>
 
@@ -195,7 +195,7 @@ private:
 }; 
  
 ===== framework.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\framework.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Core\framework.h 
 #pragma once
 
 #include <windows.h>
@@ -293,7 +293,7 @@ private:
 }; 
  
 ===== Graphics.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\Graphics.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Core\Graphics.h 
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
@@ -374,7 +374,7 @@ private:
 }; 
  
 ===== ImGuiManager.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\ImGuiManager.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Core\ImGuiManager.h 
 #pragma once
 #include <windows.h>
 #include <d3d11.h>
@@ -413,7 +413,7 @@ public:
 }; 
  
 ===== Scene.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\Scene.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Core\Scene.h 
 #pragma once
 #include "entt.hpp"
 #include "Core/SceneContext.h"
@@ -449,7 +449,7 @@ protected:
 }; 
  
 ===== SceneContext.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\SceneContext.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Core\SceneContext.h 
 #pragma once
 #include <d3d11.h>
 #include <DirectXMath.h>
@@ -480,7 +480,7 @@ struct SceneContext
 }; 
  
 ===== SceneManager.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\SceneManager.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Core\SceneManager.h 
 #pragma once
 #include "Scene.h"
 #include <memory>
@@ -520,7 +520,7 @@ private:
 }; 
  
 ===== Camera.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\Camera.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Core\Camera.cpp 
 #include "Camera.h"
 
 // èâä˙âª
@@ -579,7 +579,7 @@ void Camera::SetPerspectiveFov(
 } 
  
 ===== framework.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\framework.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Core\framework.cpp 
 #include "framework.h"
 #include "tracy/Tracy.hpp"
 #include "Game/SceneGame.h"
@@ -904,7 +904,7 @@ void framework::openStudioWindow(const std::string& assetPath)
 } 
  
 ===== Graphics.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\Graphics.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Core\Graphics.cpp 
 #include "Graphics.h"
 #include "Utility/misc.h"
 
@@ -1282,7 +1282,7 @@ void Graphics::Cleanup()
 } 
  
 ===== ImGuiManager.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\ImGuiManager.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Core\ImGuiManager.cpp 
 #include "ImGuiManager.h"
 
 ImGuiManager::~ImGuiManager()
@@ -1383,7 +1383,7 @@ bool ImGuiManager::HandleMessage(HWND hWnd, UINT msg, WPARAM wparam, LPARAM lpar
  
  
 ===== SceneManager.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\SceneManager.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Core\SceneManager.cpp 
 #include "SceneManager.h"
 
 // çXêV
@@ -1450,7 +1450,7 @@ void SceneManager::ClearScene()
  
  
 ===== AnimatorComponent.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\AnimatorComponent.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\AnimatorComponent.h 
 Ôªø#pragma once
 #include <string>
 
@@ -1471,7 +1471,7 @@ struct AnimatorComponent
 }; 
  
 ===== BaseCameraComponent.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\BaseCameraComponent.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\BaseCameraComponent.h 
 #pragma once
 #include <DirectXMath.h>
 
@@ -1484,7 +1484,7 @@ struct BaseCameraComponent
  
  
 ===== ControllerComponent.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\ControllerComponent.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\ControllerComponent.h 
 Ôªø#pragma once
 #include <cstdint>
 #include "Controller/AdaptiveTrigger.h"
@@ -1543,7 +1543,7 @@ namespace ControllerButtons
 } 
  
 ===== ControllerSettings.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\ControllerSettings.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\ControllerSettings.h 
 #pragma once
 #include <cstdint>
 
@@ -1564,7 +1564,7 @@ struct ControllerSettings
 }; 
  
 ===== FreeCameraComponent.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\FreeCameraComponent.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\FreeCameraComponent.h 
 #pragma once
 #include <windows.h>
 #include "BaseCameraComponent.h"
@@ -1582,7 +1582,7 @@ struct FreeCameraComponent
 }; 
  
 ===== GameCameraComponent.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\GameCameraComponent.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\GameCameraComponent.h 
 #pragma once
 #include <DirectXMath.h>
 #include "entt.hpp"
@@ -1614,7 +1614,7 @@ struct GameCameraComponent
 }; 
  
 ===== InputComponent.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\InputComponent.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\InputComponent.h 
 #pragma once
 struct InputComponent
 {
@@ -1632,7 +1632,7 @@ struct InputComponent
 }; 
  
 ===== MaterialComponent.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\MaterialComponent.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\MaterialComponent.h 
 #pragma once
 #include <cstdint>
 
@@ -1659,7 +1659,7 @@ struct MaterialComponent
 }; 
  
 ===== MeshComponent.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\MeshComponent.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\MeshComponent.h 
 #pragma once
 #include <string>
 
@@ -1673,7 +1673,7 @@ struct MeshComponent
 }; 
  
 ===== MovementComponent.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\MovementComponent.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\MovementComponent.h 
 #pragma once
 #include <DirectXMath.h>
 
@@ -1694,7 +1694,7 @@ struct MovementComponent
 }; 
  
 ===== SkinnedMeshComponent.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\SkinnedMeshComponent.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\SkinnedMeshComponent.h 
 #pragma once
 #include <memory>
 #include <vector>
@@ -1712,7 +1712,7 @@ struct SkinnedMeshComponent
 }; 
  
 ===== StaticMeshComponent.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\StaticMeshComponent.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\StaticMeshComponent.h 
 #pragma once
 #include <memory>
 #include "Resource/Model.h"
@@ -1725,7 +1725,7 @@ struct StaticMeshComponent
 }; 
  
 ===== Tags.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\Tags.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\Tags.h 
 #pragma once
 
 // ÉçÅ[ÉhçœÇ›ÉtÉâÉO
@@ -1738,7 +1738,7 @@ struct InvisibleTag {};
 struct NoShadowTag {}; 
  
 ===== TransformComponent.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\TransformComponent.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\TransformComponent.h 
 #pragma once
 #include <DirectXMath.h>
 
@@ -1760,7 +1760,7 @@ struct TransformComponent
 }; 
  
 ===== AnimationSystem.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\AnimationSystem.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\AnimationSystem.h 
 #pragma once
 #include <d3d11.h>
 #include "entt.hpp"
@@ -1803,7 +1803,7 @@ private:
 }; 
  
 ===== ControllerSystem.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\ControllerSystem.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\ControllerSystem.h 
 #pragma once
 #pragma comment(lib, "Xinput.lib")
 
@@ -1873,7 +1873,7 @@ private:
 }; 
  
 ===== DebugCameraSystem.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\DebugCameraSystem.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\DebugCameraSystem.h 
 #pragma once
 #include "entt.hpp"
 #include "Core/Camera.h"
@@ -1894,7 +1894,7 @@ private:
 }; 
  
 ===== GameCameraSystem.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\GameCameraSystem.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\GameCameraSystem.h 
 #pragma once
 #include "entt.hpp"
 #include "Core/Camera.h"
@@ -1921,7 +1921,7 @@ private:
 }; 
  
 ===== InputSystem.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\InputSystem.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\InputSystem.h 
 #pragma once
 #include "entt.hpp"
 #include "ECS/Components/InputComponent.h"
@@ -1952,7 +1952,7 @@ private:
 }; 
  
 ===== MeshLoaderSystem.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\MeshLoaderSystem.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\MeshLoaderSystem.h 
 #pragma once
 #include <d3d11.h>
 
@@ -1978,7 +1978,7 @@ public:
 }; 
  
 ===== MovementSystem.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\MovementSystem.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\MovementSystem.h 
 #pragma once
 #include "entt.hpp"
 #include "Core/SceneContext.h"
@@ -1990,7 +1990,7 @@ public:
 }; 
  
 ===== RenderSystem.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\RenderSystem.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\RenderSystem.h 
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
@@ -2186,7 +2186,7 @@ private:
 }; 
  
 ===== AnimationSystem.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\AnimationSystem.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\AnimationSystem.cpp 
 #include "AnimationSystem.h"
 #include "tracy/Tracy.hpp"
 
@@ -2502,7 +2502,7 @@ void AnimationSystem::CalcBoneTransforms(
  
  
 ===== ControllerSystem.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\ControllerSystem.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\ControllerSystem.cpp 
 Ôªø#include "ControllerSystem.h"
 #include <cmath>
 #include <algorithm>
@@ -2680,16 +2680,30 @@ void ControllerSystem::SendPS5Output(ControllerComponent& ctrl)
 // AdaptiveTrigger::TriggerEffect„Åã„ÇâDS5W::TriggerEffect„Å∏„ÅÆÂ§âÊèõ
 void ControllerSystem::ApplyTriggerEffect(DS5W::TriggerEffect& dst, const AdaptiveTrigger::TriggerEffect& src, float currentPosition)
 {
-    float force = AdaptiveTrigger::ComputeForce(src, currentPosition);
+    auto zones = AdaptiveTrigger::DetectZones(src.forcePoints);
 
-    if (force <= 0.0f)
+    if (zones.empty())
     {
         dst.effectType = DS5W::TriggerEffectType::NoResitance;
         return;
     }
 
+    const auto& zone = zones.front();
+    float startPos = zone.points.front().position;
+    float endPos = zone.points.back().position;
+
+    // ÁµÇ‰∫Ü‰ΩçÁΩÆ„ÇíË∂Ö„Åà„Å¶„ÅÑ„Åü„Çâ„ÄÅ„Åì„Å°„ÇâÂÅ¥„ÅßÊäµÊäó„Å™„Åó„Å´Âàá„ÇäÊõø„Åà„Çã
+    if (currentPosition > endPos)
+    {
+        dst.effectType = DS5W::TriggerEffectType::NoResitance;
+        return;
+    }
+
+    // ‰ªä„ÅÆ‰ΩçÁΩÆ„Å´„Åä„Åë„ÇãÊäµÊäóÂäõ„Çí„Ç´„Éº„Éñ„Åã„ÇâÊ±Ç„ÇÅ„Çã
+    float force = AdaptiveTrigger::ComputeForce(src, currentPosition);
+
     dst.effectType = DS5W::TriggerEffectType::ContinuousResitance;
-    dst.Continuous.startPosition = 0; // Âõ∫ÂÆöÔºàÂãï„Åã„Åï„Å™„ÅÑÔºâ
+    dst.Continuous.startPosition = static_cast<unsigned char>(startPos * 255.0f);
     dst.Continuous.force = static_cast<unsigned char>(force * 255.0f);
 }
 
@@ -2730,7 +2744,7 @@ void ControllerSystem::TryConnectPS5()
  
  
 ===== DebugCameraSystem.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\DebugCameraSystem.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\DebugCameraSystem.cpp 
 #include "DebugCameraSystem.h"
 #include <imgui.h>
 #include <algorithm>
@@ -2876,7 +2890,7 @@ void DebugCameraSystem::UpdateFreeCamera(FreeCameraComponent& free, float elapse
 } 
  
 ===== GameCameraSystem.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\GameCameraSystem.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\GameCameraSystem.cpp 
 #include "GameCameraSystem.h"
 #include <algorithm>
 
@@ -3009,7 +3023,7 @@ void GameCameraSystem::UpdateFixed(
 } 
  
 ===== InputSystem.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\InputSystem.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\InputSystem.cpp 
 Ôªø#include "InputSystem.h"
 #include <cmath>
 #include <algorithm>
@@ -3093,7 +3107,7 @@ float InputSystem::ApplyTriggerDeadzone(float value, float deadzone)
  
  
 ===== MeshLoaderSystem.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\MeshLoaderSystem.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\MeshLoaderSystem.cpp 
 #include "MeshLoaderSystem.h"
 
 void MeshLoaderSystem::Update(
@@ -3176,7 +3190,7 @@ void MeshLoaderSystem::Update(
 } 
  
 ===== MovementSystem.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\MovementSystem.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\MovementSystem.cpp 
 #include "MovementSystem.h"
 #include "ECS/Components/InputComponent.h"
 #include "ECS/Components/MovementComponent.h"
@@ -3242,7 +3256,7 @@ void MovementSystem::Update(entt::registry& registry, float elapsedTime, const S
  
  
 ===== RenderSystem.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\RenderSystem.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\RenderSystem.cpp 
 Ôªø#include "RenderSystem.h"
 #include "Resource/GpuResourceUtils.h"
 #include "Utility/misc.h"
@@ -3846,7 +3860,7 @@ void RenderSystem::ForwardTransparentPass(
  
  
 ===== ComponentRegistry.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Editor\ComponentRegistry.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Editor\ComponentRegistry.h 
 #pragma once
 #include <string>
 #include <vector>
@@ -3876,7 +3890,7 @@ private:
 }; 
  
 ===== ComponentRegistryInitializer.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Editor\ComponentRegistryInitializer.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Editor\ComponentRegistryInitializer.h 
 #pragma once
 
 class ComponentRegistryInitializer
@@ -3887,7 +3901,7 @@ public:
 }; 
  
 ===== EditorContext.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Editor\EditorContext.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Editor\EditorContext.h 
 #pragma once
 #include <string>
 #include <unordered_map>
@@ -3942,7 +3956,7 @@ struct EditorContext
 }; 
  
 ===== HierarchyWindow.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Editor\HierarchyWindow.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Editor\HierarchyWindow.h 
 #pragma once
 #include "entt.hpp"
 #include "Editor/EditorContext.h"
@@ -3955,7 +3969,7 @@ public:
 }; 
  
 ===== InspectorWindow.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Editor\InspectorWindow.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Editor\InspectorWindow.h 
 #pragma once
 #include "entt.hpp"
 #include "EditorContext.h"
@@ -3978,7 +3992,7 @@ private:
 }; 
  
 ===== ProjectWindow.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Editor\ProjectWindow.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Editor\ProjectWindow.h 
 #pragma once
 #include <string>
 #include <vector>
@@ -4017,7 +4031,7 @@ private:
 }; 
  
 ===== ComponentRegistry.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Editor\ComponentRegistry.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Editor\ComponentRegistry.cpp 
 #include "ComponentRegistry.h"
 
 std::unordered_map<std::string, ComponentInfo> ComponentRegistry::registry;
@@ -4044,7 +4058,7 @@ const ComponentInfo* ComponentRegistry::Get(const std::string& name)
 } 
  
 ===== ComponentRegistryInitializer.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Editor\ComponentRegistryInitializer.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Editor\ComponentRegistryInitializer.cpp 
 #include "ComponentRegistryInitializer.h"
 #include "Editor/ComponentRegistry.h"
 #include <imgui.h>
@@ -4308,7 +4322,7 @@ void ComponentRegistryInitializer::Initialize()
 }; 
  
 ===== HierarchyWindow.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Editor\HierarchyWindow.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Editor\HierarchyWindow.cpp 
 #include "HierarchyWindow.h"
 #include "imgui_internal.h"
 #include <imgui.h>
@@ -4414,7 +4428,7 @@ void HierarchyWindow::Draw(entt::registry& registry, EditorContext& context)
 } 
  
 ===== InspectorWindow.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Editor\InspectorWindow.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Editor\InspectorWindow.cpp 
 #include "InspectorWindow.h"
 #include <imgui.h>
 #include "imgui_internal.h"
@@ -4535,7 +4549,7 @@ void InspectorWindow::DrawAddComponent(entt::registry& registry, EditorContext& 
  
  
 ===== ProjectWindow.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Editor\ProjectWindow.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Editor\ProjectWindow.cpp 
 #include "ProjectWindow.h"
 #include <imgui.h>
 
@@ -4762,7 +4776,7 @@ bool ProjectWindow::IsModelFile(const std::filesystem::path& path)
 } 
  
 ===== SceneGame.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Game\SceneGame.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Game\SceneGame.h 
 #pragma once
 #include "Core/Scene.h"
 
@@ -4812,7 +4826,7 @@ private:
  
  
 ===== SceneGame.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Game\SceneGame.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Game\SceneGame.cpp 
 Ôªø#include "SceneGame.h"
 #include <imgui.h>
 
@@ -4825,8 +4839,8 @@ void SceneGame::Initialize(const SceneContext& context)
 	// SkyBoxÂàùÊúüÂåñ
 	skyBox.Initialize(
 		context.device,
-		"Data/SkyBox/BlueSky"
-		//"Data/SkyBox/DynamicSky"
+		//"Data/SkyBox/BlueSky"
+		"Data/SkyBox/DynamicSky"
 	);
 	// IBL„ÉÜ„ÇØ„Çπ„ÉÅ„É£„Çª„ÉÉ„Éà
 	renderSystem.SetIBLTextures(
@@ -5015,7 +5029,7 @@ void SceneGame::RenderImGui()
 } 
  
 ===== GBuffer.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Rendering\GBuffer.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Rendering\GBuffer.h 
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
@@ -5055,7 +5069,7 @@ private:
 }; 
  
 ===== LightManager.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Rendering\LightManager.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Rendering\LightManager.h 
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
@@ -5123,7 +5137,7 @@ private:
 }; 
  
 ===== SkyBox.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Rendering\SkyBox.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Rendering\SkyBox.h 
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
@@ -5192,7 +5206,7 @@ private:
 }; 
  
 ===== GBuffer.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Rendering\GBuffer.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Rendering\GBuffer.cpp 
 #include "GBuffer.h"
 #include "Utility/misc.h"
 
@@ -5274,7 +5288,7 @@ void GBuffer::EndGeometryPass(ID3D11DeviceContext* dc)
 } 
  
 ===== LightManager.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Rendering\LightManager.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Rendering\LightManager.cpp 
 #include "LightManager.h"
 #include "Resource/GpuResourceUtils.h"
 #include "Utility/misc.h"
@@ -5362,7 +5376,7 @@ void LightManager::Bind(ID3D11DeviceContext* dc)
  
  
 ===== SkyBox.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Rendering\SkyBox.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Rendering\SkyBox.cpp 
 #include "SkyBox.h"
 #include "Resource/GpuResourceUtils.h"
 #include "Utility/misc.h"
@@ -5540,7 +5554,7 @@ void SkyBox::Render(
  
  
 ===== GLTFConverter.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\GLTFConverter.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\GLTFConverter.h 
 #pragma once
 #include <memory>
 #include <d3d11.h>
@@ -5589,7 +5603,7 @@ private:
 }; 
  
 ===== GLTFData.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\GLTFData.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\GLTFData.h 
 #pragma once
 #include <string>
 #include <vector>
@@ -5706,7 +5720,7 @@ struct GLTFData
 }; 
  
 ===== GLTFImporter.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\GLTFImporter.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\GLTFImporter.h 
 #pragma once
 #include <memory>
 #include <string>
@@ -5782,7 +5796,7 @@ private:
 }; 
  
 ===== GpuResourceUtils.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\GpuResourceUtils.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\GpuResourceUtils.h 
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
@@ -5860,7 +5874,7 @@ public:
 }; 
  
 ===== Model.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\Model.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\Model.h 
 #pragma once
 
 #include <string>
@@ -6042,7 +6056,7 @@ private:
 }; 
  
 ===== ModelSerializer.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\ModelSerializer.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\ModelSerializer.h 
 #pragma once
 #include <memory>
 #include <string>
@@ -6073,7 +6087,7 @@ public:
 }; 
  
 ===== ResourceManager.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\ResourceManager.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\ResourceManager.h 
 #pragma once
 #include <string>
 #include <memory>
@@ -6112,7 +6126,7 @@ private:
 }; 
  
 ===== GLTFConverter.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\GLTFConverter.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\GLTFConverter.cpp 
 #include "GLTFConverter.h"
 #include "GpuResourceUtils.h"
 #include "Utility/misc.h"
@@ -6485,7 +6499,7 @@ void GLTFConverter::ConvertAnimations(
  
  
 ===== GLTFImporter.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\GLTFImporter.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\GLTFImporter.cpp 
 #include "GLTFImporter.h"
 #include "Utility/misc.h"
 #include <filesystem>
@@ -7300,7 +7314,7 @@ void GLTFImporter::CalcGlobalTransform(
  
  
 ===== GpuResourceUtils.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\GpuResourceUtils.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\GpuResourceUtils.cpp 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 #include "GpuResourceUtils.h"
@@ -7622,7 +7636,7 @@ HRESULT GpuResourceUtils::CreateConstantBuffer(
  
  
 ===== Model.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\Model.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\Model.cpp 
 #include "Model.h"
 
 // ì¸óÕÉåÉCÉAÉEÉgíËã`
@@ -7637,7 +7651,7 @@ const std::vector<D3D11_INPUT_ELEMENT_DESC> Model::InputElementDescs =
 }; 
  
 ===== ModelSerializer.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\ModelSerializer.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\ModelSerializer.cpp 
 #include "ModelSerializer.h"
 #include "Model.h"
 #include "Utility/CerealHelper.h"
@@ -7797,7 +7811,7 @@ std::string ModelSerializer::ToCerealPath(const std::string& gltfPath)
 } 
  
 ===== ResourceManager.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\ResourceManager.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\ResourceManager.cpp 
 #include "ResourceManager.h"
 #include "GLTFImporter.h"
 #include "GLTFConverter.h" 
@@ -7858,7 +7872,7 @@ void ResourceManager::ReleaseAll()
  
  
 ===== AdaptiveTriggerToolWindow.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Tool\AdaptiveTriggerToolWindow.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\AdaptiveTriggerToolWindow.h 
 #pragma once
 #include <vector>
 #include "ECS/Components/ControllerComponent.h"
@@ -7869,13 +7883,14 @@ public:
     void Draw(ControllerComponent& ctrl);
 
 private:
-    // É]Å[ÉìÇÃèÛë‘ÅiÉ|ÉCÉìÉgîzóÒÇ∆ÇÕìØä˙Ç≥ÇπÇ»Ç¢ÅAì∆óßÇµÇΩÉeÉXÉgópÉfÅ[É^Åj
+    // É]Å[ÉìÇÃèÛë‘
     struct ZoneState
     {
         bool  exists = false;
         float start = 0.0f;
         float end = 1.0f;
-        float force = 0.5f;
+        std::vector<AdaptiveTrigger::CurvePoint> localPoints;
+        int   selectedIndex = -1;
     };
 
     struct RangeDragState
@@ -7887,8 +7902,10 @@ private:
         float startZoneEnd = 0.0f;
     };
 
-    void DrawTriggerSection(const char* label, AdaptiveTrigger::TriggerEffect& effect, ZoneState& zone, RangeDragState& rangeDrag);
-    void DrawRangeBar(ZoneState& zone, float width, RangeDragState& rangeDrag);
+    void DrawTriggerSection(const char* label, AdaptiveTrigger::TriggerEffect& effect, ZoneState& zone, RangeDragState& rangeDrag, float currentValue);
+    void DrawRangeBar(ZoneState& zone, float width, RangeDragState& rangeDrag, float currentValue);
+    void DrawGraph(std::vector<AdaptiveTrigger::CurvePoint>& points, int& selectedIndex, int& otherSelectedIndex, float localCurrentValue, bool showIndicator);
+    void DrawSelectedPointPanel(std::vector<AdaptiveTrigger::CurvePoint>& points, int& selectedIndex);
 
     ZoneState leftZone;
     ZoneState rightZone;
@@ -7897,11 +7914,17 @@ private:
 }; 
  
 ===== AdaptiveTriggerToolWindow.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Tool\AdaptiveTriggerToolWindow.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\AdaptiveTriggerToolWindow.cpp 
 #include "AdaptiveTriggerToolWindow.h"
 #include <imgui.h>
 #include <algorithm>
 #include <cmath>
+
+namespace
+{
+    constexpr ImU32 AccentColor = IM_COL32(66, 150, 250, 255);   // ImGuiÇÁÇµÇ¢ê¬
+    constexpr ImU32 IndicatorColor = IM_COL32(255, 70, 70, 255); // åªç›ínÇÃê‘ê¸
+}
 
 void AdaptiveTriggerToolWindow::Draw(ControllerComponent& ctrl)
 {
@@ -7911,14 +7934,38 @@ void AdaptiveTriggerToolWindow::Draw(ControllerComponent& ctrl)
         return;
     }
 
-    DrawTriggerSection("L2", ctrl.leftTriggerEffect, leftZone, leftRangeDrag);
-    ImGui::Spacing();
-    DrawTriggerSection("R2", ctrl.rightTriggerEffect, rightZone, rightRangeDrag);
+    if (ImGui::BeginTable("##layout", 2, ImGuiTableFlags_None))
+    {
+        ImGui::TableSetupColumn("main", ImGuiTableColumnFlags_WidthStretch);
+        ImGui::TableSetupColumn("panel", ImGuiTableColumnFlags_WidthFixed, 160.0f);
+        ImGui::TableNextRow();
+
+        ImGui::TableSetColumnIndex(0);
+        DrawTriggerSection("L2", ctrl.leftTriggerEffect, leftZone, leftRangeDrag, ctrl.leftTrigger);
+        ImGui::Spacing();
+        DrawTriggerSection("R2", ctrl.rightTriggerEffect, rightZone, rightRangeDrag, ctrl.rightTrigger);
+
+        ImGui::TableSetColumnIndex(1);
+        if (leftZone.selectedIndex >= 0)
+        {
+            DrawSelectedPointPanel(leftZone.localPoints, leftZone.selectedIndex);
+        }
+        else if (rightZone.selectedIndex >= 0)
+        {
+            DrawSelectedPointPanel(rightZone.localPoints, rightZone.selectedIndex);
+        }
+        else
+        {
+            ImGui::TextDisabled(u8"É|ÉCÉìÉgÇëIëÇµÇƒÇ≠ÇæÇ≥Ç¢");
+        }
+
+        ImGui::EndTable();
+    }
 
     ImGui::End();
 }
 
-void AdaptiveTriggerToolWindow::DrawTriggerSection(const char* label, AdaptiveTrigger::TriggerEffect& effect, ZoneState& zone, RangeDragState& rangeDrag)
+void AdaptiveTriggerToolWindow::DrawTriggerSection(const char* label, AdaptiveTrigger::TriggerEffect& effect, ZoneState& zone, RangeDragState& rangeDrag, float currentValue)
 {
     ImGui::PushID(label);
 
@@ -7932,7 +7979,7 @@ void AdaptiveTriggerToolWindow::DrawTriggerSection(const char* label, AdaptiveTr
             zone.exists = true;
             zone.start = 0.0f;
             zone.end = 1.0f;
-            zone.force = 0.5f;
+            zone.localPoints = { {0.0f, 0.5f}, {1.0f, 0.5f} };
         }
     }
     else
@@ -7941,40 +7988,40 @@ void AdaptiveTriggerToolWindow::DrawTriggerSection(const char* label, AdaptiveTr
         if (ImGui::Button(u8"çÌèú"))
         {
             zone.exists = false;
+            zone.selectedIndex = -1;
         }
     }
 
     float width = ImGui::GetContentRegionAvail().x;
-    DrawRangeBar(zone, width, rangeDrag);
+
+    DrawRangeBar(zone, width, rangeDrag, currentValue);
+
+    ImGui::Spacing();
 
     if (zone.exists)
     {
-        ImGui::SliderFloat(u8"ã≠Ç≥", &zone.force, 0.0f, 1.0f);
+        bool withinZone = (currentValue >= zone.start && currentValue <= zone.end && zone.end > zone.start);
+        float localCurrent = withinZone ? (currentValue - zone.start) / (zone.end - zone.start) : 0.0f;
+
+        int dummyOther = -1;
+        DrawGraph(zone.localPoints, zone.selectedIndex, dummyOther, localCurrent, withinZone);
     }
 
-    // É]Å[ÉìÇÃèÛë‘ÇÅAèoóÕópÇÃforcePointsÇ÷àÍï˚ìIÇ…èëÇ´çûÇﬁÅiìØä˙ÇÕÇµÇ»Ç¢Åj
     auto& points = effect.forcePoints;
     points.clear();
     if (zone.exists)
     {
-        const float fadeWidth = 0.02f; // ã´äEÇÃïùÅiçLÇ∞ÇƒÉuÉåÇ…ã≠Ç≠Ç∑ÇÈÅj
-
-        if (zone.start > 0.0f)
+        for (const auto& lp : zone.localPoints)
         {
-            points.push_back({ std::max(0.0f, zone.start - fadeWidth), 0.0f });
-        }
-        points.push_back({ zone.start, zone.force });
-        points.push_back({ zone.end, zone.force });
-        if (zone.end < 1.0f)
-        {
-            points.push_back({ std::min(1.0f, zone.end + fadeWidth), 0.0f });
+            float absPos = zone.start + lp.position * (zone.end - zone.start);
+            points.push_back({ absPos, lp.value });
         }
     }
 
     ImGui::PopID();
 }
 
-void AdaptiveTriggerToolWindow::DrawRangeBar(ZoneState& zone, float width, RangeDragState& rangeDrag)
+void AdaptiveTriggerToolWindow::DrawRangeBar(ZoneState& zone, float width, RangeDragState& rangeDrag, float currentValue)
 {
     ImVec2 pos = ImGui::GetCursorScreenPos();
     const float height = 24.0f;
@@ -7992,7 +8039,7 @@ void AdaptiveTriggerToolWindow::DrawRangeBar(ZoneState& zone, float width, Range
         float x1 = pos.x + zone.start * width;
         float x2 = pos.x + zone.end * width;
 
-        drawList->AddRectFilled(ImVec2(x1, pos.y), ImVec2(x2, pos.y + height), IM_COL32(217, 90, 48, 255));
+        drawList->AddRectFilled(ImVec2(x1, pos.y), ImVec2(x2, pos.y + height), AccentColor);
 
         const float handleHalf = 3.0f;
         drawList->AddRectFilled(ImVec2(x1 - handleHalf, pos.y - 3.0f), ImVec2(x1 + handleHalf, pos.y + height + 3.0f), IM_COL32(255, 255, 255, 255));
@@ -8051,15 +8098,218 @@ void AdaptiveTriggerToolWindow::DrawRangeBar(ZoneState& zone, float width, Range
         }
     }
 
+    // åªç›ÇÃÉgÉäÉKÅ[âüÇµçûÇ›à íuÅiê‘ê¸Åj
+    float curX = pos.x + std::clamp(currentValue, 0.0f, 1.0f) * width;
+    drawList->AddLine(ImVec2(curX, pos.y - 4.0f), ImVec2(curX, pos.y + height + 4.0f), IndicatorColor, 2.0f);
+
     ImGui::Dummy(ImVec2(width, height));
 
     ImGui::TextDisabled("0");
     ImGui::SameLine(width - 24.0f);
     ImGui::TextDisabled("255");
+}
+
+void AdaptiveTriggerToolWindow::DrawGraph(std::vector<AdaptiveTrigger::CurvePoint>& points, int& selectedIndex, int& otherSelectedIndex, float localCurrentValue, bool showIndicator)
+{
+    const float margin = 8.0f;
+
+    ImVec2 graphSize(ImGui::GetContentRegionAvail().x, 150.0f);
+    ImVec2 graphPos = ImGui::GetCursorScreenPos();
+
+    ImGui::InvisibleButton("##graphBg", graphSize);
+    bool bgClicked = ImGui::IsItemClicked();
+    bool bgActive = ImGui::IsItemActive();
+    ImVec2 mousePos = ImGui::GetMousePos();
+
+    ImDrawList* drawList = ImGui::GetWindowDrawList();
+    drawList->AddRect(graphPos, ImVec2(graphPos.x + graphSize.x, graphPos.y + graphSize.y), IM_COL32(150, 150, 150, 255));
+
+    float innerX = graphPos.x + margin;
+    float innerWidth = graphSize.x - margin * 2.0f;
+    float innerY = graphPos.y + margin;
+    float innerHeight = graphSize.y - margin * 2.0f;
+
+    auto ToScreen = [&](const AdaptiveTrigger::CurvePoint& p) -> ImVec2
+        {
+            return ImVec2(innerX + p.position * innerWidth, innerY + (1.0f - p.value) * innerHeight);
+        };
+    auto FromScreen = [&](ImVec2 screen) -> AdaptiveTrigger::CurvePoint
+        {
+            AdaptiveTrigger::CurvePoint p;
+            p.position = std::clamp((screen.x - innerX) / innerWidth, 0.0f, 1.0f);
+            p.value = std::clamp(1.0f - (screen.y - innerY) / innerHeight, 0.0f, 1.0f);
+            return p;
+        };
+
+    for (size_t i = 0; i + 1 < points.size(); ++i)
+    {
+        drawList->AddLine(ToScreen(points[i]), ToScreen(points[i + 1]), AccentColor, 2.0f);
+    }
+
+    for (size_t i = 0; i < points.size(); ++i)
+    {
+        ImVec2 p = ToScreen(points[i]);
+        bool isSelected = (static_cast<int>(i) == selectedIndex);
+        float radius = isSelected ? 7.0f : 5.0f;
+        drawList->AddCircleFilled(p, radius, AccentColor);
+        if (isSelected)
+        {
+            drawList->AddCircle(p, radius + 2.0f, IM_COL32(255, 255, 255, 255), 0, 2.0f);
+        }
+    }
+
+    // åªç›ínÇÃê‘ê¸ÅiÉ]Å[Éìì‡Ç…Ç¢ÇÈéûÇæÇØï\é¶Åj
+    if (showIndicator)
+    {
+        float curX = innerX + std::clamp(localCurrentValue, 0.0f, 1.0f) * innerWidth;
+        drawList->AddLine(ImVec2(curX, graphPos.y), ImVec2(curX, graphPos.y + graphSize.y), IndicatorColor, 2.0f);
+    }
+
+    const float pickRadius = 8.0f;
+    const int lastIndex = static_cast<int>(points.size()) - 1;
+
+    if (bgClicked)
+    {
+        int picked = -1;
+        for (size_t i = 0; i < points.size(); ++i)
+        {
+            ImVec2 p = ToScreen(points[i]);
+            float dx = mousePos.x - p.x;
+            float dy = mousePos.y - p.y;
+            if ((dx * dx + dy * dy) <= (pickRadius * pickRadius))
+            {
+                picked = static_cast<int>(i);
+                break;
+            }
+        }
+
+        if (picked == -1)
+        {
+            AdaptiveTrigger::CurvePoint newPoint = FromScreen(mousePos);
+
+            // ññîˆÇÃã´äEì_(100%)ÇÃéËëOÇ…ë}ì¸ÇµÇƒÇ©ÇÁÅAíÜä‘ïîï™ÇæÇØï¿Ç—ë÷Ç¶ÇÈ
+            points.insert(points.end() - 1, newPoint);
+            if (points.size() > 2)
+            {
+                std::sort(points.begin() + 1, points.end() - 1,
+                    [](const AdaptiveTrigger::CurvePoint& a, const AdaptiveTrigger::CurvePoint& b)
+                    {
+                        return a.position < b.position;
+                    });
+            }
+
+            // ë}ì¸ÇµÇΩÉ|ÉCÉìÉgÇÃêVÇµÇ¢indexÇíTÇ∑
+            for (size_t i = 0; i < points.size(); ++i)
+            {
+                if (points[i].position == newPoint.position && points[i].value == newPoint.value)
+                {
+                    picked = static_cast<int>(i);
+                    break;
+                }
+            }
+        }
+
+        selectedIndex = picked;
+        otherSelectedIndex = -1;
+    }
+
+    if (bgActive && selectedIndex >= 0 && selectedIndex < static_cast<int>(points.size()))
+    {
+        // êÊì™ÅEññîˆÅiÉ]Å[ÉìÇÃã´äEÅjÇÕXå≈íËÅAYÇæÇØìÆÇ©Ç∑
+        if (selectedIndex == 0)
+        {
+            points[selectedIndex].value = FromScreen(mousePos).value;
+            points[selectedIndex].position = 0.0f;
+        }
+        else if (selectedIndex == lastIndex)
+        {
+            points[selectedIndex].value = FromScreen(mousePos).value;
+            points[selectedIndex].position = 1.0f;
+        }
+        else
+        {
+            points[selectedIndex] = FromScreen(mousePos);
+        }
+    }
+
+    if (!ImGui::IsMouseDown(ImGuiMouseButton_Left) &&
+        selectedIndex > 0 && selectedIndex < lastIndex) // ã´äEì_ÇÕï¿Ç—ë÷Ç¶ïsóv
+    {
+        AdaptiveTrigger::CurvePoint selected = points[selectedIndex];
+        std::sort(points.begin() + 1, points.end() - 1,
+            [](const AdaptiveTrigger::CurvePoint& a, const AdaptiveTrigger::CurvePoint& b)
+            {
+                return a.position < b.position;
+            });
+        for (size_t i = 1; i + 1 < points.size(); ++i)
+        {
+            if (points[i].position == selected.position && points[i].value == selected.value)
+            {
+                selectedIndex = static_cast<int>(i);
+                break;
+            }
+        }
+    }
+}
+
+void AdaptiveTriggerToolWindow::DrawSelectedPointPanel(std::vector<AdaptiveTrigger::CurvePoint>& points, int& selectedIndex)
+{
+    if (selectedIndex < 0 || selectedIndex >= static_cast<int>(points.size()))
+    {
+        ImGui::TextDisabled(u8"É|ÉCÉìÉgÇëIëÇµÇƒÇ≠ÇæÇ≥Ç¢");
+        return;
+    }
+
+    const int lastIndex = static_cast<int>(points.size()) - 1;
+    const bool isBoundary = (selectedIndex == 0 || selectedIndex == lastIndex);
+
+    ImGui::PushID(selectedIndex);
+    ImGui::TextDisabled(u8"ëIëíÜÇÃÉ|ÉCÉìÉg");
+    ImGui::Spacing();
+
+    AdaptiveTrigger::CurvePoint& p = points[selectedIndex];
+
+    ImGui::Text(u8"X (É]Å[Éìì‡à íu)");
+    ImGui::SetNextItemWidth(-1);
+    if (isBoundary)
+    {
+        ImGui::BeginDisabled();
+        float fixedX = p.position;
+        ImGui::DragFloat("##posX", &fixedX, 0.0f, 0.0f, 1.0f, "%.3f");
+        ImGui::EndDisabled();
+    }
+    else
+    {
+        ImGui::DragFloat("##posX", &p.position, 0.005f, 0.0f, 1.0f, "%.3f");
+    }
+
+    ImGui::Spacing();
+
+    ImGui::Text(u8"Y (ã≠Ç≥)");
+    ImGui::SetNextItemWidth(-1);
+    ImGui::DragFloat("##posY", &p.value, 0.005f, 0.0f, 1.0f, "%.3f");
+
+    ImGui::Spacing();
+
+    if (isBoundary)
+    {
+        ImGui::BeginDisabled();
+        ImGui::Button(u8"çÌèúÅiã´äEÇÃÇΩÇﬂïsâ¬Åj", ImVec2(-1, 0));
+        ImGui::EndDisabled();
+    }
+    else if (ImGui::Button(u8"çÌèú", ImVec2(-1, 0)))
+    {
+        points.erase(points.begin() + selectedIndex);
+        selectedIndex = -1;
+        ImGui::PopID();
+        return;
+    }
+
+    ImGui::PopID();
 } 
  
 ===== IStudioAttachment.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Tool\Studio\IStudioAttachment.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\IStudioAttachment.h 
 #pragma once
 #include <d3d11.h>
 #include <DirectXMath.h>
@@ -8091,7 +8341,7 @@ public:
 }; 
  
 ===== StudioAnimator.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Tool\Studio\StudioAnimator.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioAnimator.h 
 #pragma once
 #include "IStudioAttachment.h"
 #include "ECS/Components/AnimatorComponent.h"
@@ -8115,7 +8365,7 @@ private:
 }; 
  
 ===== StudioCamera.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Tool\Studio\StudioCamera.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioCamera.h 
 #pragma once
 #include <DirectXMath.h>
 
@@ -8164,7 +8414,7 @@ private:
 }; 
  
 ===== StudioContext.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Tool\Studio\StudioContext.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioContext.h 
 #pragma once
 #include <d3d11.h>
 #include <string>
@@ -8191,7 +8441,7 @@ struct StudioContext
 }; 
  
 ===== StudioModelViewer.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Tool\Studio\StudioModelViewer.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioModelViewer.h 
 #pragma once
 #include <string>
 #include <d3d11.h>
@@ -8252,7 +8502,7 @@ private:
 }; 
  
 ===== StudioSharedContext.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Tool\Studio\StudioSharedContext.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioSharedContext.h 
 #pragma once
 #include <d3d11.h>
 #include "Rendering/SkyBox.h"
@@ -8265,12 +8515,16 @@ struct StudioSharedContext
 
     void Initialize(ID3D11Device* device)
     {
-        skyBox.Initialize(device, "Data/SkyBox/DynamicSky");
+        skyBox.Initialize(
+            device, 		
+            "Data/SkyBox/BlueSky"
+            //"Data/SkyBox/DynamicSky"
+        );
     }
 }; 
  
 ===== StudioTimeline.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Tool\Studio\StudioTimeline.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioTimeline.h 
 #pragma once
 #include "IStudioAttachment.h"
 #include "ECS/Components/AnimatorComponent.h"
@@ -8293,7 +8547,7 @@ private:
 }; 
  
 ===== StudioWindow.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Tool\Studio\StudioWindow.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioWindow.h 
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
@@ -8406,7 +8660,7 @@ private:
 }; 
  
 ===== StudioAnimator.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Tool\Studio\StudioAnimator.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioAnimator.cpp 
 #include "Tool/Studio/StudioAnimator.h"
 #include <imgui.h>
 
@@ -8478,7 +8732,7 @@ void StudioAnimator::DrawGUI(
 } 
  
 ===== StudioCamera.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Tool\Studio\StudioCamera.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioCamera.cpp 
 #include "StudioCamera.h"
 #include <imgui.h>
 #include <Windows.h>
@@ -8634,7 +8888,7 @@ DirectX::XMFLOAT3 StudioCamera::GetRight() const
 } 
  
 ===== StudioModelViewer.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Tool\Studio\StudioModelViewer.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioModelViewer.cpp 
 #include "StudioModelViewer.h"
 
 #include <windows.h>
@@ -8783,7 +9037,7 @@ void StudioModelViewer::LoadModel(
  
  
 ===== StudioTimeline.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Tool\Studio\StudioTimeline.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioTimeline.cpp 
 Ôªø#include "StudioTimeline.h"
 #include <imgui.h>
 #include <string>
@@ -8883,7 +9137,7 @@ void StudioTimeline::DrawGUI(entt::registry& registry, StudioContext& context)
  
  
 ===== StudioWindow.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Tool\Studio\StudioWindow.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioWindow.cpp 
 #include "StudioWindow.h"
 #include <imgui.h>
 #include <imgui_internal.h>
@@ -9221,7 +9475,7 @@ void StudioWindow::ResizeRenderTarget()
  
  
 ===== CerealHelper.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Utility\CerealHelper.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Utility\CerealHelper.h 
 #pragma once
 #include <DirectXMath.h>
 
@@ -9255,7 +9509,7 @@ namespace DirectX
 } 
  
 ===== high_resolution_timer.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Utility\high_resolution_timer.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Utility\high_resolution_timer.h 
 #pragma once
 
 #include <windows.h>
@@ -9394,7 +9648,7 @@ private:
  
  
 ===== misc.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Utility\misc.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Utility\misc.h 
 #pragma once
 
 #include <windows.h>
@@ -9458,7 +9712,7 @@ public:
  
  
 ===== CerealHelper.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Utility\CerealHelper.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Utility\CerealHelper.cpp 
 #include "CerealHelper.h"
 #include <cereal/archives/binary.hpp>
 
@@ -9539,7 +9793,7 @@ namespace DirectX
 } 
  
 ===== main.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Utility\main.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Utility\main.cpp 
 #include <time.h>
 
 #include "Core/framework.h"
