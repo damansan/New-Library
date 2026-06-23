@@ -221,6 +221,18 @@
     <Filter Include="Sources\Core\PhysX">
       <UniqueIdentifier>{7b37c787-a13c-4b06-bde0-de1bf7da7717}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\ECS\Components\Physics">
+      <UniqueIdentifier>{ce84842b-c050-440e-a922-f804c5a05e32}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\ECS\Components\Controller">
+      <UniqueIdentifier>{0401dce0-502d-402a-b9f0-a01803d3c3b7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\ECS\Systems\Physics">
+      <UniqueIdentifier>{10b1343a-c2bb-4c0c-b129-74224b9d6d5c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\ECS\Systems\Physics\StaticBodySystem">
+      <UniqueIdentifier>{cc03c4e1-b01c-4f24-82bf-49dc2589d9e0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Core\framework.cpp">
@@ -357,6 +369,9 @@
     </ClCompile>
     <ClCompile Include="Source\Core\Scene.cpp">
       <Filter>Sources\Core\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\ECS\Systems\StaticBodySystem.cpp">
+      <Filter>Sources\ECS\Systems\Physics\StaticBodySystem</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -495,12 +510,6 @@
     <ClInclude Include="Source\ECS\Systems\ControllerSystem.h">
       <Filter>Sources\ECS\Systems\ControllerSystem</Filter>
     </ClInclude>
-    <ClInclude Include="Source\ECS\Components\ControllerComponent.h">
-      <Filter>Sources\ECS\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\ECS\Components\ControllerSettings.h">
-      <Filter>Sources\ECS\Components</Filter>
-    </ClInclude>
     <ClInclude Include="Source\ECS\Components\BaseCameraComponent.h">
       <Filter>Sources\ECS\Components</Filter>
     </ClInclude>
@@ -560,6 +569,24 @@
     </ClInclude>
     <ClInclude Include="Source\Core\PhysX.h">
       <Filter>Sources\Core\PhysX</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ECS\Components\PhysicsBodyTypeComponent.h">
+      <Filter>Sources\ECS\Components\Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ECS\Components\ControllerComponent.h">
+      <Filter>Sources\ECS\Components\Controller</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ECS\Components\ControllerSettings.h">
+      <Filter>Sources\ECS\Components\Controller</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ECS\Components\StaticBodyComponent.h">
+      <Filter>Sources\ECS\Components\Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Core\PhysicsDestroyQueue.h">
+      <Filter>Sources\Core\PhysX</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ECS\Systems\StaticBodySystem.h">
+      <Filter>Sources\ECS\Systems\Physics\StaticBodySystem</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

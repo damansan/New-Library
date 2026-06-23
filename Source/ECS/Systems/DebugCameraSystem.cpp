@@ -89,8 +89,8 @@ void DebugCameraSystem::UpdateFreeCamera(FreeCameraComponent& free, float elapse
     }
 
     // QE 上下移動
-    if (GetAsyncKeyState('Q') & 0x8000) { eye.y += move; target.y += move; }
-    if (GetAsyncKeyState('E') & 0x8000) { eye.y -= move; target.y -= move; }
+    if (GetAsyncKeyState('E') & 0x8000) { eye.y += move; target.y += move; }
+    if (GetAsyncKeyState('Q') & 0x8000) { eye.y -= move; target.y -= move; }
 
     // マウスで視点回転
     POINT mousePos;

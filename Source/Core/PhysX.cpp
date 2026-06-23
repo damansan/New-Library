@@ -34,3 +34,32 @@ void PhysX::Cleanup()
 	if (pvdTransport)    { pvdTransport->release();    pvdTransport    = nullptr; }
 	if (foundation)      { foundation->release();      foundation      = nullptr; }
 }
+
+// メッシュデータからPxTriangleMeshを生成
+physx::PxTriangleMesh* PhysX::CreateTriangleMesh(
+	const void* vertexData, 
+	uint32_t vertexCount,
+	uint32_t vertexStride,
+	const uint32_t* indices,
+	uint32_t triangleCount)
+{
+	// メッシュ情報組み立て
+	PxTriangleMeshDesc meshDesc;
+	meshDesc.points.count = vertexCount;
+	meshDesc.points.stride = vertexStride;
+	meshDesc.points.data = vertexData;
+
+	meshDesc.triangles.count = triangleCount;
+	meshDesc.triangles.stride = 3 * sizeof(uint32_t);
+	meshDesc.triangles.data = indices;
+
+	// Cookingパラメータ
+	PxCookingParams cookingParams(physics->getTolerancesScale());
+
+	// メッシュ生成
+	return PxCreateTriangleMesh(
+		cookingParams,
+		meshDesc,
+		physics->getPhysicsInsertionCallback()
+	);
+}

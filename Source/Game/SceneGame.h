@@ -15,6 +15,7 @@
 #include "Rendering/SkyBox.h"
 #include "Rendering/LightManager.h"
 
+#include "ECS/Systems/StaticBodySystem.h"
 
 #include "Tool/AdaptiveTriggerToolWindow.h"
 
@@ -43,4 +44,6 @@ private:
 
 	SkyBox       skyBox;
 	LightManager lightManager;
+
+	StaticBodySystem staticBodySystem;
 };

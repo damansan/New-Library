@@ -421,6 +421,31 @@ public:
     bool HandleMessage(HWND hWnd, UINT msg, WPARAM wparam, LPARAM lparam);
 }; 
  
+===== PhysicsDestroyQueue.h ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Core\PhysicsDestroyQueue.h 
+#pragma once
+#include <vector>
+#include <PxPhysicsAPI.h>
+
+// íœ‘Ò‚¿•¨—Actor‚Ìˆê•ÛƒLƒ…[
+namespace PhysicsDestroyQueue
+{
+    inline std::vector<physx::PxActor*>& GetQueue()
+    {
+        static std::vector<physx::PxActor*> queue;
+        return queue;
+    }
+
+    // ‰ğ•ú—\–ñ‚·‚é
+    inline void Push(physx::PxActor* actor)
+    {
+        if (actor)
+        {
+            GetQueue().push_back(actor);
+        }
+    }
+} 
+ 
 ===== PhysX.h ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\Core\PhysX.h 
 #pragma once
@@ -448,6 +473,11 @@ public:
 	physx::PxDefaultCpuDispatcher* GetDispatcher() { return dispatcher; }
 	// ƒfƒtƒHƒ‹ƒgƒ}ƒeƒŠƒAƒ‹æ“¾
 	physx::PxMaterial* GetDefaultMaterial() { return defaultMaterial; }
+
+	// ƒƒbƒVƒ…ƒf[ƒ^‚©‚çPxTriangleMesh‚ğ¶¬
+	physx::PxTriangleMesh* CreateTriangleMesh(
+		const void* vertexData, uint32_t vertexCount, uint32_t vertexStride,
+		const uint32_t* indices, uint32_t triangleCount);
 
 private:
 	physx::PxDefaultAllocator      allocator;        // ƒAƒƒP[ƒ^
@@ -507,6 +537,8 @@ protected:
 	void InitializePhysicsScene(PhysX& physX);
 	// •¨—ƒV[ƒ“‚Ì”jŠü
 	void FinalizePhysicsScene();
+	// •¨—ƒV[ƒ“‚ÌXV
+	void UpdatePhysicsScene(float elapsedTime);
 	// •¨—ƒ[ƒ‹ƒh–{‘Ì
 	physx::PxScene* pxScene = nullptr; 
 }; 
@@ -732,10 +764,6 @@ void framework::updateImGui()
 	ImGui::Begin("System");
 	ImGui::Checkbox("VSync", &vsync);
 
-	//if (ImGui::Button("Studio Open"))
-	//{
-	//	openStudioWindow();
-	//}
 	ImGui::End();
 
 	// ƒV[ƒ“ImGui•`‰æ
@@ -1494,6 +1522,35 @@ void PhysX::Cleanup()
 	if (pvdTransport)    { pvdTransport->release();    pvdTransport    = nullptr; }
 	if (foundation)      { foundation->release();      foundation      = nullptr; }
 }
+
+// ƒƒbƒVƒ…ƒf[ƒ^‚©‚çPxTriangleMesh‚ğ¶¬
+physx::PxTriangleMesh* PhysX::CreateTriangleMesh(
+	const void* vertexData, 
+	uint32_t vertexCount,
+	uint32_t vertexStride,
+	const uint32_t* indices,
+	uint32_t triangleCount)
+{
+	// ƒƒbƒVƒ…î•ñ‘g‚İ—§‚Ä
+	PxTriangleMeshDesc meshDesc;
+	meshDesc.points.count = vertexCount;
+	meshDesc.points.stride = vertexStride;
+	meshDesc.points.data = vertexData;
+
+	meshDesc.triangles.count = triangleCount;
+	meshDesc.triangles.stride = 3 * sizeof(uint32_t);
+	meshDesc.triangles.data = indices;
+
+	// Cookingƒpƒ‰ƒ[ƒ^
+	PxCookingParams cookingParams(physics->getTolerancesScale());
+
+	// ƒƒbƒVƒ…¶¬
+	return PxCreateTriangleMesh(
+		cookingParams,
+		meshDesc,
+		physics->getPhysicsInsertionCallback()
+	);
+}
  
  
 ===== Scene.cpp ===== 
@@ -1514,8 +1571,8 @@ void Scene::InitializePhysicsScene(PhysX& physX)
 	// PhysXVisualDebugger‚É‘—‚éî•ñ‚ğİ’è
 	if (physx::PxPvdSceneClient* pvdClient = pxScene->getScenePvdClient())
 	{
-		pvdClient->setScenePvdFlag(physx::PxPvdSceneFlag::eTRANSMIT_CONSTRAINTS, true);
-		pvdClient->setScenePvdFlag(physx::PxPvdSceneFlag::eTRANSMIT_CONTACTS, true);
+		pvdClient->setScenePvdFlag(physx::PxPvdSceneFlag::eTRANSMIT_CONSTRAINTS,  true);
+		pvdClient->setScenePvdFlag(physx::PxPvdSceneFlag::eTRANSMIT_CONTACTS,     true);
 		pvdClient->setScenePvdFlag(physx::PxPvdSceneFlag::eTRANSMIT_SCENEQUERIES, true);
 	}
 }
@@ -1529,7 +1586,13 @@ void Scene::FinalizePhysicsScene()
 		pxScene = nullptr;
 	}
 }
- 
+
+// •¨—ƒV[ƒ“‚ÌXV
+void Scene::UpdatePhysicsScene(float elapsedTime)
+{
+	pxScene->simulate(elapsedTime);
+	pxScene->fetchResults(true);
+} 
  
 ===== SceneManager.cpp ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\Core\SceneManager.cpp 
@@ -1842,6 +1905,23 @@ struct MovementComponent
     bool isGrounded{ false };
 }; 
  
+===== PhysicsBodyTypeComponent.h ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\PhysicsBodyTypeComponent.h 
+#pragma once
+
+struct PhysicsBodyTypeComponent
+{
+    enum class Type
+    {
+        None,      // –¢‘I‘ğ
+        Static,    // Ã“I
+        Dynamic,   // “®“I
+        Character, // ƒLƒƒƒ‰ƒNƒ^[ƒRƒ“ƒgƒ[ƒ‰[
+    };
+
+    Type type = Type::None;
+}; 
+ 
 ===== SkinnedMeshComponent.h ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\SkinnedMeshComponent.h 
 #pragma once
@@ -1858,6 +1938,16 @@ struct SkinnedMeshComponent
 
     // ƒƒbƒVƒ…‚²‚Æ‚Ìƒ{[ƒ“s—ñ
     std::vector<std::vector<DirectX::XMFLOAT4X4>> boneTransforms;
+}; 
+ 
+===== StaticBodyComponent.h ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\StaticBodyComponent.h 
+#pragma once
+#include <PxPhysicsAPI.h>
+
+struct StaticBodyComponent
+{
+    physx::PxRigidStatic* actor = nullptr;
 }; 
  
 ===== StaticMeshComponent.h ===== 
@@ -2332,6 +2422,20 @@ private:
 	// ‰æ–ÊƒTƒCƒY
 	UINT screenWidth = 0;
 	UINT screenHeight = 0;
+}; 
+ 
+===== StaticBodySystem.h ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\StaticBodySystem.h 
+#pragma once
+#include "entt.hpp"
+#include "Core/PhysX.h"
+
+namespace physx { class PxScene; }
+
+class StaticBodySystem
+{
+public:
+	void Update(entt::registry& registry, PhysX& physX, physx::PxScene* pxScene);
 }; 
  
 ===== AnimationSystem.cpp ===== 
@@ -4008,6 +4112,109 @@ void RenderSystem::ForwardTransparentPass(
 }
  
  
+===== StaticBodySystem.cpp ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\StaticBodySystem.cpp 
+#include "StaticBodySystem.h"
+#include "Core/PhysicsDestroyQueue.h"
+#include "ECS/Components/StaticBodyComponent.h"
+#include "ECS/Components/StaticMeshComponent.h"
+#include "ECS/Components/TransformComponent.h"
+#include "Resource/Model.h"
+
+using namespace physx;
+
+// TransformComponent‚Ì‰ñ“]‚©‚çPxQuat‚ğì‚é
+static PxQuat ToPxQuat(const DirectX::XMFLOAT3& rotation)
+{
+	DirectX::XMVECTOR q = DirectX::XMQuaternionRotationRollPitchYaw(
+		rotation.x, rotation.y, rotation.z);
+	DirectX::XMFLOAT4 qf;
+	DirectX::XMStoreFloat4(&qf, q);
+	return PxQuat(qf.x, qf.y, qf.z, qf.w);
+}
+
+void StaticBodySystem::Update(entt::registry& registry, PhysX& physX, physx::PxScene* pxScene)
+{
+	// --- íœ—\–ñ‚³‚ê‚½Actor‚ğ‰ğ•ú‚·‚é ---
+	auto& destroyQueue = PhysicsDestroyQueue::GetQueue();
+	for (PxActor* actor : destroyQueue)
+	{
+		if (!actor) continue;
+		if (actor->getScene())
+		{
+			actor->getScene()->removeActor(*actor);
+		}
+		actor->release();
+	}
+	destroyQueue.clear();
+
+	// --- –¢¶¬‚ÌStaticBodyComponent‚ğ¶¬‚·‚é ---
+	auto view = registry.view<StaticBodyComponent, StaticMeshComponent, TransformComponent>();
+
+	for (auto entity : view)
+	{
+		auto& body = view.get<StaticBodyComponent>(entity);
+
+		// Šù‚É¶¬Ï‚İ‚È‚çƒXƒLƒbƒv
+		if (body.actor != nullptr) continue;
+
+		auto& staticMesh = view.get<StaticMeshComponent>(entity);
+		auto& transform = view.get<TransformComponent>(entity);
+
+		// ƒ‚ƒfƒ‹‚ª–¢ƒ[ƒh‚È‚çƒXƒLƒbƒv(ŸƒtƒŒ[ƒ€ˆÈ~‚ÉÄƒ`ƒFƒbƒN)
+		if (!staticMesh.model) continue;
+
+		// Actor‚ÌˆÊ’uE‰ñ“]‚ğİ’è(ƒXƒP[ƒ‹‚ÍShape‘¤‚Åˆµ‚¤)
+		PxTransform pxTransform(
+			PxVec3(transform.position.x, transform.position.y, transform.position.z),
+			ToPxQuat(transform.rotation)
+		);
+
+		PxRigidStatic* actor = physX.GetPhysics()->createRigidStatic(pxTransform);
+
+		// ƒ‚ƒfƒ‹“à‚ÌŠeMesh‚²‚Æ‚ÉƒVƒFƒCƒv‚ğ’Ç‰Á
+		int shapeCount = 0;
+		for (const auto& mesh : staticMesh.model->GetMeshes())
+		{
+			if (mesh.vertices.empty() || mesh.indices.empty()) continue;
+
+			PxTriangleMesh* triMesh = physX.CreateTriangleMesh(
+				mesh.vertices.data(),
+				static_cast<uint32_t>(mesh.vertices.size()),
+				sizeof(Model::Vertex),
+				mesh.indices.data(),
+				static_cast<uint32_t>(mesh.indices.size() / 3)
+			);
+
+			if (!triMesh) continue; // ƒƒbƒVƒ…¶¬¸”s(OŠpŒ`”‚ª‘«‚è‚È‚¢“™)
+
+			PxMeshScale meshScale(
+				PxVec3(transform.scale.x, transform.scale.y, transform.scale.z)
+			);
+			PxTriangleMeshGeometry geometry(triMesh, meshScale);
+
+			PxShape* shape = PxRigidActorExt::createExclusiveShape(
+				*actor, geometry, *physX.GetDefaultMaterial()
+			);
+
+			// ƒVƒFƒCƒv‘¤‚ªQÆ‚ğ‚Â‚Ì‚ÅA‚±‚±‚Å©•ª‚ÌQÆ‚Íè•ú‚µ‚Ä‚æ‚¢
+			triMesh->release();
+
+			if (shape) shapeCount++;
+		}
+
+		// ƒVƒFƒCƒv‚ª1‚Â‚àì‚ê‚È‚©‚Á‚½ê‡‚ÍActor‚²‚Æ”jŠü(–³‘Ê‚ÈActor‚ğScene‚É’u‚©‚È‚¢)
+		if (shapeCount == 0)
+		{
+			actor->release();
+			continue;
+		}
+
+		pxScene->addActor(*actor);
+		body.actor = actor;
+	}
+} 
+ 
 ===== ComponentRegistry.h ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\Editor\ComponentRegistry.h 
 #pragma once
@@ -4229,6 +4436,10 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Editor\ComponentRegistryInitia
 
 #include "ECS/Components/FreeCameraComponent.h"
 #include "ECS/Components/GameCameraComponent.h"
+
+#include "Core/PhysicsDestroyQueue.h"
+#include "ECS/Components/PhysicsBodyTypeComponent.h"
+#include "ECS/Components/StaticBodyComponent.h"
 
 #define REGISTER_COMPONENT(Type, Name, DrawFunc)                                    \
     ComponentRegistry::Register(Name,                                               \
@@ -4468,7 +4679,83 @@ void ComponentRegistryInitializer::Initialize()
 				}
 			}));
 
-}; 
+
+	// •¨—ƒ^ƒCƒvƒRƒ“ƒ|[ƒlƒ“ƒg‚Ì“o˜^
+	ComponentRegistry::Register("Physics",
+		{
+			"Physics",
+			// Add: PhysicsBodyTypeComponent‚Ì‚İ•t—^(í•Ê–¢‘I‘ğó‘Ô)
+			[](auto& reg, auto e)
+			{
+				if (!reg.any_of<PhysicsBodyTypeComponent>(e))
+					reg.emplace<PhysicsBodyTypeComponent>(e);
+			},
+		// Remove: í•ÊƒRƒ“ƒ|[ƒlƒ“ƒg‚Æ•R‚Ã‚­À‘ÌƒRƒ“ƒ|[ƒlƒ“ƒg‚ğ—¼•ûíœ
+		[](auto& reg, auto e)
+		{
+			if (reg.any_of<StaticBodyComponent>(e))
+				reg.remove<StaticBodyComponent>(e);
+			reg.remove<PhysicsBodyTypeComponent>(e);
+		},
+		// Has
+		[](auto& reg, auto e) { return reg.any_of<PhysicsBodyTypeComponent>(e); },
+		// DrawImGui
+				[](auto& reg, auto e)
+				{
+					auto* body = reg.try_get<PhysicsBodyTypeComponent>(e);
+					if (!body) return;
+					if (!ImGui::CollapsingHeader("Physics", ImGuiTreeNodeFlags_DefaultOpen)) return;
+
+					const char* typeNames[] = { "None", "Static", "Dynamic", "Character" };
+					int current = (int)body->type;
+
+					if (ImGui::Combo("Type", &current, typeNames, 4))
+					{
+						auto newType = (PhysicsBodyTypeComponent::Type)current;
+
+						// Ø‚è‘Ö‚¦‘O‚ÌÀ‘Ì‚ª‚ ‚ê‚Îíœ—\–ñ‚µ‚Ä‚©‚çComponent‚ğŠO‚·
+						if (body->type == PhysicsBodyTypeComponent::Type::Static)
+						{
+							auto* staticBody = reg.try_get<StaticBodyComponent>(e);
+							if (staticBody && staticBody->actor)
+							{
+								PhysicsDestroyQueue::Push(staticBody->actor);
+							}
+							reg.remove<StaticBodyComponent>(e);
+						}
+
+						body->type = newType;
+
+						// Ø‚è‘Ö‚¦Œã‚ÌÀ‘Ì‚ğV‹Kì¬
+						if (newType == PhysicsBodyTypeComponent::Type::Static)
+						{
+							reg.emplace<StaticBodyComponent>(e);
+						}
+					}
+
+					// ‘I‘ğ’†‚Ìí•Ê‚²‚Æ‚Ì€–Ú•\¦
+					switch (body->type)
+					{
+					case PhysicsBodyTypeComponent::Type::Static:
+					{
+						auto* staticBody = reg.try_get<StaticBodyComponent>(e);
+						if (staticBody)
+						{
+							ImGui::Text(staticBody->actor ? u8"ó‘Ô: ¶¬Ï‚İ" : u8"ó‘Ô: –¢¶¬");
+						}
+						break;
+					}
+					case PhysicsBodyTypeComponent::Type::Dynamic:
+						ImGui::TextColored({ 1, 0.5f, 0, 1 }, u8"Dynamic‚Í–¢À‘•‚Å‚·");
+						break;
+					case PhysicsBodyTypeComponent::Type::Character:
+						ImGui::TextColored({ 1, 0.5f, 0, 1 }, u8"Character‚Í–¢À‘•‚Å‚·");
+						break;
+					default:
+						break;
+					}
+				} });
+} 
  
 ===== HierarchyWindow.cpp ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\Editor\HierarchyWindow.cpp 
@@ -4943,6 +5230,7 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Game\SceneGame.h
 #include "Rendering/SkyBox.h"
 #include "Rendering/LightManager.h"
 
+#include "ECS/Systems/StaticBodySystem.h"
 
 #include "Tool/AdaptiveTriggerToolWindow.h"
 
@@ -4971,6 +5259,8 @@ private:
 
 	SkyBox       skyBox;
 	LightManager lightManager;
+
+	StaticBodySystem staticBodySystem;
 };
  
  
@@ -5043,6 +5333,13 @@ void SceneGame::Update(float elapsedTime, const SceneContext& context)
 	ZoneScoped;
 
 	{
+		// PhysXæ›´æ–°
+		ZoneScopedN("UpdatePhysX");
+		UpdatePhysicsScene(elapsedTime);
+	}
+
+
+	{
 		// ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ©ãƒ¼å…¥åŠ›
 		ZoneScopedN("ControllerSystem");
 		controllerSystem.Update(registry, elapsedTime);
@@ -5070,6 +5367,11 @@ void SceneGame::Update(float elapsedTime, const SceneContext& context)
 		meshLoaderSystem.Update(registry, context.device, *context.resourceManager);
 	}
 
+	{
+		// é™çš„ç‰©ç†Bodyç”Ÿæˆ
+		ZoneScopedN("StaticBodySystem");
+		staticBodySystem.Update(registry, *context.physX, GetPhysicsScene());
+	}
 
 	{
 		// ã‚«ãƒ¡ãƒ©

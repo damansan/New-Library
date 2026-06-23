@@ -99,6 +99,11 @@ void SceneGame::Update(float elapsedTime, const SceneContext& context)
 		meshLoaderSystem.Update(registry, context.device, *context.resourceManager);
 	}
 
+	{
+		// 静的物理Body生成
+		ZoneScopedN("StaticBodySystem");
+		staticBodySystem.Update(registry, *context.physX, GetPhysicsScene());
+	}
 
 	{
 		// カメラ

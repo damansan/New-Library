@@ -24,6 +24,11 @@ public:
 	// デフォルトマテリアル取得
 	physx::PxMaterial* GetDefaultMaterial() { return defaultMaterial; }
 
+	// メッシュデータからPxTriangleMeshを生成
+	physx::PxTriangleMesh* CreateTriangleMesh(
+		const void* vertexData, uint32_t vertexCount, uint32_t vertexStride,
+		const uint32_t* indices, uint32_t triangleCount);
+
 private:
 	physx::PxDefaultAllocator      allocator;        // アロケータ
 	physx::PxDefaultErrorCallback  errorCallback;    // エラーコールバック

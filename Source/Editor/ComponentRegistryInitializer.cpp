@@ -20,6 +20,10 @@
 #include "ECS/Components/FreeCameraComponent.h"
 #include "ECS/Components/GameCameraComponent.h"
 
+#include "Core/PhysicsDestroyQueue.h"
+#include "ECS/Components/PhysicsBodyTypeComponent.h"
+#include "ECS/Components/StaticBodyComponent.h"
+
 #define REGISTER_COMPONENT(Type, Name, DrawFunc)                                    \
     ComponentRegistry::Register(Name,                                               \
     {                                                                               \
@@ -258,4 +262,81 @@ void ComponentRegistryInitializer::Initialize()
 				}
 			}));
 
-};
+
+	// 物理タイプコンポーネントの登録
+	ComponentRegistry::Register("Physics",
+		{
+			"Physics",
+			// Add: PhysicsBodyTypeComponentのみ付与(種別未選択状態)
+			[](auto& reg, auto e)
+			{
+				if (!reg.any_of<PhysicsBodyTypeComponent>(e))
+					reg.emplace<PhysicsBodyTypeComponent>(e);
+			},
+		// Remove: 種別コンポーネントと紐づく実体コンポーネントを両方削除
+		[](auto& reg, auto e)
+		{
+			if (reg.any_of<StaticBodyComponent>(e))
+				reg.remove<StaticBodyComponent>(e);
+			reg.remove<PhysicsBodyTypeComponent>(e);
+		},
+		// Has
+		[](auto& reg, auto e) { return reg.any_of<PhysicsBodyTypeComponent>(e); },
+		// DrawImGui
+				[](auto& reg, auto e)
+				{
+					auto* body = reg.try_get<PhysicsBodyTypeComponent>(e);
+					if (!body) return;
+					if (!ImGui::CollapsingHeader("Physics", ImGuiTreeNodeFlags_DefaultOpen)) return;
+
+					const char* typeNames[] = { "None", "Static", "Dynamic", "Character" };
+					int current = (int)body->type;
+
+					if (ImGui::Combo("Type", &current, typeNames, 4))
+					{
+						auto newType = (PhysicsBodyTypeComponent::Type)current;
+
+						// 切り替え前の実体があれば削除予約してからComponentを外す
+						if (body->type == PhysicsBodyTypeComponent::Type::Static)
+						{
+							auto* staticBody = reg.try_get<StaticBodyComponent>(e);
+							if (staticBody && staticBody->actor)
+							{
+								PhysicsDestroyQueue::Push(staticBody->actor);
+							}
+							reg.remove<StaticBodyComponent>(e);
+						}
+
+						body->type = newType;
+
+						// 切り替え後の実体を新規作成
+						if (newType == PhysicsBodyTypeComponent::Type::Static)
+						{
+							reg.emplace<StaticBodyComponent>(e);
+						}
+					}
+
+					// 選択中の種別ごとの項目表示
+					switch (body->type)
+					{
+					case PhysicsBodyTypeComponent::Type::Static:
+					{
+						auto* staticBody = reg.try_get<StaticBodyComponent>(e);
+						if (staticBody)
+						{
+							ImGui::Text(staticBody->actor ? u8"状態: 生成済み" : u8"状態: 未生成");
+						}
+						break;
+					}
+					case PhysicsBodyTypeComponent::Type::Dynamic:
+						ImGui::TextColored({ 1, 0.5f, 0, 1 }, u8"Dynamicは未実装です");
+						break;
+					case PhysicsBodyTypeComponent::Type::Character:
+						ImGui::TextColored({ 1, 0.5f, 0, 1 }, u8"Characterは未実装です");
+						break;
+					default:
+						break;
+					}
+				} 
+		});
+}

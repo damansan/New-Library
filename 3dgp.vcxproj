@@ -41,6 +41,7 @@
     <ClCompile Include="Source\ECS\Systems\MeshLoaderSystem.cpp" />
     <ClCompile Include="Source\ECS\Systems\MovementSystem.cpp" />
     <ClCompile Include="Source\ECS\Systems\RenderSystem.cpp" />
+    <ClCompile Include="Source\ECS\Systems\StaticBodySystem.cpp" />
     <ClCompile Include="Source\Editor\ComponentRegistry.cpp" />
     <ClCompile Include="Source\Editor\ComponentRegistryInitializer.cpp" />
     <ClCompile Include="Source\Editor\HierarchyWindow.cpp" />
@@ -78,6 +79,7 @@
     <ClInclude Include="Source\Core\framework.h" />
     <ClInclude Include="Source\Core\Graphics.h" />
     <ClInclude Include="Source\Core\ImGuiManager.h" />
+    <ClInclude Include="Source\Core\PhysicsDestroyQueue.h" />
     <ClInclude Include="Source\Core\PhysX.h" />
     <ClInclude Include="Source\Core\Scene.h" />
     <ClInclude Include="Source\Core\SceneContext.h" />
@@ -92,7 +94,9 @@
     <ClInclude Include="Source\ECS\Components\MaterialComponent.h" />
     <ClInclude Include="Source\ECS\Components\MeshComponent.h" />
     <ClInclude Include="Source\ECS\Components\MovementComponent.h" />
+    <ClInclude Include="Source\ECS\Components\PhysicsBodyTypeComponent.h" />
     <ClInclude Include="Source\ECS\Components\SkinnedMeshComponent.h" />
+    <ClInclude Include="Source\ECS\Components\StaticBodyComponent.h" />
     <ClInclude Include="Source\ECS\Components\StaticMeshComponent.h" />
     <ClInclude Include="Source\ECS\Components\Tags.h" />
     <ClInclude Include="Source\ECS\Components\TransformComponent.h" />
@@ -104,6 +108,7 @@
     <ClInclude Include="Source\ECS\Systems\MeshLoaderSystem.h" />
     <ClInclude Include="Source\ECS\Systems\MovementSystem.h" />
     <ClInclude Include="Source\ECS\Systems\RenderSystem.h" />
+    <ClInclude Include="Source\ECS\Systems\StaticBodySystem.h" />
     <ClInclude Include="Source\Editor\ComponentRegistry.h" />
     <ClInclude Include="Source\Editor\ComponentRegistryInitializer.h" />
     <ClInclude Include="Source\Editor\EditorContext.h" />
