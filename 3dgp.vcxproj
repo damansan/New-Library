@@ -94,9 +94,8 @@
     <ClInclude Include="Source\ECS\Components\MaterialComponent.h" />
     <ClInclude Include="Source\ECS\Components\MeshComponent.h" />
     <ClInclude Include="Source\ECS\Components\MovementComponent.h" />
-    <ClInclude Include="Source\ECS\Components\PhysicsBodyTypeComponent.h" />
+    <ClInclude Include="Source\ECS\Components\PhysicsComponents.h" />
     <ClInclude Include="Source\ECS\Components\SkinnedMeshComponent.h" />
-    <ClInclude Include="Source\ECS\Components\StaticBodyComponent.h" />
     <ClInclude Include="Source\ECS\Components\StaticMeshComponent.h" />
     <ClInclude Include="Source\ECS\Components\Tags.h" />
     <ClInclude Include="Source\ECS\Components\TransformComponent.h" />
