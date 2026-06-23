@@ -227,9 +227,6 @@
     <Filter Include="Sources\ECS\Systems\Physics">
       <UniqueIdentifier>{10b1343a-c2bb-4c0c-b129-74224b9d6d5c}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Sources\ECS\Systems\Physics\StaticBodySystem">
-      <UniqueIdentifier>{cc03c4e1-b01c-4f24-82bf-49dc2589d9e0}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Core\framework.cpp">
@@ -367,8 +364,8 @@
     <ClCompile Include="Source\Core\Scene.cpp">
       <Filter>Sources\Core\Scene</Filter>
     </ClCompile>
-    <ClCompile Include="Source\ECS\Systems\StaticBodySystem.cpp">
-      <Filter>Sources\ECS\Systems\Physics\StaticBodySystem</Filter>
+    <ClCompile Include="Source\ECS\Systems\PhysicsSystem.cpp">
+      <Filter>Sources\ECS\Systems\Physics</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -576,11 +573,11 @@
     <ClInclude Include="Source\Core\PhysicsDestroyQueue.h">
       <Filter>Sources\Core\PhysX</Filter>
     </ClInclude>
-    <ClInclude Include="Source\ECS\Systems\StaticBodySystem.h">
-      <Filter>Sources\ECS\Systems\Physics\StaticBodySystem</Filter>
-    </ClInclude>
     <ClInclude Include="Source\ECS\Components\PhysicsComponents.h">
       <Filter>Sources\ECS\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ECS\Systems\PhysicsSystem.h">
+      <Filter>Sources\ECS\Systems\Physics</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

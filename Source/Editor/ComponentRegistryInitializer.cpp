@@ -21,8 +21,7 @@
 #include "ECS/Components/GameCameraComponent.h"
 
 #include "Core/PhysicsDestroyQueue.h"
-#include "ECS/Components/PhysicsBodyTypeComponent.h"
-#include "ECS/Components/StaticBodyComponent.h"
+#include "ECS/Components/PhysicsComponents.h"
 
 #define REGISTER_COMPONENT(Type, Name, DrawFunc)                                    \
     ComponentRegistry::Register(Name,                                               \

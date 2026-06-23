@@ -100,9 +100,9 @@ void SceneGame::Update(float elapsedTime, const SceneContext& context)
 	}
 
 	{
-		// 静的物理Body生成
-		ZoneScopedN("StaticBodySystem");
-		staticBodySystem.Update(registry, *context.physX, GetPhysicsScene());
+		// 物理Body生成・削除処理
+		ZoneScopedN("PhysicsSystem");
+		physicsSystem.Update(registry, *context.physX, GetPhysicsScene());
 	}
 
 	{

@@ -1,6 +1,6 @@
-#include "StaticBodySystem.h"
+#include "PhysicsSystem.h"
 #include "Core/PhysicsDestroyQueue.h"
-#include "ECS/Components/StaticBodyComponent.h"
+#include "ECS/Components/PhysicsComponents.h"
 #include "ECS/Components/StaticMeshComponent.h"
 #include "ECS/Components/TransformComponent.h"
 #include "Resource/Model.h"
@@ -17,9 +17,18 @@ static PxQuat ToPxQuat(const DirectX::XMFLOAT3& rotation)
 	return PxQuat(qf.x, qf.y, qf.z, qf.w);
 }
 
-void StaticBodySystem::Update(entt::registry& registry, PhysX& physX, physx::PxScene* pxScene)
+// çXêV
+void PhysicsSystem::Update(entt::registry& registry, PhysX& physX, physx::PxScene* pxScene)
 {
-	// çÌèúó\ñÒÇ≥ÇÍÇΩActorÇâï˙Ç∑ÇÈ
+	ProcessDestroyQueue();
+	ProcessStaticBodies(registry, physX, pxScene);
+	// ProcessDynamicBodies(registry, physX, pxScene);
+	// ProcessCharacterControllers(registry, physX, pxScene);
+}
+
+// çÌèúó\ñÒÇ≥ÇÍÇΩActorÇâï˙Ç∑ÇÈ
+void PhysicsSystem::ProcessDestroyQueue()
+{
 	auto& destroyQueue = PhysicsDestroyQueue::GetQueue();
 	for (PxActor* actor : destroyQueue)
 	{
@@ -31,8 +40,11 @@ void StaticBodySystem::Update(entt::registry& registry, PhysX& physX, physx::PxS
 		actor->release();
 	}
 	destroyQueue.clear();
+}
 
-	// ñ¢ê∂ê¨ÇÃStaticBodyComponentÇê∂ê¨Ç∑ÇÈ
+// ñ¢ê∂ê¨ÇÃStaticBodyComponentê∂ê¨
+void PhysicsSystem::ProcessStaticBodies(entt::registry& registry, PhysX& physX, physx::PxScene* pxScene)
+{
 	auto view = registry.view<StaticBodyComponent, StaticMeshComponent, TransformComponent>();
 
 	for (auto entity : view)
