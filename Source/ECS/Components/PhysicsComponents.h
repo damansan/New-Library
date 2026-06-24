@@ -21,3 +21,13 @@ struct StaticBodyComponent
 {
     physx::PxRigidStatic* actor = nullptr;
 };
+
+// キャラクターコントローラーコンポーネント
+struct CharacterControllerComponent
+{
+    physx::PxController* controller = nullptr;
+
+    // カプセル形状パラメータ
+    float radius = 0.5f;
+    float height = 1.0f;
+};

@@ -18,11 +18,20 @@ void Scene::InitializePhysicsScene(PhysX& physX)
 		pvdClient->setScenePvdFlag(physx::PxPvdSceneFlag::eTRANSMIT_CONTACTS,     true);
 		pvdClient->setScenePvdFlag(physx::PxPvdSceneFlag::eTRANSMIT_SCENEQUERIES, true);
 	}
+
+	// キャラクターコントローラーマネージャー作成
+	controllerManager = PxCreateControllerManager(*pxScene);
 }
 
 // 物理シーンの破棄
 void Scene::FinalizePhysicsScene()
 {
+	if (controllerManager)
+	{
+		controllerManager->release();
+		controllerManager = nullptr;
+	}
+
 	if (pxScene)
 	{
 		pxScene->release();

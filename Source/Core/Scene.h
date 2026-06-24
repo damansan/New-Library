@@ -30,6 +30,8 @@ public:
 	entt::registry& GetRegistry() { return registry; }
 	// 物理シーン取得
 	physx::PxScene* GetPhysicsScene() { return pxScene; }
+	// キャラクターコントローラーマネージャー取得
+	physx::PxControllerManager* GetControllerManager() { return controllerManager; }
 
 protected:
 
@@ -44,4 +46,6 @@ protected:
 	void UpdatePhysicsScene(float elapsedTime);
 	// 物理ワールド本体
 	physx::PxScene* pxScene = nullptr; 
+	// キャラクターコントローラーマネージャー
+	physx::PxControllerManager* controllerManager = nullptr;
 };
