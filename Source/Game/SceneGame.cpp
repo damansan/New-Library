@@ -102,7 +102,7 @@ void SceneGame::Update(float elapsedTime, const SceneContext& context)
 	{
 		// 物理Body生成・削除処理
 		ZoneScopedN("PhysicsSystem");
-		physicsSystem.Update(registry, *context.physX, GetPhysicsScene());
+		physicsSystem.Update(registry, *context.physX, GetPhysicsScene(), GetControllerManager(), elapsedTime);
 	}
 
 	{

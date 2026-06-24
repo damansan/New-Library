@@ -1,7 +1,10 @@
 #include "MovementSystem.h"
+
 #include "ECS/Components/InputComponent.h"
 #include "ECS/Components/MovementComponent.h"
 #include "ECS/Components/TransformComponent.h"
+#include "ECS/Components/PhysicsComponents.h"
+
 #include "entt.hpp"
 #include <windows.h>
 
@@ -32,10 +35,12 @@ void MovementSystem::Update(entt::registry& registry, float elapsedTime, const S
 
             // 移動ベクトルを正規化して速度をかける
             float vecLen = sqrtf(vecX * vecX + vecZ * vecZ);
+            float moveX = 0.0f;
+            float moveZ = 0.0f;
             if (vecLen > 0.0f)
             {
-                transform.position.x += (vecX / vecLen) * movement.moveSpeed * elapsedTime;
-                transform.position.z += (vecZ / vecLen) * movement.moveSpeed * elapsedTime;
+                moveX = (vecX / vecLen) * movement.moveSpeed;
+                moveZ = (vecZ / vecLen) * movement.moveSpeed;
             }
 
             // 重力
@@ -47,6 +52,18 @@ void MovementSystem::Update(entt::registry& registry, float elapsedTime, const S
                 movement.velocity.y = movement.jumpPower;
                 movement.isGrounded = false;
             }
+
+            // キャラクターコントローラーを持つ場合は、移動意図をvelocityに渡すだけにする
+            if (registry.all_of<CharacterControllerComponent>(entity))
+            {
+                movement.velocity.x = moveX;
+                movement.velocity.z = moveZ;
+                return;
+            }
+
+            // キャラクターコントローラーを使わない移動
+            transform.position.x += moveX * elapsedTime;
+            transform.position.z += moveZ * elapsedTime;
 
             // 垂直移動の反映
             transform.position.y += movement.velocity.y * elapsedTime;
