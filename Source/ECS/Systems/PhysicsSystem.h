@@ -19,6 +19,8 @@ private:
 
 	// 未生成のCharacterControllerComponent生成+CharacterController移動処理
 	void ProcessCharacterControllers(entt::registry& registry, PhysX& physX, physx::PxControllerManager* controllerManager, float elapsedTime);
+	// 足元判定サポート
+	void ProcessEdgeSlide(entt::registry& registry, physx::PxScene* pxScene);
 
 	// 未生成の
 	// void ProcessDynamicBodies(entt::registry& registry, PhysX& physX, physx::PxScene* pxScene);

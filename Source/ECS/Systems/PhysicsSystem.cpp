@@ -1,10 +1,15 @@
 #include "PhysicsSystem.h"
 #include "Core/PhysicsDestroyQueue.h"
+#include "Core/PhysicsFilter.h"
+
 #include "ECS/Components/PhysicsComponents.h"
 #include "ECS/Components/StaticMeshComponent.h"
 #include "ECS/Components/TransformComponent.h"
 #include "ECS/Components/MovementComponent.h"
+
 #include "Resource/Model.h"
+
+#include <vector>
 
 using namespace physx;
 
@@ -16,6 +21,33 @@ static PxQuat ToPxQuat(const DirectX::XMFLOAT3& rotation)
 	DirectX::XMFLOAT4 qf;
 	DirectX::XMStoreFloat4(&qf, q);
 	return PxQuat(qf.x, qf.y, qf.z, qf.w);
+}
+
+// サンプリング座標作成
+static void GenerateFootSamplePoints(
+	const PxExtendedVec3& footPosition,
+	float radius,
+	int sampleCount,
+	std::vector<PxVec3>& outPoints)
+{
+	outPoints.clear();
+	outPoints.reserve(sampleCount + 1);
+
+	const float centerX = static_cast<float>(footPosition.x);
+	const float centerY = static_cast<float>(footPosition.y);
+	const float centerZ = static_cast<float>(footPosition.z);
+
+	// 中心点
+	outPoints.emplace_back(centerX, centerY, centerZ);
+
+	// 円上の点
+	for (int i = 0; i < sampleCount; ++i)
+	{
+		const float angle = (2.0f * PxPi * static_cast<float>(i)) / static_cast<float>(sampleCount);
+		const float x = centerX + radius * std::cosf(angle);
+		const float z = centerZ + radius * std::sinf(angle);
+		outPoints.emplace_back(x, centerY, z);
+	}
 }
 
 // 更新
@@ -41,6 +73,15 @@ void PhysicsSystem::ProcessDestroyQueue()
 		actor->release();
 	}
 	destroyQueue.clear();
+
+	// Controllerの解放
+	auto& controllerDestroyQueue = PhysicsDestroyQueue::GetControllerQueue();
+	for (PxController* controller : controllerDestroyQueue)
+	{
+		if (!controller) continue;
+		controller->release();
+	}
+	controllerDestroyQueue.clear();
 }
 
 // 未生成のStaticBodyComponent生成
@@ -130,16 +171,17 @@ void PhysicsSystem::ProcessCharacterControllers(entt::registry& registry, PhysX&
 			desc.position = PxExtendedVec3(transform.position.x, transform.position.y, transform.position.z);
 			desc.material = physX.GetDefaultMaterial();
 			desc.upDirection = PxVec3(0.0f, 1.0f, 0.0f);
+			desc.contactOffset = 0.01f;
 
 			if (!desc.isValid()) continue; // パラメータ不正なら生成しない
 
 			ctrl.controller = controllerManager->createController(desc);
 
-			// 生成直後のフレームは移動させない（次フレームから移動を反映する）
+			// 生成直後のフレームは移動させない
 			continue;
 		}
 
-		// MovementComponentが無いEntityは移動させない（その場で待機）
+		// MovementComponentが無いEntityは移動させない
 		auto* movement = registry.try_get<MovementComponent>(entity);
 
 		PxVec3 disp(0.0f, 0.0f, 0.0f);
@@ -152,11 +194,11 @@ void PhysicsSystem::ProcessCharacterControllers(entt::registry& registry, PhysX&
 			);
 		}
 
-		// 移動を実行（壁・段差・地面との衝突解決はPhysXが行う）
+		// 移動を実行
 		PxControllerFilters filters;
 		PxControllerCollisionFlags collisionFlags = ctrl.controller->move(disp, 0.001f, elapsedTime, filters);
 
-		// 結果の位置をTransformへ反映（足元座標）
+		// 結果の位置をTransformへ反映
 		PxExtendedVec3 foot = ctrl.controller->getFootPosition();
 		transform.position.x = static_cast<float>(foot.x);
 		transform.position.y = static_cast<float>(foot.y);
@@ -168,11 +210,72 @@ void PhysicsSystem::ProcessCharacterControllers(entt::registry& registry, PhysX&
 			bool grounded = (collisionFlags & PxControllerCollisionFlag::eCOLLISION_DOWN);
 			movement->isGrounded = grounded;
 
-			// 着地した瞬間に下方向の速度が残っているとめり込み判定が起きるためリセット
+			// わずかな下方速度を残して斜面に追従させる
+			constexpr float groundStickVelocity = -2.0f;
 			if (grounded && movement->velocity.y < 0.0f)
 			{
-				movement->velocity.y = 0.0f;
+				movement->velocity.y = groundStickVelocity;
 			}
 		}
 	}
+}
+
+// 足元判定サポート
+void PhysicsSystem::ProcessEdgeSlide(entt::registry& registry, physx::PxScene* pxScene)
+{
+}
+
+namespace
+{
+	// Walkable属性を持つシェイプのみ判定対象にする
+	class WalkableQueryFilter : public PxQueryFilterCallback
+	{
+	public:
+		PxQueryHitType::Enum preFilter(
+			const PxFilterData& filterData, const PxShape* shape,
+			const PxRigidActor* actor, PxHitFlags& queryFlags) override
+		{
+			// トリガーシェイプは地面として扱わない
+			if (shape->getFlags() & PxShapeFlag::eTRIGGER_SHAPE)
+			{
+				return PxQueryHitType::eNONE;
+			}
+
+			// Walkable属性が立っていないシェイプは無視（自キャラ自身のカプセルもここで除外される）
+			PxFilterData queryFilterData = shape->getQueryFilterData();
+			if (!(queryFilterData.word2 & static_cast<PxU32>(PhysicsAttribute::Walkable)))
+			{
+				return PxQueryHitType::eNONE;
+			}
+
+			return PxQueryHitType::eBLOCK;
+		}
+
+		PxQueryHitType::Enum postFilter(
+			const PxFilterData& filterData, const PxQueryHit& hit,
+			const PxShape* shape, const PxRigidActor* actor) override
+		{
+			return PxQueryHitType::eBLOCK;
+		}
+	};
+}
+
+// 1点について、下方向にWalkableな地面があるかを判定する
+static bool IsPointSupported(PxScene* pxScene, const PxVec3& point, float probeDistance)
+{
+	PxRaycastBuffer hitBuffer;
+	WalkableQueryFilter filterCallback;
+
+	PxQueryFilterData filterData;
+	filterData.flags |= PxQueryFlag::ePREFILTER;
+
+	return pxScene->raycast(
+		point,
+		PxVec3(0.0f, -1.0f, 0.0f),
+		probeDistance,
+		hitBuffer,
+		PxHitFlag::eDEFAULT,
+		filterData,
+		&filterCallback
+	);
 }
