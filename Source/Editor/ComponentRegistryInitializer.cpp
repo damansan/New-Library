@@ -277,8 +277,15 @@ void ComponentRegistryInitializer::Initialize()
 		{
 			if (reg.any_of<StaticBodyComponent>(e))
 				reg.remove<StaticBodyComponent>(e);
-			reg.remove<PhysicsBodyTypeComponent>(e);
-		},
+
+			if (auto* ctrl = reg.try_get<CharacterControllerComponent>(e))
+			{
+				// 解放を1フレーム遅延させ、次の物理更新の頭でまとめて処理する
+				PhysicsDestroyQueue::Push(ctrl->controller);
+				reg.remove<CharacterControllerComponent>(e);
+			}
+
+			reg.remove<PhysicsBodyTypeComponent>(e);		},
 		// Has
 		[](auto& reg, auto e) { return reg.any_of<PhysicsBodyTypeComponent>(e); },
 		// DrawImGui
@@ -305,6 +312,15 @@ void ComponentRegistryInitializer::Initialize()
 							}
 							reg.remove<StaticBodyComponent>(e);
 						}
+						else if (body->type == PhysicsBodyTypeComponent::Type::Character)
+						{
+							auto* ctrl = reg.try_get<CharacterControllerComponent>(e);
+							if (ctrl && ctrl->controller)
+							{
+								PhysicsDestroyQueue::Push(ctrl->controller);
+							}
+							reg.remove<CharacterControllerComponent>(e);
+						}
 
 						body->type = newType;
 
@@ -312,6 +328,10 @@ void ComponentRegistryInitializer::Initialize()
 						if (newType == PhysicsBodyTypeComponent::Type::Static)
 						{
 							reg.emplace<StaticBodyComponent>(e);
+						}
+						else if (newType == PhysicsBodyTypeComponent::Type::Character)
+						{
+							reg.emplace<CharacterControllerComponent>(e);
 						}
 					}
 
@@ -331,8 +351,17 @@ void ComponentRegistryInitializer::Initialize()
 						ImGui::TextColored({ 1, 0.5f, 0, 1 }, u8"Dynamicは未実装です");
 						break;
 					case PhysicsBodyTypeComponent::Type::Character:
-						ImGui::TextColored({ 1, 0.5f, 0, 1 }, u8"Characterは未実装です");
+					{
+						auto* ctrl = reg.try_get<CharacterControllerComponent>(e);
+						if (ctrl)
+						{
+							bool created = (ctrl->controller != nullptr);
+
+							ImGui::Text(created ? u8"状態: 生成済み" : u8"状態: 未生成");
+						}
 						break;
+					}
+
 					default:
 						break;
 					}

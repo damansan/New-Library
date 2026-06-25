@@ -41,6 +41,15 @@ void PhysicsSystem::ProcessDestroyQueue()
 		actor->release();
 	}
 	destroyQueue.clear();
+
+	// ControllerÇÃâï˙
+	auto& controllerQueue = PhysicsDestroyQueue::GetControllerQueue();
+	for (PxController* controller : controllerQueue)
+	{
+		if (!controller) continue;
+		controller->release();
+	}
+	controllerQueue.clear();
 }
 
 // ñ¢ê∂ê¨ÇÃStaticBodyComponentê∂ê¨

@@ -19,4 +19,21 @@ namespace PhysicsDestroyQueue
             GetQueue().push_back(actor);
         }
     }
+
+
+    // 削除待ちControllerの一時保持キュー
+    inline std::vector<physx::PxController*>& GetControllerQueue()
+    {
+        static std::vector<physx::PxController*> queue;
+        return queue;
+    }
+
+    // 解放予約する（Controller）
+    inline void Push(physx::PxController* controller)
+    {
+        if (controller)
+        {
+            GetControllerQueue().push_back(controller);
+        }
+    }
 }
