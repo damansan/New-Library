@@ -579,12 +579,6 @@
     <ClInclude Include="Source\ECS\Systems\PhysicsSystem.h">
       <Filter>Sources\ECS\Systems\Physics</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Core\PhysicsFilter.h">
-      <Filter>Sources\Core\PhysX</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Core\PhysicsQueryFilters.h">
-      <Filter>Sources\Core\PhysX</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shader\Static_VS.hlsl">

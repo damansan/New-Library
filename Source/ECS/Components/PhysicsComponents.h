@@ -31,18 +31,3 @@ struct CharacterControllerComponent
     float radius = 0.5f;
     float height = 1.0f;
 };
-// 足場の端での滑り判定設定
-struct EdgeSlideComponent
-{
-    // 方向サンプリング数
-    int sampleCount = 8;
-
-    // 滑り判定
-    float supportThreshold = 0.5f;
-
-    // 滑る力
-    float slideSpeed = 2.0f;
-
-    // サンプル点から下方向にどれだけ判定するか
-    float probeDistance = 0.3f;
-};

@@ -236,10 +236,10 @@ void ComponentRegistryInitializer::Initialize()
 				ImGui::SameLine();
 				if (ImGui::Button("Clear")) _c->target = entt::null;
 
-				ImGui::DragFloat("CameraDistance",     &_c->distance,    0.1f, 0.0f, 50.0f);
-				ImGui::DragFloat("CameraHeight",       &_c->height,      0.1f, 0.0f, 20.0f);
-				ImGui::DragFloat("CameraFollow Speed", &_c->followSpeed, 0.1f, 0.1f, 30.0f);
-				ImGui::DragFloat("CameraPitch",        &_c->pitch,       0.01f, -1.5f, 1.5f);
+				ImGui::DragFloat("Distance",     &_c->distance,    0.1f, 0.0f, 50.0f);
+				ImGui::DragFloat("Height",       &_c->height,      0.1f, 0.0f, 20.0f);
+				ImGui::DragFloat("Follow Speed", &_c->followSpeed, 0.1f, 0.1f, 30.0f);
+				ImGui::DragFloat("Pitch",        &_c->pitch,       0.01f, -1.5f, 1.5f);
 				ImGui::Separator();
 				ImGui::DragFloat3("Eye",    &_c->base.currentEye.x,    0.1f);
 				ImGui::DragFloat3("Target", &_c->base.currentTarget.x, 0.1f);
@@ -277,17 +277,8 @@ void ComponentRegistryInitializer::Initialize()
 		{
 			if (reg.any_of<StaticBodyComponent>(e))
 				reg.remove<StaticBodyComponent>(e);
-
-			if (auto* ctrl = reg.try_get<CharacterControllerComponent>(e))
-			{
-				if (ctrl->controller)
-				{
-					PhysicsDestroyQueue::Push(ctrl->controller);
-				}
-				reg.remove<CharacterControllerComponent>(e);
-			}
-
-			reg.remove<PhysicsBodyTypeComponent>(e);		},
+			reg.remove<PhysicsBodyTypeComponent>(e);
+		},
 		// Has
 		[](auto& reg, auto e) { return reg.any_of<PhysicsBodyTypeComponent>(e); },
 		// DrawImGui
@@ -314,15 +305,6 @@ void ComponentRegistryInitializer::Initialize()
 							}
 							reg.remove<StaticBodyComponent>(e);
 						}
-						else if (body->type == PhysicsBodyTypeComponent::Type::Character)
-						{
-							auto* ctrl = reg.try_get<CharacterControllerComponent>(e);
-							if (ctrl && ctrl->controller)
-							{
-								PhysicsDestroyQueue::Push(ctrl->controller);
-							}
-							reg.remove<CharacterControllerComponent>(e);
-						}
 
 						body->type = newType;
 
@@ -330,10 +312,6 @@ void ComponentRegistryInitializer::Initialize()
 						if (newType == PhysicsBodyTypeComponent::Type::Static)
 						{
 							reg.emplace<StaticBodyComponent>(e);
-						}
-						else if (newType == PhysicsBodyTypeComponent::Type::Character)
-						{
-							reg.emplace<CharacterControllerComponent>(e);
 						}
 					}
 
@@ -353,17 +331,8 @@ void ComponentRegistryInitializer::Initialize()
 						ImGui::TextColored({ 1, 0.5f, 0, 1 }, u8"Dynamic‚Í–¢ŽÀ‘•‚Å‚·");
 						break;
 					case PhysicsBodyTypeComponent::Type::Character:
-					{
-						auto* ctrl = reg.try_get<CharacterControllerComponent>(e);
-						if (ctrl)
-						{
-							ImGui::Text(ctrl->controller ? u8"ó‘Ô: ¶¬Ï‚Ý" : u8"ó‘Ô: –¢¶¬");
-							ImGui::DragFloat("Radius", &ctrl->radius, 0.05f, 0.1f, 5.0f);
-							ImGui::DragFloat("Height", &ctrl->height, 0.05f, 0.1f, 5.0f);
-						}
+						ImGui::TextColored({ 1, 0.5f, 0, 1 }, u8"Character‚Í–¢ŽÀ‘•‚Å‚·");
 						break;
-					}
-
 					default:
 						break;
 					}
