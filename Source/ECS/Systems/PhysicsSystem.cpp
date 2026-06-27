@@ -134,15 +134,24 @@ void PhysicsSystem::ProcessCharacterControllers(entt::registry& registry, PhysX&
 		if (ctrl.controller == nullptr)
 		{
 			PxCapsuleControllerDesc desc;
-			desc.radius = ctrl.radius;
-			desc.height = ctrl.height;
-			desc.position = PxExtendedVec3(transform.position.x, transform.position.y, transform.position.z);
-			desc.material = physX.GetDefaultMaterial();
-			desc.upDirection = PxVec3(0.0f, 1.0f, 0.0f);
+			desc.radius = ctrl.radius; // カプセル半径
+			desc.height = ctrl.height; // カプセル高さ
+			desc.position = PxExtendedVec3(transform.position.x, transform.position.y, transform.position.z); // 生成位置
+			desc.material = physX.GetDefaultMaterial();  // 物理マテリアル
+			desc.upDirection = PxVec3(0.0f, 1.0f, 0.0f); // Y軸+を上方向とする
 
+			desc.stepOffset = 0.2f; // 自動で登る段差の上限
+			//desc.slopeLimit = cosf(physx::PxDegToRad(45.0f)); // 歩行可能な坂の角度
+			//desc.climbingMode = physx::PxCapsuleClimbingMode::eCONSTRAINED;  // 段差の登りをより厳密に制限
+			desc.nonWalkableMode = physx::PxControllerNonWalkableMode::ePREVENT_CLIMBING_AND_FORCE_SLIDING;
+			//desc.contactOffset = 0.01f; // 接触検出のマージンを狭める(検出精度UP)
+			
+			
 			if (!desc.isValid()) continue; // パラメータ不正なら生成しない
 
 			ctrl.controller = controllerManager->createController(desc);
+
+			ctrl.controller->setFootPosition(PxExtendedVec3(transform.position.x, transform.position.y, transform.position.z));
 
 			// 生成直後のフレームは移動させない（次フレームから移動を反映する）
 			continue;
@@ -171,16 +180,20 @@ void PhysicsSystem::ProcessCharacterControllers(entt::registry& registry, PhysX&
 		transform.position.y = static_cast<float>(foot.y);
 		transform.position.z = static_cast<float>(foot.z);
 
+		// 接地時に常にかけておく、地面に押し付ける力の大きさ
+		constexpr float kGroundStickSpeed = 2.0f;
+
 		// 接地判定をMovementComponentへ反映
 		if (movement)
 		{
 			bool grounded = (collisionFlags & PxControllerCollisionFlag::eCOLLISION_DOWN);
 			movement->isGrounded = grounded;
 
-			// 着地した瞬間に下方向の速度が残っているとめり込み判定が起きるためリセット
-			if (grounded && movement->velocity.y < 0.0f)
+			// 接地中は0にリセットせず、常に一定の下向き速度を持たせておく
+			// (坂を下る際、勢いが無いと斜面に追従できず一瞬浮いてしまうのを防ぐ)
+			if (grounded && movement->velocity.y <= 0.0f)
 			{
-				movement->velocity.y = 0.0f;
+				movement->velocity.y = -kGroundStickSpeed;
 			}
 		}
 	}

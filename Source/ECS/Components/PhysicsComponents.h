@@ -28,6 +28,6 @@ struct CharacterControllerComponent
     physx::PxController* controller = nullptr;
 
     // カプセル形状パラメータ
-    float radius = 0.5f;
-    float height = 1.0f;
+    float radius = 0.3f;
+    float height = 1.2f;
 };
