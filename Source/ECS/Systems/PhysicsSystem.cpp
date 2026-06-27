@@ -1,5 +1,7 @@
 #include "PhysicsSystem.h"
 #include "Core/PhysicsDestroyQueue.h"
+#include "Core/PhysicsLayer.h"
+
 #include "ECS/Components/PhysicsComponents.h"
 #include "ECS/Components/StaticMeshComponent.h"
 #include "ECS/Components/TransformComponent.h"
@@ -25,6 +27,50 @@ void PhysicsSystem::Update(entt::registry& registry, PhysX& physX, physx::PxScen
 	ProcessStaticBodies(registry, physX, pxScene);
 	// ProcessDynamicBodies(registry, physX, pxScene);
 	ProcessCharacterControllers(registry, physX, controllerManager, elapsedTime);
+}
+
+// レイヤーにレイキャスト
+RaycastHitResult PhysicsSystem::Raycast(physx::PxScene* pxScene, const DirectX::XMFLOAT3& origin, const DirectX::XMFLOAT3& direction, float maxDistance, physx::PxU32 wantedLayers)
+{
+	RaycastHitResult result;
+
+	// 開始位置をPxVec3へ変換
+	PxVec3 pxOrigin(origin.x, origin.y, origin.z);
+
+	// 方向を正規化してPxVec3へ変換
+	DirectX::XMVECTOR dirVec = DirectX::XMVector3Normalize(DirectX::XMLoadFloat3(&direction));
+	DirectX::XMFLOAT3 normalizedDir;
+	DirectX::XMStoreFloat3(&normalizedDir, dirVec);
+	PxVec3 pxDirection(normalizedDir.x, normalizedDir.y, normalizedDir.z);
+
+	// 欲しいレイヤーだけを通す
+	PhysXFilter filter(wantedLayers);
+
+	// 欲しい剛体で絞り込む
+	PxQueryFilterData filterData;
+	filterData.flags = PxQueryFlag::eSTATIC | PxQueryFlag::eDYNAMIC | PxQueryFlag::ePREFILTER;
+
+	// 結果を受け取る
+	PxRaycastBuffer hitBuffer;
+
+	// レイを飛ばす
+	bool status = pxScene->raycast(
+		pxOrigin, pxDirection, maxDistance,
+		hitBuffer,
+		PxHitFlag::eDEFAULT,
+		filterData,
+		&filter);
+
+	// 当たった結果を取り出す
+	if (status && hitBuffer.hasBlock)
+	{
+		result.hit = true;
+		result.distance = hitBuffer.block.distance;
+		result.position = { hitBuffer.block.position.x, hitBuffer.block.position.y, hitBuffer.block.position.z };
+		result.normal = { hitBuffer.block.normal.x,   hitBuffer.block.normal.y,   hitBuffer.block.normal.z };
+	}
+
+	return result;
 }
 
 // 削除予約されたActorを解放する
@@ -105,7 +151,12 @@ void PhysicsSystem::ProcessStaticBodies(entt::registry& registry, PhysX& physX, 
 
 			triMesh->release();
 
-			if (shape) shapeCount++;
+			if (shape)
+			{
+				// Staticレイヤーを付与
+				shape->setQueryFilterData(PhysicsLayer::MakeFilterData(PhysicsLayer::Static));
+				shapeCount++;
+			}
 		}
 
 		// シェイプが1つも作れなかった場合はActorごと破棄
@@ -153,6 +204,16 @@ void PhysicsSystem::ProcessCharacterControllers(entt::registry& registry, PhysX&
 
 			ctrl.controller->setFootPosition(PxExtendedVec3(transform.position.x, transform.position.y, transform.position.z));
 
+
+			// Characterレイヤー付与
+			if (PxRigidDynamic* controllerActor = ctrl.controller->getActor())
+			{
+				PxShape* controllerShape = nullptr;
+				if (controllerActor->getShapes(&controllerShape, 1) == 1 && controllerShape)
+				{
+					controllerShape->setQueryFilterData(PhysicsLayer::MakeFilterData(PhysicsLayer::Character));
+				}
+			}
 			// 生成直後のフレームは移動させない（次フレームから移動を反映する）
 			continue;
 		}
@@ -189,8 +250,7 @@ void PhysicsSystem::ProcessCharacterControllers(entt::registry& registry, PhysX&
 			bool grounded = (collisionFlags & PxControllerCollisionFlag::eCOLLISION_DOWN);
 			movement->isGrounded = grounded;
 
-			// 接地中は0にリセットせず、常に一定の下向き速度を持たせておく
-			// (坂を下る際、勢いが無いと斜面に追従できず一瞬浮いてしまうのを防ぐ)
+			// 地面へ押し付ける力をかける
 			if (grounded && movement->velocity.y <= 0.0f)
 			{
 				movement->velocity.y = -kGroundStickSpeed;

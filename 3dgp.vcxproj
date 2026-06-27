@@ -80,6 +80,7 @@
     <ClInclude Include="Source\Core\Graphics.h" />
     <ClInclude Include="Source\Core\ImGuiManager.h" />
     <ClInclude Include="Source\Core\PhysicsDestroyQueue.h" />
+    <ClInclude Include="Source\Core\PhysicsLayer.h" />
     <ClInclude Include="Source\Core\PhysX.h" />
     <ClInclude Include="Source\Core\Scene.h" />
     <ClInclude Include="Source\Core\SceneContext.h" />
