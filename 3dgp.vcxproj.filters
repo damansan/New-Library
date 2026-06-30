@@ -227,6 +227,9 @@
     <Filter Include="Sources\ECS\Systems\Physics">
       <UniqueIdentifier>{10b1343a-c2bb-4c0c-b129-74224b9d6d5c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\Resource\SkeletonUtils">
+      <UniqueIdentifier>{693b5829-0612-4b99-9d43-61e63e0c5924}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Core\framework.cpp">
@@ -366,6 +369,9 @@
     </ClCompile>
     <ClCompile Include="Source\ECS\Systems\PhysicsSystem.cpp">
       <Filter>Sources\ECS\Systems\Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Resource\SkeletonUtils.cpp">
+      <Filter>Sources\Resource\SkeletonUtils</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -581,6 +587,9 @@
     </ClInclude>
     <ClInclude Include="Source\Core\PhysicsLayer.h">
       <Filter>Sources\Core\PhysX</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Resource\SkeletonUtils.h">
+      <Filter>Sources\Resource\SkeletonUtils</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

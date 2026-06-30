@@ -1,5 +1,6 @@
 #include "AnimationSystem.h"
 #include "tracy/Tracy.hpp"
+#include "Resource/SkeletonUtils.h"
 
 // 更新
 void AnimationSystem::Update(
@@ -216,101 +217,48 @@ void AnimationSystem::CalcBoneTransforms(
 	std::vector<DirectX::XMFLOAT4X4>& nodeGlobalTransforms)
 {
 	auto& nodes = model.GetNodes();
-	const auto& meshes = model.GetMeshes();
 
-	// ノードのグローバル行列を計算
-	nodeGlobalTransforms.resize(nodes.size());
-	auto& globalTransforms = nodeGlobalTransforms;
-
-	// ルートから再帰的にグローバル行列を計算
-	std::function<void(int, const DirectX::XMFLOAT4X4&)> calcGlobal =
-		[&](int nodeIndex, const DirectX::XMFLOAT4X4& parentTransform)
-		{
-			auto& node = nodes[nodeIndex];
-
-			// キーフレームから補間してローカル行列を作る
-			DirectX::XMFLOAT3 position = node.position;
-			DirectX::XMFLOAT4 rotation = node.rotation;
-			DirectX::XMFLOAT3 scale = node.scale;
-
-			if (nodeIndex < (int)animation.nodeAnims.size())
-			{
-				const auto& nodeAnim = animation.nodeAnims[nodeIndex];
-
-				if (!nodeAnim.positionKeyframes.empty())
-				{
-					position = InterpolatePosition(
-						nodeAnim.positionKeyframes, time);
-				}
-
-				if (!nodeAnim.rotationKeyframes.empty())
-				{
-					rotation = InterpolateRotation(
-						nodeAnim.rotationKeyframes, time);
-				}
-
-				if (!nodeAnim.scaleKeyframes.empty())
-				{
-					scale = InterpolateScale(
-						nodeAnim.scaleKeyframes, time);
-				}
-			}
-
-			// ローカル行列を計算
-			DirectX::XMMATRIX S = DirectX::XMMatrixScaling(
-				scale.x, scale.y, scale.z);
-			DirectX::XMMATRIX R = DirectX::XMMatrixRotationQuaternion(
-				DirectX::XMVectorSet(
-					rotation.x, rotation.y,
-					rotation.z, rotation.w));
-			DirectX::XMMATRIX T = DirectX::XMMatrixTranslation(
-				position.x, position.y, position.z);
-
-			DirectX::XMMATRIX local = S * R * T;
-			DirectX::XMMATRIX parent = DirectX::XMLoadFloat4x4(&parentTransform);
-			DirectX::XMMATRIX global = local * parent;
-
-			DirectX::XMStoreFloat4x4(&globalTransforms[nodeIndex], global);
-
-
-			// 子ノードを再帰処理
-			for (int child : node.childIndices)
-			{
-				calcGlobal(child, globalTransforms[nodeIndex]);
-			}
-		};
-
-	// ルートノードから計算開始
-	DirectX::XMFLOAT4X4 identity =
-	{ 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 };
+	// 各ノードのローカルpose配列を用意し、まずノードのデフォルト値で初期化
+	std::vector<DirectX::XMFLOAT3> localPositions(nodes.size());
+	std::vector<DirectX::XMFLOAT4> localRotations(nodes.size());
+	std::vector<DirectX::XMFLOAT3> localScales(nodes.size());
 
 	for (int i = 0; i < (int)nodes.size(); i++)
 	{
-		if (nodes[i].parentIndex < 0)
+		localPositions[i] = nodes[i].position;
+		localRotations[i] = nodes[i].rotation;
+		localScales[i] = nodes[i].scale;
+
+		// キーフレームがあれば補間して上書き
+		if (i < (int)animation.nodeAnims.size())
 		{
-			calcGlobal(i, identity);
+			const auto& nodeAnim = animation.nodeAnims[i];
+
+			if (!nodeAnim.positionKeyframes.empty())
+			{
+				localPositions[i] = InterpolatePosition(
+					nodeAnim.positionKeyframes, time);
+			}
+
+			if (!nodeAnim.rotationKeyframes.empty())
+			{
+				localRotations[i] = InterpolateRotation(
+					nodeAnim.rotationKeyframes, time);
+			}
+
+			if (!nodeAnim.scaleKeyframes.empty())
+			{
+				localScales[i] = InterpolateScale(
+					nodeAnim.scaleKeyframes, time);
+			}
 		}
 	}
 
-	if (meshes.empty()) return;
+	// 階層計算とスキニング行列化は共通ロジックで行う
+	SkeletonUtils::CalcGlobalTransforms(
+		nodes, localPositions, localRotations, localScales,
+		nodeGlobalTransforms);
 
-	boneTransforms.resize(meshes.size());
-
-	for (int m = 0; m < (int)meshes.size(); m++)
-	{
-		const auto& mesh = meshes[m];
-		boneTransforms[m].resize(mesh.bones.size());
-
-		for (int i = 0; i < (int)mesh.bones.size(); i++)
-		{
-			const auto& bone = mesh.bones[i];
-			int nodeIdx = bone.nodeIndex;
-			if (nodeIdx < 0 || nodeIdx >= (int)globalTransforms.size()) continue;
-
-			DirectX::XMMATRIX offset = DirectX::XMLoadFloat4x4(&bone.offsetTransform);
-			DirectX::XMMATRIX global = DirectX::XMLoadFloat4x4(&globalTransforms[nodeIdx]);
-
-			DirectX::XMStoreFloat4x4(&boneTransforms[m][i], offset * global);
-		}
-	}
+	SkeletonUtils::CalcSkinningMatrices(
+		model, nodeGlobalTransforms, boneTransforms);
 }

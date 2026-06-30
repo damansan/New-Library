@@ -57,6 +57,7 @@
     <ClCompile Include="Source\Resource\Model.cpp" />
     <ClCompile Include="Source\Resource\ModelSerializer.cpp" />
     <ClCompile Include="Source\Resource\ResourceManager.cpp" />
+    <ClCompile Include="Source\Resource\SkeletonUtils.cpp" />
     <ClCompile Include="Source\Tool\AdaptiveTriggerToolWindow.cpp" />
     <ClCompile Include="Source\Tool\Studio\StudioAnimator.cpp" />
     <ClCompile Include="Source\Tool\Studio\StudioCamera.cpp" />
@@ -126,6 +127,7 @@
     <ClInclude Include="Source\Resource\GpuResourceUtils.h" />
     <ClInclude Include="Source\Resource\ModelSerializer.h" />
     <ClInclude Include="Source\Resource\ResourceManager.h" />
+    <ClInclude Include="Source\Resource\SkeletonUtils.h" />
     <ClInclude Include="Source\Tool\AdaptiveTriggerToolWindow.h" />
     <ClInclude Include="Source\Tool\Studio\IStudioAttachment.h" />
     <ClInclude Include="Source\Tool\Studio\StudioAnimator.h" />
