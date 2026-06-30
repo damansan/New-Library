@@ -36,5 +36,6 @@ private:
 	static void CalcBoneTransforms(
 		Model& model, const Model::Animation& animation,
 		float time,
-		std::vector<std::vector<DirectX::XMFLOAT4X4>>& boneTransforms);
+		std::vector<std::vector<DirectX::XMFLOAT4X4>>& boneTransforms,
+		std::vector<DirectX::XMFLOAT4X4>& nodeGlobalTransforms);
 };

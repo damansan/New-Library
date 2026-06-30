@@ -12,4 +12,7 @@ struct SkinnedMeshComponent
 
     // メッシュごとのボーン行列
     std::vector<std::vector<DirectX::XMFLOAT4X4>> boneTransforms;
+
+    // ノードごとのグローバル行列
+    std::vector<DirectX::XMFLOAT4X4> nodeGlobalTransforms;
 };

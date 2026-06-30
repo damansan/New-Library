@@ -374,10 +374,9 @@ void RenderSystem::GeometryPass(
 				}
 				else
 				{
-					const auto& nodes = skinnedMesh.model->GetNodes();
 					int nodeIndex = mesh.nodeIndex;
-					if (nodeIndex >= 0 && nodeIndex < (int)nodes.size())
-						cbSkinningData.boneTransforms[0] = nodes[nodeIndex].globalTransform;
+					if (nodeIndex >= 0 && nodeIndex < (int)skinnedMesh.nodeGlobalTransforms.size())
+						cbSkinningData.boneTransforms[0] = skinnedMesh.nodeGlobalTransforms[nodeIndex];
 					else
 						cbSkinningData.boneTransforms[0] = { 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 };
 				}
@@ -567,10 +566,9 @@ void RenderSystem::ForwardTransparentPass(
 				}
 				else
 				{
-					const auto& nodes = skinnedMesh.model->GetNodes();
 					int nodeIndex = mesh.nodeIndex;
-					if (nodeIndex >= 0 && nodeIndex < (int)nodes.size())
-						cbSkinningData.boneTransforms[0] = nodes[nodeIndex].globalTransform;
+					if (nodeIndex >= 0 && nodeIndex < (int)skinnedMesh.nodeGlobalTransforms.size())
+						cbSkinningData.boneTransforms[0] = skinnedMesh.nodeGlobalTransforms[nodeIndex];
 					else
 						cbSkinningData.boneTransforms[0] = { 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 };
 				}

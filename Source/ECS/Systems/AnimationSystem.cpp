@@ -68,7 +68,8 @@ void AnimationSystem::Update(
 				*skinned.model,
 				animation,
 				animator.animationTime,
-				skinned.boneTransforms);
+				skinned.boneTransforms,
+				skinned.nodeGlobalTransforms);
 		});
 }
 
@@ -106,7 +107,8 @@ void AnimationSystem::EvaluatePose(entt::registry& registry)
 				*skinned.model,
 				animation,
 				animator.animationTime,
-				skinned.boneTransforms);
+				skinned.boneTransforms,
+				skinned.nodeGlobalTransforms);
 		});
 }
 
@@ -207,15 +209,18 @@ DirectX::XMFLOAT3 AnimationSystem::InterpolateScale(
 
 // ノードのグローバル行列を再帰計算してボーン行列に書き込む
 void AnimationSystem::CalcBoneTransforms(
-	Model& model, const Model::Animation& animation,
+	Model& model,
+	const Model::Animation& animation,
 	float time,
-	std::vector<std::vector<DirectX::XMFLOAT4X4>>& boneTransforms)
+	std::vector<std::vector<DirectX::XMFLOAT4X4>>& boneTransforms,
+	std::vector<DirectX::XMFLOAT4X4>& nodeGlobalTransforms)
 {
 	auto& nodes = model.GetNodes();
 	const auto& meshes = model.GetMeshes();
 
 	// ノードのグローバル行列を計算
-	std::vector<DirectX::XMFLOAT4X4> globalTransforms(nodes.size());
+	nodeGlobalTransforms.resize(nodes.size());
+	auto& globalTransforms = nodeGlobalTransforms;
 
 	// ルートから再帰的にグローバル行列を計算
 	std::function<void(int, const DirectX::XMFLOAT4X4&)> calcGlobal =
@@ -266,7 +271,6 @@ void AnimationSystem::CalcBoneTransforms(
 			DirectX::XMMATRIX global = local * parent;
 
 			DirectX::XMStoreFloat4x4(&globalTransforms[nodeIndex], global);
-			DirectX::XMStoreFloat4x4(&nodes[nodeIndex].globalTransform, global);
 
 
 			// 子ノードを再帰処理
