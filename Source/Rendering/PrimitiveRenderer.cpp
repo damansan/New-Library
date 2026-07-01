@@ -49,8 +49,6 @@ void PrimitiveRenderer::Render(
 	const DirectX::XMFLOAT4X4& projection,
 	D3D11_PRIMITIVE_TOPOLOGY topology)
 {
-	if (vertices.empty()) return;
-
 	dc->VSSetShader(vertexShader.Get(), nullptr, 0);
 	dc->PSSetShader(pixelShader.Get(), nullptr, 0);
 	dc->IASetInputLayout(inputLayout.Get());
@@ -62,6 +60,8 @@ void PrimitiveRenderer::Render(
 	CbScene cbScene;
 	DirectX::XMStoreFloat4x4(&cbScene.viewProjection, V * P);
 	dc->UpdateSubresource(constantBuffer.Get(), 0, nullptr, &cbScene, 0, 0);
+
+	if (vertices.empty()) return;
 
 	UINT stride = sizeof(Vertex);
 	UINT offset = 0;

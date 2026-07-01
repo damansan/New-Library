@@ -2,6 +2,7 @@
 
 void PhysicsDebugRenderer::Initialize(ID3D11Device* device)
 {
+	this->device = device;
 	primitiveRenderer = PrimitiveRenderer(device);
 	shapeRenderer = ShapeRenderer(device);
 
@@ -113,42 +114,21 @@ void PhysicsDebugRenderer::Render(
 			case physx::PxGeometryType::eTRIANGLEMESH:
 			{
 				const auto& g = static_cast<const physx::PxTriangleMeshGeometry&>(pxGeometry);
-				const physx::PxTriangleMesh& mesh = *g.triangleMesh;
 
-				const physx::PxVec3* verts = mesh.getVertices();
-				const void* idxData = mesh.getTriangles();
-				const physx::PxU32* idxData32 = static_cast<const physx::PxU32*>(idxData);
-				const physx::PxU16* idxData16 = static_cast<const physx::PxU16*>(idxData);
-				bool has16 = static_cast<bool>(mesh.getTriangleMeshFlags() & physx::PxTriangleMeshFlag::e16_BIT_INDICES);
-
-				DirectX::XMMATRIX S = DirectX::XMMatrixScaling(g.scale.scale.x, g.scale.scale.y, g.scale.scale.z);
+				DirectX::XMMATRIX S = DirectX::XMMatrixScaling(
+					g.scale.scale.x, g.scale.scale.y, g.scale.scale.z);
 				DirectX::XMMATRIX R = DirectX::XMMatrixRotationQuaternion(
-					DirectX::XMVectorSet(g.scale.rotation.x, g.scale.rotation.y, g.scale.rotation.z, g.scale.rotation.w));
+					DirectX::XMVectorSet(
+						g.scale.rotation.x, g.scale.rotation.y,
+						g.scale.rotation.z, g.scale.rotation.w));
 				DirectX::XMMATRIX ST = S * R * DirectX::XMLoadFloat4x4(&shapeTransform);
 
-				physx::PxU32 numTri = mesh.getNbTriangles();
-				for (physx::PxU32 t = 0; t < numTri; t += 10) 
-				{
-					physx::PxU32 i0, i1, i2;
-					if (has16) { i0 = *idxData16++; i1 = *idxData16++; i2 = *idxData16++; }
-					else { i0 = *idxData32++; i1 = *idxData32++; i2 = *idxData32++; }
+				const TriangleMeshCache* cache =
+					GetOrCreateTriangleMeshCache(device, g, ST, color);
+				if (!cache) break;
 
-					auto toVec = [&](const physx::PxVec3& v) {
-						return DirectX::XMVector3Transform(
-							DirectX::XMVectorSet(v.x, v.y, v.z, 0), ST);
-						};
-					DirectX::XMFLOAT3 v0, v1, v2;
-					DirectX::XMStoreFloat3(&v0, toVec(verts[i0]));
-					DirectX::XMStoreFloat3(&v1, toVec(verts[i1]));
-					DirectX::XMStoreFloat3(&v2, toVec(verts[i2]));
-
-					primitiveRenderer.AddVertex(v0, color);
-					primitiveRenderer.AddVertex(v1, color);
-					primitiveRenderer.AddVertex(v1, color);
-					primitiveRenderer.AddVertex(v2, color);
-					primitiveRenderer.AddVertex(v2, color);
-					primitiveRenderer.AddVertex(v0, color);
-				}
+				// 描画リストに積む
+				triangleMeshDrawList.push_back(cache);				
 				break;
 			}
 			default:
@@ -203,7 +183,7 @@ void PhysicsDebugRenderer::Render(
 		}
 	}
 
-	// レンダーステート設定して描画
+	// レンダーステート設定
 	float blendFactor[4] = { 0, 0, 0, 0 };
 	dc->OMSetBlendState(blendState.Get(), blendFactor, 0xFFFFFFFF);
 	dc->OMSetDepthStencilState(depthStencilState.Get(), 0);
@@ -212,5 +192,105 @@ void PhysicsDebugRenderer::Render(
 	shapeRenderer.Render(dc, view, projection,
 		{ lightDirection.x, lightDirection.y, lightDirection.z });
 
+	// PrimitiveRendererのシェーダー・レイアウトをセットしてからDraw
 	primitiveRenderer.Render(dc, view, projection);
+
+	// TriangleMeshキャッシュをDraw（primitiveRenderer.Renderでシェーダーがセット済み）
+	if (!triangleMeshDrawList.empty())
+	{
+		dc->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+		for (const TriangleMeshCache* cache : triangleMeshDrawList)
+		{
+			UINT stride = sizeof(PrimitiveRenderer::Vertex);
+			UINT offset = 0;
+			dc->IASetVertexBuffers(0, 1,
+				cache->vertexBuffer.GetAddressOf(), &stride, &offset);
+			dc->Draw(cache->vertexCount, 0);
+		}
+		triangleMeshDrawList.clear();
+	}
+}
+
+// キャッシュの取得
+const PhysicsDebugRenderer::TriangleMeshCache*
+PhysicsDebugRenderer::GetOrCreateTriangleMeshCache(
+	ID3D11Device* device,
+	const physx::PxTriangleMeshGeometry& geom,
+	const DirectX::XMMATRIX& shapeTransform,
+	const DirectX::XMFLOAT4& color)
+{
+	const physx::PxTriangleMesh* pxMesh = geom.triangleMesh;
+
+	// すでにキャッシュがあればそのまま返す
+	auto it = triangleMeshCache.find(pxMesh);
+	if (it != triangleMeshCache.end())
+	{
+		return &it->second;
+	}
+
+	// キャッシュがないので新規作成
+	const physx::PxVec3* verts = pxMesh->getVertices();
+	const void* idxData = pxMesh->getTriangles();
+	const physx::PxU32* idx32 = static_cast<const physx::PxU32*>(idxData);
+	const physx::PxU16* idx16 = static_cast<const physx::PxU16*>(idxData);
+	bool has16 = static_cast<bool>(
+		pxMesh->getTriangleMeshFlags() & physx::PxTriangleMeshFlag::e16_BIT_INDICES);
+
+	physx::PxU32 numTri = pxMesh->getNbTriangles();
+
+	// ワールド変換済みの頂点データをCPUで作成（ラインリスト: 三角形1枚=6頂点）
+	struct CacheVertex
+	{
+		DirectX::XMFLOAT3 position;
+		DirectX::XMFLOAT4 color;
+	};
+	std::vector<CacheVertex> cpuVerts;
+	cpuVerts.reserve(numTri * 6);
+
+	for (physx::PxU32 t = 0; t < numTri; ++t)
+	{
+		physx::PxU32 i0, i1, i2;
+		if (has16) { i0 = *idx16++; i1 = *idx16++; i2 = *idx16++; }
+		else { i0 = *idx32++; i1 = *idx32++; i2 = *idx32++; }
+
+		auto toFloat3 = [&](const physx::PxVec3& v) -> DirectX::XMFLOAT3
+			{
+				DirectX::XMFLOAT3 out;
+				DirectX::XMStoreFloat3(&out,
+					DirectX::XMVector3Transform(
+						DirectX::XMVectorSet(v.x, v.y, v.z, 0), shapeTransform));
+				return out;
+			};
+
+		DirectX::XMFLOAT3 v0 = toFloat3(verts[i0]);
+		DirectX::XMFLOAT3 v1 = toFloat3(verts[i1]);
+		DirectX::XMFLOAT3 v2 = toFloat3(verts[i2]);
+
+		cpuVerts.push_back({ v0, color });
+		cpuVerts.push_back({ v1, color });
+		cpuVerts.push_back({ v1, color });
+		cpuVerts.push_back({ v2, color });
+		cpuVerts.push_back({ v2, color });
+		cpuVerts.push_back({ v0, color });
+	}
+
+	if (cpuVerts.empty()) return nullptr;
+
+	// GPUバッファを作成
+	D3D11_BUFFER_DESC desc = {};
+	desc.ByteWidth = static_cast<UINT>(sizeof(CacheVertex) * cpuVerts.size());
+	desc.Usage = D3D11_USAGE_IMMUTABLE;
+	desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+
+	D3D11_SUBRESOURCE_DATA init = {};
+	init.pSysMem = cpuVerts.data();
+
+	TriangleMeshCache cache;
+	HRESULT hr = device->CreateBuffer(&desc, &init, cache.vertexBuffer.GetAddressOf());
+	if (FAILED(hr)) return nullptr;
+
+	cache.vertexCount = static_cast<UINT>(cpuVerts.size());
+	triangleMeshCache[pxMesh] = std::move(cache);
+
+	return &triangleMeshCache[pxMesh];
 }

@@ -20,6 +20,13 @@ public:
 		const DirectX::XMFLOAT4X4& projection,
 		D3D11_PRIMITIVE_TOPOLOGY topology = D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
 
+	struct Vertex
+	{
+		DirectX::XMFLOAT3 position;
+		DirectX::XMFLOAT4 color;
+	};
+	std::vector<Vertex> vertices;
+
 private:
 	static const UINT VertexCapacity = 3 * 1024;
 
@@ -27,14 +34,6 @@ private:
 	{
 		DirectX::XMFLOAT4X4 viewProjection;
 	};
-
-	struct Vertex
-	{
-		DirectX::XMFLOAT3 position;
-		DirectX::XMFLOAT4 color;
-	};
-
-	std::vector<Vertex> vertices;
 
 	Microsoft::WRL::ComPtr<ID3D11VertexShader> vertexShader;
 	Microsoft::WRL::ComPtr<ID3D11PixelShader>  pixelShader;
