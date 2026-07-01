@@ -15,4 +15,9 @@ struct SkinnedMeshComponent
 
     // ノードごとのグローバル行列
     std::vector<DirectX::XMFLOAT4X4> nodeGlobalTransforms;
+
+
+    std::vector<DirectX::XMFLOAT3> localPositions;
+    std::vector<DirectX::XMFLOAT4> localRotations;
+    std::vector<DirectX::XMFLOAT3> localScales;
 };

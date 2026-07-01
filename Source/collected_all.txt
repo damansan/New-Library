@@ -1907,6 +1907,21 @@ struct GameCameraComponent
     float followSpeed = 10.0f;
 }; 
  
+===== IKComponent.h ===== 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\IKComponent.h 
+#pragma once
+#include <string>
+#include <DirectXMath.h>
+
+struct IKComponent
+{
+	bool        enabled = false; // IK—LŒøƒtƒ‰ƒO
+	std::string targetBoneName;  // ‘€ì‘ÎÛ‚Ìƒ{[ƒ“–¼
+
+	DirectX::XMFLOAT3 manualPosition{ 0.0f, 0.0f, 0.0f };       // ˆÊ’uƒIƒtƒZƒbƒg
+	DirectX::XMFLOAT3 manualRotationEuler{ 0.0f, 0.0f, 0.0f };  // ‰ñ“](ƒIƒCƒ‰[Šp)
+}; 
+ 
 ===== InputComponent.h ===== 
 Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\InputComponent.h 
 #pragma once
@@ -2042,6 +2057,11 @@ struct SkinnedMeshComponent
 
     // ƒm[ƒh‚²‚Æ‚ÌƒOƒ[ƒoƒ‹s—ñ
     std::vector<DirectX::XMFLOAT4X4> nodeGlobalTransforms;
+
+
+    std::vector<DirectX::XMFLOAT3> localPositions;
+    std::vector<DirectX::XMFLOAT4> localRotations;
+    std::vector<DirectX::XMFLOAT3> localScales;
 }; 
  
 ===== StaticMeshComponent.h ===== 
@@ -2130,10 +2150,10 @@ private:
 
 	// ƒm[ƒh‚ÌƒOƒ[ƒoƒ‹s—ñ‚ğÄ‹AŒvZ‚µ‚Äƒ{[ƒ“s—ñ‚É‘‚«‚Ş
 	static void CalcBoneTransforms(
-		Model& model, const Model::Animation& animation,
+		Model& model,
+		const Model::Animation& animation,
 		float time,
-		std::vector<std::vector<DirectX::XMFLOAT4X4>>& boneTransforms,
-		std::vector<DirectX::XMFLOAT4X4>& nodeGlobalTransforms);
+		SkinnedMeshComponent& skinned);
 }; 
  
 ===== ControllerSystem.h ===== 
@@ -2252,6 +2272,17 @@ private:
     void UpdateLookAt(GameCameraComponent& cam, const TransformComponent& target, float elapsedTime);
     // ŒÅ’èƒJƒƒ‰
     void UpdateFixed(GameCameraComponent& cam, const TransformComponent& target, float elapsedTime);
+}; 
+ 
+===== IKSystem.h ===== 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\IKSystem.h 
+#pragma once
+#include "entt.hpp"
+
+class IKSystem
+{
+public:
+	void Update(entt::registry& registry);
 }; 
  
 ===== InputSystem.h ===== 
@@ -2570,6 +2601,7 @@ private:
 Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\AnimationSystem.cpp 
 #include "AnimationSystem.h"
 #include "tracy/Tracy.hpp"
+#include "Resource/SkeletonUtils.h"
 
 // XV
 void AnimationSystem::Update(
@@ -2638,8 +2670,7 @@ void AnimationSystem::Update(
 				*skinned.model,
 				animation,
 				animator.animationTime,
-				skinned.boneTransforms,
-				skinned.nodeGlobalTransforms);
+				skinned);
 		});
 }
 
@@ -2677,8 +2708,7 @@ void AnimationSystem::EvaluatePose(entt::registry& registry)
 				*skinned.model,
 				animation,
 				animator.animationTime,
-				skinned.boneTransforms,
-				skinned.nodeGlobalTransforms);
+				skinned);
 		});
 }
 
@@ -2782,109 +2812,54 @@ void AnimationSystem::CalcBoneTransforms(
 	Model& model,
 	const Model::Animation& animation,
 	float time,
-	std::vector<std::vector<DirectX::XMFLOAT4X4>>& boneTransforms,
-	std::vector<DirectX::XMFLOAT4X4>& nodeGlobalTransforms)
+	SkinnedMeshComponent& skinned)
 {
 	auto& nodes = model.GetNodes();
-	const auto& meshes = model.GetMeshes();
 
-	// ƒm[ƒh‚ÌƒOƒ[ƒoƒ‹s—ñ‚ğŒvZ
-	nodeGlobalTransforms.resize(nodes.size());
-	auto& globalTransforms = nodeGlobalTransforms;
-
-	// ƒ‹[ƒg‚©‚çÄ‹A“I‚ÉƒOƒ[ƒoƒ‹s—ñ‚ğŒvZ
-	std::function<void(int, const DirectX::XMFLOAT4X4&)> calcGlobal =
-		[&](int nodeIndex, const DirectX::XMFLOAT4X4& parentTransform)
-		{
-			auto& node = nodes[nodeIndex];
-
-			// ƒL[ƒtƒŒ[ƒ€‚©‚ç•âŠÔ‚µ‚Äƒ[ƒJƒ‹s—ñ‚ğì‚é
-			DirectX::XMFLOAT3 position = node.position;
-			DirectX::XMFLOAT4 rotation = node.rotation;
-			DirectX::XMFLOAT3 scale = node.scale;
-
-			if (nodeIndex < (int)animation.nodeAnims.size())
-			{
-				const auto& nodeAnim = animation.nodeAnims[nodeIndex];
-
-				if (!nodeAnim.positionKeyframes.empty())
-				{
-					position = InterpolatePosition(
-						nodeAnim.positionKeyframes, time);
-				}
-
-				if (!nodeAnim.rotationKeyframes.empty())
-				{
-					rotation = InterpolateRotation(
-						nodeAnim.rotationKeyframes, time);
-				}
-
-				if (!nodeAnim.scaleKeyframes.empty())
-				{
-					scale = InterpolateScale(
-						nodeAnim.scaleKeyframes, time);
-				}
-			}
-
-			// ƒ[ƒJƒ‹s—ñ‚ğŒvZ
-			DirectX::XMMATRIX S = DirectX::XMMatrixScaling(
-				scale.x, scale.y, scale.z);
-			DirectX::XMMATRIX R = DirectX::XMMatrixRotationQuaternion(
-				DirectX::XMVectorSet(
-					rotation.x, rotation.y,
-					rotation.z, rotation.w));
-			DirectX::XMMATRIX T = DirectX::XMMatrixTranslation(
-				position.x, position.y, position.z);
-
-			DirectX::XMMATRIX local = S * R * T;
-			DirectX::XMMATRIX parent = DirectX::XMLoadFloat4x4(&parentTransform);
-			DirectX::XMMATRIX global = local * parent;
-
-			DirectX::XMStoreFloat4x4(&globalTransforms[nodeIndex], global);
-
-
-			// qƒm[ƒh‚ğÄ‹Aˆ—
-			for (int child : node.childIndices)
-			{
-				calcGlobal(child, globalTransforms[nodeIndex]);
-			}
-		};
-
-	// ƒ‹[ƒgƒm[ƒh‚©‚çŒvZŠJn
-	DirectX::XMFLOAT4X4 identity =
-	{ 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 };
+	// ƒ[ƒJƒ‹pose”z—ñ‚ğƒm[ƒh”‚É‡‚í‚¹‚ÄƒŠƒTƒCƒY
+	skinned.localPositions.resize(nodes.size());
+	skinned.localRotations.resize(nodes.size());
+	skinned.localScales.resize(nodes.size());
 
 	for (int i = 0; i < (int)nodes.size(); i++)
 	{
-		if (nodes[i].parentIndex < 0)
+		skinned.localPositions[i] = nodes[i].position;
+		skinned.localRotations[i] = nodes[i].rotation;
+		skinned.localScales[i] = nodes[i].scale;
+
+		// ƒL[ƒtƒŒ[ƒ€‚ª‚ ‚ê‚Î•âŠÔ‚µ‚Äã‘‚«
+		if (i < (int)animation.nodeAnims.size())
 		{
-			calcGlobal(i, identity);
+			const auto& nodeAnim = animation.nodeAnims[i];
+
+			if (!nodeAnim.positionKeyframes.empty())
+			{
+				skinned.localPositions[i] = InterpolatePosition(
+					nodeAnim.positionKeyframes, time);
+			}
+
+			if (!nodeAnim.rotationKeyframes.empty())
+			{
+				skinned.localRotations[i] = InterpolateRotation(
+					nodeAnim.rotationKeyframes, time);
+			}
+
+			if (!nodeAnim.scaleKeyframes.empty())
+			{
+				skinned.localScales[i] = InterpolateScale(
+					nodeAnim.scaleKeyframes, time);
+			}
 		}
 	}
 
-	if (meshes.empty()) return;
+	// ŠK‘wŒvZ‚ÆƒXƒLƒjƒ“ƒOs—ñ‰»‚Í‹¤’ÊƒƒWƒbƒN(SkeletonUtils)‚É”C‚¹‚é
+	SkeletonUtils::CalcGlobalTransforms(
+		nodes, skinned.localPositions, skinned.localRotations, skinned.localScales,
+		skinned.nodeGlobalTransforms);
 
-	boneTransforms.resize(meshes.size());
-
-	for (int m = 0; m < (int)meshes.size(); m++)
-	{
-		const auto& mesh = meshes[m];
-		boneTransforms[m].resize(mesh.bones.size());
-
-		for (int i = 0; i < (int)mesh.bones.size(); i++)
-		{
-			const auto& bone = mesh.bones[i];
-			int nodeIdx = bone.nodeIndex;
-			if (nodeIdx < 0 || nodeIdx >= (int)globalTransforms.size()) continue;
-
-			DirectX::XMMATRIX offset = DirectX::XMLoadFloat4x4(&bone.offsetTransform);
-			DirectX::XMMATRIX global = DirectX::XMLoadFloat4x4(&globalTransforms[nodeIdx]);
-
-			DirectX::XMStoreFloat4x4(&boneTransforms[m][i], offset * global);
-		}
-	}
-}
- 
+	SkeletonUtils::CalcSkinningMatrices(
+		model, skinned.nodeGlobalTransforms, skinned.boneTransforms);
+} 
  
 ===== ControllerSystem.cpp ===== 
 Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\ControllerSystem.cpp 
@@ -3405,6 +3380,82 @@ void GameCameraSystem::UpdateFixed(
     cam.base.currentTarget.x += (target.position.x - cam.base.currentTarget.x) * t;
     cam.base.currentTarget.y += (target.position.y - cam.base.currentTarget.y) * t;
     cam.base.currentTarget.z += (target.position.z - cam.base.currentTarget.z) * t;
+} 
+ 
+===== IKSystem.cpp ===== 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\IKSystem.cpp 
+#include "IKSystem.h"
+#include "ECS/Components/IKComponent.h"
+#include "ECS/Components/SkinnedMeshComponent.h"
+#include "Resource/SkeletonUtils.h"
+
+void IKSystem::Update(entt::registry& registry)
+{
+	auto view = registry.view<IKComponent, SkinnedMeshComponent>();
+
+	for (auto entity : view)
+	{
+		auto& ik = view.get<IKComponent>(entity);
+
+		// –³Œø‚È‚ç‰½‚à‚µ‚È‚¢
+		if (!ik.enabled) continue;
+		if (ik.targetBoneName.empty()) continue;
+
+		auto& skinnedMesh = view.get<SkinnedMeshComponent>(entity);
+		if (!skinnedMesh.model) continue;
+
+		const auto& nodes = skinnedMesh.model->GetNodes();
+
+		// ƒ^[ƒQƒbƒgƒ{[ƒ“‚ÌƒCƒ“ƒfƒbƒNƒX‚ğ–¼‘O‚Å’T‚·
+		int targetIndex = -1;
+		for (int i = 0; i < (int)nodes.size(); i++)
+		{
+			if (nodes[i].name == ik.targetBoneName)
+			{
+				targetIndex = i;
+				break;
+			}
+		}
+
+		// Œ©‚Â‚©‚ç‚È‚¯‚ê‚ÎƒXƒLƒbƒv
+		if (targetIndex < 0) continue;
+
+		// Šeƒm[ƒh‚Ìƒ[ƒJƒ‹pose”z—ñ‚ğƒ‚ƒfƒ‹‚ÌƒfƒtƒHƒ‹ƒg’l‚Å‰Šú‰»
+		std::vector<DirectX::XMFLOAT3> localPositions(nodes.size());
+		std::vector<DirectX::XMFLOAT4> localRotations(nodes.size());
+		std::vector<DirectX::XMFLOAT3> localScales(nodes.size());
+
+		bool hasPose = (skinnedMesh.localPositions.size() == nodes.size());
+
+		for (int i = 0; i < (int)nodes.size(); i++)
+		{
+			localPositions[i] = hasPose ? skinnedMesh.localPositions[i] : nodes[i].position;
+			localRotations[i] = hasPose ? skinnedMesh.localRotations[i] : nodes[i].rotation;
+			localScales[i] = hasPose ? skinnedMesh.localScales[i] : nodes[i].scale;
+		}
+
+		// ƒ^[ƒQƒbƒgƒm[ƒh‚¾‚¯Amanual‚Ì’l‚Åã‘‚«
+		localPositions[targetIndex].x += ik.manualPosition.x;
+		localPositions[targetIndex].y += ik.manualPosition.y;
+		localPositions[targetIndex].z += ik.manualPosition.z;
+
+		// ƒIƒCƒ‰[Šp ¨ ƒNƒH[ƒ^ƒjƒIƒ“‚É•ÏŠ·‚µ‚Ä‚©‚çã‘‚«
+		DirectX::XMVECTOR q = DirectX::XMQuaternionRotationRollPitchYaw(
+			ik.manualRotationEuler.x,
+			ik.manualRotationEuler.y,
+			ik.manualRotationEuler.z);
+		DirectX::XMStoreFloat4(&localRotations[targetIndex], q);
+
+		// ŠK‘wŒvZ ¨ ƒXƒLƒjƒ“ƒOs—ñ‰»
+		std::vector<DirectX::XMFLOAT4X4> globalTransforms;
+		SkeletonUtils::CalcGlobalTransforms(
+			nodes, localPositions, localRotations, localScales,
+			globalTransforms);
+
+		SkeletonUtils::CalcSkinningMatrices(
+			*skinnedMesh.model, globalTransforms,
+			skinnedMesh.boneTransforms);
+	}
 } 
  
 ===== InputSystem.cpp ===== 
@@ -4748,6 +4799,8 @@ Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Editor\ComponentRegistr
 #include "Core/PhysicsDestroyQueue.h"
 #include "ECS/Components/PhysicsComponents.h"
 
+#include "ECS/Components/IKComponent.h"
+
 #define REGISTER_COMPONENT(Type, Name, DrawFunc)                                    \
     ComponentRegistry::Register(Name,                                               \
     {                                                                               \
@@ -5092,6 +5145,55 @@ void ComponentRegistryInitializer::Initialize()
 					}
 				} 
 		});
+
+		// IKƒRƒ“ƒ|[ƒlƒ“ƒg‚Ì“o˜^
+		REGISTER_COMPONENT(IKComponent, "IK",
+			[](auto& reg, auto e)
+			{
+				auto* ik = reg.try_get<IKComponent>(e);
+				auto* skinned = reg.try_get<SkinnedMeshComponent>(e);
+				if (!ik) return;
+
+				if (!ImGui::CollapsingHeader("IK", ImGuiTreeNodeFlags_DefaultOpen)) return;
+
+				// —LŒøƒtƒ‰ƒO
+				ImGui::Checkbox("Enabled", &ik->enabled);
+
+				// SkinnedMesh‚ª‚È‚¯‚ê‚ÎŒx
+				if (!skinned || !skinned->model)
+				{
+					ImGui::TextColored({ 1, 0.5f, 0, 1 }, "No SkinnedMesh found.");
+					return;
+				}
+
+				const auto& nodes = skinned->model->GetNodes();
+				if (nodes.empty())
+				{
+					ImGui::TextColored({ 1, 0.5f, 0, 1 }, "No bones found.");
+					return;
+				}
+
+				// ƒ{[ƒ“–¼ƒRƒ“ƒ{
+				if (ImGui::BeginCombo("Target Bone", ik->targetBoneName.c_str()))
+				{
+					for (const auto& node : nodes)
+					{
+						bool selected = (ik->targetBoneName == node.name);
+						if (ImGui::Selectable(node.name.c_str(), selected))
+						{
+							ik->targetBoneName = node.name;
+						}
+						if (selected) ImGui::SetItemDefaultFocus();
+					}
+					ImGui::EndCombo();
+				}
+
+				ImGui::Separator();
+
+				// ˆÊ’uƒIƒtƒZƒbƒgE‰ñ“](ƒIƒCƒ‰[Šp)
+				ImGui::DragFloat3("Position Offset", &ik->manualPosition.x, 0.01f);
+				ImGui::DragFloat3("Rotation (Euler)", &ik->manualRotationEuler.x, 0.01f);
+			});
 } 
  
 ===== HierarchyWindow.cpp ===== 
@@ -5569,6 +5671,10 @@ Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Game\SceneGame.h
 
 #include "ECS/Systems/PhysicsSystem.h"
 
+#include "ECS/Systems/IKSystem.h"
+
+
+
 #include "Tool/AdaptiveTriggerToolWindow.h"
 
 class SceneGame : public Scene
@@ -5598,6 +5704,8 @@ private:
 	LightManager lightManager;
 
 	PhysicsSystem    physicsSystem;
+
+	IKSystem         ikSystem;
 };
  
  
@@ -5696,6 +5804,11 @@ void SceneGame::Update(float elapsedTime, const SceneContext& context)
 		// ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³æ›´æ–°
 		ZoneScopedN("AnimationSystem");
 		animationSystem.Update(registry, elapsedTime);
+	}
+	{
+		// IKæ›´æ–°(ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã®å¾Œã«ä¸Šæ›¸ãã™ã‚‹)
+		ZoneScopedN("IKSystem");
+		ikSystem.Update(registry);
 	}
 
 	{
@@ -6921,6 +7034,31 @@ private:
     std::unordered_map<std::string, std::shared_ptr<Model>> modelCache;
 
 }; 
+ 
+===== SkeletonUtils.h ===== 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\SkeletonUtils.h 
+#pragma once
+#include <vector>
+#include <DirectXMath.h>
+#include "Model.h"
+
+// ƒ‚ƒfƒ‹‚ÌœŠiŠK‘w‚ğˆµ‚¤‹¤’ÊŒvZƒƒWƒbƒN
+namespace SkeletonUtils
+{
+	// ƒ[ƒ‹ƒh‹óŠÔ‚ÌƒOƒ[ƒoƒ‹s—ñ‚ğÄ‹AŒvZ‚·‚é
+	void CalcGlobalTransforms(
+		const std::vector<Model::Node>& nodes,
+		const std::vector<DirectX::XMFLOAT3>& localPositions,
+		const std::vector<DirectX::XMFLOAT4>& localRotations,
+		const std::vector<DirectX::XMFLOAT3>& localScales,
+		std::vector<DirectX::XMFLOAT4X4>& outGlobalTransforms);
+
+	// ƒOƒ[ƒoƒ‹s—ñ‚ÆBone.offsetTransform‚©‚çAƒXƒLƒjƒ“ƒO—p‚Ìƒ{[ƒ“s—ñ‚ğ‹‚ß‚é
+	void CalcSkinningMatrices(
+		const Model& model,
+		const std::vector<DirectX::XMFLOAT4X4>& globalTransforms,
+		std::vector<std::vector<DirectX::XMFLOAT4X4>>& outBoneTransforms);
+} 
  
 ===== GLTFConverter.cpp ===== 
 Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\GLTFConverter.cpp 
@@ -8667,6 +8805,101 @@ void ResourceManager::ReleaseAll()
 	modelCache.clear();
 }
  
+ 
+===== SkeletonUtils.cpp ===== 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\SkeletonUtils.cpp 
+#include "SkeletonUtils.h"
+#include <functional>
+
+namespace SkeletonUtils
+{
+	// eqŠÖŒW‚ğ’H‚èAŠeƒm[ƒh‚Ìƒ[ƒJƒ‹pose(position/rotation/scale)‚©‚ç
+	// ƒ[ƒ‹ƒh‹óŠÔ‚ÌƒOƒ[ƒoƒ‹s—ñ‚ğÄ‹AŒvZ‚·‚é
+	void CalcGlobalTransforms(
+		const std::vector<Model::Node>& nodes,
+		const std::vector<DirectX::XMFLOAT3>& localPositions,
+		const std::vector<DirectX::XMFLOAT4>& localRotations,
+		const std::vector<DirectX::XMFLOAT3>& localScales,
+		std::vector<DirectX::XMFLOAT4X4>& outGlobalTransforms)
+	{
+		outGlobalTransforms.resize(nodes.size());
+
+		// ƒ‹[ƒg‚©‚çÄ‹A“I‚ÉƒOƒ[ƒoƒ‹s—ñ‚ğŒvZ
+		std::function<void(int, const DirectX::XMFLOAT4X4&)> calcGlobal =
+			[&](int nodeIndex, const DirectX::XMFLOAT4X4& parentTransform)
+			{
+				const auto& node = nodes[nodeIndex];
+
+				const auto& position = localPositions[nodeIndex];
+				const auto& rotation = localRotations[nodeIndex];
+				const auto& scale = localScales[nodeIndex];
+
+				// ƒ[ƒJƒ‹s—ñ‚ğŒvZ
+				DirectX::XMMATRIX S = DirectX::XMMatrixScaling(
+					scale.x, scale.y, scale.z);
+				DirectX::XMMATRIX R = DirectX::XMMatrixRotationQuaternion(
+					DirectX::XMVectorSet(
+						rotation.x, rotation.y,
+						rotation.z, rotation.w));
+				DirectX::XMMATRIX T = DirectX::XMMatrixTranslation(
+					position.x, position.y, position.z);
+
+				DirectX::XMMATRIX local = S * R * T;
+				DirectX::XMMATRIX parent = DirectX::XMLoadFloat4x4(&parentTransform);
+				DirectX::XMMATRIX global = local * parent;
+
+				DirectX::XMStoreFloat4x4(&outGlobalTransforms[nodeIndex], global);
+
+				// qƒm[ƒh‚ğÄ‹Aˆ—
+				for (int child : node.childIndices)
+				{
+					calcGlobal(child, outGlobalTransforms[nodeIndex]);
+				}
+			};
+
+		// ƒ‹[ƒgƒm[ƒh‚©‚çŒvZŠJn
+		DirectX::XMFLOAT4X4 identity =
+		{ 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 };
+
+		for (int i = 0; i < (int)nodes.size(); i++)
+		{
+			if (nodes[i].parentIndex < 0)
+			{
+				calcGlobal(i, identity);
+			}
+		}
+	}
+
+	// ƒOƒ[ƒoƒ‹s—ñ‚ÆBone.offsetTransform‚©‚çAƒXƒLƒjƒ“ƒO—p‚Ìƒ{[ƒ“s—ñ‚ğ‹‚ß‚é
+	void CalcSkinningMatrices(
+		const Model& model,
+		const std::vector<DirectX::XMFLOAT4X4>& globalTransforms,
+		std::vector<std::vector<DirectX::XMFLOAT4X4>>& outBoneTransforms)
+	{
+		const auto& meshes = model.GetMeshes();
+		if (meshes.empty()) return;
+
+		outBoneTransforms.resize(meshes.size());
+
+		for (int m = 0; m < (int)meshes.size(); m++)
+		{
+			const auto& mesh = meshes[m];
+			outBoneTransforms[m].resize(mesh.bones.size());
+
+			for (int i = 0; i < (int)mesh.bones.size(); i++)
+			{
+				const auto& bone = mesh.bones[i];
+				int nodeIdx = bone.nodeIndex;
+				if (nodeIdx < 0 || nodeIdx >= (int)globalTransforms.size()) continue;
+
+				DirectX::XMMATRIX offset = DirectX::XMLoadFloat4x4(&bone.offsetTransform);
+				DirectX::XMMATRIX global = DirectX::XMLoadFloat4x4(&globalTransforms[nodeIdx]);
+
+				DirectX::XMStoreFloat4x4(&outBoneTransforms[m][i], offset * global);
+			}
+		}
+	}
+} 
  
 ===== AdaptiveTriggerToolWindow.h ===== 
 Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Tool\AdaptiveTriggerToolWindow.h 

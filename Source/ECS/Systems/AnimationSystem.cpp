@@ -69,8 +69,7 @@ void AnimationSystem::Update(
 				*skinned.model,
 				animation,
 				animator.animationTime,
-				skinned.boneTransforms,
-				skinned.nodeGlobalTransforms);
+				skinned);
 		});
 }
 
@@ -108,8 +107,7 @@ void AnimationSystem::EvaluatePose(entt::registry& registry)
 				*skinned.model,
 				animation,
 				animator.animationTime,
-				skinned.boneTransforms,
-				skinned.nodeGlobalTransforms);
+				skinned);
 		});
 }
 
@@ -213,21 +211,20 @@ void AnimationSystem::CalcBoneTransforms(
 	Model& model,
 	const Model::Animation& animation,
 	float time,
-	std::vector<std::vector<DirectX::XMFLOAT4X4>>& boneTransforms,
-	std::vector<DirectX::XMFLOAT4X4>& nodeGlobalTransforms)
+	SkinnedMeshComponent& skinned)
 {
 	auto& nodes = model.GetNodes();
 
-	// 各ノードのローカルpose配列を用意し、まずノードのデフォルト値で初期化
-	std::vector<DirectX::XMFLOAT3> localPositions(nodes.size());
-	std::vector<DirectX::XMFLOAT4> localRotations(nodes.size());
-	std::vector<DirectX::XMFLOAT3> localScales(nodes.size());
+	// ローカルpose配列をノード数に合わせてリサイズ
+	skinned.localPositions.resize(nodes.size());
+	skinned.localRotations.resize(nodes.size());
+	skinned.localScales.resize(nodes.size());
 
 	for (int i = 0; i < (int)nodes.size(); i++)
 	{
-		localPositions[i] = nodes[i].position;
-		localRotations[i] = nodes[i].rotation;
-		localScales[i] = nodes[i].scale;
+		skinned.localPositions[i] = nodes[i].position;
+		skinned.localRotations[i] = nodes[i].rotation;
+		skinned.localScales[i] = nodes[i].scale;
 
 		// キーフレームがあれば補間して上書き
 		if (i < (int)animation.nodeAnims.size())
@@ -236,29 +233,29 @@ void AnimationSystem::CalcBoneTransforms(
 
 			if (!nodeAnim.positionKeyframes.empty())
 			{
-				localPositions[i] = InterpolatePosition(
+				skinned.localPositions[i] = InterpolatePosition(
 					nodeAnim.positionKeyframes, time);
 			}
 
 			if (!nodeAnim.rotationKeyframes.empty())
 			{
-				localRotations[i] = InterpolateRotation(
+				skinned.localRotations[i] = InterpolateRotation(
 					nodeAnim.rotationKeyframes, time);
 			}
 
 			if (!nodeAnim.scaleKeyframes.empty())
 			{
-				localScales[i] = InterpolateScale(
+				skinned.localScales[i] = InterpolateScale(
 					nodeAnim.scaleKeyframes, time);
 			}
 		}
 	}
 
-	// 階層計算とスキニング行列化は共通ロジックで行う
+	// 階層計算とスキニング行列化は共通ロジック(SkeletonUtils)に任せる
 	SkeletonUtils::CalcGlobalTransforms(
-		nodes, localPositions, localRotations, localScales,
-		nodeGlobalTransforms);
+		nodes, skinned.localPositions, skinned.localRotations, skinned.localScales,
+		skinned.nodeGlobalTransforms);
 
 	SkeletonUtils::CalcSkinningMatrices(
-		model, nodeGlobalTransforms, boneTransforms);
+		model, skinned.nodeGlobalTransforms, skinned.boneTransforms);
 }

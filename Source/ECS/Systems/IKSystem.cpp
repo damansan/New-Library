@@ -39,11 +39,13 @@ void IKSystem::Update(entt::registry& registry)
 		std::vector<DirectX::XMFLOAT4> localRotations(nodes.size());
 		std::vector<DirectX::XMFLOAT3> localScales(nodes.size());
 
+		bool hasPose = (skinnedMesh.localPositions.size() == nodes.size());
+
 		for (int i = 0; i < (int)nodes.size(); i++)
 		{
-			localPositions[i] = nodes[i].position;
-			localRotations[i] = nodes[i].rotation;
-			localScales[i] = nodes[i].scale;
+			localPositions[i] = hasPose ? skinnedMesh.localPositions[i] : nodes[i].position;
+			localRotations[i] = hasPose ? skinnedMesh.localRotations[i] : nodes[i].rotation;
+			localScales[i] = hasPose ? skinnedMesh.localScales[i] : nodes[i].scale;
 		}
 
 		// ターゲットノードだけ、manualの値で上書き
@@ -58,14 +60,12 @@ void IKSystem::Update(entt::registry& registry)
 			ik.manualRotationEuler.z);
 		DirectX::XMStoreFloat4(&localRotations[targetIndex], q);
 
-		// 階層計算 → スキニング行列化
-		std::vector<DirectX::XMFLOAT4X4> globalTransforms;
 		SkeletonUtils::CalcGlobalTransforms(
 			nodes, localPositions, localRotations, localScales,
-			globalTransforms);
+			skinnedMesh.nodeGlobalTransforms);
 
 		SkeletonUtils::CalcSkinningMatrices(
-			*skinnedMesh.model, globalTransforms,
+			*skinnedMesh.model, skinnedMesh.nodeGlobalTransforms,
 			skinnedMesh.boneTransforms);
 	}
 }
