@@ -233,6 +233,21 @@
     <Filter Include="Sources\ECS\Systems\IKSystem">
       <UniqueIdentifier>{981b2a8d-37c3-47c1-88ec-ed492a78b603}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shader\SolidShape">
+      <UniqueIdentifier>{04db11b6-db1d-4f75-ad68-6f7711de9e6b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shader\WiredShape">
+      <UniqueIdentifier>{a178dacc-07f0-4c69-997f-72920c2a5185}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Rendering\PrimitiveRenderer">
+      <UniqueIdentifier>{fbfd72b5-2d6a-4362-a6b2-340ca8d55329}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Rendering\ShapeRenderer">
+      <UniqueIdentifier>{d43a4bbe-3061-447a-9c3c-a0fa4d251535}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Rendering\PhysicsDebugRenderer">
+      <UniqueIdentifier>{20769f89-a928-42f4-bdcd-902df135b837}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Core\framework.cpp">
@@ -378,6 +393,15 @@
     </ClCompile>
     <ClCompile Include="Source\ECS\Systems\IKSystem.cpp">
       <Filter>Sources\ECS\Systems\IKSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Rendering\PrimitiveRenderer.cpp">
+      <Filter>Sources\Rendering\PrimitiveRenderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Rendering\ShapeRenderer.cpp">
+      <Filter>Sources\Rendering\ShapeRenderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Rendering\PhysicsDebugRenderer.cpp">
+      <Filter>Sources\Rendering\PhysicsDebugRenderer</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -603,6 +627,15 @@
     <ClInclude Include="Source\ECS\Systems\IKSystem.h">
       <Filter>Sources\ECS\Systems\IKSystem</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Rendering\PrimitiveRenderer.h">
+      <Filter>Sources\Rendering\PrimitiveRenderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Rendering\ShapeRenderer.h">
+      <Filter>Sources\Rendering\ShapeRenderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Rendering\PhysicsDebugRenderer.h">
+      <Filter>Sources\Rendering\PhysicsDebugRenderer</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shader\Static_VS.hlsl">
@@ -644,6 +677,18 @@
     <FxCompile Include="Shader\Gbuffer_Basic_PS.hlsl">
       <Filter>Shader\Basic</Filter>
     </FxCompile>
+    <FxCompile Include="Shader\SolidShape_PS.hlsl">
+      <Filter>Shader\SolidShape</Filter>
+    </FxCompile>
+    <FxCompile Include="Shader\SolidShape_VS.hlsl">
+      <Filter>Shader\SolidShape</Filter>
+    </FxCompile>
+    <FxCompile Include="Shader\WiredShape_PS.hlsl">
+      <Filter>Shader\WiredShape</Filter>
+    </FxCompile>
+    <FxCompile Include="Shader\WiredShape_VS.hlsl">
+      <Filter>Shader\WiredShape</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shader\PBR_Functions.hlsli">
@@ -651,6 +696,12 @@
     </None>
     <None Include="Shader\IBL_Functions.hlsli">
       <Filter>Shader\IBL</Filter>
+    </None>
+    <None Include="Shader\SolidShape.hlsli">
+      <Filter>Shader\SolidShape</Filter>
+    </None>
+    <None Include="Shader\WiredShape.hlsli">
+      <Filter>Shader\WiredShape</Filter>
     </None>
   </ItemGroup>
 </Project>

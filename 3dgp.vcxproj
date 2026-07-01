@@ -51,6 +51,9 @@
     <ClCompile Include="Source\Game\SceneGame.cpp" />
     <ClCompile Include="Source\Rendering\GBuffer.cpp" />
     <ClCompile Include="Source\Rendering\LightManager.cpp" />
+    <ClCompile Include="Source\Rendering\PhysicsDebugRenderer.cpp" />
+    <ClCompile Include="Source\Rendering\PrimitiveRenderer.cpp" />
+    <ClCompile Include="Source\Rendering\ShapeRenderer.cpp" />
     <ClCompile Include="Source\Rendering\SkyBox.cpp" />
     <ClCompile Include="Source\Resource\GLTFConverter.cpp" />
     <ClCompile Include="Source\Resource\GLTFImporter.cpp" />
@@ -122,6 +125,9 @@
     <ClInclude Include="Source\Game\SceneGame.h" />
     <ClInclude Include="Source\Rendering\GBuffer.h" />
     <ClInclude Include="Source\Rendering\LightManager.h" />
+    <ClInclude Include="Source\Rendering\PhysicsDebugRenderer.h" />
+    <ClInclude Include="Source\Rendering\PrimitiveRenderer.h" />
+    <ClInclude Include="Source\Rendering\ShapeRenderer.h" />
     <ClInclude Include="Source\Rendering\SkyBox.h" />
     <ClInclude Include="Source\Resource\GLTFConverter.h" />
     <ClInclude Include="Source\Resource\GLTFData.h" />
@@ -150,6 +156,18 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="Shader\SolidShape_PS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="Shader\SolidShape_VS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
     </FxCompile>
     <FxCompile Include="Shader\Static_VS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
@@ -223,10 +241,24 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
     </FxCompile>
+    <FxCompile Include="Shader\WiredShape_PS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="Shader\WiredShape_VS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shader\IBL_Functions.hlsli" />
     <None Include="Shader\PBR_Functions.hlsli" />
+    <None Include="Shader\SolidShape.hlsli" />
+    <None Include="Shader\WiredShape.hlsli" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{0DDBE550-8551-4506-9A5A-4DD100C00C48}</ProjectGuid>

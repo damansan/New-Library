@@ -29,6 +29,7 @@ void SceneGame::Initialize(const SceneContext& context)
 		{ 1.0f,  1.0f, 1.0f },
 		1.0f
 	);
+	physicsDebugRenderer.Initialize(context.device);
 
 
 	const int lightCount = 20;
@@ -209,7 +210,13 @@ void SceneGame::Render(const SceneContext& context)
 			context.screenHeight
 		);
 	}
-
+	physicsDebugRenderer.Render(
+		context.deviceContext,
+		GetPhysicsScene(),
+		GetControllerManager(),
+		context.view,
+		context.projection,
+		lightManager.GetDirectionalLight().direction);
 }
 
 void SceneGame::RenderImGui()

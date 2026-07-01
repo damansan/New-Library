@@ -3446,14 +3446,12 @@ void IKSystem::Update(entt::registry& registry)
 			ik.manualRotationEuler.z);
 		DirectX::XMStoreFloat4(&localRotations[targetIndex], q);
 
-		// 階層計算 → スキニング行列化
-		std::vector<DirectX::XMFLOAT4X4> globalTransforms;
 		SkeletonUtils::CalcGlobalTransforms(
 			nodes, localPositions, localRotations, localScales,
-			globalTransforms);
+			skinnedMesh.nodeGlobalTransforms);
 
 		SkeletonUtils::CalcSkinningMatrices(
-			*skinnedMesh.model, globalTransforms,
+			*skinnedMesh.model, skinnedMesh.nodeGlobalTransforms,
 			skinnedMesh.boneTransforms);
 	}
 } 
@@ -5668,6 +5666,7 @@ Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Game\SceneGame.h
 
 #include "Rendering/SkyBox.h"
 #include "Rendering/LightManager.h"
+#include "Rendering/PhysicsDebugRenderer.h"
 
 #include "ECS/Systems/PhysicsSystem.h"
 
@@ -5702,6 +5701,7 @@ private:
 
 	SkyBox       skyBox;
 	LightManager lightManager;
+	std::unique_ptr<PhysicsDebugRenderer> physicsDebugRenderer;
 
 	PhysicsSystem    physicsSystem;
 
@@ -5742,6 +5742,7 @@ void SceneGame::Initialize(const SceneContext& context)
 		{ 1.0f,  1.0f, 1.0f },
 		1.0f
 	);
+	physicsDebugRenderer = std::make_unique<PhysicsDebugRenderer>(context.device);
 
 
 	const int lightCount = 20;
@@ -5922,7 +5923,13 @@ void SceneGame::Render(const SceneContext& context)
 			context.screenHeight
 		);
 	}
-
+	physicsDebugRenderer->Render(
+		context.deviceContext,
+		GetPhysicsScene(),
+		GetControllerManager(),
+		context.view,
+		context.projection,
+		lightManager.GetDirectionalLight().direction);
 }
 
 void SceneGame::RenderImGui()
@@ -6044,6 +6051,220 @@ private:
     std::vector<PointLight> pointLights;
 
     Microsoft::WRL::ComPtr<ID3D11Buffer> cbLights;
+}; 
+ 
+===== PhysicsDebugRenderer.h ===== 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Rendering\PhysicsDebugRenderer.h 
+#pragma once
+#include <d3d11.h>
+#include <wrl.h>
+#include <DirectXMath.h>
+#include "PrimitiveRenderer.h"
+#include "ShapeRenderer.h"
+#include <PxPhysicsAPI.h>
+
+class PhysicsDebugRenderer
+{
+public:
+	PhysicsDebugRenderer(ID3D11Device* device);
+
+	void Render(
+		ID3D11DeviceContext* dc,
+		physx::PxScene* pxScene,
+		physx::PxControllerManager* pxControllerManager,
+		const DirectX::XMFLOAT4X4& view,
+		const DirectX::XMFLOAT4X4& projection,
+		const DirectX::XMFLOAT4& lightDirection);
+
+private:
+	PrimitiveRenderer primitiveRenderer;
+	ShapeRenderer     shapeRenderer;
+
+	Microsoft::WRL::ComPtr<ID3D11BlendState>        blendState;
+	Microsoft::WRL::ComPtr<ID3D11DepthStencilState> depthStencilState;
+	Microsoft::WRL::ComPtr<ID3D11RasterizerState>   rasterizerState;
+}; 
+ 
+===== PrimitiveRenderer.h ===== 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Rendering\PrimitiveRenderer.h 
+#pragma once
+#include <vector>
+#include <wrl.h>
+#include <d3d11.h>
+#include <DirectXMath.h>
+
+class PrimitiveRenderer
+{
+public:
+	PrimitiveRenderer(ID3D11Device* device);
+
+	// 頂点追加
+	void AddVertex(const DirectX::XMFLOAT3& position, const DirectX::XMFLOAT4& color);
+
+	// 描画
+	void Render(
+		ID3D11DeviceContext* dc,
+		const DirectX::XMFLOAT4X4& view,
+		const DirectX::XMFLOAT4X4& projection,
+		D3D11_PRIMITIVE_TOPOLOGY topology = D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+
+private:
+	static const UINT VertexCapacity = 3 * 1024;
+
+	struct CbScene
+	{
+		DirectX::XMFLOAT4X4 viewProjection;
+	};
+
+	struct Vertex
+	{
+		DirectX::XMFLOAT3 position;
+		DirectX::XMFLOAT4 color;
+	};
+
+	std::vector<Vertex> vertices;
+
+	Microsoft::WRL::ComPtr<ID3D11VertexShader> vertexShader;
+	Microsoft::WRL::ComPtr<ID3D11PixelShader>  pixelShader;
+	Microsoft::WRL::ComPtr<ID3D11InputLayout>  inputLayout;
+	Microsoft::WRL::ComPtr<ID3D11Buffer>       vertexBuffer;
+	Microsoft::WRL::ComPtr<ID3D11Buffer>       constantBuffer;
+}; 
+ 
+===== ShapeRenderer.h ===== 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Rendering\ShapeRenderer.h 
+#pragma once
+#include <vector>
+#include <wrl.h>
+#include <d3d11.h>
+#include <DirectXMath.h>
+
+class ShapeRenderer
+{
+public:
+	ShapeRenderer(ID3D11Device* device);
+
+	// 箱描画
+	void DrawBox(
+		const DirectX::XMFLOAT4X4& transform,
+		const DirectX::XMFLOAT3& size,
+		const DirectX::XMFLOAT4& color);
+
+	// 球描画
+	void DrawSphere(
+		const DirectX::XMFLOAT3& center,
+		float radius,
+		const DirectX::XMFLOAT4& color);
+
+	// カプセル描画
+	void DrawCapsule(
+		const DirectX::XMFLOAT4X4& transform,
+		float radius,
+		float halfHeight,
+		const DirectX::XMFLOAT4& color);
+
+	// 描画実行
+	void Render(
+		ID3D11DeviceContext* dc,
+		const DirectX::XMFLOAT4X4& view,
+		const DirectX::XMFLOAT4X4& projection,
+		const DirectX::XMFLOAT3& lightDirection);
+
+private:
+	struct Vertex
+	{
+		DirectX::XMFLOAT3 position;
+		DirectX::XMFLOAT3 normal;
+	};
+
+	struct WiredMesh
+	{
+		Microsoft::WRL::ComPtr<ID3D11Buffer> vertexBuffer;
+		UINT vertexCount = 0;
+	};
+
+	struct SolidMesh
+	{
+		Microsoft::WRL::ComPtr<ID3D11Buffer> vertexBuffer;
+		Microsoft::WRL::ComPtr<ID3D11Buffer> indexBuffer;
+		UINT indexCount = 0;
+	};
+
+	struct Instance
+	{
+		WiredMesh* wiredMesh;
+		SolidMesh* solidMesh;
+		DirectX::XMFLOAT4X4    worldTransform;
+		DirectX::XMFLOAT4      color;
+	};
+
+	struct CbWiredMesh
+	{
+		DirectX::XMFLOAT4X4 worldViewProjection;
+		DirectX::XMFLOAT4   color;
+	};
+
+	struct CbSolidMesh
+	{
+		DirectX::XMFLOAT4X4 world;
+		DirectX::XMFLOAT4X4 viewProjection;
+		DirectX::XMFLOAT4   lightDirection;
+		DirectX::XMFLOAT4   color;
+	};
+
+	// バッファ生成ヘルパー
+	void CreateWiredMesh(
+		ID3D11Device* device,
+		const std::vector<DirectX::XMFLOAT3>& positions,
+		WiredMesh& mesh);
+
+	void CreateSolidMesh(
+		ID3D11Device* device,
+		const std::vector<Vertex>& vertices,
+		const std::vector<uint16_t>& indices,
+		SolidMesh& mesh);
+
+	// 箱
+	void CreateWiredBoxMesh(ID3D11Device* device);
+	void CreateSolidBoxMesh(ID3D11Device* device);
+
+	// 球
+	void CreateWiredSphereMesh(ID3D11Device* device, int subdivisions);
+	void CreateSolidSphereMesh(ID3D11Device* device, int subdivisions);
+
+	// 半球
+	void CreateWiredHalfSphereMesh(ID3D11Device* device, int subdivisions);
+	void CreateSolidHalfSphereMesh(ID3D11Device* device, int subdivisions);
+
+	// 円柱
+	void CreateWiredCylinderMesh(ID3D11Device* device, int subdivisions);
+	void CreateSolidCylinderMesh(ID3D11Device* device, int subdivisions);
+
+private:
+	// 単位サイズのメッシュ
+	WiredMesh wiredBoxMesh;
+	WiredMesh wiredSphereMesh;
+	WiredMesh wiredHalfSphereMesh;
+	WiredMesh wiredCylinderMesh;
+
+	SolidMesh solidBoxMesh;
+	SolidMesh solidSphereMesh;
+	SolidMesh solidHalfSphereMesh;
+	SolidMesh solidCylinderMesh;
+
+	std::vector<Instance> instances;
+
+	// Wiredシェーダー
+	Microsoft::WRL::ComPtr<ID3D11VertexShader> wiredVertexShader;
+	Microsoft::WRL::ComPtr<ID3D11PixelShader>  wiredPixelShader;
+	Microsoft::WRL::ComPtr<ID3D11InputLayout>  wiredInputLayout;
+	Microsoft::WRL::ComPtr<ID3D11Buffer>       wiredConstantBuffer;
+
+	// Solidシェーダー
+	Microsoft::WRL::ComPtr<ID3D11VertexShader> solidVertexShader;
+	Microsoft::WRL::ComPtr<ID3D11PixelShader>  solidPixelShader;
+	Microsoft::WRL::ComPtr<ID3D11InputLayout>  solidInputLayout;
+	Microsoft::WRL::ComPtr<ID3D11Buffer>       solidConstantBuffer;
 }; 
  
 ===== SkyBox.h ===== 
@@ -6282,6 +6503,753 @@ void LightManager::Bind(ID3D11DeviceContext* dc)
     // b1スロットにセット
     dc->VSSetConstantBuffers(1, 1, cbLights.GetAddressOf());
     dc->PSSetConstantBuffers(1, 1, cbLights.GetAddressOf());
+}
+ 
+ 
+===== PhysicsDebugRenderer.cpp ===== 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Rendering\PhysicsDebugRenderer.cpp 
+#include "PhysicsDebugRenderer.h"
+
+PhysicsDebugRenderer::PhysicsDebugRenderer(ID3D11Device* device)
+	: primitiveRenderer(device)
+	, shapeRenderer(device) 
+{
+	// 半透明ブレンドステート
+	{
+		D3D11_BLEND_DESC desc = {};
+		desc.RenderTarget[0].BlendEnable = TRUE;
+		desc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
+		desc.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+		desc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+		desc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+		desc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
+		desc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+		desc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+		device->CreateBlendState(&desc, blendState.GetAddressOf());
+	}
+	// 深度テスト（書き込みあり）
+	{
+		D3D11_DEPTH_STENCIL_DESC desc = {};
+		desc.DepthEnable = TRUE;
+		desc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+		desc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
+		device->CreateDepthStencilState(&desc, depthStencilState.GetAddressOf());
+	}
+	// ラスタライザー（ソリッド・背面カリング）
+	{
+		D3D11_RASTERIZER_DESC desc = {};
+		desc.FillMode = D3D11_FILL_SOLID;
+		desc.CullMode = D3D11_CULL_BACK;
+		desc.DepthClipEnable = TRUE;
+		device->CreateRasterizerState(&desc, rasterizerState.GetAddressOf());
+	}
+}
+
+void PhysicsDebugRenderer::Render(
+	ID3D11DeviceContext* dc,
+	physx::PxScene* pxScene, 
+	physx::PxControllerManager* pxControllerManager,
+	const DirectX::XMFLOAT4X4& view,
+	const DirectX::XMFLOAT4X4& projection,
+	const DirectX::XMFLOAT4& lightDirection)
+{
+	// PxShapeをDrawする内部ラムダ
+	physx::PxShape* pxShapes[128] = { nullptr };
+
+	auto drawShape = [&](
+		physx::PxShape* pxShape,
+		const physx::PxTransform& pxShapeTransform,
+		float contactOffset,
+		bool sleeping)
+		{
+			const physx::PxGeometry& pxGeometry = pxShape->getGeometry();
+			const physx::PxMat44 pxShapeMat(pxShapeTransform);
+
+			// PhysXの行列をDirectXの行列に変換
+			DirectX::XMFLOAT4X4 shapeTransform = {
+				pxShapeMat.column0.x, pxShapeMat.column0.y, pxShapeMat.column0.z, pxShapeMat.column0.w,
+				pxShapeMat.column1.x, pxShapeMat.column1.y, pxShapeMat.column1.z, pxShapeMat.column1.w,
+				pxShapeMat.column2.x, pxShapeMat.column2.y, pxShapeMat.column2.z, pxShapeMat.column2.w,
+				pxShapeMat.column3.x, pxShapeMat.column3.y, pxShapeMat.column3.z, pxShapeMat.column3.w,
+			};
+			DirectX::XMFLOAT3 shapePosition = {
+				pxShapeMat.column3.x, pxShapeMat.column3.y, pxShapeMat.column3.z
+			};
+
+			// スリープ中は暗く表示
+			DirectX::XMFLOAT4 color = { 0.0f, 1.0f, 0.0f, 0.3f };
+			if (sleeping)
+			{
+				const float dark = 0.25f;
+				color.x *= dark;
+				color.y *= dark;
+				color.z *= dark;
+			}
+
+			switch (pxGeometry.getType())
+			{
+			case physx::PxGeometryType::eSPHERE:
+			{
+				const auto& g = static_cast<const physx::PxSphereGeometry&>(pxGeometry);
+				shapeRenderer.DrawSphere(shapePosition, g.radius + contactOffset, color);
+				break;
+			}
+			case physx::PxGeometryType::eCAPSULE:
+			{
+				// PhysXのカプセルはX軸向き → Z回転でY軸向きに変換
+				const auto& g = static_cast<const physx::PxCapsuleGeometry&>(pxGeometry);
+				DirectX::XMMATRIX offset = DirectX::XMMatrixRotationZ(DirectX::XM_PIDIV2);
+				DirectX::XMMATRIX base = DirectX::XMLoadFloat4x4(&shapeTransform);
+				DirectX::XMStoreFloat4x4(&shapeTransform, offset * base);
+				shapeRenderer.DrawCapsule(
+					shapeTransform,
+					g.radius + contactOffset,
+					g.halfHeight,
+					color);
+				break;
+			}
+			case physx::PxGeometryType::eBOX:
+			{
+				const auto& g = static_cast<const physx::PxBoxGeometry&>(pxGeometry);
+				shapeRenderer.DrawBox(
+					shapeTransform,
+					{ g.halfExtents.x * 2.0f + contactOffset,
+					  g.halfExtents.y * 2.0f + contactOffset,
+					  g.halfExtents.z * 2.0f + contactOffset },
+					color);
+				break;
+			}
+			case physx::PxGeometryType::eTRIANGLEMESH:
+			{
+				const auto& g = static_cast<const physx::PxTriangleMeshGeometry&>(pxGeometry);
+				const physx::PxTriangleMesh& mesh = *g.triangleMesh;
+
+				const physx::PxVec3* verts = mesh.getVertices();
+				const void* idxData = mesh.getTriangles();
+				const physx::PxU32* idxData32 = static_cast<const physx::PxU32*>(idxData);
+				const physx::PxU16* idxData16 = static_cast<const physx::PxU16*>(idxData);
+				bool has16 = static_cast<bool>(mesh.getTriangleMeshFlags() & physx::PxTriangleMeshFlag::e16_BIT_INDICES);
+
+				DirectX::XMMATRIX S = DirectX::XMMatrixScaling(g.scale.scale.x, g.scale.scale.y, g.scale.scale.z);
+				DirectX::XMMATRIX R = DirectX::XMMatrixRotationQuaternion(
+					DirectX::XMVectorSet(g.scale.rotation.x, g.scale.rotation.y, g.scale.rotation.z, g.scale.rotation.w));
+				DirectX::XMMATRIX ST = S * R * DirectX::XMLoadFloat4x4(&shapeTransform);
+
+				physx::PxU32 numTri = mesh.getNbTriangles();
+				for (physx::PxU32 t = 0; t < numTri; ++t)
+				{
+					physx::PxU32 i0, i1, i2;
+					if (has16) { i0 = *idxData16++; i1 = *idxData16++; i2 = *idxData16++; }
+					else { i0 = *idxData32++; i1 = *idxData32++; i2 = *idxData32++; }
+
+					auto toVec = [&](const physx::PxVec3& v) {
+						return DirectX::XMVector3Transform(
+							DirectX::XMVectorSet(v.x, v.y, v.z, 0), ST);
+						};
+					DirectX::XMFLOAT3 v0, v1, v2;
+					DirectX::XMStoreFloat3(&v0, toVec(verts[i0]));
+					DirectX::XMStoreFloat3(&v1, toVec(verts[i1]));
+					DirectX::XMStoreFloat3(&v2, toVec(verts[i2]));
+
+					primitiveRenderer.AddVertex(v0, color);
+					primitiveRenderer.AddVertex(v1, color);
+					primitiveRenderer.AddVertex(v1, color);
+					primitiveRenderer.AddVertex(v2, color);
+					primitiveRenderer.AddVertex(v2, color);
+					primitiveRenderer.AddVertex(v0, color);
+				}
+				break;
+			}
+			default:
+				break;
+			}
+		};
+
+	// Actorを描画するラムダ
+	auto drawActor = [&](physx::PxRigidActor* pxActor, float contactOffset)
+		{
+			const physx::PxU32 numShapes = pxActor->getNbShapes();
+			pxActor->getShapes(pxShapes, numShapes);
+
+			physx::PxRigidDynamic* dynamic = pxActor->is<physx::PxRigidDynamic>();
+			bool sleeping = dynamic ? dynamic->isSleeping() : false;
+
+			for (physx::PxU32 i = 0; i < numShapes; ++i)
+			{
+				drawShape(pxShapes[i],
+					physx::PxShapeExt::getGlobalPose(*pxShapes[i], *pxActor),
+					contactOffset,
+					sleeping);
+			}
+		};
+
+	// Static / Dynamic Actor
+	{
+		physx::PxActorTypeFlags flags =
+			physx::PxActorTypeFlag::eRIGID_STATIC |
+			physx::PxActorTypeFlag::eRIGID_DYNAMIC;
+		physx::PxU32 numActors = pxScene->getNbActors(flags);
+		if (numActors > 0)
+		{
+			std::vector<physx::PxRigidActor*> actors(numActors);
+			pxScene->getActors(flags,
+				reinterpret_cast<physx::PxActor**>(actors.data()), numActors);
+			for (auto* actor : actors)
+				drawActor(actor, 0.0f);
+		}
+	}
+
+	// Controller
+	if (pxControllerManager)
+	{
+		physx::PxU32 numControllers = pxControllerManager->getNbControllers();
+		for (physx::PxU32 i = 0; i < numControllers; ++i)
+		{
+			physx::PxController* ctrl = pxControllerManager->getController(i);
+			physx::PxRigidActor* actor = ctrl->getActor();
+			drawActor(actor, 0.0f);
+			drawActor(actor, ctrl->getContactOffset());
+		}
+	}
+
+	// レンダーステート設定して描画
+	float blendFactor[4] = { 0, 0, 0, 0 };
+	dc->OMSetBlendState(blendState.Get(), blendFactor, 0xFFFFFFFF);
+	dc->OMSetDepthStencilState(depthStencilState.Get(), 0);
+	dc->RSSetState(rasterizerState.Get());
+
+	shapeRenderer.Render(dc, view, projection,
+		{ lightDirection.x, lightDirection.y, lightDirection.z });
+
+	primitiveRenderer.Render(dc, view, projection);
+}
+ 
+ 
+===== PrimitiveRenderer.cpp ===== 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Rendering\PrimitiveRenderer.cpp 
+#include "PrimitiveRenderer.h"
+#include "Resource/GpuResourceUtils.h"
+
+PrimitiveRenderer::PrimitiveRenderer(ID3D11Device* device)
+{
+	D3D11_INPUT_ELEMENT_DESC inputElementDesc[]
+	{
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT,    0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "COLOR",    0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	};
+
+	GpuResourceUtils::LoadVertexShader(
+		device,
+		"Data/Shader/Debug_VS.cso",
+		inputElementDesc,
+		_countof(inputElementDesc),
+		inputLayout,
+		vertexShader);
+
+	GpuResourceUtils::LoadPixelShader(
+		device,
+		"Data/Shader/Debug_PS.cso",
+		pixelShader);
+
+	GpuResourceUtils::CreateConstantBuffer(
+		device,
+		sizeof(CbScene),
+		constantBuffer);
+
+	D3D11_BUFFER_DESC desc = {};
+	desc.ByteWidth = sizeof(Vertex) * VertexCapacity;
+	desc.Usage = D3D11_USAGE_DYNAMIC;
+	desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	HRESULT hr = device->CreateBuffer(&desc, nullptr, vertexBuffer.GetAddressOf());
+	_ASSERT_EXPR(SUCCEEDED(hr), L"PrimitiveRenderer: vertexBuffer failed");
+}
+
+void PrimitiveRenderer::AddVertex(const DirectX::XMFLOAT3& position, const DirectX::XMFLOAT4& color)
+{
+	Vertex& v = vertices.emplace_back();
+	v.position = position;
+	v.color = color;
+}
+
+void PrimitiveRenderer::Render(
+	ID3D11DeviceContext* dc,
+	const DirectX::XMFLOAT4X4& view,
+	const DirectX::XMFLOAT4X4& projection,
+	D3D11_PRIMITIVE_TOPOLOGY topology)
+{
+	if (vertices.empty()) return;
+
+	dc->VSSetShader(vertexShader.Get(), nullptr, 0);
+	dc->PSSetShader(pixelShader.Get(), nullptr, 0);
+	dc->IASetInputLayout(inputLayout.Get());
+	dc->VSSetConstantBuffers(0, 1, constantBuffer.GetAddressOf());
+
+	// viewProjection更新
+	DirectX::XMMATRIX V = DirectX::XMLoadFloat4x4(&view);
+	DirectX::XMMATRIX P = DirectX::XMLoadFloat4x4(&projection);
+	CbScene cbScene;
+	DirectX::XMStoreFloat4x4(&cbScene.viewProjection, V * P);
+	dc->UpdateSubresource(constantBuffer.Get(), 0, nullptr, &cbScene, 0, 0);
+
+	UINT stride = sizeof(Vertex);
+	UINT offset = 0;
+	dc->IASetPrimitiveTopology(topology);
+	dc->IASetVertexBuffers(0, 1, vertexBuffer.GetAddressOf(), &stride, &offset);
+
+	UINT total = static_cast<UINT>(vertices.size());
+	UINT start = 0;
+	UINT count = (total < VertexCapacity) ? total : VertexCapacity;
+
+	while (start < total)
+	{
+		D3D11_MAPPED_SUBRESOURCE mapped;
+		HRESULT hr = dc->Map(vertexBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped);
+		_ASSERT_EXPR(SUCCEEDED(hr), L"PrimitiveRenderer: Map failed");
+		memcpy(mapped.pData, &vertices[start], sizeof(Vertex) * count);
+		dc->Unmap(vertexBuffer.Get(), 0);
+		dc->Draw(count, 0);
+
+		start += count;
+		if ((start + count) > total) count = total - start;
+	}
+
+	vertices.clear();
+} 
+ 
+===== ShapeRenderer.cpp ===== 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Rendering\ShapeRenderer.cpp 
+#include "ShapeRenderer.h"
+#include "Resource/GpuResourceUtils.h"
+
+static const float PI = DirectX::XM_PI;
+static const int   SUBDIVISIONS = 16;
+
+ShapeRenderer::ShapeRenderer(ID3D11Device* device)
+{
+	// Wiredシェーダー
+	{
+		D3D11_INPUT_ELEMENT_DESC layout[] =
+		{
+			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		};
+
+		GpuResourceUtils::LoadVertexShader(device, "Data/Shader/WiredShapeVS.cso", layout, _countof(layout), wiredInputLayout, wiredVertexShader);
+		GpuResourceUtils::LoadPixelShader(device, "Data/Shader/WiredShapePS.cso", wiredPixelShader);
+		GpuResourceUtils::CreateConstantBuffer(device, sizeof(CbWiredMesh), wiredConstantBuffer);
+	}
+
+	// Solidシェーダー
+	{
+		D3D11_INPUT_ELEMENT_DESC layout[] =
+		{
+			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0,                            D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "NORMAL",   0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		};
+		GpuResourceUtils::LoadVertexShader(device, "Data/Shader/SolidShapeVS.cso", layout, _countof(layout), solidInputLayout, solidVertexShader);
+		GpuResourceUtils::LoadPixelShader(device, "Data/Shader/SolidShapePS.cso", solidPixelShader);
+		GpuResourceUtils::CreateConstantBuffer(device, sizeof(CbSolidMesh), solidConstantBuffer);
+	}
+
+	// 単位メッシュを事前生成
+	CreateWiredBoxMesh(device);
+	CreateSolidBoxMesh(device);
+	CreateWiredSphereMesh(device, SUBDIVISIONS);
+	CreateSolidSphereMesh(device, SUBDIVISIONS);
+	CreateWiredHalfSphereMesh(device, SUBDIVISIONS);
+	CreateSolidHalfSphereMesh(device, SUBDIVISIONS);
+	CreateWiredCylinderMesh(device, SUBDIVISIONS);
+	CreateSolidCylinderMesh(device, SUBDIVISIONS);
+}
+
+// 箱描画
+void ShapeRenderer::DrawBox(
+	const DirectX::XMFLOAT4X4& transform,
+	const DirectX::XMFLOAT3& size,
+	const DirectX::XMFLOAT4& color)
+{
+	DirectX::XMMATRIX S = DirectX::XMMatrixScaling(size.x, size.y, size.z);
+	DirectX::XMMATRIX W = DirectX::XMLoadFloat4x4(&transform);
+
+	Instance inst;
+	inst.wiredMesh = &wiredBoxMesh;
+	inst.solidMesh = &solidBoxMesh;
+	DirectX::XMStoreFloat4x4(&inst.worldTransform, S * W);
+	inst.color = color;
+	instances.push_back(inst);
+}
+// 球描画
+void ShapeRenderer::DrawSphere(
+	const DirectX::XMFLOAT3& center,
+	float radius,
+	const DirectX::XMFLOAT4& color)
+{
+	DirectX::XMMATRIX S = DirectX::XMMatrixScaling(radius, radius, radius);
+	DirectX::XMMATRIX T = DirectX::XMMatrixTranslation(center.x, center.y, center.z);
+
+	Instance inst;
+	inst.wiredMesh = &wiredSphereMesh;
+	inst.solidMesh = &solidSphereMesh;
+	DirectX::XMStoreFloat4x4(&inst.worldTransform, S * T);
+	inst.color = color;
+	instances.push_back(inst);
+}
+// カプセル描画
+void ShapeRenderer::DrawCapsule(
+	const DirectX::XMFLOAT4X4& transform,
+	float radius, 
+	float halfHeight,
+	const DirectX::XMFLOAT4& color)
+{
+	DirectX::XMMATRIX base = DirectX::XMLoadFloat4x4(&transform);
+	DirectX::XMMATRIX S = DirectX::XMMatrixScaling(radius, radius, radius);
+	DirectX::XMMATRIX flip = DirectX::XMMatrixScaling(1.0f, -1.0f, 1.0f);
+
+	// 上半球
+	{
+		DirectX::XMMATRIX T = DirectX::XMMatrixTranslation(0, halfHeight, 0);
+		Instance inst;
+		inst.wiredMesh = &wiredHalfSphereMesh;
+		inst.solidMesh = &solidHalfSphereMesh;
+		DirectX::XMStoreFloat4x4(&inst.worldTransform, S * T * base);
+		inst.color = color;
+		instances.push_back(inst);
+	}
+	// 下半球
+	{
+		DirectX::XMMATRIX T = DirectX::XMMatrixTranslation(0, -halfHeight, 0);
+		Instance inst;
+		inst.wiredMesh = &wiredHalfSphereMesh;
+		inst.solidMesh = &solidHalfSphereMesh;
+		DirectX::XMStoreFloat4x4(&inst.worldTransform, S * flip * T * base);
+		inst.color = color;
+		instances.push_back(inst);
+	}
+	// 円柱
+	{
+		DirectX::XMMATRIX cylS = DirectX::XMMatrixScaling(radius, halfHeight * 2.0f, radius);
+		Instance inst;
+		inst.wiredMesh = &wiredCylinderMesh;
+		inst.solidMesh = &solidCylinderMesh;
+		DirectX::XMStoreFloat4x4(&inst.worldTransform, cylS * base);
+		inst.color = color;
+		instances.push_back(inst);
+	}
+}
+
+// 描画
+void ShapeRenderer::Render(
+	ID3D11DeviceContext* dc,
+	const DirectX::XMFLOAT4X4& view,
+	const DirectX::XMFLOAT4X4& projection,
+	const DirectX::XMFLOAT3& lightDirection)
+{
+	if (instances.empty()) return;
+
+	DirectX::XMMATRIX V = DirectX::XMLoadFloat4x4(&view);
+	DirectX::XMMATRIX P = DirectX::XMLoadFloat4x4(&projection);
+	DirectX::XMMATRIX VP = V * P;
+
+	// Wiredパス
+	dc->VSSetShader(wiredVertexShader.Get(), nullptr, 0);
+	dc->PSSetShader(wiredPixelShader.Get(), nullptr, 0);
+	dc->IASetInputLayout(wiredInputLayout.Get());
+	dc->VSSetConstantBuffers(0, 1, wiredConstantBuffer.GetAddressOf());
+	dc->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+
+	for (auto& inst : instances)
+	{
+		DirectX::XMMATRIX W = DirectX::XMLoadFloat4x4(&inst.worldTransform);
+
+		CbWiredMesh cb;
+		DirectX::XMStoreFloat4x4(&cb.worldViewProjection, W * VP);
+		cb.color = inst.color;
+		dc->UpdateSubresource(wiredConstantBuffer.Get(), 0, nullptr, &cb, 0, 0);
+
+		UINT stride = sizeof(DirectX::XMFLOAT3);
+		UINT offset = 0;
+		dc->IASetVertexBuffers(0, 1, inst.wiredMesh->vertexBuffer.GetAddressOf(), &stride, &offset);
+		dc->Draw(inst.wiredMesh->vertexCount, 0);
+	}
+
+	// Solidパス
+	dc->VSSetShader(solidVertexShader.Get(), nullptr, 0);
+	dc->PSSetShader(solidPixelShader.Get(), nullptr, 0);
+	dc->IASetInputLayout(solidInputLayout.Get());
+	dc->VSSetConstantBuffers(0, 1, solidConstantBuffer.GetAddressOf());
+	dc->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	for (auto& inst : instances)
+	{
+		DirectX::XMMATRIX W = DirectX::XMLoadFloat4x4(&inst.worldTransform);
+
+		CbSolidMesh cb;
+		DirectX::XMStoreFloat4x4(&cb.world, W);
+		DirectX::XMStoreFloat4x4(&cb.viewProjection, VP);
+		cb.lightDirection = { lightDirection.x, lightDirection.y, lightDirection.z, 0 };
+		cb.color = inst.color;
+		dc->UpdateSubresource(solidConstantBuffer.Get(), 0, nullptr, &cb, 0, 0);
+
+		UINT stride = sizeof(Vertex);
+		UINT offset = 0;
+		dc->IASetVertexBuffers(0, 1, inst.solidMesh->vertexBuffer.GetAddressOf(), &stride, &offset);
+		dc->IASetIndexBuffer(inst.solidMesh->indexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0);
+		dc->DrawIndexed(inst.solidMesh->indexCount, 0, 0);
+	}
+
+	instances.clear();
+}
+
+// バッファ生成ヘルパー
+void ShapeRenderer::CreateWiredMesh(
+	ID3D11Device* device,
+	const std::vector<DirectX::XMFLOAT3>& positions,
+	WiredMesh& mesh)
+{
+	D3D11_BUFFER_DESC desc = {};
+	desc.ByteWidth = static_cast<UINT>(sizeof(DirectX::XMFLOAT3) * positions.size());
+	desc.Usage = D3D11_USAGE_IMMUTABLE;
+	desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+
+	D3D11_SUBRESOURCE_DATA init = {};
+	init.pSysMem = positions.data();
+
+	HRESULT hr = device->CreateBuffer(&desc, &init, mesh.vertexBuffer.GetAddressOf());
+	_ASSERT_EXPR(SUCCEEDED(hr), L"ShapeRenderer: WiredMesh failed");
+	mesh.vertexCount = static_cast<UINT>(positions.size());
+}
+void ShapeRenderer::CreateSolidMesh(
+	ID3D11Device* device, 
+	const std::vector<Vertex>& vertices,
+	const std::vector<uint16_t>& indices,
+	SolidMesh& mesh)
+{
+	{
+		D3D11_BUFFER_DESC desc = {};
+		desc.ByteWidth = static_cast<UINT>(sizeof(Vertex) * vertices.size());
+		desc.Usage = D3D11_USAGE_IMMUTABLE;
+		desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+
+		D3D11_SUBRESOURCE_DATA init = {};
+		init.pSysMem = vertices.data();
+
+		HRESULT hr = device->CreateBuffer(&desc, &init, mesh.vertexBuffer.GetAddressOf());
+		_ASSERT_EXPR(SUCCEEDED(hr), L"ShapeRenderer: SolidMesh vertex failed");
+	}
+
+	{
+		D3D11_BUFFER_DESC desc = {};
+		desc.ByteWidth = static_cast<UINT>(sizeof(uint16_t) * indices.size());
+		desc.Usage = D3D11_USAGE_IMMUTABLE;
+		desc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+
+		D3D11_SUBRESOURCE_DATA init = {};
+		init.pSysMem = indices.data();
+
+		HRESULT hr = device->CreateBuffer(&desc, &init, mesh.indexBuffer.GetAddressOf());
+		_ASSERT_EXPR(SUCCEEDED(hr), L"ShapeRenderer: SolidMesh index failed");
+	}
+	mesh.indexCount = static_cast<UINT>(indices.size());
+}
+
+// 箱
+void ShapeRenderer::CreateWiredBoxMesh(ID3D11Device* device)
+{
+	float h = 0.5f;
+	std::vector<DirectX::XMFLOAT3> p = 
+	{
+		// Bottom
+		{-h,-h,-h},{h,-h,-h},  {h,-h,-h},{h,-h,h},
+		{h,-h,h},{-h,-h,h},    {-h,-h,h},{-h,-h,-h},
+		// Top
+		{-h,h,-h},{h,h,-h},    {h,h,-h},{h,h,h},
+		{h,h,h},{-h,h,h},      {-h,h,h},{-h,h,-h},
+		// Verticals
+		{-h,-h,-h},{-h,h,-h},  {h,-h,-h},{h,h,-h},
+		{h,-h,h},{h,h,h},      {-h,-h,h},{-h,h,h},
+	};
+	CreateWiredMesh(device, p, wiredBoxMesh);
+}
+void ShapeRenderer::CreateSolidBoxMesh(ID3D11Device* device)
+{
+	float h = 0.5f;
+	std::vector<Vertex> verts = 
+	{
+		{{-h,-h,h},  {0,0,1}}, {{h,-h,h},  {0,0,1}},  {{h,h,h},  {0,0,1}},  {{-h,h,h}, {0,0,1}},  // +Z
+		{{h,-h,-h},  {0,0,-1}},{{-h,-h,-h},{0,0,-1}}, {{-h,h,-h},{0,0,-1}}, {{h,h,-h}, {0,0,-1}}, // -Z
+		{{-h,-h,-h}, {-1,0,0}},{{-h,-h,h}, {-1,0,0}}, {{-h,h,h}, {-1,0,0}}, {{-h,h,-h},{-1,0,0}}, // -X
+		{{h,-h,h},   {1,0,0}}, {{h,-h,-h}, {1,0,0}},  {{h,h,-h}, {1,0,0}},  {{h,h,h},  {1,0,0}},  // +X
+		{{-h,h,h},   {0,1,0}}, {{h,h,h},   {0,1,0}},  {{h,h,-h}, {0,1,0}},  {{-h,h,-h},{0,1,0}},  // +Y
+		{{-h,-h,-h}, {0,-1,0}},{{h,-h,-h}, {0,-1,0}}, {{h,-h,h}, {0,-1,0}}, {{-h,-h,h},{0,-1,0}}, // -Y
+	};
+	std::vector<uint16_t> idxs;
+	for (uint16_t f = 0; f < 6; f++)
+	{
+		uint16_t b = f * 4;
+		idxs.push_back(b); idxs.push_back(b + 1); idxs.push_back(b + 2);
+		idxs.push_back(b); idxs.push_back(b + 2); idxs.push_back(b + 3);
+	}
+	CreateSolidMesh(device, verts, idxs, solidBoxMesh);
+}
+
+// 球
+void ShapeRenderer::CreateWiredSphereMesh(ID3D11Device* device, int subdivisions)
+{
+	std::vector<DirectX::XMFLOAT3> p;
+	for (int i = 0; i < subdivisions; i++) 
+	{
+		float a0 = 2.0f * PI * i / subdivisions;
+		float a1 = 2.0f * PI * (i + 1) / subdivisions;
+		// XY平面
+		p.push_back({ cosf(a0), sinf(a0), 0 });
+		p.push_back({ cosf(a1), sinf(a1), 0 });
+		// XZ平面
+		p.push_back({ cosf(a0), 0, sinf(a0) });
+		p.push_back({ cosf(a1), 0, sinf(a1) });
+		// YZ平面
+		p.push_back({ 0, sinf(a0), cosf(a0) });
+		p.push_back({ 0, sinf(a1), cosf(a1) });
+	}
+	CreateWiredMesh(device, p, wiredSphereMesh);
+}
+void ShapeRenderer::CreateSolidSphereMesh(ID3D11Device* device, int subdivisions)
+{
+	std::vector<Vertex> verts;
+	std::vector<uint16_t> idxs;
+	int rings = subdivisions / 2;
+	int slices = subdivisions;
+
+	for (int r = 0; r <= rings; r++)
+	{
+		float phi = PI * r / rings - PI * 0.5f;
+		float y = sinf(phi);
+		float xz = cosf(phi);
+		for (int s = 0; s <= slices; s++) 
+		{
+			float theta = 2.0f * PI * s / slices;
+			float x = xz * cosf(theta);
+			float z = xz * sinf(theta);
+			verts.push_back({ {x,y,z},{x,y,z} });
+		}
+	}
+	for (int r = 0; r < rings; r++) 
+	{
+		for (int s = 0; s < slices; s++) 
+		{
+			uint16_t a = (uint16_t)(r * (slices + 1) + s);
+			uint16_t b = a + 1;
+			uint16_t c = a + (uint16_t)(slices + 1);
+			uint16_t d = c + 1;
+			idxs.push_back(a); idxs.push_back(c); idxs.push_back(b);
+			idxs.push_back(b); idxs.push_back(c); idxs.push_back(d);
+		}
+	}
+	CreateSolidMesh(device, verts, idxs, solidSphereMesh);
+}
+
+// 半球
+void ShapeRenderer::CreateWiredHalfSphereMesh(ID3D11Device* device, int subdivisions)
+{
+	std::vector<DirectX::XMFLOAT3> p;
+	for (int i = 0; i < subdivisions; i++)
+	{
+		float a0 = PI * i / subdivisions;
+		float a1 = PI * (i + 1) / subdivisions;
+		p.push_back({ cosf(a0), sinf(a0), 0 });
+		p.push_back({ cosf(a1), sinf(a1), 0 });
+		p.push_back({ 0, sinf(a0), cosf(a0) });
+		p.push_back({ 0, sinf(a1), cosf(a1) });
+	}
+	for (int i = 0; i < subdivisions; i++) 
+	{
+		float a0 = 2.0f * PI * i / subdivisions;
+		float a1 = 2.0f * PI * (i + 1) / subdivisions;
+		p.push_back({ cosf(a0), 0, sinf(a0) });
+		p.push_back({ cosf(a1), 0, sinf(a1) });
+	}
+	CreateWiredMesh(device, p, wiredHalfSphereMesh);
+}
+void ShapeRenderer::CreateSolidHalfSphereMesh(ID3D11Device* device, int subdivisions)
+{
+	std::vector<Vertex> verts;
+	std::vector<uint16_t> idxs;
+	int rings = subdivisions / 4;
+	int slices = subdivisions;
+
+	for (int r = 0; r <= rings; r++) 
+	{
+		float phi = (PI * 0.5f) * r / rings;
+		float y = sinf(phi);
+		float xz = cosf(phi);
+		for (int s = 0; s <= slices; s++) 
+		{
+			float theta = 2.0f * PI * s / slices;
+			float x = xz * cosf(theta);
+			float z = xz * sinf(theta);
+			verts.push_back({ {x,y,z},{x,y,z} });
+		}
+	}
+	for (int r = 0; r < rings; r++) 
+	{
+		for (int s = 0; s < slices; s++) 
+		{
+			uint16_t a = (uint16_t)(r * (slices + 1) + s);
+			uint16_t b = a + 1;
+			uint16_t c = a + (uint16_t)(slices + 1);
+			uint16_t d = c + 1;
+			idxs.push_back(a); idxs.push_back(c); idxs.push_back(b);
+			idxs.push_back(b); idxs.push_back(c); idxs.push_back(d);
+		}
+	}
+	CreateSolidMesh(device, verts, idxs, solidHalfSphereMesh);
+}
+
+// 円柱
+void ShapeRenderer::CreateWiredCylinderMesh(ID3D11Device* device, int subdivisions)
+{
+	std::vector<DirectX::XMFLOAT3> p;
+	for (int i = 0; i < subdivisions; i++) 
+	{
+		float a0 = 2.0f * PI * i / subdivisions;
+		float a1 = 2.0f * PI * (i + 1) / subdivisions;
+		// 上リング
+		p.push_back({ cosf(a0),  0.5f, sinf(a0) });
+		p.push_back({ cosf(a1),  0.5f, sinf(a1) });
+		// 下リング
+		p.push_back({ cosf(a0), -0.5f, sinf(a0) });
+		p.push_back({ cosf(a1), -0.5f, sinf(a1) });
+	}
+	// 4本縦ライン
+	for (int i = 0; i < 4; i++) 
+	{
+		float a = 2.0f * PI * i / 4;
+		float x = cosf(a), z = sinf(a);
+		p.push_back({ x,  0.5f, z });
+		p.push_back({ x, -0.5f, z });
+	}
+	CreateWiredMesh(device, p, wiredCylinderMesh);
+}
+void ShapeRenderer::CreateSolidCylinderMesh(ID3D11Device* device, int subdivisions)
+{
+	std::vector<Vertex> verts;
+	std::vector<uint16_t> idxs;
+
+	// 側面のみ
+	for (int i = 0; i <= subdivisions; i++) 
+	{
+		float theta = 2.0f * PI * i / subdivisions;
+		float x = cosf(theta), z = sinf(theta);
+		verts.push_back({ {x,  0.5f, z}, {x, 0, z} });
+		verts.push_back({ {x, -0.5f, z}, {x, 0, z} });
+	}
+	for (int i = 0; i < subdivisions; i++) 
+	{
+		uint16_t t0 = (uint16_t)(i * 2);
+		uint16_t b0 = t0 + 1, t1 = t0 + 2, b1 = t0 + 3;
+		idxs.push_back(t0); idxs.push_back(b0); idxs.push_back(t1);
+		idxs.push_back(t1); idxs.push_back(b0); idxs.push_back(b1);
+	}
+	CreateSolidMesh(device, verts, idxs, solidCylinderMesh);
 }
  
  
