@@ -92,6 +92,11 @@ void SceneGame::Update(float elapsedTime, const SceneContext& context)
 		ZoneScopedN("AnimationSystem");
 		animationSystem.Update(registry, elapsedTime);
 	}
+	{
+		// IK更新(アニメーションの後に上書きする)
+		ZoneScopedN("IKSystem");
+		ikSystem.Update(registry);
+	}
 
 	{
 		// モデルロード

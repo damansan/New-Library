@@ -17,6 +17,10 @@
 
 #include "ECS/Systems/PhysicsSystem.h"
 
+#include "ECS/Systems/IKSystem.h"
+
+
+
 #include "Tool/AdaptiveTriggerToolWindow.h"
 
 class SceneGame : public Scene
@@ -46,4 +50,6 @@ private:
 	LightManager lightManager;
 
 	PhysicsSystem    physicsSystem;
+
+	IKSystem         ikSystem;
 };

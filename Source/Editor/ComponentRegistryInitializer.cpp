@@ -23,6 +23,8 @@
 #include "Core/PhysicsDestroyQueue.h"
 #include "ECS/Components/PhysicsComponents.h"
 
+#include "ECS/Components/IKComponent.h"
+
 #define REGISTER_COMPONENT(Type, Name, DrawFunc)                                    \
     ComponentRegistry::Register(Name,                                               \
     {                                                                               \
@@ -367,4 +369,53 @@ void ComponentRegistryInitializer::Initialize()
 					}
 				} 
 		});
+
+		// IKコンポーネントの登録
+		REGISTER_COMPONENT(IKComponent, "IK",
+			[](auto& reg, auto e)
+			{
+				auto* ik = reg.try_get<IKComponent>(e);
+				auto* skinned = reg.try_get<SkinnedMeshComponent>(e);
+				if (!ik) return;
+
+				if (!ImGui::CollapsingHeader("IK", ImGuiTreeNodeFlags_DefaultOpen)) return;
+
+				// 有効フラグ
+				ImGui::Checkbox("Enabled", &ik->enabled);
+
+				// SkinnedMeshがなければ警告
+				if (!skinned || !skinned->model)
+				{
+					ImGui::TextColored({ 1, 0.5f, 0, 1 }, "No SkinnedMesh found.");
+					return;
+				}
+
+				const auto& nodes = skinned->model->GetNodes();
+				if (nodes.empty())
+				{
+					ImGui::TextColored({ 1, 0.5f, 0, 1 }, "No bones found.");
+					return;
+				}
+
+				// ボーン名コンボ
+				if (ImGui::BeginCombo("Target Bone", ik->targetBoneName.c_str()))
+				{
+					for (const auto& node : nodes)
+					{
+						bool selected = (ik->targetBoneName == node.name);
+						if (ImGui::Selectable(node.name.c_str(), selected))
+						{
+							ik->targetBoneName = node.name;
+						}
+						if (selected) ImGui::SetItemDefaultFocus();
+					}
+					ImGui::EndCombo();
+				}
+
+				ImGui::Separator();
+
+				// 位置オフセット・回転(オイラー角)
+				ImGui::DragFloat3("Position Offset", &ik->manualPosition.x, 0.01f);
+				ImGui::DragFloat3("Rotation (Euler)", &ik->manualRotationEuler.x, 0.01f);
+			});
 }

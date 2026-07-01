@@ -230,6 +230,9 @@
     <Filter Include="Sources\Resource\SkeletonUtils">
       <UniqueIdentifier>{693b5829-0612-4b99-9d43-61e63e0c5924}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\ECS\Systems\IKSystem">
+      <UniqueIdentifier>{981b2a8d-37c3-47c1-88ec-ed492a78b603}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Core\framework.cpp">
@@ -372,6 +375,9 @@
     </ClCompile>
     <ClCompile Include="Source\Resource\SkeletonUtils.cpp">
       <Filter>Sources\Resource\SkeletonUtils</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\ECS\Systems\IKSystem.cpp">
+      <Filter>Sources\ECS\Systems\IKSystem</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -590,6 +596,12 @@
     </ClInclude>
     <ClInclude Include="Source\Resource\SkeletonUtils.h">
       <Filter>Sources\Resource\SkeletonUtils</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ECS\Components\IKComponent.h">
+      <Filter>Sources\ECS\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ECS\Systems\IKSystem.h">
+      <Filter>Sources\ECS\Systems\IKSystem</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

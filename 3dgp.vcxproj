@@ -37,6 +37,7 @@
     <ClCompile Include="Source\ECS\Systems\ControllerSystem.cpp" />
     <ClCompile Include="Source\ECS\Systems\DebugCameraSystem.cpp" />
     <ClCompile Include="Source\ECS\Systems\GameCameraSystem.cpp" />
+    <ClCompile Include="Source\ECS\Systems\IKSystem.cpp" />
     <ClCompile Include="Source\ECS\Systems\InputSystem.cpp" />
     <ClCompile Include="Source\ECS\Systems\MeshLoaderSystem.cpp" />
     <ClCompile Include="Source\ECS\Systems\MovementSystem.cpp" />
@@ -92,6 +93,7 @@
     <ClInclude Include="Source\ECS\Components\ControllerSettings.h" />
     <ClInclude Include="Source\ECS\Components\FreeCameraComponent.h" />
     <ClInclude Include="Source\ECS\Components\GameCameraComponent.h" />
+    <ClInclude Include="Source\ECS\Components\IKComponent.h" />
     <ClInclude Include="Source\ECS\Components\InputComponent.h" />
     <ClInclude Include="Source\ECS\Components\MaterialComponent.h" />
     <ClInclude Include="Source\ECS\Components\MeshComponent.h" />
@@ -105,6 +107,7 @@
     <ClInclude Include="Source\ECS\Systems\ControllerSystem.h" />
     <ClInclude Include="Source\ECS\Systems\DebugCameraSystem.h" />
     <ClInclude Include="Source\ECS\Systems\GameCameraSystem.h" />
+    <ClInclude Include="Source\ECS\Systems\IKSystem.h" />
     <ClInclude Include="Source\ECS\Systems\InputSystem.h" />
     <ClInclude Include="Source\ECS\Systems\MeshLoaderSystem.h" />
     <ClInclude Include="Source\ECS\Systems\MovementSystem.h" />
