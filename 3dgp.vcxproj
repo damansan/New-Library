@@ -43,6 +43,7 @@
     <ClCompile Include="Source\ECS\Systems\MovementSystem.cpp" />
     <ClCompile Include="Source\ECS\Systems\RenderSystem.cpp" />
     <ClCompile Include="Source\ECS\Systems\PhysicsSystem.cpp" />
+    <ClCompile Include="Source\ECS\Systems\TwoBoneIKSolver.cpp" />
     <ClCompile Include="Source\Editor\ComponentRegistry.cpp" />
     <ClCompile Include="Source\Editor\ComponentRegistryInitializer.cpp" />
     <ClCompile Include="Source\Editor\HierarchyWindow.cpp" />
@@ -116,6 +117,7 @@
     <ClInclude Include="Source\ECS\Systems\MovementSystem.h" />
     <ClInclude Include="Source\ECS\Systems\RenderSystem.h" />
     <ClInclude Include="Source\ECS\Systems\PhysicsSystem.h" />
+    <ClInclude Include="Source\ECS\Systems\TwoBoneIKSolver.h" />
     <ClInclude Include="Source\Editor\ComponentRegistry.h" />
     <ClInclude Include="Source\Editor\ComponentRegistryInitializer.h" />
     <ClInclude Include="Source\Editor\EditorContext.h" />

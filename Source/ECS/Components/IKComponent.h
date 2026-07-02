@@ -4,9 +4,12 @@
 
 struct IKComponent
 {
-	bool        enabled = false; // IK有効フラグ
-	std::string targetBoneName;  // 操作対象のボーン名
+	// IK有効フラグ
+	bool enabled = false;
 
-	DirectX::XMFLOAT3 manualPosition{ 0.0f, 0.0f, 0.0f };       // 位置オフセット
-	DirectX::XMFLOAT3 manualRotationEuler{ 0.0f, 0.0f, 0.0f };  // 回転(オイラー角)
+	std::string rootBoneName;
+	std::string midBoneName;
+	std::string endBoneName;
+
+	DirectX::XMFLOAT3 targetPosition{ 0.0f, 0.0f, 0.0f };
 };

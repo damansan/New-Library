@@ -403,6 +403,9 @@
     <ClCompile Include="Source\Rendering\PhysicsDebugRenderer.cpp">
       <Filter>Sources\Rendering\PhysicsDebugRenderer</Filter>
     </ClCompile>
+    <ClCompile Include="Source\ECS\Systems\TwoBoneIKSolver.cpp">
+      <Filter>Sources\ECS\Systems\IKSystem</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Core\framework.h">
@@ -635,6 +638,9 @@
     </ClInclude>
     <ClInclude Include="Source\Rendering\PhysicsDebugRenderer.h">
       <Filter>Sources\Rendering\PhysicsDebugRenderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ECS\Systems\TwoBoneIKSolver.h">
+      <Filter>Sources\ECS\Systems\IKSystem</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

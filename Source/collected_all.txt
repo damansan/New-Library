@@ -1915,11 +1915,14 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\IKComponent.h
 
 struct IKComponent
 {
-	bool        enabled = false; // IK有効フラグ
-	std::string targetBoneName;  // 操作対象のボーン名
+	// IK有効フラグ
+	bool enabled = false;
 
-	DirectX::XMFLOAT3 manualPosition{ 0.0f, 0.0f, 0.0f };       // 位置オフセット
-	DirectX::XMFLOAT3 manualRotationEuler{ 0.0f, 0.0f, 0.0f };  // 回転(オイラー角)
+	std::string rootBoneName;
+	std::string midBoneName;
+	std::string endBoneName;
+
+	DirectX::XMFLOAT3 targetPosition{ 0.0f, 0.0f, 0.0f };
 }; 
  
 ===== InputComponent.h ===== 
@@ -2373,6 +2376,14 @@ struct RaycastHitResult
 	float              distance = 0.0f;  // 開始位置からの距離
 };
 
+// レイキャストデバッグ描画
+struct DebugRay
+{
+	DirectX::XMFLOAT3 start; // 始点
+	DirectX::XMFLOAT3 end;   // 終点
+	DirectX::XMFLOAT4 color; // 色
+};
+
 class PhysicsSystem
 {
 public:
@@ -2386,6 +2397,8 @@ public:
 		const DirectX::XMFLOAT3& direction,
 		float maxDistance,
 		physx::PxU32 wantedLayers);
+	// デバッグ表示用
+	static std::vector<DebugRay> FetchDebugRays();
 
 private:
 	// 削除予約されたActorを解放する
@@ -2399,6 +2412,10 @@ private:
 
 	// 未生成の
 	// void ProcessDynamicBodies(entt::registry& registry, PhysX& physX, physx::PxScene* pxScene);
+
+private:
+	// レイの記録
+	static std::vector<DebugRay> debugRays;
 }; 
  
 ===== RenderSystem.h ===== 
@@ -2596,6 +2613,30 @@ private:
 	UINT screenWidth = 0;
 	UINT screenHeight = 0;
 }; 
+ 
+===== TwoBoneIKSolver.h ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\TwoBoneIKSolver.h 
+#pragma once
+#include <DirectXMath.h>
+
+// 2BoneIK計算
+namespace TwoBoneIKSolver
+{
+	struct Result
+	{
+		DirectX::XMFLOAT4 rootGlobalRotation;
+		DirectX::XMFLOAT3 midBendAxis;
+		float midBendAngleDelta = 0.0f;
+	};
+
+	Result Solve(
+		const DirectX::XMFLOAT3& rootPos,
+		const DirectX::XMFLOAT3& midPos,
+		const DirectX::XMFLOAT3& endPos,
+		const DirectX::XMFLOAT3& targetPos,
+		const DirectX::XMFLOAT3& poleVector,
+		const DirectX::XMFLOAT4& rootGlobalRotation);
+} 
  
 ===== AnimationSystem.cpp ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\AnimationSystem.cpp 
@@ -3385,42 +3426,47 @@ void GameCameraSystem::UpdateFixed(
 ===== IKSystem.cpp ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\IKSystem.cpp 
 #include "IKSystem.h"
+#include "TwoBoneIKSolver.h"
+
 #include "ECS/Components/IKComponent.h"
 #include "ECS/Components/SkinnedMeshComponent.h"
+#include "ECS/Components/TransformComponent.h"
+
 #include "Resource/SkeletonUtils.h"
 
 void IKSystem::Update(entt::registry& registry)
 {
-	auto view = registry.view<IKComponent, SkinnedMeshComponent>();
+	auto view = registry.view<IKComponent, SkinnedMeshComponent, TransformComponent>();
 
 	for (auto entity : view)
 	{
 		auto& ik = view.get<IKComponent>(entity);
 
-		// 無効なら何もしない
+		// 無効、またはボーン名が未設定なら何もしない
 		if (!ik.enabled) continue;
-		if (ik.targetBoneName.empty()) continue;
+		if (ik.rootBoneName.empty() || ik.midBoneName.empty() || ik.endBoneName.empty()) continue;
 
 		auto& skinnedMesh = view.get<SkinnedMeshComponent>(entity);
+		auto& transform = view.get<TransformComponent>(entity);
 		if (!skinnedMesh.model) continue;
 
 		const auto& nodes = skinnedMesh.model->GetNodes();
 
-		// ターゲットボーンのインデックスを名前で探す
-		int targetIndex = -1;
+		// root/mid/endボーンのインデックスを名前で探す
+		int rootIndex = -1;
+		int midIndex = -1;
+		int endIndex = -1;
 		for (int i = 0; i < (int)nodes.size(); i++)
 		{
-			if (nodes[i].name == ik.targetBoneName)
-			{
-				targetIndex = i;
-				break;
-			}
+			if (nodes[i].name == ik.rootBoneName) rootIndex = i;
+			if (nodes[i].name == ik.midBoneName)  midIndex = i;
+			if (nodes[i].name == ik.endBoneName)  endIndex = i;
 		}
 
-		// 見つからなければスキップ
-		if (targetIndex < 0) continue;
+		// いずれか見つからなければスキップ
+		if (rootIndex < 0 || midIndex < 0 || endIndex < 0) continue;
 
-		// 各ノードのローカルpose配列をモデルのデフォルト値で初期化
+		// 各ノードのローカルpose配列
 		std::vector<DirectX::XMFLOAT3> localPositions(nodes.size());
 		std::vector<DirectX::XMFLOAT4> localRotations(nodes.size());
 		std::vector<DirectX::XMFLOAT3> localScales(nodes.size());
@@ -3434,18 +3480,76 @@ void IKSystem::Update(entt::registry& registry)
 			localScales[i] = hasPose ? skinnedMesh.localScales[i] : nodes[i].scale;
 		}
 
-		// ターゲットノードだけ、manualの値で上書き
-		localPositions[targetIndex].x += ik.manualPosition.x;
-		localPositions[targetIndex].y += ik.manualPosition.y;
-		localPositions[targetIndex].z += ik.manualPosition.z;
+		// IK適用前のグローバル姿勢を計算
+		SkeletonUtils::CalcGlobalTransforms(
+			nodes, localPositions, localRotations, localScales,
+			skinnedMesh.nodeGlobalTransforms);
 
-		// オイラー角 → クォータニオンに変換してから上書き
-		DirectX::XMVECTOR q = DirectX::XMQuaternionRotationRollPitchYaw(
-			ik.manualRotationEuler.x,
-			ik.manualRotationEuler.y,
-			ik.manualRotationEuler.z);
-		DirectX::XMStoreFloat4(&localRotations[targetIndex], q);
+		// グローバル行列から位置を取り出す
+		auto extractPosition = [](const DirectX::XMFLOAT4X4& m)
+			{
+				return DirectX::XMFLOAT3(m._41, m._42, m._43);
+			};
 
+		// グローバル行列から回転だけを取り出す
+		auto extractRotation = [](const DirectX::XMFLOAT4X4& m)
+			{
+				DirectX::XMVECTOR scale, rotQuat, trans;
+				DirectX::XMMatrixDecompose(&scale, &rotQuat, &trans, DirectX::XMLoadFloat4x4(&m));
+				DirectX::XMFLOAT4 result;
+				DirectX::XMStoreFloat4(&result, rotQuat);
+				return result;
+			};
+
+		DirectX::XMFLOAT3 rootPos = extractPosition(skinnedMesh.nodeGlobalTransforms[rootIndex]);
+		DirectX::XMFLOAT3 midPos = extractPosition(skinnedMesh.nodeGlobalTransforms[midIndex]);
+		DirectX::XMFLOAT3 endPos = extractPosition(skinnedMesh.nodeGlobalTransforms[endIndex]);
+		DirectX::XMFLOAT4 rootGlobalRotBefore = extractRotation(skinnedMesh.nodeGlobalTransforms[rootIndex]);
+
+		// ワールド空間のtargetを、モデルローカル空間に変換する
+		DirectX::XMMATRIX world = transform.GetWorldMatrix();
+		DirectX::XMMATRIX worldInv = DirectX::XMMatrixInverse(nullptr, world);
+
+		DirectX::XMVECTOR targetWorld = DirectX::XMLoadFloat3(&ik.targetPosition);
+
+		DirectX::XMFLOAT3 targetLocal;
+		DirectX::XMStoreFloat3(&targetLocal, DirectX::XMVector3TransformCoord(targetWorld, worldInv));
+
+		DirectX::XMFLOAT3 poleLocal = midPos;
+
+		// 2BoneIKを解く
+		TwoBoneIKSolver::Result result = TwoBoneIKSolver::Solve(
+			rootPos, midPos, endPos,
+			targetLocal, poleLocal,
+			rootGlobalRotBefore);
+
+		DirectX::XMVECTOR newRootGlobalRot = DirectX::XMLoadFloat4(&result.rootGlobalRotation);
+
+		// rootの親の現在のグローバル回転を求める
+		int rootParentIndex = nodes[rootIndex].parentIndex;
+		DirectX::XMVECTOR parentGlobalRot = (rootParentIndex >= 0)
+			? DirectX::XMLoadFloat4(&extractRotation(skinnedMesh.nodeGlobalTransforms[rootParentIndex]))
+			: DirectX::XMQuaternionIdentity();
+
+		// root：新しいグローバル回転から、親の回転を打ち消してローカル回転に変換する
+		DirectX::XMVECTOR newRootLocalRot = DirectX::XMQuaternionMultiply(
+			newRootGlobalRot, DirectX::XMQuaternionInverse(parentGlobalRot));
+		DirectX::XMStoreFloat4(&localRotations[rootIndex], newRootLocalRot);
+
+		// mid：rootが回転したことで自動的に引き継がれる向き（inherited）に、
+		// 曲げ角度の変化量（bendAxis / bendAngleDelta）を追加してからローカル回転に変換する
+		DirectX::XMVECTOR oldMidLocalRot = DirectX::XMLoadFloat4(&localRotations[midIndex]);
+		DirectX::XMVECTOR inheritedMidGlobalRot = DirectX::XMQuaternionMultiply(oldMidLocalRot, newRootGlobalRot);
+
+		DirectX::XMVECTOR bendAxis = DirectX::XMLoadFloat3(&result.midBendAxis);
+		DirectX::XMVECTOR qBendMid = DirectX::XMQuaternionRotationAxis(bendAxis, result.midBendAngleDelta);
+
+		DirectX::XMVECTOR newMidGlobalRot = DirectX::XMQuaternionMultiply(inheritedMidGlobalRot, qBendMid);
+		DirectX::XMVECTOR newMidLocalRot = DirectX::XMQuaternionMultiply(
+			newMidGlobalRot, DirectX::XMQuaternionInverse(newRootGlobalRot));
+		DirectX::XMStoreFloat4(&localRotations[midIndex], newMidLocalRot);
+
+		// 更新したroot/midのローカル回転で、グローバル姿勢とスキニング行列を計算し直す
 		SkeletonUtils::CalcGlobalTransforms(
 			nodes, localPositions, localRotations, localScales,
 			skinnedMesh.nodeGlobalTransforms);
@@ -3720,6 +3824,8 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\PhysicsSystem.cpp
 
 using namespace physx;
 
+std::vector<DebugRay> PhysicsSystem::debugRays;
+
 // TransformComponentの回転からPxQuatを作る
 static PxQuat ToPxQuat(const DirectX::XMFLOAT3& rotation)
 {
@@ -3737,6 +3843,7 @@ void PhysicsSystem::Update(entt::registry& registry, PhysX& physX, physx::PxScen
 	ProcessStaticBodies(registry, physX, pxScene);
 	// ProcessDynamicBodies(registry, physX, pxScene);
 	ProcessCharacterControllers(registry, physX, controllerManager, elapsedTime);
+
 }
 
 // レイヤーにレイキャスト
@@ -3780,6 +3887,27 @@ RaycastHitResult PhysicsSystem::Raycast(physx::PxScene* pxScene, const DirectX::
 		result.normal = { hitBuffer.block.normal.x,   hitBuffer.block.normal.y,   hitBuffer.block.normal.z };
 	}
 
+	// レイを記録
+	DebugRay debugRay;
+	debugRay.start = origin;
+	float drawDistance = result.hit ? result.distance : maxDistance;
+	debugRay.end = {
+		origin.x + normalizedDir.x * drawDistance,
+		origin.y + normalizedDir.y * drawDistance,
+		origin.z + normalizedDir.z * drawDistance
+	};
+	debugRay.color = result.hit
+		? DirectX::XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f)  // 当たれば赤
+		: DirectX::XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f); // 当たらなければ青
+	debugRays.push_back(debugRay);
+
+	return result;
+}
+
+std::vector<DebugRay> PhysicsSystem::FetchDebugRays()
+{
+	std::vector<DebugRay> result = std::move(debugRays);
+	debugRays.clear();
 	return result;
 }
 
@@ -4572,6 +4700,140 @@ void RenderSystem::ForwardTransparentPass(
 }
  
  
+===== TwoBoneIKSolver.cpp ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\TwoBoneIKSolver.cpp 
+#include "TwoBoneIKSolver.h"
+#include <algorithm>
+#include <cmath>
+
+using namespace DirectX;
+
+namespace
+{
+	constexpr float Epsilon = 0.0001f;
+
+	// 2ベクトル間の角度を求める
+	float AngleBetween(FXMVECTOR v1, FXMVECTOR v2)
+	{
+		XMVECTOR n1 = XMVector3Normalize(v1);
+		XMVECTOR n2 = XMVector3Normalize(v2);
+		float dot = std::clamp(XMVectorGetX(XMVector3Dot(n1, n2)), -1.0f, 1.0f);
+		return acosf(dot);
+	}
+}
+
+namespace TwoBoneIKSolver
+{
+	Result Solve(
+		const DirectX::XMFLOAT3& rootPosIn,
+		const DirectX::XMFLOAT3& midPosIn,
+		const DirectX::XMFLOAT3& endPosIn,
+		const DirectX::XMFLOAT3& targetPosIn,
+		const DirectX::XMFLOAT3& poleVectorIn,
+		const DirectX::XMFLOAT4& rootGlobalRotationIn)
+	{
+		XMVECTOR a = XMLoadFloat3(&rootPosIn);
+		XMVECTOR b = XMLoadFloat3(&midPosIn);
+		XMVECTOR c = XMLoadFloat3(&endPosIn);
+		XMVECTOR t = XMLoadFloat3(&targetPosIn);
+		XMVECTOR pole = XMLoadFloat3(&poleVectorIn);
+		XMVECTOR rootRot = XMLoadFloat4(&rootGlobalRotationIn);
+
+		// 骨の長さ
+		float lenAB = XMVectorGetX(XMVector3Length(b - a));
+		float lenBC = XMVectorGetX(XMVector3Length(c - b));
+
+		// targetまでの距離を腕(脚)が届く範囲にクランプする
+		float lenAT = XMVectorGetX(XMVector3Length(t - a));
+		lenAT = std::clamp(lenAT, Epsilon, lenAB + lenBC - Epsilon);
+
+		// 現在の内角（root側）
+		float currentRootAngle = AngleBetween(b - a, c - a);
+		// 現在の内角（mid側）
+		float currentMidAngle = AngleBetween(a - b, c - b);
+
+		// targetに届いたときのroot側の内角
+		float targetRootAngle = acosf(std::clamp(
+			(lenBC * lenBC - lenAB * lenAB - lenAT * lenAT) / (-2.0f * lenAB * lenAT),
+			-1.0f, 1.0f));
+		// targetに届いたときのmid側の内角
+		float targetMidAngle = acosf(std::clamp(
+			(lenAT * lenAT - lenAB * lenAB - lenBC * lenBC) / (-2.0f * lenAB * lenBC),
+			-1.0f, 1.0f));
+
+		// 現在の姿勢
+		XMVECTOR bendAxis = XMVector3Normalize(XMVector3Cross(c - a, b - a));
+
+		// 3点がほぼ一直線で軸が定まらない場合は、poleVectorから軸を作って代用する
+		if (XMVectorGetX(XMVector3LengthSq(bendAxis)) < Epsilon)
+		{
+			bendAxis = XMVector3Normalize(XMVector3Cross(pole - a, b - a));
+		}
+
+		float deltaRootAngle = targetRootAngle - currentRootAngle;
+		float deltaMidAngle = targetMidAngle - currentMidAngle;
+
+		XMVECTOR qBendRoot = XMQuaternionRotationAxis(bendAxis, deltaRootAngle);
+		XMVECTOR qBendMid = XMQuaternionRotationAxis(bendAxis, deltaMidAngle);
+
+		// 曲げただけの状態でのmid/end位置を仮計算
+		XMVECTOR midBent = a + XMVector3Rotate(b - a, qBendRoot);
+		XMVECTOR endBent = midBent + XMVector3Rotate(c - b, XMQuaternionMultiply(qBendRoot, qBendMid));
+
+		// 全体をtarget方向へ直す
+		XMVECTOR currentEndDir = XMVector3Normalize(endBent - a);
+		XMVECTOR desiredEndDir = XMVector3Normalize(t - a);
+
+		XMVECTOR aimAxis = XMVector3Normalize(XMVector3Cross(currentEndDir, desiredEndDir));
+		XMVECTOR qAim = XMQuaternionIdentity();
+		if (XMVectorGetX(XMVector3LengthSq(aimAxis)) > Epsilon)
+		{
+			float aimAngle = AngleBetween(currentEndDir, desiredEndDir);
+			qAim = XMQuaternionRotationAxis(aimAxis, aimAngle);
+		}
+
+		// target方向に軸をひねり合わせる
+		XMVECTOR midAimed = a + XMVector3Rotate(midBent - a, qAim);
+		XMVECTOR twistAxis = desiredEndDir; // target方向を軸にひねる
+
+		// 現在の曲がってる向き
+		XMVECTOR currentBendDir = midAimed - a;
+		currentBendDir = currentBendDir - twistAxis * XMVector3Dot(currentBendDir, twistAxis);
+
+		// 曲がってほしい向き
+		XMVECTOR desiredBendDir = pole - a;
+		desiredBendDir = desiredBendDir - twistAxis * XMVector3Dot(desiredBendDir, twistAxis);
+
+		XMVECTOR qTwist = XMQuaternionIdentity();
+		if (XMVectorGetX(XMVector3LengthSq(currentBendDir)) > Epsilon &&
+			XMVectorGetX(XMVector3LengthSq(desiredBendDir)) > Epsilon)
+		{
+			currentBendDir = XMVector3Normalize(currentBendDir);
+			desiredBendDir = XMVector3Normalize(desiredBendDir);
+			
+			float twistAngle = AngleBetween(currentBendDir, desiredBendDir);
+
+			// 回転の向きを判定する
+			XMVECTOR cross = XMVector3Cross(currentBendDir, desiredBendDir);
+			if (XMVectorGetX(XMVector3Dot(cross, twistAxis)) < 0.0f)
+			{
+				twistAngle = -twistAngle;
+			}
+			qTwist = XMQuaternionRotationAxis(twistAxis, twistAngle);
+		}
+
+		// root：曲げ→向き直し→ひねり、の順に合成した最終グローバル回転
+		XMVECTOR rootRotFinal = XMQuaternionMultiply(
+			XMQuaternionMultiply(XMQuaternionMultiply(rootRot, qBendRoot), qAim), qTwist);
+
+		Result result;
+		XMStoreFloat4(&result.rootGlobalRotation, rootRotFinal);
+		XMStoreFloat3(&result.midBendAxis, bendAxis);
+		result.midBendAngleDelta = deltaMidAngle;
+		return result;
+	}
+} 
+ 
 ===== ComponentRegistry.h ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\Editor\ComponentRegistry.h 
 #pragma once
@@ -5171,28 +5433,36 @@ void ComponentRegistryInitializer::Initialize()
 					return;
 				}
 
-				// ボーン名コンボ
-				if (ImGui::BeginCombo("Target Bone", ik->targetBoneName.c_str()))
-				{
-					for (const auto& node : nodes)
+				// ボーンをコンボ表示する共通ラムダ（root・mid・end用の3箇所で使うため）
+				auto boneCombo = [&](const char* label, std::string& boneName)
 					{
-						bool selected = (ik->targetBoneName == node.name);
-						if (ImGui::Selectable(node.name.c_str(), selected))
+						if (ImGui::BeginCombo(label, boneName.c_str()))
 						{
-							ik->targetBoneName = node.name;
+							for (const auto& node : nodes)
+							{
+								bool selected = (boneName == node.name);
+								if (ImGui::Selectable(node.name.c_str(), selected))
+								{
+									boneName = node.name;
+								}
+								if (selected) ImGui::SetItemDefaultFocus();
+							}
+							ImGui::EndCombo();
 						}
-						if (selected) ImGui::SetItemDefaultFocus();
-					}
-					ImGui::EndCombo();
-				}
+					};
+
+				// Root・Mid・Endボーン
+				boneCombo("Root Bone", ik->rootBoneName);
+				boneCombo("Mid Bone", ik->midBoneName);
+				boneCombo("End Bone", ik->endBoneName);
 
 				ImGui::Separator();
 
-				// 位置オフセット・回転(オイラー角)
-				ImGui::DragFloat3("Position Offset", &ik->manualPosition.x, 0.01f);
-				ImGui::DragFloat3("Rotation (Euler)", &ik->manualRotationEuler.x, 0.01f);
+				// 目標座標・曲がる方向のヒント（いずれもワールド空間の座標）
+				ImGui::DragFloat3("Target Position", &ik->targetPosition.x, 0.01f);
 			});
-} 
+}
+ 
  
 ===== HierarchyWindow.cpp ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\Editor\HierarchyWindow.cpp 
@@ -6532,6 +6802,7 @@ void LightManager::Bind(ID3D11DeviceContext* dc)
 ===== PhysicsDebugRenderer.cpp ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\Rendering\PhysicsDebugRenderer.cpp 
 #include "PhysicsDebugRenderer.h"
+#include "ECS/Systems/PhysicsSystem.h"
 
 void PhysicsDebugRenderer::Initialize(ID3D11Device* device)
 {
@@ -6713,6 +6984,16 @@ void PhysicsDebugRenderer::Render(
 			physx::PxRigidActor* actor = ctrl->getActor();
 			drawActor(actor, 0.0f);
 			drawActor(actor, ctrl->getContactOffset());
+		}
+	}
+
+	// レイキャストデバッグ表示
+	{
+		std::vector<DebugRay> debugRays = PhysicsSystem::FetchDebugRays();
+		for (const DebugRay& ray : debugRays)
+		{
+			primitiveRenderer.AddVertex(ray.start, ray.color);
+			primitiveRenderer.AddVertex(ray.end, ray.color);
 		}
 	}
 

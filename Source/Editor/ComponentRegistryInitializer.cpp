@@ -397,25 +397,32 @@ void ComponentRegistryInitializer::Initialize()
 					return;
 				}
 
-				// ボーン名コンボ
-				if (ImGui::BeginCombo("Target Bone", ik->targetBoneName.c_str()))
-				{
-					for (const auto& node : nodes)
+				// ボーンをコンボ表示する共通ラムダ（root・mid・end用の3箇所で使うため）
+				auto boneCombo = [&](const char* label, std::string& boneName)
 					{
-						bool selected = (ik->targetBoneName == node.name);
-						if (ImGui::Selectable(node.name.c_str(), selected))
+						if (ImGui::BeginCombo(label, boneName.c_str()))
 						{
-							ik->targetBoneName = node.name;
+							for (const auto& node : nodes)
+							{
+								bool selected = (boneName == node.name);
+								if (ImGui::Selectable(node.name.c_str(), selected))
+								{
+									boneName = node.name;
+								}
+								if (selected) ImGui::SetItemDefaultFocus();
+							}
+							ImGui::EndCombo();
 						}
-						if (selected) ImGui::SetItemDefaultFocus();
-					}
-					ImGui::EndCombo();
-				}
+					};
+
+				// Root・Mid・Endボーン
+				boneCombo("Root Bone", ik->rootBoneName);
+				boneCombo("Mid Bone", ik->midBoneName);
+				boneCombo("End Bone", ik->endBoneName);
 
 				ImGui::Separator();
 
-				// 位置オフセット・回転(オイラー角)
-				ImGui::DragFloat3("Position Offset", &ik->manualPosition.x, 0.01f);
-				ImGui::DragFloat3("Rotation (Euler)", &ik->manualRotationEuler.x, 0.01f);
+				// 目標座標・曲がる方向のヒント（いずれもワールド空間の座標）
+				ImGui::DragFloat3("Target Position", &ik->targetPosition.x, 0.01f);
 			});
 }
