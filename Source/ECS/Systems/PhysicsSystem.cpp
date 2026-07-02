@@ -10,6 +10,8 @@
 
 using namespace physx;
 
+std::vector<DebugRay> PhysicsSystem::debugRays;
+
 // TransformComponentの回転からPxQuatを作る
 static PxQuat ToPxQuat(const DirectX::XMFLOAT3& rotation)
 {
@@ -27,6 +29,8 @@ void PhysicsSystem::Update(entt::registry& registry, PhysX& physX, physx::PxScen
 	ProcessStaticBodies(registry, physX, pxScene);
 	// ProcessDynamicBodies(registry, physX, pxScene);
 	ProcessCharacterControllers(registry, physX, controllerManager, elapsedTime);
+
+	DebugForwardRaycast(registry, pxScene);
 }
 
 // レイヤーにレイキャスト
@@ -70,6 +74,27 @@ RaycastHitResult PhysicsSystem::Raycast(physx::PxScene* pxScene, const DirectX::
 		result.normal = { hitBuffer.block.normal.x,   hitBuffer.block.normal.y,   hitBuffer.block.normal.z };
 	}
 
+	// レイを記録
+	DebugRay debugRay;
+	debugRay.start = origin;
+	float drawDistance = result.hit ? result.distance : maxDistance;
+	debugRay.end = {
+		origin.x + normalizedDir.x * drawDistance,
+		origin.y + normalizedDir.y * drawDistance,
+		origin.z + normalizedDir.z * drawDistance
+	};
+	debugRay.color = result.hit
+		? DirectX::XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f)  // 当たれば赤
+		: DirectX::XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f); // 当たらなければ青
+	debugRays.push_back(debugRay);
+
+	return result;
+}
+
+std::vector<DebugRay> PhysicsSystem::FetchDebugRays()
+{
+	std::vector<DebugRay> result = std::move(debugRays);
+	debugRays.clear();
 	return result;
 }
 
@@ -256,5 +281,33 @@ void PhysicsSystem::ProcessCharacterControllers(entt::registry& registry, PhysX&
 				movement->velocity.y = -kGroundStickSpeed;
 			}
 		}
+	}
+}
+
+void PhysicsSystem::DebugForwardRaycast(entt::registry& registry, physx::PxScene* pxScene)
+{
+	auto view = registry.view<CharacterControllerComponent, TransformComponent>();
+
+	for (auto entity : view)
+	{
+		auto& transform = view.get<TransformComponent>(entity);
+
+		// TransformComponent.rotation.y(ヨー角)から前方向ベクトルを計算
+		// (0,0,1)を基準の前方向として、Y軸回転だけ適用する
+		DirectX::XMVECTOR forward = DirectX::XMVector3Rotate(
+			DirectX::XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f),
+			DirectX::XMQuaternionRotationRollPitchYaw(0.0f, transform.rotation.y, 0.0f)
+		);
+		DirectX::XMFLOAT3 direction;
+		DirectX::XMStoreFloat3(&direction, forward);
+
+		// 少し腰の高さから飛ばす(足元にめり込んでヒットしないようにするため)
+		DirectX::XMFLOAT3 origin = transform.position;
+		origin.y += 0.9f;
+
+		constexpr float testDistance = 2.0f;
+
+		// 結果は今は使わず、線が見えることだけを確認する
+		Raycast(pxScene, origin, direction, testDistance, PhysicsLayer::Static);
 	}
 }

@@ -1,4 +1,5 @@
 #include "PhysicsDebugRenderer.h"
+#include "ECS/Systems/PhysicsSystem.h"
 
 void PhysicsDebugRenderer::Initialize(ID3D11Device* device)
 {
@@ -180,6 +181,16 @@ void PhysicsDebugRenderer::Render(
 			physx::PxRigidActor* actor = ctrl->getActor();
 			drawActor(actor, 0.0f);
 			drawActor(actor, ctrl->getContactOffset());
+		}
+	}
+
+	// レイキャストデバッグ表示
+	{
+		std::vector<DebugRay> debugRays = PhysicsSystem::FetchDebugRays();
+		for (const DebugRay& ray : debugRays)
+		{
+			primitiveRenderer.AddVertex(ray.start, ray.color);
+			primitiveRenderer.AddVertex(ray.end, ray.color);
 		}
 	}
 

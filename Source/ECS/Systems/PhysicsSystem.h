@@ -15,6 +15,14 @@ struct RaycastHitResult
 	float              distance = 0.0f;  // 開始位置からの距離
 };
 
+// レイキャストデバッグ描画
+struct DebugRay
+{
+	DirectX::XMFLOAT3 start; // 始点
+	DirectX::XMFLOAT3 end;   // 終点
+	DirectX::XMFLOAT4 color; // 色
+};
+
 class PhysicsSystem
 {
 public:
@@ -28,6 +36,8 @@ public:
 		const DirectX::XMFLOAT3& direction,
 		float maxDistance,
 		physx::PxU32 wantedLayers);
+	// デバッグ表示用
+	static std::vector<DebugRay> FetchDebugRays();
 
 private:
 	// 削除予約されたActorを解放する
@@ -41,4 +51,9 @@ private:
 
 	// 未生成の
 	// void ProcessDynamicBodies(entt::registry& registry, PhysX& physX, physx::PxScene* pxScene);
+
+	void DebugForwardRaycast(entt::registry& registry, physx::PxScene* pxScene);
+private:
+	// レイの記録
+	static std::vector<DebugRay> debugRays;
 };
