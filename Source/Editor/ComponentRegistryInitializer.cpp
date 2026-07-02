@@ -370,7 +370,7 @@ void ComponentRegistryInitializer::Initialize()
 				} 
 		});
 
-		// IKコンポーネントの登録
+		// IKコンポーネントの登録(FootIK動作確認用)
 		REGISTER_COMPONENT(IKComponent, "IK",
 			[](auto& reg, auto e)
 			{
@@ -380,49 +380,12 @@ void ComponentRegistryInitializer::Initialize()
 
 				if (!ImGui::CollapsingHeader("IK", ImGuiTreeNodeFlags_DefaultOpen)) return;
 
-				// 有効フラグ
-				ImGui::Checkbox("Enabled", &ik->enabled);
-
-				// SkinnedMeshがなければ警告
 				if (!skinned || !skinned->model)
 				{
 					ImGui::TextColored({ 1, 0.5f, 0, 1 }, "No SkinnedMesh found.");
 					return;
 				}
 
-				const auto& nodes = skinned->model->GetNodes();
-				if (nodes.empty())
-				{
-					ImGui::TextColored({ 1, 0.5f, 0, 1 }, "No bones found.");
-					return;
-				}
-
-				// ボーンをコンボ表示する共通ラムダ（root・mid・end用の3箇所で使うため）
-				auto boneCombo = [&](const char* label, std::string& boneName)
-					{
-						if (ImGui::BeginCombo(label, boneName.c_str()))
-						{
-							for (const auto& node : nodes)
-							{
-								bool selected = (boneName == node.name);
-								if (ImGui::Selectable(node.name.c_str(), selected))
-								{
-									boneName = node.name;
-								}
-								if (selected) ImGui::SetItemDefaultFocus();
-							}
-							ImGui::EndCombo();
-						}
-					};
-
-				// Root・Mid・Endボーン
-				boneCombo("Root Bone", ik->rootBoneName);
-				boneCombo("Mid Bone", ik->midBoneName);
-				boneCombo("End Bone", ik->endBoneName);
-
-				ImGui::Separator();
-
-				// 目標座標・曲がる方向のヒント（いずれもワールド空間の座標）
-				ImGui::DragFloat3("Target Position", &ik->targetPosition.x, 0.01f);
-			});
-}
+				ImGui::Checkbox("Enabled", &ik->enabled);
+				ImGui::DragFloat3("Target Pos", &ik->targetPos.x, 0.01f);
+			}); }

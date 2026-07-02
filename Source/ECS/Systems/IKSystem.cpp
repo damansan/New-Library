@@ -1,134 +1,115 @@
 #include "IKSystem.h"
-#include "TwoBoneIKSolver.h"
-
-#include "ECS/Components/IKComponent.h"
-#include "ECS/Components/SkinnedMeshComponent.h"
-#include "ECS/Components/TransformComponent.h"
-
+#include "ECS/Systems/TwoBoneIKSolver.h"
 #include "Resource/SkeletonUtils.h"
+
+namespace
+{
+    using namespace DirectX;
+
+    // ワールド回転を、親のワールド回転を基準にしたローカル回転に変換する
+    XMVECTOR WorldToLocalRotation(FXMVECTOR worldRotation, FXMVECTOR parentWorldRotation)
+    {
+        XMVECTOR parentInverse = XMQuaternionInverse(parentWorldRotation);
+        // worldRotation = localRotation * parentWorldRotation なので
+        // localRotation = worldRotation * (parentWorldRotation)^-1
+        return XMQuaternionMultiply(worldRotation, parentInverse);
+    }
+
+    // XMFLOAT4X4(ワールド行列)から、位置と回転(クォータニオン)を取り出す
+    void DecomposePosRot(const XMFLOAT4X4& world, XMFLOAT3& outPos, XMFLOAT4& outRot)
+    {
+        XMMATRIX m = XMLoadFloat4x4(&world);
+
+        XMVECTOR scale, rotQuat, trans;
+        XMMatrixDecompose(&scale, &rotQuat, &trans, m);
+
+        XMStoreFloat3(&outPos, trans);
+        XMStoreFloat4(&outRot, rotQuat);
+    }
+}
 
 void IKSystem::Update(entt::registry& registry)
 {
-	auto view = registry.view<IKComponent, SkinnedMeshComponent, TransformComponent>();
+    auto view = registry.view<IKComponent, SkinnedMeshComponent>();
+    view.each(
+        [&](auto entity, IKComponent& ik, SkinnedMeshComponent& skinned)
+        {
+            if (!ik.enabled) return;
+            if (!skinned.model) return;
+            if (skinned.nodeGlobalTransforms.empty()) return;
 
-	for (auto entity : view)
-	{
-		auto& ik = view.get<IKComponent>(entity);
+            SolveLeftFootIK(ik, skinned);
+        });
+}
 
-		// 無効、またはボーン名が未設定なら何もしない
-		if (!ik.enabled) continue;
-		if (ik.rootBoneName.empty() || ik.midBoneName.empty() || ik.endBoneName.empty()) continue;
+void IKSystem::SolveLeftFootIK(IKComponent& ik, SkinnedMeshComponent& skinned)
+{
+    using namespace DirectX;
 
-		auto& skinnedMesh = view.get<SkinnedMeshComponent>(entity);
-		auto& transform = view.get<TransformComponent>(entity);
-		if (!skinnedMesh.model) continue;
+    // 決め打ちのノードインデックス(Map_Robot3.gltf の左足)
+    constexpr int rootIndex = 74; // thigh_l
+    constexpr int midIndex = 75; // calf_l
+    constexpr int endIndex = 76; // foot_l
 
-		const auto& nodes = skinnedMesh.model->GetNodes();
+    auto& globals = skinned.nodeGlobalTransforms;
+    if (rootIndex >= (int)globals.size() ||
+        midIndex >= (int)globals.size() ||
+        endIndex >= (int)globals.size())
+    {
+        return;
+    }
 
-		// root/mid/endボーンのインデックスを名前で探す
-		int rootIndex = -1;
-		int midIndex = -1;
-		int endIndex = -1;
-		for (int i = 0; i < (int)nodes.size(); i++)
-		{
-			if (nodes[i].name == ik.rootBoneName) rootIndex = i;
-			if (nodes[i].name == ik.midBoneName)  midIndex = i;
-			if (nodes[i].name == ik.endBoneName)  endIndex = i;
-		}
+    // 現在のワールド位置・回転を取り出す
+    XMFLOAT3 rootPos, midPos, endPos;
+    XMFLOAT4 rootRot, midRot, endRot;
+    DecomposePosRot(globals[rootIndex], rootPos, rootRot);
+    DecomposePosRot(globals[midIndex], midPos, midRot);
+    DecomposePosRot(globals[endIndex], endPos, endRot);
 
-		// いずれか見つからなければスキップ
-		if (rootIndex < 0 || midIndex < 0 || endIndex < 0) continue;
+    // 初回だけ、現在の足首位置をtargetPosの初期値として使う
+    if (!ik.hasInitializedTarget)
+    {
+        ik.targetPos = endPos;
+        ik.hasInitializedTarget = true;
+    }
 
-		// 各ノードのローカルpose配列
-		std::vector<DirectX::XMFLOAT3> localPositions(nodes.size());
-		std::vector<DirectX::XMFLOAT4> localRotations(nodes.size());
-		std::vector<DirectX::XMFLOAT3> localScales(nodes.size());
+    XMFLOAT3 targetPos = ik.targetPos;
 
-		bool hasPose = (skinnedMesh.localPositions.size() == nodes.size());
+    // poleVector: 膝を前方(モデルのZ+方向を仮定)に向ける
+    XMFLOAT3 poleVector = rootPos;
+    poleVector.z -= 1.0f;
 
-		for (int i = 0; i < (int)nodes.size(); i++)
-		{
-			localPositions[i] = hasPose ? skinnedMesh.localPositions[i] : nodes[i].position;
-			localRotations[i] = hasPose ? skinnedMesh.localRotations[i] : nodes[i].rotation;
-			localScales[i] = hasPose ? skinnedMesh.localScales[i] : nodes[i].scale;
-		}
+    // 2BoneIKを解く
+    TwoBoneIKSolver::Result result = TwoBoneIKSolver::Solve(
+        rootPos, midPos, endPos,
+        rootRot, midRot,
+        targetPos, poleVector);
 
-		// IK適用前のグローバル姿勢を計算
-		SkeletonUtils::CalcGlobalTransforms(
-			nodes, localPositions, localRotations, localScales,
-			skinnedMesh.nodeGlobalTransforms);
+    // ワールド回転 → ローカル回転 に変換して書き戻す
+    // rootの親(pelvis)のワールド回転はまだ変わっていないので、そのまま使える
+    XMVECTOR pelvisWorldRot;
+    {
+        XMFLOAT3 dummyPos;
+        XMFLOAT4 pelvisRot;
+        int pelvisIndex = skinned.model->GetNodes()[rootIndex].parentIndex;
+        DecomposePosRot(globals[pelvisIndex], dummyPos, pelvisRot);
+        pelvisWorldRot = XMLoadFloat4(&pelvisRot);
+    }
 
-		// グローバル行列から位置を取り出す
-		auto extractPosition = [](const DirectX::XMFLOAT4X4& m)
-			{
-				return DirectX::XMFLOAT3(m._41, m._42, m._43);
-			};
+    XMVECTOR newRootLocal = WorldToLocalRotation(
+        XMLoadFloat4(&result.rootRotation), pelvisWorldRot);
+    XMVECTOR newMidLocal = WorldToLocalRotation(
+        XMLoadFloat4(&result.midRotation), XMLoadFloat4(&result.rootRotation));
 
-		// グローバル行列から回転だけを取り出す
-		auto extractRotation = [](const DirectX::XMFLOAT4X4& m)
-			{
-				DirectX::XMVECTOR scale, rotQuat, trans;
-				DirectX::XMMatrixDecompose(&scale, &rotQuat, &trans, DirectX::XMLoadFloat4x4(&m));
-				DirectX::XMFLOAT4 result;
-				DirectX::XMStoreFloat4(&result, rotQuat);
-				return result;
-			};
+    XMStoreFloat4(&skinned.localRotations[rootIndex], newRootLocal);
+    XMStoreFloat4(&skinned.localRotations[midIndex], newMidLocal);
 
-		DirectX::XMFLOAT3 rootPos = extractPosition(skinnedMesh.nodeGlobalTransforms[rootIndex]);
-		DirectX::XMFLOAT3 midPos = extractPosition(skinnedMesh.nodeGlobalTransforms[midIndex]);
-		DirectX::XMFLOAT3 endPos = extractPosition(skinnedMesh.nodeGlobalTransforms[endIndex]);
-		DirectX::XMFLOAT4 rootGlobalRotBefore = extractRotation(skinnedMesh.nodeGlobalTransforms[rootIndex]);
+    // IKで回転が変わったので、グローバル行列を再計算する
+    SkeletonUtils::CalcGlobalTransforms(
+        skinned.model->GetNodes(),
+        skinned.localPositions, skinned.localRotations, skinned.localScales,
+        skinned.nodeGlobalTransforms);
 
-		// ワールド空間のtargetを、モデルローカル空間に変換する
-		DirectX::XMMATRIX world = transform.GetWorldMatrix();
-		DirectX::XMMATRIX worldInv = DirectX::XMMatrixInverse(nullptr, world);
-
-		DirectX::XMVECTOR targetWorld = DirectX::XMLoadFloat3(&ik.targetPosition);
-
-		DirectX::XMFLOAT3 targetLocal;
-		DirectX::XMStoreFloat3(&targetLocal, DirectX::XMVector3TransformCoord(targetWorld, worldInv));
-
-		DirectX::XMFLOAT3 poleLocal = midPos;
-
-		// 2BoneIKを解く
-		TwoBoneIKSolver::Result result = TwoBoneIKSolver::Solve(
-			rootPos, midPos, endPos,
-			targetLocal, poleLocal,
-			rootGlobalRotBefore);
-
-		DirectX::XMVECTOR newRootGlobalRot = DirectX::XMLoadFloat4(&result.rootGlobalRotation);
-
-		// rootの親の現在のグローバル回転を求める
-		int rootParentIndex = nodes[rootIndex].parentIndex;
-		DirectX::XMVECTOR parentGlobalRot = (rootParentIndex >= 0)
-			? DirectX::XMLoadFloat4(&extractRotation(skinnedMesh.nodeGlobalTransforms[rootParentIndex]))
-			: DirectX::XMQuaternionIdentity();
-
-		// root：新しいグローバル回転から、親の回転を打ち消してローカル回転に変換する
-		DirectX::XMVECTOR newRootLocalRot = DirectX::XMQuaternionMultiply(
-			newRootGlobalRot, DirectX::XMQuaternionInverse(parentGlobalRot));
-		DirectX::XMStoreFloat4(&localRotations[rootIndex], newRootLocalRot);
-
-		// mid：rootが回転したことで自動的に引き継がれる向き（inherited）に、
-		// 曲げ角度の変化量（bendAxis / bendAngleDelta）を追加してからローカル回転に変換する
-		DirectX::XMVECTOR oldMidLocalRot = DirectX::XMLoadFloat4(&localRotations[midIndex]);
-		DirectX::XMVECTOR inheritedMidGlobalRot = DirectX::XMQuaternionMultiply(oldMidLocalRot, newRootGlobalRot);
-
-		DirectX::XMVECTOR bendAxis = DirectX::XMLoadFloat3(&result.midBendAxis);
-		DirectX::XMVECTOR qBendMid = DirectX::XMQuaternionRotationAxis(bendAxis, result.midBendAngleDelta);
-
-		DirectX::XMVECTOR newMidGlobalRot = DirectX::XMQuaternionMultiply(inheritedMidGlobalRot, qBendMid);
-		DirectX::XMVECTOR newMidLocalRot = DirectX::XMQuaternionMultiply(
-			newMidGlobalRot, DirectX::XMQuaternionInverse(newRootGlobalRot));
-		DirectX::XMStoreFloat4(&localRotations[midIndex], newMidLocalRot);
-
-		// 更新したroot/midのローカル回転で、グローバル姿勢とスキニング行列を計算し直す
-		SkeletonUtils::CalcGlobalTransforms(
-			nodes, localPositions, localRotations, localScales,
-			skinnedMesh.nodeGlobalTransforms);
-
-		SkeletonUtils::CalcSkinningMatrices(
-			*skinnedMesh.model, skinnedMesh.nodeGlobalTransforms,
-			skinnedMesh.boneTransforms);
-	}
+    SkeletonUtils::CalcSkinningMatrices(
+        *skinned.model, skinned.nodeGlobalTransforms, skinned.boneTransforms);
 }

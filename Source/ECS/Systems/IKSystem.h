@@ -1,8 +1,17 @@
 #pragma once
+#include <DirectXMath.h>
 #include "entt.hpp"
+
+#include "ECS/Components/SkinnedMeshComponent.h"
+#include "ECS/Components/IKComponent.h"
 
 class IKSystem
 {
 public:
-	void Update(entt::registry& registry);
+    // 更新(AnimationSystemの後、MeshLoaderSystemの前に呼ぶ想定)
+    void Update(entt::registry& registry);
+
+private:
+    // 1体分のFootIK処理(左足決め打ち・確認用)
+    void SolveLeftFootIK(IKComponent& ik, SkinnedMeshComponent& skinned);
 };

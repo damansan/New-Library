@@ -2,130 +2,173 @@
 #include <algorithm>
 #include <cmath>
 
-using namespace DirectX;
-
-namespace
-{
-	constexpr float Epsilon = 0.0001f;
-
-	// 2ベクトル間の角度を求める
-	float AngleBetween(FXMVECTOR v1, FXMVECTOR v2)
-	{
-		XMVECTOR n1 = XMVector3Normalize(v1);
-		XMVECTOR n2 = XMVector3Normalize(v2);
-		float dot = std::clamp(XMVectorGetX(XMVector3Dot(n1, n2)), -1.0f, 1.0f);
-		return acosf(dot);
-	}
-}
-
 namespace TwoBoneIKSolver
 {
-	Result Solve(
-		const DirectX::XMFLOAT3& rootPosIn,
-		const DirectX::XMFLOAT3& midPosIn,
-		const DirectX::XMFLOAT3& endPosIn,
-		const DirectX::XMFLOAT3& targetPosIn,
-		const DirectX::XMFLOAT3& poleVectorIn,
-		const DirectX::XMFLOAT4& rootGlobalRotationIn)
-	{
-		XMVECTOR a = XMLoadFloat3(&rootPosIn);
-		XMVECTOR b = XMLoadFloat3(&midPosIn);
-		XMVECTOR c = XMLoadFloat3(&endPosIn);
-		XMVECTOR t = XMLoadFloat3(&targetPosIn);
-		XMVECTOR pole = XMLoadFloat3(&poleVectorIn);
-		XMVECTOR rootRot = XMLoadFloat4(&rootGlobalRotationIn);
+    namespace
+    {
+        using namespace DirectX;
 
-		// 骨の長さ
-		float lenAB = XMVectorGetX(XMVector3Length(b - a));
-		float lenBC = XMVectorGetX(XMVector3Length(c - b));
+        // 安全なacos(浮動小数の誤差でxが[-1,1]をわずかに超えることがあるため)
+        float SafeAcos(float x)
+        {
+            return std::acos(std::clamp(x, -1.0f, 1.0f));
+        }
 
-		// targetまでの距離を腕(脚)が届く範囲にクランプする
-		float lenAT = XMVectorGetX(XMVector3Length(t - a));
-		lenAT = std::clamp(lenAT, Epsilon, lenAB + lenBC - Epsilon);
+        // 3辺の長さ(a, b, c)から成る三角形の、辺a・辺bに挟まれた角(=辺cの対角)を求める
+        // 余弦定理: c^2 = a^2 + b^2 - 2ab*cos(C)  →  C = acos((a^2+b^2-c^2) / (2ab))
+        float TriangleAngle(float a, float b, float oppositeC)
+        {
+            float denom = 2.0f * a * b;
+            if (denom < 1e-6f)
+            {
+                // ボーン長がほぼ0のような異常値の保険
+                return 0.0f;
+            }
+            float cosAngle = (a * a + b * b - oppositeC * oppositeC) / denom;
+            return SafeAcos(cosAngle);
+        }
 
-		// 現在の内角（root側）
-		float currentRootAngle = AngleBetween(b - a, c - a);
-		// 現在の内角（mid側）
-		float currentMidAngle = AngleBetween(a - b, c - b);
+        // root-target間の距離を、実際に届く範囲にクランプする
+        float ClampTargetLength(float rawLength, float upperLen, float lowerLen)
+        {
+            // 伸びきった状態(ロック)を防ぐため、わずかに内側に余裕を持たせる
+            constexpr float epsilon = 0.001f;
+            float maxLength = upperLen + lowerLen - epsilon;
+            float minLength = std::abs(upperLen - lowerLen) + epsilon;
+            return std::clamp(rawLength, minLength, maxLength);
+        }
 
-		// targetに届いたときのroot側の内角
-		float targetRootAngle = acosf(std::clamp(
-			(lenBC * lenBC - lenAB * lenAB - lenAT * lenAT) / (-2.0f * lenAB * lenAT),
-			-1.0f, 1.0f));
-		// targetに届いたときのmid側の内角
-		float targetMidAngle = acosf(std::clamp(
-			(lenAT * lenAT - lenAB * lenAB - lenBC * lenBC) / (-2.0f * lenAB * lenBC),
-			-1.0f, 1.0f));
+        // root→target方向を軸に、poleVectorが乗っている「曲げ平面」の法線を求める
+        // この法線を軸にmid関節を回転させることで、膝が狙った方向に曲がる
+        XMVECTOR CalcBendAxis(
+            FXMVECTOR rootToTarget, // 正規化済みでなくてよい
+            FXMVECTOR rootToPole)   // 正規化済みでなくてよい
+        {
+            XMVECTOR axis = XMVector3Cross(rootToTarget, rootToPole);
+            float lengthSq = XMVectorGetX(XMVector3LengthSq(axis));
+            if (lengthSq < 1e-8f)
+            {
+                // rootToTargetとrootToPoleがほぼ平行(poleVectorが役に立たない位置にある)
+                // 保険として適当な垂直軸を作る
+                XMVECTOR fallback = XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f);
+                axis = XMVector3Cross(rootToTarget, fallback);
+                if (XMVectorGetX(XMVector3LengthSq(axis)) < 1e-8f)
+                {
+                    fallback = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
+                    axis = XMVector3Cross(rootToTarget, fallback);
+                }
+            }
+            return XMVector3Normalize(axis);
+        }
 
-		// 現在の姿勢
-		XMVECTOR bendAxis = XMVector3Normalize(XMVector3Cross(c - a, b - a));
+        // 現在のdirectionを、axis周りにangle分だけ回転させたベクトルを返す
+        XMVECTOR RotateAroundAxis(FXMVECTOR direction, FXMVECTOR axis, float angle)
+        {
+            XMVECTOR rotationQuat = XMQuaternionRotationAxis(axis, angle);
+            return XMVector3Rotate(direction, rotationQuat);
+        }
 
-		// 3点がほぼ一直線で軸が定まらない場合は、poleVectorから軸を作って代用する
-		if (XMVectorGetX(XMVector3LengthSq(bendAxis)) < Epsilon)
-		{
-			bendAxis = XMVector3Normalize(XMVector3Cross(pole - a, b - a));
-		}
+        // fromベクトルをtoベクトルに向ける、最短回転のクォータニオンを求める
+        XMVECTOR RotationFromToRotation(FXMVECTOR from, FXMVECTOR to)
+        {
+            XMVECTOR fromN = XMVector3Normalize(from);
+            XMVECTOR toN = XMVector3Normalize(to);
 
-		float deltaRootAngle = targetRootAngle - currentRootAngle;
-		float deltaMidAngle = targetMidAngle - currentMidAngle;
+            float dot = std::clamp(XMVectorGetX(XMVector3Dot(fromN, toN)), -1.0f, 1.0f);
 
-		XMVECTOR qBendRoot = XMQuaternionRotationAxis(bendAxis, deltaRootAngle);
-		XMVECTOR qBendMid = XMQuaternionRotationAxis(bendAxis, deltaMidAngle);
+            if (dot > 0.9999f)
+            {
+                // ほぼ同じ方向: 回転不要
+                return XMQuaternionIdentity();
+            }
+            if (dot < -0.9999f)
+            {
+                // ほぼ正反対: 任意の垂直軸で180度回転
+                XMVECTOR fallback = XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f);
+                XMVECTOR axis = XMVector3Cross(fromN, fallback);
+                if (XMVectorGetX(XMVector3LengthSq(axis)) < 1e-8f)
+                {
+                    fallback = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
+                    axis = XMVector3Cross(fromN, fallback);
+                }
+                return XMQuaternionRotationAxis(XMVector3Normalize(axis), XM_PI);
+            }
 
-		// 曲げただけの状態でのmid/end位置を仮計算
-		XMVECTOR midBent = a + XMVector3Rotate(b - a, qBendRoot);
-		XMVECTOR endBent = midBent + XMVector3Rotate(c - b, XMQuaternionMultiply(qBendRoot, qBendMid));
+            XMVECTOR axis = XMVector3Normalize(XMVector3Cross(fromN, toN));
+            float angle = SafeAcos(dot);
+            return XMQuaternionRotationAxis(axis, angle);
+        }
+    }
 
-		// 全体をtarget方向へ直す
-		XMVECTOR currentEndDir = XMVector3Normalize(endBent - a);
-		XMVECTOR desiredEndDir = XMVector3Normalize(t - a);
+    Result Solve(
+        const XMFLOAT3& root,
+        const XMFLOAT3& mid,
+        const XMFLOAT3& end,
+        const XMFLOAT4& rootRotation,
+        const XMFLOAT4& midRotation,
+        const XMFLOAT3& target,
+        const XMFLOAT3& poleVector)
+    {
+        using namespace DirectX;
 
-		XMVECTOR aimAxis = XMVector3Normalize(XMVector3Cross(currentEndDir, desiredEndDir));
-		XMVECTOR qAim = XMQuaternionIdentity();
-		if (XMVectorGetX(XMVector3LengthSq(aimAxis)) > Epsilon)
-		{
-			float aimAngle = AngleBetween(currentEndDir, desiredEndDir);
-			qAim = XMQuaternionRotationAxis(aimAxis, aimAngle);
-		}
+        XMVECTOR rootV = XMLoadFloat3(&root);
+        XMVECTOR midV = XMLoadFloat3(&mid);
+        XMVECTOR endV = XMLoadFloat3(&end);
+        XMVECTOR targetV = XMLoadFloat3(&target);
+        XMVECTOR poleV = XMLoadFloat3(&poleVector);
 
-		// target方向に軸をひねり合わせる
-		XMVECTOR midAimed = a + XMVector3Rotate(midBent - a, qAim);
-		XMVECTOR twistAxis = desiredEndDir; // target方向を軸にひねる
+        // 各辺のベクトルと長さ
+        XMVECTOR ab = midV - rootV;     // root→mid (上の骨)
+        XMVECTOR bc = endV - midV;      // mid→end (下の骨)
+        XMVECTOR ac = endV - rootV;     // root→end (現在の姿勢での対角)
+        XMVECTOR at = targetV - rootV;  // root→target
 
-		// 現在の曲がってる向き
-		XMVECTOR currentBendDir = midAimed - a;
-		currentBendDir = currentBendDir - twistAxis * XMVector3Dot(currentBendDir, twistAxis);
+        float upperLen = XMVectorGetX(XMVector3Length(ab));
+        float lowerLen = XMVectorGetX(XMVector3Length(bc));
+        float acLen = XMVectorGetX(XMVector3Length(ac));
+        float rawTargetLen = XMVectorGetX(XMVector3Length(at));
 
-		// 曲がってほしい向き
-		XMVECTOR desiredBendDir = pole - a;
-		desiredBendDir = desiredBendDir - twistAxis * XMVector3Dot(desiredBendDir, twistAxis);
+        float targetLen = ClampTargetLength(rawTargetLen, upperLen, lowerLen);
 
-		XMVECTOR qTwist = XMQuaternionIdentity();
-		if (XMVectorGetX(XMVector3LengthSq(currentBendDir)) > Epsilon &&
-			XMVectorGetX(XMVector3LengthSq(desiredBendDir)) > Epsilon)
-		{
-			currentBendDir = XMVector3Normalize(currentBendDir);
-			desiredBendDir = XMVector3Normalize(desiredBendDir);
-			
-			float twistAngle = AngleBetween(currentBendDir, desiredBendDir);
+        // 曲げ平面の軸(root→target と root→poleVector が乗る平面の法線)
+        XMVECTOR bendAxis = CalcBendAxis(at, poleV - rootV);
 
-			// 回転の向きを判定する
-			XMVECTOR cross = XMVector3Cross(currentBendDir, desiredBendDir);
-			if (XMVectorGetX(XMVector3Dot(cross, twistAxis)) < 0.0f)
-			{
-				twistAngle = -twistAngle;
-			}
-			qTwist = XMQuaternionRotationAxis(twistAxis, twistAngle);
-		}
+        // mid関節の角度: 現在の角度 → targetLenに対応する角度、への差分を求める
+        float oldMidAngle = TriangleAngle(upperLen, lowerLen, acLen);
+        float newMidAngle = TriangleAngle(upperLen, lowerLen, targetLen);
+        float deltaMidAngle = newMidAngle - oldMidAngle;
 
-		// root：曲げ→向き直し→ひねり、の順に合成した最終グローバル回転
-		XMVECTOR rootRotFinal = XMQuaternionMultiply(
-			XMQuaternionMultiply(XMQuaternionMultiply(rootRot, qBendRoot), qAim), qTwist);
+        // mid関節をbendAxis周りにdeltaMidAngleだけ回転させる
+        XMVECTOR midDeltaRotation = XMQuaternionRotationAxis(bendAxis, deltaMidAngle);
+        XMVECTOR midRotationV = XMLoadFloat4(&midRotation);
+        XMVECTOR bentMidRotationV = XMQuaternionMultiply(midRotationV, midDeltaRotation);
 
-		Result result;
-		XMStoreFloat4(&result.rootGlobalRotation, rootRotFinal);
-		XMStoreFloat3(&result.midBendAxis, bendAxis);
-		result.midBendAngleDelta = deltaMidAngle;
-		return result;
-	}
+        // mid関節を回したことで、bc(mid→end)の向きも一緒に変わる
+        XMVECTOR newBc = RotateAroundAxis(bc, bendAxis, deltaMidAngle);
+        XMVECTOR newAc = ab + newBc; // root→新しいend の方向・距離(長さ = targetLen になっているはず)
+
+        // newAc(曲げた後のroot→end)を、at(root→target)の方向に向ける回転を求める
+        XMVECTOR aimRotation = RotationFromToRotation(newAc, at);
+
+        // root回転にaimRotationを上乗せする
+        XMVECTOR rootRotationV = XMLoadFloat4(&rootRotation);
+        XMVECTOR newRootRotationV = XMQuaternionMultiply(rootRotationV, aimRotation);
+
+        // rootが回ればmid, endも一緒に回るので、midの回転にも同じ分を上乗せする
+        XMVECTOR finalMidRotationV = XMQuaternionMultiply(bentMidRotationV, aimRotation);
+
+        // 最終的なmid, endのワールド位置を求める
+        XMVECTOR finalAb = XMVector3Rotate(ab, aimRotation);
+        XMVECTOR finalMidPositionV = rootV + finalAb;
+
+        XMVECTOR finalBc = XMVector3Rotate(newBc, aimRotation);
+        XMVECTOR finalEndPositionV = finalMidPositionV + finalBc;
+
+        Result result{};
+        XMStoreFloat3(&result.midPosition, finalMidPositionV);
+        XMStoreFloat4(&result.rootRotation, newRootRotationV);
+        XMStoreFloat4(&result.midRotation, finalMidRotationV);
+        XMStoreFloat3(&result.endPosition, finalEndPositionV);
+        return result;
+    }
 }

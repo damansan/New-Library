@@ -1909,21 +1909,7 @@ struct GameCameraComponent
  
 ===== IKComponent.h ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\IKComponent.h 
-#pragma once
-#include <string>
-#include <DirectXMath.h>
-
-struct IKComponent
-{
-	// IK—LŒøƒtƒ‰ƒO
-	bool enabled = false;
-
-	std::string rootBoneName;
-	std::string midBoneName;
-	std::string endBoneName;
-
-	DirectX::XMFLOAT3 targetPosition{ 0.0f, 0.0f, 0.0f };
-}; 
+ 
  
 ===== InputComponent.h ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\InputComponent.h 
@@ -2279,14 +2265,7 @@ private:
  
 ===== IKSystem.h ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\IKSystem.h 
-#pragma once
-#include "entt.hpp"
-
-class IKSystem
-{
-public:
-	void Update(entt::registry& registry);
-}; 
+ 
  
 ===== InputSystem.h ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\InputSystem.h 
@@ -2616,27 +2595,7 @@ private:
  
 ===== TwoBoneIKSolver.h ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\TwoBoneIKSolver.h 
-#pragma once
-#include <DirectXMath.h>
-
-// 2BoneIKŒvZ
-namespace TwoBoneIKSolver
-{
-	struct Result
-	{
-		DirectX::XMFLOAT4 rootGlobalRotation;
-		DirectX::XMFLOAT3 midBendAxis;
-		float midBendAngleDelta = 0.0f;
-	};
-
-	Result Solve(
-		const DirectX::XMFLOAT3& rootPos,
-		const DirectX::XMFLOAT3& midPos,
-		const DirectX::XMFLOAT3& endPos,
-		const DirectX::XMFLOAT3& targetPos,
-		const DirectX::XMFLOAT3& poleVector,
-		const DirectX::XMFLOAT4& rootGlobalRotation);
-} 
+ 
  
 ===== AnimationSystem.cpp ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\AnimationSystem.cpp 
@@ -3425,140 +3384,7 @@ void GameCameraSystem::UpdateFixed(
  
 ===== IKSystem.cpp ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\IKSystem.cpp 
-#include "IKSystem.h"
-#include "TwoBoneIKSolver.h"
-
-#include "ECS/Components/IKComponent.h"
-#include "ECS/Components/SkinnedMeshComponent.h"
-#include "ECS/Components/TransformComponent.h"
-
-#include "Resource/SkeletonUtils.h"
-
-void IKSystem::Update(entt::registry& registry)
-{
-	auto view = registry.view<IKComponent, SkinnedMeshComponent, TransformComponent>();
-
-	for (auto entity : view)
-	{
-		auto& ik = view.get<IKComponent>(entity);
-
-		// –³ŒøA‚Ü‚½‚Íƒ{[ƒ“–¼‚ª–¢İ’è‚È‚ç‰½‚à‚µ‚È‚¢
-		if (!ik.enabled) continue;
-		if (ik.rootBoneName.empty() || ik.midBoneName.empty() || ik.endBoneName.empty()) continue;
-
-		auto& skinnedMesh = view.get<SkinnedMeshComponent>(entity);
-		auto& transform = view.get<TransformComponent>(entity);
-		if (!skinnedMesh.model) continue;
-
-		const auto& nodes = skinnedMesh.model->GetNodes();
-
-		// root/mid/endƒ{[ƒ“‚ÌƒCƒ“ƒfƒbƒNƒX‚ğ–¼‘O‚Å’T‚·
-		int rootIndex = -1;
-		int midIndex = -1;
-		int endIndex = -1;
-		for (int i = 0; i < (int)nodes.size(); i++)
-		{
-			if (nodes[i].name == ik.rootBoneName) rootIndex = i;
-			if (nodes[i].name == ik.midBoneName)  midIndex = i;
-			if (nodes[i].name == ik.endBoneName)  endIndex = i;
-		}
-
-		// ‚¢‚¸‚ê‚©Œ©‚Â‚©‚ç‚È‚¯‚ê‚ÎƒXƒLƒbƒv
-		if (rootIndex < 0 || midIndex < 0 || endIndex < 0) continue;
-
-		// Šeƒm[ƒh‚Ìƒ[ƒJƒ‹pose”z—ñ
-		std::vector<DirectX::XMFLOAT3> localPositions(nodes.size());
-		std::vector<DirectX::XMFLOAT4> localRotations(nodes.size());
-		std::vector<DirectX::XMFLOAT3> localScales(nodes.size());
-
-		bool hasPose = (skinnedMesh.localPositions.size() == nodes.size());
-
-		for (int i = 0; i < (int)nodes.size(); i++)
-		{
-			localPositions[i] = hasPose ? skinnedMesh.localPositions[i] : nodes[i].position;
-			localRotations[i] = hasPose ? skinnedMesh.localRotations[i] : nodes[i].rotation;
-			localScales[i] = hasPose ? skinnedMesh.localScales[i] : nodes[i].scale;
-		}
-
-		// IK“K—p‘O‚ÌƒOƒ[ƒoƒ‹p¨‚ğŒvZ
-		SkeletonUtils::CalcGlobalTransforms(
-			nodes, localPositions, localRotations, localScales,
-			skinnedMesh.nodeGlobalTransforms);
-
-		// ƒOƒ[ƒoƒ‹s—ñ‚©‚çˆÊ’u‚ğæ‚èo‚·
-		auto extractPosition = [](const DirectX::XMFLOAT4X4& m)
-			{
-				return DirectX::XMFLOAT3(m._41, m._42, m._43);
-			};
-
-		// ƒOƒ[ƒoƒ‹s—ñ‚©‚ç‰ñ“]‚¾‚¯‚ğæ‚èo‚·
-		auto extractRotation = [](const DirectX::XMFLOAT4X4& m)
-			{
-				DirectX::XMVECTOR scale, rotQuat, trans;
-				DirectX::XMMatrixDecompose(&scale, &rotQuat, &trans, DirectX::XMLoadFloat4x4(&m));
-				DirectX::XMFLOAT4 result;
-				DirectX::XMStoreFloat4(&result, rotQuat);
-				return result;
-			};
-
-		DirectX::XMFLOAT3 rootPos = extractPosition(skinnedMesh.nodeGlobalTransforms[rootIndex]);
-		DirectX::XMFLOAT3 midPos = extractPosition(skinnedMesh.nodeGlobalTransforms[midIndex]);
-		DirectX::XMFLOAT3 endPos = extractPosition(skinnedMesh.nodeGlobalTransforms[endIndex]);
-		DirectX::XMFLOAT4 rootGlobalRotBefore = extractRotation(skinnedMesh.nodeGlobalTransforms[rootIndex]);
-
-		// ƒ[ƒ‹ƒh‹óŠÔ‚Ìtarget‚ğAƒ‚ƒfƒ‹ƒ[ƒJƒ‹‹óŠÔ‚É•ÏŠ·‚·‚é
-		DirectX::XMMATRIX world = transform.GetWorldMatrix();
-		DirectX::XMMATRIX worldInv = DirectX::XMMatrixInverse(nullptr, world);
-
-		DirectX::XMVECTOR targetWorld = DirectX::XMLoadFloat3(&ik.targetPosition);
-
-		DirectX::XMFLOAT3 targetLocal;
-		DirectX::XMStoreFloat3(&targetLocal, DirectX::XMVector3TransformCoord(targetWorld, worldInv));
-
-		DirectX::XMFLOAT3 poleLocal = midPos;
-
-		// 2BoneIK‚ğ‰ğ‚­
-		TwoBoneIKSolver::Result result = TwoBoneIKSolver::Solve(
-			rootPos, midPos, endPos,
-			targetLocal, poleLocal,
-			rootGlobalRotBefore);
-
-		DirectX::XMVECTOR newRootGlobalRot = DirectX::XMLoadFloat4(&result.rootGlobalRotation);
-
-		// root‚Ìe‚ÌŒ»İ‚ÌƒOƒ[ƒoƒ‹‰ñ“]‚ğ‹‚ß‚é
-		int rootParentIndex = nodes[rootIndex].parentIndex;
-		DirectX::XMVECTOR parentGlobalRot = (rootParentIndex >= 0)
-			? DirectX::XMLoadFloat4(&extractRotation(skinnedMesh.nodeGlobalTransforms[rootParentIndex]))
-			: DirectX::XMQuaternionIdentity();
-
-		// rootFV‚µ‚¢ƒOƒ[ƒoƒ‹‰ñ“]‚©‚çAe‚Ì‰ñ“]‚ğ‘Å‚¿Á‚µ‚Äƒ[ƒJƒ‹‰ñ“]‚É•ÏŠ·‚·‚é
-		DirectX::XMVECTOR newRootLocalRot = DirectX::XMQuaternionMultiply(
-			newRootGlobalRot, DirectX::XMQuaternionInverse(parentGlobalRot));
-		DirectX::XMStoreFloat4(&localRotations[rootIndex], newRootLocalRot);
-
-		// midFroot‚ª‰ñ“]‚µ‚½‚±‚Æ‚Å©“®“I‚Éˆø‚«Œp‚ª‚ê‚éŒü‚«iinheritedj‚ÉA
-		// ‹È‚°Šp“x‚Ì•Ï‰»—ÊibendAxis / bendAngleDeltaj‚ğ’Ç‰Á‚µ‚Ä‚©‚çƒ[ƒJƒ‹‰ñ“]‚É•ÏŠ·‚·‚é
-		DirectX::XMVECTOR oldMidLocalRot = DirectX::XMLoadFloat4(&localRotations[midIndex]);
-		DirectX::XMVECTOR inheritedMidGlobalRot = DirectX::XMQuaternionMultiply(oldMidLocalRot, newRootGlobalRot);
-
-		DirectX::XMVECTOR bendAxis = DirectX::XMLoadFloat3(&result.midBendAxis);
-		DirectX::XMVECTOR qBendMid = DirectX::XMQuaternionRotationAxis(bendAxis, result.midBendAngleDelta);
-
-		DirectX::XMVECTOR newMidGlobalRot = DirectX::XMQuaternionMultiply(inheritedMidGlobalRot, qBendMid);
-		DirectX::XMVECTOR newMidLocalRot = DirectX::XMQuaternionMultiply(
-			newMidGlobalRot, DirectX::XMQuaternionInverse(newRootGlobalRot));
-		DirectX::XMStoreFloat4(&localRotations[midIndex], newMidLocalRot);
-
-		// XV‚µ‚½root/mid‚Ìƒ[ƒJƒ‹‰ñ“]‚ÅAƒOƒ[ƒoƒ‹p¨‚ÆƒXƒLƒjƒ“ƒOs—ñ‚ğŒvZ‚µ’¼‚·
-		SkeletonUtils::CalcGlobalTransforms(
-			nodes, localPositions, localRotations, localScales,
-			skinnedMesh.nodeGlobalTransforms);
-
-		SkeletonUtils::CalcSkinningMatrices(
-			*skinnedMesh.model, skinnedMesh.nodeGlobalTransforms,
-			skinnedMesh.boneTransforms);
-	}
-} 
+ 
  
 ===== InputSystem.cpp ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\InputSystem.cpp 
@@ -4702,137 +4528,7 @@ void RenderSystem::ForwardTransparentPass(
  
 ===== TwoBoneIKSolver.cpp ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\TwoBoneIKSolver.cpp 
-#include "TwoBoneIKSolver.h"
-#include <algorithm>
-#include <cmath>
-
-using namespace DirectX;
-
-namespace
-{
-	constexpr float Epsilon = 0.0001f;
-
-	// 2ƒxƒNƒgƒ‹ŠÔ‚ÌŠp“x‚ğ‹‚ß‚é
-	float AngleBetween(FXMVECTOR v1, FXMVECTOR v2)
-	{
-		XMVECTOR n1 = XMVector3Normalize(v1);
-		XMVECTOR n2 = XMVector3Normalize(v2);
-		float dot = std::clamp(XMVectorGetX(XMVector3Dot(n1, n2)), -1.0f, 1.0f);
-		return acosf(dot);
-	}
-}
-
-namespace TwoBoneIKSolver
-{
-	Result Solve(
-		const DirectX::XMFLOAT3& rootPosIn,
-		const DirectX::XMFLOAT3& midPosIn,
-		const DirectX::XMFLOAT3& endPosIn,
-		const DirectX::XMFLOAT3& targetPosIn,
-		const DirectX::XMFLOAT3& poleVectorIn,
-		const DirectX::XMFLOAT4& rootGlobalRotationIn)
-	{
-		XMVECTOR a = XMLoadFloat3(&rootPosIn);
-		XMVECTOR b = XMLoadFloat3(&midPosIn);
-		XMVECTOR c = XMLoadFloat3(&endPosIn);
-		XMVECTOR t = XMLoadFloat3(&targetPosIn);
-		XMVECTOR pole = XMLoadFloat3(&poleVectorIn);
-		XMVECTOR rootRot = XMLoadFloat4(&rootGlobalRotationIn);
-
-		// œ‚Ì’·‚³
-		float lenAB = XMVectorGetX(XMVector3Length(b - a));
-		float lenBC = XMVectorGetX(XMVector3Length(c - b));
-
-		// target‚Ü‚Å‚Ì‹——£‚ğ˜r(‹r)‚ª“Í‚­”ÍˆÍ‚ÉƒNƒ‰ƒ“ƒv‚·‚é
-		float lenAT = XMVectorGetX(XMVector3Length(t - a));
-		lenAT = std::clamp(lenAT, Epsilon, lenAB + lenBC - Epsilon);
-
-		// Œ»İ‚Ì“àŠpiroot‘¤j
-		float currentRootAngle = AngleBetween(b - a, c - a);
-		// Œ»İ‚Ì“àŠpimid‘¤j
-		float currentMidAngle = AngleBetween(a - b, c - b);
-
-		// target‚É“Í‚¢‚½‚Æ‚«‚Ìroot‘¤‚Ì“àŠp
-		float targetRootAngle = acosf(std::clamp(
-			(lenBC * lenBC - lenAB * lenAB - lenAT * lenAT) / (-2.0f * lenAB * lenAT),
-			-1.0f, 1.0f));
-		// target‚É“Í‚¢‚½‚Æ‚«‚Ìmid‘¤‚Ì“àŠp
-		float targetMidAngle = acosf(std::clamp(
-			(lenAT * lenAT - lenAB * lenAB - lenBC * lenBC) / (-2.0f * lenAB * lenBC),
-			-1.0f, 1.0f));
-
-		// Œ»İ‚Ìp¨
-		XMVECTOR bendAxis = XMVector3Normalize(XMVector3Cross(c - a, b - a));
-
-		// 3“_‚ª‚Ù‚Úˆê’¼ü‚Å²‚ª’è‚Ü‚ç‚È‚¢ê‡‚ÍApoleVector‚©‚ç²‚ğì‚Á‚Ä‘ã—p‚·‚é
-		if (XMVectorGetX(XMVector3LengthSq(bendAxis)) < Epsilon)
-		{
-			bendAxis = XMVector3Normalize(XMVector3Cross(pole - a, b - a));
-		}
-
-		float deltaRootAngle = targetRootAngle - currentRootAngle;
-		float deltaMidAngle = targetMidAngle - currentMidAngle;
-
-		XMVECTOR qBendRoot = XMQuaternionRotationAxis(bendAxis, deltaRootAngle);
-		XMVECTOR qBendMid = XMQuaternionRotationAxis(bendAxis, deltaMidAngle);
-
-		// ‹È‚°‚½‚¾‚¯‚Ìó‘Ô‚Å‚Ìmid/endˆÊ’u‚ğ‰¼ŒvZ
-		XMVECTOR midBent = a + XMVector3Rotate(b - a, qBendRoot);
-		XMVECTOR endBent = midBent + XMVector3Rotate(c - b, XMQuaternionMultiply(qBendRoot, qBendMid));
-
-		// ‘S‘Ì‚ğtarget•ûŒü‚Ö’¼‚·
-		XMVECTOR currentEndDir = XMVector3Normalize(endBent - a);
-		XMVECTOR desiredEndDir = XMVector3Normalize(t - a);
-
-		XMVECTOR aimAxis = XMVector3Normalize(XMVector3Cross(currentEndDir, desiredEndDir));
-		XMVECTOR qAim = XMQuaternionIdentity();
-		if (XMVectorGetX(XMVector3LengthSq(aimAxis)) > Epsilon)
-		{
-			float aimAngle = AngleBetween(currentEndDir, desiredEndDir);
-			qAim = XMQuaternionRotationAxis(aimAxis, aimAngle);
-		}
-
-		// target•ûŒü‚É²‚ğ‚Ğ‚Ë‚è‡‚í‚¹‚é
-		XMVECTOR midAimed = a + XMVector3Rotate(midBent - a, qAim);
-		XMVECTOR twistAxis = desiredEndDir; // target•ûŒü‚ğ²‚É‚Ğ‚Ë‚é
-
-		// Œ»İ‚Ì‹È‚ª‚Á‚Ä‚éŒü‚«
-		XMVECTOR currentBendDir = midAimed - a;
-		currentBendDir = currentBendDir - twistAxis * XMVector3Dot(currentBendDir, twistAxis);
-
-		// ‹È‚ª‚Á‚Ä‚Ù‚µ‚¢Œü‚«
-		XMVECTOR desiredBendDir = pole - a;
-		desiredBendDir = desiredBendDir - twistAxis * XMVector3Dot(desiredBendDir, twistAxis);
-
-		XMVECTOR qTwist = XMQuaternionIdentity();
-		if (XMVectorGetX(XMVector3LengthSq(currentBendDir)) > Epsilon &&
-			XMVectorGetX(XMVector3LengthSq(desiredBendDir)) > Epsilon)
-		{
-			currentBendDir = XMVector3Normalize(currentBendDir);
-			desiredBendDir = XMVector3Normalize(desiredBendDir);
-			
-			float twistAngle = AngleBetween(currentBendDir, desiredBendDir);
-
-			// ‰ñ“]‚ÌŒü‚«‚ğ”»’è‚·‚é
-			XMVECTOR cross = XMVector3Cross(currentBendDir, desiredBendDir);
-			if (XMVectorGetX(XMVector3Dot(cross, twistAxis)) < 0.0f)
-			{
-				twistAngle = -twistAngle;
-			}
-			qTwist = XMQuaternionRotationAxis(twistAxis, twistAngle);
-		}
-
-		// rootF‹È‚°¨Œü‚«’¼‚µ¨‚Ğ‚Ë‚èA‚Ì‡‚É‡¬‚µ‚½ÅIƒOƒ[ƒoƒ‹‰ñ“]
-		XMVECTOR rootRotFinal = XMQuaternionMultiply(
-			XMQuaternionMultiply(XMQuaternionMultiply(rootRot, qBendRoot), qAim), qTwist);
-
-		Result result;
-		XMStoreFloat4(&result.rootGlobalRotation, rootRotFinal);
-		XMStoreFloat3(&result.midBendAxis, bendAxis);
-		result.midBendAngleDelta = deltaMidAngle;
-		return result;
-	}
-} 
+ 
  
 ===== ComponentRegistry.h ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\Editor\ComponentRegistry.h 
@@ -5407,60 +5103,6 @@ void ComponentRegistryInitializer::Initialize()
 		});
 
 		// IKƒRƒ“ƒ|[ƒlƒ“ƒg‚Ì“o˜^
-		REGISTER_COMPONENT(IKComponent, "IK",
-			[](auto& reg, auto e)
-			{
-				auto* ik = reg.try_get<IKComponent>(e);
-				auto* skinned = reg.try_get<SkinnedMeshComponent>(e);
-				if (!ik) return;
-
-				if (!ImGui::CollapsingHeader("IK", ImGuiTreeNodeFlags_DefaultOpen)) return;
-
-				// —LŒøƒtƒ‰ƒO
-				ImGui::Checkbox("Enabled", &ik->enabled);
-
-				// SkinnedMesh‚ª‚È‚¯‚ê‚ÎŒx
-				if (!skinned || !skinned->model)
-				{
-					ImGui::TextColored({ 1, 0.5f, 0, 1 }, "No SkinnedMesh found.");
-					return;
-				}
-
-				const auto& nodes = skinned->model->GetNodes();
-				if (nodes.empty())
-				{
-					ImGui::TextColored({ 1, 0.5f, 0, 1 }, "No bones found.");
-					return;
-				}
-
-				// ƒ{[ƒ“‚ğƒRƒ“ƒ{•\¦‚·‚é‹¤’Êƒ‰ƒ€ƒ_irootEmidEend—p‚Ì3‰ÓŠ‚Åg‚¤‚½‚ßj
-				auto boneCombo = [&](const char* label, std::string& boneName)
-					{
-						if (ImGui::BeginCombo(label, boneName.c_str()))
-						{
-							for (const auto& node : nodes)
-							{
-								bool selected = (boneName == node.name);
-								if (ImGui::Selectable(node.name.c_str(), selected))
-								{
-									boneName = node.name;
-								}
-								if (selected) ImGui::SetItemDefaultFocus();
-							}
-							ImGui::EndCombo();
-						}
-					};
-
-				// RootEMidEEndƒ{[ƒ“
-				boneCombo("Root Bone", ik->rootBoneName);
-				boneCombo("Mid Bone", ik->midBoneName);
-				boneCombo("End Bone", ik->endBoneName);
-
-				ImGui::Separator();
-
-				// –Ú•WÀ•WE‹È‚ª‚é•ûŒü‚Ìƒqƒ“ƒgi‚¢‚¸‚ê‚àƒ[ƒ‹ƒh‹óŠÔ‚ÌÀ•Wj
-				ImGui::DragFloat3("Target Position", &ik->targetPosition.x, 0.01f);
-			});
 }
  
  
@@ -5975,7 +5617,7 @@ private:
 
 	PhysicsSystem    physicsSystem;
 
-	IKSystem         ikSystem;
+	//IKSystem         ikSystem;
 };
  
  
@@ -6079,7 +5721,7 @@ void SceneGame::Update(float elapsedTime, const SceneContext& context)
 	{
 		// IKæ›´æ–°(ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã®å¾Œã«ä¸Šæ›¸ãã™ã‚‹)
 		ZoneScopedN("IKSystem");
-		ikSystem.Update(registry);
+
 	}
 
 	{
