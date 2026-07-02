@@ -52,7 +52,6 @@ private:
 	// ñ¢ê∂ê¨ÇÃ
 	// void ProcessDynamicBodies(entt::registry& registry, PhysX& physX, physx::PxScene* pxScene);
 
-	void DebugForwardRaycast(entt::registry& registry, physx::PxScene* pxScene);
 private:
 	// ÉåÉCÇÃãLò^
 	static std::vector<DebugRay> debugRays;
