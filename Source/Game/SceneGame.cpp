@@ -96,7 +96,7 @@ void SceneGame::Update(float elapsedTime, const SceneContext& context)
 	{
 		// IK更新(アニメーションの後に上書きする)
 		ZoneScopedN("IKSystem");
-		ikSystem.Update(registry);
+		ikSystem.Update(registry, GetPhysicsScene());
 	}
 
 	{
@@ -210,13 +210,16 @@ void SceneGame::Render(const SceneContext& context)
 			context.screenHeight
 		);
 	}
-	physicsDebugRenderer.Render(
-		context.deviceContext,
-		GetPhysicsScene(),
-		GetControllerManager(),
-		context.view,
-		context.projection,
-		lightManager.GetDirectionalLight().direction);
+
+	{
+		physicsDebugRenderer.Render(
+			context.deviceContext,
+			GetPhysicsScene(),
+			GetControllerManager(),
+			context.view,
+			context.projection,
+			lightManager.GetDirectionalLight().direction);
+	}
 }
 
 void SceneGame::RenderImGui()

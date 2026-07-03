@@ -25,4 +25,7 @@ namespace TwoBoneIKSolver
         const DirectX::XMFLOAT4& midRotation,
         const DirectX::XMFLOAT3& target,
         const DirectX::XMFLOAT3& poleVector);
+
+    // fromベクトルをtoベクトルに向けて、最短回転のクォータニオンを求める
+    DirectX::XMVECTOR RotationFromToRotation(DirectX::FXMVECTOR from, DirectX::FXMVECTOR to);
 }

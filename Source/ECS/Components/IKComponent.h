@@ -10,5 +10,4 @@ struct IKComponent
     DirectX::XMFLOAT3 targetPos{ 0.0f, 0.0f, 0.0f };
 
     bool hasInitializedTarget = false;
-
 };
