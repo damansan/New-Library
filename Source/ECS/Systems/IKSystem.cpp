@@ -32,19 +32,22 @@ namespace
 
 void IKSystem::Update(entt::registry& registry, physx::PxScene* pxScene)
 {
-	auto view = registry.view<IKComponent, SkinnedMeshComponent>();
+	auto view = registry.view<IKComponent, SkinnedMeshComponent, TransformComponent>();
 	view.each(
-		[&](auto entity, IKComponent& ik, SkinnedMeshComponent& skinned)
+		[&](auto entity, IKComponent& ik, SkinnedMeshComponent& skinned, TransformComponent& transform)
 		{
 			if (!ik.enabled) return;
 			if (!skinned.model) return;
 			if (skinned.nodeGlobalTransforms.empty()) return;
 
-			SolveLeftFootIK(ik, skinned, pxScene);
+			DirectX::XMFLOAT4X4 entityWorldMatrix;
+			DirectX::XMStoreFloat4x4(&entityWorldMatrix, transform.GetWorldMatrix());
+
+			SolveLeftFootIK(ik, skinned, pxScene, entityWorldMatrix);
 		});
 }
 
-void IKSystem::SolveLeftFootIK(IKComponent& ik, SkinnedMeshComponent& skinned, physx::PxScene* pxScene)
+void IKSystem::SolveLeftFootIK(IKComponent& ik, SkinnedMeshComponent& skinned, physx::PxScene* pxScene, const DirectX::XMFLOAT4X4& entityWorldMatrix)
 {
 	using namespace DirectX;
 
@@ -78,13 +81,35 @@ void IKSystem::SolveLeftFootIK(IKComponent& ik, SkinnedMeshComponent& skinned, p
 	XMFLOAT3 targetPos = ik.targetPos;
 
 	// 足首の少し上からまっすぐ下へレイを飛ばし、地面の法線を取得する
-	XMFLOAT3 rayOrigin = endPos;
+		// endPosはモデル空間の座標なので、レイを飛ばす前にワールド空間へ変換する
+	XMVECTOR endPosModel = XMLoadFloat3(&endPos);
+	XMMATRIX entityWorld = XMLoadFloat4x4(&entityWorldMatrix);
+	XMVECTOR endPosWorldV = XMVector3TransformCoord(endPosModel, entityWorld);
+
+	XMFLOAT3 rayOrigin;
+	XMStoreFloat3(&rayOrigin, endPosWorldV);
 	rayOrigin.y += 0.2f; // 地面にめり込んで判定漏れしないよう少し持ち上げる
 	XMFLOAT3 rayDirection = { 0.0f, -1.0f, 0.0f };
 	constexpr float rayMaxDistance = 0.5f;
 
 	RaycastHitResult groundHit = PhysicsSystem::Raycast(
 		pxScene, rayOrigin, rayDirection, rayMaxDistance, PhysicsLayer::Static);
+
+	if (groundHit.hit)
+	{
+		// 足首から足裏までの高さ分、地面の当たり位置より持ち上げる(めり込み防止)
+		// ※仮値。実際のモデルの足の厚みに合わせて微調整が必要
+		constexpr float ankleHeight = 0.1f;
+		XMFLOAT3 hitPos = groundHit.position;
+		hitPos.y += ankleHeight;
+
+		// groundHit.positionはワールド座標なので、モデル空間に変換してからtargetPosとして使う
+		// (地面が見つからなかった場合は、targetPosは最初に代入したik.targetPosのまま)
+		XMVECTOR hitPosWorldV = XMLoadFloat3(&hitPos);
+		XMMATRIX entityWorldInverse = XMMatrixInverse(nullptr, entityWorld);
+		XMVECTOR hitPosModelV = XMVector3TransformCoord(hitPosWorldV, entityWorldInverse);
+		XMStoreFloat3(&targetPos, hitPosModelV);
+	}
 
 	// poleVector: 膝を前方(モデルのZ+方向を仮定)に向ける
 	XMFLOAT3 poleVector = rootPos;

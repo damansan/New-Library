@@ -2281,8 +2281,9 @@ Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\IKSystem.h
 #include <DirectXMath.h>
 #include "entt.hpp"
 
-#include "ECS/Components/SkinnedMeshComponent.h"
 #include "ECS/Components/IKComponent.h"
+#include "ECS/Components/SkinnedMeshComponent.h"
+#include "ECS/Components/TransformComponent.h"
 
 namespace physx { class PxScene; }
 
@@ -2294,7 +2295,7 @@ public:
 
 private:
     // 1体分のFootIK処理(左足決め打ち・確認用)
-    void SolveLeftFootIK(IKComponent& ik, SkinnedMeshComponent& skinned, physx::PxScene* pxScene);
+    void SolveLeftFootIK(IKComponent& ik, SkinnedMeshComponent& skinned, physx::PxScene* pxScene, const DirectX::XMFLOAT4X4& entityWorldMatrix);
 }; 
  
 ===== InputSystem.h ===== 
@@ -2652,6 +2653,9 @@ namespace TwoBoneIKSolver
         const DirectX::XMFLOAT4& midRotation,
         const DirectX::XMFLOAT3& target,
         const DirectX::XMFLOAT3& poleVector);
+
+    // fromベクトルをtoベクトルに向けて、最短回転のクォータニオンを求める
+    DirectX::XMVECTOR RotationFromToRotation(DirectX::FXMVECTOR from, DirectX::FXMVECTOR to);
 } 
  
 ===== AnimationSystem.cpp ===== 
@@ -3444,6 +3448,8 @@ Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\IKSystem.cp
 #include "IKSystem.h"
 #include "ECS/Systems/TwoBoneIKSolver.h"
 #include "Resource/SkeletonUtils.h"
+#include "ECS/Systems/PhysicsSystem.h"
+#include "Core/PhysicsLayer.h"
 
 namespace
 {
@@ -3473,26 +3479,29 @@ namespace
 
 void IKSystem::Update(entt::registry& registry, physx::PxScene* pxScene)
 {
-	auto view = registry.view<IKComponent, SkinnedMeshComponent>();
+	auto view = registry.view<IKComponent, SkinnedMeshComponent, TransformComponent>();
 	view.each(
-		[&](auto entity, IKComponent& ik, SkinnedMeshComponent& skinned)
+		[&](auto entity, IKComponent& ik, SkinnedMeshComponent& skinned, TransformComponent& transform)
 		{
 			if (!ik.enabled) return;
 			if (!skinned.model) return;
 			if (skinned.nodeGlobalTransforms.empty()) return;
 
-			SolveLeftFootIK(ik, skinned, pxScene);
+			DirectX::XMFLOAT4X4 entityWorldMatrix;
+			DirectX::XMStoreFloat4x4(&entityWorldMatrix, transform.GetWorldMatrix());
+
+			SolveLeftFootIK(ik, skinned, pxScene, entityWorldMatrix);
 		});
 }
 
-void IKSystem::SolveLeftFootIK(IKComponent& ik, SkinnedMeshComponent& skinned, physx::PxScene* pxScene)
+void IKSystem::SolveLeftFootIK(IKComponent& ik, SkinnedMeshComponent& skinned, physx::PxScene* pxScene, const DirectX::XMFLOAT4X4& entityWorldMatrix)
 {
 	using namespace DirectX;
 
 	// 決め打ちのノードインデックス(Map_Robot3.gltf の左足)
 	constexpr int rootIndex = 74; // thigh_l
-	constexpr int midIndex = 75; // calf_l
-	constexpr int endIndex = 76; // foot_l
+	constexpr int midIndex = 75;  // calf_l
+	constexpr int endIndex = 76;  // foot_l
 
 	auto& globals = skinned.nodeGlobalTransforms;
 	if (rootIndex >= (int)globals.size() ||
@@ -3517,6 +3526,37 @@ void IKSystem::SolveLeftFootIK(IKComponent& ik, SkinnedMeshComponent& skinned, p
 	}
 
 	XMFLOAT3 targetPos = ik.targetPos;
+
+	// 足首の少し上からまっすぐ下へレイを飛ばし、地面の法線を取得する
+		// endPosはモデル空間の座標なので、レイを飛ばす前にワールド空間へ変換する
+	XMVECTOR endPosModel = XMLoadFloat3(&endPos);
+	XMMATRIX entityWorld = XMLoadFloat4x4(&entityWorldMatrix);
+	XMVECTOR endPosWorldV = XMVector3TransformCoord(endPosModel, entityWorld);
+
+	XMFLOAT3 rayOrigin;
+	XMStoreFloat3(&rayOrigin, endPosWorldV);
+	rayOrigin.y += 0.2f; // 地面にめり込んで判定漏れしないよう少し持ち上げる
+	XMFLOAT3 rayDirection = { 0.0f, -1.0f, 0.0f };
+	constexpr float rayMaxDistance = 0.5f;
+
+	RaycastHitResult groundHit = PhysicsSystem::Raycast(
+		pxScene, rayOrigin, rayDirection, rayMaxDistance, PhysicsLayer::Static);
+
+	if (groundHit.hit)
+	{
+		// 足首から足裏までの高さ分、地面の当たり位置より持ち上げる(めり込み防止)
+		// ※仮値。実際のモデルの足の厚みに合わせて微調整が必要
+		constexpr float ankleHeight = 0.1f;
+		XMFLOAT3 hitPos = groundHit.position;
+		hitPos.y += ankleHeight;
+
+		// groundHit.positionはワールド座標なので、モデル空間に変換してからtargetPosとして使う
+		// (地面が見つからなかった場合は、targetPosは最初に代入したik.targetPosのまま)
+		XMVECTOR hitPosWorldV = XMLoadFloat3(&hitPos);
+		XMMATRIX entityWorldInverse = XMMatrixInverse(nullptr, entityWorld);
+		XMVECTOR hitPosModelV = XMVector3TransformCoord(hitPosWorldV, entityWorldInverse);
+		XMStoreFloat3(&targetPos, hitPosModelV);
+	}
 
 	// poleVector: 膝を前方(モデルのZ+方向を仮定)に向ける
 	XMFLOAT3 poleVector = rootPos;
@@ -3546,6 +3586,18 @@ void IKSystem::SolveLeftFootIK(IKComponent& ik, SkinnedMeshComponent& skinned, p
 
 	XMStoreFloat4(&skinned.localRotations[rootIndex], newRootLocal);
 	XMStoreFloat4(&skinned.localRotations[midIndex], newMidLocal);
+
+	// 足首: 地面の法線に合わせて、水平からのズレ分だけ元の向き(endRot)に上乗せする
+	XMVECTOR groundUp = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+	XMVECTOR groundDeltaRotation = groundHit.hit
+		? TwoBoneIKSolver::RotationFromToRotation(groundUp, XMLoadFloat3(&groundHit.normal))
+		: XMQuaternionIdentity(); // 地面が見つからなければ、元の向きのまま何もしない
+
+	XMVECTOR newEndWorld = XMQuaternionMultiply(XMLoadFloat4(&endRot), groundDeltaRotation);
+	XMVECTOR newEndLocal = WorldToLocalRotation(
+		newEndWorld, XMLoadFloat4(&result.midRotation));
+
+	XMStoreFloat4(&skinned.localRotations[endIndex], newEndLocal);
 
 	// IKで回転が変わったので、グローバル行列を再計算する
 	SkeletonUtils::CalcGlobalTransforms(
@@ -4705,173 +4757,176 @@ Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\TwoBoneIKSo
 
 namespace TwoBoneIKSolver
 {
-    namespace
-    {
-        using namespace DirectX;
+	namespace
+	{
+		using namespace DirectX;
 
-        // 安全なacos(浮動小数の誤差でxが[-1,1]をわずかに超えることがあるため)
-        float SafeAcos(float x)
-        {
-            return std::acos(std::clamp(x, -1.0f, 1.0f));
-        }
+		// 安全なacos(浮動小数の誤差でxが[-1,1]をわずかに超えることがあるため)
+		float SafeAcos(float x)
+		{
+			return std::acos(std::clamp(x, -1.0f, 1.0f));
+		}
 
-        // 3辺の長さ(a, b, c)から成る三角形の、辺a・辺bに挟まれた角(=辺cの対角)を求める
-        // 余弦定理: c^2 = a^2 + b^2 - 2ab*cos(C)  →  C = acos((a^2+b^2-c^2) / (2ab))
-        float TriangleAngle(float a, float b, float oppositeC)
-        {
-            float denom = 2.0f * a * b;
-            if (denom < 1e-6f)
-            {
-                // ボーン長がほぼ0のような異常値の保険
-                return 0.0f;
-            }
-            float cosAngle = (a * a + b * b - oppositeC * oppositeC) / denom;
-            return SafeAcos(cosAngle);
-        }
+		// 3辺の長さ(a, b, c)から成る三角形の、辺a・辺bに挟まれた角(=辺cの対角)を求める
+		// 余弦定理: c^2 = a^2 + b^2 - 2ab*cos(C)  →  C = acos((a^2+b^2-c^2) / (2ab))
+		float TriangleAngle(float a, float b, float oppositeC)
+		{
+			float denom = 2.0f * a * b;
+			if (denom < 1e-6f)
+			{
+				// ボーン長がほぼ0のような異常値の保険
+				return 0.0f;
+			}
+			float cosAngle = (a * a + b * b - oppositeC * oppositeC) / denom;
+			return SafeAcos(cosAngle);
+		}
 
-        // root-target間の距離を、実際に届く範囲にクランプする
-        float ClampTargetLength(float rawLength, float upperLen, float lowerLen)
-        {
-            // 伸びきった状態(ロック)を防ぐため、わずかに内側に余裕を持たせる
-            constexpr float epsilon = 0.001f;
-            float maxLength = upperLen + lowerLen - epsilon;
-            float minLength = std::abs(upperLen - lowerLen) + epsilon;
-            return std::clamp(rawLength, minLength, maxLength);
-        }
+		// root-target間の距離を、実際に届く範囲にクランプする
+		float ClampTargetLength(float rawLength, float upperLen, float lowerLen)
+		{
+			// 伸びきった状態(ロック)を防ぐため、わずかに内側に余裕を持たせる
+			constexpr float epsilon = 0.001f;
+			float maxLength = upperLen + lowerLen - epsilon;
+			float minLength = std::abs(upperLen - lowerLen) + epsilon;
+			return std::clamp(rawLength, minLength, maxLength);
+		}
 
-        // root→target方向を軸に、poleVectorが乗っている「曲げ平面」の法線を求める
-        // この法線を軸にmid関節を回転させることで、膝が狙った方向に曲がる
-        XMVECTOR CalcBendAxis(
-            FXMVECTOR rootToTarget, // 正規化済みでなくてよい
-            FXMVECTOR rootToPole)   // 正規化済みでなくてよい
-        {
-            XMVECTOR axis = XMVector3Cross(rootToTarget, rootToPole);
-            float lengthSq = XMVectorGetX(XMVector3LengthSq(axis));
-            if (lengthSq < 1e-8f)
-            {
-                // rootToTargetとrootToPoleがほぼ平行(poleVectorが役に立たない位置にある)
-                // 保険として適当な垂直軸を作る
-                XMVECTOR fallback = XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f);
-                axis = XMVector3Cross(rootToTarget, fallback);
-                if (XMVectorGetX(XMVector3LengthSq(axis)) < 1e-8f)
-                {
-                    fallback = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
-                    axis = XMVector3Cross(rootToTarget, fallback);
-                }
-            }
-            return XMVector3Normalize(axis);
-        }
+		// root→target方向を軸に、poleVectorが乗っている「曲げ平面」の法線を求める
+		// この法線を軸にmid関節を回転させることで、膝が狙った方向に曲がる
+		XMVECTOR CalcBendAxis(
+			FXMVECTOR rootToTarget, // 正規化済みでなくてよい
+			FXMVECTOR rootToPole)   // 正規化済みでなくてよい
+		{
+			XMVECTOR axis = XMVector3Cross(rootToTarget, rootToPole);
+			float lengthSq = XMVectorGetX(XMVector3LengthSq(axis));
+			if (lengthSq < 1e-8f)
+			{
+				// rootToTargetとrootToPoleがほぼ平行(poleVectorが役に立たない位置にある)
+				// 保険として適当な垂直軸を作る
+				XMVECTOR fallback = XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f);
+				axis = XMVector3Cross(rootToTarget, fallback);
+				if (XMVectorGetX(XMVector3LengthSq(axis)) < 1e-8f)
+				{
+					fallback = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
+					axis = XMVector3Cross(rootToTarget, fallback);
+				}
+			}
+			return XMVector3Normalize(axis);
+		}
 
-        // 現在のdirectionを、axis周りにangle分だけ回転させたベクトルを返す
-        XMVECTOR RotateAroundAxis(FXMVECTOR direction, FXMVECTOR axis, float angle)
-        {
-            XMVECTOR rotationQuat = XMQuaternionRotationAxis(axis, angle);
-            return XMVector3Rotate(direction, rotationQuat);
-        }
+		// 現在のdirectionを、axis周りにangle分だけ回転させたベクトルを返す
+		XMVECTOR RotateAroundAxis(FXMVECTOR direction, FXMVECTOR axis, float angle)
+		{
+			XMVECTOR rotationQuat = XMQuaternionRotationAxis(axis, angle);
+			return XMVector3Rotate(direction, rotationQuat);
+		}
 
-        // fromベクトルをtoベクトルに向ける、最短回転のクォータニオンを求める
-        XMVECTOR RotationFromToRotation(FXMVECTOR from, FXMVECTOR to)
-        {
-            XMVECTOR fromN = XMVector3Normalize(from);
-            XMVECTOR toN = XMVector3Normalize(to);
+	}
 
-            float dot = std::clamp(XMVectorGetX(XMVector3Dot(fromN, toN)), -1.0f, 1.0f);
+	// fromベクトルをtoベクトルに向けて、最短回転のクォータニオンを求める
+	DirectX::XMVECTOR RotationFromToRotation(DirectX::FXMVECTOR from, DirectX::FXMVECTOR to)
+	{
+		using namespace DirectX;
 
-            if (dot > 0.9999f)
-            {
-                // ほぼ同じ方向: 回転不要
-                return XMQuaternionIdentity();
-            }
-            if (dot < -0.9999f)
-            {
-                // ほぼ正反対: 任意の垂直軸で180度回転
-                XMVECTOR fallback = XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f);
-                XMVECTOR axis = XMVector3Cross(fromN, fallback);
-                if (XMVectorGetX(XMVector3LengthSq(axis)) < 1e-8f)
-                {
-                    fallback = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
-                    axis = XMVector3Cross(fromN, fallback);
-                }
-                return XMQuaternionRotationAxis(XMVector3Normalize(axis), XM_PI);
-            }
+		XMVECTOR fromN = XMVector3Normalize(from);
+		XMVECTOR toN = XMVector3Normalize(to);
 
-            XMVECTOR axis = XMVector3Normalize(XMVector3Cross(fromN, toN));
-            float angle = SafeAcos(dot);
-            return XMQuaternionRotationAxis(axis, angle);
-        }
-    }
+		float dot = std::clamp(XMVectorGetX(XMVector3Dot(fromN, toN)), -1.0f, 1.0f);
 
-    Result Solve(
-        const XMFLOAT3& root,
-        const XMFLOAT3& mid,
-        const XMFLOAT3& end,
-        const XMFLOAT4& rootRotation,
-        const XMFLOAT4& midRotation,
-        const XMFLOAT3& target,
-        const XMFLOAT3& poleVector)
-    {
-        using namespace DirectX;
+		if (dot > 0.9999f)
+		{
+			// ほぼ同じ向き: 回転不要
+			return XMQuaternionIdentity();
+		}
+		if (dot < -0.9999f)
+		{
+			// ほぼ正反対: 任意の垂直軸で180度回転
+			XMVECTOR fallback = XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f);
+			XMVECTOR axis = XMVector3Cross(fromN, fallback);
+			if (XMVectorGetX(XMVector3LengthSq(axis)) < 1e-8f)
+			{
+				fallback = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
+				axis = XMVector3Cross(fromN, fallback);
+			}
+			return XMQuaternionRotationAxis(XMVector3Normalize(axis), XM_PI);
+		}
 
-        XMVECTOR rootV = XMLoadFloat3(&root);
-        XMVECTOR midV = XMLoadFloat3(&mid);
-        XMVECTOR endV = XMLoadFloat3(&end);
-        XMVECTOR targetV = XMLoadFloat3(&target);
-        XMVECTOR poleV = XMLoadFloat3(&poleVector);
+		XMVECTOR axis = XMVector3Normalize(XMVector3Cross(fromN, toN));
+		float angle = SafeAcos(dot);
+		return XMQuaternionRotationAxis(axis, angle);
+	}
 
-        // 各辺のベクトルと長さ
-        XMVECTOR ab = midV - rootV;     // root→mid (上の骨)
-        XMVECTOR bc = endV - midV;      // mid→end (下の骨)
-        XMVECTOR ac = endV - rootV;     // root→end (現在の姿勢での対角)
-        XMVECTOR at = targetV - rootV;  // root→target
+	Result Solve(
+		const XMFLOAT3& root,
+		const XMFLOAT3& mid,
+		const XMFLOAT3& end,
+		const XMFLOAT4& rootRotation,
+		const XMFLOAT4& midRotation,
+		const XMFLOAT3& target,
+		const XMFLOAT3& poleVector)
+	{
+		using namespace DirectX;
 
-        float upperLen = XMVectorGetX(XMVector3Length(ab));
-        float lowerLen = XMVectorGetX(XMVector3Length(bc));
-        float acLen = XMVectorGetX(XMVector3Length(ac));
-        float rawTargetLen = XMVectorGetX(XMVector3Length(at));
+		XMVECTOR rootV = XMLoadFloat3(&root);
+		XMVECTOR midV = XMLoadFloat3(&mid);
+		XMVECTOR endV = XMLoadFloat3(&end);
+		XMVECTOR targetV = XMLoadFloat3(&target);
+		XMVECTOR poleV = XMLoadFloat3(&poleVector);
 
-        float targetLen = ClampTargetLength(rawTargetLen, upperLen, lowerLen);
+		// 各辺のベクトルと長さ
+		XMVECTOR ab = midV - rootV;     // root→mid (上の骨)
+		XMVECTOR bc = endV - midV;      // mid→end (下の骨)
+		XMVECTOR ac = endV - rootV;     // root→end (現在の姿勢での対角)
+		XMVECTOR at = targetV - rootV;  // root→target
 
-        // 曲げ平面の軸(root→target と root→poleVector が乗る平面の法線)
-        XMVECTOR bendAxis = CalcBendAxis(at, poleV - rootV);
+		float upperLen = XMVectorGetX(XMVector3Length(ab));
+		float lowerLen = XMVectorGetX(XMVector3Length(bc));
+		float acLen = XMVectorGetX(XMVector3Length(ac));
+		float rawTargetLen = XMVectorGetX(XMVector3Length(at));
 
-        // mid関節の角度: 現在の角度 → targetLenに対応する角度、への差分を求める
-        float oldMidAngle = TriangleAngle(upperLen, lowerLen, acLen);
-        float newMidAngle = TriangleAngle(upperLen, lowerLen, targetLen);
-        float deltaMidAngle = newMidAngle - oldMidAngle;
+		float targetLen = ClampTargetLength(rawTargetLen, upperLen, lowerLen);
 
-        // mid関節をbendAxis周りにdeltaMidAngleだけ回転させる
-        XMVECTOR midDeltaRotation = XMQuaternionRotationAxis(bendAxis, deltaMidAngle);
-        XMVECTOR midRotationV = XMLoadFloat4(&midRotation);
-        XMVECTOR bentMidRotationV = XMQuaternionMultiply(midRotationV, midDeltaRotation);
+		// 曲げ平面の軸(root→target と root→poleVector が乗る平面の法線)
+		XMVECTOR bendAxis = CalcBendAxis(at, poleV - rootV);
 
-        // mid関節を回したことで、bc(mid→end)の向きも一緒に変わる
-        XMVECTOR newBc = RotateAroundAxis(bc, bendAxis, deltaMidAngle);
-        XMVECTOR newAc = ab + newBc; // root→新しいend の方向・距離(長さ = targetLen になっているはず)
+		// mid関節の角度: 現在の角度 → targetLenに対応する角度、への差分を求める
+		float oldMidAngle = TriangleAngle(upperLen, lowerLen, acLen);
+		float newMidAngle = TriangleAngle(upperLen, lowerLen, targetLen);
+		float deltaMidAngle = newMidAngle - oldMidAngle;
 
-        // newAc(曲げた後のroot→end)を、at(root→target)の方向に向ける回転を求める
-        XMVECTOR aimRotation = RotationFromToRotation(newAc, at);
+		// mid関節をbendAxis周りにdeltaMidAngleだけ回転させる
+		XMVECTOR midDeltaRotation = XMQuaternionRotationAxis(bendAxis, deltaMidAngle);
+		XMVECTOR midRotationV = XMLoadFloat4(&midRotation);
+		XMVECTOR bentMidRotationV = XMQuaternionMultiply(midRotationV, midDeltaRotation);
 
-        // root回転にaimRotationを上乗せする
-        XMVECTOR rootRotationV = XMLoadFloat4(&rootRotation);
-        XMVECTOR newRootRotationV = XMQuaternionMultiply(rootRotationV, aimRotation);
+		// mid関節を回したことで、bc(mid→end)の向きも一緒に変わる
+		XMVECTOR newBc = RotateAroundAxis(bc, bendAxis, deltaMidAngle);
+		XMVECTOR newAc = ab + newBc; // root→新しいend の方向・距離(長さ = targetLen になっているはず)
 
-        // rootが回ればmid, endも一緒に回るので、midの回転にも同じ分を上乗せする
-        XMVECTOR finalMidRotationV = XMQuaternionMultiply(bentMidRotationV, aimRotation);
+		// newAc(曲げた後のroot→end)を、at(root→target)の方向に向ける回転を求める
+		XMVECTOR aimRotation = RotationFromToRotation(newAc, at);
 
-        // 最終的なmid, endのワールド位置を求める
-        XMVECTOR finalAb = XMVector3Rotate(ab, aimRotation);
-        XMVECTOR finalMidPositionV = rootV + finalAb;
+		// root回転にaimRotationを上乗せする
+		XMVECTOR rootRotationV = XMLoadFloat4(&rootRotation);
+		XMVECTOR newRootRotationV = XMQuaternionMultiply(rootRotationV, aimRotation);
 
-        XMVECTOR finalBc = XMVector3Rotate(newBc, aimRotation);
-        XMVECTOR finalEndPositionV = finalMidPositionV + finalBc;
+		// rootが回ればmid, endも一緒に回るので、midの回転にも同じ分を上乗せする
+		XMVECTOR finalMidRotationV = XMQuaternionMultiply(bentMidRotationV, aimRotation);
 
-        Result result{};
-        XMStoreFloat3(&result.midPosition, finalMidPositionV);
-        XMStoreFloat4(&result.rootRotation, newRootRotationV);
-        XMStoreFloat4(&result.midRotation, finalMidRotationV);
-        XMStoreFloat3(&result.endPosition, finalEndPositionV);
-        return result;
-    }
+		// 最終的なmid, endのワールド位置を求める
+		XMVECTOR finalAb = XMVector3Rotate(ab, aimRotation);
+		XMVECTOR finalMidPositionV = rootV + finalAb;
+
+		XMVECTOR finalBc = XMVector3Rotate(newBc, aimRotation);
+		XMVECTOR finalEndPositionV = finalMidPositionV + finalBc;
+
+		Result result{};
+		XMStoreFloat3(&result.midPosition, finalMidPositionV);
+		XMStoreFloat4(&result.rootRotation, newRootRotationV);
+		XMStoreFloat4(&result.midRotation, finalMidRotationV);
+		XMStoreFloat3(&result.endPosition, finalEndPositionV);
+		return result;
+	}
 } 
  
 ===== ComponentRegistry.h ===== 

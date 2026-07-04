@@ -2,8 +2,9 @@
 #include <DirectXMath.h>
 #include "entt.hpp"
 
-#include "ECS/Components/SkinnedMeshComponent.h"
 #include "ECS/Components/IKComponent.h"
+#include "ECS/Components/SkinnedMeshComponent.h"
+#include "ECS/Components/TransformComponent.h"
 
 namespace physx { class PxScene; }
 
@@ -15,5 +16,5 @@ public:
 
 private:
     // 1体分のFootIK処理(左足決め打ち・確認用)
-    void SolveLeftFootIK(IKComponent& ik, SkinnedMeshComponent& skinned, physx::PxScene* pxScene);
+    void SolveLeftFootIK(IKComponent& ik, SkinnedMeshComponent& skinned, physx::PxScene* pxScene, const DirectX::XMFLOAT4X4& entityWorldMatrix);
 };
