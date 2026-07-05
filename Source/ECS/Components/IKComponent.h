@@ -29,6 +29,6 @@ struct IKComponent
     // IK‚ğ—LŒø‚É‚·‚é‚©
     bool enabled = true; 
 
-    // ‘«‚²‚Æ‚Ìİ’è
-    std::vector<FootIKSettings> feet{ FootIKSettings{} };
+    // ‘«‚²‚Æ‚Ìİ’è(‰Šú2–{)
+    std::vector<FootIKSettings> feet{ FootIKSettings{}, FootIKSettings{} };
 };
