@@ -15,6 +15,6 @@ public:
     void Update(entt::registry& registry, physx::PxScene* pxScene);
 
 private:
-    // 1体分のFootIK処理(左足決め打ち・確認用)
-    void SolveLeftFootIK(IKComponent& ik, SkinnedMeshComponent& skinned, physx::PxScene* pxScene, const DirectX::XMFLOAT4X4& entityWorldMatrix);
+    // 1本の足のFootIK処理
+    void SolveFootIK(FootIKSettings& footSettings, SkinnedMeshComponent& skinned, physx::PxScene* pxScene, const DirectX::XMFLOAT4X4& entityWorldMatrix);
 };

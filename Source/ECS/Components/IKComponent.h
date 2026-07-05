@@ -1,13 +1,34 @@
 #pragma once
 #include <DirectXMath.h>
+#include <vector>
 
-// FootIK用のコンポーネント(現時点では動作確認用の最小構成)
-struct IKComponent
+// 足1本分のFootIK設定情報
+struct FootIKSettings
 {
-    bool enabled = true; // IKを有効にするか
+    // 足のボーンインデックス
+    int rootBoneIndex = 74; // thigh_l
+    int midBoneIndex = 75;  // calf_l
+    int endBoneIndex = 76;  // foot_l
 
-    // 足を届かせたいワールド座標(仮の地面。将来的にはレイキャストで自動取得予定)
+    // レイキャスト関連
+    float rayStartOffset = 0.2f;  // レイの始点
+    float rayMaxDistance = 0.5f;  // レイの長さ
+    float ankleHeight = 0.1f;     // めり込み防止値
+
+    // 曲げる方向
+    bool poleVectorForward = true;
+
+	// IKのターゲット位置
     DirectX::XMFLOAT3 targetPos{ 0.0f, 0.0f, 0.0f };
 
     bool hasInitializedTarget = false;
+};
+
+struct IKComponent
+{
+    // IKを有効にするか
+    bool enabled = true; 
+
+    // 足ごとの設定
+    std::vector<FootIKSettings> feet{ FootIKSettings{} };
 };

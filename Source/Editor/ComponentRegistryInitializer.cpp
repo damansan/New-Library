@@ -370,7 +370,7 @@ void ComponentRegistryInitializer::Initialize()
 				} 
 		});
 
-		// IKコンポーネントの登録(FootIK動作確認用)
+		// IKコンポーネントの登録
 		REGISTER_COMPONENT(IKComponent, "IK",
 			[](auto& reg, auto e)
 			{
@@ -387,5 +387,61 @@ void ComponentRegistryInitializer::Initialize()
 				}
 
 				ImGui::Checkbox("Enabled", &ik->enabled);
-				ImGui::DragFloat3("Target Pos", &ik->targetPos.x, 0.01f);
-			}); }
+
+				for (size_t i = 0; i < ik->feet.size(); ++i)
+				{
+					ImGui::PushID((int)i);
+
+					std::string label = "Foot " + std::to_string(i);
+					if (ImGui::TreeNode(label.c_str()))
+					{
+						FootIKSettings& foot = ik->feet[i];
+
+						auto& nodes = skinned->model->GetNodes();
+
+						// ボーン名から選ぶコンボボックスを表示する
+						auto drawBoneCombo = [&](const char* label, int& boneIndex)
+							{
+								const char* previewName = (boneIndex >= 0 && boneIndex < (int)nodes.size())
+									? nodes[boneIndex].name.c_str()
+									: "(Invalid Index)";
+
+								if (ImGui::BeginCombo(label, previewName))
+								{
+									for (int n = 0; n < (int)nodes.size(); ++n)
+									{
+										bool isSelected = (boneIndex == n);
+										if (ImGui::Selectable(nodes[n].name.c_str(), isSelected))
+										{
+											boneIndex = n;
+										}
+										if (isSelected)
+										{
+											ImGui::SetItemDefaultFocus();
+										}
+									}
+									ImGui::EndCombo();
+								}
+							};
+
+						drawBoneCombo("Root Bone", foot.rootBoneIndex);
+						drawBoneCombo("Mid Bone", foot.midBoneIndex);
+						drawBoneCombo("End Bone", foot.endBoneIndex);
+						ImGui::DragFloat("Ray Start Offset", &foot.rayStartOffset, 0.01f);
+						ImGui::DragFloat("Ray Max Distance", &foot.rayMaxDistance, 0.01f);
+						ImGui::DragFloat("Ankle Height", &foot.ankleHeight, 0.01f);
+						ImGui::Checkbox("Pole Vector Forward (Z-)", &foot.poleVectorForward);
+
+						ImGui::DragFloat3("Target Pos", &foot.targetPos.x, 0.01f);
+						if (ImGui::Button("Reset Target Pos"))
+						{
+							foot.hasInitializedTarget = false;
+						}
+
+						ImGui::TreePop();
+					}
+
+					ImGui::PopID();
+				}
+			}); 
+} 

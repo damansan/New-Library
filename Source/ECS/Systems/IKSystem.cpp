@@ -43,21 +43,26 @@ void IKSystem::Update(entt::registry& registry, physx::PxScene* pxScene)
 			DirectX::XMFLOAT4X4 entityWorldMatrix;
 			DirectX::XMStoreFloat4x4(&entityWorldMatrix, transform.GetWorldMatrix());
 
-			SolveLeftFootIK(ik, skinned, pxScene, entityWorldMatrix);
+			for (auto& footSettings : ik.feet)
+			{
+				SolveFootIK(footSettings, skinned, pxScene, entityWorldMatrix);
+			}
 		});
 }
 
-void IKSystem::SolveLeftFootIK(IKComponent& ik, SkinnedMeshComponent& skinned, physx::PxScene* pxScene, const DirectX::XMFLOAT4X4& entityWorldMatrix)
+// 1本の足のFootIK処理
+void IKSystem::SolveFootIK(FootIKSettings& footSettings, SkinnedMeshComponent& skinned, physx::PxScene* pxScene, const DirectX::XMFLOAT4X4& entityWorldMatrix)
 {
 	using namespace DirectX;
 
-	// 決め打ちのノードインデックス(Map_Robot3.gltf の左足)
-	constexpr int rootIndex = 74; // thigh_l
-	constexpr int midIndex = 75;  // calf_l
-	constexpr int endIndex = 76;  // foot_l
+	// ボーンインデックス
+	const int rootIndex = footSettings.rootBoneIndex;
+	const int midIndex = footSettings.midBoneIndex;
+	const int endIndex = footSettings.endBoneIndex;
 
 	auto& globals = skinned.nodeGlobalTransforms;
-	if (rootIndex >= (int)globals.size() ||
+	if (rootIndex < 0 || midIndex < 0 || endIndex < 0 ||
+		rootIndex >= (int)globals.size() ||
 		midIndex >= (int)globals.size() ||
 		endIndex >= (int)globals.size())
 	{
@@ -72,13 +77,13 @@ void IKSystem::SolveLeftFootIK(IKComponent& ik, SkinnedMeshComponent& skinned, p
 	DecomposePosRot(globals[endIndex], endPos, endRot);
 
 	// 初回だけ、現在の足首位置をtargetPosの初期値として使う
-	if (!ik.hasInitializedTarget)
+	if (!footSettings.hasInitializedTarget)
 	{
-		ik.targetPos = endPos;
-		ik.hasInitializedTarget = true;
+		footSettings.targetPos = endPos;
+		footSettings.hasInitializedTarget = true;
 	}
 
-	XMFLOAT3 targetPos = ik.targetPos;
+	XMFLOAT3 targetPos = footSettings.targetPos;
 
 	// 足首の少し上からまっすぐ下へレイを飛ばし、地面の法線を取得する
 		// endPosはモデル空間の座標なので、レイを飛ばす前にワールド空間へ変換する
@@ -88,23 +93,22 @@ void IKSystem::SolveLeftFootIK(IKComponent& ik, SkinnedMeshComponent& skinned, p
 
 	XMFLOAT3 rayOrigin;
 	XMStoreFloat3(&rayOrigin, endPosWorldV);
-	rayOrigin.y += 0.2f; // 地面にめり込んで判定漏れしないよう少し持ち上げる
+	rayOrigin.y += footSettings.rayStartOffset; // めり込まないように少し上げる
 	XMFLOAT3 rayDirection = { 0.0f, -1.0f, 0.0f };
-	constexpr float rayMaxDistance = 0.5f;
+	float rayMaxDistance = footSettings.rayMaxDistance;
 
+	// レイを飛ばす
 	RaycastHitResult groundHit = PhysicsSystem::Raycast(
 		pxScene, rayOrigin, rayDirection, rayMaxDistance, PhysicsLayer::Static);
 
 	if (groundHit.hit)
 	{
-		// 足首から足裏までの高さ分、地面の当たり位置より持ち上げる(めり込み防止)
-		// ※仮値。実際のモデルの足の厚みに合わせて微調整が必要
-		constexpr float ankleHeight = 0.1f;
+		// 地面から足首までの高さ分、地面の当たり位置より持ち上げる(めり込み防止)
 		XMFLOAT3 hitPos = groundHit.position;
-		hitPos.y += ankleHeight;
+		hitPos.y += footSettings.ankleHeight;
 
 		// groundHit.positionはワールド座標なので、モデル空間に変換してからtargetPosとして使う
-		// (地面が見つからなかった場合は、targetPosは最初に代入したik.targetPosのまま)
+		// (地面が見つからなかった場合は、targetPosは最初に代入したfootSettings.targetPosのまま)
 		XMVECTOR hitPosWorldV = XMLoadFloat3(&hitPos);
 		XMMATRIX entityWorldInverse = XMMatrixInverse(nullptr, entityWorld);
 		XMVECTOR hitPosModelV = XMVector3TransformCoord(hitPosWorldV, entityWorldInverse);
@@ -113,7 +117,7 @@ void IKSystem::SolveLeftFootIK(IKComponent& ik, SkinnedMeshComponent& skinned, p
 
 	// poleVector: 膝を前方(モデルのZ+方向を仮定)に向ける
 	XMFLOAT3 poleVector = rootPos;
-	poleVector.z -= 1.0f;
+	poleVector.z += footSettings.poleVectorForward ? -1.0f : 1.0f;
 
 	// 2BoneIKを解く
 	TwoBoneIKSolver::Result result = TwoBoneIKSolver::Solve(
