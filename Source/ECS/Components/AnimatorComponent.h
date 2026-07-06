@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include <string>
+#include <DirectXMath.h>
 
 struct AnimatorComponent
 {
@@ -15,4 +16,12 @@ struct AnimatorComponent
     float       blendTime{ 0.0f };   // ブレンド時間
     float       blendRate{ 0.0f };   // ブレンド率（0.0～1.0）
     bool        isBlending{ false }; // ブレンド中フラグ
+
+    // ルートモーション用
+    bool        useRootMotion { false }; // ルートモーション使用
+    bool        useRootMotionY{ false }; // Y軸適応
+    std::string rootMotionNodeName;      // ルートノード名
+    DirectX::XMFLOAT3 rootMotionDelta{ 0.0f, 0.0f, 0.0f }; // ルートモーション移動量
+
+    
 };

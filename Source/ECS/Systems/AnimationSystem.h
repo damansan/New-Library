@@ -37,5 +37,25 @@ private:
 		Model& model,
 		const Model::Animation& animation,
 		float time,
-		SkinnedMeshComponent& skinned);
+		SkinnedMeshComponent& skinned,
+		int rootMotionNodeIndex = -1);
+
+	// 名前からルートノードインデックスを探す
+	static int FindNodeIndex(const Model& model, const std::string& name);
+
+	// 指定時刻のローカル位置を求める
+	static DirectX::XMFLOAT3 CalcNodeLocalPosition(
+		const Model::Animation& animation,
+		int nodeIndex,
+		const Model::Node& node,
+		float time);
+
+	// ルートモーションの移動量を計算する
+	static DirectX::XMFLOAT3 CalcRootMotionDelta(
+		const Model& model,
+		const Model::Animation& animation,
+		int rootMotionNodeIndex,
+		float oldTime,
+		float newTime);
+
 };

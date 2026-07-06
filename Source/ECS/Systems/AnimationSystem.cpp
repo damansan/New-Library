@@ -1,6 +1,8 @@
 #include "AnimationSystem.h"
 #include "tracy/Tracy.hpp"
 #include "Resource/SkeletonUtils.h"
+#include "ECS/Components/TransformComponent.h"
+#include "ECS/Components/MovementComponent.h"
 
 // 更新
 void AnimationSystem::Update(
@@ -43,6 +45,8 @@ void AnimationSystem::Update(
 			}
 
 			const auto& animation = animations[animIndex];
+			const float oldTime = animator.animationTime;
+
 			animator.animationTime += elapsedTime * animator.playSpeed;
 
 			// ループ処理
@@ -64,13 +68,59 @@ void AnimationSystem::Update(
 				}
 			}
 
+			// ルートモーションの移動量を計算
+			animator.rootMotionDelta = { 0.0f, 0.0f, 0.0f };
+			int rootMotionNodeIndex = -1;
+			if (animator.useRootMotion)
+			{
+				rootMotionNodeIndex = FindNodeIndex(*skinned.model, animator.rootMotionNodeName);
+				if (rootMotionNodeIndex >= 0)
+				{
+					animator.rootMotionDelta = CalcRootMotionDelta(
+						*skinned.model, animation, rootMotionNodeIndex,
+						oldTime, animator.animationTime);
+				}
+			}
+
 			// ボーン行列を計算
 			CalcBoneTransforms(
 				*skinned.model,
-				animation,
+				animation, 
 				animator.animationTime,
-				skinned);
+				skinned,
+				rootMotionNodeIndex);
+
+			if (rootMotionNodeIndex >= 0 && elapsedTime > 0.0f)
+			{
+				auto* transform = registry.try_get<TransformComponent>(entity);
+				auto* movement = registry.try_get<MovementComponent>(entity);
+
+				if (transform && movement)
+				{
+					// ローカルの移動量を、キャラクターの向きに応じてワールド空間に変換する
+					DirectX::XMMATRIX rotationMatrix = DirectX::XMMatrixRotationRollPitchYaw(
+						transform->rotation.x, transform->rotation.y, transform->rotation.z);
+
+					DirectX::XMVECTOR localDelta = DirectX::XMLoadFloat3(&animator.rootMotionDelta);
+					DirectX::XMVECTOR worldDelta = DirectX::XMVector3TransformNormal(localDelta, rotationMatrix);
+
+					DirectX::XMFLOAT3 worldDeltaF;
+					DirectX::XMStoreFloat3(&worldDeltaF, worldDelta);
+
+					// 移動量(位置の差分)を速度に変換して上書きする
+					// （PhysicsSystem側で velocity * elapsedTime として使われるため）
+					movement->velocity.x = worldDeltaF.x / elapsedTime;
+					movement->velocity.z = worldDeltaF.z / elapsedTime;
+
+					if (animator.useRootMotionY)
+					{
+						movement->velocity.y = worldDeltaF.y / elapsedTime;
+					}
+				}
+			}
 		});
+
+
 }
 
 // 時間を進めずに、指定した時刻のポーズだけ計算する
@@ -208,10 +258,11 @@ DirectX::XMFLOAT3 AnimationSystem::InterpolateScale(
 
 // ノードのグローバル行列を再帰計算してボーン行列に書き込む
 void AnimationSystem::CalcBoneTransforms(
-	Model& model,
+	Model& model, 
 	const Model::Animation& animation,
 	float time,
-	SkinnedMeshComponent& skinned)
+	SkinnedMeshComponent& skinned,
+	int rootMotionNodeIndex)
 {
 	auto& nodes = model.GetNodes();
 
@@ -249,6 +300,12 @@ void AnimationSystem::CalcBoneTransforms(
 					nodeAnim.scaleKeyframes, time);
 			}
 		}
+		
+		if (i == rootMotionNodeIndex)
+		{
+			skinned.localPositions[i] = CalcNodeLocalPosition(
+				animation, i, nodes[i], 0.0f);
+		}
 	}
 
 	// 階層計算とスキニング行列化は共通ロジック(SkeletonUtils)に任せる
@@ -258,4 +315,82 @@ void AnimationSystem::CalcBoneTransforms(
 
 	SkeletonUtils::CalcSkinningMatrices(
 		model, skinned.nodeGlobalTransforms, skinned.boneTransforms);
+}
+
+// 名前からルートノードインデックスを探す
+int AnimationSystem::FindNodeIndex(const Model& model, const std::string& name)
+{
+	const auto& nodes = model.GetNodes();
+	for (int i = 0; i < (int)nodes.size(); i++)
+	{
+		if (nodes[i].name == name) return i;
+	}
+	return -1;
+}
+
+// 指定時刻のローカル位置を求める
+DirectX::XMFLOAT3 AnimationSystem::CalcNodeLocalPosition(
+	const Model::Animation& animation,
+	int nodeIndex,
+	const Model::Node& node,
+	float time)
+{
+	// アニメーションが無ければバインドポーズの位置を返す
+	if (nodeIndex >= (int)animation.nodeAnims.size())
+	{
+		return node.position;
+	}
+
+	const auto& nodeAnim = animation.nodeAnims[nodeIndex];
+	if (nodeAnim.positionKeyframes.empty())
+	{
+		return node.position;
+	}
+
+	return InterpolatePosition(nodeAnim.positionKeyframes, time);
+}
+
+// ルートモーションの移動量を計算する
+DirectX::XMFLOAT3 AnimationSystem::CalcRootMotionDelta(
+	const Model& model, 
+	const Model::Animation& animation,
+	int rootMotionNodeIndex, 
+	float oldTime, 
+	float newTime)
+{
+	const auto& node = model.GetNodes()[rootMotionNodeIndex];
+
+	// ポーズ取得用のラムダ（毎回同じ引数を書かずに済むように）
+	auto getPos = [&](float t)
+		{
+			return CalcNodeLocalPosition(animation, rootMotionNodeIndex, node, t);
+		};
+
+	DirectX::XMFLOAT3 delta{ 0.0f, 0.0f, 0.0f };
+
+	if (oldTime > newTime)
+	{
+		// ループで終端→開始に巻き戻った場合
+		// 「old→終端」の移動と「開始→new」の移動を合成する
+		DirectX::XMFLOAT3 beginPos = getPos(0.0f);
+		DirectX::XMFLOAT3 oldPos = getPos(oldTime);
+		DirectX::XMFLOAT3 endPos = getPos(animation.secondsLength);
+		DirectX::XMFLOAT3 newPos = getPos(newTime);
+
+		delta.x = (endPos.x - oldPos.x) + (newPos.x - beginPos.x);
+		delta.y = (endPos.y - oldPos.y) + (newPos.y - beginPos.y);
+		delta.z = (endPos.z - oldPos.z) + (newPos.z - beginPos.z);
+	}
+	else
+	{
+		// 通常時：前フレームと今フレームの差分がそのまま移動量
+		DirectX::XMFLOAT3 oldPos = getPos(oldTime);
+		DirectX::XMFLOAT3 newPos = getPos(newTime);
+
+		delta.x = newPos.x - oldPos.x;
+		delta.y = newPos.y - oldPos.y;
+		delta.z = newPos.z - oldPos.z;
+	}
+
+	return delta;
 }

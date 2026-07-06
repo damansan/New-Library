@@ -188,6 +188,20 @@ void ComponentRegistryInitializer::Initialize()
 			{
 				if (ImGui::Button("Play")) { anim->isPlaying = true; anim->isEnd = false; }
 			}
+
+			// ルートモーション設定
+			ImGui::Separator();
+			ImGui::Text("Root Motion");
+
+			ImGui::Checkbox("Use Root Motion", &anim->useRootMotion);
+			ImGui::Checkbox("Use Root Motion Y", &anim->useRootMotionY);
+
+			char nodeNameBuffer[128];
+			strncpy_s(nodeNameBuffer, anim->rootMotionNodeName.c_str(), sizeof(nodeNameBuffer) - 1);
+			if (ImGui::InputText("Root Motion Node", nodeNameBuffer, sizeof(nodeNameBuffer)))
+			{
+				anim->rootMotionNodeName = nodeNameBuffer;
+			}
 		});
 
 	// フリーカメラコンポーネントの登録
