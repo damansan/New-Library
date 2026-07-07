@@ -391,36 +391,29 @@ void ComponentRegistryInitializer::Initialize()
 				auto* ik = reg.try_get<IKComponent>(e);
 				auto* skinned = reg.try_get<SkinnedMeshComponent>(e);
 				if (!ik) return;
-
 				if (!ImGui::CollapsingHeader("IK", ImGuiTreeNodeFlags_DefaultOpen)) return;
-
 				if (!skinned || !skinned->model)
 				{
 					ImGui::TextColored({ 1, 0.5f, 0, 1 }, "No SkinnedMesh found.");
 					return;
 				}
-
 				ImGui::Checkbox("Enabled", &ik->enabled);
-
+				int removeIndex = -1; // このフレームで削除したいfootのインデックス(-1なら削除なし)
 				for (size_t i = 0; i < ik->feet.size(); ++i)
 				{
 					ImGui::PushID((int)i);
-
 					std::string label = "Foot " + std::to_string(i);
 					if (ImGui::TreeNode(label.c_str()))
 					{
 						FootIKSettings& foot = ik->feet[i];
-
 						auto& nodes = skinned->model->GetNodes();
-
-						// ボーン名から選ぶコンボボックスを表示する
-						auto drawBoneCombo = [&](const char* label, int& boneIndex)
+						auto drawBoneCombo = [&](const char* comboLabel, int& boneIndex)
 							{
 								const char* previewName = (boneIndex >= 0 && boneIndex < (int)nodes.size())
 									? nodes[boneIndex].name.c_str()
 									: "(Invalid Index)";
 
-								if (ImGui::BeginCombo(label, previewName))
+								if (ImGui::BeginCombo(comboLabel, previewName))
 								{
 									for (int n = 0; n < (int)nodes.size(); ++n)
 									{
@@ -437,7 +430,6 @@ void ComponentRegistryInitializer::Initialize()
 									ImGui::EndCombo();
 								}
 							};
-
 						drawBoneCombo("Root Bone", foot.rootBoneIndex);
 						drawBoneCombo("Mid Bone", foot.midBoneIndex);
 						drawBoneCombo("End Bone", foot.endBoneIndex);
@@ -445,17 +437,26 @@ void ComponentRegistryInitializer::Initialize()
 						ImGui::DragFloat("Ray Max Distance", &foot.rayMaxDistance, 0.01f);
 						ImGui::DragFloat("Ankle Height", &foot.ankleHeight, 0.01f);
 						ImGui::Checkbox("Pole Vector Forward (Z-)", &foot.poleVectorForward);
-
 						ImGui::DragFloat3("Target Pos", &foot.targetPos.x, 0.01f);
 						if (ImGui::Button("Reset Target Pos"))
 						{
 							foot.hasInitializedTarget = false;
 						}
-
+						if (ImGui::Button("Remove This Foot"))
+						{
+							removeIndex = (int)i;
+						}
 						ImGui::TreePop();
 					}
-
 					ImGui::PopID();
 				}
+				if (removeIndex >= 0)
+				{
+					ik->feet.erase(ik->feet.begin() + removeIndex);
+				}
+				if (ImGui::Button("Add Foot"))
+				{
+					ik->feet.push_back(FootIKSettings{});
+				}
 			}); 
-} 
+}
