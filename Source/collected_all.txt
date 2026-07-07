@@ -1747,6 +1747,7 @@ void SceneManager::ClearScene()
 Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\AnimatorComponent.h 
 ï»¿#pragma once
 #include <string>
+#include <DirectXMath.h>
 
 struct AnimatorComponent
 {
@@ -1764,7 +1765,7 @@ struct AnimatorComponent
     bool        isBlending{ false }; // ãƒ–ãƒ¬ãƒ³ãƒ‰ä¸­ãƒ•ãƒ©ã‚°
 
     // ãƒ«ãƒ¼ãƒˆãƒ¢ãƒ¼ã‚·ãƒ§ãƒ³ç”¨
-    bool        useRootMotion { true }; // ãƒ«ãƒ¼ãƒˆãƒ¢ãƒ¼ã‚·ãƒ§ãƒ³ä½¿ç”¨
+    bool        useRootMotion { false }; // ãƒ«ãƒ¼ãƒˆãƒ¢ãƒ¼ã‚·ãƒ§ãƒ³ä½¿ç”¨
     bool        useRootMotionY{ false }; // Yè»¸é©å¿œ
     std::string rootMotionNodeName;      // ãƒ«ãƒ¼ãƒˆãƒãƒ¼ãƒ‰å
     DirectX::XMFLOAT3 rootMotionDelta{ 0.0f, 0.0f, 0.0f }; // ãƒ«ãƒ¼ãƒˆãƒ¢ãƒ¼ã‚·ãƒ§ãƒ³ç§»å‹•é‡
@@ -5508,6 +5509,20 @@ void ComponentRegistryInitializer::Initialize()
 			{
 				if (ImGui::Button("Play")) { anim->isPlaying = true; anim->isEnd = false; }
 			}
+
+			// ƒ‹[ƒgƒ‚[ƒVƒ‡ƒ“İ’è
+			ImGui::Separator();
+			ImGui::Text("Root Motion");
+
+			ImGui::Checkbox("Use Root Motion", &anim->useRootMotion);
+			ImGui::Checkbox("Use Root Motion Y", &anim->useRootMotionY);
+
+			char nodeNameBuffer[128];
+			strncpy_s(nodeNameBuffer, anim->rootMotionNodeName.c_str(), sizeof(nodeNameBuffer) - 1);
+			if (ImGui::InputText("Root Motion Node", nodeNameBuffer, sizeof(nodeNameBuffer)))
+			{
+				anim->rootMotionNodeName = nodeNameBuffer;
+			}
 		});
 
 	// ƒtƒŠ[ƒJƒƒ‰ƒRƒ“ƒ|[ƒlƒ“ƒg‚Ì“o˜^
@@ -6288,6 +6303,7 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Game\SceneGame.cpp
 #include <imgui.h>
 
 #include "tracy/Tracy.hpp"
+
 
 void SceneGame::Initialize(const SceneContext& context)
 {

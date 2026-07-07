@@ -363,7 +363,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;TRACY_ENABLE;%(PreprocessorDefinitions);DS5W_USE_LIB;PX_PHYSX_STATIC_LIB</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)Source;$(ProjectDir)External/imgui-docking;$(ProjectDir)External/imgui-docking/backends;$(ProjectDir)External/entt-main/single_include/entt;$(ProjectDir)External/GLTF;$(ProjectDir)External/tracy-0.13.1/public;$(ProjectDir)External/json-3.12.0/single_include/nlohmann;$(ProjectDir)External/DualSense-Windows-main/VS19_Solution/DualSenseWindows/include;.\External\DirectXTK-main\Inc;.\External\DirectXTex-may2026\DirectXTex;.\External\cereal-master\include;.\External\PhysX\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)Source;$(ProjectDir)External/imgui-docking;$(ProjectDir)External/imgui-docking/backends;$(ProjectDir)External/entt-main/single_include/entt;$(ProjectDir)External/GLTF;$(ProjectDir)External/tracy-0.13.1/public;$(ProjectDir)External/json-3.12.0/single_include/nlohmann;$(ProjectDir)External/DualSense-Windows-main/VS19_Solution/DualSenseWindows/include;$(ProjectDir)External\imgui-node-editor-master;$(ProjectDirExternal\imgui-node-editor-master\external;.\External\DirectXTK-main\Inc;.\External\DirectXTex-may2026\DirectXTex;.\External\cereal-master\include;.\External\PhysX\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
@@ -419,7 +419,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions);DS5W_USE_LIB;PX_PHYSX_STATIC_LIB</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)Source;$(ProjectDir)External/imgui-docking;$(ProjectDir)External/imgui-docking/backends;$(ProjectDir)External/entt-main/single_include/entt;$(ProjectDir)External/GLTF;$(ProjectDir)External/tracy-0.13.1/public;$(ProjectDir)External/json-3.12.0/single_include/nlohmann;$(ProjectDir)External/DualSense-Windows-main/VS19_Solution/DualSenseWindows/include;.\External\DirectXTK-main\Inc;.\External\DirectXTex-may2026\DirectXTex;.\External\cereal-master\include;.\External\PhysX\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)Source;$(ProjectDir)External/imgui-docking;$(ProjectDir)External/imgui-docking/backends;$(ProjectDir)External/entt-main/single_include/entt;$(ProjectDir)External/GLTF;$(ProjectDir)External/tracy-0.13.1/public;$(ProjectDir)External/json-3.12.0/single_include/nlohmann;$(ProjectDir)External/DualSense-Windows-main/VS19_Solution/DualSenseWindows/include;$(ProjectDir)External\imgui-node-editor-master;$(ProjectDirExternal\imgui-node-editor-master\external;.\External\DirectXTK-main\Inc;.\External\DirectXTex-may2026\DirectXTex;.\External\cereal-master\include;.\External\PhysX\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
