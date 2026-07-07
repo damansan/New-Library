@@ -248,6 +248,12 @@
     <Filter Include="Sources\Rendering\PhysicsDebugRenderer">
       <UniqueIdentifier>{20769f89-a928-42f4-bdcd-902df135b837}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\Tool\NodeGraph">
+      <UniqueIdentifier>{7ab45984-c873-4035-b702-23c95bbb7970}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Tool\NodeGraph\AnimatorGraph">
+      <UniqueIdentifier>{88e6eb28-b94d-447e-ba7e-efa533cf0df4}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Core\framework.cpp">
@@ -405,6 +411,9 @@
     </ClCompile>
     <ClCompile Include="Source\ECS\Systems\TwoBoneIKSolver.cpp">
       <Filter>Sources\ECS\Systems\IKSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Tool\AnimatorGraphEditor.cpp">
+      <Filter>Sources\Tool\NodeGraph\AnimatorGraph</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -641,6 +650,15 @@
     </ClInclude>
     <ClInclude Include="Source\ECS\Systems\TwoBoneIKSolver.h">
       <Filter>Sources\ECS\Systems\IKSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Tool\IEditorNode.h">
+      <Filter>Sources\Tool\NodeGraph</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Tool\AnimatorGraph.h">
+      <Filter>Sources\Tool\NodeGraph\AnimatorGraph</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Tool\AnimatorGraphEditor.h">
+      <Filter>Sources\Tool\NodeGraph\AnimatorGraph</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
