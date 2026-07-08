@@ -254,6 +254,9 @@
     <Filter Include="Sources\Tool\NodeGraph\AnimatorGraph">
       <UniqueIdentifier>{88e6eb28-b94d-447e-ba7e-efa533cf0df4}</UniqueIdentifier>
     </Filter>
+    <Filter Include="External\imgui-node-editor">
+      <UniqueIdentifier>{7f346661-3b9b-4835-be73-9c1b34c9f0ed}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Core\framework.cpp">
@@ -414,6 +417,21 @@
     </ClCompile>
     <ClCompile Include="Source\Tool\AnimatorGraphEditor.cpp">
       <Filter>Sources\Tool\NodeGraph\AnimatorGraph</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Tool\AnimatorGraph.cpp">
+      <Filter>Sources\Tool\NodeGraph\AnimatorGraph</Filter>
+    </ClCompile>
+    <ClCompile Include="External\imgui-node-editor-master\crude_json.cpp">
+      <Filter>External\imgui-node-editor</Filter>
+    </ClCompile>
+    <ClCompile Include="External\imgui-node-editor-master\imgui_canvas.cpp">
+      <Filter>External\imgui-node-editor</Filter>
+    </ClCompile>
+    <ClCompile Include="External\imgui-node-editor-master\imgui_node_editor.cpp">
+      <Filter>External\imgui-node-editor</Filter>
+    </ClCompile>
+    <ClCompile Include="External\imgui-node-editor-master\imgui_node_editor_api.cpp">
+      <Filter>External\imgui-node-editor</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

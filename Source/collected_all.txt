@@ -8137,68 +8137,6 @@ void SkyBox::Render(
 }
  
  
-===== AnimatorGraph.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\AnimatorGraph.h 
-#pragma once
-#include <string>
-#include <vector>
-#include <memory>
-
-// リンク
-struct AnimLink
-{
-    int fromId = -1; // 遷移元ノードのID
-    int toId = -1;   // 遷移先ノードのID
-};
-
-// ノードの種類
-enum class AnimNodeType
-{
-    Normal,
-    Composite,
-    Start,
-    End,
-};
-
-// ノード
-struct AnimNode
-{
-    int id = -1;
-    std::string name;
-
-    // キャンバス座標
-    float posX = 0.0f;
-    float posY = 0.0f;
-
-    // ノードの種類
-    AnimNodeType type = AnimNodeType::Normal;
-
-    // 子の情報
-    std::vector<AnimNode> children;
-    std::vector<AnimLink> childTransitions;
-
-    // アニメーションクリップ名
-    std::string clipName;
-};
-
-// アニメーショングラフ
-class AnimatorGraph
-{
-public:
-    // 一番上の階層のノード一覧
-    std::vector<AnimNode> rootNodes;
-
-    // 一番上の階層でのリンク
-    std::vector<AnimLink> rootLink;
-
-    // 新しいノードを作るたびに一意なIDを払い出す
-    int GenerateNodeId() { return nextId++; }
-
-private:
-    int nextId = 1;
-
-}; 
- 
 ===== GLTFConverter.h ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\GLTFConverter.h 
 #pragma once
@@ -10679,6 +10617,120 @@ private:
     RangeDragState rightRangeDrag;
 }; 
  
+===== AnimatorGraph.h ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\AnimatorGraph.h 
+#pragma once
+#include <string>
+#include <vector>
+
+// 子階層ノードの種類
+enum class AnimNodeType
+{
+	Normal, // アニメーションノード
+	Start,  // 開始点
+	End,    // 終了点
+};
+
+// 親階層のノードの種類
+enum class AnimStateType
+{
+	Entry, // 開始点
+	State, // ノード
+};
+
+// リンク
+struct AnimLink
+{
+	int id = -1;     // このリンクのID
+	int fromId = -1; // 遷移元のID
+	int toId = -1;   // 遷移先のID
+};
+
+// 子階層ノード
+struct AnimNode
+{
+	int id = -1;
+	std::string name;
+
+	float posX = 0.0f;
+	float posY = 0.0f;
+
+	AnimNodeType type = AnimNodeType::Normal;
+	std::string clipName;
+};
+
+// 親階層ノード
+struct AnimState
+{
+	int id = -1;
+	std::string name;
+
+	float posX = 0.0f;
+	float posY = 0.0f;
+
+	AnimStateType type = AnimStateType::State;
+
+	std::vector<AnimNode> children;
+	std::vector<AnimLink> childLinks;
+};
+
+class AnimatorGraph
+{
+public:
+	std::vector<AnimState>states;
+	std::vector<AnimLink>stateLinks;
+
+	// Stateを作成する
+	int CreateState(const std::string& name, float posX, float posY);
+	// Stateを削除する
+	void DeleteState(int stateId);
+
+	int GenerateId() { return nextId++; }
+
+private:
+	int nextId = 1;
+}; 
+ 
+===== AnimatorGraphEditor.h ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\AnimatorGraphEditor.h 
+#pragma once
+#include <imgui_node_editor.h>
+
+namespace ed = ax::NodeEditor;
+
+class AnimatorGraphEditor
+{
+public:
+    AnimatorGraphEditor() = default;
+    ~AnimatorGraphEditor();
+    AnimatorGraphEditor(const AnimatorGraphEditor&) = delete;
+    AnimatorGraphEditor& operator=(const AnimatorGraphEditor&) = delete;
+
+    void Initialize();
+    void DrawGUI(const char* windowName = "Animator");
+
+private:
+    ed::EditorContext* editorContext = nullptr;
+}; 
+ 
+===== IEditorNode.h ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\IEditorNode.h 
+#pragma once
+
+class IEditorNode
+{
+public:
+    virtual ~IEditorNode() = default;
+
+    virtual int GetId() const = 0;
+
+    // ノード中身の描画
+    virtual void DrawContent() = 0;
+
+    // ピンの設定
+    virtual void DrawPins() = 0;
+}; 
+ 
 ===== AdaptiveTriggerToolWindow.cpp ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\AdaptiveTriggerToolWindow.cpp 
 #include "AdaptiveTriggerToolWindow.h"
@@ -11072,6 +11124,55 @@ void AdaptiveTriggerToolWindow::DrawSelectedPointPanel(std::vector<AdaptiveTrigg
     }
 
     ImGui::PopID();
+} 
+ 
+===== AnimatorGraph.cpp ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\AnimatorGraph.cpp 
+#include "AnimatorGraph.h"
+
+int AnimatorGraph::CreateState(const std::string& name, float posX, float posY)
+{
+	return 0;
+}
+
+void AnimatorGraph::DeleteState(int stateId)
+{
+}
+ 
+ 
+===== AnimatorGraphEditor.cpp ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\AnimatorGraphEditor.cpp 
+#include "AnimatorGraphEditor.h"
+#include "imgui.h"
+
+AnimatorGraphEditor::~AnimatorGraphEditor()
+{
+    if (editorContext)
+    {
+        ed::DestroyEditor(editorContext);
+        editorContext = nullptr;
+    }
+}
+
+void AnimatorGraphEditor::Initialize()
+{
+	ed::Config config;
+	editorContext = ed::CreateEditor(&config);
+}
+
+
+void AnimatorGraphEditor::DrawGUI(const char* windowName)
+{
+    ImGui::Begin(windowName);
+
+    ed::SetCurrentEditor(editorContext);
+    ed::Begin("AnimatorCanvas");
+
+
+    ed::End();
+    ed::SetCurrentEditor(nullptr);
+
+    ImGui::End();
 } 
  
 ===== IStudioAttachment.h ===== 

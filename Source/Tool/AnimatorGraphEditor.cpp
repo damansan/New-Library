@@ -1,17 +1,21 @@
 #include "AnimatorGraphEditor.h"
 #include "imgui.h"
 
+AnimatorGraphEditor::~AnimatorGraphEditor()
+{
+    if (editorContext)
+    {
+        ed::DestroyEditor(editorContext);
+        editorContext = nullptr;
+    }
+}
+
 void AnimatorGraphEditor::Initialize()
 {
 	ed::Config config;
 	editorContext = ed::CreateEditor(&config);
 }
 
-void AnimatorGraphEditor::Shutdown()
-{
-	ed::DestroyEditor(editorContext);
-	editorContext = nullptr;
-}
 
 void AnimatorGraphEditor::DrawGUI(const char* windowName)
 {

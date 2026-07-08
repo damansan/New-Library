@@ -6,8 +6,12 @@ namespace ed = ax::NodeEditor;
 class AnimatorGraphEditor
 {
 public:
+    AnimatorGraphEditor() = default;
+    ~AnimatorGraphEditor();
+    AnimatorGraphEditor(const AnimatorGraphEditor&) = delete;
+    AnimatorGraphEditor& operator=(const AnimatorGraphEditor&) = delete;
+
     void Initialize();
-    void Shutdown();
     void DrawGUI(const char* windowName = "Animator");
 
 private:
