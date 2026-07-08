@@ -3,26 +3,16 @@
 
 void AnimatorGraphEditor::Initialize()
 {
-	ed::Config config;
-	editorContext = ed::CreateEditor(&config);
-}
-
-void AnimatorGraphEditor::Shutdown()
-{
-	ed::DestroyEditor(editorContext);
-	editorContext = nullptr;
+    canvas.Initialize();
 }
 
 void AnimatorGraphEditor::DrawGUI(const char* windowName)
 {
     ImGui::Begin(windowName);
 
-    ed::SetCurrentEditor(editorContext);
-    ed::Begin("AnimatorCanvas");
+    canvas.Begin("AnimatorCanvas");
 
-
-    ed::End();
-    ed::SetCurrentEditor(nullptr);
+    canvas.End();
 
     ImGui::End();
 }

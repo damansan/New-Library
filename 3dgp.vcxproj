@@ -25,6 +25,10 @@
     <ClCompile Include="External\imgui-docking\imgui_draw.cpp" />
     <ClCompile Include="External\imgui-docking\imgui_tables.cpp" />
     <ClCompile Include="External\imgui-docking\imgui_widgets.cpp" />
+    <ClCompile Include="External\imgui-node-editor-master\crude_json.cpp" />
+    <ClCompile Include="External\imgui-node-editor-master\imgui_canvas.cpp" />
+    <ClCompile Include="External\imgui-node-editor-master\imgui_node_editor.cpp" />
+    <ClCompile Include="External\imgui-node-editor-master\imgui_node_editor_api.cpp" />
     <ClCompile Include="External\tracy-0.13.1\public\TracyClient.cpp" />
     <ClCompile Include="Source\Core\Camera.cpp" />
     <ClCompile Include="Source\Core\framework.cpp" />
@@ -65,6 +69,7 @@
     <ClCompile Include="Source\Resource\SkeletonUtils.cpp" />
     <ClCompile Include="Source\Tool\AdaptiveTriggerToolWindow.cpp" />
     <ClCompile Include="Source\Tool\AnimatorGraphEditor.cpp" />
+    <ClCompile Include="Source\Tool\NodeEditorCanvas.cpp" />
     <ClCompile Include="Source\Tool\Studio\StudioAnimator.cpp" />
     <ClCompile Include="Source\Tool\Studio\StudioCamera.cpp" />
     <ClCompile Include="Source\Tool\Studio\StudioModelViewer.cpp" />
@@ -144,6 +149,7 @@
     <ClInclude Include="Source\Tool\AnimatorGraph.h" />
     <ClInclude Include="Source\Tool\AnimatorGraphEditor.h" />
     <ClInclude Include="Source\Tool\IEditorNode.h" />
+    <ClInclude Include="Source\Tool\NodeEditorCanvas.h" />
     <ClInclude Include="Source\Tool\Studio\IStudioAttachment.h" />
     <ClInclude Include="Source\Tool\Studio\StudioAnimator.h" />
     <ClInclude Include="Source\Tool\Studio\StudioCamera.h" />
