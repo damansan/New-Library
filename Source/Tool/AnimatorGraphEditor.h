@@ -1,7 +1,5 @@
 #pragma once
-#include <imgui_node_editor.h>
-
-namespace ed = ax::NodeEditor;
+#include "NodeEditorCanvas.h"
 
 class AnimatorGraphEditor
 {
@@ -15,5 +13,5 @@ public:
     void DrawGUI(const char* windowName = "Animator");
 
 private:
-    ed::EditorContext* editorContext = nullptr;
+    NodeEditorCanvas canvas;
 };
