@@ -418,9 +418,6 @@
     <ClCompile Include="Source\Tool\AnimatorGraphEditor.cpp">
       <Filter>Sources\Tool\NodeGraph\AnimatorGraph</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Tool\AnimatorGraph.cpp">
-      <Filter>Sources\Tool\NodeGraph\AnimatorGraph</Filter>
-    </ClCompile>
     <ClCompile Include="External\imgui-node-editor-master\crude_json.cpp">
       <Filter>External\imgui-node-editor</Filter>
     </ClCompile>
@@ -432,6 +429,12 @@
     </ClCompile>
     <ClCompile Include="External\imgui-node-editor-master\imgui_node_editor_api.cpp">
       <Filter>External\imgui-node-editor</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Tool\NodeEditorCanvas.cpp">
+      <Filter>Sources\Tool\NodeGraph</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Tool\AnimatorGraph.cpp">
+      <Filter>Sources\Tool\NodeGraph\AnimatorGraph</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -672,10 +675,13 @@
     <ClInclude Include="Source\Tool\IEditorNode.h">
       <Filter>Sources\Tool\NodeGraph</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Tool\AnimatorGraph.h">
+    <ClInclude Include="Source\Tool\AnimatorGraphEditor.h">
       <Filter>Sources\Tool\NodeGraph\AnimatorGraph</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Tool\AnimatorGraphEditor.h">
+    <ClInclude Include="Source\Tool\NodeEditorCanvas.h">
+      <Filter>Sources\Tool\NodeGraph</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Tool\AnimatorGraph.h">
       <Filter>Sources\Tool\NodeGraph\AnimatorGraph</Filter>
     </ClInclude>
   </ItemGroup>
