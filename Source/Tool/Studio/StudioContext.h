@@ -16,8 +16,11 @@ struct StudioContext
     bool        isPlaying = false;
 
     // パネル表示フラグ
-    bool showAnimator = false;
-    bool showTimeline = false;
+    bool showAnimator      = false;
+    bool showTimeline      = false;
+    bool showAnimatorGraph = false;
+
+    std::string attachedGraphPath;
 
     // タイムラインでスクラブ操作されたフラグ
     bool requestPoseUpdate = false;

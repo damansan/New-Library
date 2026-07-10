@@ -52,6 +52,7 @@ public:
         studioTimeline.SetWindowId(id);
     }
     int  GetWindowId()  const { return windowId; }
+
 private:
     // •`‰ææ‚ÌØ‚è‘Ö‚¦
     void Begin();

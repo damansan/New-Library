@@ -57,19 +57,16 @@ private:
 	high_resolution_timer timer;
 
 
-
 	// SceneContext
 	SceneContext sceneContext;
 	// SceneContext を最新状態に更新する
 	void updateSceneContext();
 
 
-
 	// Graphicsクラス
 	Graphics graphics;
 	// ImGuiManagerクラス
 	ImGuiManager imguiManager;
-
 
 
 	// SceneManagerクラス
@@ -91,7 +88,7 @@ private:
 	// Studio
 	StudioSharedContext        studioShared;
 	std::vector<std::unique_ptr<StudioWindow>> studioWindows;
-	void openStudioWindow(const std::string& assetPath = "");
+	void openStudioWindow(const std::string& assetPath = "", const std::string& graphPath = "");
 	int nextStudioWindowId = 0;
 
 private:

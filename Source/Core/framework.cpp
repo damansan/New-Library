@@ -23,7 +23,7 @@ framework::framework(HWND hwnd) : hwnd(hwnd)
 	sceneManager.ChangeScene(std::make_unique<SceneGame>());
 
 	// ProjectWindow初期化
-	projectWindow.Initialize("Data/Model");
+	projectWindow.Initialize("Data");
 	projectWindow.LoadIcons(graphics.GetDevice());
 	ComponentRegistryInitializer::Initialize();
 
@@ -100,9 +100,10 @@ void framework::updateImGui()
 	// StudioOpenRequestを処理
 	if (editorContext.studioRequest.pending)
 	{
-		openStudioWindow(editorContext.studioRequest.assetPath);
+		openStudioWindow(editorContext.studioRequest.assetPath, editorContext.studioRequest.graphPath);
 		editorContext.studioRequest.pending = false;
 		editorContext.studioRequest.assetPath = "";
+		editorContext.studioRequest.graphPath = "";
 	}
 	for (auto& win : studioWindows)
 	{
@@ -309,7 +310,7 @@ void framework::updateSceneContext()
 }
 
 // Studioを開く
-void framework::openStudioWindow(const std::string& assetPath)
+void framework::openStudioWindow(const std::string& assetPath, const std::string& graphPath)
 {
 	auto win = std::make_unique<StudioWindow>();
 	win->Initialize(graphics.GetDevice(), &studioShared);
@@ -320,6 +321,12 @@ void framework::openStudioWindow(const std::string& assetPath)
 	if (!assetPath.empty())
 	{
 		win->LoadAsset(assetPath);
+	}
+
+	// グラフのパスが指定されていたら紐付け状態にする
+	if (!graphPath.empty())
+	{
+		win->GetContext().attachedGraphPath = graphPath;
 	}
 
 	studioWindows.push_back(std::move(win));

@@ -15,6 +15,7 @@ struct StudioOpenRequest
 {
     bool        pending = false;
     std::string assetPath;
+    std::string graphPath;
 };
 
 struct EditorContext

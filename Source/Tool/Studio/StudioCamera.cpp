@@ -68,8 +68,8 @@ void StudioCamera::Update(bool isWindowHovered, float elapsedTime)
 	if (GetAsyncKeyState('S') & 0x8000)  MoveEyeTarget(front, -move);
 	if (GetAsyncKeyState('D') & 0x8000)  MoveEyeTarget(right, move);
 	if (GetAsyncKeyState('A') & 0x8000)  MoveEyeTarget(right, -move);
-	if (GetAsyncKeyState('Q') & 0x8000) { eye.y += move; target.y += move; }
-	if (GetAsyncKeyState('E') & 0x8000) { eye.y -= move; target.y -= move; }
+	if (GetAsyncKeyState('E') & 0x8000) { eye.y += move; target.y += move; }
+	if (GetAsyncKeyState('Q') & 0x8000) { eye.y -= move; target.y -= move; }
 
 	// ƒ}ƒEƒX‰ñ“]
 	POINT mousePos;
