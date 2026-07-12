@@ -21,6 +21,7 @@ void StudioWindow::Initialize(ID3D11Device* device, StudioSharedContext* shared,
 	);
 
 	stadoiModelViewer.Initialize(device, &shared->resourceManager);
+	animatorGraph.Initialize();
 
 	ResizeRenderTarget();
 }
@@ -29,7 +30,7 @@ void StudioWindow::Initialize(ID3D11Device* device, StudioSharedContext* shared,
 void StudioWindow::Update(float elapsedTime)
 {
 	// カメラ更新
-	camera.Update(isHovered, elapsedTime);
+	camera.Update(viewportHovered, elapsedTime);
 
 	// モデルビュワー更新
 	stadoiModelViewer.Update(elapsedTime, context);
@@ -145,6 +146,8 @@ void StudioWindow::DrawWindow(const char* windowName)
 		{
 			ImGui::MenuItem("Animator", nullptr, &context.showAnimator);
 			ImGui::MenuItem("Timeline", nullptr, &context.showTimeline);
+			ImGui::MenuItem("AnimatorGraph", nullptr, &context.showAnimatorGraph);
+
 			ImGui::EndMenu();
 		}
 		ImGui::EndMenuBar();
@@ -167,16 +170,20 @@ void StudioWindow::DrawWindow(const char* windowName)
 		ImGuiID dockMain = dockSpaceId;
 		ImGuiID dockLeft = ImGui::DockBuilderSplitNode(
 			dockMain, ImGuiDir_Left, 0.2f, nullptr, &dockMain);
+		ImGuiID dockRight = ImGui::DockBuilderSplitNode(
+			dockMain, ImGuiDir_Right, 0.7f, nullptr, &dockMain);
 		ImGuiID dockBottom = ImGui::DockBuilderSplitNode(
 			dockMain, ImGuiDir_Down, 0.2f, nullptr, &dockMain);
 
 		std::string viewportName = "Viewport##" + std::to_string(windowId);
 		std::string animatorName = "Animator##" + std::to_string(windowId);
 		std::string timelineName = "Timeline##" + std::to_string(windowId);
+		std::string animatorGraphName = "AnimatorGraph##" + std::to_string(windowId);
 
 		ImGui::DockBuilderDockWindow(viewportName.c_str(), dockMain);
 		ImGui::DockBuilderDockWindow(animatorName.c_str(), dockLeft);
 		ImGui::DockBuilderDockWindow(timelineName.c_str(), dockBottom);
+		ImGui::DockBuilderDockWindow(animatorGraphName.c_str(), dockRight);
 
 		ImGui::DockBuilderFinish(dockSpaceId);
 	}
@@ -208,6 +215,20 @@ void StudioWindow::DrawWindow(const char* windowName)
 
 	ImGui::Image(reinterpret_cast<ImTextureID>(srv.Get()), region);
 
+	// モデルのドロップを受け取る
+	if (ImGui::BeginDragDropTarget())
+	{
+		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("MODEL_PATH"))
+		{
+			std::string droppedModelPath(static_cast<const char*>(payload->Data));
+			LoadAsset(droppedModelPath);
+		}
+		ImGui::EndDragDropTarget();
+	}
+
+	// カメラ操作の開始判定はViewport単体のホバーだけを見る
+	viewportHovered = ImGui::IsWindowHovered();
+
 	ImGui::End(); // Viewport
 
 	// Animatorパネル
@@ -220,6 +241,12 @@ void StudioWindow::DrawWindow(const char* windowName)
 	if (context.showTimeline)
 	{
 		studioTimeline.DrawGUI(studioRegistry, context);
+	}
+
+	// AnimatorGraphパネル
+	if (context.showAnimatorGraph)
+	{
+		animatorGraph.DrawGUI(studioRegistry, context);
 	}
 
 	stadoiModelViewer.DrawGUI(studioRegistry, context);

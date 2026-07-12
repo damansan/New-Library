@@ -19,6 +19,7 @@
 #include "StudioModelViewer.h"
 #include "StudioAnimator.h"
 #include "StudioTimeline.h"
+#include "StudioAnimatorGraph.h"
 
 class StudioWindow
 {
@@ -50,6 +51,8 @@ public:
         windowId = id; 
         studioAnimator.SetWindowId(id);
         studioTimeline.SetWindowId(id);
+        animatorGraph.SetWindowId(id);
+
     }
     int  GetWindowId()  const { return windowId; }
 
@@ -86,6 +89,7 @@ private:
     StudioModelViewer stadoiModelViewer;
     StudioAnimator    studioAnimator;
     StudioTimeline    studioTimeline;
+    StudioAnimatorGraph animatorGraph;
 
 
     // ウィンドウ状態
@@ -93,6 +97,7 @@ private:
     UINT  renderWidth = 1280;
     UINT  renderHeight = 720;
     bool  isHovered = false;
+    bool  viewportHovered = false;
     bool  closeRequested = false;
     bool  isFirstFrame = true;
     bool  firstDockSetup = true;
@@ -107,5 +112,4 @@ private:
     // ビューポート保存
     D3D11_VIEWPORT savedViewport = {};
     int            renderSkipCount = 0;
-
 };

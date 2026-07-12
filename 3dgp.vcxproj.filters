@@ -257,6 +257,9 @@
     <Filter Include="External\imgui-node-editor">
       <UniqueIdentifier>{7f346661-3b9b-4835-be73-9c1b34c9f0ed}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\Tool\Studio\StudioAnimatorGraph">
+      <UniqueIdentifier>{bd6b7422-38f4-45bf-8ad4-d87ee49acbe8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Core\framework.cpp">
@@ -415,9 +418,6 @@
     <ClCompile Include="Source\ECS\Systems\TwoBoneIKSolver.cpp">
       <Filter>Sources\ECS\Systems\IKSystem</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Tool\AnimatorGraphEditor.cpp">
-      <Filter>Sources\Tool\NodeGraph\AnimatorGraph</Filter>
-    </ClCompile>
     <ClCompile Include="External\imgui-node-editor-master\crude_json.cpp">
       <Filter>External\imgui-node-editor</Filter>
     </ClCompile>
@@ -435,6 +435,9 @@
     </ClCompile>
     <ClCompile Include="Source\Tool\AnimatorGraph.cpp">
       <Filter>Sources\Tool\NodeGraph\AnimatorGraph</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Tool\Studio\StudioAnimatorGraph.cpp">
+      <Filter>Sources\Tool\Studio\StudioAnimatorGraph</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -675,14 +678,14 @@
     <ClInclude Include="Source\Tool\IEditorNode.h">
       <Filter>Sources\Tool\NodeGraph</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Tool\AnimatorGraphEditor.h">
-      <Filter>Sources\Tool\NodeGraph\AnimatorGraph</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Tool\NodeEditorCanvas.h">
       <Filter>Sources\Tool\NodeGraph</Filter>
     </ClInclude>
     <ClInclude Include="Source\Tool\AnimatorGraph.h">
       <Filter>Sources\Tool\NodeGraph\AnimatorGraph</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Tool\Studio\StudioAnimatorGraph.h">
+      <Filter>Sources\Tool\Studio\StudioAnimatorGraph</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

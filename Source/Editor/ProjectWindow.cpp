@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <fstream>
 #include <WICTextureLoader.h>
+#include <json.hpp>
 
 void ProjectWindow::Initialize(const std::string& rootPath)
 {
@@ -313,11 +314,43 @@ void ProjectWindow::DrawFileGrid(entt::registry& registry, EditorContext& contex
 		ImGui::PushID(index);
 		ImGui::InvisibleButton("##icon", ImVec2(iconSize, iconSize));
 
-		// ダブルクリックでStudioを開くリクエスト（モデルのみ）
-		if (isModel && ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(0))
+		// ダブルクリックでStudioを開くリクエスト（モデル／アニメーショングラフ）
+		if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(0))
 		{
-			context.studioRequest.pending = true;
-			context.studioRequest.assetPath = modelPath;
+			if (isModel)
+			{
+				context.studioRequest.pending = true;
+				context.studioRequest.assetPath = modelPath;
+				context.studioRequest.graphPath = "";
+			}
+			else if (isAnimGraph)
+			{
+				// jsonの中身を読んで、モデルが紐付いているか確認する
+				std::string sourceModelPath;
+
+				std::ifstream ifs(entry.path());
+				if (ifs.is_open())
+				{
+					try
+					{
+						nlohmann::json j;
+						ifs >> j;
+
+						if (j.contains("sourceModelPath"))
+						{
+							sourceModelPath = j["sourceModelPath"].get<std::string>();
+						}
+					}
+					catch (const std::exception&)
+					{
+						// 壊れている/空のjsonの場合はモデル無しとして扱う
+					}
+				}
+
+				context.studioRequest.pending = true;
+				context.studioRequest.assetPath = sourceModelPath; // 空ならモデル無しで開く
+				context.studioRequest.graphPath = modelPath;        // 変数名はmodelPathだが実体はentry.path()の文字列
+			}
 		}
 
 		// ドラッグ開始（モデル／アニメーショングラフ）
