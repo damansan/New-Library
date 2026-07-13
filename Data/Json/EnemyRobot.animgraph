@@ -1,0 +1,15 @@
+{
+    "sourceModelPath": "Data/Model/EnemyRobot/SK_SteamPunkBoss.gltf",
+    "states": [
+        {
+            "id": 1,
+            "name": "New State",
+            "posX": 54.39474868774414,
+            "posY": 35.47367858886719,
+            "type": "State",
+            "children": [],
+            "childLinks": []
+        }
+    ],
+    "stateLinks": []
+}

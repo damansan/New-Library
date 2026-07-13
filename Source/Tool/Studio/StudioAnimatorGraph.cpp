@@ -26,6 +26,13 @@ void StudioAnimatorGraph::DrawGUI(
     std::string panelName = "AnimatorGraph##" + std::to_string(windowId);
     ImGui::Begin(panelName.c_str());
 
+    // エラーメッセージ
+    if (!attachError.empty())
+    {
+        ImGui::TextColored(ImVec4(1, 0.4f, 0.4f, 1), "%s", attachError.c_str());
+    }
+
+    // 保存ボタン
     if (!context.attachedGraphPath.empty())
     {
         if (ImGui::Button("Save"))
@@ -42,6 +49,18 @@ void StudioAnimatorGraph::DrawGUI(
     ImGui::Separator();
 
     canvas.Begin("AnimatorCanvas");
+
+    // パネル全体を.animgraphのドロップ対象にする
+    if (ImGui::BeginDragDropTarget())
+    {
+        if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ANIMGRAPH_PATH"))
+        {
+            std::string droppedPath(static_cast<const char*>(payload->Data));
+            TryAttachGraph(droppedPath, context);
+        }
+        ImGui::EndDragDropTarget();
+    }
+
 
     // 既存のState描画
     for (auto& state : graph.states)
@@ -130,4 +149,39 @@ void StudioAnimatorGraph::Load(StudioContext& context)
     {
         // 壊れているか空のjsonの場合なにもしない
     }
+}
+
+// D&D受け取り口
+void StudioAnimatorGraph::TryAttachGraph(const std::string& path, StudioContext& context)
+{
+    std::ifstream ifs(path);
+    if (!ifs.is_open())
+    {
+        attachError = "Failed to open file.";
+        return;
+    }
+
+    std::string sourceModelPath;
+    try
+    {
+        nlohmann::json j;
+        ifs >> j;
+        sourceModelPath = j.value("sourceModelPath", "");
+    }
+    catch (const std::exception&)
+    {
+        attachError = "Invalid json.";
+        return;
+    }
+
+    // 新規作成Jsonは受け入れ、既存Jsonならモデルパスを比較
+    if (!sourceModelPath.empty() && sourceModelPath != context.currentModelPath)
+    {
+        attachError = "This graph belongs to a different model.";
+        return;
+    }
+
+    attachError.clear();
+    context.attachedGraphPath = path;
+    loaded = false;
 }

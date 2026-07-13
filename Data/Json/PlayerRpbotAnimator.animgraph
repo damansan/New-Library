@@ -1,0 +1,51 @@
+{
+    "sourceModelPath": "Data/Model/PlayerRobot/Map_Robot3.gltf",
+    "states": [
+        {
+            "id": 1,
+            "name": "New State",
+            "posX": 33.55265426635742,
+            "posY": 41.15788269042969,
+            "type": "State",
+            "children": [],
+            "childLinks": []
+        },
+        {
+            "id": 2,
+            "name": "New State",
+            "posX": -18.552614212036133,
+            "posY": 47.31577682495117,
+            "type": "State",
+            "children": [],
+            "childLinks": []
+        },
+        {
+            "id": 3,
+            "name": "New State",
+            "posX": -27.1484375,
+            "posY": 101.49272155761719,
+            "type": "State",
+            "children": [],
+            "childLinks": []
+        },
+        {
+            "id": 4,
+            "name": "New State",
+            "posX": -22.972412109375,
+            "posY": 93.74908447265625,
+            "type": "State",
+            "children": [],
+            "childLinks": []
+        },
+        {
+            "id": 5,
+            "name": "New State",
+            "posX": -64.472412109375,
+            "posY": 20.74908447265625,
+            "type": "State",
+            "children": [],
+            "childLinks": []
+        }
+    ],
+    "stateLinks": []
+}

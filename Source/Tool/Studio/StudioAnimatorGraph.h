@@ -29,6 +29,8 @@ private:
 	void Save(StudioContext& context);
 	// 読み込み
 	void Load(StudioContext& context);
+	// D&D受け取り口
+	void TryAttachGraph(const std::string& path, StudioContext& context);
 
 	NodeEditorCanvas canvas;
 	AnimatorGraph graph; // 編集対象データ
@@ -41,4 +43,6 @@ private:
 
 	// 読み込み済フラグ
 	bool loaded = false;
+	// D&D紐付けに失敗時のエラーメッセージ
+	std::string attachError;
 };
