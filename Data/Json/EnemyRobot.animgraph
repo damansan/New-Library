@@ -9,6 +9,42 @@
             "type": "State",
             "children": [],
             "childLinks": []
+        },
+        {
+            "id": 2,
+            "name": "New State",
+            "posX": -73.01941680908203,
+            "posY": 9.260204315185547,
+            "type": "State",
+            "children": [],
+            "childLinks": []
+        },
+        {
+            "id": 3,
+            "name": "New State",
+            "posX": 35.64726257324219,
+            "posY": 24.26020622253418,
+            "type": "State",
+            "children": [],
+            "childLinks": []
+        },
+        {
+            "id": 4,
+            "name": "New State",
+            "posX": -66.83319091796875,
+            "posY": -247.032470703125,
+            "type": "State",
+            "children": [],
+            "childLinks": []
+        },
+        {
+            "id": 5,
+            "name": "New State",
+            "posX": 496.0,
+            "posY": 358.0,
+            "type": "State",
+            "children": [],
+            "childLinks": []
         }
     ],
     "stateLinks": []

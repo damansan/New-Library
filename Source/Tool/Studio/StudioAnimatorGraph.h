@@ -43,6 +43,9 @@ private:
 
 	// 読み込み済フラグ
 	bool loaded = false;
+	// 位置反映フラグ
+	bool needsApplyPositions = false;
+
 	// D&D紐付けに失敗時のエラーメッセージ
 	std::string attachError;
 };

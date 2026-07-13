@@ -11031,6 +11031,7 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\AnimatorGraph.h
 #pragma once
 #include <string>
 #include <vector>
+#include <json.hpp>
 
 // 子階層ノードの種類
 enum class AnimNodeType
@@ -11095,6 +11096,11 @@ public:
 	void DeleteState(int stateId);
 
 	int GenerateId() { return nextId++; }
+
+	// グラフ内容をJsonに変換する
+	nlohmann::ordered_json ToJson() const;
+	// Jsonから中身を変換する
+	void FromJson(const nlohmann::json& j);
 
 private:
 	int nextId = 1;
@@ -11539,14 +11545,190 @@ void AdaptiveTriggerToolWindow::DrawSelectedPointPanel(std::vector<AdaptiveTrigg
 ===== AnimatorGraph.cpp ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\AnimatorGraph.cpp 
 #include "AnimatorGraph.h"
+#include <algorithm>
+
+namespace
+{
+	// enumの文字変換
+	std::string ToString(AnimStateType type)
+	{
+		switch (type)
+		{
+		case AnimStateType::Entry: return "Entry";
+		case AnimStateType::State: return "State";
+		}
+		return "State";
+	}
+
+	AnimStateType ToAnimStateType(const std::string& s)
+	{
+		if (s == "Entry") 
+		{
+			return AnimStateType::Entry;
+		}
+		return AnimStateType::State;
+	}
+
+	std::string ToString(AnimNodeType type)
+	{
+		switch (type)
+		{
+		case AnimNodeType::Normal: return "Normal";
+		case AnimNodeType::Start:  return "Start";
+		case AnimNodeType::End:    return "End";
+		}
+		return "Normal";
+	}
+
+	AnimNodeType ToAnimNodeType(const std::string& s)
+	{
+		if (s == "Start") return AnimNodeType::Start;
+		if (s == "End")   return AnimNodeType::End;
+		return AnimNodeType::Normal;
+	}
+}
+
 
 int AnimatorGraph::CreateState(const std::string& name, float posX, float posY)
 {
-	return 0;
+	AnimState state;
+	state.id = GenerateId();
+	state.name = name;
+	state.posX = posX;
+	state.posY = posY;
+	state.type = AnimStateType::State;
+
+	states.push_back(state);
+	return state.id;
 }
 
 void AnimatorGraph::DeleteState(int stateId)
 {
+	states.erase(
+		std::remove_if(states.begin(), states.end(),
+			[stateId](const AnimState& s) { return s.id == stateId; }),
+		states.end()
+	);
+}
+
+// グラフ内容をJsonに変換する
+nlohmann::ordered_json AnimatorGraph::ToJson() const
+{
+	nlohmann::ordered_json j;
+
+	j["states"] = nlohmann::json::array();
+	for (const auto& state : states)
+	{
+		nlohmann::ordered_json js;
+		js["id"] = state.id;
+		js["name"] = state.name;
+		js["posX"] = state.posX;
+		js["posY"] = state.posY;
+		js["type"] = ToString(state.type);
+
+		js["children"] = nlohmann::json::array();
+		for (const auto& node : state.children)
+		{
+			nlohmann::ordered_json jn;
+			jn["id"] = node.id;
+			jn["name"] = node.name;
+			jn["posX"] = node.posX;
+			jn["posY"] = node.posY;
+			jn["type"] = ToString(node.type);
+			jn["clipName"] = node.clipName;
+			js["children"].push_back(jn);
+		}
+
+		js["childLinks"] = nlohmann::json::array();
+		for (const auto& link : state.childLinks)
+		{
+			nlohmann::ordered_json jl;
+			jl["id"] = link.id;
+			jl["fromId"] = link.fromId;
+			jl["toId"] = link.toId;
+			js["childLinks"].push_back(jl);
+		}
+
+		j["states"].push_back(js);
+	}
+
+	j["stateLinks"] = nlohmann::json::array();
+	for (const auto& link : stateLinks)
+	{
+		nlohmann::ordered_json jl;
+		jl["id"] = link.id;
+		jl["fromId"] = link.fromId;
+		jl["toId"] = link.toId;
+		j["stateLinks"].push_back(jl);
+	}
+
+	return j;
+}
+
+// Jsonから中身を変換する
+void AnimatorGraph::FromJson(const nlohmann::json& j)
+{
+	states.clear();
+	stateLinks.clear();
+
+	if (j.contains("states"))
+	{
+		for (const auto& js : j["states"])
+		{
+			AnimState state;
+			state.id = js.value("id", -1);
+			state.name = js.value("name", "");
+			state.posX = js.value("posX", 0.0f);
+			state.posY = js.value("posY", 0.0f);
+			state.type = ToAnimStateType(js.value("type", "State"));
+
+			if (js.contains("children"))
+			{
+				for (const auto& jn : js["children"])
+				{
+					AnimNode node;
+					node.id = jn.value("id", -1);
+					node.name = jn.value("name", "");
+					node.posX = jn.value("posX", 0.0f);
+					node.posY = jn.value("posY", 0.0f);
+					node.type = ToAnimNodeType(jn.value("type", "Normal"));
+					node.clipName = jn.value("clipName", "");
+					state.children.push_back(node);
+				}
+			}
+
+			if (js.contains("childLinks"))
+			{
+				for (const auto& jl : js["childLinks"])
+				{
+					AnimLink link;
+					link.id = jl.value("id", -1);
+					link.fromId = jl.value("fromId", -1);
+					link.toId = jl.value("toId", -1);
+					state.childLinks.push_back(link);
+				}
+			}
+
+			states.push_back(state);
+
+			// 復元後もIDが重複しないよう、採番カウンタを追従させる
+			if (state.id >= nextId) nextId = state.id + 1;
+		}
+	}
+
+	if (j.contains("stateLinks"))
+	{
+		for (const auto& jl : j["stateLinks"])
+		{
+			AnimLink link;
+			link.id = jl.value("id", -1);
+			link.fromId = jl.value("fromId", -1);
+			link.toId = jl.value("toId", -1);
+			stateLinks.push_back(link);
+
+			if (link.id >= nextId) nextId = link.id + 1;
+		}
+	}
 }
  
  
@@ -11566,6 +11748,7 @@ NodeEditorCanvas::~NodeEditorCanvas()
 void NodeEditorCanvas::Initialize()
 {
     ed::Config config;
+    config.SettingsFile = nullptr;
     editorContext = ed::CreateEditor(&config);
 }
 
@@ -11643,6 +11826,10 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioAnimatorGrap
 #include "IStudioAttachment.h"
 #include "Tool/AnimatorGraph.h"
 #include "Tool/NodeEditorCanvas.h"
+#include <vector>
+#include <string>
+#include <imgui.h>
+
 
 class StudioAnimatorGraph : public IStudioAttachment
 {
@@ -11659,9 +11846,29 @@ public:
 		StudioContext& context) override;
 
 private:
+	// 現在読み込まれているモデルのアニメーション一覧を取得
+	void RefreshAvailableAnimations(entt::registry& registry);
+
+	// 保存
+	void Save(StudioContext& context);
+	// 読み込み
+	void Load(StudioContext& context);
+	// D&D受け取り口
+	void TryAttachGraph(const std::string& path, StudioContext& context);
+
 	NodeEditorCanvas canvas;
 	AnimatorGraph graph; // 編集対象データ
 	int windowId = 0;
+
+	// アニメーション一覧
+	std::vector<std::string> availableAnimations;
+	// 右クリック位置
+	ImVec2 pendingCreatePos{};
+
+	// 読み込み済フラグ
+	bool loaded = false;
+	// D&D紐付けに失敗時のエラーメッセージ
+	std::string attachError;
 }; 
  
 ===== StudioCamera.h ===== 
@@ -11696,7 +11903,7 @@ private:
     DirectX::XMFLOAT4X4 view = {};
     DirectX::XMFLOAT4X4 projection = {};
 
-    DirectX::XMFLOAT3 eye = { 0.0f, 1.5f, 3.0f };
+    DirectX::XMFLOAT3 eye = { 0.0f, 1.5f, -3.0f };
     DirectX::XMFLOAT3 target = { 0.0f, 1.0f, 0.0f };
 
     float yaw = 0.0f;
@@ -11738,6 +11945,7 @@ struct StudioContext
     bool showAnimatorGraph = false;
 
     std::string attachedGraphPath;
+    std::string currentModelPath;
 
     // タイムラインでスクラブ操作されたフラグ
     bool requestPoseUpdate = false;
@@ -12042,7 +12250,9 @@ void StudioAnimator::DrawGUI(
 ===== StudioAnimatorGraph.cpp ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioAnimatorGraph.cpp 
 #include "StudioAnimatorGraph.h"
-#include <imgui.h>
+#include "ECS/Components/SkinnedMeshComponent.h"
+#include <fstream>
+#include <json.hpp>
 
 void StudioAnimatorGraph::Initialize()
 {
@@ -12055,14 +12265,176 @@ void StudioAnimatorGraph::DrawGUI(
 {
     if (!context.showAnimatorGraph) return;
 
+    if (!loaded && !context.attachedGraphPath.empty())
+    {
+        Load(context);
+        loaded = true;
+    }
+
+
+    RefreshAvailableAnimations(registry);
+
     std::string panelName = "AnimatorGraph##" + std::to_string(windowId);
     ImGui::Begin(panelName.c_str());
 
+    // エラーメッセージ
+    if (!attachError.empty())
+    {
+        ImGui::TextColored(ImVec4(1, 0.4f, 0.4f, 1), "%s", attachError.c_str());
+    }
+
+    // 保存ボタン
+    if (!context.attachedGraphPath.empty())
+    {
+        if (ImGui::Button("Save"))
+        {
+            Save(context);
+        }
+        ImGui::SameLine();
+        ImGui::TextDisabled("%s", context.attachedGraphPath.c_str());
+    }
+    else
+    {
+        ImGui::TextDisabled("No graph attached.");
+    }
+    ImGui::Separator();
+
     canvas.Begin("AnimatorCanvas");
+
+    // パネル全体を.animgraphのドロップ対象にする
+    if (ImGui::BeginDragDropTarget())
+    {
+        if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ANIMGRAPH_PATH"))
+        {
+            std::string droppedPath(static_cast<const char*>(payload->Data));
+            TryAttachGraph(droppedPath, context);
+        }
+        ImGui::EndDragDropTarget();
+    }
+
+
+    // 既存のState描画
+    for (auto& state : graph.states)
+    {
+        ed::NodeId nodeId(state.id);
+        ed::BeginNode(nodeId);
+        ImGui::Text("%s", state.name.c_str());
+        ed::EndNode();
+    }
+
+    // 右クリックで新規State作成メニュー
+    ed::Suspend();
+    if (ed::ShowBackgroundContextMenu())
+    {
+        pendingCreatePos = ImGui::GetMousePos();
+        ImGui::OpenPopup("CreateNewState");
+    }
+    if (ImGui::BeginPopup("CreateNewState"))
+    {
+        if (ImGui::MenuItem(u8"State"))
+        {
+            ImVec2 canvasPos = ed::ScreenToCanvas(pendingCreatePos);
+            int newId = graph.CreateState("New State", canvasPos.x, canvasPos.y);
+            ed::SetNodePosition(ed::NodeId(newId), canvasPos);
+        }
+        ImGui::EndPopup();
+    }
+    ed::Resume();
 
     canvas.End();
 
     ImGui::End();
+}
+
+// 現在読み込まれているモデルのアニメーション一覧を取得
+void StudioAnimatorGraph::RefreshAvailableAnimations(entt::registry& registry)
+{
+    availableAnimations.clear();
+
+    auto view = registry.view<SkinnedMeshComponent>();
+    if (view.begin() == view.end()) return;
+
+    auto entity = *view.begin();
+    auto& skinned = view.get<SkinnedMeshComponent>(entity);
+
+    if (!skinned.model) return;
+
+    for (const auto& anim : skinned.model->GetAnimations())
+    {
+        availableAnimations.push_back(anim.name);
+    }
+}
+
+// 保存
+void StudioAnimatorGraph::Save(StudioContext& context)
+{
+    if (context.attachedGraphPath.empty()) return;
+
+    nlohmann::ordered_json j;
+    j["sourceModelPath"] = context.currentModelPath;
+
+    nlohmann::ordered_json graphJson = graph.ToJson();
+    j["states"] = graphJson["states"];
+    j["stateLinks"] = graphJson["stateLinks"];
+
+    std::ofstream ofs(context.attachedGraphPath);
+    if (ofs.is_open())
+    {
+        ofs << j.dump(4);
+    }
+}
+
+// 読み込み
+void StudioAnimatorGraph::Load(StudioContext& context)
+{
+    std::ifstream ifs(context.attachedGraphPath);
+    if (!ifs.is_open()) return;
+
+    try
+    {
+        nlohmann::json j;
+        ifs >> j;
+        graph.FromJson(j);
+    }
+    catch (const std::exception&)
+    {
+        // 壊れているか空のjsonの場合なにもしない
+    }
+}
+
+// D&D受け取り口
+void StudioAnimatorGraph::TryAttachGraph(const std::string& path, StudioContext& context)
+{
+    std::ifstream ifs(path);
+    if (!ifs.is_open())
+    {
+        attachError = "Failed to open file.";
+        return;
+    }
+
+    std::string sourceModelPath;
+    try
+    {
+        nlohmann::json j;
+        ifs >> j;
+        sourceModelPath = j.value("sourceModelPath", "");
+    }
+    catch (const std::exception&)
+    {
+        attachError = "Invalid json.";
+        return;
+    }
+
+    // 新規作成Jsonは受け入れ、既存Jsonならモデルパスを比較
+    if (!sourceModelPath.empty() && sourceModelPath != context.currentModelPath)
+    {
+        attachError = "This graph belongs to a different model.";
+        return;
+    }
+
+    attachError.clear();
+    context.attachedGraphPath = path;
+    loaded = false;
 }
  
  
@@ -12742,6 +13114,7 @@ void StudioWindow::AddAttachment(std::unique_ptr<IStudioAttachment> attachment)
 void StudioWindow::LoadAsset(const std::string& assetPath)
 {
 	stadoiModelViewer.LoadModel(studioRegistry, assetPath);
+	context.currentModelPath = assetPath;
 }
 
 void StudioWindow::Begin()

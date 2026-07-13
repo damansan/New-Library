@@ -18,6 +18,7 @@ void StudioAnimatorGraph::DrawGUI(
     {
         Load(context);
         loaded = true;
+        needsApplyPositions = true;
     }
 
 
@@ -66,10 +67,18 @@ void StudioAnimatorGraph::DrawGUI(
     for (auto& state : graph.states)
     {
         ed::NodeId nodeId(state.id);
+
+        // 読み込み直後の1回だけ、保存されていた位置を反映する
+        if (needsApplyPositions)
+        {
+            ed::SetNodePosition(nodeId, ImVec2(state.posX, state.posY));
+        }
+
         ed::BeginNode(nodeId);
         ImGui::Text("%s", state.name.c_str());
         ed::EndNode();
     }
+    needsApplyPositions = false;
 
     // 右クリックで新規State作成メニュー
     ed::Suspend();

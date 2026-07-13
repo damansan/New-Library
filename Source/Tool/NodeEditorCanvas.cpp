@@ -12,6 +12,7 @@ NodeEditorCanvas::~NodeEditorCanvas()
 void NodeEditorCanvas::Initialize()
 {
     ed::Config config;
+    config.SettingsFile = nullptr;
     editorContext = ed::CreateEditor(&config);
 }
 
