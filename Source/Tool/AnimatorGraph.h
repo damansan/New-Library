@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <vector>
+#include <json.hpp>
 
 // 子階層ノードの種類
 enum class AnimNodeType
@@ -65,6 +66,11 @@ public:
 	void DeleteState(int stateId);
 
 	int GenerateId() { return nextId++; }
+
+	// グラフ内容をJsonに変換する
+	nlohmann::ordered_json ToJson() const;
+	// Jsonから中身を変換する
+	void FromJson(const nlohmann::json& j);
 
 private:
 	int nextId = 1;

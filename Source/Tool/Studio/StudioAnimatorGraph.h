@@ -4,6 +4,8 @@
 #include "Tool/NodeEditorCanvas.h"
 #include <vector>
 #include <string>
+#include <imgui.h>
+
 
 class StudioAnimatorGraph : public IStudioAttachment
 {
@@ -25,10 +27,18 @@ private:
 
 	// 保存
 	void Save(StudioContext& context);
+	// 読み込み
+	void Load(StudioContext& context);
 
 	NodeEditorCanvas canvas;
 	AnimatorGraph graph; // 編集対象データ
 	int windowId = 0;
 
+	// アニメーション一覧
 	std::vector<std::string> availableAnimations;
+	// 右クリック位置
+	ImVec2 pendingCreatePos{};
+
+	// 読み込み済フラグ
+	bool loaded = false;
 };

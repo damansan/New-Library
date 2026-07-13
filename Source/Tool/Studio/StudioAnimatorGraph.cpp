@@ -1,6 +1,5 @@
 #include "StudioAnimatorGraph.h"
 #include "ECS/Components/SkinnedMeshComponent.h"
-#include <imgui.h>
 #include <fstream>
 #include <json.hpp>
 
@@ -14,6 +13,13 @@ void StudioAnimatorGraph::DrawGUI(
     StudioContext& context)
 {
     if (!context.showAnimatorGraph) return;
+
+    if (!loaded && !context.attachedGraphPath.empty())
+    {
+        Load(context);
+        loaded = true;
+    }
+
 
     RefreshAvailableAnimations(registry);
 
@@ -36,6 +42,34 @@ void StudioAnimatorGraph::DrawGUI(
     ImGui::Separator();
 
     canvas.Begin("AnimatorCanvas");
+
+    // 既存のState描画
+    for (auto& state : graph.states)
+    {
+        ed::NodeId nodeId(state.id);
+        ed::BeginNode(nodeId);
+        ImGui::Text("%s", state.name.c_str());
+        ed::EndNode();
+    }
+
+    // 右クリックで新規State作成メニュー
+    ed::Suspend();
+    if (ed::ShowBackgroundContextMenu())
+    {
+        pendingCreatePos = ImGui::GetMousePos();
+        ImGui::OpenPopup("CreateNewState");
+    }
+    if (ImGui::BeginPopup("CreateNewState"))
+    {
+        if (ImGui::MenuItem(u8"State"))
+        {
+            ImVec2 canvasPos = ed::ScreenToCanvas(pendingCreatePos);
+            int newId = graph.CreateState("New State", canvasPos.x, canvasPos.y);
+            ed::SetNodePosition(ed::NodeId(newId), canvasPos);
+        }
+        ImGui::EndPopup();
+    }
+    ed::Resume();
 
     canvas.End();
 
@@ -68,12 +102,32 @@ void StudioAnimatorGraph::Save(StudioContext& context)
 
     nlohmann::ordered_json j;
     j["sourceModelPath"] = context.currentModelPath;
-    j["states"] = nlohmann::json::array();
-    j["stateLinks"] = nlohmann::json::array();
+
+    nlohmann::ordered_json graphJson = graph.ToJson();
+    j["states"] = graphJson["states"];
+    j["stateLinks"] = graphJson["stateLinks"];
 
     std::ofstream ofs(context.attachedGraphPath);
     if (ofs.is_open())
     {
         ofs << j.dump(4);
+    }
+}
+
+// 読み込み
+void StudioAnimatorGraph::Load(StudioContext& context)
+{
+    std::ifstream ifs(context.attachedGraphPath);
+    if (!ifs.is_open()) return;
+
+    try
+    {
+        nlohmann::json j;
+        ifs >> j;
+        graph.FromJson(j);
+    }
+    catch (const std::exception&)
+    {
+        // 壊れているか空のjsonの場合なにもしない
     }
 }
