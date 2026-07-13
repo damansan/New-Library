@@ -45,6 +45,15 @@
             "type": "State",
             "children": [],
             "childLinks": []
+        },
+        {
+            "id": 6,
+            "name": "New State",
+            "posX": -154.94000244140625,
+            "posY": 7.58563232421875,
+            "type": "State",
+            "children": [],
+            "childLinks": []
         }
     ],
     "stateLinks": []
