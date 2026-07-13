@@ -21,6 +21,7 @@ struct StudioContext
     bool showAnimatorGraph = false;
 
     std::string attachedGraphPath;
+    std::string currentModelPath;
 
     // タイムラインでスクラブ操作されたフラグ
     bool requestPoseUpdate = false;

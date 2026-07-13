@@ -267,6 +267,7 @@ void StudioWindow::AddAttachment(std::unique_ptr<IStudioAttachment> attachment)
 void StudioWindow::LoadAsset(const std::string& assetPath)
 {
 	stadoiModelViewer.LoadModel(studioRegistry, assetPath);
+	context.currentModelPath = assetPath;
 }
 
 void StudioWindow::Begin()

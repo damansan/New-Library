@@ -2,6 +2,8 @@
 #include "IStudioAttachment.h"
 #include "Tool/AnimatorGraph.h"
 #include "Tool/NodeEditorCanvas.h"
+#include <vector>
+#include <string>
 
 class StudioAnimatorGraph : public IStudioAttachment
 {
@@ -18,7 +20,15 @@ public:
 		StudioContext& context) override;
 
 private:
+	// 現在読み込まれているモデルのアニメーション一覧を取得
+	void RefreshAvailableAnimations(entt::registry& registry);
+
+	// 保存
+	void Save(StudioContext& context);
+
 	NodeEditorCanvas canvas;
 	AnimatorGraph graph; // 編集対象データ
 	int windowId = 0;
+
+	std::vector<std::string> availableAnimations;
 };
