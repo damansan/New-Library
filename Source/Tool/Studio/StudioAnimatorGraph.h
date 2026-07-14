@@ -22,6 +22,28 @@ public:
 		StudioContext& context) override;
 
 private:
+	// 上側ツールバー
+	void DrawToolbar(StudioContext& context);
+
+
+	// .animgraphのD&D受け口
+	void DrawDropTarget(StudioContext& context);
+	void TryAttachGraph(const std::string& path, StudioContext& context);
+
+
+	// State描画
+	void DrawNodes();
+	void PushStateStyle(const AnimState& state);
+	void PopStateStyle(const AnimState& state);
+	void DrawHexagonBackground(ed::NodeId nodeId, const AnimState& state);
+
+	// 右クリックメニュー
+	void DrawCreateNodeMenu();
+	// 右側メニュー
+	void DrawInspector(AnimState* selected);
+	// 選択中State取得
+	AnimState* GetSelectedState();
+
 	// 現在読み込まれているモデルのアニメーション一覧を取得
 	void RefreshAvailableAnimations(entt::registry& registry);
 
@@ -29,8 +51,6 @@ private:
 	void Save(StudioContext& context);
 	// 読み込み
 	void Load(StudioContext& context);
-	// D&D受け取り口
-	void TryAttachGraph(const std::string& path, StudioContext& context);
 
 	NodeEditorCanvas canvas;
 	AnimatorGraph graph; // 編集対象データ
@@ -45,6 +65,8 @@ private:
 	bool loaded = false;
 	// 位置反映フラグ
 	bool needsApplyPositions = false;
+	// 右側メニュー初期幅
+	bool columnWidthInitialized = false;
 
 	// D&D紐付けに失敗時のエラーメッセージ
 	std::string attachError;

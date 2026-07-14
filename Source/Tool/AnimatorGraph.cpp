@@ -43,6 +43,11 @@ namespace
 }
 
 
+AnimatorGraph::AnimatorGraph()
+{
+	EnsureEntryExists();
+}
+
 int AnimatorGraph::CreateState(const std::string& name, float posX, float posY)
 {
 	AnimState state;
@@ -60,7 +65,12 @@ void AnimatorGraph::DeleteState(int stateId)
 {
 	states.erase(
 		std::remove_if(states.begin(), states.end(),
-			[stateId](const AnimState& s) { return s.id == stateId; }),
+			[stateId](const AnimState& s)
+			{
+				// Entry‚Ííœ‚³‚¹‚È‚¢
+				if (s.type == AnimStateType::Entry) return false;
+				return s.id == stateId;
+			}),
 		states.end()
 	);
 }
@@ -79,6 +89,7 @@ nlohmann::ordered_json AnimatorGraph::ToJson() const
 		js["posX"] = state.posX;
 		js["posY"] = state.posY;
 		js["type"] = ToString(state.type);
+		js["color"] = { state.color[0], state.color[1], state.color[2] };
 
 		js["children"] = nlohmann::json::array();
 		for (const auto& node : state.children)
@@ -136,6 +147,13 @@ void AnimatorGraph::FromJson(const nlohmann::json& j)
 			state.posY = js.value("posY", 0.0f);
 			state.type = ToAnimStateType(js.value("type", "State"));
 
+			if (js.contains("color") && js["color"].is_array() && js["color"].size() == 3)
+			{
+				state.color[0] = js["color"][0].get<float>();
+				state.color[1] = js["color"][1].get<float>();
+				state.color[2] = js["color"][2].get<float>();
+			}
+
 			if (js.contains("children"))
 			{
 				for (const auto& jn : js["children"])
@@ -182,5 +200,33 @@ void AnimatorGraph::FromJson(const nlohmann::json& j)
 
 			if (link.id >= nextId) nextId = link.id + 1;
 		}
+	}
+
+	// “Ç‚İ‚ñ‚¾Œ‹‰ÊEntry‚ª–³‚©‚Á‚½ê‡‚Ì•ÛŒ¯
+	EnsureEntryExists();
+}
+
+// Entry‚ª‚È‚¯‚ê‚Îì¬‚·‚é
+void AnimatorGraph::EnsureEntryExists()
+{
+	bool hasEntry = false;
+	for (const auto& s : states)
+	{
+		if (s.type == AnimStateType::Entry)
+		{
+			hasEntry = true;
+			break;
+		}
+	}
+
+	if (!hasEntry)
+	{
+		AnimState entry;
+		entry.id = GenerateId();
+		entry.name = "Entry";
+		entry.posX = 50.0f;
+		entry.posY = 200.0f;
+		entry.type = AnimStateType::Entry;
+		states.push_back(entry);
 	}
 }

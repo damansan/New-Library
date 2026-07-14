@@ -50,6 +50,8 @@ struct AnimState
 
 	AnimStateType type = AnimStateType::State;
 
+	float color[3] = { 0.27f, 0.35f, 0.47f };
+
 	std::vector<AnimNode> children;
 	std::vector<AnimLink> childLinks;
 };
@@ -57,6 +59,8 @@ struct AnimState
 class AnimatorGraph
 {
 public:
+	AnimatorGraph();
+
 	std::vector<AnimState>states;
 	std::vector<AnimLink>stateLinks;
 
@@ -73,5 +77,8 @@ public:
 	void FromJson(const nlohmann::json& j);
 
 private:
+	// Entry‚ª‚È‚¯‚ê‚Îì¬‚·‚é
+	void EnsureEntryExists();
+
 	int nextId = 1;
 };

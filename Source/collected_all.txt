@@ -11080,6 +11080,8 @@ struct AnimState
 
 	AnimStateType type = AnimStateType::State;
 
+	float color[3] = { 0.27f, 0.35f, 0.47f };
+
 	std::vector<AnimNode> children;
 	std::vector<AnimLink> childLinks;
 };
@@ -11087,6 +11089,8 @@ struct AnimState
 class AnimatorGraph
 {
 public:
+	AnimatorGraph();
+
 	std::vector<AnimState>states;
 	std::vector<AnimLink>stateLinks;
 
@@ -11103,6 +11107,9 @@ public:
 	void FromJson(const nlohmann::json& j);
 
 private:
+	// Entryがなければ作成する
+	void EnsureEntryExists();
+
 	int nextId = 1;
 }; 
  
@@ -11589,6 +11596,11 @@ namespace
 }
 
 
+AnimatorGraph::AnimatorGraph()
+{
+	EnsureEntryExists();
+}
+
 int AnimatorGraph::CreateState(const std::string& name, float posX, float posY)
 {
 	AnimState state;
@@ -11606,7 +11618,12 @@ void AnimatorGraph::DeleteState(int stateId)
 {
 	states.erase(
 		std::remove_if(states.begin(), states.end(),
-			[stateId](const AnimState& s) { return s.id == stateId; }),
+			[stateId](const AnimState& s)
+			{
+				// Entryは削除させない
+				if (s.type == AnimStateType::Entry) return false;
+				return s.id == stateId;
+			}),
 		states.end()
 	);
 }
@@ -11625,6 +11642,7 @@ nlohmann::ordered_json AnimatorGraph::ToJson() const
 		js["posX"] = state.posX;
 		js["posY"] = state.posY;
 		js["type"] = ToString(state.type);
+		js["color"] = { state.color[0], state.color[1], state.color[2] };
 
 		js["children"] = nlohmann::json::array();
 		for (const auto& node : state.children)
@@ -11682,6 +11700,13 @@ void AnimatorGraph::FromJson(const nlohmann::json& j)
 			state.posY = js.value("posY", 0.0f);
 			state.type = ToAnimStateType(js.value("type", "State"));
 
+			if (js.contains("color") && js["color"].is_array() && js["color"].size() == 3)
+			{
+				state.color[0] = js["color"][0].get<float>();
+				state.color[1] = js["color"][1].get<float>();
+				state.color[2] = js["color"][2].get<float>();
+			}
+
 			if (js.contains("children"))
 			{
 				for (const auto& jn : js["children"])
@@ -11728,6 +11753,34 @@ void AnimatorGraph::FromJson(const nlohmann::json& j)
 
 			if (link.id >= nextId) nextId = link.id + 1;
 		}
+	}
+
+	// 読み込んだ結果Entryが無かった場合の保険
+	EnsureEntryExists();
+}
+
+// Entryがなければ作成する
+void AnimatorGraph::EnsureEntryExists()
+{
+	bool hasEntry = false;
+	for (const auto& s : states)
+	{
+		if (s.type == AnimStateType::Entry)
+		{
+			hasEntry = true;
+			break;
+		}
+	}
+
+	if (!hasEntry)
+	{
+		AnimState entry;
+		entry.id = GenerateId();
+		entry.name = "Entry";
+		entry.posX = 50.0f;
+		entry.posY = 200.0f;
+		entry.type = AnimStateType::Entry;
+		states.push_back(entry);
 	}
 }
  
@@ -11846,6 +11899,14 @@ public:
 		StudioContext& context) override;
 
 private:
+	// Stateの種類に応じたノードの見た目適用
+	void PushStateStyle(const AnimState& state);
+	void PopStateStyle(const AnimState& state);
+	void DrawHexagonBackground(ed::NodeId nodeId, const AnimState& state);
+
+	// 右側メニュー
+	void DrawInspector(AnimState* selected);
+
 	// 現在読み込まれているモデルのアニメーション一覧を取得
 	void RefreshAvailableAnimations(entt::registry& registry);
 
@@ -11867,6 +11928,9 @@ private:
 
 	// 読み込み済フラグ
 	bool loaded = false;
+	// 位置反映フラグ
+	bool needsApplyPositions = false;
+
 	// D&D紐付けに失敗時のエラーメッセージ
 	std::string attachError;
 }; 
@@ -12269,6 +12333,7 @@ void StudioAnimatorGraph::DrawGUI(
     {
         Load(context);
         loaded = true;
+        needsApplyPositions = true;
     }
 
 
@@ -12299,6 +12364,12 @@ void StudioAnimatorGraph::DrawGUI(
     }
     ImGui::Separator();
 
+    ImGui::Columns(2, "AnimatorGraphColumns", true);
+    if (ImGui::GetColumnWidth(0) > ImGui::GetWindowWidth() - 200.0f)
+    {
+        ImGui::SetColumnWidth(0, ImGui::GetWindowWidth() - 220.0f);
+    }
+
     canvas.Begin("AnimatorCanvas");
 
     // パネル全体を.animgraphのドロップ対象にする
@@ -12317,10 +12388,73 @@ void StudioAnimatorGraph::DrawGUI(
     for (auto& state : graph.states)
     {
         ed::NodeId nodeId(state.id);
+
+        // 読み込み直後の1回だけ、保存されていた位置を反映する
+        if (needsApplyPositions)
+        {
+            ed::SetNodePosition(nodeId, ImVec2(state.posX, state.posY));
+        }
+
+        PushStateStyle(state);
+
         ed::BeginNode(nodeId);
-        ImGui::Text("%s", state.name.c_str());
+        if (state.type == AnimStateType::Entry)
+        {
+            // 固定の横幅を確保しつつ、テキストを中央に配置する
+            const float totalWidth = 100.0f;
+            float textWidth = ImGui::CalcTextSize(state.name.c_str()).x;
+            float padding = (totalWidth - textWidth) * 0.5f;
+
+            if (padding > 0.0f)
+            {
+                ImGui::Dummy(ImVec2(padding, 0.0f));
+                ImGui::SameLine(0.0f, 0.0f);
+            }
+
+            ImGui::Text("%s", state.name.c_str());
+
+            if (padding > 0.0f)
+            {
+                ImGui::SameLine(0.0f, 0.0f);
+                ImGui::Dummy(ImVec2(padding, 0.0f));
+            }
+        }
+        else
+        {
+            // "New State"の表示幅を最低幅として、それより短い名前は中央寄せで埋める
+            static const float minWidth = ImGui::CalcTextSize("New State").x;
+
+            float textWidth = ImGui::CalcTextSize(state.name.c_str()).x;
+            float padding = (minWidth - textWidth) * 0.5f;
+
+            if (padding > 0.0f)
+            {
+                ImGui::Dummy(ImVec2(padding, 0.0f));
+                ImGui::SameLine(0.0f, 0.0f);
+            }
+
+            ImGui::Text("%s", state.name.c_str());
+
+            if (padding > 0.0f)
+            {
+                ImGui::SameLine(0.0f, 0.0f);
+                ImGui::Dummy(ImVec2(padding, 0.0f));
+            }
+        }
         ed::EndNode();
+
+        if (state.type == AnimStateType::State)
+        {
+            DrawHexagonBackground(nodeId, state);
+        }
+
+        PopStateStyle(state);
+
+        ImVec2 currentPos = ed::GetNodePosition(nodeId);
+        state.posX = currentPos.x;
+        state.posY = currentPos.y;
     }
+    needsApplyPositions = false;
 
     // 右クリックで新規State作成メニュー
     ed::Suspend();
@@ -12341,9 +12475,122 @@ void StudioAnimatorGraph::DrawGUI(
     }
     ed::Resume();
 
+    AnimState* selectedState = nullptr;
+    if (ed::GetSelectedObjectCount() > 0)
+    {
+        ed::NodeId selectedId;
+        ed::GetSelectedNodes(&selectedId, 1);
+
+        for (auto& state : graph.states)
+        {
+            if (state.id == (int)selectedId.Get())
+            {
+                selectedState = &state;
+                break;
+            }
+        }
+    }
+
     canvas.End();
 
-    ImGui::End();
+    ImGui::NextColumn();
+
+    DrawInspector(selectedState);
+
+    ImGui::Columns(1);
+
+    ImGui::End(); 
+}
+
+// Stateの種類に応じたノードの見た目適用
+void StudioAnimatorGraph::PushStateStyle(const AnimState& state)
+{
+    switch (state.type)
+    {
+    case AnimStateType::Entry:
+        ed::PushStyleColor(ed::StyleColor_NodeBg, ImColor(46, 125, 50, 255));     // 緑
+        ed::PushStyleColor(ed::StyleColor_NodeBorder, ImColor(27, 94, 32, 255));  // 少し濃い緑の枠線
+        ed::PushStyleVar(ed::StyleVar_NodeRounding, 4.0f);                        // 角を少しだけ丸く
+        break;
+
+    case AnimStateType::State:
+        ed::PushStyleColor(ed::StyleColor_NodeBg, ImColor(0, 0, 0, 0));
+        ed::PushStyleColor(ed::StyleColor_NodeBorder, ImColor(0, 0, 0, 0));
+        break;
+
+    default:
+        break;
+    }
+}
+void StudioAnimatorGraph::PopStateStyle(const AnimState& state)
+{
+    switch (state.type)
+    {
+    case AnimStateType::Entry:
+        ed::PopStyleVar(1);
+        ed::PopStyleColor(2);
+        break;
+
+    case AnimStateType::State:
+        ed::PopStyleColor(2);
+        break;
+
+    default:
+        break;
+    }
+}
+void StudioAnimatorGraph::DrawHexagonBackground(ed::NodeId nodeId, const AnimState& state)
+{
+    ImVec2 nodeMin = ImGui::GetItemRectMin();
+    ImVec2 nodeMax = ImGui::GetItemRectMax();
+
+    float width = nodeMax.x - nodeMin.x;
+    float height = nodeMax.y - nodeMin.y;
+    float notch = height * 0.35f;
+
+    ImVec2 points[6] =
+    {
+        ImVec2(nodeMin.x, nodeMin.y + height * 0.5f),
+        ImVec2(nodeMin.x + notch, nodeMin.y),
+        ImVec2(nodeMax.x - notch, nodeMin.y),
+        ImVec2(nodeMax.x, nodeMin.y + height * 0.5f),
+        ImVec2(nodeMax.x - notch, nodeMax.y),
+        ImVec2(nodeMin.x + notch, nodeMax.y),
+    };
+
+    ImDrawList* drawList = ed::GetNodeBackgroundDrawList(nodeId);
+    if (!drawList) return;
+
+    ImU32 fillColor = ImColor(state.color[0], state.color[1], state.color[2], 1.0f);
+
+    drawList->AddConvexPolyFilled(points, 6, fillColor);
+    drawList->AddPolyline(points, 6, IM_COL32(140, 170, 210, 255), ImDrawFlags_Closed, 2.0f);
+}
+
+// 右側メニュー
+void StudioAnimatorGraph::DrawInspector(AnimState* selected)
+{
+    if (!selected)
+    {
+        ImGui::TextDisabled("No state selected.");
+        return;
+    }
+
+    if (selected->type == AnimStateType::Entry)
+    {
+        ImGui::Text("Entry");
+        ImGui::TextDisabled("This is a unique node and cannot be edited.");
+        return;
+    }
+
+    char nameBuf[256];
+    strncpy_s(nameBuf, selected->name.c_str(), sizeof(nameBuf) - 1);
+    if (ImGui::InputText("Name", nameBuf, sizeof(nameBuf)))
+    {
+        selected->name = nameBuf;
+    }
+
+    ImGui::ColorEdit3("Color", selected->color);
 }
 
 // 現在読み込まれているモデルのアニメーション一覧を取得
