@@ -75,6 +75,18 @@ void AnimatorGraph::DeleteState(int stateId)
 	);
 }
 
+// Link‚ğì¬‚·‚é
+int AnimatorGraph::CreateLink(int fromId, int toId)
+{
+	AnimLink link;
+	link.id = GenerateId();
+	link.fromId = fromId;
+	link.toId = toId;
+
+	stateLinks.push_back(link);
+	return link.id;
+}
+
 // ƒOƒ‰ƒt“à—e‚ğJson‚É•ÏŠ·‚·‚é
 nlohmann::ordered_json AnimatorGraph::ToJson() const
 {

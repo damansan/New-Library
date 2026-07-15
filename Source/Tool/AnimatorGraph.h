@@ -69,6 +69,9 @@ public:
 	// State‚ğíœ‚·‚é
 	void DeleteState(int stateId);
 
+	// Link‚ğì¬‚·‚é
+	int CreateLink(int fromId, int toId);
+
 	int GenerateId() { return nextId++; }
 
 	// ƒOƒ‰ƒt“à—e‚ğJson‚É•ÏŠ·‚·‚é

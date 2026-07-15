@@ -11899,13 +11899,32 @@ public:
 		StudioContext& context) override;
 
 private:
-	// Stateの種類に応じたノードの見た目適用
+	// 上側ツールバー
+	void DrawToolbar(StudioContext& context);
+
+
+	// .animgraphのD&D受け口
+	void DrawDropTarget(StudioContext& context);
+	void TryAttachGraph(const std::string& path, StudioContext& context);
+
+
+	// State描画
+	void DrawNodes();
 	void PushStateStyle(const AnimState& state);
 	void PopStateStyle(const AnimState& state);
 	void DrawHexagonBackground(ed::NodeId nodeId, const AnimState& state);
 
+	// Link描画
+	void DrawLinks();
+	// 辺からリンクを伸ばす
+	ImVec2 GetEdgePoint(const ImVec2& rectMin, const ImVec2& rectMax, const ImVec2& target);
+
+	// 右クリックメニュー
+	void DrawCreateNodeMenu();
 	// 右側メニュー
 	void DrawInspector(AnimState* selected);
+	// 選択中State取得
+	AnimState* GetSelectedState();
 
 	// 現在読み込まれているモデルのアニメーション一覧を取得
 	void RefreshAvailableAnimations(entt::registry& registry);
@@ -11914,8 +11933,6 @@ private:
 	void Save(StudioContext& context);
 	// 読み込み
 	void Load(StudioContext& context);
-	// D&D受け取り口
-	void TryAttachGraph(const std::string& path, StudioContext& context);
 
 	NodeEditorCanvas canvas;
 	AnimatorGraph graph; // 編集対象データ
@@ -11930,9 +11947,15 @@ private:
 	bool loaded = false;
 	// 位置反映フラグ
 	bool needsApplyPositions = false;
+	// 右側メニュー初期幅
+	bool columnWidthInitialized = false;
 
 	// D&D紐付けに失敗時のエラーメッセージ
 	std::string attachError;
+
+	// ノードの矩形保存
+	std::unordered_map<int, std::pair<ImVec2, ImVec2>> nodeScreenRects;
+
 }; 
  
 ===== StudioCamera.h ===== 
@@ -12336,12 +12359,55 @@ void StudioAnimatorGraph::DrawGUI(
         needsApplyPositions = true;
     }
 
-
     RefreshAvailableAnimations(registry);
 
     std::string panelName = "AnimatorGraph##" + std::to_string(windowId);
     ImGui::Begin(panelName.c_str());
 
+    DrawToolbar(context);
+
+    ImGui::Columns(2, "AnimatorGraphColumns", true);
+
+    // 初期表示時のみ
+    if (!columnWidthInitialized)
+    {
+        ImGui::SetColumnWidth(0, ImGui::GetWindowWidth() * (3.0f / 4.0f));
+        columnWidthInitialized = true;
+    }
+
+    if (ImGui::GetColumnWidth(0) > ImGui::GetWindowWidth() - 200.0f)
+    {
+        ImGui::SetColumnWidth(0, ImGui::GetWindowWidth() - 220.0f);
+    }
+
+    // キャンバス作成
+    canvas.Begin("AnimatorCanvas");
+
+    DrawDropTarget(context);
+
+    DrawNodes();
+    DrawLinks();
+
+    DrawCreateNodeMenu();
+
+
+    AnimState* selectedState = GetSelectedState();
+
+
+    canvas.End();
+
+    ImGui::NextColumn();
+
+    DrawInspector(selectedState);
+
+    ImGui::Columns(1);
+
+    ImGui::End(); 
+}
+
+// 上側ツールバー
+void StudioAnimatorGraph::DrawToolbar(StudioContext& context)
+{
     // エラーメッセージ
     if (!attachError.empty())
     {
@@ -12363,15 +12429,11 @@ void StudioAnimatorGraph::DrawGUI(
         ImGui::TextDisabled("No graph attached.");
     }
     ImGui::Separator();
+}
 
-    ImGui::Columns(2, "AnimatorGraphColumns", true);
-    if (ImGui::GetColumnWidth(0) > ImGui::GetWindowWidth() - 200.0f)
-    {
-        ImGui::SetColumnWidth(0, ImGui::GetWindowWidth() - 220.0f);
-    }
-
-    canvas.Begin("AnimatorCanvas");
-
+// .animgraphのD&D受け口
+void StudioAnimatorGraph::DrawDropTarget(StudioContext& context)
+{
     // パネル全体を.animgraphのドロップ対象にする
     if (ImGui::BeginDragDropTarget())
     {
@@ -12382,9 +12444,44 @@ void StudioAnimatorGraph::DrawGUI(
         }
         ImGui::EndDragDropTarget();
     }
+}
+void StudioAnimatorGraph::TryAttachGraph(const std::string& path, StudioContext& context)
+{
+    std::ifstream ifs(path);
+    if (!ifs.is_open())
+    {
+        attachError = "Failed to open file.";
+        return;
+    }
 
+    std::string sourceModelPath;
+    try
+    {
+        nlohmann::json j;
+        ifs >> j;
+        sourceModelPath = j.value("sourceModelPath", "");
+    }
+    catch (const std::exception&)
+    {
+        attachError = "Invalid json.";
+        return;
+    }
 
-    // 既存のState描画
+    // 新規作成Jsonは受け入れ、既存Jsonならモデルパスを比較
+    if (!sourceModelPath.empty() && sourceModelPath != context.currentModelPath)
+    {
+        attachError = "This graph belongs to a different model.";
+        return;
+    }
+
+    attachError.clear();
+    context.attachedGraphPath = path;
+    loaded = false;
+}
+
+// State描画
+void StudioAnimatorGraph::DrawNodes()
+{
     for (auto& state : graph.states)
     {
         ed::NodeId nodeId(state.id);
@@ -12443,6 +12540,8 @@ void StudioAnimatorGraph::DrawGUI(
         }
         ed::EndNode();
 
+        nodeScreenRects[state.id] = { ImGui::GetItemRectMin(), ImGui::GetItemRectMax() };
+
         if (state.type == AnimStateType::State)
         {
             DrawHexagonBackground(nodeId, state);
@@ -12455,54 +12554,7 @@ void StudioAnimatorGraph::DrawGUI(
         state.posY = currentPos.y;
     }
     needsApplyPositions = false;
-
-    // 右クリックで新規State作成メニュー
-    ed::Suspend();
-    if (ed::ShowBackgroundContextMenu())
-    {
-        pendingCreatePos = ImGui::GetMousePos();
-        ImGui::OpenPopup("CreateNewState");
-    }
-    if (ImGui::BeginPopup("CreateNewState"))
-    {
-        if (ImGui::MenuItem(u8"State"))
-        {
-            ImVec2 canvasPos = ed::ScreenToCanvas(pendingCreatePos);
-            int newId = graph.CreateState("New State", canvasPos.x, canvasPos.y);
-            ed::SetNodePosition(ed::NodeId(newId), canvasPos);
-        }
-        ImGui::EndPopup();
-    }
-    ed::Resume();
-
-    AnimState* selectedState = nullptr;
-    if (ed::GetSelectedObjectCount() > 0)
-    {
-        ed::NodeId selectedId;
-        ed::GetSelectedNodes(&selectedId, 1);
-
-        for (auto& state : graph.states)
-        {
-            if (state.id == (int)selectedId.Get())
-            {
-                selectedState = &state;
-                break;
-            }
-        }
-    }
-
-    canvas.End();
-
-    ImGui::NextColumn();
-
-    DrawInspector(selectedState);
-
-    ImGui::Columns(1);
-
-    ImGui::End(); 
 }
-
-// Stateの種類に応じたノードの見た目適用
 void StudioAnimatorGraph::PushStateStyle(const AnimState& state)
 {
     switch (state.type)
@@ -12567,6 +12619,70 @@ void StudioAnimatorGraph::DrawHexagonBackground(ed::NodeId nodeId, const AnimSta
     drawList->AddPolyline(points, 6, IM_COL32(140, 170, 210, 255), ImDrawFlags_Closed, 2.0f);
 }
 
+// Link描画
+void StudioAnimatorGraph::DrawLinks()
+{
+    for (const auto& link : graph.stateLinks)
+    {
+        auto fromIt = nodeScreenRects.find(link.fromId);
+        auto toIt = nodeScreenRects.find(link.toId);
+        if (fromIt == nodeScreenRects.end() || toIt == nodeScreenRects.end()) continue;
+
+        const ImVec2& fromMin = fromIt->second.first;
+        const ImVec2& fromMax = fromIt->second.second;
+        const ImVec2& toMin = toIt->second.first;
+        const ImVec2& toMax = toIt->second.second;
+
+        ImVec2 fromCenter((fromMin.x + fromMax.x) * 0.5f, (fromMin.y + fromMax.y) * 0.5f);
+        ImVec2 toCenter((toMin.x + toMax.x) * 0.5f, (toMin.y + toMax.y) * 0.5f);
+
+        ImVec2 startPoint = GetEdgePoint(fromMin, fromMax, toCenter);
+        ImVec2 endPoint = GetEdgePoint(toMin, toMax, fromCenter);
+
+        ImDrawList* drawList = ed::GetNodeBackgroundDrawList(ed::NodeId(link.fromId));
+        if (!drawList) continue;
+
+        drawList->AddLine(startPoint, endPoint, IM_COL32(210, 210, 210, 255), 2.0f);
+    }
+}
+// 辺からリンクを伸ばす
+ImVec2 StudioAnimatorGraph::GetEdgePoint(const ImVec2& rectMin, const ImVec2& rectMax, const ImVec2& target)
+{
+    ImVec2 center((rectMin.x + rectMax.x) * 0.5f, (rectMin.y + rectMax.y) * 0.5f);
+    float halfW = (rectMax.x - rectMin.x) * 0.5f;
+    float halfH = (rectMax.y - rectMin.y) * 0.5f;
+
+    ImVec2 dir(target.x - center.x, target.y - center.y);
+    if (dir.x == 0.0f && dir.y == 0.0f) return center;
+
+    float scaleX = (dir.x != 0.0f) ? halfW / fabsf(dir.x) : FLT_MAX;
+    float scaleY = (dir.y != 0.0f) ? halfH / fabsf(dir.y) : FLT_MAX;
+    float scale = (scaleX < scaleY) ? scaleX : scaleY;
+
+    return ImVec2(center.x + dir.x * scale, center.y + dir.y * scale);
+}
+
+// 右クリックメニュー
+void StudioAnimatorGraph::DrawCreateNodeMenu()
+{
+    ed::Suspend();
+    if (ed::ShowBackgroundContextMenu())
+    {
+        pendingCreatePos = ImGui::GetMousePos();
+        ImGui::OpenPopup("CreateNewState");
+    }
+    if (ImGui::BeginPopup("CreateNewState"))
+    {
+        if (ImGui::MenuItem(u8"State"))
+        {
+            ImVec2 canvasPos = ed::ScreenToCanvas(pendingCreatePos);
+            int newId = graph.CreateState("New State", canvasPos.x, canvasPos.y);
+            ed::SetNodePosition(ed::NodeId(newId), canvasPos);
+        }
+        ImGui::EndPopup();
+    }
+    ed::Resume();
+}
 // 右側メニュー
 void StudioAnimatorGraph::DrawInspector(AnimState* selected)
 {
@@ -12577,12 +12693,13 @@ void StudioAnimatorGraph::DrawInspector(AnimState* selected)
     }
 
     if (selected->type == AnimStateType::Entry)
-    {
+    {   
         ImGui::Text("Entry");
         ImGui::TextDisabled("This is a unique node and cannot be edited.");
         return;
     }
 
+    // 名前変更
     char nameBuf[256];
     strncpy_s(nameBuf, selected->name.c_str(), sizeof(nameBuf) - 1);
     if (ImGui::InputText("Name", nameBuf, sizeof(nameBuf)))
@@ -12590,8 +12707,49 @@ void StudioAnimatorGraph::DrawInspector(AnimState* selected)
         selected->name = nameBuf;
     }
 
+    // 色
     ImGui::ColorEdit3("Color", selected->color);
+
+
+    ImGui::Spacing();
+    ImGui::Spacing();
+
+
+    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.15f, 0.15f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.85f, 0.2f, 0.2f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.6f, 0.1f, 0.1f, 1.0f));
+
+    // 削除ボタン
+    bool pressed = ImGui::Button("Delete State", ImVec2(-1.0f, 0.0f));
+
+    ImGui::PopStyleColor(3);
+
+    if (pressed)
+    {
+        int idToDelete = selected->id;
+        graph.DeleteState(idToDelete);
+        return;
+    }
 }
+// 選択中State取得
+AnimState* StudioAnimatorGraph::GetSelectedState()
+{
+    if (ed::GetSelectedObjectCount() == 0) return nullptr;
+
+    ed::NodeId selectedId;
+    ed::GetSelectedNodes(&selectedId, 1);
+
+    for (auto& state : graph.states)
+    {
+        if (state.id == (int)selectedId.Get())
+        {
+            return &state;
+        }
+    }
+
+    return nullptr;
+}
+
 
 // 現在読み込まれているモデルのアニメーション一覧を取得
 void StudioAnimatorGraph::RefreshAvailableAnimations(entt::registry& registry)
@@ -12612,6 +12770,7 @@ void StudioAnimatorGraph::RefreshAvailableAnimations(entt::registry& registry)
     }
 }
 
+
 // 保存
 void StudioAnimatorGraph::Save(StudioContext& context)
 {
@@ -12630,7 +12789,6 @@ void StudioAnimatorGraph::Save(StudioContext& context)
         ofs << j.dump(4);
     }
 }
-
 // 読み込み
 void StudioAnimatorGraph::Load(StudioContext& context)
 {
@@ -12649,40 +12807,6 @@ void StudioAnimatorGraph::Load(StudioContext& context)
     }
 }
 
-// D&D受け取り口
-void StudioAnimatorGraph::TryAttachGraph(const std::string& path, StudioContext& context)
-{
-    std::ifstream ifs(path);
-    if (!ifs.is_open())
-    {
-        attachError = "Failed to open file.";
-        return;
-    }
-
-    std::string sourceModelPath;
-    try
-    {
-        nlohmann::json j;
-        ifs >> j;
-        sourceModelPath = j.value("sourceModelPath", "");
-    }
-    catch (const std::exception&)
-    {
-        attachError = "Invalid json.";
-        return;
-    }
-
-    // 新規作成Jsonは受け入れ、既存Jsonならモデルパスを比較
-    if (!sourceModelPath.empty() && sourceModelPath != context.currentModelPath)
-    {
-        attachError = "This graph belongs to a different model.";
-        return;
-    }
-
-    attachError.clear();
-    context.attachedGraphPath = path;
-    loaded = false;
-}
  
  
 ===== StudioCamera.cpp ===== 

@@ -18,7 +18,7 @@
         {
             "id": 2,
             "name": "New State",
-            "posX": -240.0,
+            "posX": -256.0,
             "posY": 64.0,
             "type": "State",
             "color": [
@@ -100,5 +100,11 @@
             "childLinks": []
         }
     ],
-    "stateLinks": []
+    "stateLinks": [
+        {
+            "id": 8,
+            "fromId": 2,
+            "toId": 6
+        }
+    ]
 }

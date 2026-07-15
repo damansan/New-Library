@@ -37,8 +37,18 @@ private:
 	void PopStateStyle(const AnimState& state);
 	void DrawHexagonBackground(ed::NodeId nodeId, const AnimState& state);
 
+	// Link描画
+	void DrawLinks();
+	// 辺からリンクを伸ばす
+	ImVec2 GetEdgePoint(const ImVec2& rectMin, const ImVec2& rectMax, const ImVec2& target);
+
 	// 右クリックメニュー
 	void DrawCreateNodeMenu();
+	// 右クリックリンク作成メニュー
+	void DrawNodeContextMenu();
+	// リンク作成モード中のクリック判定
+	void UpdateLinkCreation();
+
 	// 右側メニュー
 	void DrawInspector(AnimState* selected);
 	// 選択中State取得
@@ -70,4 +80,11 @@ private:
 
 	// D&D紐付けに失敗時のエラーメッセージ
 	std::string attachError;
+
+	// ノードの矩形保存
+	std::unordered_map<int, std::pair<ImVec2, ImVec2>> nodeScreenRects;
+
+	// Link起点StateID
+	int pendingLinkFromId = -1;
+
 };
