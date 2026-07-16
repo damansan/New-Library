@@ -53,6 +53,7 @@ void StudioAnimatorGraph::DrawGUI(
 	DrawCreateNodeMenu();
 	DrawNodeContextMenu();
 	UpdateLinkCreation();
+	DrawPendingLink();
 
 	AnimState* selectedState = GetSelectedState();
 
@@ -205,11 +206,6 @@ void StudioAnimatorGraph::DrawNodes()
 
 		nodeScreenRects[state.id] = { ImGui::GetItemRectMin(), ImGui::GetItemRectMax() };
 
-		if (state.type == AnimStateType::State)
-		{
-			DrawHexagonBackground(nodeId, state);
-		}
-
 		PopStateStyle(state);
 
 		ImVec2 currentPos = ed::GetNodePosition(nodeId);
@@ -229,8 +225,9 @@ void StudioAnimatorGraph::PushStateStyle(const AnimState& state)
 		break;
 
 	case AnimStateType::State:
-		ed::PushStyleColor(ed::StyleColor_NodeBg, ImColor(0, 0, 0, 0));
-		ed::PushStyleColor(ed::StyleColor_NodeBorder, ImColor(0, 0, 0, 0));
+		ed::PushStyleColor(ed::StyleColor_NodeBg, ImColor(state.color[0], state.color[1], state.color[2], 1.0f));
+		ed::PushStyleColor(ed::StyleColor_NodeBorder, ImColor(state.color[0] * 0.6f, state.color[1] * 0.6f, state.color[2] * 0.6f, 1.0f));
+		ed::PushStyleVar(ed::StyleVar_NodeRounding, 4.0f);
 		break;
 
 	default:
@@ -247,39 +244,13 @@ void StudioAnimatorGraph::PopStateStyle(const AnimState& state)
 		break;
 
 	case AnimStateType::State:
+		ed::PopStyleVar(1);
 		ed::PopStyleColor(2);
 		break;
 
 	default:
 		break;
 	}
-}
-void StudioAnimatorGraph::DrawHexagonBackground(ed::NodeId nodeId, const AnimState& state)
-{
-	ImVec2 nodeMin = ImGui::GetItemRectMin();
-	ImVec2 nodeMax = ImGui::GetItemRectMax();
-
-	float width = nodeMax.x - nodeMin.x;
-	float height = nodeMax.y - nodeMin.y;
-	float notch = height * 0.35f;
-
-	ImVec2 points[6] =
-	{
-		ImVec2(nodeMin.x, nodeMin.y + height * 0.5f),
-		ImVec2(nodeMin.x + notch, nodeMin.y),
-		ImVec2(nodeMax.x - notch, nodeMin.y),
-		ImVec2(nodeMax.x, nodeMin.y + height * 0.5f),
-		ImVec2(nodeMax.x - notch, nodeMax.y),
-		ImVec2(nodeMin.x + notch, nodeMax.y),
-	};
-
-	ImDrawList* drawList = ed::GetNodeBackgroundDrawList(nodeId);
-	if (!drawList) return;
-
-	ImU32 fillColor = ImColor(state.color[0], state.color[1], state.color[2], 1.0f);
-
-	drawList->AddConvexPolyFilled(points, 6, fillColor);
-	drawList->AddPolyline(points, 6, IM_COL32(140, 170, 210, 255), ImDrawFlags_Closed, 2.0f);
 }
 
 // Link描画
@@ -299,13 +270,61 @@ void StudioAnimatorGraph::DrawLinks()
 		ImVec2 fromCenter((fromMin.x + fromMax.x) * 0.5f, (fromMin.y + fromMax.y) * 0.5f);
 		ImVec2 toCenter((toMin.x + toMax.x) * 0.5f, (toMin.y + toMax.y) * 0.5f);
 
+		// 接続点を求める
 		ImVec2 startPoint = GetEdgePoint(fromMin, fromMax, toCenter);
 		ImVec2 endPoint = GetEdgePoint(toMin, toMax, fromCenter);
+
+		// 双方向にリンクが存在する場合、接続点自体を垂直方向へ一定量だけ平行移動する
+		// (角度計算の"後"にずらすことで、ノード間の距離に関わらず常に同じ幅を保てる)
+		if (HasReverseLink(link.fromId, link.toId))
+		{
+			// 基準方向は fromId/toId の大小関係で固定する(A→BでもB→Aでも同じ基準になるようにする)
+			bool fromIsSmaller = link.fromId < link.toId;
+			const ImVec2& baseCenter = fromIsSmaller ? fromCenter : toCenter;
+			const ImVec2& otherCenter = fromIsSmaller ? toCenter : fromCenter;
+
+			ImVec2 dir(otherCenter.x - baseCenter.x, otherCenter.y - baseCenter.y);
+			float len = sqrtf(dir.x * dir.x + dir.y * dir.y);
+			if (len > 0.0001f)
+			{
+				// 固定した基準方向ベクトルを90度回転させた単位ベクトル(垂直方向)
+				ImVec2 perp(-dir.y / len, dir.x / len);
+
+				const float offsetAmount = 8.0f;
+				// 基準方向に対して自分がfrom側かto側かで符号を反転させる
+				float sign = fromIsSmaller ? 1.0f : -1.0f;
+
+				ImVec2 offset(perp.x * offsetAmount * sign, perp.y * offsetAmount * sign);
+
+				// 接続点そのものを平行移動する→線と線の間隔は常にoffsetAmount×2で一定になる
+				startPoint.x += offset.x;
+				startPoint.y += offset.y;
+				endPoint.x += offset.x;
+				endPoint.y += offset.y;
+			}
+		}
+
+		linkScreenPoints[link.id] = { startPoint, endPoint };
 
 		ImDrawList* drawList = ed::GetNodeBackgroundDrawList(ed::NodeId(link.fromId));
 		if (!drawList) continue;
 
-		drawList->AddLine(startPoint, endPoint, IM_COL32(210, 210, 210, 255), 2.0f);
+		const ImU32 linkColor = IM_COL32(210, 210, 210, 255);
+
+		// 線の終点を、矢印の底辺の位置まで少し手前にする(矢印からはみ出さないように)
+		const float arrowLength = 10.0f; // DrawArrowHead側と同じ値にする
+		ImVec2 dir(endPoint.x - startPoint.x, endPoint.y - startPoint.y);
+		float len = sqrtf(dir.x * dir.x + dir.y * dir.y);
+
+		ImVec2 lineEndPoint = endPoint;
+		if (len > arrowLength)
+		{
+			lineEndPoint.x = endPoint.x - dir.x / len * arrowLength;
+			lineEndPoint.y = endPoint.y - dir.y / len * arrowLength;
+		}
+
+		drawList->AddLine(startPoint, lineEndPoint, linkColor, 2.0f);
+		DrawArrowHead(drawList, startPoint, endPoint, linkColor);
 	}
 }
 // 辺からリンクを伸ばす
@@ -323,6 +342,42 @@ ImVec2 StudioAnimatorGraph::GetEdgePoint(const ImVec2& rectMin, const ImVec2& re
 	float scale = (scaleX < scaleY) ? scaleX : scaleY;
 
 	return ImVec2(center.x + dir.x * scale, center.y + dir.y * scale);
+}
+// 双方向のLinkがあるか確認する
+bool StudioAnimatorGraph::HasReverseLink(int fromId, int toId) const
+{
+	for (const auto& link : graph.stateLinks)
+	{
+		if (link.fromId == toId && link.toId == fromId)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+// 矢印の描画
+void StudioAnimatorGraph::DrawArrowHead(ImDrawList* drawList, const ImVec2& start, const ImVec2& end, ImU32 color)
+{
+	ImVec2 dir(end.x - start.x, end.y - start.y);
+	float len = sqrtf(dir.x * dir.x + dir.y * dir.y);
+	if (len < 0.0001f) return;
+
+	dir.x /= len;
+	dir.y /= len;
+
+	ImVec2 perp(-dir.y, dir.x); // 進行方向に対して垂直なベクトル
+
+	ImVec2 mid((start.x + end.x) * 0.5f, (start.y + end.y) * 0.5f);
+
+	const float arrowLength = 18.0f; // 矢印の先端から底辺までの長さ
+	const float arrowWidth = 13.0f;   // 矢印の底辺の幅
+
+	ImVec2 tip = end;
+	ImVec2 baseCenter(end.x - dir.x * arrowLength, end.y - dir.y * arrowLength);
+	ImVec2 baseLeft(baseCenter.x + perp.x * arrowWidth * 0.5f, baseCenter.y + perp.y * arrowWidth * 0.5f);
+	ImVec2 baseRight(baseCenter.x - perp.x * arrowWidth * 0.5f, baseCenter.y - perp.y * arrowWidth * 0.5f);
+
+	drawList->AddTriangleFilled(tip, baseLeft, baseRight, color);
 }
 
 // 右クリックメニュー
@@ -378,12 +433,46 @@ void StudioAnimatorGraph::UpdateLinkCreation()
 
 		if (hovered && (int)hovered.Get() != pendingLinkFromId)
 		{
-			graph.CreateLink(pendingLinkFromId, (int)hovered.Get());
+			int targetId = (int)hovered.Get();
+
+			// Entryは入力(繋がれる側)を持たない。Entryへの接続は無視する
+			bool targetIsEntry = false;
+			for (const auto& state : graph.states)
+			{
+				if (state.id == targetId && state.type == AnimStateType::Entry)
+				{
+					targetIsEntry = true;
+					break;
+				}
+			}
+
+			if (!targetIsEntry)
+			{
+				graph.CreateLink(pendingLinkFromId, targetId);
+			}
 		}
 
 		// ノード上でもノードが無い場所でも、クリックしたらモードを終了する
 		pendingLinkFromId = -1;
 	}
+}
+// リンク作成中のリンク描画
+void StudioAnimatorGraph::DrawPendingLink()
+{
+	if (pendingLinkFromId == -1) return;
+
+	auto it = nodeScreenRects.find(pendingLinkFromId);
+	if (it == nodeScreenRects.end()) return;
+
+	ImVec2 mousePos = ImGui::GetMousePos();
+	ImVec2 startPoint = GetEdgePoint(it->second.first, it->second.second, mousePos);
+
+	ImDrawList* drawList = ed::GetNodeBackgroundDrawList(ed::NodeId(pendingLinkFromId));
+	if (!drawList) return;
+
+	const ImU32 previewColor = IM_COL32(255, 200, 80, 255); // 通常のリンクと区別するため、仮でオレンジ寄りの色にしています
+
+	drawList->AddLine(startPoint, mousePos, previewColor, 2.0f);
 }
 // 右側メニュー
 void StudioAnimatorGraph::DrawInspector(AnimState* selected)

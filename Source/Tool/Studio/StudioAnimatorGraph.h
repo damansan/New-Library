@@ -35,12 +35,17 @@ private:
 	void DrawNodes();
 	void PushStateStyle(const AnimState& state);
 	void PopStateStyle(const AnimState& state);
-	void DrawHexagonBackground(ed::NodeId nodeId, const AnimState& state);
+
 
 	// Link描画
 	void DrawLinks();
-	// 辺からリンクを伸ばす
+	// 辺からLinkを伸ばす
 	ImVec2 GetEdgePoint(const ImVec2& rectMin, const ImVec2& rectMax, const ImVec2& target);
+	// 双方向のLinkがあるか確認する
+	bool HasReverseLink(int fromId, int toId) const;
+	// 矢印の描画
+	void DrawArrowHead(ImDrawList* drawList, const ImVec2& start, const ImVec2& end, ImU32 color);
+
 
 	// 右クリックメニュー
 	void DrawCreateNodeMenu();
@@ -48,6 +53,12 @@ private:
 	void DrawNodeContextMenu();
 	// リンク作成モード中のクリック判定
 	void UpdateLinkCreation();
+	// リンク作成中のリンク描画
+	void DrawPendingLink();
+
+	// 各リンクの終点始点
+	std::unordered_map<int, std::pair<ImVec2, ImVec2>> linkScreenPoints;
+
 
 	// 右側メニュー
 	void DrawInspector(AnimState* selected);

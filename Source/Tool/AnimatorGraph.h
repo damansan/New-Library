@@ -50,7 +50,7 @@ struct AnimState
 
 	AnimStateType type = AnimStateType::State;
 
-	float color[3] = { 0.27f, 0.35f, 0.47f };
+	float color[3] = { 0.45f, 0.45f, 0.45f }; // ‰Šú’l‚ÍƒOƒŒ[
 
 	std::vector<AnimNode> children;
 	std::vector<AnimLink> childLinks;
@@ -71,6 +71,8 @@ public:
 
 	// Link‚ğì¬‚·‚é
 	int CreateLink(int fromId, int toId);
+	// Link‚ğíœ‚·‚é
+	void DeleteLink(int linkId);
 
 	int GenerateId() { return nextId++; }
 
