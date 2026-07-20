@@ -1,1 +1,273 @@
-{}
+{
+    "sourceModelPath": "",
+    "states": [
+        {
+            "id": 2,
+            "name": "Entry",
+            "posX": 48.0,
+            "posY": 208.0,
+            "type": "Entry",
+            "color": [
+                0.44999998807907104,
+                0.44999998807907104,
+                0.44999998807907104
+            ],
+            "children": [],
+            "childLinks": []
+        },
+        {
+            "id": 3,
+            "name": "New State",
+            "posX": 240.0,
+            "posY": 208.0,
+            "type": "State",
+            "color": [
+                0.44999998807907104,
+                0.44999998807907104,
+                0.44999998807907104
+            ],
+            "children": [],
+            "childLinks": []
+        },
+        {
+            "id": 5,
+            "name": "New State",
+            "posX": 240.0,
+            "posY": 80.0,
+            "type": "State",
+            "color": [
+                0.44999998807907104,
+                0.44999998807907104,
+                0.44999998807907104
+            ],
+            "children": [],
+            "childLinks": []
+        },
+        {
+            "id": 6,
+            "name": "New State",
+            "posX": 240.0,
+            "posY": 336.0,
+            "type": "State",
+            "color": [
+                0.44999998807907104,
+                0.44999998807907104,
+                0.44999998807907104
+            ],
+            "children": [],
+            "childLinks": []
+        },
+        {
+            "id": 11,
+            "name": "New State",
+            "posX": 128.0,
+            "posY": 128.0,
+            "type": "State",
+            "color": [
+                0.44999998807907104,
+                0.44999998807907104,
+                0.44999998807907104
+            ],
+            "children": [],
+            "childLinks": []
+        },
+        {
+            "id": 14,
+            "name": "New State",
+            "posX": 384.0,
+            "posY": 208.0,
+            "type": "State",
+            "color": [
+                0.44999998807907104,
+                0.44999998807907104,
+                0.44999998807907104
+            ],
+            "children": [],
+            "childLinks": []
+        },
+        {
+            "id": 17,
+            "name": "New State",
+            "posX": 352.0,
+            "posY": 128.0,
+            "type": "State",
+            "color": [
+                0.44999998807907104,
+                0.44999998807907104,
+                0.44999998807907104
+            ],
+            "children": [],
+            "childLinks": []
+        },
+        {
+            "id": 27,
+            "name": "New State",
+            "posX": 128.0,
+            "posY": 288.0,
+            "type": "State",
+            "color": [
+                0.44999998807907104,
+                0.44999998807907104,
+                0.44999998807907104
+            ],
+            "children": [],
+            "childLinks": []
+        },
+        {
+            "id": 34,
+            "name": "New State",
+            "posX": 352.0,
+            "posY": 288.0,
+            "type": "State",
+            "color": [
+                0.44999998807907104,
+                0.44999998807907104,
+                0.44999998807907104
+            ],
+            "children": [],
+            "childLinks": []
+        }
+    ],
+    "stateLinks": [
+        {
+            "id": 4,
+            "fromId": 2,
+            "toId": 3
+        },
+        {
+            "id": 7,
+            "fromId": 5,
+            "toId": 3
+        },
+        {
+            "id": 8,
+            "fromId": 3,
+            "toId": 5
+        },
+        {
+            "id": 9,
+            "fromId": 6,
+            "toId": 3
+        },
+        {
+            "id": 10,
+            "fromId": 3,
+            "toId": 6
+        },
+        {
+            "id": 12,
+            "fromId": 11,
+            "toId": 3
+        },
+        {
+            "id": 13,
+            "fromId": 3,
+            "toId": 11
+        },
+        {
+            "id": 15,
+            "fromId": 3,
+            "toId": 14
+        },
+        {
+            "id": 16,
+            "fromId": 14,
+            "toId": 3
+        },
+        {
+            "id": 18,
+            "fromId": 17,
+            "toId": 14
+        },
+        {
+            "id": 19,
+            "fromId": 17,
+            "toId": 5
+        },
+        {
+            "id": 20,
+            "fromId": 14,
+            "toId": 17
+        },
+        {
+            "id": 21,
+            "fromId": 5,
+            "toId": 17
+        },
+        {
+            "id": 22,
+            "fromId": 17,
+            "toId": 3
+        },
+        {
+            "id": 23,
+            "fromId": 17,
+            "toId": 3
+        },
+        {
+            "id": 24,
+            "fromId": 3,
+            "toId": 17
+        },
+        {
+            "id": 28,
+            "fromId": 27,
+            "toId": 6
+        },
+        {
+            "id": 29,
+            "fromId": 6,
+            "toId": 27
+        },
+        {
+            "id": 30,
+            "fromId": 27,
+            "toId": 3
+        },
+        {
+            "id": 31,
+            "fromId": 3,
+            "toId": 27
+        },
+        {
+            "id": 32,
+            "fromId": 5,
+            "toId": 11
+        },
+        {
+            "id": 33,
+            "fromId": 11,
+            "toId": 5
+        },
+        {
+            "id": 35,
+            "fromId": 6,
+            "toId": 34
+        },
+        {
+            "id": 36,
+            "fromId": 34,
+            "toId": 6
+        },
+        {
+            "id": 37,
+            "fromId": 34,
+            "toId": 14
+        },
+        {
+            "id": 38,
+            "fromId": 14,
+            "toId": 34
+        },
+        {
+            "id": 39,
+            "fromId": 34,
+            "toId": 3
+        },
+        {
+            "id": 40,
+            "fromId": 3,
+            "toId": 34
+        }
+    ]
+}

@@ -73,6 +73,16 @@ void AnimatorGraph::DeleteState(int stateId)
 			}),
 		states.end()
 	);
+
+	// ‚±‚ÌState‚ÉŒq‚ª‚Á‚Ä‚¢‚½ƒŠƒ“ƒN‚àˆê‚Éíœ‚·‚é
+	stateLinks.erase(
+		std::remove_if(stateLinks.begin(), stateLinks.end(),
+			[stateId](const AnimLink& l)
+			{
+				return l.fromId == stateId || l.toId == stateId;
+			}),
+		stateLinks.end()
+	);
 }
 
 // Link‚ğì¬‚·‚é
