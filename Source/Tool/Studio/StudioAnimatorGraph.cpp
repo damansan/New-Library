@@ -42,8 +42,6 @@ void StudioAnimatorGraph::DrawGUI(entt::registry& registry, StudioContext& conte
 
 	canvas.Begin("AnimatorCanvas");
 
-	DrawDropTarget(context);
-
 	DrawNodes();
 	DrawLinks();
 

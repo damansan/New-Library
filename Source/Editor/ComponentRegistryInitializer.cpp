@@ -25,6 +25,9 @@
 
 #include "ECS/Components/IKComponent.h"
 
+
+#include "MetaRegistry.h"
+
 #define REGISTER_COMPONENT(Type, Name, DrawFunc)                                    \
     ComponentRegistry::Register(Name,                                               \
     {                                                                               \
@@ -48,52 +51,29 @@ void ComponentRegistryInitializer::Initialize()
 {
 	// トランスフォームコンポーネントの登録
 	REGISTER_COMPONENT(TransformComponent, "Transform",
-		DRAW_COMPONENT(TransformComponent, "Transform",
+		[](auto& reg, auto e)
+		{
+			auto* _c = reg.try_get<TransformComponent>(e);
+			if (!_c) return;
+
+			if (ImGui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen))
 			{
-				ImGui::DragFloat3("Position", &_c->position.x, 0.1f);
-				ImGui::DragFloat3("Rotation", &_c->rotation.x, 0.01f);
-				ImGui::DragFloat3("Scale",    &_c->scale.x,    0.01f);
-			}));
+				MetaRegistry::DrawMetaFields(entt::resolve<TransformComponent>(), entt::forward_as_meta(*_c));
+			}
+		});
 
 	// メッシュコンポーネントの登録
 	REGISTER_COMPONENT(MeshComponent, "Mesh",
-		DRAW_COMPONENT(MeshComponent, "Mesh",
+		[](auto& reg, auto e)
+		{
+			auto* _c = reg.try_get<MeshComponent>(e);
+			if (!_c) return;
+
+			if (ImGui::CollapsingHeader("Mesh", ImGuiTreeNodeFlags_DefaultOpen))
 			{
-				std::string displayName = _c->modelPath.empty()
-					? "None"
-					: std::filesystem::path(_c->modelPath).stem().string();
-
-				ImGui::InputText("##modelName", displayName.data(),
-					displayName.size() + 1, ImGuiInputTextFlags_ReadOnly);
-				ImGui::SameLine();
-
-				if (ImGui::Button("...##openModel"))
-				{
-					char currentDir[256] = {};
-					GetCurrentDirectoryA(sizeof(currentDir), currentDir);
-					std::string dataDir = std::string(currentDir) + "\\Data";
-
-					OPENFILENAMEA ofn = {};
-					char filePath[256] = {};
-					ofn.lStructSize = sizeof(ofn);
-					ofn.lpstrFilter = u8"GLTFファイル\0*.gltf;*.glb\0すべてのファイル\0*.*\0";
-					ofn.lpstrFile = filePath;
-					ofn.nMaxFile = sizeof(filePath);
-					ofn.lpstrTitle = u8"モデルを選択";
-					ofn.lpstrInitialDir = dataDir.c_str();
-					ofn.Flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST;
-
-					if (GetOpenFileNameA(&ofn))
-					{
-						std::string absPath = filePath;
-						std::string basePath = std::string(currentDir) + "\\";
-						if (absPath.find(basePath) == 0)
-							absPath = absPath.substr(basePath.size());
-						std::replace(absPath.begin(), absPath.end(), '\\', '/');
-						_c->modelPath = absPath;
-					}
-				}
-			}));
+				MetaRegistry::DrawMetaFields(entt::resolve<MeshComponent>(), entt::forward_as_meta(*_c));
+			}
+		});
 
 	// マテリアルコンポーネントの登録
 	ComponentRegistry::Register("Material",
@@ -119,24 +99,29 @@ void ComponentRegistryInitializer::Initialize()
 
 	// ムーブメントコンポーネントの登録
 	REGISTER_COMPONENT(MovementComponent, "Movement",
-		DRAW_COMPONENT(MovementComponent, "Movement",
+		[](auto& reg, auto e)
+		{
+			auto* _c = reg.try_get<MovementComponent>(e);
+			if (!_c) return;
+
+			if (ImGui::CollapsingHeader("Movement", ImGuiTreeNodeFlags_DefaultOpen))
 			{
-				ImGui::DragFloat("Move Speed", &_c->moveSpeed, 0.1f,   0.0f,   20.0f);
-				ImGui::DragFloat("Jump Power", &_c->jumpPower, 0.1f,   0.0f,   50.0f);
-				ImGui::DragFloat("Gravity",    &_c->gravity,   0.1f, -100.0f,   0.0f);
-				ImGui::DragFloat3("Velocity",  &_c->velocity.x, 0.01f);
-				ImGui::Checkbox("Is Grounded", &_c->isGrounded);
-			}));
+				MetaRegistry::DrawMetaFields(entt::resolve<MovementComponent>(), entt::forward_as_meta(*_c));
+			}
+		});
 
 	// インプットコンポーネントの登録
 	REGISTER_COMPONENT(InputComponent, "Input",
-		DRAW_COMPONENT(InputComponent, "Input",
+		[](auto& reg, auto e)
+		{
+			auto* _c = reg.try_get<InputComponent>(e);
+			if (!_c) return;
+
+			if (ImGui::CollapsingHeader("Input", ImGuiTreeNodeFlags_DefaultOpen))
 			{
-				ImGui::Text("MoveX:  %.2f", _c->moveX);
-				ImGui::Text("MoveZ:  %.2f", _c->moveZ);
-				ImGui::Text(u8"Jump:   %s", _c->jump ? "true" : "false");
-				ImGui::Text(u8"Attack: %s", _c->attack ? "true" : "false");
-			}));
+				MetaRegistry::DrawMetaFields(entt::resolve<InputComponent>(), entt::forward_as_meta(*_c));
+			}
+		});
 
 	// アニメーターコンポーネントの登録
 	REGISTER_COMPONENT(AnimatorComponent, "Animator",
@@ -177,9 +162,6 @@ void ComponentRegistryInitializer::Initialize()
 				ImGui::EndCombo();
 			}
 
-			ImGui::SliderFloat("Play Speed", &anim->playSpeed, 0.0f, 3.0f);
-			ImGui::Checkbox("Loop", &anim->loop);
-
 			if (anim->isPlaying)
 			{
 				if (ImGui::Button("Stop")) anim->isPlaying = false;
@@ -188,20 +170,7 @@ void ComponentRegistryInitializer::Initialize()
 			{
 				if (ImGui::Button("Play")) { anim->isPlaying = true; anim->isEnd = false; }
 			}
-
-			// ルートモーション設定
-			ImGui::Separator();
-			ImGui::Text("Root Motion");
-
-			ImGui::Checkbox("Use Root Motion", &anim->useRootMotion);
-			ImGui::Checkbox("Use Root Motion Y", &anim->useRootMotionY);
-
-			char nodeNameBuffer[128];
-			strncpy_s(nodeNameBuffer, anim->rootMotionNodeName.c_str(), sizeof(nodeNameBuffer) - 1);
-			if (ImGui::InputText("Root Motion Node", nodeNameBuffer, sizeof(nodeNameBuffer)))
-			{
-				anim->rootMotionNodeName = nodeNameBuffer;
-			}
+			MetaRegistry::DrawMetaFields(entt::resolve<AnimatorComponent>(), entt::forward_as_meta(*anim));
 		});
 
 	// フリーカメラコンポーネントの登録

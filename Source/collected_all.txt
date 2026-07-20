@@ -752,6 +752,7 @@ Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\framework.cpp
 #include "tracy/Tracy.hpp"
 #include "Game/SceneGame.h"
 #include "Editor/ComponentRegistryInitializer.h"
+#include "Editor/MetaRegistry.h"
 
 #include <iomanip>
 
@@ -776,6 +777,7 @@ framework::framework(HWND hwnd) : hwnd(hwnd)
 	projectWindow.Initialize("Data");
 	projectWindow.LoadIcons(graphics.GetDevice());
 	ComponentRegistryInitializer::Initialize();
+	MetaRegistry::Initialize();
 
 	// Studio共有リソース初期化
 	studioShared.Initialize(graphics.GetDevice());
@@ -5256,6 +5258,39 @@ private:
     void DrawAddComponent(entt::registry& registry, EditorContext& context);
 }; 
  
+===== MetaRegistry.h ===== 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Editor\MetaRegistry.h 
+#pragma once
+#include <string>
+#include "entt.hpp"
+
+// フィールド1つに添付する付加情報
+struct FieldInfo
+{
+	std::string label;       // Inspector上の表示名
+	float minValue  = 0.0f;  // 下限値
+	float maxValue  = 0.0f;  // 上限値
+	float dragSpeed = 0.1f;
+	std::string dragDropPayload;
+	bool readOnly = false;
+};
+
+// コンポーネント1つに添付する付加情報
+struct TypeInfo
+{
+	std::string category;
+};
+
+class MetaRegistry
+{
+public:
+	// メタデータの初期化
+	static void Initialize();
+
+	// 登録済みメタ情報からInspectorUIを自動描画
+	static void DrawMetaFields(entt::meta_type metaType, entt::meta_any instance);
+}; 
+ 
 ===== ProjectWindow.h ===== 
 Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Editor\ProjectWindow.h 
 #pragma once
@@ -5386,6 +5421,9 @@ Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Editor\ComponentRegistr
 
 #include "ECS/Components/IKComponent.h"
 
+
+#include "MetaRegistry.h"
+
 #define REGISTER_COMPONENT(Type, Name, DrawFunc)                                    \
     ComponentRegistry::Register(Name,                                               \
     {                                                                               \
@@ -5409,52 +5447,29 @@ void ComponentRegistryInitializer::Initialize()
 {
 	// トランスフォームコンポーネントの登録
 	REGISTER_COMPONENT(TransformComponent, "Transform",
-		DRAW_COMPONENT(TransformComponent, "Transform",
+		[](auto& reg, auto e)
+		{
+			auto* _c = reg.try_get<TransformComponent>(e);
+			if (!_c) return;
+
+			if (ImGui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen))
 			{
-				ImGui::DragFloat3("Position", &_c->position.x, 0.1f);
-				ImGui::DragFloat3("Rotation", &_c->rotation.x, 0.01f);
-				ImGui::DragFloat3("Scale",    &_c->scale.x,    0.01f);
-			}));
+				MetaRegistry::DrawMetaFields(entt::resolve<TransformComponent>(), entt::forward_as_meta(*_c));
+			}
+		});
 
 	// メッシュコンポーネントの登録
 	REGISTER_COMPONENT(MeshComponent, "Mesh",
-		DRAW_COMPONENT(MeshComponent, "Mesh",
+		[](auto& reg, auto e)
+		{
+			auto* _c = reg.try_get<MeshComponent>(e);
+			if (!_c) return;
+
+			if (ImGui::CollapsingHeader("Mesh", ImGuiTreeNodeFlags_DefaultOpen))
 			{
-				std::string displayName = _c->modelPath.empty()
-					? "None"
-					: std::filesystem::path(_c->modelPath).stem().string();
-
-				ImGui::InputText("##modelName", displayName.data(),
-					displayName.size() + 1, ImGuiInputTextFlags_ReadOnly);
-				ImGui::SameLine();
-
-				if (ImGui::Button("...##openModel"))
-				{
-					char currentDir[256] = {};
-					GetCurrentDirectoryA(sizeof(currentDir), currentDir);
-					std::string dataDir = std::string(currentDir) + "\\Data";
-
-					OPENFILENAMEA ofn = {};
-					char filePath[256] = {};
-					ofn.lStructSize = sizeof(ofn);
-					ofn.lpstrFilter = u8"GLTFファイル\0*.gltf;*.glb\0すべてのファイル\0*.*\0";
-					ofn.lpstrFile = filePath;
-					ofn.nMaxFile = sizeof(filePath);
-					ofn.lpstrTitle = u8"モデルを選択";
-					ofn.lpstrInitialDir = dataDir.c_str();
-					ofn.Flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST;
-
-					if (GetOpenFileNameA(&ofn))
-					{
-						std::string absPath = filePath;
-						std::string basePath = std::string(currentDir) + "\\";
-						if (absPath.find(basePath) == 0)
-							absPath = absPath.substr(basePath.size());
-						std::replace(absPath.begin(), absPath.end(), '\\', '/');
-						_c->modelPath = absPath;
-					}
-				}
-			}));
+				MetaRegistry::DrawMetaFields(entt::resolve<MeshComponent>(), entt::forward_as_meta(*_c));
+			}
+		});
 
 	// マテリアルコンポーネントの登録
 	ComponentRegistry::Register("Material",
@@ -5480,24 +5495,29 @@ void ComponentRegistryInitializer::Initialize()
 
 	// ムーブメントコンポーネントの登録
 	REGISTER_COMPONENT(MovementComponent, "Movement",
-		DRAW_COMPONENT(MovementComponent, "Movement",
+		[](auto& reg, auto e)
+		{
+			auto* _c = reg.try_get<MovementComponent>(e);
+			if (!_c) return;
+
+			if (ImGui::CollapsingHeader("Movement", ImGuiTreeNodeFlags_DefaultOpen))
 			{
-				ImGui::DragFloat("Move Speed", &_c->moveSpeed, 0.1f,   0.0f,   20.0f);
-				ImGui::DragFloat("Jump Power", &_c->jumpPower, 0.1f,   0.0f,   50.0f);
-				ImGui::DragFloat("Gravity",    &_c->gravity,   0.1f, -100.0f,   0.0f);
-				ImGui::DragFloat3("Velocity",  &_c->velocity.x, 0.01f);
-				ImGui::Checkbox("Is Grounded", &_c->isGrounded);
-			}));
+				MetaRegistry::DrawMetaFields(entt::resolve<MovementComponent>(), entt::forward_as_meta(*_c));
+			}
+		});
 
 	// インプットコンポーネントの登録
 	REGISTER_COMPONENT(InputComponent, "Input",
-		DRAW_COMPONENT(InputComponent, "Input",
+		[](auto& reg, auto e)
+		{
+			auto* _c = reg.try_get<InputComponent>(e);
+			if (!_c) return;
+
+			if (ImGui::CollapsingHeader("Input", ImGuiTreeNodeFlags_DefaultOpen))
 			{
-				ImGui::Text("MoveX:  %.2f", _c->moveX);
-				ImGui::Text("MoveZ:  %.2f", _c->moveZ);
-				ImGui::Text(u8"Jump:   %s", _c->jump ? "true" : "false");
-				ImGui::Text(u8"Attack: %s", _c->attack ? "true" : "false");
-			}));
+				MetaRegistry::DrawMetaFields(entt::resolve<InputComponent>(), entt::forward_as_meta(*_c));
+			}
+		});
 
 	// アニメーターコンポーネントの登録
 	REGISTER_COMPONENT(AnimatorComponent, "Animator",
@@ -5538,9 +5558,6 @@ void ComponentRegistryInitializer::Initialize()
 				ImGui::EndCombo();
 			}
 
-			ImGui::SliderFloat("Play Speed", &anim->playSpeed, 0.0f, 3.0f);
-			ImGui::Checkbox("Loop", &anim->loop);
-
 			if (anim->isPlaying)
 			{
 				if (ImGui::Button("Stop")) anim->isPlaying = false;
@@ -5549,20 +5566,7 @@ void ComponentRegistryInitializer::Initialize()
 			{
 				if (ImGui::Button("Play")) { anim->isPlaying = true; anim->isEnd = false; }
 			}
-
-			// ルートモーション設定
-			ImGui::Separator();
-			ImGui::Text("Root Motion");
-
-			ImGui::Checkbox("Use Root Motion", &anim->useRootMotion);
-			ImGui::Checkbox("Use Root Motion Y", &anim->useRootMotionY);
-
-			char nodeNameBuffer[128];
-			strncpy_s(nodeNameBuffer, anim->rootMotionNodeName.c_str(), sizeof(nodeNameBuffer) - 1);
-			if (ImGui::InputText("Root Motion Node", nodeNameBuffer, sizeof(nodeNameBuffer)))
-			{
-				anim->rootMotionNodeName = nodeNameBuffer;
-			}
+			MetaRegistry::DrawMetaFields(entt::resolve<AnimatorComponent>(), entt::forward_as_meta(*anim));
 		});
 
 	// フリーカメラコンポーネントの登録
@@ -6047,6 +6051,171 @@ void InspectorWindow::DrawAddComponent(entt::registry& registry, EditorContext& 
         }
         ImGui::EndPopup();
     }
+}
+ 
+ 
+===== MetaRegistry.cpp ===== 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Editor\MetaRegistry.cpp 
+#include "MetaRegistry.h"
+#include <DirectXMath.h>
+#include <filesystem>
+#include <imgui.h>
+
+using namespace entt::literals;
+
+#include "ECS/Components/TransformComponent.h"
+#include "ECS/Components/MeshComponent.h"
+#include "ECS/Components/MovementComponent.h"
+#include "ECS/Components/InputComponent.h"
+#include "ECS/Components/AnimatorComponent.h"
+
+void MetaRegistry::Initialize()
+{
+	entt::meta_factory<TransformComponent>{}
+	.custom<TypeInfo>(TypeInfo{ "Transform" })
+		.data<&TransformComponent::position>("position"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Position", 0.0f, 0.0f, 0.1f })
+		.data<&TransformComponent::rotation>("rotation"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Rotation", 0.0f, 0.0f, 0.01f })
+		.data<&TransformComponent::scale>("scale"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Scale", 0.0f, 0.0f, 0.01f });
+
+	entt::meta_factory<MeshComponent>{}
+	.custom<TypeInfo>(TypeInfo{ "Mesh" })
+		.data<&MeshComponent::modelPath>("modelPath"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Model", 0.0f, 0.0f, 0.1f, "MODEL_PATH" });
+
+	entt::meta_factory<MovementComponent>{}
+	.custom<TypeInfo>(TypeInfo{ "Movement" })
+		.data<&MovementComponent::moveSpeed>("moveSpeed"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Move Speed", 0.0f, 20.0f })
+		.data<&MovementComponent::jumpPower>("jumpPower"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Jump Power", 0.0f, 50.0f })
+		.data<&MovementComponent::gravity>("gravity"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Gravity", -100.0f, 0.0f })
+		.data<&MovementComponent::velocity>("velocity"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Velocity", 0.0f, 0.0f, 0.01f })
+		.data<&MovementComponent::isGrounded>("isGrounded"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Is Grounded" });
+
+	entt::meta_factory<InputComponent>{}
+	.custom<TypeInfo>(TypeInfo{ "Input" })
+		.data<&InputComponent::moveX>("moveX"_hs)
+		.custom<FieldInfo>(FieldInfo{ "MoveX", 0.0f, 0.0f, 0.1f, "", true })
+		.data<&InputComponent::moveZ>("moveZ"_hs)
+		.custom<FieldInfo>(FieldInfo{ "MoveZ", 0.0f, 0.0f, 0.1f, "", true })
+		.data<&InputComponent::jump>("jump"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Jump", 0.0f, 0.0f, 0.1f, "", true })
+		.data<&InputComponent::attack>("attack"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Attack", 0.0f, 0.0f, 0.1f, "", true });
+
+	entt::meta_factory<AnimatorComponent>{}
+	.custom<TypeInfo>(TypeInfo{ "Animator" })
+		.data<&AnimatorComponent::playSpeed>("playSpeed"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Play Speed", 0.0f, 3.0f })
+		.data<&AnimatorComponent::loop>("loop"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Loop" })
+		.data<&AnimatorComponent::useRootMotion>("useRootMotion"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Use Root Motion" })
+		.data<&AnimatorComponent::useRootMotionY>("useRootMotionY"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Use Root Motion Y" })
+		.data<&AnimatorComponent::rootMotionNodeName>("rootMotionNodeName"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Root Motion Node" });
+}
+
+// 登録済みメタ情報からInspectorUIを自動描画
+void MetaRegistry::DrawMetaFields(entt::meta_type metaType, entt::meta_any instance)
+{
+	if (!metaType) return;
+
+	for (auto&& [id, metaData] : metaType.data())
+	{
+		FieldInfo* fieldInfo = metaData.custom();
+		std::string label = fieldInfo ? fieldInfo->label : std::string(metaData.name());
+
+		entt::meta_any value = metaData.get(instance);
+
+		if (float* f = value.try_cast<float>())
+		{
+			if (fieldInfo && fieldInfo->readOnly)
+			{
+				ImGui::Text("%s: %.2f", label.c_str(), *f);
+			}
+			else
+			{
+				float minV = fieldInfo ? fieldInfo->minValue : 0.0f;
+				float maxV = fieldInfo ? fieldInfo->maxValue : 0.0f;
+				float speed = fieldInfo ? fieldInfo->dragSpeed : 0.1f;
+
+				if (ImGui::DragFloat(label.c_str(), f, speed, minV, maxV))
+				{
+					metaData.set(instance, *f);
+				}
+			}
+		}
+		else if (DirectX::XMFLOAT3* v = value.try_cast<DirectX::XMFLOAT3>())
+		{
+			float speed = fieldInfo ? fieldInfo->dragSpeed : 0.1f;
+
+			if (ImGui::DragFloat3(label.c_str(), &v->x, speed))
+			{
+				metaData.set(instance, *v);
+			}
+		}
+		else if (bool* b = value.try_cast<bool>())
+		{
+			if (fieldInfo && fieldInfo->readOnly)
+			{
+				ImGui::Text("%s: %s", label.c_str(), *b ? "true" : "false");
+			}
+			else
+			{
+				if (ImGui::Checkbox(label.c_str(), b))
+				{
+					metaData.set(instance, *b);
+				}
+			}
+		}
+		else if (std::string* s = value.try_cast<std::string>())
+		{
+			if (fieldInfo && !fieldInfo->dragDropPayload.empty())
+			{
+				std::string displayName = s->empty()
+					? "None"
+					: std::filesystem::path(*s).stem().string();
+
+				ImGui::InputText(label.c_str(), displayName.data(),
+					displayName.size() + 1, ImGuiInputTextFlags_ReadOnly);
+
+				if (ImGui::BeginDragDropTarget())
+				{
+					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(fieldInfo->dragDropPayload.c_str()))
+					{
+						std::string newPath(static_cast<const char*>(payload->Data));
+						metaData.set(instance, newPath);
+					}
+					ImGui::EndDragDropTarget();
+				}
+			}
+			else if (fieldInfo && fieldInfo->readOnly)
+			{
+				ImGui::Text("%s: %s", label.c_str(), s->c_str());
+			}
+			else
+			{
+				char buf[256];
+				strncpy_s(buf, s->c_str(), sizeof(buf) - 1);
+				if (ImGui::InputText(label.c_str(), buf, sizeof(buf)))
+				{
+					metaData.set(instance, std::string(buf));
+				}
+			}
+		}
+		else
+		{
+			ImGui::TextDisabled("%s: (unsupported type)", label.c_str());
+		}
+	}
 }
  
  
@@ -12428,8 +12597,6 @@ void StudioAnimatorGraph::DrawGUI(entt::registry& registry, StudioContext& conte
 	}
 
 	canvas.Begin("AnimatorCanvas");
-
-	DrawDropTarget(context);
 
 	DrawNodes();
 	DrawLinks();

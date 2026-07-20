@@ -52,6 +52,7 @@
     <ClCompile Include="Source\Editor\ComponentRegistryInitializer.cpp" />
     <ClCompile Include="Source\Editor\HierarchyWindow.cpp" />
     <ClCompile Include="Source\Editor\InspectorWindow.cpp" />
+    <ClCompile Include="Source\Editor\MetaRegistry.cpp" />
     <ClCompile Include="Source\Editor\ProjectWindow.cpp" />
     <ClCompile Include="Source\Game\SceneGame.cpp" />
     <ClCompile Include="Source\Rendering\GBuffer.cpp" />
@@ -130,6 +131,7 @@
     <ClInclude Include="Source\Editor\EditorContext.h" />
     <ClInclude Include="Source\Editor\HierarchyWindow.h" />
     <ClInclude Include="Source\Editor\InspectorWindow.h" />
+    <ClInclude Include="Source\Editor\MetaRegistry.h" />
     <ClInclude Include="Source\Editor\ProjectWindow.h" />
     <ClInclude Include="Source\Game\SceneGame.h" />
     <ClInclude Include="Source\Rendering\GBuffer.h" />

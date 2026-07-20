@@ -2,6 +2,7 @@
 #include "tracy/Tracy.hpp"
 #include "Game/SceneGame.h"
 #include "Editor/ComponentRegistryInitializer.h"
+#include "Editor/MetaRegistry.h"
 
 #include <iomanip>
 
@@ -26,6 +27,7 @@ framework::framework(HWND hwnd) : hwnd(hwnd)
 	projectWindow.Initialize("Data");
 	projectWindow.LoadIcons(graphics.GetDevice());
 	ComponentRegistryInitializer::Initialize();
+	MetaRegistry::Initialize();
 
 	// Studio共有リソース初期化
 	studioShared.Initialize(graphics.GetDevice());

@@ -260,6 +260,9 @@
     <Filter Include="Sources\Tool\Studio\StudioAnimatorGraph">
       <UniqueIdentifier>{bd6b7422-38f4-45bf-8ad4-d87ee49acbe8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\Editor\MetaRegistry">
+      <UniqueIdentifier>{38e775c4-e2df-4716-a917-43a4d843c549}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Core\framework.cpp">
@@ -438,6 +441,9 @@
     </ClCompile>
     <ClCompile Include="Source\Tool\Studio\StudioAnimatorGraph.cpp">
       <Filter>Sources\Tool\Studio\StudioAnimatorGraph</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Editor\MetaRegistry.cpp">
+      <Filter>Sources\Editor\MetaRegistry</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -686,6 +692,9 @@
     </ClInclude>
     <ClInclude Include="Source\Tool\Studio\StudioAnimatorGraph.h">
       <Filter>Sources\Tool\Studio\StudioAnimatorGraph</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Editor\MetaRegistry.h">
+      <Filter>Sources\Editor\MetaRegistry</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
