@@ -104,12 +104,24 @@
         {
             "id": 8,
             "fromId": 2,
-            "toId": 6
+            "toId": 6,
+            "condition": {
+                "nextId": 1,
+                "variableNodes": [],
+                "operatorNodes": [],
+                "links": []
+            }
         },
         {
             "id": 9,
             "fromId": 7,
-            "toId": 2
+            "toId": 2,
+            "condition": {
+                "nextId": 1,
+                "variableNodes": [],
+                "operatorNodes": [],
+                "links": []
+            }
         }
     ]
 }

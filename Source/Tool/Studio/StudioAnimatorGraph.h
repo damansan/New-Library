@@ -26,6 +26,11 @@ public:
 
 private:
 
+	// アニメーターキャンバス
+	void DrawStateCanvas(StudioContext& context);
+	// 遷移条件キャンバス
+	void DrawConditionCanvas();
+
 	// 上側ツールバー
 	void DrawToolbar(StudioContext& context);
 
@@ -61,6 +66,8 @@ private:
 
 	// 右側メニュー
 	void DrawInspector(AnimState* selectedState, AnimLink* selectedLink);
+	void DrawStateInspector(AnimState* selectedState);
+	void DrawLinkInspector(AnimLink* selectedLink);
 	AnimState* GetSelectedState();
 	AnimLink* GetSelectedLink();
 

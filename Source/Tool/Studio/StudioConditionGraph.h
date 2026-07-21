@@ -19,7 +19,8 @@ public:
 
 	// ImGui描画
 	void DrawGUI();
-
+	// 右側メニュー
+	void DrawInspector();
 private:
 	NodeEditorCanvas canvas;        // このクラス専用のノードエディタコンテキスト
 	AnimLink* targetLink = nullptr; // 現在編集中のLink

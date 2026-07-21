@@ -43,41 +43,55 @@ void StudioAnimatorGraph::DrawGUI(entt::registry& registry, StudioContext& conte
 
 	if (showConditionGraph)
 	{
-		if (ImGui::Button("< Back to States"))
-		{
-			showConditionGraph = false;
-		}
-		ImGui::Separator();
-
-		conditionGraph.DrawGUI();
+		DrawConditionCanvas();
 	}
 	else
 	{
-		canvas.Begin("AnimatorCanvas");
-
-		DrawDropTarget(context);
-
-		DrawNodes();
-		DrawLinks();
-
-		DrawCreateNodeMenu();
-		DrawNodeContextMenu();
-		UpdateLinkCreation();
-		DrawPendingLink();
-
-		AnimState* selectedState = GetSelectedState();
-		AnimLink* selectedLink = selectedState ? nullptr : GetSelectedLink();
-
-		canvas.End();
-
-		ImGui::NextColumn();
-
-		DrawInspector(selectedState, selectedLink);
-
-		ImGui::Columns(1);
+		DrawStateCanvas(context);
 	}
 
+	ImGui::Columns(1);
+
 	ImGui::End();
+}
+
+// アニメーターキャンバス
+void StudioAnimatorGraph::DrawStateCanvas(StudioContext& context)
+{
+	canvas.Begin("AnimatorCanvas");
+
+	DrawDropTarget(context);
+
+	DrawNodes();
+	DrawLinks();
+
+	DrawCreateNodeMenu();
+	DrawNodeContextMenu();
+	UpdateLinkCreation();
+	DrawPendingLink();
+
+	AnimState* selectedState = GetSelectedState();
+	AnimLink* selectedLink = selectedState ? nullptr : GetSelectedLink();
+
+	canvas.End();
+
+	ImGui::NextColumn();
+
+	DrawInspector(selectedState, selectedLink);
+}
+// 遷移条件キャンバス
+void StudioAnimatorGraph::DrawConditionCanvas()
+{
+	if (ImGui::Button("< Back to States"))
+	{
+		showConditionGraph = false;
+	}
+
+	conditionGraph.DrawGUI();
+
+	ImGui::NextColumn();
+
+	conditionGraph.DrawInspector();
 }
 
 // 上側ツールバー
@@ -535,89 +549,88 @@ void StudioAnimatorGraph::DrawPendingLink()
 // 右側メニュー
 void StudioAnimatorGraph::DrawInspector(AnimState* selectedState, AnimLink* selectedLink)
 {
-	// Stateが選択されている場合
 	if (selectedState)
 	{
-		if (selectedState->type == AnimStateType::Entry)
-		{
-			ImGui::Text("Entry");
-			ImGui::TextDisabled("This is a unique node and cannot be edited.");
-			return;
-		}
-
-		char nameBuf[256];
-		strncpy_s(nameBuf, selectedState->name.c_str(), sizeof(nameBuf) - 1);
-		if (ImGui::InputText("Name", nameBuf, sizeof(nameBuf)))
-		{
-			selectedState->name = nameBuf;
-		}
-
-		ImGui::ColorEdit3("Color", selectedState->color);
-
-		ImGui::Spacing();
-		ImGui::Spacing();
-
-		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.15f, 0.15f, 1.0f));
-		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.85f, 0.2f, 0.2f, 1.0f));
-		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.6f, 0.1f, 0.1f, 1.0f));
-
-		bool pressed = ImGui::Button("Delete State", ImVec2(-1.0f, 0.0f));
-
-		ImGui::PopStyleColor(3);
-
-		if (pressed)
-		{
-			graph.DeleteState(selectedState->id);
-		}
+		DrawStateInspector(selectedState);
 		return;
 	}
 
-	// Linkが選択されている場合
 	if (selectedLink)
 	{
-		const AnimState* fromState = nullptr;
-		const AnimState* toState = nullptr;
-		for (const auto& state : graph.states)
-		{
-			if (state.id == selectedLink->fromId) fromState = &state;
-			if (state.id == selectedLink->toId)   toState = &state;
-		}
-
-		std::string fromName = fromState ? fromState->name : "?";
-		std::string toName = toState ? toState->name : "?";
-
-		ImGui::Text("Transition");
-		ImGui::Separator();
-		ImGui::TextWrapped("%s -> %s", fromName.c_str(), toName.c_str());
-
-		//ImGui::Spacing();
-
-		if (ImGui::Button("Edit Condition", ImVec2(-1.0f, 0.0f)))
-		{
-			conditionGraph.SetTarget(selectedLink);
-			showConditionGraph = true;
-		}
-
-		//ImGui::Spacing();
-		//ImGui::Spacing();
-
-		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.15f, 0.15f, 1.0f));
-		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.85f, 0.2f, 0.2f, 1.0f));
-		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.6f, 0.1f, 0.1f, 1.0f));
-
-		bool pressed = ImGui::Button("Delete Link", ImVec2(-1.0f, 0.0f));
-
-		ImGui::PopStyleColor(3);
-
-		if (pressed)
-		{
-			graph.DeleteLink(selectedLink->id);
-		}
+		DrawLinkInspector(selectedLink);
 		return;
 	}
 
 	// どちらも選択されていない場合
 	ImGui::TextDisabled("No state selected.");
+}
+void StudioAnimatorGraph::DrawStateInspector(AnimState* selectedState)
+{
+	if (selectedState->type == AnimStateType::Entry)
+	{
+		ImGui::Text("Entry");
+		ImGui::TextDisabled("This is a unique node and cannot be edited.");
+		return;
+	}
+
+	char nameBuf[256];
+	strncpy_s(nameBuf, selectedState->name.c_str(), sizeof(nameBuf) - 1);
+	if (ImGui::InputText("Name", nameBuf, sizeof(nameBuf)))
+	{
+		selectedState->name = nameBuf;
+	}
+
+	ImGui::ColorEdit3("Color", selectedState->color);
+
+	ImGui::Spacing();
+	ImGui::Spacing();
+
+	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.15f, 0.15f, 1.0f));
+	ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.85f, 0.2f, 0.2f, 1.0f));
+	ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.6f, 0.1f, 0.1f, 1.0f));
+
+	bool pressed = ImGui::Button("Delete State", ImVec2(-1.0f, 0.0f));
+
+	ImGui::PopStyleColor(3);
+
+	if (pressed)
+	{
+		graph.DeleteState(selectedState->id);
+	}
+}
+void StudioAnimatorGraph::DrawLinkInspector(AnimLink* selectedLink)
+{
+	const AnimState* fromState = nullptr;
+	const AnimState* toState = nullptr;
+	for (const auto& state : graph.states)
+	{
+		if (state.id == selectedLink->fromId) fromState = &state;
+		if (state.id == selectedLink->toId)   toState = &state;
+	}
+
+	std::string fromName = fromState ? fromState->name : "?";
+	std::string toName = toState ? toState->name : "?";
+
+	ImGui::TextWrapped("%s -> %s", fromName.c_str(), toName.c_str());
+
+	if (ImGui::Button("Edit Condition", ImVec2(-1.0f, 0.0f)))
+	{
+		conditionGraph.SetTarget(selectedLink);
+		showConditionGraph = true;
+	}
+
+	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.15f, 0.15f, 1.0f));
+	ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.85f, 0.2f, 0.2f, 1.0f));
+	ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.6f, 0.1f, 0.1f, 1.0f));
+
+	bool pressed = ImGui::Button("Delete Link", ImVec2(-1.0f, 0.0f));
+
+	ImGui::PopStyleColor(3);
+
+	if (pressed)
+	{
+		graph.DeleteLink(selectedLink->id);
+	}
 }
 AnimState* StudioAnimatorGraph::GetSelectedState()
 {

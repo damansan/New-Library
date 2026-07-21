@@ -24,3 +24,10 @@ void StudioConditionGraph::DrawGUI()
 
 	canvas.End();
 }
+
+// ‰E‘¤ƒƒjƒ…[
+void StudioConditionGraph::DrawInspector()
+{
+	ImGui::TextDisabled("No node selected.");
+
+}
