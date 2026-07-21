@@ -6,6 +6,7 @@
 void StudioAnimatorGraph::Initialize()
 {
 	canvas.Initialize();
+	conditionGraph.Initialize();
 }
 
 // ImGui•`‰æ
@@ -40,26 +41,41 @@ void StudioAnimatorGraph::DrawGUI(entt::registry& registry, StudioContext& conte
 		ImGui::SetColumnWidth(0, ImGui::GetWindowWidth() - 220.0f);
 	}
 
-	canvas.Begin("AnimatorCanvas");
+	if (showConditionGraph)
+	{
+		if (ImGui::Button("< Back to States"))
+		{
+			showConditionGraph = false;
+		}
+		ImGui::Separator();
 
-	DrawNodes();
-	DrawLinks();
+		conditionGraph.DrawGUI();
+	}
+	else
+	{
+		canvas.Begin("AnimatorCanvas");
 
-	DrawCreateNodeMenu();
-	DrawNodeContextMenu();
-	UpdateLinkCreation();
-	DrawPendingLink();
+		DrawDropTarget(context);
 
-	AnimState* selectedState = GetSelectedState();
-	AnimLink* selectedLink = selectedState ? nullptr : GetSelectedLink();
+		DrawNodes();
+		DrawLinks();
 
-	canvas.End();
+		DrawCreateNodeMenu();
+		DrawNodeContextMenu();
+		UpdateLinkCreation();
+		DrawPendingLink();
 
-	ImGui::NextColumn();
+		AnimState* selectedState = GetSelectedState();
+		AnimLink* selectedLink = selectedState ? nullptr : GetSelectedLink();
 
-	DrawInspector(selectedState, selectedLink);
+		canvas.End();
 
-	ImGui::Columns(1);
+		ImGui::NextColumn();
+
+		DrawInspector(selectedState, selectedLink);
+
+		ImGui::Columns(1);
+	}
 
 	ImGui::End();
 }
@@ -574,11 +590,16 @@ void StudioAnimatorGraph::DrawInspector(AnimState* selectedState, AnimLink* sele
 		ImGui::Separator();
 		ImGui::TextWrapped("%s -> %s", fromName.c_str(), toName.c_str());
 
-		// ‘JˆÚğŒ‚Í–¢À‘•‚Ì‚½‚ßA¡‚Í–¼‘O‚Ì•\¦‚Æíœ‚Ì‚İ‘Î‰
-		ImGui::TextDisabled("Conditions are not implemented yet.");
+		//ImGui::Spacing();
 
-		ImGui::Spacing();
-		ImGui::Spacing();
+		if (ImGui::Button("Edit Condition", ImVec2(-1.0f, 0.0f)))
+		{
+			conditionGraph.SetTarget(selectedLink);
+			showConditionGraph = true;
+		}
+
+		//ImGui::Spacing();
+		//ImGui::Spacing();
 
 		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.15f, 0.15f, 1.0f));
 		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.85f, 0.2f, 0.2f, 1.0f));

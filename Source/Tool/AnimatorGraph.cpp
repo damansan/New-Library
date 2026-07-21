@@ -40,6 +40,29 @@ namespace
 		if (s == "End")   return AnimNodeType::End;
 		return AnimNodeType::Normal;
 	}
+
+	std::string ToString(CompareOp op)
+	{
+		switch (op)
+		{
+		case CompareOp::Greater:      return "Greater";
+		case CompareOp::Less:         return "Less";
+		case CompareOp::Equal:        return "Equal";
+		case CompareOp::NotEqual:     return "NotEqual";
+		case CompareOp::GreaterEqual: return "GreaterEqual";
+		case CompareOp::LessEqual:    return "LessEqual";
+		default:                      return "Greater";
+		}
+	}
+	CompareOp ToCompareOp(const std::string& s)
+	{
+		if (s == "Less")         return CompareOp::Less;
+		if (s == "Equal")        return CompareOp::Equal;
+		if (s == "NotEqual")     return CompareOp::NotEqual;
+		if (s == "GreaterEqual") return CompareOp::GreaterEqual;
+		if (s == "LessEqual")    return CompareOp::LessEqual;
+		return CompareOp::Greater;
+	}
 }
 
 
@@ -155,9 +178,48 @@ nlohmann::ordered_json AnimatorGraph::ToJson() const
 		jl["id"] = link.id;
 		jl["fromId"] = link.fromId;
 		jl["toId"] = link.toId;
+
+		nlohmann::ordered_json jc;
+		jc["nextId"] = link.condition.nextId;
+
+		jc["variableNodes"] = nlohmann::json::array();
+		for (const auto& v : link.condition.variableNodes)
+		{
+			nlohmann::ordered_json jv;
+			jv["id"] = v.id;
+			jv["posX"] = v.posX;
+			jv["posY"] = v.posY;
+			jv["componentName"] = v.componentName;
+			jv["fieldName"] = v.fieldName;
+			jc["variableNodes"].push_back(jv);
+		}
+
+		jc["operatorNodes"] = nlohmann::json::array();
+		for (const auto& o : link.condition.operatorNodes)
+		{
+			nlohmann::ordered_json jo;
+			jo["id"] = o.id;
+			jo["posX"] = o.posX;
+			jo["posY"] = o.posY;
+			jo["op"] = ToString(o.op);
+			jo["compareValue"] = o.compareValue;
+			jc["operatorNodes"].push_back(jo);
+		}
+
+		jc["links"] = nlohmann::json::array();
+		for (const auto& cl : link.condition.links)
+		{
+			nlohmann::ordered_json jcl;
+			jcl["id"] = cl.id;
+			jcl["fromId"] = cl.fromId;
+			jcl["toId"] = cl.toId;
+			jc["links"].push_back(jcl);
+		}
+
+		jl["condition"] = jc;
+
 		j["stateLinks"].push_back(jl);
 	}
-
 	return j;
 }
 
@@ -227,6 +289,53 @@ void AnimatorGraph::FromJson(const nlohmann::json& j)
 			link.id = jl.value("id", -1);
 			link.fromId = jl.value("fromId", -1);
 			link.toId = jl.value("toId", -1);
+
+			if (jl.contains("condition"))
+			{
+				const auto& jc = jl["condition"];
+				link.condition.nextId = jc.value("nextId", 1);
+
+				if (jc.contains("variableNodes"))
+				{
+					for (const auto& jv : jc["variableNodes"])
+					{
+						ConditionVariableNode v;
+						v.id = jv.value("id", -1);
+						v.posX = jv.value("posX", 0.0f);
+						v.posY = jv.value("posY", 0.0f);
+						v.componentName = jv.value("componentName", "");
+						v.fieldName = jv.value("fieldName", "");
+						link.condition.variableNodes.push_back(v);
+					}
+				}
+
+				if (jc.contains("operatorNodes"))
+				{
+					for (const auto& jo : jc["operatorNodes"])
+					{
+						ConditionOperatorNode o;
+						o.id = jo.value("id", -1);
+						o.posX = jo.value("posX", 0.0f);
+						o.posY = jo.value("posY", 0.0f);
+						o.op = ToCompareOp(jo.value("op", "Greater"));
+						o.compareValue = jo.value("compareValue", 0.0f);
+						link.condition.operatorNodes.push_back(o);
+					}
+				}
+
+				if (jc.contains("links"))
+				{
+					for (const auto& jcl : jc["links"])
+					{
+						ConditionLink cl;
+						cl.id = jcl.value("id", -1);
+						cl.fromId = jcl.value("fromId", -1);
+						cl.toId = jcl.value("toId", -1);
+						link.condition.links.push_back(cl);
+					}
+				}
+			}
+
 			stateLinks.push_back(link);
 
 			if (link.id >= nextId) nextId = link.id + 1;

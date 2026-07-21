@@ -14,7 +14,8 @@ using namespace entt::literals;
 void MetaRegistry::Initialize()
 {
 	entt::meta_factory<TransformComponent>{}
-	.custom<TypeInfo>(TypeInfo{ "Transform" })
+	.type("TransformComponent")
+		.custom<TypeInfo>(TypeInfo{ "Transform" })
 		.data<&TransformComponent::position>("position"_hs)
 		.custom<FieldInfo>(FieldInfo{ "Position", 0.0f, 0.0f, 0.1f })
 		.data<&TransformComponent::rotation>("rotation"_hs)
@@ -23,12 +24,14 @@ void MetaRegistry::Initialize()
 		.custom<FieldInfo>(FieldInfo{ "Scale", 0.0f, 0.0f, 0.01f });
 
 	entt::meta_factory<MeshComponent>{}
-	.custom<TypeInfo>(TypeInfo{ "Mesh" })
+	.type("MeshComponent")
+		.custom<TypeInfo>(TypeInfo{ "Mesh" })
 		.data<&MeshComponent::modelPath>("modelPath"_hs)
 		.custom<FieldInfo>(FieldInfo{ "Model", 0.0f, 0.0f, 0.1f, "MODEL_PATH" });
 
 	entt::meta_factory<MovementComponent>{}
-	.custom<TypeInfo>(TypeInfo{ "Movement" })
+	.type("MovementComponent")
+		.custom<TypeInfo>(TypeInfo{ "Movement" })
 		.data<&MovementComponent::moveSpeed>("moveSpeed"_hs)
 		.custom<FieldInfo>(FieldInfo{ "Move Speed", 0.0f, 20.0f })
 		.data<&MovementComponent::jumpPower>("jumpPower"_hs)
@@ -41,7 +44,8 @@ void MetaRegistry::Initialize()
 		.custom<FieldInfo>(FieldInfo{ "Is Grounded" });
 
 	entt::meta_factory<InputComponent>{}
-	.custom<TypeInfo>(TypeInfo{ "Input" })
+	.type("InputComponent")
+		.custom<TypeInfo>(TypeInfo{ "Input" })
 		.data<&InputComponent::moveX>("moveX"_hs)
 		.custom<FieldInfo>(FieldInfo{ "MoveX", 0.0f, 0.0f, 0.1f, "", true })
 		.data<&InputComponent::moveZ>("moveZ"_hs)
@@ -52,7 +56,8 @@ void MetaRegistry::Initialize()
 		.custom<FieldInfo>(FieldInfo{ "Attack", 0.0f, 0.0f, 0.1f, "", true });
 
 	entt::meta_factory<AnimatorComponent>{}
-	.custom<TypeInfo>(TypeInfo{ "Animator" })
+	.type("AnimatorComponent")
+		.custom<TypeInfo>(TypeInfo{ "Animator" })
 		.data<&AnimatorComponent::playSpeed>("playSpeed"_hs)
 		.custom<FieldInfo>(FieldInfo{ "Play Speed", 0.0f, 3.0f })
 		.data<&AnimatorComponent::loop>("loop"_hs)
@@ -158,4 +163,34 @@ void MetaRegistry::DrawMetaFields(entt::meta_type metaType, entt::meta_any insta
 			ImGui::TextDisabled("%s: (unsupported type)", label.c_str());
 		}
 	}
+}
+
+// 登録済みのフィード一覧を取得する
+const std::vector<FieldEntry>& MetaRegistry::GetAllFields()
+{
+	static std::vector<FieldEntry> fieldEntries;
+
+	if (fieldEntries.empty())
+	{
+		for (auto&& [id, metaType] : entt::resolve())
+		{
+			TypeInfo* typeInfo = metaType.custom();
+			std::string category = typeInfo ? typeInfo->category : "";
+			std::string componentName = std::string(metaType.name());
+
+			if (componentName.empty()) continue;
+
+			for (auto&& [fieldId, metaData] : metaType.data())
+			{
+				FieldInfo* fieldInfo = metaData.custom();
+				std::string label = fieldInfo ? fieldInfo->label : std::string(metaData.name());
+
+				fieldEntries.push_back(FieldEntry{
+					metaType, fieldId, componentName, category, label
+					});
+			}
+		}
+	}
+
+	return fieldEntries;
 }

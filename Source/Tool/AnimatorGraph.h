@@ -18,12 +18,66 @@ enum class AnimStateType
 	State, // ノード
 };
 
+// 比較演算子の種類
+enum class CompareOp
+{
+	Greater,      // >
+	Less,         // 
+	Equal,        // ==
+	NotEqual,     // !=
+	GreaterEqual, // >=
+	LessEqual,    // <=
+};
+
+// 変数ノード
+struct ConditionVariableNode
+{
+	int id = -1;
+	float posX = 0.0f;
+	float posY = 0.0f;
+
+	std::string componentName; 
+	std::string fieldName;     
+};
+
+// 比較ノード
+struct ConditionOperatorNode
+{
+	int id = -1;
+	float posX = 0.0f;
+	float posY = 0.0f;
+
+	CompareOp op = CompareOp::Greater;
+	float compareValue = 0.0f;
+};
+
+// 条件グラフ内のリンク
+struct ConditionLink
+{
+	int id = -1;
+	int fromId = -1;
+	int toId = -1;
+};
+
+// Link1本分の条件グラフ
+struct ConditionGraph
+{
+	std::vector<ConditionVariableNode> variableNodes;
+	std::vector<ConditionOperatorNode> operatorNodes;
+	std::vector<ConditionLink> links;
+
+	int nextId = 1;
+	int GenerateId() { return nextId++; }
+};
+
 // リンク
 struct AnimLink
 {
 	int id = -1;     // このリンクのID
 	int fromId = -1; // 遷移元のID
 	int toId = -1;   // 遷移先のID
+
+	ConditionGraph condition; // このLinkの遷移条件グラフ
 };
 
 // 子階層ノード
@@ -50,7 +104,8 @@ struct AnimState
 
 	AnimStateType type = AnimStateType::State;
 
-	float color[3] = { 0.45f, 0.45f, 0.45f }; // 初期値はグレー
+	//float color[3] = { 0.45f, 0.45f, 0.45f }; // 初期値はグレー
+	float color[3] = { 0.27f, 0.35f, 0.47f };
 
 	std::vector<AnimNode> children;
 	std::vector<AnimLink> childLinks;

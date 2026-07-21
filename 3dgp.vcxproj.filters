@@ -263,6 +263,9 @@
     <Filter Include="Sources\Editor\MetaRegistry">
       <UniqueIdentifier>{38e775c4-e2df-4716-a917-43a4d843c549}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\Tool\Studio\StudioConditionGraph">
+      <UniqueIdentifier>{260c5d2b-5dec-46b7-bc51-bfba29954be0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Core\framework.cpp">
@@ -444,6 +447,9 @@
     </ClCompile>
     <ClCompile Include="Source\Editor\MetaRegistry.cpp">
       <Filter>Sources\Editor\MetaRegistry</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Tool\Studio\StudioConditionGraph.cpp">
+      <Filter>Sources\Tool\Studio\StudioConditionGraph</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -695,6 +701,9 @@
     </ClInclude>
     <ClInclude Include="Source\Editor\MetaRegistry.h">
       <Filter>Sources\Editor\MetaRegistry</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Tool\Studio\StudioConditionGraph.h">
+      <Filter>Sources\Tool\Studio\StudioConditionGraph</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

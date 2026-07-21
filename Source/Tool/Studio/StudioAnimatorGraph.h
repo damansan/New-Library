@@ -8,6 +8,8 @@
 #include <imgui.h>
 #include <imgui_node_editor.h>
 
+#include "StudioConditionGraph.h"
+
 namespace ed = ax::NodeEditor;
 
 class StudioAnimatorGraph : public IStudioAttachment
@@ -70,6 +72,10 @@ private:
 
 	NodeEditorCanvas canvas;
 	AnimatorGraph graph;
+	
+	StudioConditionGraph conditionGraph; // Link1本分の条件編集用(別キャンバス)
+	bool showConditionGraph = false;     // 現在どちらのキャンバスを表示中か
+
 	int windowId = 0;
 
 	// アニメーション一覧
