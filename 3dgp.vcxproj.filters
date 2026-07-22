@@ -266,6 +266,12 @@
     <Filter Include="Sources\Tool\Studio\StudioConditionGraph">
       <UniqueIdentifier>{260c5d2b-5dec-46b7-bc51-bfba29954be0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shader\ShadowMap">
+      <UniqueIdentifier>{da942653-6adf-4267-ab6e-0b4b82fe7f99}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Rendering\ShadowMap">
+      <UniqueIdentifier>{26d8ccfb-b4a1-462b-aa72-e32b4430a1b0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Core\framework.cpp">
@@ -450,6 +456,9 @@
     </ClCompile>
     <ClCompile Include="Source\Tool\Studio\StudioConditionGraph.cpp">
       <Filter>Sources\Tool\Studio\StudioConditionGraph</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Rendering\ShadowMap.cpp">
+      <Filter>Sources\Rendering\ShadowMap</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -705,6 +714,9 @@
     <ClInclude Include="Source\Tool\Studio\StudioConditionGraph.h">
       <Filter>Sources\Tool\Studio\StudioConditionGraph</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Rendering\ShadowMap.h">
+      <Filter>Sources\Rendering\ShadowMap</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shader\Static_VS.hlsl">
@@ -757,6 +769,12 @@
     </FxCompile>
     <FxCompile Include="Shader\WiredShape_VS.hlsl">
       <Filter>Shader\WiredShape</Filter>
+    </FxCompile>
+    <FxCompile Include="Data\Shader\ShadowMapStatic_VS.hlsl">
+      <Filter>Shader\ShadowMap</Filter>
+    </FxCompile>
+    <FxCompile Include="Data\Shader\ShadowMapSkinning_VS.hlsl">
+      <Filter>Shader\ShadowMap</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>

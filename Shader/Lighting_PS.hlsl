@@ -5,9 +5,6 @@ cbuffer CbScene : register(b0)
 {
     row_major float4x4 view;
     row_major float4x4 projection;
-    //float4 lightDirection;
-    //float4 lightColor;
-    //float4 ambientColor;
     float4 cameraPosition;
 };
 
@@ -32,6 +29,17 @@ cbuffer CbLights : register(b1)
     float3 cbPadding;
 };
 
+// カスケードシャドウマップ
+#define CASCADE_COUNT 4
+
+cbuffer CbCascadeShadow : register(b2)
+{
+    row_major float4x4 cascadeLightViewProjection[CASCADE_COUNT];
+    float4 shadowBias; // カスケードごとの深度比較オフセット
+    float shadowAttenuation; // 影の暗さ
+    float3 shadowPadding;
+};
+
 // Gバッファ
 Texture2D gbAlbedo            : register(t0);
 Texture2D gbNormal            : register(t1);
@@ -45,6 +53,9 @@ TextureCube diffuseIem    : register(t6);
 TextureCube specularPmrem : register(t7);
 Texture2D lutGgx          : register(t8);
 
+// カスケードシャドウマップ
+Texture2DArray cascadeShadowMaps : register(t9);
+
 SamplerState samplerState : register(s0);
 
 struct VS_OUT
@@ -52,6 +63,43 @@ struct VS_OUT
     float4 position : SV_POSITION;
     float2 texcoord : TEXCOORD;
 };
+
+// カスケードシャドウ判定
+float CalcCascadeShadow(float3 worldPos)
+{
+    for (int i = 0; i < CASCADE_COUNT; i++)
+    {
+        // 光源から見たNDC座標を算出
+        float4 lightClipPos = mul(float4(worldPos, 1.0f), cascadeLightViewProjection[i]);
+        lightClipPos /= lightClipPos.w;
+
+        // NDC座標からUV座標へ変換
+        float2 shadowUV = lightClipPos.xy * 0.5f + 0.5f;
+        shadowUV.y = 1.0f - shadowUV.y;
+
+        // このカスケードの描画範囲内かどうか判定
+        bool inside =
+            lightClipPos.z >= 0.0f && lightClipPos.z <= 1.0f &&
+            shadowUV.x >= 0.0f && shadowUV.x <= 1.0f &&
+            shadowUV.y >= 0.0f && shadowUV.y <= 1.0f;
+
+        if (!inside)
+            continue;
+
+        // シャドウマップから深度値取得(第3引数でカスケード番号のスライスを選択)
+        float storedDepth = cascadeShadowMaps.Sample(samplerState, float3(shadowUV, i)).r;
+        
+        // 深度値を比較して影かどうか判定
+        if (lightClipPos.z - storedDepth > shadowBias[i])
+        {
+            return shadowAttenuation;
+        }
+        // 範囲内が見つかった時点でそのカスケードの結果を使う
+        return 1.0f;
+    }
+    // どのカスケードにも属さない場合は影なし扱い
+    return 1.0f;
+}
 
 float4 main(VS_OUT pin) : SV_TARGET
 {
@@ -77,6 +125,8 @@ float4 main(VS_OUT pin) : SV_TARGET
 
     // ベクトル計算
     float3 V = normalize(cameraPosition.xyz - worldPos);
+    
+    // 直接光
     float3 diffuse = 0;
     float3 specular = 0;
     
@@ -87,6 +137,12 @@ float4 main(VS_OUT pin) : SV_TARGET
         float3 d = 0;
         float3 s = 0;
         DirectBRDF(diffuse_reflectance, F0, N, V, L, LC, roughness, d, s);
+        
+        // カスケードシャドウマップによる減衰
+        float shadowFactor = CalcCascadeShadow(worldPos);
+        d *= shadowFactor;
+        s *= shadowFactor;
+        
         diffuse += d;
         specular += s;
     }

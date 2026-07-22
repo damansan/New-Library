@@ -29,6 +29,10 @@ void SceneGame::Initialize(const SceneContext& context)
 		{ 1.0f,  1.0f, 1.0f },
 		1.0f
 	);
+	// カスケードシャドウマップ初期化
+	shadowMap.Initialize(context.device);
+	renderSystem.SetShadowMap(&shadowMap);
+
 	physicsDebugRenderer.Initialize(context.device);
 
 
@@ -184,6 +188,27 @@ void SceneGame::Render(const SceneContext& context)
 	// フラスタム計算
 	renderSystem.SetFrustum(context.view, context.projection);
 
+	// カスケードシャドウマップの行列を更新
+	if (context.camera)
+	{
+		ZoneScopedN("ShadowMap::UpdateMatrices");
+
+		float fovY = DirectX::XMConvertToRadians(context.camera->GetViewingAngle());
+		float aspect = static_cast<float>(context.screenWidth) / static_cast<float>(context.screenHeight);
+
+		const auto& lightDir4 = lightManager.GetDirectionalLight().direction;
+		DirectX::XMFLOAT3 lightDirection = { lightDir4.x, lightDir4.y, lightDir4.z };
+
+		shadowMap.UpdateMatrices(
+			context.camera->GetEye(),
+			context.camera->GetFront(),
+			context.camera->GetRight(),
+			context.camera->GetUp(),
+			fovY,
+			aspect,
+			lightDirection
+		);
+	}
 
 	// スカイボックス
 	{

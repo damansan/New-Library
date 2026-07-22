@@ -46,10 +46,25 @@ void RenderSystem::Initialize(ID3D11Device* device)
 	// 半透明フォワード用ピクセルシェーダー(PBR)
 	GpuResourceUtils::LoadPixelShader(device, "Data/Shader/PBR_PS.cso", forwardTransparentPS);
 
+	// シャドウマップ深度描画用頂点シェーダー
+	Microsoft::WRL::ComPtr<ID3D11InputLayout> dummyLayoutShadow;
+	GpuResourceUtils::LoadVertexShader(
+		device, "Data/Shader/ShadowMapStatic_VS.cso",
+		inputElementDescs.data(), static_cast<UINT>(inputElementDescs.size()),
+		dummyLayoutShadow, shadowMapStaticVS
+	);
+	GpuResourceUtils::LoadVertexShader(
+		device, "Data/Shader/ShadowMapSkinning_VS.cso",
+		inputElementDescs.data(), static_cast<UINT>(inputElementDescs.size()),
+		dummyLayoutShadow, shadowMapSkinnedVS
+	);
+
 	// 定数バッファ
 	GpuResourceUtils::CreateConstantBuffer(device, sizeof(CbScene), cbScene);
 	GpuResourceUtils::CreateConstantBuffer(device, sizeof(CbObject), cbObject);
 	GpuResourceUtils::CreateConstantBuffer(device, sizeof(CbSkinning), cbSkinning);
+	GpuResourceUtils::CreateConstantBuffer(device, sizeof(CbShadowScene), cbShadowScene);
+	GpuResourceUtils::CreateConstantBuffer(device, sizeof(CbCascadeShadow), cbCascadeShadow);
 
 	// サンプラーステート
 	D3D11_SAMPLER_DESC samplerDesc{};
@@ -119,6 +134,13 @@ void RenderSystem::Initialize(ID3D11Device* device)
 	dsLight.BackFace = dsLight.FrontFace;
 	device->CreateDepthStencilState(&dsLight, depthStencilStateLighting.GetAddressOf());
 
+	// 深度ステンシルステート(ShadowPass用・ステンシル不要)
+	D3D11_DEPTH_STENCIL_DESC dsShadow{};
+	dsShadow.DepthEnable = TRUE;
+	dsShadow.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+	dsShadow.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
+	device->CreateDepthStencilState(&dsShadow, depthStencilStateShadow.GetAddressOf());
+
 	// ブレンドステート(アルファブレンド・半透明用）
 	D3D11_BLEND_DESC blendDesc{};
 	blendDesc.RenderTarget[0].BlendEnable = TRUE;
@@ -159,6 +181,12 @@ void RenderSystem::Render(
 		screenWidth = width;
 		screenHeight = height;
 		gBuffer.Initialize(device, width, height);
+	}
+
+	// カスケードシャドウマップへ深度を描画
+	if (shadowMap)
+	{
+		ShadowPass(registry, dc);
 	}
 
 	// 不透明ジオメトリをGBufferへ
@@ -429,6 +457,12 @@ void RenderSystem::LightingPass(ID3D11DeviceContext* dc, ID3D11RenderTargetView*
 	};
 	dc->PSSetShaderResources(0, 6, gbSrvs);
 
+	// カスケードシャドウマップをSRVとしてセット
+	if (shadowMap)
+	{
+		dc->PSSetShaderResources(9, 1, shadowMap->GetSRVAddress());
+	}
+
 	// Lightingシェーダーセット
 	dc->VSSetShader(lightingVS.Get(), nullptr, 0);
 	dc->PSSetShader(lightingPS.Get(), nullptr, 0);
@@ -446,6 +480,22 @@ void RenderSystem::LightingPass(ID3D11DeviceContext* dc, ID3D11RenderTargetView*
 	// CbSceneをピクセルシェーダーにセット
 	dc->PSSetConstantBuffers(0, 1, cbScene.GetAddressOf());
 
+	// カスケードシャドウ情報を更新
+	if (shadowMap)
+	{
+		CbCascadeShadow cbCascadeShadowData{};
+		for (int i = 0; i < ShadowMap::CascadeCount; i++)
+		{
+			cbCascadeShadowData.lightViewProjection[i] = shadowMap->GetLightViewProjection(i);
+		}
+		// 深度比較用のオフセット値
+		cbCascadeShadowData.shadowBias = { 0.0015f, 0.0020f, 0.0030f, 0.0050f };
+		// 影の暗さ(0=完全に暗く 1=影なし)
+		cbCascadeShadowData.shadowAttenuation = 0.4f;
+		dc->UpdateSubresource(cbCascadeShadow.Get(), 0, nullptr, &cbCascadeShadowData, 0, 0);
+		dc->PSSetConstantBuffers(2, 1, cbCascadeShadow.GetAddressOf());
+	}
+
 	// サンプラーもセット
 	dc->PSSetSamplers(0, 1, samplerState.GetAddressOf());
 
@@ -453,8 +503,8 @@ void RenderSystem::LightingPass(ID3D11DeviceContext* dc, ID3D11RenderTargetView*
 	dc->Draw(4, 0);
 
 	// GBufferSRVの束縛を解除
-	ID3D11ShaderResourceView* nullSrvs[9] = {};
-	dc->PSSetShaderResources(0, 9, nullSrvs);
+	ID3D11ShaderResourceView* nullSrvs[10] = {};
+	dc->PSSetShaderResources(0, 10, nullSrvs);
 }
 
 // 半透明パス(フォワードレンダリング)
@@ -595,4 +645,124 @@ void RenderSystem::ForwardTransparentPass(
 	// SRVの束縛解除（t0〜t7）
 	ID3D11ShaderResourceView* nullSrvs[8] = {};
 	dc->PSSetShaderResources(0, 8, nullSrvs);
+}
+
+// シャドウマップ深度パス
+void RenderSystem::ShadowPass(
+	entt::registry& registry, 
+	ID3D11DeviceContext* dc)
+{
+	// ビューポート設定(シャドウマップの解像度に合わせる)
+	D3D11_VIEWPORT vp{};
+	vp.Width = static_cast<float>(ShadowMap::ShadowMapSize);
+	vp.Height = static_cast<float>(ShadowMap::ShadowMapSize);
+	vp.MinDepth = 0.0f;
+	vp.MaxDepth = 1.0f;
+	dc->RSSetViewports(1, &vp);
+
+	// 共通ステート設定(色を書かない＝レンダーターゲットは使わない)
+	dc->RSSetState(rasterizerState.Get());
+	dc->OMSetDepthStencilState(depthStencilStateShadow.Get(), 0);
+	dc->IASetInputLayout(inputLayout.Get());
+	dc->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	// ピクセルシェーダーは不要(深度のみ書き込む)
+	dc->PSSetShader(nullptr, nullptr, 0);
+
+	auto staticView = registry.view<TransformComponent, StaticMeshComponent>();
+	auto skinnedView = registry.view<TransformComponent, SkinnedMeshComponent>();
+
+	for (int cascadeIndex = 0; cascadeIndex < ShadowMap::CascadeCount; cascadeIndex++)
+	{
+		// このカスケード用の深度バッファに描画先を切り替え
+		dc->ClearDepthStencilView(shadowMap->GetDSV(cascadeIndex), D3D11_CLEAR_DEPTH, 1.0f, 0);
+		dc->OMSetRenderTargets(0, nullptr, shadowMap->GetDSV(cascadeIndex));
+
+		// このカスケードのライトビュープロジェクション行列を定数バッファへ
+		CbShadowScene cbShadowSceneData{};
+		cbShadowSceneData.lightViewProjection = shadowMap->GetLightViewProjection(cascadeIndex);
+		dc->UpdateSubresource(cbShadowScene.Get(), 0, nullptr, &cbShadowSceneData, 0, 0);
+		dc->VSSetConstantBuffers(0, 1, cbShadowScene.GetAddressOf());
+
+		// 静的メッシュ(shadow caster)
+		dc->VSSetShader(shadowMapStaticVS.Get(), nullptr, 0);
+		staticView.each([&](auto entity, TransformComponent& transform, StaticMeshComponent& staticMesh)
+			{
+				if (!staticMesh.model) return;
+
+				DirectX::XMFLOAT4X4 worldMatrix{};
+				DirectX::XMStoreFloat4x4(&worldMatrix, transform.GetWorldMatrix());
+
+				CbObject cbObjectData{};
+				cbObjectData.world = worldMatrix;
+				dc->UpdateSubresource(cbObject.Get(), 0, nullptr, &cbObjectData, 0, 0);
+				dc->VSSetConstantBuffers(1, 1, cbObject.GetAddressOf());
+
+				for (auto& mesh : staticMesh.model->GetMeshes())
+				{
+					bool isTransparent = mesh.material &&
+						(mesh.material->alphaMode == Model::Material::AlphaMode::Blend ||
+							mesh.material->alphaMode == Model::Material::AlphaMode::Mask);
+					if (isTransparent) continue;
+
+					UINT stride = sizeof(Model::Vertex), offset = 0;
+					dc->IASetVertexBuffers(0, 1, mesh.vertexBuffer.GetAddressOf(), &stride, &offset);
+					dc->IASetIndexBuffer(mesh.indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+					dc->DrawIndexed(static_cast<UINT>(mesh.indices.size()), 0, 0);
+				}
+			});
+
+		// スキニングメッシュ(shadow caster)
+		dc->VSSetShader(shadowMapSkinnedVS.Get(), nullptr, 0);
+		skinnedView.each([&](auto entity, TransformComponent& transform, SkinnedMeshComponent& skinnedMesh)
+			{
+				if (!skinnedMesh.model) return;
+
+				DirectX::XMFLOAT4X4 worldMatrix{};
+				DirectX::XMStoreFloat4x4(&worldMatrix, transform.GetWorldMatrix());
+
+				CbObject cbObjectData{};
+				cbObjectData.world = worldMatrix;
+				dc->UpdateSubresource(cbObject.Get(), 0, nullptr, &cbObjectData, 0, 0);
+				dc->VSSetConstantBuffers(1, 1, cbObject.GetAddressOf());
+
+				const auto& meshes = skinnedMesh.model->GetMeshes();
+				for (int m = 0; m < (int)meshes.size(); m++)
+				{
+					const auto& mesh = meshes[m];
+					bool isTransparent = mesh.material &&
+						(mesh.material->alphaMode == Model::Material::AlphaMode::Blend ||
+							mesh.material->alphaMode == Model::Material::AlphaMode::Mask);
+					if (isTransparent) continue;
+
+					CbSkinning cbSkinningData{};
+					if (m < (int)skinnedMesh.boneTransforms.size() && !skinnedMesh.boneTransforms[m].empty())
+					{
+						const auto& bt = skinnedMesh.boneTransforms[m];
+						size_t boneCount = (std::min)(bt.size(), (size_t)MAX_BONES);
+						for (size_t i = 0; i < boneCount; i++)
+							cbSkinningData.boneTransforms[i] = bt[i];
+					}
+					else
+					{
+						int nodeIndex = mesh.nodeIndex;
+						if (nodeIndex >= 0 && nodeIndex < (int)skinnedMesh.nodeGlobalTransforms.size())
+							cbSkinningData.boneTransforms[0] = skinnedMesh.nodeGlobalTransforms[nodeIndex];
+						else
+							cbSkinningData.boneTransforms[0] = { 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 };
+					}
+					dc->UpdateSubresource(cbSkinning.Get(), 0, nullptr, &cbSkinningData, 0, 0);
+					dc->VSSetConstantBuffers(2, 1, cbSkinning.GetAddressOf());
+
+					UINT stride = sizeof(Model::Vertex), offset = 0;
+					dc->IASetVertexBuffers(0, 1, mesh.vertexBuffer.GetAddressOf(), &stride, &offset);
+					dc->IASetIndexBuffer(mesh.indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+					dc->DrawIndexed(static_cast<UINT>(mesh.indices.size()), 0, 0);
+				}
+			});
+	}
+
+	// レンダーターゲットの束縛解除
+	dc->OMSetRenderTargets(0, nullptr, nullptr);
+
+	dc->VSSetConstantBuffers(0, 1, cbScene.GetAddressOf());
 }

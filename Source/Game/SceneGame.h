@@ -14,6 +14,7 @@
 
 #include "Rendering/SkyBox.h"
 #include "Rendering/LightManager.h"
+#include "Rendering/ShadowMap.h"
 #include "Rendering/PhysicsDebugRenderer.h"
 
 #include "ECS/Systems/PhysicsSystem.h"
@@ -49,6 +50,7 @@ private:
 
 	SkyBox       skyBox;
 	LightManager lightManager;
+	ShadowMap    shadowMap;
 	PhysicsDebugRenderer physicsDebugRenderer;
 
 	PhysicsSystem    physicsSystem;

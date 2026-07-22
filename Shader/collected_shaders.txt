@@ -243,9 +243,6 @@ cbuffer CbScene : register(b0)
 {
     row_major float4x4 view;
     row_major float4x4 projection;
-    //float4 lightDirection;
-    //float4 lightColor;
-    //float4 ambientColor;
     float4 cameraPosition;
 };
 
@@ -270,6 +267,17 @@ cbuffer CbLights : register(b1)
     float3 cbPadding;
 };
 
+// カスケードシャドウマップ
+#define CASCADE_COUNT 4
+
+cbuffer CbCascadeShadow : register(b2)
+{
+    row_major float4x4 cascadeLightViewProjection[CASCADE_COUNT];
+    float4 shadowBias; // カスケードごとの深度比較オフセット
+    float shadowAttenuation; // 影の暗さ
+    float3 shadowPadding;
+};
+
 // Gバッファ
 Texture2D gbAlbedo            : register(t0);
 Texture2D gbNormal            : register(t1);
@@ -283,6 +291,9 @@ TextureCube diffuseIem    : register(t6);
 TextureCube specularPmrem : register(t7);
 Texture2D lutGgx          : register(t8);
 
+// カスケードシャドウマップ
+Texture2DArray cascadeShadowMaps : register(t9);
+
 SamplerState samplerState : register(s0);
 
 struct VS_OUT
@@ -290,6 +301,43 @@ struct VS_OUT
     float4 position : SV_POSITION;
     float2 texcoord : TEXCOORD;
 };
+
+// カスケードシャドウ判定
+float CalcCascadeShadow(float3 worldPos)
+{
+    for (int i = 0; i < CASCADE_COUNT; i++)
+    {
+        // 光源から見たNDC座標を算出
+        float4 lightClipPos = mul(float4(worldPos, 1.0f), cascadeLightViewProjection[i]);
+        lightClipPos /= lightClipPos.w;
+
+        // NDC座標からUV座標へ変換
+        float2 shadowUV = lightClipPos.xy * 0.5f + 0.5f;
+        shadowUV.y = 1.0f - shadowUV.y;
+
+        // このカスケードの描画範囲内かどうか判定
+        bool inside =
+            lightClipPos.z >= 0.0f && lightClipPos.z <= 1.0f &&
+            shadowUV.x >= 0.0f && shadowUV.x <= 1.0f &&
+            shadowUV.y >= 0.0f && shadowUV.y <= 1.0f;
+
+        if (!inside)
+            continue;
+
+        // シャドウマップから深度値取得(第3引数でカスケード番号のスライスを選択)
+        float storedDepth = cascadeShadowMaps.Sample(samplerState, float3(shadowUV, i)).r;
+        
+        // 深度値を比較して影かどうか判定
+        if (lightClipPos.z - storedDepth > shadowBias[i])
+        {
+            return shadowAttenuation;
+        }
+        // 範囲内が見つかった時点でそのカスケードの結果を使う
+        return 1.0f;
+    }
+    // どのカスケードにも属さない場合は影なし扱い
+    return 1.0f;
+}
 
 float4 main(VS_OUT pin) : SV_TARGET
 {
@@ -315,6 +363,8 @@ float4 main(VS_OUT pin) : SV_TARGET
 
     // ベクトル計算
     float3 V = normalize(cameraPosition.xyz - worldPos);
+    
+    // 直接光
     float3 diffuse = 0;
     float3 specular = 0;
     
@@ -325,6 +375,12 @@ float4 main(VS_OUT pin) : SV_TARGET
         float3 d = 0;
         float3 s = 0;
         DirectBRDF(diffuse_reflectance, F0, N, V, L, LC, roughness, d, s);
+        
+        // カスケードシャドウマップによる減衰
+        float shadowFactor = CalcCascadeShadow(worldPos);
+        d *= shadowFactor;
+        s *= shadowFactor;
+        
         diffuse += d;
         specular += s;
     }
@@ -424,10 +480,28 @@ cbuffer CbScene : register(b0)
 {
     row_major float4x4 view;
     row_major float4x4 projection;
-    float4 lightDirection;
-    float4 lightColor;
-    float4 ambientColor;
     float4 cameraPosition;
+};
+
+struct DirectionalLight
+{
+    float4 direction;
+    float4 color;
+};
+struct PointLight
+{
+    float4 position;
+    float4 color;
+};
+
+#define MAX_POINT_LIGHTS 64
+
+cbuffer CbLights : register(b1)
+{
+    DirectionalLight directionalLight;
+    PointLight pointLights[MAX_POINT_LIGHTS];
+    int pointLightCount;
+    float3 cbPadding;
 };
 
 // テクスチャ
@@ -439,7 +513,7 @@ Texture2D emissiveMap          : register(t4); // Emissive
 // IBL用テクスチャ
 TextureCube diffuseIem    : register(t5); // Diffuse IBL
 TextureCube specularPmrem : register(t6); // Specular IBL
-Texture2D lutGgx          : register(t7); // BRDF LUT
+Texture2D   lutGgx        : register(t7); // BRDF LUT
 
 SamplerState samplerState : register(s0);
 
@@ -454,18 +528,17 @@ struct VS_OUT
 
 float4 main(VS_OUT pin) : SV_TARGET
 {
-    // Albedo取得 + ガンマ補正(sRGB -> Linear)
+    // Albedo取得
     float4 baseColor = baseMap.Sample(samplerState, pin.texcoord);
     baseColor.rgb = pow(max(baseColor.rgb, 0.0001f), GAMMA);
     
-    // Emissive取得 + ガンマ補正(sRGB -> Linear)
+    // Emissive取得
     float3 emissive = emissiveMap.Sample(samplerState, pin.texcoord).rgb;
     emissive = pow(max(emissive, 0.0001f), GAMMA);
     
     // MetallicRoughness取得
-    // glTF準拠: G=Roughness, B=Metallic
     float4 mr = metallicRoughnessMap.Sample(samplerState, pin.texcoord);
-    float roughness = max(mr.g, 0.01f); // 最小値を設ける
+    float roughness = max(mr.g, 0.01f);
     float metalness = mr.b;
 
     // Occlusion取得
@@ -474,51 +547,73 @@ float4 main(VS_OUT pin) : SV_TARGET
     // 法線マッピング
     float3 N = normalize(pin.normal);
     float3 T = normalize(pin.tangent.xyz);
-    float sigma = pin.tangent.w; // 接線の符号
+    float sigma = pin.tangent.w;
 
-    // グラムシュミット直交化
     T = normalize(T - N * dot(N, T));
-    float3 B = normalize(cross(N, T) * sigma); // 従法線
+    float3 B = normalize(cross(N, T) * sigma);
     
-    // 法線マップをサンプリングして接線空間 -> ワールド空間へ
     float3 normalSample = normalMap.Sample(samplerState, pin.texcoord).xyz;
-    normalSample = normalSample * 2.0f - 1.0f; // [0,1] -> [-1,1]
+    normalSample = normalSample * 2.0f - 1.0f;
     N = normalize(normalSample.x * T
                 + normalSample.y * B
                 + normalSample.z * N);
     
     // PBRパラメーター計算
-    // 拡散反射率（金属は拡散反射しない）
     float3 diffuse_reflectance = lerp(baseColor.rgb, 0.0f, metalness);
-
-    // 垂直入射時のフレネル反射率
-    // 非金属でも最低4%は鏡面反射する
     float3 F0 = lerp(0.04f, baseColor.rgb, metalness);
 
     // ベクトル計算
-    float3 V = normalize(cameraPosition.xyz - pin.worldPos); // 視線方向
-    float3 L = normalize(-lightDirection.xyz); // 光源方向
-    float3 LC = lightColor.rgb * lightColor.a; // ライトカラー
-    
-    // 直接光のPBRライティング
+    float3 V = normalize(cameraPosition.xyz - pin.worldPos);
     float3 diffuse = 0;
     float3 specular = 0;
-    DirectBRDF(diffuse_reflectance, F0, N, V, L, LC, roughness, diffuse, specular);
-    
-    
-    // 間接光（アンビエント）
-    float3 ambient = 0;
+
+    // 平行光源
+    {
+        float3 L = normalize(-directionalLight.direction.xyz);
+        float3 LC = directionalLight.color.rgb * directionalLight.color.a;
+        float3 d = 0;
+        float3 s = 0;
+        DirectBRDF(diffuse_reflectance, F0, N, V, L, LC, roughness, d, s);
+        diffuse += d;
+        specular += s;
+    }
+
+    // ポイントライト
+    for (int i = 0; i < pointLightCount; i++)
+    {
+        float3 toLight = pointLights[i].position.xyz - pin.worldPos;
+        float dist = length(toLight);
+        float range = pointLights[i].position.w;
+
+        if (dist > range)
+            continue;
+
+        float attenuation = 1.0f - saturate(dist / range);
+        attenuation *= attenuation;
+
+        float3 L = normalize(toLight);
+        float3 LC = pointLights[i].color.rgb
+              * pointLights[i].color.a
+              * attenuation;
+
+        float3 d = 0;
+        float3 s = 0;
+        DirectBRDF(diffuse_reflectance, F0, N, V, L, LC, roughness, d, s);
+        diffuse += d;
+        specular += s;
+    }
+
+    // 間接光
     float3 iblDiffuse = IBL_Diffuse(
-    diffuseIem, samplerState, N,
-    diffuse_reflectance, F0, V);
+        diffuseIem, samplerState, N,
+        diffuse_reflectance, F0, V);
 
     float3 iblSpecular = IBL_Specular(
-    specularPmrem, lutGgx, samplerState,
-    N, V, F0, roughness);
+        specularPmrem, lutGgx, samplerState,
+        N, V, F0, roughness);
 
-    ambient = iblDiffuse + iblSpecular;
-    
-    
+    float3 ambient = iblDiffuse + iblSpecular;
+
     // Occlusion適用
     diffuse *= occlusion;
     specular *= occlusion;
@@ -527,11 +622,10 @@ float4 main(VS_OUT pin) : SV_TARGET
     // 最終カラー合成
     float3 color = diffuse + specular + ambient + emissive;
     
-    // ガンマ補正(Linear -> sRGB)
+    // ガンマ補正
     color = pow(max(color, 0.0001f), 1.0f / GAMMA);
 
     return float4(color, baseColor.a);
-    
 } 
  
 ===== Skinning_VS.hlsl ===== 
@@ -541,9 +635,6 @@ cbuffer CbScene : register(b0)
 {
     row_major float4x4 view;
     row_major float4x4 projection;
-    float4 lightDirection;
-    float4 lightColor;
-    float4 ambientColor;
     float4 cameraPosition;
 };
 
@@ -681,6 +772,41 @@ VS_OUT main(VS_IN vin)
     return vout;
 } 
  
+===== SolidShape_PS.hlsl ===== 
+Path: SolidShape_PS.hlsl 
+#include "SolidShape.hlsli"
+
+float4 main(VS_OUT pin) : SV_TARGET
+{
+    float3 N = normalize(pin.normal);
+    float3 L = normalize(-lightDirection.xyz);
+    float power = max(0, dot(L, N));
+
+    power = power * 0.5 + 0.5f;
+
+    float4 color = materialColor;
+    color.rgb *= power;
+
+    return color;
+}
+ 
+ 
+===== SolidShape_VS.hlsl ===== 
+Path: SolidShape_VS.hlsl 
+#include "SolidShape.hlsli"
+
+VS_OUT main(float4 position : POSITION, float4 normal : NORMAL)
+{
+    normal.w = 0;
+	
+    VS_OUT vout;
+    vout.position = mul(position, mul(world, viewProjection));
+    vout.normal = mul(normal, world).xyz;
+
+    return vout;
+}
+ 
+ 
 ===== Static_VS.hlsl ===== 
 Path: Static_VS.hlsl 
 // シーン情報
@@ -736,6 +862,30 @@ VS_OUT main(VS_IN vin)
 
     return vout;
 } 
+ 
+===== WiredShape_PS.hlsl ===== 
+Path: WiredShape_PS.hlsl 
+#include "WiredShape.hlsli"
+
+float4 main(VS_OUT pin) : SV_TARGET
+{
+    return pin.color;
+}
+ 
+ 
+===== WiredShape_VS.hlsl ===== 
+Path: WiredShape_VS.hlsl 
+#include "WiredShape.hlsli"
+
+VS_OUT main(float4 position : POSITION)
+{
+    VS_OUT vout;
+    vout.position = mul(position, worldViewProjection);
+    vout.color = color;
+
+    return vout;
+}
+ 
  
 ===== IBL_Functions.hlsli ===== 
 Path: IBL_Functions.hlsli 
@@ -902,4 +1052,36 @@ void DirectBRDF(
     out_diffuse = DiffuseBRDF(VdotH, F0, diffuse_reflectance) * irradiance;
     out_specular = SpecularBRDF(NdotV, NdotL, NdotH, VdotH, F0, roughness) * irradiance;
 } 
+ 
+===== SolidShape.hlsli ===== 
+Path: SolidShape.hlsli 
+struct VS_OUT
+{
+    float4 position : SV_POSITION;
+    float3 normal   : NORMAL;
+};
+
+cbuffer CbMesh : register(b0)
+{
+    row_major float4x4 world;
+    row_major float4x4 viewProjection;
+    float4 lightDirection;
+    float4 materialColor;
+};
+ 
+ 
+===== WiredShape.hlsli ===== 
+Path: WiredShape.hlsli 
+struct VS_OUT
+{
+    float4 position : SV_POSITION;
+    float4 color : COLOR;
+};
+
+cbuffer CbMesh : register(b0)
+{
+    row_major float4x4 worldViewProjection;
+    float4 color;
+};
+ 
  

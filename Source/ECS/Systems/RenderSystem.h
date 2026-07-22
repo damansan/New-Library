@@ -12,6 +12,7 @@
 
 #include "Resource/Model.h"
 #include "Rendering/GBuffer.h"
+#include "Rendering/ShadowMap.h"
 
 // 定数バッファ構造体
 struct CbScene
@@ -24,6 +25,21 @@ struct CbScene
 struct CbObject
 {
 	DirectX::XMFLOAT4X4 world;      // ワールド行列
+};
+
+// シャドウマップ描画用
+struct CbShadowScene
+{
+	DirectX::XMFLOAT4X4 lightViewProjection;
+};
+
+// LightingPass用(カスケード全体の情報)
+struct CbCascadeShadow
+{
+	DirectX::XMFLOAT4X4 lightViewProjection[ShadowMap::CascadeCount];
+	DirectX::XMFLOAT4   shadowBias;        
+	float               shadowAttenuation; 
+	DirectX::XMFLOAT3   padding;
 };
 
 #define MAX_BONES 256
@@ -69,6 +85,9 @@ public:
 		iblSpecularPmrem = specularPmrem;
 		iblLutGgx = lutGgx;
 	}
+
+	// カスケードシャドウマップをセット(SceneGame側で行列更新済みのものを渡す)
+	void SetShadowMap(const ShadowMap* shadowMap) { this->shadowMap = shadowMap; }
 
 	// 定数バッファゲッター
 	ID3D11Buffer* GetCbScene() { return cbScene.Get(); }
@@ -127,12 +146,19 @@ private:
 		const Frustum& frustum
 	);
 
+	// シャドウマップ深度パス(カスケードごとに深度のみ描画)
+	void ShadowPass(
+		entt::registry& registry,
+		ID3D11DeviceContext* dc
+	);
 
 	Microsoft::WRL::ComPtr<ID3D11VertexShader> staticVertexShader;   // 静的メッシュ用
 	Microsoft::WRL::ComPtr<ID3D11VertexShader> skinnedVertexShader;  // スキニングメッシュ用
 	Microsoft::WRL::ComPtr<ID3D11VertexShader> lightingVS;           // Lightingパス用頂点シェーダー
 	Microsoft::WRL::ComPtr<ID3D11PixelShader>  lightingPS;           // Lightingパス用ピクセルシェーダー
 	Microsoft::WRL::ComPtr<ID3D11PixelShader>  forwardTransparentPS; // 半透明フォワード用(PBR)
+	Microsoft::WRL::ComPtr<ID3D11VertexShader> shadowMapStaticVS;    // シャドウマップ深度描画用(静的メッシュ)
+	Microsoft::WRL::ComPtr<ID3D11VertexShader> shadowMapSkinnedVS;   // シャドウマップ深度描画用(スキニングメッシュ)
 
 	// GBufferシェーダーマップ
 	std::unordered_map<std::string, Microsoft::WRL::ComPtr<ID3D11PixelShader>> gBufferPixelShaders;
@@ -158,6 +184,8 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilState> depthStencilStateGeometry;   
 	// LightingPass
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilState> depthStencilStateLighting;
+	// ShadowPass用(ステンシル不要・深度のみ)
+	Microsoft::WRL::ComPtr<ID3D11DepthStencilState> depthStencilStateShadow;
 
 	// アルファブレンド(半透明用)
 	Microsoft::WRL::ComPtr<ID3D11BlendState> blendState;
@@ -169,7 +197,8 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11Buffer> cbScene;    // シーン情報
 	Microsoft::WRL::ComPtr<ID3D11Buffer> cbObject;   // オブジェクト情報
 	Microsoft::WRL::ComPtr<ID3D11Buffer> cbSkinning; // スキニング定数バッファ
-
+	Microsoft::WRL::ComPtr<ID3D11Buffer> cbShadowScene;    // シャドウ深度描画用(カスケード1枚分)
+	Microsoft::WRL::ComPtr<ID3D11Buffer> cbCascadeShadow;  // LightingPass用(カスケード全体)
 
 	// ダミーテクスチャ
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> dummyWhite;  // Albedo/Occlusion用
@@ -180,7 +209,7 @@ private:
 	ID3D11ShaderResourceView* iblDiffuseIem    = nullptr;
 	ID3D11ShaderResourceView* iblSpecularPmrem = nullptr;
 	ID3D11ShaderResourceView* iblLutGgx        = nullptr;
-
+	const ShadowMap* shadowMap = nullptr;
 
 	// フラスタム
 	Frustum cachedFrustum;
