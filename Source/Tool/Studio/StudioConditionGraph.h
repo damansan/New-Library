@@ -24,4 +24,9 @@ public:
 private:
 	NodeEditorCanvas canvas;        // このクラス専用のノードエディタコンテキスト
 	AnimLink* targetLink = nullptr; // 現在編集中のLink
+
+	// リターンノード描画
+	void DrawReturnNode();
+	bool needsApplyPositions = false;
+
 };

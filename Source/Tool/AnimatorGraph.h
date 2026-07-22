@@ -59,9 +59,19 @@ struct ConditionLink
 	int toId = -1;
 };
 
+// 条件グラフの終着点
+struct ConditionReturnNode
+{
+	int id = -1;
+	float posX = 0.0f;
+	float posY = 0.0f;
+};
+
 // Link1本分の条件グラフ
 struct ConditionGraph
 {
+	ConditionReturnNode returnNode;
+
 	std::vector<ConditionVariableNode> variableNodes;
 	std::vector<ConditionOperatorNode> operatorNodes;
 	std::vector<ConditionLink> links;
@@ -110,6 +120,7 @@ struct AnimState
 	std::vector<AnimNode> children;
 	std::vector<AnimLink> childLinks;
 };
+
 
 class AnimatorGraph
 {

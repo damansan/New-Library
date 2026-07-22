@@ -132,142 +132,450 @@
         {
             "id": 4,
             "fromId": 2,
-            "toId": 3
+            "toId": 3,
+            "condition": {
+                "nextId": 1,
+                "returnNode": {
+                    "id": -1,
+                    "posX": 0.0,
+                    "posY": 0.0
+                },
+                "variableNodes": [],
+                "operatorNodes": [],
+                "links": []
+            }
         },
         {
             "id": 7,
             "fromId": 5,
-            "toId": 3
+            "toId": 3,
+            "condition": {
+                "nextId": 1,
+                "returnNode": {
+                    "id": -1,
+                    "posX": 0.0,
+                    "posY": 0.0
+                },
+                "variableNodes": [],
+                "operatorNodes": [],
+                "links": []
+            }
         },
         {
             "id": 8,
             "fromId": 3,
-            "toId": 5
+            "toId": 5,
+            "condition": {
+                "nextId": 1,
+                "returnNode": {
+                    "id": -1,
+                    "posX": 0.0,
+                    "posY": 0.0
+                },
+                "variableNodes": [],
+                "operatorNodes": [],
+                "links": []
+            }
         },
         {
             "id": 9,
             "fromId": 6,
-            "toId": 3
+            "toId": 3,
+            "condition": {
+                "nextId": 1,
+                "returnNode": {
+                    "id": -1,
+                    "posX": 0.0,
+                    "posY": 0.0
+                },
+                "variableNodes": [],
+                "operatorNodes": [],
+                "links": []
+            }
         },
         {
             "id": 10,
             "fromId": 3,
-            "toId": 6
+            "toId": 6,
+            "condition": {
+                "nextId": 1,
+                "returnNode": {
+                    "id": -1,
+                    "posX": 0.0,
+                    "posY": 0.0
+                },
+                "variableNodes": [],
+                "operatorNodes": [],
+                "links": []
+            }
         },
         {
             "id": 12,
             "fromId": 11,
-            "toId": 3
+            "toId": 3,
+            "condition": {
+                "nextId": 1,
+                "returnNode": {
+                    "id": -1,
+                    "posX": 0.0,
+                    "posY": 0.0
+                },
+                "variableNodes": [],
+                "operatorNodes": [],
+                "links": []
+            }
         },
         {
             "id": 13,
             "fromId": 3,
-            "toId": 11
+            "toId": 11,
+            "condition": {
+                "nextId": 1,
+                "returnNode": {
+                    "id": -1,
+                    "posX": 0.0,
+                    "posY": 0.0
+                },
+                "variableNodes": [],
+                "operatorNodes": [],
+                "links": []
+            }
         },
         {
             "id": 15,
             "fromId": 3,
-            "toId": 14
+            "toId": 14,
+            "condition": {
+                "nextId": 1,
+                "returnNode": {
+                    "id": -1,
+                    "posX": 0.0,
+                    "posY": 0.0
+                },
+                "variableNodes": [],
+                "operatorNodes": [],
+                "links": []
+            }
         },
         {
             "id": 16,
             "fromId": 14,
-            "toId": 3
+            "toId": 3,
+            "condition": {
+                "nextId": 1,
+                "returnNode": {
+                    "id": -1,
+                    "posX": 0.0,
+                    "posY": 0.0
+                },
+                "variableNodes": [],
+                "operatorNodes": [],
+                "links": []
+            }
         },
         {
             "id": 18,
             "fromId": 17,
-            "toId": 14
+            "toId": 14,
+            "condition": {
+                "nextId": 1,
+                "returnNode": {
+                    "id": -1,
+                    "posX": 0.0,
+                    "posY": 0.0
+                },
+                "variableNodes": [],
+                "operatorNodes": [],
+                "links": []
+            }
         },
         {
             "id": 19,
             "fromId": 17,
-            "toId": 5
+            "toId": 5,
+            "condition": {
+                "nextId": 1,
+                "returnNode": {
+                    "id": -1,
+                    "posX": 0.0,
+                    "posY": 0.0
+                },
+                "variableNodes": [],
+                "operatorNodes": [],
+                "links": []
+            }
         },
         {
             "id": 20,
             "fromId": 14,
-            "toId": 17
+            "toId": 17,
+            "condition": {
+                "nextId": 1,
+                "returnNode": {
+                    "id": -1,
+                    "posX": 0.0,
+                    "posY": 0.0
+                },
+                "variableNodes": [],
+                "operatorNodes": [],
+                "links": []
+            }
         },
         {
             "id": 21,
             "fromId": 5,
-            "toId": 17
+            "toId": 17,
+            "condition": {
+                "nextId": 1,
+                "returnNode": {
+                    "id": -1,
+                    "posX": 0.0,
+                    "posY": 0.0
+                },
+                "variableNodes": [],
+                "operatorNodes": [],
+                "links": []
+            }
         },
         {
             "id": 22,
             "fromId": 17,
-            "toId": 3
+            "toId": 3,
+            "condition": {
+                "nextId": 1,
+                "returnNode": {
+                    "id": -1,
+                    "posX": 0.0,
+                    "posY": 0.0
+                },
+                "variableNodes": [],
+                "operatorNodes": [],
+                "links": []
+            }
         },
         {
             "id": 23,
             "fromId": 17,
-            "toId": 3
+            "toId": 3,
+            "condition": {
+                "nextId": 1,
+                "returnNode": {
+                    "id": -1,
+                    "posX": 0.0,
+                    "posY": 0.0
+                },
+                "variableNodes": [],
+                "operatorNodes": [],
+                "links": []
+            }
         },
         {
             "id": 24,
             "fromId": 3,
-            "toId": 17
+            "toId": 17,
+            "condition": {
+                "nextId": 1,
+                "returnNode": {
+                    "id": -1,
+                    "posX": 0.0,
+                    "posY": 0.0
+                },
+                "variableNodes": [],
+                "operatorNodes": [],
+                "links": []
+            }
         },
         {
             "id": 28,
             "fromId": 27,
-            "toId": 6
+            "toId": 6,
+            "condition": {
+                "nextId": 1,
+                "returnNode": {
+                    "id": -1,
+                    "posX": 0.0,
+                    "posY": 0.0
+                },
+                "variableNodes": [],
+                "operatorNodes": [],
+                "links": []
+            }
         },
         {
             "id": 29,
             "fromId": 6,
-            "toId": 27
+            "toId": 27,
+            "condition": {
+                "nextId": 1,
+                "returnNode": {
+                    "id": -1,
+                    "posX": 0.0,
+                    "posY": 0.0
+                },
+                "variableNodes": [],
+                "operatorNodes": [],
+                "links": []
+            }
         },
         {
             "id": 30,
             "fromId": 27,
-            "toId": 3
+            "toId": 3,
+            "condition": {
+                "nextId": 1,
+                "returnNode": {
+                    "id": -1,
+                    "posX": 0.0,
+                    "posY": 0.0
+                },
+                "variableNodes": [],
+                "operatorNodes": [],
+                "links": []
+            }
         },
         {
             "id": 31,
             "fromId": 3,
-            "toId": 27
+            "toId": 27,
+            "condition": {
+                "nextId": 1,
+                "returnNode": {
+                    "id": -1,
+                    "posX": 0.0,
+                    "posY": 0.0
+                },
+                "variableNodes": [],
+                "operatorNodes": [],
+                "links": []
+            }
         },
         {
             "id": 32,
             "fromId": 5,
-            "toId": 11
+            "toId": 11,
+            "condition": {
+                "nextId": 1,
+                "returnNode": {
+                    "id": -1,
+                    "posX": 0.0,
+                    "posY": 0.0
+                },
+                "variableNodes": [],
+                "operatorNodes": [],
+                "links": []
+            }
         },
         {
             "id": 33,
             "fromId": 11,
-            "toId": 5
+            "toId": 5,
+            "condition": {
+                "nextId": 1,
+                "returnNode": {
+                    "id": -1,
+                    "posX": 0.0,
+                    "posY": 0.0
+                },
+                "variableNodes": [],
+                "operatorNodes": [],
+                "links": []
+            }
         },
         {
             "id": 35,
             "fromId": 6,
-            "toId": 34
+            "toId": 34,
+            "condition": {
+                "nextId": 1,
+                "returnNode": {
+                    "id": -1,
+                    "posX": 0.0,
+                    "posY": 0.0
+                },
+                "variableNodes": [],
+                "operatorNodes": [],
+                "links": []
+            }
         },
         {
             "id": 36,
             "fromId": 34,
-            "toId": 6
+            "toId": 6,
+            "condition": {
+                "nextId": 1,
+                "returnNode": {
+                    "id": -1,
+                    "posX": 0.0,
+                    "posY": 0.0
+                },
+                "variableNodes": [],
+                "operatorNodes": [],
+                "links": []
+            }
         },
         {
             "id": 37,
             "fromId": 34,
-            "toId": 14
+            "toId": 14,
+            "condition": {
+                "nextId": 1,
+                "returnNode": {
+                    "id": -1,
+                    "posX": 0.0,
+                    "posY": 0.0
+                },
+                "variableNodes": [],
+                "operatorNodes": [],
+                "links": []
+            }
         },
         {
             "id": 38,
             "fromId": 14,
-            "toId": 34
+            "toId": 34,
+            "condition": {
+                "nextId": 1,
+                "returnNode": {
+                    "id": -1,
+                    "posX": 0.0,
+                    "posY": 0.0
+                },
+                "variableNodes": [],
+                "operatorNodes": [],
+                "links": []
+            }
         },
         {
             "id": 39,
             "fromId": 34,
-            "toId": 3
+            "toId": 3,
+            "condition": {
+                "nextId": 1,
+                "returnNode": {
+                    "id": -1,
+                    "posX": 0.0,
+                    "posY": 0.0
+                },
+                "variableNodes": [],
+                "operatorNodes": [],
+                "links": []
+            }
         },
         {
             "id": 40,
             "fromId": 3,
-            "toId": 34
+            "toId": 34,
+            "condition": {
+                "nextId": 1,
+                "returnNode": {
+                    "id": -1,
+                    "posX": 0.0,
+                    "posY": 0.0
+                },
+                "variableNodes": [],
+                "operatorNodes": [],
+                "links": []
+            }
         }
     ]
 }

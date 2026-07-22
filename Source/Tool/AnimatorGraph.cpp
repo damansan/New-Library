@@ -116,6 +116,11 @@ int AnimatorGraph::CreateLink(int fromId, int toId)
 	link.fromId = fromId;
 	link.toId = toId;
 
+	// このLink専用の条件グラフに、固定のReturnノードを1つ配置しておく
+	link.condition.returnNode.id = link.condition.GenerateId();
+	link.condition.returnNode.posX = 500.0f;
+	link.condition.returnNode.posY = 200.0f;
+
 	stateLinks.push_back(link);
 	return link.id;
 }
@@ -181,6 +186,10 @@ nlohmann::ordered_json AnimatorGraph::ToJson() const
 
 		nlohmann::ordered_json jc;
 		jc["nextId"] = link.condition.nextId;
+
+		jc["returnNode"]["id"] = link.condition.returnNode.id;
+		jc["returnNode"]["posX"] = link.condition.returnNode.posX;
+		jc["returnNode"]["posY"] = link.condition.returnNode.posY;
 
 		jc["variableNodes"] = nlohmann::json::array();
 		for (const auto& v : link.condition.variableNodes)
@@ -294,6 +303,21 @@ void AnimatorGraph::FromJson(const nlohmann::json& j)
 			{
 				const auto& jc = jl["condition"];
 				link.condition.nextId = jc.value("nextId", 1);
+
+				if (jc.contains("returnNode"))
+				{
+					link.condition.returnNode.id = jc["returnNode"].value("id", -1);
+					link.condition.returnNode.posX = jc["returnNode"].value("posX", 500.0f);
+					link.condition.returnNode.posY = jc["returnNode"].value("posY", 200.0f);
+				}
+
+				// 古い保存データにReturnノードが無かった場合の保険
+				if (link.condition.returnNode.id < 0)
+				{
+					link.condition.returnNode.id = link.condition.GenerateId();
+					link.condition.returnNode.posX = 500.0f;
+					link.condition.returnNode.posY = 200.0f;
+				}
 
 				if (jc.contains("variableNodes"))
 				{
