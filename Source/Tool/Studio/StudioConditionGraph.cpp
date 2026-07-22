@@ -22,6 +22,9 @@ void StudioConditionGraph::DrawGUI()
 	canvas.Begin("ConditionCanvas");
 
 	DrawReturnNode();
+	DrawVariableNodes();
+
+	DrawCreateNodeMenu();
 
 	canvas.End();
 
@@ -82,4 +85,67 @@ void StudioConditionGraph::DrawReturnNode()
 
 	ed::PopStyleColor(2);
 	ed::PopStyleVar(1);
+}
+
+// 変数ノード描画
+void StudioConditionGraph::DrawVariableNodes()
+{
+	for (auto& v : targetLink->condition.variableNodes)
+	{
+		ed::NodeId nodeId(v.id);
+
+		if (needsApplyPositions)
+		{
+			ed::SetNodePosition(nodeId, ImVec2(v.posX, v.posY));
+		}
+
+		ed::BeginNode(nodeId);
+
+		ImGui::Text("Variable");
+
+		ed::BeginPin(GetVariableInPinId(v.id), ed::PinKind::Input);
+		ImGui::Text("in");
+		ed::EndPin();
+
+		ImGui::SameLine();
+
+		ed::BeginPin(GetVariableOutPinId(v.id), ed::PinKind::Output);
+		ImGui::Text("out");
+		ed::EndPin();
+
+		ed::EndNode();
+
+		ImVec2 currentPos = ed::GetNodePosition(nodeId);
+		v.posX = currentPos.x;
+		v.posY = currentPos.y;
+	}
+}
+
+// 右クリックメニュー
+void StudioConditionGraph::DrawCreateNodeMenu()
+{
+	ed::Suspend();
+	if (ed::ShowBackgroundContextMenu())
+	{
+		pendingCreatePos = ImGui::GetMousePos();
+		ImGui::OpenPopup("CreateConditionNode");
+	}
+	if (ImGui::BeginPopup("CreateConditionNode"))
+	{
+		if (ImGui::MenuItem("Add Variable"))
+		{
+			ImVec2 canvasPos = ed::ScreenToCanvas(pendingCreatePos);
+
+			ConditionVariableNode v;
+			v.id = targetLink->condition.GenerateId();
+			v.posX = canvasPos.x;
+			v.posY = canvasPos.y;
+
+			targetLink->condition.variableNodes.push_back(v);
+
+			ed::SetNodePosition(ed::NodeId(v.id), canvasPos);
+		}
+		ImGui::EndPopup();
+	}
+	ed::Resume();
 }

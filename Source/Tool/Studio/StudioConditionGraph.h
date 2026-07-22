@@ -27,6 +27,17 @@ private:
 
 	// リターンノード描画
 	void DrawReturnNode();
+	// 変数ノード描画
+	void DrawVariableNodes();
+
+	// 右クリックメニュー
+	void DrawCreateNodeMenu();
+
+	ImVec2 pendingCreatePos{};
+
+	static ed::PinId GetVariableInPinId(int nodeId) { return ed::PinId((int64_t)1000000 + (int64_t)nodeId * 2); }
+	static ed::PinId GetVariableOutPinId(int nodeId) { return ed::PinId((int64_t)1000000 + (int64_t)nodeId * 2 + 1); }
+
 	bool needsApplyPositions = false;
 
 };
