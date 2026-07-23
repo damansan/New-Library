@@ -37,7 +37,8 @@ struct ConditionVariableNode
 	float posY = 0.0f;
 
 	std::string componentName; 
-	std::string fieldName;     
+	std::string fieldName; 
+	float constValue = 0.0f;
 };
 
 // î‰ärÉmÅ[Éh

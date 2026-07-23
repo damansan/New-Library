@@ -1,4 +1,4 @@
-#include "StudioConditionGraph.h"
+ï»¿#include "StudioConditionGraph.h"
 
 void StudioConditionGraph::Initialize()
 {
@@ -31,14 +31,14 @@ void StudioConditionGraph::DrawGUI()
 	needsApplyPositions = false;
 }
 
-// ‰E‘¤ƒƒjƒ…[
+// å³å´ãƒ¡ãƒ‹ãƒ¥ãƒ¼
 void StudioConditionGraph::DrawInspector()
 {
 	ImGui::TextDisabled("No node selected.");
 
 }
 
-// ƒŠƒ^[ƒ“ƒm[ƒh•`‰æ
+// ãƒªã‚¿ãƒ¼ãƒ³ãƒãƒ¼ãƒ‰æç”»
 void StudioConditionGraph::DrawReturnNode()
 {
 	ConditionReturnNode& returnNode = targetLink->condition.returnNode;
@@ -49,7 +49,7 @@ void StudioConditionGraph::DrawReturnNode()
 		ed::SetNodePosition(nodeId, ImVec2(returnNode.posX, returnNode.posY));
 	}
 
-	// Visual Studio‚Ìreturn‘Š“–‚Ì‡F
+	// Visual Studioã®returnç›¸å½“ã®ç´«è‰²
 	const ImColor bgColor(197, 134, 192, 255);
 	const ImColor borderColor(140, 90, 137, 255);
 
@@ -87,13 +87,15 @@ void StudioConditionGraph::DrawReturnNode()
 	ed::PopStyleVar(1);
 }
 
-// •Ï”ƒm[ƒh•`‰æ
+// å¤‰æ•°ãƒãƒ¼ãƒ‰æç”»
 void StudioConditionGraph::DrawVariableNodes()
 {
+	const float nodeWidth = 140.0f;
+	const float valueWidth = 80.0f;
+
 	for (auto& v : targetLink->condition.variableNodes)
 	{
 		ed::NodeId nodeId(v.id);
-
 		if (needsApplyPositions)
 		{
 			ed::SetNodePosition(nodeId, ImVec2(v.posX, v.posY));
@@ -101,17 +103,34 @@ void StudioConditionGraph::DrawVariableNodes()
 
 		ed::BeginNode(nodeId);
 
+		// å·¦ã«å…¥åŠ›ãƒ”ãƒ³ã€ãƒãƒ¼ãƒ‰åã¯ä¸­å¤®å¯„ã›ã€å³ã«å‡ºåŠ›ãƒ”ãƒ³
+		ed::BeginPin(GetVariableInPinId(v.id), ed::PinKind::Input);
+		ImGui::Text(u8"â–¶");
+		ed::EndPin();
+
+		const float pinIconWidth = ImGui::CalcTextSize(u8"â–¶").x;
+		const float totalWidth = nodeWidth + pinIconWidth; // å‡ºåŠ›ãƒ”ãƒ³åˆ†ã‚‚å«ã‚ãŸã€å®Ÿéš›ã®è¦‹ãŸç›®ã®å¹…
+
+		float nameWidth = ImGui::CalcTextSize("Variable").x;
+		float namePadding = (totalWidth - nameWidth) * 0.5f;
+
+		ImGui::SameLine(namePadding > 0.0f ? namePadding : 0.0f);
 		ImGui::Text("Variable");
 
-		ed::BeginPin(GetVariableInPinId(v.id), ed::PinKind::Input);
-		ImGui::Text("in");
-		ed::EndPin();
-
-		ImGui::SameLine();
-
+		ImGui::SameLine(nodeWidth);
 		ed::BeginPin(GetVariableOutPinId(v.id), ed::PinKind::Output);
-		ImGui::Text("out");
+		ImGui::Text(u8"â–¶");
 		ed::EndPin();
+
+		// å®šæ•°å€¤ã®å…¥åŠ›æ¬„
+		float valuePadding = (totalWidth - valueWidth) * 0.5f; 
+		{
+			ImGui::Dummy(ImVec2(valuePadding, 0.0f));
+			ImGui::SameLine(0.0f, 0.0f);
+		}
+
+		ImGui::SetNextItemWidth(valueWidth);
+		ImGui::DragFloat("##value", &v.constValue, 0.1f);
 
 		ed::EndNode();
 
@@ -121,7 +140,7 @@ void StudioConditionGraph::DrawVariableNodes()
 	}
 }
 
-// ‰EƒNƒŠƒbƒNƒƒjƒ…[
+// å³ã‚¯ãƒªãƒƒã‚¯ãƒ¡ãƒ‹ãƒ¥ãƒ¼
 void StudioConditionGraph::DrawCreateNodeMenu()
 {
 	ed::Suspend();
