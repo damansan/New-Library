@@ -29,16 +29,28 @@ enum class CompareOp
 	LessEqual,    // <=
 };
 
+// •Ï”ƒm[ƒh‚ªŽ‚Â’l‚ÌŒ^
+enum class ValueType
+{
+	Int,
+	Float,
+	Bool,
+};
+
 // •Ï”ƒm[ƒh
 struct ConditionVariableNode
 {
 	int id = -1;
 	float posX = 0.0f;
 	float posY = 0.0f;
+	std::string componentName;
+	std::string fieldName;
 
-	std::string componentName; 
-	std::string fieldName; 
-	float constValue = 0.0f;
+	ValueType type = ValueType::Float;
+
+	int intValue = 0;
+	float floatValue = 0.0f; 
+	bool boolValue = false;  
 };
 
 // ”äŠrƒm[ƒh

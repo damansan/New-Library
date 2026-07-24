@@ -25,18 +25,36 @@ private:
 	NodeEditorCanvas canvas;        // このクラス専用のノードエディタコンテキスト
 	AnimLink* targetLink = nullptr; // 現在編集中のLink
 
+	// ノード内で中央寄せにする
+	static void CenterNextItem(float totalWidth, float itemWidth);
+	// 値の型ごとの表示色を返す
+	static ImColor GetValueTypeColor(ValueType type);
+
 	// リターンノード描画
 	void DrawReturnNode();
 	// 変数ノード描画
 	void DrawVariableNodes();
+	// 比較演算ノード描画
+	void DrawOperatorNodes();
 
 	// 右クリックメニュー
 	void DrawCreateNodeMenu();
+	// 変数ノード作成
+	void CreateVariableNode(ValueType type);
+	// 比較演算ノード作成
+	void CreateOperatorNode(CompareOp op);
+
+	// 比較演算子の表示用記号
+	static const char* GetCompareOpSymbol(CompareOp op);
 
 	ImVec2 pendingCreatePos{};
 
 	static ed::PinId GetVariableInPinId(int nodeId) { return ed::PinId((int64_t)1000000 + (int64_t)nodeId * 2); }
 	static ed::PinId GetVariableOutPinId(int nodeId) { return ed::PinId((int64_t)1000000 + (int64_t)nodeId * 2 + 1); }
+
+	static ed::PinId GetOperatorPinA(int nodeId) { return ed::PinId((int64_t)2000000 + (int64_t)nodeId * 3); }
+	static ed::PinId GetOperatorPinB(int nodeId) { return ed::PinId((int64_t)2000000 + (int64_t)nodeId * 3 + 1); }
+	static ed::PinId GetOperatorOutPinId(int nodeId) { return ed::PinId((int64_t)2000000 + (int64_t)nodeId * 3 + 2); }
 
 	bool needsApplyPositions = false;
 

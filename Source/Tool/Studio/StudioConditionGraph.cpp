@@ -23,6 +23,7 @@ void StudioConditionGraph::DrawGUI()
 
 	DrawReturnNode();
 	DrawVariableNodes();
+	DrawOperatorNodes();
 
 	DrawCreateNodeMenu();
 
@@ -35,7 +36,28 @@ void StudioConditionGraph::DrawGUI()
 void StudioConditionGraph::DrawInspector()
 {
 	ImGui::TextDisabled("No node selected.");
+}
 
+// ノード内で中央寄せにする
+void StudioConditionGraph::CenterNextItem(float totalWidth, float itemWidth)
+{
+	float pad = (totalWidth - itemWidth) * 0.5f;
+	if (pad > 0.0f)
+	{
+		ImGui::Dummy(ImVec2(pad, 0.0f));
+		ImGui::SameLine(0.0f, 0.0f);
+	}
+}
+// 値の型ごとの表示色を返す
+ImColor StudioConditionGraph::GetValueTypeColor(ValueType type)
+{
+	switch (type)
+	{
+	case ValueType::Int:   return ImColor(68, 201, 156, 255);  // 水色
+	case ValueType::Float: return ImColor(147, 226, 74, 255);  // 緑
+	case ValueType::Bool:  return ImColor(220, 48, 48, 255);   // 赤
+	default:               return ImColor(255, 255, 255, 255);
+	}
 }
 
 // リターンノード描画
@@ -101,7 +123,13 @@ void StudioConditionGraph::DrawVariableNodes()
 			ed::SetNodePosition(nodeId, ImVec2(v.posX, v.posY));
 		}
 
+		// 型ごとに枠線の色を変える
+		ed::PushStyleColor(ed::StyleColor_NodeBorder, GetValueTypeColor(v.type));
+		ed::PushStyleVar(ed::StyleVar_NodeBorderWidth, 2.0f);
+
+
 		ed::BeginNode(nodeId);
+		ImGui::PushID(v.id);
 
 		// 左に入力ピン、ノード名は中央寄せ、右に出力ピン
 		ed::BeginPin(GetVariableInPinId(v.id), ed::PinKind::Input);
@@ -109,7 +137,7 @@ void StudioConditionGraph::DrawVariableNodes()
 		ed::EndPin();
 
 		const float pinIconWidth = ImGui::CalcTextSize(u8"▶").x;
-		const float totalWidth = nodeWidth + pinIconWidth; // 出力ピン分も含めた、実際の見た目の幅
+		const float totalWidth = nodeWidth + pinIconWidth;
 
 		float nameWidth = ImGui::CalcTextSize("Variable").x;
 		float namePadding = (totalWidth - nameWidth) * 0.5f;
@@ -122,21 +150,98 @@ void StudioConditionGraph::DrawVariableNodes()
 		ImGui::Text(u8"▶");
 		ed::EndPin();
 
-		// 定数値の入力欄
-		float valuePadding = (totalWidth - valueWidth) * 0.5f; 
+		// int型ノード
+		if (v.type == ValueType::Int)
 		{
-			ImGui::Dummy(ImVec2(valuePadding, 0.0f));
-			ImGui::SameLine(0.0f, 0.0f);
+			CenterNextItem(totalWidth, valueWidth);
+			ImGui::SetNextItemWidth(valueWidth);
+			ImGui::DragInt("##value", &v.intValue, 1);
+		}
+		// float型ノード
+		else if (v.type == ValueType::Float)
+		{
+			CenterNextItem(totalWidth, valueWidth);
+			ImGui::SetNextItemWidth(valueWidth);
+			ImGui::DragFloat("##value", &v.floatValue, 0.1f);
+		}
+		// bool型ノード
+		else
+		{
+			float checkboxWidth = ImGui::GetFrameHeight();
+			CenterNextItem(totalWidth, checkboxWidth);
+			ImGui::Checkbox("##value", &v.boolValue);
 		}
 
-		ImGui::SetNextItemWidth(valueWidth);
-		ImGui::DragFloat("##value", &v.constValue, 0.1f);
-
+		ImGui::PopID();
 		ed::EndNode();
+
+		ed::PopStyleColor(1);
+		ed::PopStyleVar(1);
 
 		ImVec2 currentPos = ed::GetNodePosition(nodeId);
 		v.posX = currentPos.x;
 		v.posY = currentPos.y;
+	}
+}
+// 比較演算ノード描画
+void StudioConditionGraph::DrawOperatorNodes()
+{
+	const float nodeWidth = 100.0f;
+	const ImColor operatorBorderColor(90, 140, 220, 255);
+
+	for (auto& o : targetLink->condition.operatorNodes)
+	{
+		ed::NodeId nodeId(o.id);
+		if (needsApplyPositions)
+		{
+			ed::SetNodePosition(nodeId, ImVec2(o.posX, o.posY));
+		}
+
+		ed::PushStyleColor(ed::StyleColor_NodeBorder, operatorBorderColor);
+		ed::PushStyleVar(ed::StyleVar_NodeBorderWidth, 2.0f);
+
+		ed::BeginNode(nodeId);
+		ImGui::PushID(o.id);
+
+		// ノード名(中央寄せ)
+		float nameWidth = ImGui::CalcTextSize("Operator").x;
+		CenterNextItem(nodeWidth, nameWidth);
+		ImGui::Text("Operator");
+
+		// A側入力ピン
+		ed::BeginPin(GetOperatorPinA(o.id), ed::PinKind::Input);
+		ImGui::Text(u8"▶");
+		ed::EndPin();
+
+		// 演算子記号(中央寄せ、少し大きめに表示)
+		const char* symbol = GetCompareOpSymbol(o.op);
+		const float symbolScale = 2.0f;
+
+		ImGui::SetWindowFontScale(symbolScale);
+		float symbolWidth = ImGui::CalcTextSize(symbol).x;
+		CenterNextItem(nodeWidth, symbolWidth);
+		ImGui::Text("%s", symbol);
+		ImGui::SetWindowFontScale(1.0f);
+
+		// B側入力ピンと、出力ピン(同じ行)
+		ed::BeginPin(GetOperatorPinB(o.id), ed::PinKind::Input);
+		ImGui::Text(u8"▶");
+		ed::EndPin();
+
+		ImGui::SameLine(nodeWidth);
+		ed::BeginPin(GetOperatorOutPinId(o.id), ed::PinKind::Output);
+		ImGui::Text(u8"▶");
+		ed::EndPin();
+
+		ImGui::PopID();
+		ed::EndNode();
+
+		ed::PopStyleColor(1);
+		ed::PopStyleVar(1);
+
+		ImVec2 currentPos = ed::GetNodePosition(nodeId);
+		o.posX = currentPos.x;
+		o.posY = currentPos.y;
 	}
 }
 
@@ -151,20 +256,82 @@ void StudioConditionGraph::DrawCreateNodeMenu()
 	}
 	if (ImGui::BeginPopup("CreateConditionNode"))
 	{
-		if (ImGui::MenuItem("Add Variable"))
+		if (ImGui::BeginMenu("Add Variable"))
 		{
-			ImVec2 canvasPos = ed::ScreenToCanvas(pendingCreatePos);
-
-			ConditionVariableNode v;
-			v.id = targetLink->condition.GenerateId();
-			v.posX = canvasPos.x;
-			v.posY = canvasPos.y;
-
-			targetLink->condition.variableNodes.push_back(v);
-
-			ed::SetNodePosition(ed::NodeId(v.id), canvasPos);
+			if (ImGui::MenuItem("int"))
+			{
+				CreateVariableNode(ValueType::Int);
+			}
+			if (ImGui::MenuItem("float"))
+			{
+				CreateVariableNode(ValueType::Float);
+			}
+			if (ImGui::MenuItem("bool"))
+			{
+				CreateVariableNode(ValueType::Bool);
+			}
+			ImGui::EndMenu();
 		}
+
+		if (ImGui::BeginMenu("Add Operator"))
+		{
+			if (ImGui::MenuItem(">"))  CreateOperatorNode(CompareOp::Greater);
+			if (ImGui::MenuItem("<"))  CreateOperatorNode(CompareOp::Less);
+			if (ImGui::MenuItem("==")) CreateOperatorNode(CompareOp::Equal);
+			if (ImGui::MenuItem("!=")) CreateOperatorNode(CompareOp::NotEqual);
+			if (ImGui::MenuItem(">=")) CreateOperatorNode(CompareOp::GreaterEqual);
+			if (ImGui::MenuItem("<=")) CreateOperatorNode(CompareOp::LessEqual);
+			ImGui::EndMenu();
+		}
+
 		ImGui::EndPopup();
 	}
+
 	ed::Resume();
+}
+
+// 変数ノード作成
+void StudioConditionGraph::CreateVariableNode(ValueType type)
+{
+	ImVec2 canvasPos = ed::ScreenToCanvas(pendingCreatePos);
+
+	ConditionVariableNode v;
+	v.id = targetLink->condition.GenerateId();
+	v.posX = canvasPos.x;
+	v.posY = canvasPos.y;
+	v.type = type;
+
+	targetLink->condition.variableNodes.push_back(v);
+
+	ed::SetNodePosition(ed::NodeId(v.id), canvasPos);
+}
+// 比較演算ノード作成
+void StudioConditionGraph::CreateOperatorNode(CompareOp op)
+{
+	ImVec2 canvasPos = ed::ScreenToCanvas(pendingCreatePos);
+
+	ConditionOperatorNode o;
+	o.id = targetLink->condition.GenerateId();
+	o.posX = canvasPos.x;
+	o.posY = canvasPos.y;
+	o.op = op;
+
+	targetLink->condition.operatorNodes.push_back(o);
+
+	ed::SetNodePosition(ed::NodeId(o.id), canvasPos);
+}
+
+// 比較演算子の表示用記号
+const char* StudioConditionGraph::GetCompareOpSymbol(CompareOp op)
+{
+	switch (op)
+	{
+	case CompareOp::Greater:      return ">";
+	case CompareOp::Less:         return "<";
+	case CompareOp::Equal:        return "==";
+	case CompareOp::NotEqual:     return "!=";
+	case CompareOp::GreaterEqual: return ">=";
+	case CompareOp::LessEqual:    return "<=";
+	}
+	return "?";
 }
