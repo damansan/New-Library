@@ -230,7 +230,7 @@ void SceneGame::Render(const SceneContext& context)
 			DirectX::XMFLOAT4X4 transform;
 			DirectX::XMStoreFloat4x4(&transform, m);
 
-			DirectX::XMFLOAT3 size = { 0.6f, 0.6f, 0.6f };
+			DirectX::XMFLOAT3 size = { waveDemoSpacing, waveDemoSpacing, waveDemoSpacing };
 
 			float seed = sinf(tag.baseX * 12.9898f + tag.baseZ * 78.233f) * 43758.5453f;
 			float variation = seed - floorf(seed);
@@ -291,8 +291,8 @@ void SceneGame::InitializeWaveDemo(ID3D11Device* device)
 {
 	waveDemoRenderer = ShapeRenderer(device);
 
-	const int gridSize = 400; 
-	const float spacing = 1.0f;
+	const int gridSize = 500;
+	const float spacing = waveDemoSpacing;
 
 	for (int x = 0; x < gridSize; x++)
 	{

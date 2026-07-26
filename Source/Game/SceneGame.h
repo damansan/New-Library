@@ -67,4 +67,5 @@ private:
 	void InitializeWaveDemo(ID3D11Device* device);
 	ShapeRenderer waveDemoRenderer;
 	float waveDemoTime = 0.0f;
+	float waveDemoSpacing = 1.0f;
 };
