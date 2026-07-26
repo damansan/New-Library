@@ -8,7 +8,7 @@ float4 main(VS_OUT pin) : SV_TARGET
 
     power = power * 0.5 + 0.5f;
 
-    float4 color = materialColor;
+    float4 color = pin.color;
     color.rgb *= power;
 
     return color;

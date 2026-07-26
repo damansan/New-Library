@@ -32,10 +32,10 @@ framework::framework(HWND hwnd) : hwnd(hwnd)
 	// Studio共有リソース初期化
 	studioShared.Initialize(graphics.GetDevice());
 
-#ifndef _DEBUG
-	// リリース時はボーダーレスフルスクリーンで起動
-	graphics.ToggleFullscreen();
-#endif
+//#ifndef _DEBUG
+//	// リリース時はボーダーレスフルスクリーンで起動
+//	graphics.ToggleFullscreen();
+//#endif
 }
 
 framework::~framework()
@@ -91,7 +91,7 @@ void framework::updateImGui()
 	// シーンImGui描画
 	sceneManager.RenderImGui();
 
-#ifdef _DEBUG
+//#ifdef _DEBUG
 	if (auto* scene = sceneManager.GetCurrentScene())
 	{
 		projectWindow.Draw(scene->GetRegistry(), editorContext);
@@ -121,7 +121,7 @@ void framework::updateImGui()
 			}),
 		studioWindows.end()
 	);
-#endif
+//#endif
 }
 
 void framework::render(float elapsedTime)

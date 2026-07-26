@@ -53,6 +53,8 @@ void SceneGame::Initialize(const SceneContext& context)
 			3.0f              // 強度
 		);
 	}
+
+	InitializeWaveDemo(context.device);
 }
 
 void SceneGame::Finalize()
@@ -64,6 +66,8 @@ void SceneGame::Finalize()
 void SceneGame::Update(float elapsedTime, const SceneContext& context)
 {
 	ZoneScoped;
+
+	waveDemoTime += elapsedTime;
 
 	{
 		// PhysX更新
@@ -211,6 +215,40 @@ void SceneGame::Render(const SceneContext& context)
 		);
 	}
 
+
+	{
+		ZoneScopedN("WaveDemo Loop+Render");
+
+		auto view = registry.view<WaveDemoTag>();
+		for (auto entity : view)
+		{
+			auto& tag = view.get<WaveDemoTag>(entity);
+
+			float y = sinf(waveDemoTime * 2.0f + tag.phase) * 0.5f;
+
+			DirectX::XMMATRIX m = DirectX::XMMatrixTranslation(tag.baseX, y, tag.baseZ);
+			DirectX::XMFLOAT4X4 transform;
+			DirectX::XMStoreFloat4x4(&transform, m);
+
+			DirectX::XMFLOAT3 size = { 0.6f, 0.6f, 0.6f };
+			DirectX::XMFLOAT4 color = { 0.3f, 0.7f, 1.0f, 1.0f };
+
+			waveDemoRenderer.DrawBox(transform, size, color);
+		}
+
+		const auto& lightDir4 = lightManager.GetDirectionalLight().direction;
+		DirectX::XMFLOAT3 lightDir3 = { lightDir4.x, lightDir4.y, lightDir4.z };
+
+		waveDemoRenderer.Render(
+			context.deviceContext,
+			context.view,
+			context.projection,
+			lightDir3);
+	}
+
+
+
+
 	{
 		physicsDebugRenderer.Render(
 			context.deviceContext,
@@ -233,4 +271,30 @@ void SceneGame::RenderImGui()
 		break;
 	}
 #endif
+}
+
+
+
+
+void SceneGame::InitializeWaveDemo(ID3D11Device* device)
+{
+	waveDemoRenderer = ShapeRenderer(device);
+
+	const int gridSize = 400; 
+	const float spacing = 1.0f;
+
+	for (int x = 0; x < gridSize; x++)
+	{
+		for (int z = 0; z < gridSize; z++)
+		{
+			entt::entity e = registry.create();
+
+			WaveDemoTag tag;
+			tag.baseX = (x - gridSize * 0.5f) * spacing;
+			tag.baseZ = (z - gridSize * 0.5f) * spacing;
+			tag.phase = (tag.baseX + tag.baseZ) * 0.3f;
+
+			registry.emplace<WaveDemoTag>(e, tag);
+		}
+	}
 }

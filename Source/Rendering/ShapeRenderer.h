@@ -66,17 +66,27 @@ private:
 
 	struct CbWiredMesh
 	{
-		DirectX::XMFLOAT4X4 worldViewProjection;
-		DirectX::XMFLOAT4   color;
+		DirectX::XMFLOAT4X4 viewProjection;
 	};
 
 	struct CbSolidMesh
 	{
-		DirectX::XMFLOAT4X4 world;
 		DirectX::XMFLOAT4X4 viewProjection;
 		DirectX::XMFLOAT4   lightDirection;
+	};
+
+	// GPUインスタンシング用
+	struct InstanceData
+	{
+		DirectX::XMFLOAT4X4 world;
 		DirectX::XMFLOAT4   color;
 	};
+
+	// インスタンスバッファの確保・拡張ヘルパー
+	void EnsureInstanceBuffer(ID3D11Device* device, UINT requiredCount);
+
+	// 不透明描画用のレンダーステート生成
+	void CreateRenderStates(ID3D11Device* device);
 
 	// バッファ生成ヘルパー
 	void CreateWiredMesh(
@@ -119,6 +129,14 @@ private:
 	SolidMesh solidCylinderMesh;
 
 	std::vector<Instance> instances;
+
+	// GPUインスタンシング用バッファ
+	Microsoft::WRL::ComPtr<ID3D11Buffer> instanceBuffer;
+	UINT instanceBufferCapacity = 0;
+
+	// 不透明描画用ステート
+	Microsoft::WRL::ComPtr<ID3D11BlendState>        opaqueBlendState;
+	Microsoft::WRL::ComPtr<ID3D11DepthStencilState> opaqueDepthStencilState;
 
 	// Wiredシェーダー
 	Microsoft::WRL::ComPtr<ID3D11VertexShader> wiredVertexShader;

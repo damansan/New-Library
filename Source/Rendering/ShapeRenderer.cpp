@@ -10,7 +10,12 @@ ShapeRenderer::ShapeRenderer(ID3D11Device* device)
 	{
 		D3D11_INPUT_ELEMENT_DESC layout[] =
 		{
-			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT,    0, 0,  D3D11_INPUT_PER_VERTEX_DATA,   0 },
+			{ "WORLD",    0, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 0,  D3D11_INPUT_PER_INSTANCE_DATA, 1 },
+			{ "WORLD",    1, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 16, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
+			{ "WORLD",    2, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 32, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
+			{ "WORLD",    3, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 48, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
+			{ "COLOR",    1, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 64, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
 		};
 
 		GpuResourceUtils::LoadVertexShader(device, "Data/Shader/WiredShape_VS.cso", layout, _countof(layout), wiredInputLayout, wiredVertexShader);
@@ -22,8 +27,13 @@ ShapeRenderer::ShapeRenderer(ID3D11Device* device)
 	{
 		D3D11_INPUT_ELEMENT_DESC layout[] =
 		{
-			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0,                            D3D11_INPUT_PER_VERTEX_DATA, 0 },
-			{ "NORMAL",   0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT,    0, 0,                            D3D11_INPUT_PER_VERTEX_DATA,   0 },
+			{ "NORMAL",   0, DXGI_FORMAT_R32G32B32_FLOAT,    0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA,   0 },
+			{ "WORLD",    0, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 0,                            D3D11_INPUT_PER_INSTANCE_DATA, 1 },
+			{ "WORLD",    1, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 16,                           D3D11_INPUT_PER_INSTANCE_DATA, 1 },
+			{ "WORLD",    2, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 32,                           D3D11_INPUT_PER_INSTANCE_DATA, 1 },
+			{ "WORLD",    3, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 48,                           D3D11_INPUT_PER_INSTANCE_DATA, 1 },
+			{ "COLOR",    1, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 64,                           D3D11_INPUT_PER_INSTANCE_DATA, 1 },
 		};
 		GpuResourceUtils::LoadVertexShader(device, "Data/Shader/SolidShape_VS.cso", layout, _countof(layout), solidInputLayout, solidVertexShader);
 		GpuResourceUtils::LoadPixelShader(device, "Data/Shader/SolidShape_PS.cso", solidPixelShader);
@@ -39,6 +49,9 @@ ShapeRenderer::ShapeRenderer(ID3D11Device* device)
 	CreateSolidHalfSphereMesh(device, SUBDIVISIONS);
 	CreateWiredCylinderMesh(device, SUBDIVISIONS);
 	CreateSolidCylinderMesh(device, SUBDIVISIONS);
+
+	// 不透明描画用ステート生成
+	CreateRenderStates(device);
 }
 
 // 箱描画
@@ -76,7 +89,7 @@ void ShapeRenderer::DrawSphere(
 // カプセル描画
 void ShapeRenderer::DrawCapsule(
 	const DirectX::XMFLOAT4X4& transform,
-	float radius, 
+	float radius,
 	float halfHeight,
 	const DirectX::XMFLOAT4& color)
 {
@@ -129,54 +142,151 @@ void ShapeRenderer::Render(
 	DirectX::XMMATRIX P = DirectX::XMLoadFloat4x4(&projection);
 	DirectX::XMMATRIX VP = V * P;
 
-	// Wiredパス
-	dc->VSSetShader(wiredVertexShader.Get(), nullptr, 0);
-	dc->PSSetShader(wiredPixelShader.Get(), nullptr, 0);
-	dc->IASetInputLayout(wiredInputLayout.Get());
-	dc->VSSetConstantBuffers(0, 1, wiredConstantBuffer.GetAddressOf());
-	dc->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+	// メッシュの種類ごとにグループ化
+	struct InstanceGroup
+	{
+		WiredMesh* wiredMesh;
+		SolidMesh* solidMesh;
+		UINT instanceOffset;
+		UINT instanceCount;
+	};
+
+	std::vector<InstanceGroup> groups;
+	std::vector<InstanceData> instanceData;
+	instanceData.reserve(instances.size());
 
 	for (auto& inst : instances)
 	{
-		DirectX::XMMATRIX W = DirectX::XMLoadFloat4x4(&inst.worldTransform);
+		// 既存グループを探す
+		InstanceGroup* group = nullptr;
+		for (auto& g : groups)
+		{
+			if (g.wiredMesh == inst.wiredMesh)
+			{
+				group = &g;
+				break;
+			}
+		}
+		if (!group)
+		{
+			groups.push_back({ inst.wiredMesh, inst.solidMesh, static_cast<UINT>(instanceData.size()), 0 });
+			group = &groups.back();
+		}
 
+		InstanceData data;
+		data.world = inst.worldTransform;
+		data.color = inst.color;
+		instanceData.push_back(data);
+		group->instanceCount++;
+	}
+
+	// インスタンスバッファへ一括転送
+	Microsoft::WRL::ComPtr<ID3D11Device> device;
+	dc->GetDevice(device.GetAddressOf());
+	EnsureInstanceBuffer(device.Get(), static_cast<UINT>(instanceData.size()));
+
+	D3D11_MAPPED_SUBRESOURCE mapped;
+	dc->Map(instanceBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped);
+	memcpy(mapped.pData, instanceData.data(), sizeof(InstanceData)* instanceData.size());
+	dc->Unmap(instanceBuffer.Get(), 0);
+
+	// 描画前に不透明用のステートへ明示的に切り替える
+	float blendFactor[4] = { 0, 0, 0, 0 };
+	dc->OMSetBlendState(opaqueBlendState.Get(), blendFactor, 0xFFFFFFFF);
+	dc->OMSetDepthStencilState(opaqueDepthStencilState.Get(), 0);
+
+	// Wiredパス
+	{
 		CbWiredMesh cb;
-		DirectX::XMStoreFloat4x4(&cb.worldViewProjection, W * VP);
-		cb.color = inst.color;
+		DirectX::XMStoreFloat4x4(&cb.viewProjection, VP);
 		dc->UpdateSubresource(wiredConstantBuffer.Get(), 0, nullptr, &cb, 0, 0);
 
-		UINT stride = sizeof(DirectX::XMFLOAT3);
-		UINT offset = 0;
-		dc->IASetVertexBuffers(0, 1, inst.wiredMesh->vertexBuffer.GetAddressOf(), &stride, &offset);
-		dc->Draw(inst.wiredMesh->vertexCount, 0);
+		dc->VSSetShader(wiredVertexShader.Get(), nullptr, 0);
+		dc->PSSetShader(wiredPixelShader.Get(), nullptr, 0);
+		dc->IASetInputLayout(wiredInputLayout.Get());
+		dc->VSSetConstantBuffers(0, 1, wiredConstantBuffer.GetAddressOf());
+		dc->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+
+		for (auto& g : groups)
+		{
+			ID3D11Buffer* buffers[2] = { g.wiredMesh->vertexBuffer.Get(), instanceBuffer.Get() };
+			UINT strides[2] = { sizeof(DirectX::XMFLOAT3), sizeof(InstanceData) };
+			UINT offsets[2] = { 0, g.instanceOffset * sizeof(InstanceData) };
+			dc->IASetVertexBuffers(0, 2, buffers, strides, offsets);
+			dc->DrawInstanced(g.wiredMesh->vertexCount, g.instanceCount, 0, 0);
+		}
 	}
 
 	// Solidパス
-	dc->VSSetShader(solidVertexShader.Get(), nullptr, 0);
-	dc->PSSetShader(solidPixelShader.Get(), nullptr, 0);
-	dc->IASetInputLayout(solidInputLayout.Get());
-	dc->VSSetConstantBuffers(0, 1, solidConstantBuffer.GetAddressOf());
-	dc->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-	for (auto& inst : instances)
 	{
-		DirectX::XMMATRIX W = DirectX::XMLoadFloat4x4(&inst.worldTransform);
-
 		CbSolidMesh cb;
-		DirectX::XMStoreFloat4x4(&cb.world, W);
 		DirectX::XMStoreFloat4x4(&cb.viewProjection, VP);
 		cb.lightDirection = { lightDirection.x, lightDirection.y, lightDirection.z, 0 };
-		cb.color = inst.color;
 		dc->UpdateSubresource(solidConstantBuffer.Get(), 0, nullptr, &cb, 0, 0);
 
-		UINT stride = sizeof(Vertex);
-		UINT offset = 0;
-		dc->IASetVertexBuffers(0, 1, inst.solidMesh->vertexBuffer.GetAddressOf(), &stride, &offset);
-		dc->IASetIndexBuffer(inst.solidMesh->indexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0);
-		dc->DrawIndexed(inst.solidMesh->indexCount, 0, 0);
+		dc->VSSetShader(solidVertexShader.Get(), nullptr, 0);
+		dc->PSSetShader(solidPixelShader.Get(), nullptr, 0);
+		dc->IASetInputLayout(solidInputLayout.Get());
+		dc->VSSetConstantBuffers(0, 1, solidConstantBuffer.GetAddressOf());
+		dc->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+		for (auto& g : groups)
+		{
+			ID3D11Buffer* buffers[2] = { g.solidMesh->vertexBuffer.Get(), instanceBuffer.Get() };
+			UINT strides[2] = { sizeof(Vertex), sizeof(InstanceData) };
+			UINT offsets[2] = { 0, g.instanceOffset * sizeof(InstanceData) };
+			dc->IASetVertexBuffers(0, 2, buffers, strides, offsets);
+			dc->IASetIndexBuffer(g.solidMesh->indexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0);
+			dc->DrawIndexedInstanced(g.solidMesh->indexCount, g.instanceCount, 0, 0, 0);
+		}
 	}
 
 	instances.clear();
+}
+
+// インスタンスバッファの確保・拡張ヘルパー
+void ShapeRenderer::EnsureInstanceBuffer(ID3D11Device* device, UINT requiredCount)
+{
+	// 既に十分な容量があれば何もしない
+	if (requiredCount <= instanceBufferCapacity) return;
+
+	// 少し余裕を持たせて確保する(毎フレーム微妙に増減するケースで頻繁に作り直しが起きないようにするため)
+	UINT newCapacity = requiredCount + requiredCount / 2;
+
+	D3D11_BUFFER_DESC desc = {};
+	desc.ByteWidth = sizeof(InstanceData) * newCapacity;
+	desc.Usage = D3D11_USAGE_DYNAMIC;          // CPUから毎フレーム書き込むため
+	desc.BindFlags = D3D11_BIND_VERTEX_BUFFER; // インスタンスバッファも「頂点バッファ」として扱う
+	desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+
+	instanceBuffer.Reset();
+	HRESULT hr = device->CreateBuffer(&desc, nullptr, instanceBuffer.GetAddressOf());
+	_ASSERT_EXPR(SUCCEEDED(hr), L"ShapeRenderer: InstanceBuffer failed");
+
+	instanceBufferCapacity = newCapacity;
+}
+
+// 不透明描画用のレンダーステート生成
+void ShapeRenderer::CreateRenderStates(ID3D11Device* device)
+{
+	// ブレンドなし(不透明)
+	{
+		D3D11_BLEND_DESC desc = {};
+		desc.RenderTarget[0].BlendEnable = FALSE;
+		desc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+		HRESULT hr = device->CreateBlendState(&desc, opaqueBlendState.GetAddressOf());
+		_ASSERT_EXPR(SUCCEEDED(hr), L"ShapeRenderer: BlendState failed");
+	}
+
+	// 深度テスト・書き込みあり
+	{
+		D3D11_DEPTH_STENCIL_DESC desc = {};
+		desc.DepthEnable = TRUE;
+		desc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+		desc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
+		HRESULT hr = device->CreateDepthStencilState(&desc, opaqueDepthStencilState.GetAddressOf());
+		_ASSERT_EXPR(SUCCEEDED(hr), L"ShapeRenderer: DepthStencilState failed");
+	}
 }
 
 // バッファ生成ヘルパー
@@ -198,7 +308,7 @@ void ShapeRenderer::CreateWiredMesh(
 	mesh.vertexCount = static_cast<UINT>(positions.size());
 }
 void ShapeRenderer::CreateSolidMesh(
-	ID3D11Device* device, 
+	ID3D11Device* device,
 	const std::vector<Vertex>& vertices,
 	const std::vector<uint16_t>& indices,
 	SolidMesh& mesh)
@@ -235,7 +345,7 @@ void ShapeRenderer::CreateSolidMesh(
 void ShapeRenderer::CreateWiredBoxMesh(ID3D11Device* device)
 {
 	float h = 0.5f;
-	std::vector<DirectX::XMFLOAT3> p = 
+	std::vector<DirectX::XMFLOAT3> p =
 	{
 		// Bottom
 		{-h,-h,-h},{h,-h,-h},  {h,-h,-h},{h,-h,h},
@@ -252,7 +362,7 @@ void ShapeRenderer::CreateWiredBoxMesh(ID3D11Device* device)
 void ShapeRenderer::CreateSolidBoxMesh(ID3D11Device* device)
 {
 	float h = 0.5f;
-	std::vector<Vertex> verts = 
+	std::vector<Vertex> verts =
 	{
 		{{-h,-h,h},  {0,0,1}}, {{h,-h,h},  {0,0,1}},  {{h,h,h},  {0,0,1}},  {{-h,h,h}, {0,0,1}},  // +Z
 		{{h,-h,-h},  {0,0,-1}},{{-h,-h,-h},{0,0,-1}}, {{-h,h,-h},{0,0,-1}}, {{h,h,-h}, {0,0,-1}}, // -Z
@@ -275,7 +385,7 @@ void ShapeRenderer::CreateSolidBoxMesh(ID3D11Device* device)
 void ShapeRenderer::CreateWiredSphereMesh(ID3D11Device* device, int subdivisions)
 {
 	std::vector<DirectX::XMFLOAT3> p;
-	for (int i = 0; i < subdivisions; i++) 
+	for (int i = 0; i < subdivisions; i++)
 	{
 		float a0 = 2.0f * PI * i / subdivisions;
 		float a1 = 2.0f * PI * (i + 1) / subdivisions;
@@ -303,7 +413,7 @@ void ShapeRenderer::CreateSolidSphereMesh(ID3D11Device* device, int subdivisions
 		float phi = PI * r / rings - PI * 0.5f;
 		float y = sinf(phi);
 		float xz = cosf(phi);
-		for (int s = 0; s <= slices; s++) 
+		for (int s = 0; s <= slices; s++)
 		{
 			float theta = 2.0f * PI * s / slices;
 			float x = xz * cosf(theta);
@@ -311,9 +421,9 @@ void ShapeRenderer::CreateSolidSphereMesh(ID3D11Device* device, int subdivisions
 			verts.push_back({ {x,y,z},{x,y,z} });
 		}
 	}
-	for (int r = 0; r < rings; r++) 
+	for (int r = 0; r < rings; r++)
 	{
-		for (int s = 0; s < slices; s++) 
+		for (int s = 0; s < slices; s++)
 		{
 			uint16_t a = (uint16_t)(r * (slices + 1) + s);
 			uint16_t b = a + 1;
@@ -339,7 +449,7 @@ void ShapeRenderer::CreateWiredHalfSphereMesh(ID3D11Device* device, int subdivis
 		p.push_back({ 0, sinf(a0), cosf(a0) });
 		p.push_back({ 0, sinf(a1), cosf(a1) });
 	}
-	for (int i = 0; i < subdivisions; i++) 
+	for (int i = 0; i < subdivisions; i++)
 	{
 		float a0 = 2.0f * PI * i / subdivisions;
 		float a1 = 2.0f * PI * (i + 1) / subdivisions;
@@ -355,12 +465,12 @@ void ShapeRenderer::CreateSolidHalfSphereMesh(ID3D11Device* device, int subdivis
 	int rings = subdivisions / 4;
 	int slices = subdivisions;
 
-	for (int r = 0; r <= rings; r++) 
+	for (int r = 0; r <= rings; r++)
 	{
 		float phi = (PI * 0.5f) * r / rings;
 		float y = sinf(phi);
 		float xz = cosf(phi);
-		for (int s = 0; s <= slices; s++) 
+		for (int s = 0; s <= slices; s++)
 		{
 			float theta = 2.0f * PI * s / slices;
 			float x = xz * cosf(theta);
@@ -368,9 +478,9 @@ void ShapeRenderer::CreateSolidHalfSphereMesh(ID3D11Device* device, int subdivis
 			verts.push_back({ {x,y,z},{x,y,z} });
 		}
 	}
-	for (int r = 0; r < rings; r++) 
+	for (int r = 0; r < rings; r++)
 	{
-		for (int s = 0; s < slices; s++) 
+		for (int s = 0; s < slices; s++)
 		{
 			uint16_t a = (uint16_t)(r * (slices + 1) + s);
 			uint16_t b = a + 1;
@@ -387,7 +497,7 @@ void ShapeRenderer::CreateSolidHalfSphereMesh(ID3D11Device* device, int subdivis
 void ShapeRenderer::CreateWiredCylinderMesh(ID3D11Device* device, int subdivisions)
 {
 	std::vector<DirectX::XMFLOAT3> p;
-	for (int i = 0; i < subdivisions; i++) 
+	for (int i = 0; i < subdivisions; i++)
 	{
 		float a0 = 2.0f * PI * i / subdivisions;
 		float a1 = 2.0f * PI * (i + 1) / subdivisions;
@@ -399,7 +509,7 @@ void ShapeRenderer::CreateWiredCylinderMesh(ID3D11Device* device, int subdivisio
 		p.push_back({ cosf(a1), -0.5f, sinf(a1) });
 	}
 	// 4本縦ライン
-	for (int i = 0; i < 4; i++) 
+	for (int i = 0; i < 4; i++)
 	{
 		float a = 2.0f * PI * i / 4;
 		float x = cosf(a), z = sinf(a);
@@ -414,14 +524,14 @@ void ShapeRenderer::CreateSolidCylinderMesh(ID3D11Device* device, int subdivisio
 	std::vector<uint16_t> idxs;
 
 	// 側面のみ
-	for (int i = 0; i <= subdivisions; i++) 
+	for (int i = 0; i <= subdivisions; i++)
 	{
 		float theta = 2.0f * PI * i / subdivisions;
 		float x = cosf(theta), z = sinf(theta);
 		verts.push_back({ {x,  0.5f, z}, {x, 0, z} });
 		verts.push_back({ {x, -0.5f, z}, {x, 0, z} });
 	}
-	for (int i = 0; i < subdivisions; i++) 
+	for (int i = 0; i < subdivisions; i++)
 	{
 		uint16_t t0 = (uint16_t)(i * 2);
 		uint16_t b0 = t0 + 1, t1 = t0 + 2, b1 = t0 + 3;
