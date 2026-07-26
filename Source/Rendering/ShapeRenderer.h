@@ -138,6 +138,14 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11BlendState>        opaqueBlendState;
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilState> opaqueDepthStencilState;
 
+	// 深度プリパス用ステート
+	Microsoft::WRL::ComPtr<ID3D11BlendState>        depthOnlyBlendState;       // 色を一切書き込まない
+	Microsoft::WRL::ComPtr<ID3D11DepthStencilState> mainPassDepthStencilState; // プリパス後の本パス用
+
+	// 深度プリパス用シェーダー
+	Microsoft::WRL::ComPtr<ID3D11VertexShader> solidDepthVertexShader;
+	Microsoft::WRL::ComPtr<ID3D11InputLayout>  solidDepthInputLayout;
+
 	// Wiredシェーダー
 	Microsoft::WRL::ComPtr<ID3D11VertexShader> wiredVertexShader;
 	Microsoft::WRL::ComPtr<ID3D11PixelShader>  wiredPixelShader;

@@ -252,8 +252,8 @@ void SceneGame::Render(const SceneContext& context)
 			context.deviceContext,
 			context.view,
 			context.projection,
-			lightDir3
-		//	false
+			lightDir3,
+			false
 		);
 	}
 

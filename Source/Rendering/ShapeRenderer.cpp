@@ -38,6 +38,9 @@ ShapeRenderer::ShapeRenderer(ID3D11Device* device)
 		GpuResourceUtils::LoadVertexShader(device, "Data/Shader/SolidShape_VS.cso", layout, _countof(layout), solidInputLayout, solidVertexShader);
 		GpuResourceUtils::LoadPixelShader(device, "Data/Shader/SolidShape_PS.cso", solidPixelShader);
 		GpuResourceUtils::CreateConstantBuffer(device, sizeof(CbSolidMesh), solidConstantBuffer);
+
+		// 深度プリパス用
+		GpuResourceUtils::LoadVertexShader(device, "Data/Shader/SolidShapeDepth_VS.cso", layout, _countof(layout), solidDepthInputLayout, solidDepthVertexShader);
 	}
 
 	// 単位メッシュを事前生成
@@ -220,17 +223,59 @@ void ShapeRenderer::Render(
 	}
 
 	// Solidパス
+	//{
+	//	CbSolidMesh cb;
+	//	DirectX::XMStoreFloat4x4(&cb.viewProjection, VP);
+	//	cb.lightDirection = { lightDirection.x, lightDirection.y, lightDirection.z, 0 };
+	//	dc->UpdateSubresource(solidConstantBuffer.Get(), 0, nullptr, &cb, 0, 0);
+
+	//	dc->VSSetShader(solidVertexShader.Get(), nullptr, 0);
+	//	dc->PSSetShader(solidPixelShader.Get(), nullptr, 0);
+	//	dc->IASetInputLayout(solidInputLayout.Get());
+	//	dc->VSSetConstantBuffers(0, 1, solidConstantBuffer.GetAddressOf());
+	//	dc->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	//	for (auto& g : groups)
+	//	{
+	//		ID3D11Buffer* buffers[2] = { g.solidMesh->vertexBuffer.Get(), instanceBuffer.Get() };
+	//		UINT strides[2] = { sizeof(Vertex), sizeof(InstanceData) };
+	//		UINT offsets[2] = { 0, g.instanceOffset * sizeof(InstanceData) };
+	//		dc->IASetVertexBuffers(0, 2, buffers, strides, offsets);
+	//		dc->IASetIndexBuffer(g.solidMesh->indexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0);
+	//		dc->DrawIndexedInstanced(g.solidMesh->indexCount, g.instanceCount, 0, 0, 0);
+	//	}
+	//}
 	{
 		CbSolidMesh cb;
 		DirectX::XMStoreFloat4x4(&cb.viewProjection, VP);
 		cb.lightDirection = { lightDirection.x, lightDirection.y, lightDirection.z, 0 };
 		dc->UpdateSubresource(solidConstantBuffer.Get(), 0, nullptr, &cb, 0, 0);
+		dc->VSSetConstantBuffers(0, 1, solidConstantBuffer.GetAddressOf());
+		dc->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
+		// ① 深度プリパス:色は書かず、深度バッファだけを確定させる
+		dc->VSSetShader(solidDepthVertexShader.Get(), nullptr, 0);
+		dc->PSSetShader(nullptr, nullptr, 0); // ピクセルシェーダーなし
+		dc->IASetInputLayout(solidDepthInputLayout.Get());
+		dc->OMSetBlendState(depthOnlyBlendState.Get(), blendFactor, 0xFFFFFFFF);
+		dc->OMSetDepthStencilState(opaqueDepthStencilState.Get(), 0); // 書き込みON・LESS_EQUAL
+
+		for (auto& g : groups)
+		{
+			ID3D11Buffer* buffers[2] = { g.solidMesh->vertexBuffer.Get(), instanceBuffer.Get() };
+			UINT strides[2] = { sizeof(Vertex), sizeof(InstanceData) };
+			UINT offsets[2] = { 0, g.instanceOffset * sizeof(InstanceData) };
+			dc->IASetVertexBuffers(0, 2, buffers, strides, offsets);
+			dc->IASetIndexBuffer(g.solidMesh->indexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0);
+			dc->DrawIndexedInstanced(g.solidMesh->indexCount, g.instanceCount, 0, 0, 0);
+		}
+
+		// ② 本パス:プリパスで確定した深度と一致するピクセルだけ色を塗る
 		dc->VSSetShader(solidVertexShader.Get(), nullptr, 0);
 		dc->PSSetShader(solidPixelShader.Get(), nullptr, 0);
 		dc->IASetInputLayout(solidInputLayout.Get());
-		dc->VSSetConstantBuffers(0, 1, solidConstantBuffer.GetAddressOf());
-		dc->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		dc->OMSetBlendState(opaqueBlendState.Get(), blendFactor, 0xFFFFFFFF);
+		dc->OMSetDepthStencilState(mainPassDepthStencilState.Get(), 0); // 書き込みOFF・EQUAL
 
 		for (auto& g : groups)
 		{
@@ -288,6 +333,25 @@ void ShapeRenderer::CreateRenderStates(ID3D11Device* device)
 		desc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
 		HRESULT hr = device->CreateDepthStencilState(&desc, opaqueDepthStencilState.GetAddressOf());
 		_ASSERT_EXPR(SUCCEEDED(hr), L"ShapeRenderer: DepthStencilState failed");
+	}
+
+	// 深度プリパス用:色を一切書き込まない
+	{
+		D3D11_BLEND_DESC desc = {};
+		desc.RenderTarget[0].BlendEnable = FALSE;
+		desc.RenderTarget[0].RenderTargetWriteMask = 0;
+		HRESULT hr = device->CreateBlendState(&desc, depthOnlyBlendState.GetAddressOf());
+		_ASSERT_EXPR(SUCCEEDED(hr), L"ShapeRenderer: DepthOnlyBlendState failed");
+	}
+
+	// プリパス後の本パス用:深度は書き込まず、プリパスと完全一致するピクセルだけ描く
+	{
+		D3D11_DEPTH_STENCIL_DESC desc = {};
+		desc.DepthEnable = TRUE;
+		desc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
+		desc.DepthFunc = D3D11_COMPARISON_EQUAL;
+		HRESULT hr = device->CreateDepthStencilState(&desc, mainPassDepthStencilState.GetAddressOf());
+		_ASSERT_EXPR(SUCCEEDED(hr), L"ShapeRenderer: MainPassDepthStencilState failed");
 	}
 }
 

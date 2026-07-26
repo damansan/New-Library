@@ -758,6 +758,9 @@
     <FxCompile Include="Shader\WiredShape_VS.hlsl">
       <Filter>Shader\WiredShape</Filter>
     </FxCompile>
+    <FxCompile Include="Shader\SolidShapeDepth_VS.hlsl">
+      <Filter>Shader\SolidShape</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shader\PBR_Functions.hlsli">
