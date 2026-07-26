@@ -830,6 +830,8 @@ void framework::update(float elapsedTime)
 
 void framework::updateImGui()
 {
+	ZoneScoped;
+
 	// ImGuiフレーム開始
 	imguiManager.BeginFrame();
 
@@ -1748,6 +1750,108 @@ void SceneManager::ClearScene()
 	nextScene.reset();
 }
  
+ 
+===== WaveDemo.h ===== 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Demo\WaveDemo.h 
+#pragma once
+#include <entt.hpp>
+#include <d3d11.h>
+#include <DirectXMath.h>
+#include "Rendering/ShapeRenderer.h"
+
+class WaveDemo
+{
+public:
+	void Initialize(ID3D11Device* device, entt::registry& registry, int gridSize, float spacing);
+
+	void Render(
+		entt::registry& registry,
+		ID3D11DeviceContext* dc,
+		const DirectX::XMFLOAT4X4& view,
+		const DirectX::XMFLOAT4X4& projection,
+		const DirectX::XMFLOAT3& lightDirection,
+		float elapsedTime);
+
+private:
+	struct Tag
+	{
+		float baseX = 0.0f;
+		float baseZ = 0.0f;
+		float phase = 0.0f;
+	};
+
+	ShapeRenderer renderer;
+	float time = 0.0f;
+	float spacing = 1.0f;
+}; 
+ 
+===== WaveDemo.cpp ===== 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Demo\WaveDemo.cpp 
+#include "WaveDemo.h"
+
+void WaveDemo::Initialize(
+	ID3D11Device* device, 
+	entt::registry& registry, 
+	int gridSize,
+	float spacingValue)
+{
+	renderer = ShapeRenderer(device);
+	spacing = spacingValue;
+
+	for (int x = 0; x < gridSize; x++)
+	{
+		for (int z = 0; z < gridSize; z++)
+		{
+			entt::entity e = registry.create();
+
+			Tag tag;
+			tag.baseX = (x - gridSize * 0.5f) * spacing;
+			tag.baseZ = (z - gridSize * 0.5f) * spacing;
+			tag.phase = (tag.baseX + tag.baseZ) * 0.3f;
+
+			registry.emplace<Tag>(e, tag);
+		}
+	}
+}
+
+void WaveDemo::Render(
+	entt::registry& registry,
+	ID3D11DeviceContext* dc,
+	const DirectX::XMFLOAT4X4& view,
+	const DirectX::XMFLOAT4X4& projection,
+	const DirectX::XMFLOAT3& lightDirection,
+	float elapsedTime)
+{
+	time += elapsedTime;
+
+	auto view_ = registry.view<Tag>();
+	for (auto entity : view_)
+	{
+		auto& tag = view_.get<Tag>(entity);
+
+		float y = sinf(time * 2.0f + tag.phase) * 0.5f;
+
+		DirectX::XMMATRIX m = DirectX::XMMatrixTranslation(tag.baseX, y, tag.baseZ);
+		DirectX::XMFLOAT4X4 transform;
+		DirectX::XMStoreFloat4x4(&transform, m);
+
+		DirectX::XMFLOAT3 size = { spacing, spacing, spacing };
+
+		float seed = sinf(tag.baseX * 12.9898f + tag.baseZ * 78.233f) * 43758.5453f;
+		float variation = seed - floorf(seed);
+
+		DirectX::XMFLOAT4 color = {
+			0.75f + variation * 0.12f,
+			0.88f - variation * 0.06f,
+			1.0f - variation * 0.03f,
+			1.0f
+		};
+
+		renderer.DrawBox(transform, size, color);
+	}
+
+	renderer.Render(dc, view, projection, lightDirection, false);
+} 
  
 ===== AnimatorComponent.h ===== 
 Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\AnimatorComponent.h 
@@ -5851,9 +5955,12 @@ Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Editor\HierarchyWindow.
 #include "ECS/Components/TransformComponent.h"
 #include "ECS/Components/MeshComponent.h"
 
+#include "tracy/Tracy.hpp"
 
 void HierarchyWindow::Draw(entt::registry& registry, EditorContext& context)
 {
+    ZoneScoped;
+
     ImGui::Begin("Hierarchy");
 
     // 空の Entity を追加するボタン
@@ -5882,33 +5989,72 @@ void HierarchyWindow::Draw(entt::registry& registry, EditorContext& context)
     // セパレータの下の座標を記録
     ImVec2 dropAreaMin = ImGui::GetCursorScreenPos();
 
-    // 全 Entity を列挙
+    //// 全 Entity を列挙
+    //auto view = registry.view<entt::entity>();
+    //for (auto e : view)
+    //{
+    //    std::string name = context.GetName(e);
+
+    //    // 選択状態をハイライト
+    //    bool isSelected = context.IsSelected(e);
+    //    if (ImGui::Selectable(
+    //        (name + "##" + std::to_string((uint32_t)e)).c_str(),
+    //        isSelected))
+    //    {
+    //        context.Select(e);
+    //    }
+
+    //    // Entity をドラッグできるようにする
+    //    if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
+    //    {
+    //        // Entity ID をペイロードとして渡す
+    //        ImGui::SetDragDropPayload(
+    //            "ENTITY",
+    //            &e,
+    //            sizeof(entt::entity)
+    //        );
+    //        // ドラッグ中のプレビュー
+    //        ImGui::Text(name.c_str());
+    //        ImGui::EndDragDropSource();
+    //    }
+    //}
+    // 全 Entity を列挙(画面に映っている範囲だけ処理する)
     auto view = registry.view<entt::entity>();
-    for (auto e : view)
+
+    // entt::view はランダムアクセスできないので、一旦配列に集める
+    // (これ自体は軽い処理:ポインタ相当のentity値をコピーするだけ)
+    std::vector<entt::entity> entities(view.begin(), view.end());
+
+    ImGuiListClipper clipper;
+    clipper.Begin(static_cast<int>(entities.size()));
+    while (clipper.Step())
     {
-        std::string name = context.GetName(e);
-
-        // 選択状態をハイライト
-        bool isSelected = context.IsSelected(e);
-        if (ImGui::Selectable(
-            (name + "##" + std::to_string((uint32_t)e)).c_str(),
-            isSelected))
+        for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; i++)
         {
-            context.Select(e);
-        }
+            entt::entity e = entities[i];
 
-        // Entity をドラッグできるようにする
-        if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
-        {
-            // Entity ID をペイロードとして渡す
-            ImGui::SetDragDropPayload(
-                "ENTITY",
-                &e,
-                sizeof(entt::entity)
-            );
-            // ドラッグ中のプレビュー
-            ImGui::Text(name.c_str());
-            ImGui::EndDragDropSource();
+            std::string name = context.GetName(e);
+            // 選択状態をハイライト
+            bool isSelected = context.IsSelected(e);
+            if (ImGui::Selectable(
+                (name + "##" + std::to_string((uint32_t)e)).c_str(),
+                isSelected))
+            {
+                context.Select(e);
+            }
+            // Entity をドラッグできるようにする
+            if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
+            {
+                // Entity ID をペイロードとして渡す
+                ImGui::SetDragDropPayload(
+                    "ENTITY",
+                    &e,
+                    sizeof(entt::entity)
+                );
+                // ドラッグ中のプレビュー
+                ImGui::Text(name.c_str());
+                ImGui::EndDragDropSource();
+            }
         }
     }
 
@@ -5954,9 +6100,13 @@ Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Editor\InspectorWindow.
 #include "imgui_internal.h"
 #include "ComponentRegistry.h"
 
+#include "tracy/Tracy.hpp"
+
 // 描画
 void InspectorWindow::Draw(entt::registry& registry, EditorContext& context)
 {
+    ZoneScoped;
+
     ImGui::Begin("Inspector");
 
     // 何も選択されていなければ何も表示しない
@@ -6279,6 +6429,8 @@ Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Editor\ProjectWindow.cp
 #include <WICTextureLoader.h>
 #include <json.hpp>
 
+#include "tracy/Tracy.hpp"
+
 void ProjectWindow::Initialize(const std::string& rootPath)
 {
 	this->rootPath = rootPath;
@@ -6300,6 +6452,8 @@ void ProjectWindow::LoadIcons(ID3D11Device* device)
 
 void ProjectWindow::Draw(entt::registry& registry, EditorContext& context)
 {
+	ZoneScoped;
+
 	ImGui::Begin("Project");
 
 	if (ImGui::BeginTable("ProjectLayout", 2,
@@ -6934,6 +7088,7 @@ private:
 	void InitializeWaveDemo(ID3D11Device* device);
 	ShapeRenderer waveDemoRenderer;
 	float waveDemoTime = 0.0f;
+	float waveDemoSpacing = 1.0f;
 };
  
  
@@ -7165,24 +7320,23 @@ void SceneGame::Render(const SceneContext& context)
 		{
 			auto& tag = view.get<WaveDemoTag>(entity);
 
-			float y = sinf(waveDemoTime * 2.0f + tag.phase) * 0.5f;
+			float y = sinf(waveDemoTime * 2.0f + tag.phase) * 1.0f;
 
 			DirectX::XMMATRIX m = DirectX::XMMatrixTranslation(tag.baseX, y, tag.baseZ);
 			DirectX::XMFLOAT4X4 transform;
 			DirectX::XMStoreFloat4x4(&transform, m);
 
-			DirectX::XMFLOAT3 size = { 0.6f, 0.6f, 0.6f };
+			DirectX::XMFLOAT3 size = { waveDemoSpacing, waveDemoSpacing, waveDemoSpacing };
 
 			float seed = sinf(tag.baseX * 12.9898f + tag.baseZ * 78.233f) * 43758.5453f;
 			float variation = seed - floorf(seed);
 
 			DirectX::XMFLOAT4 color = {
-				0.3f + variation * 0.15f,
-				0.7f - variation * 0.10f,
-				1.0f - variation * 0.10f,
+				0.5f + variation * 0.15f,
+				0.8f - variation * 0.10f,
+				1.0f - variation * 0.05f,
 				1.0f
 			};
-
 			waveDemoRenderer.DrawBox(transform, size, color);
 		}
 
@@ -7232,8 +7386,8 @@ void SceneGame::InitializeWaveDemo(ID3D11Device* device)
 {
 	waveDemoRenderer = ShapeRenderer(device);
 
-	const int gridSize = 400; 
-	const float spacing = 1.0f;
+	const int gridSize = 500;
+	const float spacing = waveDemoSpacing;
 
 	for (int x = 0; x < gridSize; x++)
 	{
@@ -8491,28 +8645,6 @@ void ShapeRenderer::Render(
 	}
 
 	// Solidパス
-	//{
-	//	CbSolidMesh cb;
-	//	DirectX::XMStoreFloat4x4(&cb.viewProjection, VP);
-	//	cb.lightDirection = { lightDirection.x, lightDirection.y, lightDirection.z, 0 };
-	//	dc->UpdateSubresource(solidConstantBuffer.Get(), 0, nullptr, &cb, 0, 0);
-
-	//	dc->VSSetShader(solidVertexShader.Get(), nullptr, 0);
-	//	dc->PSSetShader(solidPixelShader.Get(), nullptr, 0);
-	//	dc->IASetInputLayout(solidInputLayout.Get());
-	//	dc->VSSetConstantBuffers(0, 1, solidConstantBuffer.GetAddressOf());
-	//	dc->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-	//	for (auto& g : groups)
-	//	{
-	//		ID3D11Buffer* buffers[2] = { g.solidMesh->vertexBuffer.Get(), instanceBuffer.Get() };
-	//		UINT strides[2] = { sizeof(Vertex), sizeof(InstanceData) };
-	//		UINT offsets[2] = { 0, g.instanceOffset * sizeof(InstanceData) };
-	//		dc->IASetVertexBuffers(0, 2, buffers, strides, offsets);
-	//		dc->IASetIndexBuffer(g.solidMesh->indexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0);
-	//		dc->DrawIndexedInstanced(g.solidMesh->indexCount, g.instanceCount, 0, 0, 0);
-	//	}
-	//}
 	{
 		CbSolidMesh cb;
 		DirectX::XMStoreFloat4x4(&cb.viewProjection, VP);

@@ -17,12 +17,12 @@
 #include "Rendering/PhysicsDebugRenderer.h"
 
 #include "ECS/Systems/PhysicsSystem.h"
-
 #include "ECS/Systems/IKSystem.h"
 
-
-
 #include "Tool/AdaptiveTriggerToolWindow.h"
+
+
+#include "Demo/WaveDemo.h"
 
 class SceneGame : public Scene
 {
@@ -58,14 +58,6 @@ private:
 
 
 private:
-	struct WaveDemoTag
-	{
-		float baseX = 0.0f;
-		float baseZ = 0.0f;
-		float phase = 0.0f;
-	};
-	void InitializeWaveDemo(ID3D11Device* device);
-	ShapeRenderer waveDemoRenderer;
-	float waveDemoTime = 0.0f;
-	float waveDemoSpacing = 1.0f;
+	// ƒfƒ‚—p
+	WaveDemo waveDemo;
 };

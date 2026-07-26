@@ -37,6 +37,7 @@
     <ClCompile Include="Source\Core\PhysX.cpp" />
     <ClCompile Include="Source\Core\Scene.cpp" />
     <ClCompile Include="Source\Core\SceneManager.cpp" />
+    <ClCompile Include="Source\Demo\WaveDemo.cpp" />
     <ClCompile Include="Source\ECS\Systems\AnimationSystem.cpp" />
     <ClCompile Include="Source\ECS\Systems\ControllerSystem.cpp" />
     <ClCompile Include="Source\ECS\Systems\DebugCameraSystem.cpp" />
@@ -100,6 +101,7 @@
     <ClInclude Include="Source\Core\Scene.h" />
     <ClInclude Include="Source\Core\SceneContext.h" />
     <ClInclude Include="Source\Core\SceneManager.h" />
+    <ClInclude Include="Source\Demo\WaveDemo.h" />
     <ClInclude Include="Source\ECS\Components\AnimatorComponent.h" />
     <ClInclude Include="Source\ECS\Components\BaseCameraComponent.h" />
     <ClInclude Include="Source\ECS\Components\ControllerComponent.h" />

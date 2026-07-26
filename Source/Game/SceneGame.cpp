@@ -54,7 +54,8 @@ void SceneGame::Initialize(const SceneContext& context)
 		);
 	}
 
-	InitializeWaveDemo(context.device);
+	// デモ初期化
+	waveDemo.Initialize(context.device, registry, 400, 1.0f);
 }
 
 void SceneGame::Finalize()
@@ -67,7 +68,8 @@ void SceneGame::Update(float elapsedTime, const SceneContext& context)
 {
 	ZoneScoped;
 
-	waveDemoTime += elapsedTime;
+	// デモ更新
+	waveDemo.Update(elapsedTime);
 
 	{
 		// PhysX更新
@@ -216,46 +218,21 @@ void SceneGame::Render(const SceneContext& context)
 	}
 
 
+	// デモ描画
 	{
 		ZoneScopedN("WaveDemo Loop+Render");
-
-		auto view = registry.view<WaveDemoTag>();
-		for (auto entity : view)
-		{
-			auto& tag = view.get<WaveDemoTag>(entity);
-
-			float y = sinf(waveDemoTime * 2.0f + tag.phase) * 1.0f;
-
-			DirectX::XMMATRIX m = DirectX::XMMatrixTranslation(tag.baseX, y, tag.baseZ);
-			DirectX::XMFLOAT4X4 transform;
-			DirectX::XMStoreFloat4x4(&transform, m);
-
-			DirectX::XMFLOAT3 size = { waveDemoSpacing, waveDemoSpacing, waveDemoSpacing };
-
-			float seed = sinf(tag.baseX * 12.9898f + tag.baseZ * 78.233f) * 43758.5453f;
-			float variation = seed - floorf(seed);
-
-			DirectX::XMFLOAT4 color = {
-				0.5f + variation * 0.15f,
-				0.8f - variation * 0.10f,
-				1.0f - variation * 0.05f,
-				1.0f
-			};
-			waveDemoRenderer.DrawBox(transform, size, color);
-		}
 
 		const auto& lightDir4 = lightManager.GetDirectionalLight().direction;
 		DirectX::XMFLOAT3 lightDir3 = { lightDir4.x, lightDir4.y, lightDir4.z };
 
-		waveDemoRenderer.Render(
+		waveDemo.Render(
+			registry,
 			context.deviceContext,
 			context.view,
 			context.projection,
-			lightDir3,
-			false
+			lightDir3
 		);
 	}
-
 
 
 
@@ -281,30 +258,4 @@ void SceneGame::RenderImGui()
 		break;
 	}
 #endif
-}
-
-
-
-
-void SceneGame::InitializeWaveDemo(ID3D11Device* device)
-{
-	waveDemoRenderer = ShapeRenderer(device);
-
-	const int gridSize = 500;
-	const float spacing = waveDemoSpacing;
-
-	for (int x = 0; x < gridSize; x++)
-	{
-		for (int z = 0; z < gridSize; z++)
-		{
-			entt::entity e = registry.create();
-
-			WaveDemoTag tag;
-			tag.baseX = (x - gridSize * 0.5f) * spacing;
-			tag.baseZ = (z - gridSize * 0.5f) * spacing;
-			tag.phase = (tag.baseX + tag.baseZ) * 0.3f;
-
-			registry.emplace<WaveDemoTag>(e, tag);
-		}
-	}
 }
