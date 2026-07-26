@@ -782,10 +782,10 @@ framework::framework(HWND hwnd) : hwnd(hwnd)
 	// Studioã§óLÉäÉ\Å[ÉXèâä˙âª
 	studioShared.Initialize(graphics.GetDevice());
 
-#ifndef _DEBUG
-	// ÉäÉäÅ[ÉXéûÇÕÉ{Å[É_Å[ÉåÉXÉtÉãÉXÉNÉäÅ[ÉìÇ≈ãNìÆ
-	graphics.ToggleFullscreen();
-#endif
+//#ifndef _DEBUG
+//	// ÉäÉäÅ[ÉXéûÇÕÉ{Å[É_Å[ÉåÉXÉtÉãÉXÉNÉäÅ[ÉìÇ≈ãNìÆ
+//	graphics.ToggleFullscreen();
+//#endif
 }
 
 framework::~framework()
@@ -841,7 +841,7 @@ void framework::updateImGui()
 	// ÉVÅ[ÉìImGuiï`âÊ
 	sceneManager.RenderImGui();
 
-#ifdef _DEBUG
+//#ifdef _DEBUG
 	if (auto* scene = sceneManager.GetCurrentScene())
 	{
 		projectWindow.Draw(scene->GetRegistry(), editorContext);
@@ -871,7 +871,7 @@ void framework::updateImGui()
 			}),
 		studioWindows.end()
 	);
-#endif
+//#endif
 }
 
 void framework::render(float elapsedTime)
@@ -7158,6 +7158,8 @@ void SceneGame::Render(const SceneContext& context)
 
 
 	{
+		ZoneScopedN("WaveDemo Loop+Render");
+
 		auto view = registry.view<WaveDemoTag>();
 		for (auto entity : view)
 		{
@@ -7219,7 +7221,7 @@ void SceneGame::InitializeWaveDemo(ID3D11Device* device)
 {
 	waveDemoRenderer = ShapeRenderer(device);
 
-	const int gridSize = 40; // 40x40 = 1600‰Ωì
+	const int gridSize = 400; 
 	const float spacing = 1.0f;
 
 	for (int x = 0; x < gridSize; x++)
@@ -7536,6 +7538,9 @@ private:
 	// ÉCÉìÉXÉ^ÉìÉXÉoÉbÉtÉ@ÇÃämï€ÅEägí£ÉwÉãÉpÅ[
 	void EnsureInstanceBuffer(ID3D11Device* device, UINT requiredCount);
 
+	// ïsìßñæï`âÊópÇÃÉåÉìÉ_Å[ÉXÉeÅ[Égê∂ê¨
+	void CreateRenderStates(ID3D11Device* device);
+
 	// ÉoÉbÉtÉ@ê∂ê¨ÉwÉãÉpÅ[
 	void CreateWiredMesh(
 		ID3D11Device* device,
@@ -7581,6 +7586,10 @@ private:
 	// GPUÉCÉìÉXÉ^ÉìÉVÉìÉOópÉoÉbÉtÉ@
 	Microsoft::WRL::ComPtr<ID3D11Buffer> instanceBuffer;
 	UINT instanceBufferCapacity = 0;
+
+	// ïsìßñæï`âÊópÉXÉeÅ[Ég
+	Microsoft::WRL::ComPtr<ID3D11BlendState>        opaqueBlendState;
+	Microsoft::WRL::ComPtr<ID3D11DepthStencilState> opaqueDepthStencilState;
 
 	// WiredÉVÉFÅ[É_Å[
 	Microsoft::WRL::ComPtr<ID3D11VertexShader> wiredVertexShader;
@@ -8289,6 +8298,9 @@ ShapeRenderer::ShapeRenderer(ID3D11Device* device)
 	CreateSolidHalfSphereMesh(device, SUBDIVISIONS);
 	CreateWiredCylinderMesh(device, SUBDIVISIONS);
 	CreateSolidCylinderMesh(device, SUBDIVISIONS);
+
+	// ïsìßñæï`âÊópÉXÉeÅ[Égê∂ê¨
+	CreateRenderStates(device);
 }
 
 // î†ï`âÊ
@@ -8427,6 +8439,11 @@ void ShapeRenderer::Render(
 	memcpy(mapped.pData, instanceData.data(), sizeof(InstanceData)* instanceData.size());
 	dc->Unmap(instanceBuffer.Get(), 0);
 
+	// ï`âÊëOÇ…ïsìßñæópÇÃÉXÉeÅ[ÉgÇ÷ñæé¶ìIÇ…êÿÇËë÷Ç¶ÇÈ
+	float blendFactor[4] = { 0, 0, 0, 0 };
+	dc->OMSetBlendState(opaqueBlendState.Get(), blendFactor, 0xFFFFFFFF);
+	dc->OMSetDepthStencilState(opaqueDepthStencilState.Get(), 0);
+
 	// WiredÉpÉX
 	{
 		CbWiredMesh cb;
@@ -8474,55 +8491,6 @@ void ShapeRenderer::Render(
 	}
 
 	instances.clear();
-
-	//// WiredÉpÉX
-	//dc->VSSetShader(wiredVertexShader.Get(), nullptr, 0);
-	//dc->PSSetShader(wiredPixelShader.Get(), nullptr, 0);
-	//dc->IASetInputLayout(wiredInputLayout.Get());
-	//dc->VSSetConstantBuffers(0, 1, wiredConstantBuffer.GetAddressOf());
-	//dc->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
-
-	//for (auto& inst : instances)
-	//{
-	//	DirectX::XMMATRIX W = DirectX::XMLoadFloat4x4(&inst.worldTransform);
-
-	//	CbWiredMesh cb;
-	//	DirectX::XMStoreFloat4x4(&cb.worldViewProjection, W * VP);
-	//	cb.color = inst.color;
-	//	dc->UpdateSubresource(wiredConstantBuffer.Get(), 0, nullptr, &cb, 0, 0);
-
-	//	UINT stride = sizeof(DirectX::XMFLOAT3);
-	//	UINT offset = 0;
-	//	dc->IASetVertexBuffers(0, 1, inst.wiredMesh->vertexBuffer.GetAddressOf(), &stride, &offset);
-	//	dc->Draw(inst.wiredMesh->vertexCount, 0);
-	//}
-
-	//// SolidÉpÉX
-	//dc->VSSetShader(solidVertexShader.Get(), nullptr, 0);
-	//dc->PSSetShader(solidPixelShader.Get(), nullptr, 0);
-	//dc->IASetInputLayout(solidInputLayout.Get());
-	//dc->VSSetConstantBuffers(0, 1, solidConstantBuffer.GetAddressOf());
-	//dc->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-	//for (auto& inst : instances)
-	//{
-	//	DirectX::XMMATRIX W = DirectX::XMLoadFloat4x4(&inst.worldTransform);
-
-	//	CbSolidMesh cb;
-	//	DirectX::XMStoreFloat4x4(&cb.world, W);
-	//	DirectX::XMStoreFloat4x4(&cb.viewProjection, VP);
-	//	cb.lightDirection = { lightDirection.x, lightDirection.y, lightDirection.z, 0 };
-	//	cb.color = inst.color;
-	//	dc->UpdateSubresource(solidConstantBuffer.Get(), 0, nullptr, &cb, 0, 0);
-
-	//	UINT stride = sizeof(Vertex);
-	//	UINT offset = 0;
-	//	dc->IASetVertexBuffers(0, 1, inst.solidMesh->vertexBuffer.GetAddressOf(), &stride, &offset);
-	//	dc->IASetIndexBuffer(inst.solidMesh->indexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0);
-	//	dc->DrawIndexed(inst.solidMesh->indexCount, 0, 0);
-	//}
-
-	//instances.clear();
 }
 
 // ÉCÉìÉXÉ^ÉìÉXÉoÉbÉtÉ@ÇÃämï€ÅEägí£ÉwÉãÉpÅ[
@@ -8545,6 +8513,29 @@ void ShapeRenderer::EnsureInstanceBuffer(ID3D11Device* device, UINT requiredCoun
 	_ASSERT_EXPR(SUCCEEDED(hr), L"ShapeRenderer: InstanceBuffer failed");
 
 	instanceBufferCapacity = newCapacity;
+}
+
+// ïsìßñæï`âÊópÇÃÉåÉìÉ_Å[ÉXÉeÅ[Égê∂ê¨
+void ShapeRenderer::CreateRenderStates(ID3D11Device* device)
+{
+	// ÉuÉåÉìÉhÇ»Çµ(ïsìßñæ)
+	{
+		D3D11_BLEND_DESC desc = {};
+		desc.RenderTarget[0].BlendEnable = FALSE;
+		desc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+		HRESULT hr = device->CreateBlendState(&desc, opaqueBlendState.GetAddressOf());
+		_ASSERT_EXPR(SUCCEEDED(hr), L"ShapeRenderer: BlendState failed");
+	}
+
+	// ê[ìxÉeÉXÉgÅEèëÇ´çûÇ›Ç†ÇË
+	{
+		D3D11_DEPTH_STENCIL_DESC desc = {};
+		desc.DepthEnable = TRUE;
+		desc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+		desc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
+		HRESULT hr = device->CreateDepthStencilState(&desc, opaqueDepthStencilState.GetAddressOf());
+		_ASSERT_EXPR(SUCCEEDED(hr), L"ShapeRenderer: DepthStencilState failed");
+	}
 }
 
 // ÉoÉbÉtÉ@ê∂ê¨ÉwÉãÉpÅ[

@@ -34,8 +34,8 @@ public:
 		ID3D11DeviceContext* dc,
 		const DirectX::XMFLOAT4X4& view,
 		const DirectX::XMFLOAT4X4& projection,
-		const DirectX::XMFLOAT3& lightDirection);
-
+		const DirectX::XMFLOAT3& lightDirection,
+		bool drawWired = true);
 private:
 	struct Vertex
 	{

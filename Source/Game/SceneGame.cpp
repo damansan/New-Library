@@ -231,7 +231,16 @@ void SceneGame::Render(const SceneContext& context)
 			DirectX::XMStoreFloat4x4(&transform, m);
 
 			DirectX::XMFLOAT3 size = { 0.6f, 0.6f, 0.6f };
-			DirectX::XMFLOAT4 color = { 0.3f, 0.7f, 1.0f, 1.0f };
+
+			float seed = sinf(tag.baseX * 12.9898f + tag.baseZ * 78.233f) * 43758.5453f;
+			float variation = seed - floorf(seed);
+
+			DirectX::XMFLOAT4 color = {
+				0.3f + variation * 0.15f,
+				0.7f - variation * 0.10f,
+				1.0f - variation * 0.10f,
+				1.0f
+			};
 
 			waveDemoRenderer.DrawBox(transform, size, color);
 		}
@@ -243,7 +252,9 @@ void SceneGame::Render(const SceneContext& context)
 			context.deviceContext,
 			context.view,
 			context.projection,
-			lightDir3);
+			lightDir3
+		//	false
+		);
 	}
 
 

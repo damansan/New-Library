@@ -134,7 +134,8 @@ void ShapeRenderer::Render(
 	ID3D11DeviceContext* dc,
 	const DirectX::XMFLOAT4X4& view,
 	const DirectX::XMFLOAT4X4& projection,
-	const DirectX::XMFLOAT3& lightDirection)
+	const DirectX::XMFLOAT3& lightDirection,
+	bool drawWired) 
 {
 	if (instances.empty()) return;
 
@@ -195,6 +196,7 @@ void ShapeRenderer::Render(
 	dc->OMSetBlendState(opaqueBlendState.Get(), blendFactor, 0xFFFFFFFF);
 	dc->OMSetDepthStencilState(opaqueDepthStencilState.Get(), 0);
 
+	if (drawWired)
 	// WiredƒpƒX
 	{
 		CbWiredMesh cb;
