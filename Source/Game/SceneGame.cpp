@@ -224,7 +224,7 @@ void SceneGame::Render(const SceneContext& context)
 		{
 			auto& tag = view.get<WaveDemoTag>(entity);
 
-			float y = sinf(waveDemoTime * 2.0f + tag.phase) * 0.5f;
+			float y = sinf(waveDemoTime * 2.0f + tag.phase) * 1.0f;
 
 			DirectX::XMMATRIX m = DirectX::XMMatrixTranslation(tag.baseX, y, tag.baseZ);
 			DirectX::XMFLOAT4X4 transform;
@@ -236,12 +236,11 @@ void SceneGame::Render(const SceneContext& context)
 			float variation = seed - floorf(seed);
 
 			DirectX::XMFLOAT4 color = {
-				0.3f + variation * 0.15f,
-				0.7f - variation * 0.10f,
-				1.0f - variation * 0.10f,
+				0.5f + variation * 0.15f,
+				0.8f - variation * 0.10f,
+				1.0f - variation * 0.05f,
 				1.0f
 			};
-
 			waveDemoRenderer.DrawBox(transform, size, color);
 		}
 
