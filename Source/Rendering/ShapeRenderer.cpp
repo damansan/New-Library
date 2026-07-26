@@ -223,28 +223,6 @@ void ShapeRenderer::Render(
 	}
 
 	// SolidƒpƒX
-	//{
-	//	CbSolidMesh cb;
-	//	DirectX::XMStoreFloat4x4(&cb.viewProjection, VP);
-	//	cb.lightDirection = { lightDirection.x, lightDirection.y, lightDirection.z, 0 };
-	//	dc->UpdateSubresource(solidConstantBuffer.Get(), 0, nullptr, &cb, 0, 0);
-
-	//	dc->VSSetShader(solidVertexShader.Get(), nullptr, 0);
-	//	dc->PSSetShader(solidPixelShader.Get(), nullptr, 0);
-	//	dc->IASetInputLayout(solidInputLayout.Get());
-	//	dc->VSSetConstantBuffers(0, 1, solidConstantBuffer.GetAddressOf());
-	//	dc->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-	//	for (auto& g : groups)
-	//	{
-	//		ID3D11Buffer* buffers[2] = { g.solidMesh->vertexBuffer.Get(), instanceBuffer.Get() };
-	//		UINT strides[2] = { sizeof(Vertex), sizeof(InstanceData) };
-	//		UINT offsets[2] = { 0, g.instanceOffset * sizeof(InstanceData) };
-	//		dc->IASetVertexBuffers(0, 2, buffers, strides, offsets);
-	//		dc->IASetIndexBuffer(g.solidMesh->indexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0);
-	//		dc->DrawIndexedInstanced(g.solidMesh->indexCount, g.instanceCount, 0, 0, 0);
-	//	}
-	//}
 	{
 		CbSolidMesh cb;
 		DirectX::XMStoreFloat4x4(&cb.viewProjection, VP);

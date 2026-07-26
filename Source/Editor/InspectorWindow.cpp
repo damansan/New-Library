@@ -3,9 +3,13 @@
 #include "imgui_internal.h"
 #include "ComponentRegistry.h"
 
+#include "tracy/Tracy.hpp"
+
 // •`‰æ
 void InspectorWindow::Draw(entt::registry& registry, EditorContext& context)
 {
+    ZoneScoped;
+
     ImGui::Begin("Inspector");
 
     // ‰½‚à‘I‘ð‚³‚ê‚Ä‚¢‚È‚¯‚ê‚Î‰½‚à•\Ž¦‚µ‚È‚¢

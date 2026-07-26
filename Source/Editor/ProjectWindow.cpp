@@ -8,6 +8,8 @@
 #include <WICTextureLoader.h>
 #include <json.hpp>
 
+#include "tracy/Tracy.hpp"
+
 void ProjectWindow::Initialize(const std::string& rootPath)
 {
 	this->rootPath = rootPath;
@@ -29,6 +31,8 @@ void ProjectWindow::LoadIcons(ID3D11Device* device)
 
 void ProjectWindow::Draw(entt::registry& registry, EditorContext& context)
 {
+	ZoneScoped;
+
 	ImGui::Begin("Project");
 
 	if (ImGui::BeginTable("ProjectLayout", 2,

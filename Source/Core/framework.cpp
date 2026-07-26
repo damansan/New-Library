@@ -80,6 +80,8 @@ void framework::update(float elapsedTime)
 
 void framework::updateImGui()
 {
+	ZoneScoped;
+
 	// ImGuiフレーム開始
 	imguiManager.BeginFrame();
 

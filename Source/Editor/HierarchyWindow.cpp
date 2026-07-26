@@ -6,9 +6,12 @@
 #include "ECS/Components/TransformComponent.h"
 #include "ECS/Components/MeshComponent.h"
 
+#include "tracy/Tracy.hpp"
 
 void HierarchyWindow::Draw(entt::registry& registry, EditorContext& context)
 {
+    ZoneScoped;
+
     ImGui::Begin("Hierarchy");
 
     // 空の Entity を追加するボタン
@@ -37,33 +40,72 @@ void HierarchyWindow::Draw(entt::registry& registry, EditorContext& context)
     // セパレータの下の座標を記録
     ImVec2 dropAreaMin = ImGui::GetCursorScreenPos();
 
-    // 全 Entity を列挙
+    //// 全 Entity を列挙
+    //auto view = registry.view<entt::entity>();
+    //for (auto e : view)
+    //{
+    //    std::string name = context.GetName(e);
+
+    //    // 選択状態をハイライト
+    //    bool isSelected = context.IsSelected(e);
+    //    if (ImGui::Selectable(
+    //        (name + "##" + std::to_string((uint32_t)e)).c_str(),
+    //        isSelected))
+    //    {
+    //        context.Select(e);
+    //    }
+
+    //    // Entity をドラッグできるようにする
+    //    if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
+    //    {
+    //        // Entity ID をペイロードとして渡す
+    //        ImGui::SetDragDropPayload(
+    //            "ENTITY",
+    //            &e,
+    //            sizeof(entt::entity)
+    //        );
+    //        // ドラッグ中のプレビュー
+    //        ImGui::Text(name.c_str());
+    //        ImGui::EndDragDropSource();
+    //    }
+    //}
+    // 全 Entity を列挙(画面に映っている範囲だけ処理する)
     auto view = registry.view<entt::entity>();
-    for (auto e : view)
+
+    // entt::view はランダムアクセスできないので、一旦配列に集める
+    // (これ自体は軽い処理:ポインタ相当のentity値をコピーするだけ)
+    std::vector<entt::entity> entities(view.begin(), view.end());
+
+    ImGuiListClipper clipper;
+    clipper.Begin(static_cast<int>(entities.size()));
+    while (clipper.Step())
     {
-        std::string name = context.GetName(e);
-
-        // 選択状態をハイライト
-        bool isSelected = context.IsSelected(e);
-        if (ImGui::Selectable(
-            (name + "##" + std::to_string((uint32_t)e)).c_str(),
-            isSelected))
+        for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; i++)
         {
-            context.Select(e);
-        }
+            entt::entity e = entities[i];
 
-        // Entity をドラッグできるようにする
-        if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
-        {
-            // Entity ID をペイロードとして渡す
-            ImGui::SetDragDropPayload(
-                "ENTITY",
-                &e,
-                sizeof(entt::entity)
-            );
-            // ドラッグ中のプレビュー
-            ImGui::Text(name.c_str());
-            ImGui::EndDragDropSource();
+            std::string name = context.GetName(e);
+            // 選択状態をハイライト
+            bool isSelected = context.IsSelected(e);
+            if (ImGui::Selectable(
+                (name + "##" + std::to_string((uint32_t)e)).c_str(),
+                isSelected))
+            {
+                context.Select(e);
+            }
+            // Entity をドラッグできるようにする
+            if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
+            {
+                // Entity ID をペイロードとして渡す
+                ImGui::SetDragDropPayload(
+                    "ENTITY",
+                    &e,
+                    sizeof(entt::entity)
+                );
+                // ドラッグ中のプレビュー
+                ImGui::Text(name.c_str());
+                ImGui::EndDragDropSource();
+            }
         }
     }
 
