@@ -36,6 +36,9 @@ private:
 	void DrawVariableNodes();
 	// 比較演算ノード描画
 	void DrawOperatorNodes();
+	// ゲッターノード描画
+	void DrawGetterNodes();
+
 
 	// 右クリックメニュー
 	void DrawCreateNodeMenu();
@@ -43,6 +46,9 @@ private:
 	void CreateVariableNode(ValueType type);
 	// 比較演算ノード作成
 	void CreateOperatorNode(CompareOp op);
+	// ゲッターノード作成
+	void CreateGetterNode();
+
 
 	// 比較演算子の表示用記号
 	static const char* GetCompareOpSymbol(CompareOp op);
@@ -56,6 +62,16 @@ private:
 	static ed::PinId GetOperatorPinB(int nodeId) { return ed::PinId((int64_t)2000000 + (int64_t)nodeId * 3 + 1); }
 	static ed::PinId GetOperatorOutPinId(int nodeId) { return ed::PinId((int64_t)2000000 + (int64_t)nodeId * 3 + 2); }
 
+	static ed::PinId GetGetterOutPinId(int nodeId) { return ed::PinId((int64_t)3000000 + (int64_t)nodeId); }
+
 	bool needsApplyPositions = false;
+
+
+	// ノード選択状態を更新
+	void UpdateSelection();
+
+	ConditionVariableNode* selectedVariable = nullptr;
+	ConditionGetterNode* selectedGetter = nullptr;
+	ConditionOperatorNode* selectedOperator = nullptr;
 
 };

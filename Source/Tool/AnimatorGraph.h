@@ -22,7 +22,7 @@ enum class AnimStateType
 enum class CompareOp
 {
 	Greater,      // >
-	Less,         // 
+	Less,         // <
 	Equal,        // ==
 	NotEqual,     // !=
 	GreaterEqual, // >=
@@ -36,6 +36,18 @@ enum class ValueType
 	Float,
 	Bool,
 };
+
+// コンポーネントの値を取得するノード
+struct ConditionGetterNode
+{
+	int id = -1;
+	float posX = 0.0f;
+	float posY = 0.0f;
+	std::string componentName; // MetaRegistryで登録した型名
+	std::string fieldName;     // entt::meta上のフィールド名
+	ValueType type = ValueType::Float;
+};
+
 
 // 変数ノード
 struct ConditionVariableNode
@@ -86,6 +98,7 @@ struct ConditionGraph
 	ConditionReturnNode returnNode;
 
 	std::vector<ConditionVariableNode> variableNodes;
+	std::vector<ConditionGetterNode>   getterNodes;
 	std::vector<ConditionOperatorNode> operatorNodes;
 	std::vector<ConditionLink> links;
 

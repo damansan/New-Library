@@ -24,8 +24,11 @@ void StudioConditionGraph::DrawGUI()
 	DrawReturnNode();
 	DrawVariableNodes();
 	DrawOperatorNodes();
+	DrawGetterNodes();
 
 	DrawCreateNodeMenu();
+
+	UpdateSelection();
 
 	canvas.End();
 
@@ -35,6 +38,27 @@ void StudioConditionGraph::DrawGUI()
 // 右側メニュー
 void StudioConditionGraph::DrawInspector()
 {
+	if (selectedVariable)
+	{
+		ImGui::Text("Variable");
+		ImGui::TextDisabled("(Editing UI not implemented yet)");
+		return;
+	}
+
+	if (selectedGetter)
+	{
+		ImGui::Text("Getter");
+		ImGui::TextDisabled("(Editing UI not implemented yet)");
+		return;
+	}
+
+	if (selectedOperator)
+	{
+		ImGui::Text("Operator");
+		ImGui::TextDisabled("(Editing UI not implemented yet)");
+		return;
+	}
+
 	ImGui::TextDisabled("No node selected.");
 }
 
@@ -245,6 +269,51 @@ void StudioConditionGraph::DrawOperatorNodes()
 	}
 }
 
+// ゲッターノード描画
+void StudioConditionGraph::DrawGetterNodes()
+{
+	const float nodeWidth = 160.0f;
+
+	for (auto& g : targetLink->condition.getterNodes)
+	{
+		ed::NodeId nodeId(g.id);
+		if (needsApplyPositions)
+		{
+			ed::SetNodePosition(nodeId, ImVec2(g.posX, g.posY));
+		}
+
+		bool isAssigned = !g.componentName.empty() && !g.fieldName.empty();
+		ImColor borderColor = isAssigned ? GetValueTypeColor(g.type) : ImColor(255, 255, 255, 255);
+
+		ed::PushStyleColor(ed::StyleColor_NodeBorder, borderColor);
+		ed::PushStyleVar(ed::StyleVar_NodeBorderWidth, 2.0f);
+
+		ed::BeginNode(nodeId);
+		ImGui::PushID(g.id);
+
+		std::string label = isAssigned ? (g.componentName + "." + g.fieldName) : "(Unassigned)";
+		float labelWidth = ImGui::CalcTextSize(label.c_str()).x;
+
+		CenterNextItem(nodeWidth, labelWidth);
+		ImGui::Text("%s", label.c_str());
+
+		ImGui::SameLine(nodeWidth);
+		ed::BeginPin(GetGetterOutPinId(g.id), ed::PinKind::Output);
+		ImGui::Text(u8"▶");
+		ed::EndPin();
+
+		ImGui::PopID();
+		ed::EndNode();
+
+		ed::PopStyleColor(1);
+		ed::PopStyleVar(1);
+
+		ImVec2 currentPos = ed::GetNodePosition(nodeId);
+		g.posX = currentPos.x;
+		g.posY = currentPos.y;
+	}
+}
+
 // 右クリックメニュー
 void StudioConditionGraph::DrawCreateNodeMenu()
 {
@@ -284,6 +353,11 @@ void StudioConditionGraph::DrawCreateNodeMenu()
 			ImGui::EndMenu();
 		}
 
+		if (ImGui::MenuItem("Add Getter"))
+		{
+			CreateGetterNode();
+		}
+
 		ImGui::EndPopup();
 	}
 
@@ -321,6 +395,21 @@ void StudioConditionGraph::CreateOperatorNode(CompareOp op)
 	ed::SetNodePosition(ed::NodeId(o.id), canvasPos);
 }
 
+// ゲッターノード作成
+void StudioConditionGraph::CreateGetterNode()
+{
+	ImVec2 canvasPos = ed::ScreenToCanvas(pendingCreatePos);
+
+	ConditionGetterNode g;
+	g.id = targetLink->condition.GenerateId();
+	g.posX = canvasPos.x;
+	g.posY = canvasPos.y;
+
+	targetLink->condition.getterNodes.push_back(g);
+
+	ed::SetNodePosition(ed::NodeId(g.id), canvasPos);
+}
+
 // 比較演算子の表示用記号
 const char* StudioConditionGraph::GetCompareOpSymbol(CompareOp op)
 {
@@ -334,4 +423,31 @@ const char* StudioConditionGraph::GetCompareOpSymbol(CompareOp op)
 	case CompareOp::LessEqual:    return "<=";
 	}
 	return "?";
+}
+
+// ノード選択状態を更新
+void StudioConditionGraph::UpdateSelection()
+{
+	selectedVariable = nullptr;
+	selectedGetter = nullptr;
+	selectedOperator = nullptr;
+
+	if (ed::GetSelectedObjectCount() == 0) return;
+
+	ed::NodeId selectedId;
+	ed::GetSelectedNodes(&selectedId, 1);
+	int id = (int)selectedId.Get();
+
+	for (auto& v : targetLink->condition.variableNodes)
+	{
+		if (v.id == id) { selectedVariable = &v; return; }
+	}
+	for (auto& g : targetLink->condition.getterNodes)
+	{
+		if (g.id == id) { selectedGetter = &g; return; }
+	}
+	for (auto& o : targetLink->condition.operatorNodes)
+	{
+		if (o.id == id) { selectedOperator = &o; return; }
+	}
 }

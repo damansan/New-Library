@@ -3,6 +3,8 @@
 
 #include "tracy/Tracy.hpp"
 
+#define WaveDemo 0
+
 void SceneGame::Initialize(const SceneContext& context)
 {
 	// 物理シーン初期化
@@ -54,8 +56,10 @@ void SceneGame::Initialize(const SceneContext& context)
 		);
 	}
 
+#if WaveDemo && !defined(_DEBUG)
 	// デモ初期化
-	waveDemo.Initialize(context.device, registry, 400, 1.0f);
+	waveDemo.Initialize(context.device, registry, 500, 1.0f);
+#endif
 }
 
 void SceneGame::Finalize()
@@ -217,7 +221,7 @@ void SceneGame::Render(const SceneContext& context)
 		);
 	}
 
-
+#if WaveDemo && !defined(_DEBUG)
 	// デモ描画
 	{
 		ZoneScopedN("WaveDemo Loop+Render");
@@ -233,7 +237,7 @@ void SceneGame::Render(const SceneContext& context)
 			lightDir3
 		);
 	}
-
+#endif
 
 
 	{
