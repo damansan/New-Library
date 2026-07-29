@@ -46,7 +46,7 @@ struct ConditionGetterNode
 	std::string componentName; // MetaRegistry‚Å“o˜^‚µ‚½Œ^–¼
 	std::string fieldName;     // entt::metaã‚ÌƒtƒB[ƒ‹ƒh–¼
 	ValueType type = ValueType::Float;
-};
+};  
 
 
 // •Ï”ƒm[ƒh
@@ -55,14 +55,11 @@ struct ConditionVariableNode
 	int id = -1;
 	float posX = 0.0f;
 	float posY = 0.0f;
-	std::string componentName;
-	std::string fieldName;
-
+	std::string name; // ‹ó‚ÌŠÔ‚Í"Variable"‚Æ•\¦
 	ValueType type = ValueType::Float;
-
 	int intValue = 0;
-	float floatValue = 0.0f; 
-	bool boolValue = false;  
+	float floatValue = 0.0f;
+	bool boolValue = false;
 };
 
 // ”äŠrƒm[ƒh
@@ -146,6 +143,7 @@ struct AnimState
 	std::vector<AnimNode> children;
 	std::vector<AnimLink> childLinks;
 };
+
 
 
 class AnimatorGraph

@@ -1,4 +1,5 @@
 ﻿#include "StudioConditionGraph.h"
+#include <algorithm>
 
 void StudioConditionGraph::Initialize()
 {
@@ -41,7 +42,30 @@ void StudioConditionGraph::DrawInspector()
 	if (selectedVariable)
 	{
 		ImGui::Text("Variable");
-		ImGui::TextDisabled("(Editing UI not implemented yet)");
+
+		char nameBuf[128];
+		strncpy_s(nameBuf, selectedVariable->name.c_str(), sizeof(nameBuf) - 1);
+		if (ImGui::InputText("Name", nameBuf, sizeof(nameBuf)))
+		{
+			selectedVariable->name = nameBuf;
+		}
+
+		ImGui::Text("Type: %s", GetValueTypeName(selectedVariable->type));
+
+		switch (selectedVariable->type)
+		{
+		case ValueType::Int:
+			ImGui::DragInt("Value", &selectedVariable->intValue, 1);
+			break;
+		case ValueType::Float:
+			ImGui::DragFloat("Value", &selectedVariable->floatValue, 0.1f);
+			break;
+		case ValueType::Bool:
+			ImGui::Checkbox("Value", &selectedVariable->boolValue);
+			break;
+		}
+
+		DrawDeleteButton("Delete Node", selectedVariable->id, [this](int id) { DeleteVariableNode(id); });
 		return;
 	}
 
@@ -49,6 +73,8 @@ void StudioConditionGraph::DrawInspector()
 	{
 		ImGui::Text("Getter");
 		ImGui::TextDisabled("(Editing UI not implemented yet)");
+
+		DrawDeleteButton("Delete Getter", selectedGetter->id, [this](int id) { DeleteGetterNode(id); });
 		return;
 	}
 
@@ -56,9 +82,10 @@ void StudioConditionGraph::DrawInspector()
 	{
 		ImGui::Text("Operator");
 		ImGui::TextDisabled("(Editing UI not implemented yet)");
+
+		DrawDeleteButton("Delete Operator", selectedOperator->id, [this](int id) { DeleteOperatorNode(id); });
 		return;
 	}
-
 	ImGui::TextDisabled("No node selected.");
 }
 
@@ -163,11 +190,12 @@ void StudioConditionGraph::DrawVariableNodes()
 		const float pinIconWidth = ImGui::CalcTextSize(u8"▶").x;
 		const float totalWidth = nodeWidth + pinIconWidth;
 
-		float nameWidth = ImGui::CalcTextSize("Variable").x;
+		std::string displayName = v.name.empty() ? "Variable" : v.name;
+		float nameWidth = ImGui::CalcTextSize(displayName.c_str()).x;
 		float namePadding = (totalWidth - nameWidth) * 0.5f;
 
 		ImGui::SameLine(namePadding > 0.0f ? namePadding : 0.0f);
-		ImGui::Text("Variable");
+		ImGui::Text("%s", displayName.c_str());
 
 		ImGui::SameLine(nodeWidth);
 		ed::BeginPin(GetVariableOutPinId(v.id), ed::PinKind::Output);
@@ -272,8 +300,6 @@ void StudioConditionGraph::DrawOperatorNodes()
 // ゲッターノード描画
 void StudioConditionGraph::DrawGetterNodes()
 {
-	const float nodeWidth = 160.0f;
-
 	for (auto& g : targetLink->condition.getterNodes)
 	{
 		ed::NodeId nodeId(g.id);
@@ -283,35 +309,94 @@ void StudioConditionGraph::DrawGetterNodes()
 		}
 
 		bool isAssigned = !g.componentName.empty() && !g.fieldName.empty();
-		ImColor borderColor = isAssigned ? GetValueTypeColor(g.type) : ImColor(255, 255, 255, 255);
 
-		ed::PushStyleColor(ed::StyleColor_NodeBorder, borderColor);
-		ed::PushStyleVar(ed::StyleVar_NodeBorderWidth, 2.0f);
-
-		ed::BeginNode(nodeId);
-		ImGui::PushID(g.id);
-
-		std::string label = isAssigned ? (g.componentName + "." + g.fieldName) : "(Unassigned)";
-		float labelWidth = ImGui::CalcTextSize(label.c_str()).x;
-
-		CenterNextItem(nodeWidth, labelWidth);
-		ImGui::Text("%s", label.c_str());
-
-		ImGui::SameLine(nodeWidth);
-		ed::BeginPin(GetGetterOutPinId(g.id), ed::PinKind::Output);
-		ImGui::Text(u8"▶");
-		ed::EndPin();
-
-		ImGui::PopID();
-		ed::EndNode();
-
-		ed::PopStyleColor(1);
-		ed::PopStyleVar(1);
+		if (isAssigned)
+		{
+			DrawAssignedGetterNode(g);
+		}
+		else
+		{
+			DrawUnassignedGetterNode(g);
+		}
 
 		ImVec2 currentPos = ed::GetNodePosition(nodeId);
 		g.posX = currentPos.x;
 		g.posY = currentPos.y;
 	}
+}
+
+// 未設定ゲッターノード
+void StudioConditionGraph::DrawUnassignedGetterNode(ConditionGetterNode& g)
+{
+	ed::NodeId nodeId(g.id);
+
+	ed::PushStyleColor(ed::StyleColor_NodeBorder, ImColor(255, 255, 255, 255));
+	ed::PushStyleVar(ed::StyleVar_NodeBorderWidth, 2.0f);
+
+	ed::BeginNode(nodeId);
+	ImGui::PushID(g.id);
+
+	const char* label = "Empty";
+	const float pinIconWidth = ImGui::CalcTextSize(u8"▶").x;
+	const float labelWidth = ImGui::CalcTextSize(label).x;
+	const float spacing = 8.0f;
+
+	const float nodeWidth = labelWidth + spacing;
+
+	ImGui::Text("%s", label);
+
+	ImGui::SameLine(nodeWidth);
+	ed::BeginPin(GetGetterOutPinId(g.id), ed::PinKind::Output);
+	ImGui::Text(u8"▶");
+	ed::EndPin();
+
+	ImGui::PopID();
+	ed::EndNode();
+
+	ed::PopStyleColor(1);
+	ed::PopStyleVar(1);
+}
+// 設定済みゲッターノード
+void StudioConditionGraph::DrawAssignedGetterNode(ConditionGetterNode& g)
+{
+	ed::NodeId nodeId(g.id);
+
+	ed::PushStyleColor(ed::StyleColor_NodeBorder, GetValueTypeColor(g.type));
+	ed::PushStyleVar(ed::StyleVar_NodeBorderWidth, 2.0f);
+
+	ed::BeginNode(nodeId);
+	ImGui::PushID(g.id);
+
+	// 1行目:コンポーネント名
+	std::string line1 = g.componentName;
+	// 2行目:[型] フィールド名
+	std::string line2 = "[" + std::string(GetValueTypeName(g.type)) + "] " + g.fieldName;
+
+	float line1Width = ImGui::CalcTextSize(line1.c_str()).x;
+	float line2Width = ImGui::CalcTextSize(line2.c_str()).x;
+	const float pinIconWidth = ImGui::CalcTextSize(u8"▶").x;
+	const float spacing = 8.0f;
+
+	// 2行のうち長い方に合わせて、ノード幅を決める
+	const float contentWidth = (line1Width > line2Width) ? line1Width : line2Width;
+	const float nodeWidth = contentWidth + spacing;
+
+	CenterNextItem(nodeWidth, line1Width);
+	ImGui::Text("%s", line1.c_str());
+
+	CenterNextItem(nodeWidth, line2Width);
+	ImGui::Text("%s", line2.c_str());
+
+	ImGui::SameLine(nodeWidth);
+	ed::BeginPin(GetGetterOutPinId(g.id), ed::PinKind::Output);
+	ImGui::Text(u8"▶");
+	ed::EndPin();
+
+	ImGui::PopID();
+	ed::EndNode();
+
+	ed::PopStyleColor(1);
+	ed::PopStyleVar(1);
 }
 
 // 右クリックメニュー
@@ -450,4 +535,82 @@ void StudioConditionGraph::UpdateSelection()
 	{
 		if (o.id == id) { selectedOperator = &o; return; }
 	}
+}
+
+const char* StudioConditionGraph::GetValueTypeName(ValueType type)
+{
+	switch (type)
+	{
+	case ValueType::Int:   return "int";
+	case ValueType::Float: return "float";
+	case ValueType::Bool:  return "bool";
+	}
+	return "?";
+}
+
+void StudioConditionGraph::DrawDeleteButton(const char* label, int targetId, const std::function<void(int)>& onDelete)
+{
+	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.15f, 0.15f, 1.0f));
+	ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.85f, 0.2f, 0.2f, 1.0f));
+	ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.6f, 0.1f, 0.1f, 1.0f));
+
+	bool pressed = ImGui::Button(label, ImVec2(-1.0f, 0.0f));
+
+	ImGui::PopStyleColor(3);
+
+	if (pressed)
+	{
+		onDelete(targetId);
+		selectedVariable = nullptr;
+		selectedGetter = nullptr;
+		selectedOperator = nullptr;
+	}
+}
+void StudioConditionGraph::DeleteVariableNode(int id)
+{
+	auto& vars = targetLink->condition.variableNodes;
+	vars.erase(
+		std::remove_if(vars.begin(), vars.end(),
+			[id](const ConditionVariableNode& v) { return v.id == id; }),
+		vars.end()
+	);
+
+	auto& links = targetLink->condition.links;
+	links.erase(
+		std::remove_if(links.begin(), links.end(),
+			[id](const ConditionLink& l) { return l.fromId == id || l.toId == id; }),
+		links.end()
+	);
+}
+void StudioConditionGraph::DeleteGetterNode(int id)
+{
+	auto& getters = targetLink->condition.getterNodes;
+	getters.erase(
+		std::remove_if(getters.begin(), getters.end(),
+			[id](const ConditionGetterNode& g) { return g.id == id; }),
+		getters.end()
+	);
+
+	auto& links = targetLink->condition.links;
+	links.erase(
+		std::remove_if(links.begin(), links.end(),
+			[id](const ConditionLink& l) { return l.fromId == id || l.toId == id; }),
+		links.end()
+	);
+}
+void StudioConditionGraph::DeleteOperatorNode(int id)
+{
+	auto& ops = targetLink->condition.operatorNodes;
+	ops.erase(
+		std::remove_if(ops.begin(), ops.end(),
+			[id](const ConditionOperatorNode& o) { return o.id == id; }),
+		ops.end()
+	);
+
+	auto& links = targetLink->condition.links;
+	links.erase(
+		std::remove_if(links.begin(), links.end(),
+			[id](const ConditionLink& l) { return l.fromId == id || l.toId == id; }),
+		links.end()
+	);
 }

@@ -1,1 +1,214 @@
-{}
+{
+    "sourceModelPath": "",
+    "states": [
+        {
+            "id": 2,
+            "name": "Entry",
+            "posX": 50.0,
+            "posY": 200.0,
+            "type": "Entry",
+            "color": [
+                0.27000001072883606,
+                0.3499999940395355,
+                0.4699999988079071
+            ],
+            "children": [],
+            "childLinks": []
+        },
+        {
+            "id": 3,
+            "name": "New State",
+            "posX": 313.0,
+            "posY": 115.0,
+            "type": "State",
+            "color": [
+                0.27000001072883606,
+                0.3499999940395355,
+                0.4699999988079071
+            ],
+            "children": [],
+            "childLinks": []
+        },
+        {
+            "id": 4,
+            "name": "New State",
+            "posX": 348.0,
+            "posY": 314.0,
+            "type": "State",
+            "color": [
+                0.27000001072883606,
+                0.3499999940395355,
+                0.4699999988079071
+            ],
+            "children": [],
+            "childLinks": []
+        }
+    ],
+    "stateLinks": [
+        {
+            "id": 5,
+            "fromId": 2,
+            "toId": 3,
+            "condition": {
+                "nextId": 5,
+                "returnNode": {
+                    "id": 1,
+                    "posX": 500.0,
+                    "posY": 200.0
+                },
+                "variableNodes": [
+                    {
+                        "id": 2,
+                        "posX": 162.0,
+                        "posY": 32.0,
+                        "name": "int",
+                        "type": "Int",
+                        "intValue": 0,
+                        "floatValue": 0.0,
+                        "boolValue": false
+                    },
+                    {
+                        "id": 3,
+                        "posX": 166.0,
+                        "posY": 112.0,
+                        "name": "float",
+                        "type": "Float",
+                        "intValue": 0,
+                        "floatValue": 0.0,
+                        "boolValue": false
+                    },
+                    {
+                        "id": 4,
+                        "posX": 166.0,
+                        "posY": 192.0,
+                        "name": "bool",
+                        "type": "Bool",
+                        "intValue": 0,
+                        "floatValue": 0.0,
+                        "boolValue": false
+                    }
+                ],
+                "operatorNodes": [],
+                "getterNodes": [],
+                "links": []
+            }
+        },
+        {
+            "id": 6,
+            "fromId": 3,
+            "toId": 4,
+            "condition": {
+                "nextId": 2,
+                "returnNode": {
+                    "id": 1,
+                    "posX": 500.0,
+                    "posY": 200.0
+                },
+                "variableNodes": [],
+                "operatorNodes": [],
+                "getterNodes": [],
+                "links": []
+            }
+        },
+        {
+            "id": 7,
+            "fromId": 4,
+            "toId": 3,
+            "condition": {
+                "nextId": 12,
+                "returnNode": {
+                    "id": 1,
+                    "posX": 768.0,
+                    "posY": 112.0
+                },
+                "variableNodes": [
+                    {
+                        "id": 2,
+                        "posX": 6.0,
+                        "posY": -32.0,
+                        "name": "",
+                        "type": "Int",
+                        "intValue": 0,
+                        "floatValue": 0.0,
+                        "boolValue": false
+                    },
+                    {
+                        "id": 3,
+                        "posX": 6.0,
+                        "posY": 48.0,
+                        "name": "",
+                        "type": "Float",
+                        "intValue": 0,
+                        "floatValue": 0.0,
+                        "boolValue": false
+                    },
+                    {
+                        "id": 4,
+                        "posX": 6.0,
+                        "posY": 128.0,
+                        "name": "",
+                        "type": "Bool",
+                        "intValue": 0,
+                        "floatValue": 0.0,
+                        "boolValue": false
+                    }
+                ],
+                "operatorNodes": [
+                    {
+                        "id": 5,
+                        "posX": 210.0,
+                        "posY": -36.0,
+                        "op": "Greater",
+                        "compareValue": 0.0
+                    },
+                    {
+                        "id": 6,
+                        "posX": 350.0,
+                        "posY": -36.0,
+                        "op": "Less",
+                        "compareValue": 0.0
+                    },
+                    {
+                        "id": 7,
+                        "posX": 210.0,
+                        "posY": 84.0,
+                        "op": "Equal",
+                        "compareValue": 0.0
+                    },
+                    {
+                        "id": 8,
+                        "posX": 354.0,
+                        "posY": 84.0,
+                        "op": "NotEqual",
+                        "compareValue": 0.0
+                    },
+                    {
+                        "id": 9,
+                        "posX": 210.0,
+                        "posY": 204.0,
+                        "op": "GreaterEqual",
+                        "compareValue": 0.0
+                    },
+                    {
+                        "id": 10,
+                        "posX": 354.0,
+                        "posY": 204.0,
+                        "op": "LessEqual",
+                        "compareValue": 0.0
+                    }
+                ],
+                "getterNodes": [
+                    {
+                        "id": 11,
+                        "posX": 498.0,
+                        "posY": 112.0,
+                        "componentName": "",
+                        "fieldName": "",
+                        "type": "Float"
+                    }
+                ],
+                "links": []
+            }
+        }
+    ]
+}

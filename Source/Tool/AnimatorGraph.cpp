@@ -34,6 +34,23 @@ namespace
 		return "Normal";
 	}
 
+	std::string ToString(ValueType type)
+	{
+		switch (type)
+		{
+		case ValueType::Int:   return "Int";
+		case ValueType::Float: return "Float";
+		case ValueType::Bool:  return "Bool";
+		default:               return "Float";
+		}
+	}
+	ValueType ToValueType(const std::string& s)
+	{
+		if (s == "Int")  return ValueType::Int;
+		if (s == "Bool") return ValueType::Bool;
+		return ValueType::Float;
+	}
+
 	AnimNodeType ToAnimNodeType(const std::string& s)
 	{
 		if (s == "Start") return AnimNodeType::Start;
@@ -198,8 +215,11 @@ nlohmann::ordered_json AnimatorGraph::ToJson() const
 			jv["id"] = v.id;
 			jv["posX"] = v.posX;
 			jv["posY"] = v.posY;
-			jv["componentName"] = v.componentName;
-			jv["fieldName"] = v.fieldName;
+			jv["name"] = v.name;
+			jv["type"] = ToString(v.type);
+			jv["intValue"] = v.intValue;
+			jv["floatValue"] = v.floatValue;
+			jv["boolValue"] = v.boolValue;
 			jc["variableNodes"].push_back(jv);
 		}
 
@@ -213,6 +233,19 @@ nlohmann::ordered_json AnimatorGraph::ToJson() const
 			jo["op"] = ToString(o.op);
 			jo["compareValue"] = o.compareValue;
 			jc["operatorNodes"].push_back(jo);
+		}
+
+		jc["getterNodes"] = nlohmann::json::array();
+		for (const auto& g : link.condition.getterNodes)
+		{
+			nlohmann::ordered_json jg;
+			jg["id"] = g.id;
+			jg["posX"] = g.posX;
+			jg["posY"] = g.posY;
+			jg["componentName"] = g.componentName;
+			jg["fieldName"] = g.fieldName;
+			jg["type"] = ToString(g.type);
+			jc["getterNodes"].push_back(jg);
 		}
 
 		jc["links"] = nlohmann::json::array();
@@ -327,8 +360,11 @@ void AnimatorGraph::FromJson(const nlohmann::json& j)
 						v.id = jv.value("id", -1);
 						v.posX = jv.value("posX", 0.0f);
 						v.posY = jv.value("posY", 0.0f);
-						v.componentName = jv.value("componentName", "");
-						v.fieldName = jv.value("fieldName", "");
+						v.name = jv.value("name", "");
+						v.type = ToValueType(jv.value("type", "Float"));
+						v.intValue = jv.value("intValue", 0);
+						v.floatValue = jv.value("floatValue", 0.0f);
+						v.boolValue = jv.value("boolValue", false);
 						link.condition.variableNodes.push_back(v);
 					}
 				}
@@ -344,6 +380,21 @@ void AnimatorGraph::FromJson(const nlohmann::json& j)
 						o.op = ToCompareOp(jo.value("op", "Greater"));
 						o.compareValue = jo.value("compareValue", 0.0f);
 						link.condition.operatorNodes.push_back(o);
+					}
+				}
+
+				if (jc.contains("getterNodes"))
+				{
+					for (const auto& jg : jc["getterNodes"])
+					{
+						ConditionGetterNode g;
+						g.id = jg.value("id", -1);
+						g.posX = jg.value("posX", 0.0f);
+						g.posY = jg.value("posY", 0.0f);
+						g.componentName = jg.value("componentName", "");
+						g.fieldName = jg.value("fieldName", "");
+						g.type = ToValueType(jg.value("type", "Float"));
+						link.condition.getterNodes.push_back(g);
 					}
 				}
 
