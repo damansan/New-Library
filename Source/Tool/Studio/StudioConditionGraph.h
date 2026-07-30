@@ -73,4 +73,29 @@ private:
 	static ed::PinId GetOperatorOutPinId(int nodeId) { return ed::PinId((int64_t)2000000 + (int64_t)nodeId * 3 + 2); }
 	static ed::PinId GetGetterOutPinId(int nodeId)   { return ed::PinId((int64_t)3000000 + (int64_t)nodeId);         }
 	static ed::PinId GetReturnInPinId(int nodeId)    { return ed::PinId((int64_t)4000000 + (int64_t)nodeId);         }
+
+
+private:
+	// ピンの役割
+	enum class PinRole
+	{
+		VariableIn, VariableOut,
+		OperatorA, OperatorB, OperatorOut,
+		GetterOut,
+		ReturnIn,
+		Unknown
+	};
+	// ノードの種類
+	enum class NodeKind { Variable, Getter, Operator, Return, Unknown };
+	// 生のピンID(int64_t)から、役割とノードIDを逆算する
+	static void ResolvePinRole(int64_t rawPinId, PinRole& outRole, int& outNodeId);
+	// 生のノードID(int)から、このLink内でどの種類のノードかを調べる
+	NodeKind GetNodeKind(int id) const;
+	// ピン接続(ドラッグ)の処理
+	void DrawLinkCreation();
+	// 接続済みConditionLinkの描画
+	void DrawConditionLinks();
+	// fromId/toIdからed::Linkを引くための、実際のピンIDを求める
+	ed::PinId GetOutputPinIdOf(int nodeId, NodeKind kind) const;
+	ed::PinId GetInputPinIdOf(int nodeId, NodeKind kind, bool toPinB) const;
 };

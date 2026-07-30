@@ -26,10 +26,17 @@ void StudioConditionGraph::DrawGUI()
 
 	canvas.Begin("ConditionCanvas");
 
+	ed::PushStyleVar(ed::StyleVar_LinkStrength, 0.0f);
+
 	DrawReturnNode();
 	DrawVariableNodes();
 	DrawOperatorNodes();
 	DrawGetterNodes();
+
+	ed::PopStyleVar(1);
+
+	DrawConditionLinks();
+	DrawLinkCreation();
 
 	DrawCreateNodeMenu();
 
@@ -303,7 +310,7 @@ void StudioConditionGraph::DrawOperatorNodes()
 
 		// A側入力ピン
 		ed::BeginPin(GetOperatorPinA(o.id), ed::PinKind::Input);
-		ImGui::Text(u8"A ▶");
+		ImGui::Text(u8"▶");
 		ed::EndPin();
 
 		// 演算子記号(中央寄せ、少し大きめに表示)
@@ -318,7 +325,7 @@ void StudioConditionGraph::DrawOperatorNodes()
 
 		// B側入力ピンと、出力ピン(同じ行)
 		ed::BeginPin(GetOperatorPinB(o.id), ed::PinKind::Input);
-		ImGui::Text(u8"B ▶");
+		ImGui::Text(u8"▶");
 		ed::EndPin();
 
 		ImGui::SameLine(nodeWidth);
@@ -691,5 +698,183 @@ CompareOp StudioConditionGraph::InvertCompareOp(CompareOp op)
 	case CompareOp::GreaterEqual: return CompareOp::LessEqual;
 	case CompareOp::LessEqual:    return CompareOp::GreaterEqual;
 	default: return op; // Equal/NotEqualは向きの概念が無いため変化なし
+	}
+}
+
+
+// 生のピンID(int64_t)から、役割とノードIDを逆算する
+void StudioConditionGraph::ResolvePinRole(int64_t rawPinId, PinRole& outRole, int& outNodeId)
+{
+	if (rawPinId >= 4000000 && rawPinId < 5000000)
+	{
+		outRole = PinRole::ReturnIn;
+		outNodeId = (int)(rawPinId - 4000000);
+		return;
+	}
+	if (rawPinId >= 3000000 && rawPinId < 4000000)
+	{
+		outRole = PinRole::GetterOut;
+		outNodeId = (int)(rawPinId - 3000000);
+		return;
+	}
+	if (rawPinId >= 2000000 && rawPinId < 3000000)
+	{
+		int64_t offset = rawPinId - 2000000;
+		int64_t nodeId = offset / 3;
+		int64_t rem = offset % 3;
+		outNodeId = (int)nodeId;
+		outRole = (rem == 0) ? PinRole::OperatorA : (rem == 1) ? PinRole::OperatorB : PinRole::OperatorOut;
+		return;
+	}
+	if (rawPinId >= 1000000 && rawPinId < 2000000)
+	{
+		int64_t offset = rawPinId - 1000000;
+		int64_t nodeId = offset / 2;
+		int64_t rem = offset % 2;
+		outNodeId = (int)nodeId;
+		outRole = (rem == 0) ? PinRole::VariableIn : PinRole::VariableOut;
+		return;
+	}
+
+	outRole = PinRole::Unknown;
+	outNodeId = -1;
+}
+// 生のノードID(int)から、このLink内でどの種類のノードかを調べる
+
+StudioConditionGraph::NodeKind StudioConditionGraph::GetNodeKind(int id) const
+{
+	if (targetLink->condition.returnNode.id == id) return NodeKind::Return;
+
+	for (const auto& v : targetLink->condition.variableNodes)
+		if (v.id == id) return NodeKind::Variable;
+
+	for (const auto& g : targetLink->condition.getterNodes)
+		if (g.id == id) return NodeKind::Getter;
+
+	for (const auto& o : targetLink->condition.operatorNodes)
+		if (o.id == id) return NodeKind::Operator;
+
+	return NodeKind::Unknown;
+}
+
+void StudioConditionGraph::DrawLinkCreation()
+{
+	if (ed::BeginCreate())
+	{
+		ed::PinId pinIdA, pinIdB;
+		if (ed::QueryNewLink(&pinIdA, &pinIdB))
+		{
+			PinRole roleA, roleB;
+			int nodeIdA, nodeIdB;
+			ResolvePinRole(pinIdA.Get(), roleA, nodeIdA);
+			ResolvePinRole(pinIdB.Get(), roleB, nodeIdB);
+
+			// 出力側/入力側を判定する(ドラッグの向きに関わらず正規化する)
+			auto isOutputRole = [](PinRole r)
+				{
+					return r == PinRole::VariableOut || r == PinRole::GetterOut || r == PinRole::OperatorOut;
+				};
+			auto isInputRole = [](PinRole r)
+				{
+					return r == PinRole::VariableIn || r == PinRole::OperatorA || r == PinRole::OperatorB || r == PinRole::ReturnIn;
+				};
+
+			PinRole outRole, inRole;
+			int outNodeId, inNodeId;
+			bool orderOk = false;
+
+			if (isOutputRole(roleA) && isInputRole(roleB))
+			{
+				outRole = roleA; outNodeId = nodeIdA;
+				inRole = roleB; inNodeId = nodeIdB;
+				orderOk = true;
+			}
+			else if (isOutputRole(roleB) && isInputRole(roleA))
+			{
+				outRole = roleB; outNodeId = nodeIdB;
+				inRole = roleA; inNodeId = nodeIdA;
+				orderOk = true;
+			}
+
+			// 許可する組み合わせ:Getter→Variable、Variable→OperatorA/B、Operator→Return
+			bool isValid = orderOk && (
+				(outRole == PinRole::GetterOut && inRole == PinRole::VariableIn) ||
+				(outRole == PinRole::VariableOut && (inRole == PinRole::OperatorA || inRole == PinRole::OperatorB)) ||
+				(outRole == PinRole::OperatorOut && inRole == PinRole::ReturnIn)
+				);
+
+			// 同じノード同士は禁止
+			if (isValid && outNodeId == inNodeId) isValid = false;
+
+			if (isValid)
+			{
+				if (ed::AcceptNewItem())
+				{
+					bool toPinB = (inRole == PinRole::OperatorB);
+
+					// 入力ピンは1本まで:既に同じ入力に繋がっているLinkがあれば置き換える
+					auto& links = targetLink->condition.links;
+					links.erase(
+						std::remove_if(links.begin(), links.end(),
+							[&](const ConditionLink& l)
+							{
+								return l.toId == inNodeId && l.toPinB == toPinB;
+							}),
+						links.end()
+					);
+
+					ConditionLink newLink;
+					newLink.id = targetLink->condition.GenerateId();
+					newLink.fromId = outNodeId;
+					newLink.toId = inNodeId;
+					newLink.toPinB = toPinB;
+					links.push_back(newLink);
+				}
+			}
+			else
+			{
+				ed::RejectNewItem(ImColor(255, 0, 0, 255), 2.0f);
+			}
+		}
+	}
+	ed::EndCreate();
+}
+
+void StudioConditionGraph::DrawConditionLinks()
+{
+	const ImColor linkColor(210, 210, 210, 255);
+	const float linkThickness = 2.0f;
+
+	for (const auto& cl : targetLink->condition.links)
+	{
+		NodeKind fromKind = GetNodeKind(cl.fromId);
+		NodeKind toKind = GetNodeKind(cl.toId);
+
+		ed::PinId fromPin = GetOutputPinIdOf(cl.fromId, fromKind);
+		ed::PinId toPin = GetInputPinIdOf(cl.toId, toKind, cl.toPinB);
+
+		ed::Link(ed::LinkId(cl.id), fromPin, toPin, linkColor, linkThickness);
+	}
+}
+
+ed::PinId StudioConditionGraph::GetOutputPinIdOf(int nodeId, NodeKind kind) const
+{
+	switch (kind)
+	{
+	case NodeKind::Variable: return GetVariableOutPinId(nodeId);
+	case NodeKind::Getter:   return GetGetterOutPinId(nodeId);
+	case NodeKind::Operator: return GetOperatorOutPinId(nodeId);
+	default:                 return ed::PinId();
+	}
+}
+
+ed::PinId StudioConditionGraph::GetInputPinIdOf(int nodeId, NodeKind kind, bool toPinB) const
+{
+	switch (kind)
+	{
+	case NodeKind::Variable: return GetVariableInPinId(nodeId);
+	case NodeKind::Operator: return toPinB ? GetOperatorPinB(nodeId) : GetOperatorPinA(nodeId);
+	case NodeKind::Return:   return GetReturnInPinId(nodeId);
+	default:                 return ed::PinId();
 	}
 }
