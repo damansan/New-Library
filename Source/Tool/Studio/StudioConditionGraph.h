@@ -51,9 +51,9 @@ private:
 
 	// == ノードの削除 == //
 	void DrawDeleteButton(const char* label, int targetId, const std::function<void(int)>& onDelete);
-	void DeleteVariableNode(int id);
-	void DeleteGetterNode(int id);
-	void DeleteOperatorNode(int id);
+	void DeleteVariableNode(int id); // 変数ノード削除
+	void DeleteGetterNode(int id);   // ゲッターノード削除
+	void DeleteOperatorNode(int id); // 比較演算ノード削除
 
 	// == 選択状態 == //
 	void UpdateSelection();

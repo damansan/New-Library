@@ -12,6 +12,7 @@ void StudioConditionGraph::SetTarget(AnimLink* link)
 	needsApplyPositions = true;
 }
 
+// ImGui描画
 void StudioConditionGraph::DrawGUI()
 {
 	if (!targetLink)
@@ -35,7 +36,6 @@ void StudioConditionGraph::DrawGUI()
 
 	needsApplyPositions = false;
 }
-
 // 右側メニュー
 void StudioConditionGraph::DrawInspector()
 {
@@ -89,27 +89,6 @@ void StudioConditionGraph::DrawInspector()
 	ImGui::TextDisabled("No node selected.");
 }
 
-// ノード内で中央寄せにする
-void StudioConditionGraph::CenterNextItem(float totalWidth, float itemWidth)
-{
-	float pad = (totalWidth - itemWidth) * 0.5f;
-	if (pad > 0.0f)
-	{
-		ImGui::Dummy(ImVec2(pad, 0.0f));
-		ImGui::SameLine(0.0f, 0.0f);
-	}
-}
-// 値の型ごとの表示色を返す
-ImColor StudioConditionGraph::GetValueTypeColor(ValueType type)
-{
-	switch (type)
-	{
-	case ValueType::Int:   return ImColor(68, 201, 156, 255);  // 水色
-	case ValueType::Float: return ImColor(147, 226, 74, 255);  // 緑
-	case ValueType::Bool:  return ImColor(220, 48, 48, 255);   // 赤
-	default:               return ImColor(255, 255, 255, 255);
-	}
-}
 
 // リターンノード描画
 void StudioConditionGraph::DrawReturnNode()
@@ -159,7 +138,6 @@ void StudioConditionGraph::DrawReturnNode()
 	ed::PopStyleColor(2);
 	ed::PopStyleVar(1);
 }
-
 // 変数ノード描画
 void StudioConditionGraph::DrawVariableNodes()
 {
@@ -296,7 +274,6 @@ void StudioConditionGraph::DrawOperatorNodes()
 		o.posY = currentPos.y;
 	}
 }
-
 // ゲッターノード描画
 void StudioConditionGraph::DrawGetterNodes()
 {
@@ -399,6 +376,7 @@ void StudioConditionGraph::DrawAssignedGetterNode(ConditionGetterNode& g)
 	ed::PopStyleVar(1);
 }
 
+
 // 右クリックメニュー
 void StudioConditionGraph::DrawCreateNodeMenu()
 {
@@ -448,7 +426,6 @@ void StudioConditionGraph::DrawCreateNodeMenu()
 
 	ed::Resume();
 }
-
 // 変数ノード作成
 void StudioConditionGraph::CreateVariableNode(ValueType type)
 {
@@ -479,7 +456,6 @@ void StudioConditionGraph::CreateOperatorNode(CompareOp op)
 
 	ed::SetNodePosition(ed::NodeId(o.id), canvasPos);
 }
-
 // ゲッターノード作成
 void StudioConditionGraph::CreateGetterNode()
 {
@@ -495,20 +471,78 @@ void StudioConditionGraph::CreateGetterNode()
 	ed::SetNodePosition(ed::NodeId(g.id), canvasPos);
 }
 
-// 比較演算子の表示用記号
-const char* StudioConditionGraph::GetCompareOpSymbol(CompareOp op)
+
+// 削除ボタン
+void StudioConditionGraph::DrawDeleteButton(const char* label, int targetId, const std::function<void(int)>& onDelete)
 {
-	switch (op)
+	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.15f, 0.15f, 1.0f));
+	ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.85f, 0.2f, 0.2f, 1.0f));
+	ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.6f, 0.1f, 0.1f, 1.0f));
+
+	bool pressed = ImGui::Button(label, ImVec2(-1.0f, 0.0f));
+
+	ImGui::PopStyleColor(3);
+
+	if (pressed)
 	{
-	case CompareOp::Greater:      return ">";
-	case CompareOp::Less:         return "<";
-	case CompareOp::Equal:        return "==";
-	case CompareOp::NotEqual:     return "!=";
-	case CompareOp::GreaterEqual: return ">=";
-	case CompareOp::LessEqual:    return "<=";
+		onDelete(targetId);
+		selectedVariable = nullptr;
+		selectedGetter = nullptr;
+		selectedOperator = nullptr;
 	}
-	return "?";
 }
+// 変数ノード削除
+void StudioConditionGraph::DeleteVariableNode(int id)
+{
+	auto& vars = targetLink->condition.variableNodes;
+	vars.erase(
+		std::remove_if(vars.begin(), vars.end(),
+			[id](const ConditionVariableNode& v) { return v.id == id; }),
+		vars.end()
+	);
+
+	auto& links = targetLink->condition.links;
+	links.erase(
+		std::remove_if(links.begin(), links.end(),
+			[id](const ConditionLink& l) { return l.fromId == id || l.toId == id; }),
+		links.end()
+	);
+}
+// ゲッターノード削除
+void StudioConditionGraph::DeleteGetterNode(int id)
+{
+	auto& getters = targetLink->condition.getterNodes;
+	getters.erase(
+		std::remove_if(getters.begin(), getters.end(),
+			[id](const ConditionGetterNode& g) { return g.id == id; }),
+		getters.end()
+	);
+
+	auto& links = targetLink->condition.links;
+	links.erase(
+		std::remove_if(links.begin(), links.end(),
+			[id](const ConditionLink& l) { return l.fromId == id || l.toId == id; }),
+		links.end()
+	);
+}
+// 比較演算ノード削除
+void StudioConditionGraph::DeleteOperatorNode(int id)
+{
+	auto& ops = targetLink->condition.operatorNodes;
+	ops.erase(
+		std::remove_if(ops.begin(), ops.end(),
+			[id](const ConditionOperatorNode& o) { return o.id == id; }),
+		ops.end()
+	);
+
+	auto& links = targetLink->condition.links;
+	links.erase(
+		std::remove_if(links.begin(), links.end(),
+			[id](const ConditionLink& l) { return l.fromId == id || l.toId == id; }),
+		links.end()
+	);
+}
+
 
 // ノード選択状態を更新
 void StudioConditionGraph::UpdateSelection()
@@ -537,6 +571,29 @@ void StudioConditionGraph::UpdateSelection()
 	}
 }
 
+
+// ノード内で中央寄せにする
+void StudioConditionGraph::CenterNextItem(float totalWidth, float itemWidth)
+{
+	float pad = (totalWidth - itemWidth) * 0.5f;
+	if (pad > 0.0f)
+	{
+		ImGui::Dummy(ImVec2(pad, 0.0f));
+		ImGui::SameLine(0.0f, 0.0f);
+	}
+}
+// 値の型ごとの表示色を返す
+ImColor StudioConditionGraph::GetValueTypeColor(ValueType type)
+{
+	switch (type)
+	{
+	case ValueType::Int:   return ImColor(68, 201, 156, 255);  // 水色
+	case ValueType::Float: return ImColor(147, 226, 74, 255);  // 緑
+	case ValueType::Bool:  return ImColor(220, 48, 48, 255);   // 赤
+	default:               return ImColor(255, 255, 255, 255);
+	}
+}
+// 値の型名を文字にして返す
 const char* StudioConditionGraph::GetValueTypeName(ValueType type)
 {
 	switch (type)
@@ -547,70 +604,17 @@ const char* StudioConditionGraph::GetValueTypeName(ValueType type)
 	}
 	return "?";
 }
-
-void StudioConditionGraph::DrawDeleteButton(const char* label, int targetId, const std::function<void(int)>& onDelete)
+// 比較演算子の表示用記号
+const char* StudioConditionGraph::GetCompareOpSymbol(CompareOp op)
 {
-	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.15f, 0.15f, 1.0f));
-	ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.85f, 0.2f, 0.2f, 1.0f));
-	ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.6f, 0.1f, 0.1f, 1.0f));
-
-	bool pressed = ImGui::Button(label, ImVec2(-1.0f, 0.0f));
-
-	ImGui::PopStyleColor(3);
-
-	if (pressed)
+	switch (op)
 	{
-		onDelete(targetId);
-		selectedVariable = nullptr;
-		selectedGetter = nullptr;
-		selectedOperator = nullptr;
+	case CompareOp::Greater:      return ">";
+	case CompareOp::Less:         return "<";
+	case CompareOp::Equal:        return "==";
+	case CompareOp::NotEqual:     return "!=";
+	case CompareOp::GreaterEqual: return ">=";
+	case CompareOp::LessEqual:    return "<=";
 	}
-}
-void StudioConditionGraph::DeleteVariableNode(int id)
-{
-	auto& vars = targetLink->condition.variableNodes;
-	vars.erase(
-		std::remove_if(vars.begin(), vars.end(),
-			[id](const ConditionVariableNode& v) { return v.id == id; }),
-		vars.end()
-	);
-
-	auto& links = targetLink->condition.links;
-	links.erase(
-		std::remove_if(links.begin(), links.end(),
-			[id](const ConditionLink& l) { return l.fromId == id || l.toId == id; }),
-		links.end()
-	);
-}
-void StudioConditionGraph::DeleteGetterNode(int id)
-{
-	auto& getters = targetLink->condition.getterNodes;
-	getters.erase(
-		std::remove_if(getters.begin(), getters.end(),
-			[id](const ConditionGetterNode& g) { return g.id == id; }),
-		getters.end()
-	);
-
-	auto& links = targetLink->condition.links;
-	links.erase(
-		std::remove_if(links.begin(), links.end(),
-			[id](const ConditionLink& l) { return l.fromId == id || l.toId == id; }),
-		links.end()
-	);
-}
-void StudioConditionGraph::DeleteOperatorNode(int id)
-{
-	auto& ops = targetLink->condition.operatorNodes;
-	ops.erase(
-		std::remove_if(ops.begin(), ops.end(),
-			[id](const ConditionOperatorNode& o) { return o.id == id; }),
-		ops.end()
-	);
-
-	auto& links = targetLink->condition.links;
-	links.erase(
-		std::remove_if(links.begin(), links.end(),
-			[id](const ConditionLink& l) { return l.fromId == id || l.toId == id; }),
-		links.end()
-	);
+	return "?";
 }
