@@ -63,6 +63,7 @@ private:
 	static ImColor GetValueTypeColor(ValueType type);	           // ’l‚ÌŒ^‚²‚Æ‚Ì•\¦F‚ğ•Ô‚·
 	static const char* GetValueTypeName(ValueType type);           // ’l‚ÌŒ^–¼‚ğ•¶š‚É‚µ‚Ä•Ô‚·
 	static const char* GetCompareOpSymbol(CompareOp op);	       // ”äŠr‰‰Zq‚Ì•\¦—p‹L†
+	static CompareOp InvertCompareOp(CompareOp op);                // ”äŠr‰‰Zq‚ÌŒü‚«‚ğ”½“]‚·‚é
 
 	// == ƒsƒ“ID == //
 	static ed::PinId GetVariableInPinId(int nodeId)  { return ed::PinId((int64_t)1000000 + (int64_t)nodeId * 2);     }
@@ -71,4 +72,5 @@ private:
 	static ed::PinId GetOperatorPinB(int nodeId)     { return ed::PinId((int64_t)2000000 + (int64_t)nodeId * 3 + 1); }
 	static ed::PinId GetOperatorOutPinId(int nodeId) { return ed::PinId((int64_t)2000000 + (int64_t)nodeId * 3 + 2); }
 	static ed::PinId GetGetterOutPinId(int nodeId)   { return ed::PinId((int64_t)3000000 + (int64_t)nodeId);         }
+	static ed::PinId GetReturnInPinId(int nodeId)    { return ed::PinId((int64_t)4000000 + (int64_t)nodeId);         }
 };

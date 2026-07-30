@@ -54,13 +54,13 @@
                 "returnNode": {
                     "id": 1,
                     "posX": 144.0,
-                    "posY": 160.0
+                    "posY": 240.0
                 },
                 "variableNodes": [
                     {
                         "id": 2,
                         "posX": -346.0,
-                        "posY": 8.0,
+                        "posY": -16.0,
                         "name": "int",
                         "type": "Int",
                         "intValue": 0,
@@ -69,8 +69,8 @@
                     },
                     {
                         "id": 3,
-                        "posX": -342.0,
-                        "posY": 88.0,
+                        "posX": -346.0,
+                        "posY": 112.0,
                         "name": "float",
                         "type": "Float",
                         "intValue": 0,
@@ -79,8 +79,8 @@
                     },
                     {
                         "id": 4,
-                        "posX": -342.0,
-                        "posY": 168.0,
+                        "posX": -346.0,
+                        "posY": 240.0,
                         "name": "bool",
                         "type": "Bool",
                         "intValue": 0,
@@ -135,11 +135,11 @@
                 "getterNodes": [
                     {
                         "id": 11,
-                        "posX": 168.0,
-                        "posY": 96.0,
-                        "componentName": "",
-                        "fieldName": "",
-                        "type": "Float"
+                        "posX": 146.0,
+                        "posY": 108.0,
+                        "componentName": "InputComponent",
+                        "fieldName": "Jump",
+                        "type": "Bool"
                     }
                 ],
                 "links": []

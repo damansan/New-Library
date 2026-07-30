@@ -79,6 +79,7 @@ struct ConditionLink
 	int id = -1;
 	int fromId = -1;
 	int toId = -1;
+	bool toPinB = false;
 };
 
 // 条件グラフの終着点

@@ -3,6 +3,8 @@
 #include <vector>
 #include "entt.hpp"
 
+#include "Tool/AnimatorGraph.h"
+
 // フィールド1つに添付する付加情報
 struct FieldInfo
 {
@@ -22,6 +24,7 @@ struct FieldEntry
 	std::string componentName;     // 表示用:コンポーネント名
 	std::string category;          // 表示用:カテゴリ
 	std::string fieldLabel;        // 表示用:フィールド名
+	ValueType type = ValueType::Float;
 };
 
 // コンポーネント1つに添付する付加情報

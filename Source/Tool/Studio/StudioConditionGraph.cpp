@@ -1,5 +1,8 @@
 ﻿#include "StudioConditionGraph.h"
 #include <algorithm>
+#include <vector>
+
+#include "Editor/MetaRegistry.h"
 
 void StudioConditionGraph::Initialize()
 {
@@ -72,7 +75,58 @@ void StudioConditionGraph::DrawInspector()
 	if (selectedGetter)
 	{
 		ImGui::Text("Getter");
-		ImGui::TextDisabled("(Editing UI not implemented yet)");
+		ImGui::Separator();
+
+		const auto& fields = MetaRegistry::GetAllFields();
+
+		// 1段目:コンポーネント名の一覧(重複除去)
+		std::vector<std::string> componentNames;
+		for (const auto& f : fields)
+		{
+			if (std::find(componentNames.begin(), componentNames.end(), f.componentName) == componentNames.end())
+			{
+				componentNames.push_back(f.componentName);
+			}
+		}
+
+		std::string currentComponent = selectedGetter->componentName.empty() ? "(Select Component)" : selectedGetter->componentName;
+
+		if (ImGui::BeginCombo("Component", currentComponent.c_str()))
+		{
+			for (const auto& name : componentNames)
+			{
+				bool isSelected = (name == selectedGetter->componentName);
+				if (ImGui::Selectable(name.c_str(), isSelected))
+				{
+					// コンポーネントを変えたら、フィールドの選択はリセットする
+					selectedGetter->componentName = name;
+					selectedGetter->fieldName.clear();
+				}
+			}
+			ImGui::EndCombo();
+		}
+
+		// 2段目:選択中コンポーネントに属するフィールドだけに絞り込む
+		if (!selectedGetter->componentName.empty())
+		{
+			std::string currentField = selectedGetter->fieldName.empty() ? "(Select Field)" : selectedGetter->fieldName;
+
+			if (ImGui::BeginCombo("Field", currentField.c_str()))
+			{
+				for (const auto& f : fields)
+				{
+					if (f.componentName != selectedGetter->componentName) continue;
+
+					bool isSelected = (f.fieldLabel == selectedGetter->fieldName);
+					if (ImGui::Selectable(f.fieldLabel.c_str(), isSelected))
+					{
+						selectedGetter->fieldName = f.fieldLabel;
+						selectedGetter->type = f.type;
+					}
+				}
+				ImGui::EndCombo();
+			}
+		}
 
 		DrawDeleteButton("Delete Getter", selectedGetter->id, [this](int id) { DeleteGetterNode(id); });
 		return;
@@ -81,11 +135,19 @@ void StudioConditionGraph::DrawInspector()
 	if (selectedOperator)
 	{
 		ImGui::Text("Operator");
-		ImGui::TextDisabled("(Editing UI not implemented yet)");
+		ImGui::Separator();
+
+		ImGui::Text("Op: %s", GetCompareOpSymbol(selectedOperator->op));
+
+		if (ImGui::Button("Invert", ImVec2(-1.0f, 0.0f)))
+		{
+			selectedOperator->op = InvertCompareOp(selectedOperator->op);
+		}
 
 		DrawDeleteButton("Delete Operator", selectedOperator->id, [this](int id) { DeleteOperatorNode(id); });
 		return;
 	}
+
 	ImGui::TextDisabled("No node selected.");
 }
 
@@ -110,6 +172,12 @@ void StudioConditionGraph::DrawReturnNode()
 	ed::PushStyleVar(ed::StyleVar_NodeRounding, 4.0f);
 
 	ed::BeginNode(nodeId);
+
+	ed::BeginPin(GetReturnInPinId(returnNode.id), ed::PinKind::Input);
+	ImGui::Text(u8"▶");
+	ed::EndPin();
+
+	ImGui::SameLine();
 
 	const float totalWidth = 100.0f;
 	float textWidth = ImGui::CalcTextSize("Return").x;
@@ -233,14 +301,9 @@ void StudioConditionGraph::DrawOperatorNodes()
 		ed::BeginNode(nodeId);
 		ImGui::PushID(o.id);
 
-		// ノード名(中央寄せ)
-		float nameWidth = ImGui::CalcTextSize("Operator").x;
-		CenterNextItem(nodeWidth, nameWidth);
-		ImGui::Text("Operator");
-
 		// A側入力ピン
 		ed::BeginPin(GetOperatorPinA(o.id), ed::PinKind::Input);
-		ImGui::Text(u8"▶");
+		ImGui::Text(u8"A ▶");
 		ed::EndPin();
 
 		// 演算子記号(中央寄せ、少し大きめに表示)
@@ -255,7 +318,7 @@ void StudioConditionGraph::DrawOperatorNodes()
 
 		// B側入力ピンと、出力ピン(同じ行)
 		ed::BeginPin(GetOperatorPinB(o.id), ed::PinKind::Input);
-		ImGui::Text(u8"▶");
+		ImGui::Text(u8"B ▶");
 		ed::EndPin();
 
 		ImGui::SameLine(nodeWidth);
@@ -617,4 +680,16 @@ const char* StudioConditionGraph::GetCompareOpSymbol(CompareOp op)
 	case CompareOp::LessEqual:    return "<=";
 	}
 	return "?";
+}
+// 比較演算子の向きを反転する
+CompareOp StudioConditionGraph::InvertCompareOp(CompareOp op)
+{
+	switch (op)
+	{
+	case CompareOp::Greater:      return CompareOp::Less;
+	case CompareOp::Less:         return CompareOp::Greater;
+	case CompareOp::GreaterEqual: return CompareOp::LessEqual;
+	case CompareOp::LessEqual:    return CompareOp::GreaterEqual;
+	default: return op; // Equal/NotEqualは向きの概念が無いため変化なし
+	}
 }

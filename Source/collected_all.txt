@@ -5371,6 +5371,8 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Editor\MetaRegistry.h
 #include <vector>
 #include "entt.hpp"
 
+#include "Tool/AnimatorGraph.h"
+
 // ƒtƒB[ƒ‹ƒh1‚Â‚É“Y•t‚·‚é•t‰Áî•ñ
 struct FieldInfo
 {
@@ -5390,6 +5392,7 @@ struct FieldEntry
 	std::string componentName;     // •\¦—p:ƒRƒ“ƒ|[ƒlƒ“ƒg–¼
 	std::string category;          // •\¦—p:ƒJƒeƒSƒŠ
 	std::string fieldLabel;        // •\¦—p:ƒtƒB[ƒ‹ƒh–¼
+	ValueType type = ValueType::Float;
 };
 
 // ƒRƒ“ƒ|[ƒlƒ“ƒg1‚Â‚É“Y•t‚·‚é•t‰Áî•ñ
@@ -6409,8 +6412,13 @@ const std::vector<FieldEntry>& MetaRegistry::GetAllFields()
 				FieldInfo* fieldInfo = metaData.custom();
 				std::string label = fieldInfo ? fieldInfo->label : std::string(metaData.name());
 
+				entt::meta_type fieldType = metaData.type();
+				ValueType valueType = ValueType::Float;
+				if (fieldType == entt::resolve<bool>())      valueType = ValueType::Bool;
+				else if (fieldType == entt::resolve<int>())  valueType = ValueType::Int;
+
 				fieldEntries.push_back(FieldEntry{
-					metaType, fieldId, componentName, category, label
+					metaType, fieldId, componentName, category, label, valueType
 					});
 			}
 		}
@@ -11664,7 +11672,7 @@ struct ConditionGetterNode
 	std::string componentName; // MetaRegistry‚Å“o˜^‚µ‚½Œ^–¼
 	std::string fieldName;     // entt::metaã‚ÌƒtƒB[ƒ‹ƒh–¼
 	ValueType type = ValueType::Float;
-};
+};  
 
 
 // •Ï”ƒm[ƒh
@@ -11673,14 +11681,11 @@ struct ConditionVariableNode
 	int id = -1;
 	float posX = 0.0f;
 	float posY = 0.0f;
-	std::string componentName;
-	std::string fieldName;
-
+	std::string name; // ‹ó‚ÌŠÔ‚Í"Variable"‚Æ•\¦
 	ValueType type = ValueType::Float;
-
 	int intValue = 0;
-	float floatValue = 0.0f; 
-	bool boolValue = false;  
+	float floatValue = 0.0f;
+	bool boolValue = false;
 };
 
 // ”äŠrƒm[ƒh
@@ -11764,6 +11769,7 @@ struct AnimState
 	std::vector<AnimNode> children;
 	std::vector<AnimLink> childLinks;
 };
+
 
 
 class AnimatorGraph
@@ -12272,6 +12278,23 @@ namespace
 		return "Normal";
 	}
 
+	std::string ToString(ValueType type)
+	{
+		switch (type)
+		{
+		case ValueType::Int:   return "Int";
+		case ValueType::Float: return "Float";
+		case ValueType::Bool:  return "Bool";
+		default:               return "Float";
+		}
+	}
+	ValueType ToValueType(const std::string& s)
+	{
+		if (s == "Int")  return ValueType::Int;
+		if (s == "Bool") return ValueType::Bool;
+		return ValueType::Float;
+	}
+
 	AnimNodeType ToAnimNodeType(const std::string& s)
 	{
 		if (s == "Start") return AnimNodeType::Start;
@@ -12436,8 +12459,11 @@ nlohmann::ordered_json AnimatorGraph::ToJson() const
 			jv["id"] = v.id;
 			jv["posX"] = v.posX;
 			jv["posY"] = v.posY;
-			jv["componentName"] = v.componentName;
-			jv["fieldName"] = v.fieldName;
+			jv["name"] = v.name;
+			jv["type"] = ToString(v.type);
+			jv["intValue"] = v.intValue;
+			jv["floatValue"] = v.floatValue;
+			jv["boolValue"] = v.boolValue;
 			jc["variableNodes"].push_back(jv);
 		}
 
@@ -12451,6 +12477,19 @@ nlohmann::ordered_json AnimatorGraph::ToJson() const
 			jo["op"] = ToString(o.op);
 			jo["compareValue"] = o.compareValue;
 			jc["operatorNodes"].push_back(jo);
+		}
+
+		jc["getterNodes"] = nlohmann::json::array();
+		for (const auto& g : link.condition.getterNodes)
+		{
+			nlohmann::ordered_json jg;
+			jg["id"] = g.id;
+			jg["posX"] = g.posX;
+			jg["posY"] = g.posY;
+			jg["componentName"] = g.componentName;
+			jg["fieldName"] = g.fieldName;
+			jg["type"] = ToString(g.type);
+			jc["getterNodes"].push_back(jg);
 		}
 
 		jc["links"] = nlohmann::json::array();
@@ -12565,8 +12604,11 @@ void AnimatorGraph::FromJson(const nlohmann::json& j)
 						v.id = jv.value("id", -1);
 						v.posX = jv.value("posX", 0.0f);
 						v.posY = jv.value("posY", 0.0f);
-						v.componentName = jv.value("componentName", "");
-						v.fieldName = jv.value("fieldName", "");
+						v.name = jv.value("name", "");
+						v.type = ToValueType(jv.value("type", "Float"));
+						v.intValue = jv.value("intValue", 0);
+						v.floatValue = jv.value("floatValue", 0.0f);
+						v.boolValue = jv.value("boolValue", false);
 						link.condition.variableNodes.push_back(v);
 					}
 				}
@@ -12582,6 +12624,21 @@ void AnimatorGraph::FromJson(const nlohmann::json& j)
 						o.op = ToCompareOp(jo.value("op", "Greater"));
 						o.compareValue = jo.value("compareValue", 0.0f);
 						link.condition.operatorNodes.push_back(o);
+					}
+				}
+
+				if (jc.contains("getterNodes"))
+				{
+					for (const auto& jg : jc["getterNodes"])
+					{
+						ConditionGetterNode g;
+						g.id = jg.value("id", -1);
+						g.posX = jg.value("posX", 0.0f);
+						g.posY = jg.value("posY", 0.0f);
+						g.componentName = jg.value("componentName", "");
+						g.fieldName = jg.value("fieldName", "");
+						g.type = ToValueType(jg.value("type", "Float"));
+						link.condition.getterNodes.push_back(g);
 					}
 				}
 
@@ -12888,6 +12945,7 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioConditionGra
 #include "Tool/AnimatorGraph.h"
 #include "Tool/NodeEditorCanvas.h"
 #include <imgui.h>
+#include <functional>
 #include <imgui_node_editor.h>
 
 namespace ed = ax::NodeEditor;
@@ -12907,59 +12965,57 @@ public:
 	void DrawGUI();
 	// ‰E‘¤ƒƒjƒ…[
 	void DrawInspector();
+
 private:
+	// == “à•”ó‘Ô == //
 	NodeEditorCanvas canvas;        // ‚±‚ÌƒNƒ‰ƒXê—p‚Ìƒm[ƒhƒGƒfƒBƒ^ƒRƒ“ƒeƒLƒXƒg
 	AnimLink* targetLink = nullptr; // Œ»İ•ÒW’†‚ÌLink
-
-	// ƒm[ƒh“à‚Å’†‰›Šñ‚¹‚É‚·‚é
-	static void CenterNextItem(float totalWidth, float itemWidth);
-	// ’l‚ÌŒ^‚²‚Æ‚Ì•\¦F‚ğ•Ô‚·
-	static ImColor GetValueTypeColor(ValueType type);
-
-	// ƒŠƒ^[ƒ“ƒm[ƒh•`‰æ
-	void DrawReturnNode();
-	// •Ï”ƒm[ƒh•`‰æ
-	void DrawVariableNodes();
-	// ”äŠr‰‰Zƒm[ƒh•`‰æ
-	void DrawOperatorNodes();
-	// ƒQƒbƒ^[ƒm[ƒh•`‰æ
-	void DrawGetterNodes();
-
-
-	// ‰EƒNƒŠƒbƒNƒƒjƒ…[
-	void DrawCreateNodeMenu();
-	// •Ï”ƒm[ƒhì¬
-	void CreateVariableNode(ValueType type);
-	// ”äŠr‰‰Zƒm[ƒhì¬
-	void CreateOperatorNode(CompareOp op);
-	// ƒQƒbƒ^[ƒm[ƒhì¬
-	void CreateGetterNode();
-
-
-	// ”äŠr‰‰Zq‚Ì•\¦—p‹L†
-	static const char* GetCompareOpSymbol(CompareOp op);
-
 	ImVec2 pendingCreatePos{};
-
-	static ed::PinId GetVariableInPinId(int nodeId) { return ed::PinId((int64_t)1000000 + (int64_t)nodeId * 2); }
-	static ed::PinId GetVariableOutPinId(int nodeId) { return ed::PinId((int64_t)1000000 + (int64_t)nodeId * 2 + 1); }
-
-	static ed::PinId GetOperatorPinA(int nodeId) { return ed::PinId((int64_t)2000000 + (int64_t)nodeId * 3); }
-	static ed::PinId GetOperatorPinB(int nodeId) { return ed::PinId((int64_t)2000000 + (int64_t)nodeId * 3 + 1); }
-	static ed::PinId GetOperatorOutPinId(int nodeId) { return ed::PinId((int64_t)2000000 + (int64_t)nodeId * 3 + 2); }
-
-	static ed::PinId GetGetterOutPinId(int nodeId) { return ed::PinId((int64_t)3000000 + (int64_t)nodeId); }
-
 	bool needsApplyPositions = false;
-
-
-	// ƒm[ƒh‘I‘ğó‘Ô‚ğXV
-	void UpdateSelection();
 
 	ConditionVariableNode* selectedVariable = nullptr;
 	ConditionGetterNode* selectedGetter = nullptr;
 	ConditionOperatorNode* selectedOperator = nullptr;
 
+	// == Šeƒm[ƒh•`‰æ == //
+	void DrawReturnNode();    // ƒŠƒ^[ƒ“ƒm[ƒh•`‰æ
+	void DrawVariableNodes(); // •Ï”ƒm[ƒh•`‰æ
+	void DrawOperatorNodes(); // ”äŠr‰‰Zƒm[ƒh•`‰æ
+	void DrawGetterNodes();	  // ƒQƒbƒ^[ƒm[ƒh•`‰æ
+
+	void DrawUnassignedGetterNode(ConditionGetterNode& g); // –¢İ’èƒQƒbƒ^[ƒm[ƒh
+	void DrawAssignedGetterNode(ConditionGetterNode& g);   // İ’èÏ‚İƒQƒbƒ^[ƒm[ƒh
+
+	// == ƒm[ƒh‚Ìì¬ == //		
+	void DrawCreateNodeMenu();               // ‰EƒNƒŠƒbƒNƒƒjƒ…[
+	void CreateVariableNode(ValueType type); // •Ï”ƒm[ƒhì¬
+	void CreateOperatorNode(CompareOp op);   // ”äŠr‰‰Zƒm[ƒhì¬
+	void CreateGetterNode();                 // ƒQƒbƒ^[ƒm[ƒhì¬
+
+	// == ƒm[ƒh‚Ìíœ == //
+	void DrawDeleteButton(const char* label, int targetId, const std::function<void(int)>& onDelete);
+	void DeleteVariableNode(int id); // •Ï”ƒm[ƒhíœ
+	void DeleteGetterNode(int id);   // ƒQƒbƒ^[ƒm[ƒhíœ
+	void DeleteOperatorNode(int id); // ”äŠr‰‰Zƒm[ƒhíœ
+
+	// == ‘I‘ğó‘Ô == //
+	void UpdateSelection();
+
+	// == •\¦—pƒwƒ‹ƒp[ == //
+	static void CenterNextItem(float totalWidth, float itemWidth); // ƒm[ƒh“à‚Å’†‰›Šñ‚¹‚É‚·‚é
+	static ImColor GetValueTypeColor(ValueType type);	           // ’l‚ÌŒ^‚²‚Æ‚Ì•\¦F‚ğ•Ô‚·
+	static const char* GetValueTypeName(ValueType type);           // ’l‚ÌŒ^–¼‚ğ•¶š‚É‚µ‚Ä•Ô‚·
+	static const char* GetCompareOpSymbol(CompareOp op);	       // ”äŠr‰‰Zq‚Ì•\¦—p‹L†
+	static CompareOp InvertCompareOp(CompareOp op);                // ”äŠr‰‰Zq‚ÌŒü‚«‚ğ”½“]‚·‚é
+
+	// == ƒsƒ“ID == //
+	static ed::PinId GetVariableInPinId(int nodeId)  { return ed::PinId((int64_t)1000000 + (int64_t)nodeId * 2);     }
+	static ed::PinId GetVariableOutPinId(int nodeId) { return ed::PinId((int64_t)1000000 + (int64_t)nodeId * 2 + 1); }
+	static ed::PinId GetOperatorPinA(int nodeId)     { return ed::PinId((int64_t)2000000 + (int64_t)nodeId * 3);     }
+	static ed::PinId GetOperatorPinB(int nodeId)     { return ed::PinId((int64_t)2000000 + (int64_t)nodeId * 3 + 1); }
+	static ed::PinId GetOperatorOutPinId(int nodeId) { return ed::PinId((int64_t)2000000 + (int64_t)nodeId * 3 + 2); }
+	static ed::PinId GetGetterOutPinId(int nodeId)   { return ed::PinId((int64_t)3000000 + (int64_t)nodeId);         }
+	static ed::PinId GetReturnInPinId(int nodeId)    { return ed::PinId((int64_t)4000000 + (int64_t)nodeId);         }
 }; 
  
 ===== StudioContext.h ===== 
@@ -14171,6 +14227,10 @@ DirectX::XMFLOAT3 StudioCamera::GetRight() const
 ===== StudioConditionGraph.cpp ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioConditionGraph.cpp 
 ï»¿#include "StudioConditionGraph.h"
+#include <algorithm>
+#include <vector>
+
+#include "Editor/MetaRegistry.h"
 
 void StudioConditionGraph::Initialize()
 {
@@ -14183,6 +14243,7 @@ void StudioConditionGraph::SetTarget(AnimLink* link)
 	needsApplyPositions = true;
 }
 
+// ImGuiæç”»
 void StudioConditionGraph::DrawGUI()
 {
 	if (!targetLink)
@@ -14206,55 +14267,118 @@ void StudioConditionGraph::DrawGUI()
 
 	needsApplyPositions = false;
 }
-
 // å³å´ãƒ¡ãƒ‹ãƒ¥ãƒ¼
 void StudioConditionGraph::DrawInspector()
 {
 	if (selectedVariable)
 	{
 		ImGui::Text("Variable");
-		ImGui::TextDisabled("(Editing UI not implemented yet)");
+
+		char nameBuf[128];
+		strncpy_s(nameBuf, selectedVariable->name.c_str(), sizeof(nameBuf) - 1);
+		if (ImGui::InputText("Name", nameBuf, sizeof(nameBuf)))
+		{
+			selectedVariable->name = nameBuf;
+		}
+
+		ImGui::Text("Type: %s", GetValueTypeName(selectedVariable->type));
+
+		switch (selectedVariable->type)
+		{
+		case ValueType::Int:
+			ImGui::DragInt("Value", &selectedVariable->intValue, 1);
+			break;
+		case ValueType::Float:
+			ImGui::DragFloat("Value", &selectedVariable->floatValue, 0.1f);
+			break;
+		case ValueType::Bool:
+			ImGui::Checkbox("Value", &selectedVariable->boolValue);
+			break;
+		}
+
+		DrawDeleteButton("Delete Node", selectedVariable->id, [this](int id) { DeleteVariableNode(id); });
 		return;
 	}
 
 	if (selectedGetter)
 	{
 		ImGui::Text("Getter");
-		ImGui::TextDisabled("(Editing UI not implemented yet)");
+		ImGui::Separator();
+
+		const auto& fields = MetaRegistry::GetAllFields();
+
+		// 1æ®µç›®:ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆåã®ä¸€è¦§(é‡è¤‡é™¤å»)
+		std::vector<std::string> componentNames;
+		for (const auto& f : fields)
+		{
+			if (std::find(componentNames.begin(), componentNames.end(), f.componentName) == componentNames.end())
+			{
+				componentNames.push_back(f.componentName);
+			}
+		}
+
+		std::string currentComponent = selectedGetter->componentName.empty() ? "(Select Component)" : selectedGetter->componentName;
+
+		if (ImGui::BeginCombo("Component", currentComponent.c_str()))
+		{
+			for (const auto& name : componentNames)
+			{
+				bool isSelected = (name == selectedGetter->componentName);
+				if (ImGui::Selectable(name.c_str(), isSelected))
+				{
+					// ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆã‚’å¤‰ãˆãŸã‚‰ã€ãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰ã®é¸æŠã¯ãƒªã‚»ãƒƒãƒˆã™ã‚‹
+					selectedGetter->componentName = name;
+					selectedGetter->fieldName.clear();
+				}
+			}
+			ImGui::EndCombo();
+		}
+
+		// 2æ®µç›®:é¸æŠä¸­ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆã«å±ã™ã‚‹ãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰ã ã‘ã«çµã‚Šè¾¼ã‚€
+		if (!selectedGetter->componentName.empty())
+		{
+			std::string currentField = selectedGetter->fieldName.empty() ? "(Select Field)" : selectedGetter->fieldName;
+
+			if (ImGui::BeginCombo("Field", currentField.c_str()))
+			{
+				for (const auto& f : fields)
+				{
+					if (f.componentName != selectedGetter->componentName) continue;
+
+					bool isSelected = (f.fieldLabel == selectedGetter->fieldName);
+					if (ImGui::Selectable(f.fieldLabel.c_str(), isSelected))
+					{
+						selectedGetter->fieldName = f.fieldLabel;
+						selectedGetter->type = f.type;
+					}
+				}
+				ImGui::EndCombo();
+			}
+		}
+
+		DrawDeleteButton("Delete Getter", selectedGetter->id, [this](int id) { DeleteGetterNode(id); });
 		return;
 	}
 
 	if (selectedOperator)
 	{
 		ImGui::Text("Operator");
-		ImGui::TextDisabled("(Editing UI not implemented yet)");
+		ImGui::Separator();
+
+		ImGui::Text("Op: %s", GetCompareOpSymbol(selectedOperator->op));
+
+		if (ImGui::Button("Invert", ImVec2(-1.0f, 0.0f)))
+		{
+			selectedOperator->op = InvertCompareOp(selectedOperator->op);
+		}
+
+		DrawDeleteButton("Delete Operator", selectedOperator->id, [this](int id) { DeleteOperatorNode(id); });
 		return;
 	}
 
 	ImGui::TextDisabled("No node selected.");
 }
 
-// ãƒãƒ¼ãƒ‰å†…ã§ä¸­å¤®å¯„ã›ã«ã™ã‚‹
-void StudioConditionGraph::CenterNextItem(float totalWidth, float itemWidth)
-{
-	float pad = (totalWidth - itemWidth) * 0.5f;
-	if (pad > 0.0f)
-	{
-		ImGui::Dummy(ImVec2(pad, 0.0f));
-		ImGui::SameLine(0.0f, 0.0f);
-	}
-}
-// å€¤ã®å‹ã”ã¨ã®è¡¨ç¤ºè‰²ã‚’è¿”ã™
-ImColor StudioConditionGraph::GetValueTypeColor(ValueType type)
-{
-	switch (type)
-	{
-	case ValueType::Int:   return ImColor(68, 201, 156, 255);  // æ°´è‰²
-	case ValueType::Float: return ImColor(147, 226, 74, 255);  // ç·‘
-	case ValueType::Bool:  return ImColor(220, 48, 48, 255);   // èµ¤
-	default:               return ImColor(255, 255, 255, 255);
-	}
-}
 
 // ãƒªã‚¿ãƒ¼ãƒ³ãƒãƒ¼ãƒ‰æç”»
 void StudioConditionGraph::DrawReturnNode()
@@ -14276,6 +14400,12 @@ void StudioConditionGraph::DrawReturnNode()
 	ed::PushStyleVar(ed::StyleVar_NodeRounding, 4.0f);
 
 	ed::BeginNode(nodeId);
+
+	ed::BeginPin(GetReturnInPinId(returnNode.id), ed::PinKind::Input);
+	ImGui::Text(u8"â–¶");
+	ed::EndPin();
+
+	ImGui::SameLine();
 
 	const float totalWidth = 100.0f;
 	float textWidth = ImGui::CalcTextSize("Return").x;
@@ -14304,7 +14434,6 @@ void StudioConditionGraph::DrawReturnNode()
 	ed::PopStyleColor(2);
 	ed::PopStyleVar(1);
 }
-
 // å¤‰æ•°ãƒãƒ¼ãƒ‰æç”»
 void StudioConditionGraph::DrawVariableNodes()
 {
@@ -14335,11 +14464,12 @@ void StudioConditionGraph::DrawVariableNodes()
 		const float pinIconWidth = ImGui::CalcTextSize(u8"â–¶").x;
 		const float totalWidth = nodeWidth + pinIconWidth;
 
-		float nameWidth = ImGui::CalcTextSize("Variable").x;
+		std::string displayName = v.name.empty() ? "Variable" : v.name;
+		float nameWidth = ImGui::CalcTextSize(displayName.c_str()).x;
 		float namePadding = (totalWidth - nameWidth) * 0.5f;
 
 		ImGui::SameLine(namePadding > 0.0f ? namePadding : 0.0f);
-		ImGui::Text("Variable");
+		ImGui::Text("%s", displayName.c_str());
 
 		ImGui::SameLine(nodeWidth);
 		ed::BeginPin(GetVariableOutPinId(v.id), ed::PinKind::Output);
@@ -14399,11 +14529,6 @@ void StudioConditionGraph::DrawOperatorNodes()
 		ed::BeginNode(nodeId);
 		ImGui::PushID(o.id);
 
-		// ãƒãƒ¼ãƒ‰å(ä¸­å¤®å¯„ã›)
-		float nameWidth = ImGui::CalcTextSize("Operator").x;
-		CenterNextItem(nodeWidth, nameWidth);
-		ImGui::Text("Operator");
-
 		// Aå´å…¥åŠ›ãƒ”ãƒ³
 		ed::BeginPin(GetOperatorPinA(o.id), ed::PinKind::Input);
 		ImGui::Text(u8"â–¶");
@@ -14440,12 +14565,9 @@ void StudioConditionGraph::DrawOperatorNodes()
 		o.posY = currentPos.y;
 	}
 }
-
 // ã‚²ãƒƒã‚¿ãƒ¼ãƒãƒ¼ãƒ‰æç”»
 void StudioConditionGraph::DrawGetterNodes()
 {
-	const float nodeWidth = 160.0f;
-
 	for (auto& g : targetLink->condition.getterNodes)
 	{
 		ed::NodeId nodeId(g.id);
@@ -14455,36 +14577,96 @@ void StudioConditionGraph::DrawGetterNodes()
 		}
 
 		bool isAssigned = !g.componentName.empty() && !g.fieldName.empty();
-		ImColor borderColor = isAssigned ? GetValueTypeColor(g.type) : ImColor(255, 255, 255, 255);
 
-		ed::PushStyleColor(ed::StyleColor_NodeBorder, borderColor);
-		ed::PushStyleVar(ed::StyleVar_NodeBorderWidth, 2.0f);
-
-		ed::BeginNode(nodeId);
-		ImGui::PushID(g.id);
-
-		std::string label = isAssigned ? (g.componentName + "." + g.fieldName) : "Null Getter";
-		float labelWidth = ImGui::CalcTextSize(label.c_str()).x;
-
-		CenterNextItem(nodeWidth, labelWidth);
-		ImGui::Text("%s", label.c_str());
-
-		ImGui::SameLine(nodeWidth);
-		ed::BeginPin(GetGetterOutPinId(g.id), ed::PinKind::Output);
-		ImGui::Text(u8"â–¶");
-		ed::EndPin();
-
-		ImGui::PopID();
-		ed::EndNode();
-
-		ed::PopStyleColor(1);
-		ed::PopStyleVar(1);
+		if (isAssigned)
+		{
+			DrawAssignedGetterNode(g);
+		}
+		else
+		{
+			DrawUnassignedGetterNode(g);
+		}
 
 		ImVec2 currentPos = ed::GetNodePosition(nodeId);
 		g.posX = currentPos.x;
 		g.posY = currentPos.y;
 	}
 }
+
+// æœªè¨­å®šã‚²ãƒƒã‚¿ãƒ¼ãƒãƒ¼ãƒ‰
+void StudioConditionGraph::DrawUnassignedGetterNode(ConditionGetterNode& g)
+{
+	ed::NodeId nodeId(g.id);
+
+	ed::PushStyleColor(ed::StyleColor_NodeBorder, ImColor(255, 255, 255, 255));
+	ed::PushStyleVar(ed::StyleVar_NodeBorderWidth, 2.0f);
+
+	ed::BeginNode(nodeId);
+	ImGui::PushID(g.id);
+
+	const char* label = "Empty";
+	const float pinIconWidth = ImGui::CalcTextSize(u8"â–¶").x;
+	const float labelWidth = ImGui::CalcTextSize(label).x;
+	const float spacing = 8.0f;
+
+	const float nodeWidth = labelWidth + spacing;
+
+	ImGui::Text("%s", label);
+
+	ImGui::SameLine(nodeWidth);
+	ed::BeginPin(GetGetterOutPinId(g.id), ed::PinKind::Output);
+	ImGui::Text(u8"â–¶");
+	ed::EndPin();
+
+	ImGui::PopID();
+	ed::EndNode();
+
+	ed::PopStyleColor(1);
+	ed::PopStyleVar(1);
+}
+// è¨­å®šæ¸ˆã¿ã‚²ãƒƒã‚¿ãƒ¼ãƒãƒ¼ãƒ‰
+void StudioConditionGraph::DrawAssignedGetterNode(ConditionGetterNode& g)
+{
+	ed::NodeId nodeId(g.id);
+
+	ed::PushStyleColor(ed::StyleColor_NodeBorder, GetValueTypeColor(g.type));
+	ed::PushStyleVar(ed::StyleVar_NodeBorderWidth, 2.0f);
+
+	ed::BeginNode(nodeId);
+	ImGui::PushID(g.id);
+
+	// 1è¡Œç›®:ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆå
+	std::string line1 = g.componentName;
+	// 2è¡Œç›®:[å‹] ãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰å
+	std::string line2 = "[" + std::string(GetValueTypeName(g.type)) + "] " + g.fieldName;
+
+	float line1Width = ImGui::CalcTextSize(line1.c_str()).x;
+	float line2Width = ImGui::CalcTextSize(line2.c_str()).x;
+	const float pinIconWidth = ImGui::CalcTextSize(u8"â–¶").x;
+	const float spacing = 8.0f;
+
+	// 2è¡Œã®ã†ã¡é•·ã„æ–¹ã«åˆã‚ã›ã¦ã€ãƒãƒ¼ãƒ‰å¹…ã‚’æ±ºã‚ã‚‹
+	const float contentWidth = (line1Width > line2Width) ? line1Width : line2Width;
+	const float nodeWidth = contentWidth + spacing;
+
+	CenterNextItem(nodeWidth, line1Width);
+	ImGui::Text("%s", line1.c_str());
+
+	CenterNextItem(nodeWidth, line2Width);
+	ImGui::Text("%s", line2.c_str());
+
+	ImGui::SameLine(nodeWidth);
+	ed::BeginPin(GetGetterOutPinId(g.id), ed::PinKind::Output);
+	ImGui::Text(u8"â–¶");
+	ed::EndPin();
+
+	ImGui::PopID();
+	ed::EndNode();
+
+	ed::PopStyleColor(1);
+	ed::PopStyleVar(1);
+}
+
 
 // å³ã‚¯ãƒªãƒƒã‚¯ãƒ¡ãƒ‹ãƒ¥ãƒ¼
 void StudioConditionGraph::DrawCreateNodeMenu()
@@ -14535,7 +14717,6 @@ void StudioConditionGraph::DrawCreateNodeMenu()
 
 	ed::Resume();
 }
-
 // å¤‰æ•°ãƒãƒ¼ãƒ‰ä½œæˆ
 void StudioConditionGraph::CreateVariableNode(ValueType type)
 {
@@ -14566,7 +14747,6 @@ void StudioConditionGraph::CreateOperatorNode(CompareOp op)
 
 	ed::SetNodePosition(ed::NodeId(o.id), canvasPos);
 }
-
 // ã‚²ãƒƒã‚¿ãƒ¼ãƒãƒ¼ãƒ‰ä½œæˆ
 void StudioConditionGraph::CreateGetterNode()
 {
@@ -14582,20 +14762,78 @@ void StudioConditionGraph::CreateGetterNode()
 	ed::SetNodePosition(ed::NodeId(g.id), canvasPos);
 }
 
-// æ¯”è¼ƒæ¼”ç®—å­ã®è¡¨ç¤ºç”¨è¨˜å·
-const char* StudioConditionGraph::GetCompareOpSymbol(CompareOp op)
+
+// å‰Šé™¤ãƒœã‚¿ãƒ³
+void StudioConditionGraph::DrawDeleteButton(const char* label, int targetId, const std::function<void(int)>& onDelete)
 {
-	switch (op)
+	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.15f, 0.15f, 1.0f));
+	ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.85f, 0.2f, 0.2f, 1.0f));
+	ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.6f, 0.1f, 0.1f, 1.0f));
+
+	bool pressed = ImGui::Button(label, ImVec2(-1.0f, 0.0f));
+
+	ImGui::PopStyleColor(3);
+
+	if (pressed)
 	{
-	case CompareOp::Greater:      return ">";
-	case CompareOp::Less:         return "<";
-	case CompareOp::Equal:        return "==";
-	case CompareOp::NotEqual:     return "!=";
-	case CompareOp::GreaterEqual: return ">=";
-	case CompareOp::LessEqual:    return "<=";
+		onDelete(targetId);
+		selectedVariable = nullptr;
+		selectedGetter = nullptr;
+		selectedOperator = nullptr;
 	}
-	return "?";
 }
+// å¤‰æ•°ãƒãƒ¼ãƒ‰å‰Šé™¤
+void StudioConditionGraph::DeleteVariableNode(int id)
+{
+	auto& vars = targetLink->condition.variableNodes;
+	vars.erase(
+		std::remove_if(vars.begin(), vars.end(),
+			[id](const ConditionVariableNode& v) { return v.id == id; }),
+		vars.end()
+	);
+
+	auto& links = targetLink->condition.links;
+	links.erase(
+		std::remove_if(links.begin(), links.end(),
+			[id](const ConditionLink& l) { return l.fromId == id || l.toId == id; }),
+		links.end()
+	);
+}
+// ã‚²ãƒƒã‚¿ãƒ¼ãƒãƒ¼ãƒ‰å‰Šé™¤
+void StudioConditionGraph::DeleteGetterNode(int id)
+{
+	auto& getters = targetLink->condition.getterNodes;
+	getters.erase(
+		std::remove_if(getters.begin(), getters.end(),
+			[id](const ConditionGetterNode& g) { return g.id == id; }),
+		getters.end()
+	);
+
+	auto& links = targetLink->condition.links;
+	links.erase(
+		std::remove_if(links.begin(), links.end(),
+			[id](const ConditionLink& l) { return l.fromId == id || l.toId == id; }),
+		links.end()
+	);
+}
+// æ¯”è¼ƒæ¼”ç®—ãƒãƒ¼ãƒ‰å‰Šé™¤
+void StudioConditionGraph::DeleteOperatorNode(int id)
+{
+	auto& ops = targetLink->condition.operatorNodes;
+	ops.erase(
+		std::remove_if(ops.begin(), ops.end(),
+			[id](const ConditionOperatorNode& o) { return o.id == id; }),
+		ops.end()
+	);
+
+	auto& links = targetLink->condition.links;
+	links.erase(
+		std::remove_if(links.begin(), links.end(),
+			[id](const ConditionLink& l) { return l.fromId == id || l.toId == id; }),
+		links.end()
+	);
+}
+
 
 // ãƒãƒ¼ãƒ‰é¸æŠçŠ¶æ…‹ã‚’æ›´æ–°
 void StudioConditionGraph::UpdateSelection()
@@ -14621,6 +14859,66 @@ void StudioConditionGraph::UpdateSelection()
 	for (auto& o : targetLink->condition.operatorNodes)
 	{
 		if (o.id == id) { selectedOperator = &o; return; }
+	}
+}
+
+
+// ãƒãƒ¼ãƒ‰å†…ã§ä¸­å¤®å¯„ã›ã«ã™ã‚‹
+void StudioConditionGraph::CenterNextItem(float totalWidth, float itemWidth)
+{
+	float pad = (totalWidth - itemWidth) * 0.5f;
+	if (pad > 0.0f)
+	{
+		ImGui::Dummy(ImVec2(pad, 0.0f));
+		ImGui::SameLine(0.0f, 0.0f);
+	}
+}
+// å€¤ã®å‹ã”ã¨ã®è¡¨ç¤ºè‰²ã‚’è¿”ã™
+ImColor StudioConditionGraph::GetValueTypeColor(ValueType type)
+{
+	switch (type)
+	{
+	case ValueType::Int:   return ImColor(68, 201, 156, 255);  // æ°´è‰²
+	case ValueType::Float: return ImColor(147, 226, 74, 255);  // ç·‘
+	case ValueType::Bool:  return ImColor(220, 48, 48, 255);   // èµ¤
+	default:               return ImColor(255, 255, 255, 255);
+	}
+}
+// å€¤ã®å‹åã‚’æ–‡å­—ã«ã—ã¦è¿”ã™
+const char* StudioConditionGraph::GetValueTypeName(ValueType type)
+{
+	switch (type)
+	{
+	case ValueType::Int:   return "int";
+	case ValueType::Float: return "float";
+	case ValueType::Bool:  return "bool";
+	}
+	return "?";
+}
+// æ¯”è¼ƒæ¼”ç®—å­ã®è¡¨ç¤ºç”¨è¨˜å·
+const char* StudioConditionGraph::GetCompareOpSymbol(CompareOp op)
+{
+	switch (op)
+	{
+	case CompareOp::Greater:      return ">";
+	case CompareOp::Less:         return "<";
+	case CompareOp::Equal:        return "==";
+	case CompareOp::NotEqual:     return "!=";
+	case CompareOp::GreaterEqual: return ">=";
+	case CompareOp::LessEqual:    return "<=";
+	}
+	return "?";
+}
+// æ¯”è¼ƒæ¼”ç®—å­ã®å‘ãã‚’åè»¢ã™ã‚‹
+CompareOp StudioConditionGraph::InvertCompareOp(CompareOp op)
+{
+	switch (op)
+	{
+	case CompareOp::Greater:      return CompareOp::Less;
+	case CompareOp::Less:         return CompareOp::Greater;
+	case CompareOp::GreaterEqual: return CompareOp::LessEqual;
+	case CompareOp::LessEqual:    return CompareOp::GreaterEqual;
+	default: return op; // Equal/NotEqualã¯å‘ãã®æ¦‚å¿µãŒç„¡ã„ãŸã‚å¤‰åŒ–ãªã—
 	}
 }
  

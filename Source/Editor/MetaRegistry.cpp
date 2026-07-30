@@ -185,8 +185,13 @@ const std::vector<FieldEntry>& MetaRegistry::GetAllFields()
 				FieldInfo* fieldInfo = metaData.custom();
 				std::string label = fieldInfo ? fieldInfo->label : std::string(metaData.name());
 
+				entt::meta_type fieldType = metaData.type();
+				ValueType valueType = ValueType::Float;
+				if (fieldType == entt::resolve<bool>())      valueType = ValueType::Bool;
+				else if (fieldType == entt::resolve<int>())  valueType = ValueType::Int;
+
 				fieldEntries.push_back(FieldEntry{
-					metaType, fieldId, componentName, category, label
+					metaType, fieldId, componentName, category, label, valueType
 					});
 			}
 		}

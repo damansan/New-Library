@@ -255,6 +255,7 @@ nlohmann::ordered_json AnimatorGraph::ToJson() const
 			jcl["id"] = cl.id;
 			jcl["fromId"] = cl.fromId;
 			jcl["toId"] = cl.toId;
+			jcl["toPinB"] = cl.toPinB;
 			jc["links"].push_back(jcl);
 		}
 
@@ -406,6 +407,7 @@ void AnimatorGraph::FromJson(const nlohmann::json& j)
 						cl.id = jcl.value("id", -1);
 						cl.fromId = jcl.value("fromId", -1);
 						cl.toId = jcl.value("toId", -1);
+						cl.toPinB = jcl.value("toPinB", false);
 						link.condition.links.push_back(cl);
 					}
 				}
