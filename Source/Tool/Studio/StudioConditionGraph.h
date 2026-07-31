@@ -98,4 +98,17 @@ private:
 	// fromId/toIdからed::Linkを引くための、実際のピンIDを求める
 	ed::PinId GetOutputPinIdOf(int nodeId, NodeKind kind) const;
 	ed::PinId GetInputPinIdOf(int nodeId, NodeKind kind, bool toPinB) const;
+
+	// ノードの値の型を取得する(Operator/Returnは型を持たないため呼び出し禁止)
+	ValueType GetNodeValueType(NodeKind kind, int nodeId) const;
+	// 大小系演算子か(Bool禁止の対象)を判定する
+	static bool IsOrderCompareOp(CompareOp op);
+
+	// 出力ピンの「実質的な型」を取得する(Operatorの出力は常にBool扱い)
+	ValueType GetOutputValueType(PinRole outRole, int outNodeId) const;
+
+	ConditionLink* selectedConditionLink = nullptr;
+
+	ConditionLink* GetSelectedConditionLink();
+	void DeleteConditionLink(int id);
 };

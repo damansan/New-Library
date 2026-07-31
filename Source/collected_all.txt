@@ -1,5 +1,5 @@
 ===== AdaptiveTrigger.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Controller\AdaptiveTrigger.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Controller\AdaptiveTrigger.h 
 #pragma once
 #include <vector>
 #include <cmath>
@@ -146,7 +146,7 @@ namespace AdaptiveTrigger
 } 
  
 ===== Camera.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\Camera.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Core\Camera.h 
 #pragma once
 #include <DirectXMath.h>
 
@@ -195,7 +195,7 @@ private:
 }; 
  
 ===== framework.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\framework.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Core\framework.h 
 #pragma once
 
 #include <windows.h>
@@ -299,7 +299,7 @@ private:
 }; 
  
 ===== Graphics.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\Graphics.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Core\Graphics.h 
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
@@ -380,7 +380,7 @@ private:
 }; 
  
 ===== ImGuiManager.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\ImGuiManager.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Core\ImGuiManager.h 
 #pragma once
 #include <windows.h>
 #include <d3d11.h>
@@ -419,7 +419,7 @@ public:
 }; 
  
 ===== PhysicsDestroyQueue.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\PhysicsDestroyQueue.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Core\PhysicsDestroyQueue.h 
 #pragma once
 #include <vector>
 #include <PxPhysicsAPI.h>
@@ -461,7 +461,7 @@ namespace PhysicsDestroyQueue
 } 
  
 ===== PhysicsLayer.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\PhysicsLayer.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Core\PhysicsLayer.h 
 #pragma once
 #include <PxPhysicsAPI.h>
 
@@ -513,7 +513,7 @@ private:
 }; 
  
 ===== PhysX.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\PhysX.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Core\PhysX.h 
 #pragma once
 #include <PxPhysicsAPI.h>
 
@@ -560,7 +560,7 @@ private:
 }; 
  
 ===== Scene.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\Scene.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Core\Scene.h 
 #pragma once
 #include "entt.hpp"
 #include "SceneContext.h"
@@ -614,7 +614,7 @@ protected:
 }; 
  
 ===== SceneContext.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\SceneContext.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Core\SceneContext.h 
 #pragma once
 #include <d3d11.h>
 #include <DirectXMath.h>
@@ -648,7 +648,7 @@ struct SceneContext
 }; 
  
 ===== SceneManager.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\SceneManager.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Core\SceneManager.h 
 #pragma once
 #include "Scene.h"
 #include <memory>
@@ -688,7 +688,7 @@ private:
 }; 
  
 ===== Camera.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\Camera.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Core\Camera.cpp 
 #include "Camera.h"
 
 // ‰Šú‰»
@@ -747,7 +747,7 @@ void Camera::SetPerspectiveFov(
 } 
  
 ===== framework.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\framework.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Core\framework.cpp 
 #include "framework.h"
 #include "tracy/Tracy.hpp"
 #include "Game/SceneGame.h"
@@ -1087,7 +1087,7 @@ void framework::openStudioWindow(const std::string& assetPath, const std::string
 } 
  
 ===== Graphics.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\Graphics.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Core\Graphics.cpp 
 #include "Graphics.h"
 #include "Utility/misc.h"
 
@@ -1465,7 +1465,7 @@ void Graphics::Cleanup()
 } 
  
 ===== ImGuiManager.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\ImGuiManager.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Core\ImGuiManager.cpp 
 #include "ImGuiManager.h"
 
 ImGuiManager::~ImGuiManager()
@@ -1566,7 +1566,7 @@ bool ImGuiManager::HandleMessage(HWND hWnd, UINT msg, WPARAM wparam, LPARAM lpar
  
  
 ===== PhysX.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\PhysX.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Core\PhysX.cpp 
 #include "PhysX.h"
 
 using namespace physx;
@@ -1635,7 +1635,7 @@ physx::PxTriangleMesh* PhysX::CreateTriangleMesh(
  
  
 ===== Scene.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\Scene.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Core\Scene.cpp 
 #include "Scene.h"
 
 // •¨—ƒV[ƒ“‚Ìì¬
@@ -1685,7 +1685,7 @@ void Scene::UpdatePhysicsScene(float elapsedTime)
 } 
  
 ===== SceneManager.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Core\SceneManager.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Core\SceneManager.cpp 
 #include "SceneManager.h"
 
 // XV
@@ -1752,7 +1752,7 @@ void SceneManager::ClearScene()
  
  
 ===== WaveDemo.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Demo\WaveDemo.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Demo\WaveDemo.h 
 #pragma once
 #include <entt.hpp>
 #include <d3d11.h>
@@ -1791,7 +1791,7 @@ private:
 }; 
  
 ===== WaveDemo.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Demo\WaveDemo.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Demo\WaveDemo.cpp 
 #include "WaveDemo.h"
 
 void WaveDemo::Initialize(
@@ -1856,7 +1856,7 @@ void WaveDemo::Render(
 } 
  
 ===== AnimatorComponent.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\AnimatorComponent.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\AnimatorComponent.h 
 ï»¿#pragma once
 #include <string>
 #include <DirectXMath.h>
@@ -1886,7 +1886,7 @@ struct AnimatorComponent
 }; 
  
 ===== BaseCameraComponent.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\BaseCameraComponent.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\BaseCameraComponent.h 
 #pragma once
 #include <DirectXMath.h>
 
@@ -1899,7 +1899,7 @@ struct BaseCameraComponent
  
  
 ===== ControllerComponent.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\ControllerComponent.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\ControllerComponent.h 
 ï»¿#pragma once
 #include <cstdint>
 #include "Controller/AdaptiveTrigger.h"
@@ -1958,7 +1958,7 @@ namespace ControllerButtons
 } 
  
 ===== ControllerSettings.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\ControllerSettings.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\ControllerSettings.h 
 #pragma once
 #include <cstdint>
 
@@ -1979,7 +1979,7 @@ struct ControllerSettings
 }; 
  
 ===== FreeCameraComponent.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\FreeCameraComponent.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\FreeCameraComponent.h 
 #pragma once
 #include <windows.h>
 #include "BaseCameraComponent.h"
@@ -1997,7 +1997,7 @@ struct FreeCameraComponent
 }; 
  
 ===== GameCameraComponent.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\GameCameraComponent.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\GameCameraComponent.h 
 #pragma once
 #include <DirectXMath.h>
 #include "entt.hpp"
@@ -2029,7 +2029,7 @@ struct GameCameraComponent
 }; 
  
 ===== IKComponent.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\IKComponent.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\IKComponent.h 
 #pragma once
 #include <DirectXMath.h>
 #include <vector>
@@ -2066,7 +2066,7 @@ struct IKComponent
 }; 
  
 ===== InputComponent.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\InputComponent.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\InputComponent.h 
 #pragma once
 struct InputComponent
 {
@@ -2084,7 +2084,7 @@ struct InputComponent
 }; 
  
 ===== MaterialComponent.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\MaterialComponent.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\MaterialComponent.h 
 #pragma once
 #include <cstdint>
 
@@ -2111,7 +2111,7 @@ struct MaterialComponent
 }; 
  
 ===== MeshComponent.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\MeshComponent.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\MeshComponent.h 
 #pragma once
 #include <string>
 
@@ -2125,7 +2125,7 @@ struct MeshComponent
 }; 
  
 ===== MovementComponent.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\MovementComponent.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\MovementComponent.h 
 #pragma once
 #include <DirectXMath.h>
 
@@ -2146,7 +2146,7 @@ struct MovementComponent
 }; 
  
 ===== PhysicsComponents.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\PhysicsComponents.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\PhysicsComponents.h 
 #pragma once
 #include <PxPhysicsAPI.h>
 
@@ -2182,7 +2182,7 @@ struct CharacterControllerComponent
 }; 
  
 ===== SkinnedMeshComponent.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\SkinnedMeshComponent.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\SkinnedMeshComponent.h 
 #pragma once
 #include <memory>
 #include <vector>
@@ -2208,7 +2208,7 @@ struct SkinnedMeshComponent
 }; 
  
 ===== StaticMeshComponent.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\StaticMeshComponent.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\StaticMeshComponent.h 
 #pragma once
 #include <memory>
 #include "Resource/Model.h"
@@ -2221,7 +2221,7 @@ struct StaticMeshComponent
 }; 
  
 ===== Tags.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\Tags.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\Tags.h 
 #pragma once
 
 // ƒ[ƒhÏ‚İƒtƒ‰ƒO
@@ -2234,7 +2234,7 @@ struct InvisibleTag {};
 struct NoShadowTag {}; 
  
 ===== TransformComponent.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\TransformComponent.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Components\TransformComponent.h 
 #pragma once
 #include <DirectXMath.h>
 
@@ -2256,7 +2256,7 @@ struct TransformComponent
 }; 
  
 ===== AnimationSystem.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\AnimationSystem.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\AnimationSystem.h 
 #pragma once
 #include <d3d11.h>
 #include "entt.hpp"
@@ -2320,7 +2320,7 @@ private:
 }; 
  
 ===== ControllerSystem.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\ControllerSystem.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\ControllerSystem.h 
 #pragma once
 #pragma comment(lib, "Xinput.lib")
 
@@ -2390,7 +2390,7 @@ private:
 }; 
  
 ===== DebugCameraSystem.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\DebugCameraSystem.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\DebugCameraSystem.h 
 #pragma once
 #include "entt.hpp"
 #include "Core/Camera.h"
@@ -2411,7 +2411,7 @@ private:
 }; 
  
 ===== GameCameraSystem.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\GameCameraSystem.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\GameCameraSystem.h 
 #pragma once
 #include "entt.hpp"
 #include "Core/Camera.h"
@@ -2438,7 +2438,7 @@ private:
 }; 
  
 ===== IKSystem.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\IKSystem.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\IKSystem.h 
 #pragma once
 #include <DirectXMath.h>
 #include "entt.hpp"
@@ -2461,7 +2461,7 @@ private:
 }; 
  
 ===== InputSystem.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\InputSystem.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\InputSystem.h 
 #pragma once
 #include "entt.hpp"
 #include "ECS/Components/InputComponent.h"
@@ -2492,7 +2492,7 @@ private:
 }; 
  
 ===== MeshLoaderSystem.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\MeshLoaderSystem.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\MeshLoaderSystem.h 
 #pragma once
 #include <d3d11.h>
 
@@ -2518,7 +2518,7 @@ public:
 }; 
  
 ===== MovementSystem.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\MovementSystem.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\MovementSystem.h 
 #pragma once
 #include "entt.hpp"
 #include "Core/SceneContext.h"
@@ -2530,7 +2530,7 @@ public:
 }; 
  
 ===== PhysicsSystem.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\PhysicsSystem.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\PhysicsSystem.h 
 #pragma once
 #include "entt.hpp"
 #include "Core/PhysX.h"
@@ -2591,7 +2591,7 @@ private:
 }; 
  
 ===== RenderSystem.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\RenderSystem.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\RenderSystem.h 
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
@@ -2787,7 +2787,7 @@ private:
 }; 
  
 ===== TwoBoneIKSolver.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\TwoBoneIKSolver.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\TwoBoneIKSolver.h 
 #pragma once
 #include <DirectXMath.h>
 
@@ -2821,7 +2821,7 @@ namespace TwoBoneIKSolver
 } 
  
 ===== AnimationSystem.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\AnimationSystem.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\AnimationSystem.cpp 
 #include "AnimationSystem.h"
 #include "tracy/Tracy.hpp"
 #include "Resource/SkeletonUtils.h"
@@ -3221,7 +3221,7 @@ DirectX::XMFLOAT3 AnimationSystem::CalcRootMotionDelta(
  
  
 ===== ControllerSystem.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\ControllerSystem.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\ControllerSystem.cpp 
 ï»¿#include "ControllerSystem.h"
 #include <cmath>
 #include <algorithm>
@@ -3463,7 +3463,7 @@ void ControllerSystem::TryConnectPS5()
  
  
 ===== DebugCameraSystem.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\DebugCameraSystem.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\DebugCameraSystem.cpp 
 #include "DebugCameraSystem.h"
 #include <imgui.h>
 #include <algorithm>
@@ -3609,7 +3609,7 @@ void DebugCameraSystem::UpdateFreeCamera(FreeCameraComponent& free, float elapse
 } 
  
 ===== GameCameraSystem.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\GameCameraSystem.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\GameCameraSystem.cpp 
 #include "GameCameraSystem.h"
 #include <algorithm>
 
@@ -3742,7 +3742,7 @@ void GameCameraSystem::UpdateFixed(
 } 
  
 ===== IKSystem.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\IKSystem.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\IKSystem.cpp 
 #include "IKSystem.h"
 #include "ECS/Systems/TwoBoneIKSolver.h"
 #include "Resource/SkeletonUtils.h"
@@ -3912,7 +3912,7 @@ void IKSystem::SolveFootIK(FootIKSettings& footSettings, SkinnedMeshComponent& s
 } 
  
 ===== InputSystem.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\InputSystem.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\InputSystem.cpp 
 ï»¿#include "InputSystem.h"
 #include <cmath>
 #include <algorithm>
@@ -3996,7 +3996,7 @@ float InputSystem::ApplyTriggerDeadzone(float value, float deadzone)
  
  
 ===== MeshLoaderSystem.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\MeshLoaderSystem.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\MeshLoaderSystem.cpp 
 #include "MeshLoaderSystem.h"
 
 void MeshLoaderSystem::Update(
@@ -4079,7 +4079,7 @@ void MeshLoaderSystem::Update(
 } 
  
 ===== MovementSystem.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\MovementSystem.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\MovementSystem.cpp 
 #include "MovementSystem.h"
 
 #include "ECS/Components/InputComponent.h"
@@ -4162,7 +4162,7 @@ void MovementSystem::Update(entt::registry& registry, float elapsedTime, const S
  
  
 ===== PhysicsSystem.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\PhysicsSystem.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\PhysicsSystem.cpp 
 #include "PhysicsSystem.h"
 #include "Core/PhysicsDestroyQueue.h"
 #include "Core/PhysicsLayer.h"
@@ -4450,7 +4450,7 @@ void PhysicsSystem::ProcessCharacterControllers(entt::registry& registry, PhysX&
  
  
 ===== RenderSystem.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\RenderSystem.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\RenderSystem.cpp 
 ï»¿#include "RenderSystem.h"
 #include "Resource/GpuResourceUtils.h"
 #include "Utility/misc.h"
@@ -5052,7 +5052,7 @@ void RenderSystem::ForwardTransparentPass(
  
  
 ===== TwoBoneIKSolver.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\TwoBoneIKSolver.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\ECS\Systems\TwoBoneIKSolver.cpp 
 #include "TwoBoneIKSolver.h"
 #include <algorithm>
 #include <cmath>
@@ -5232,7 +5232,7 @@ namespace TwoBoneIKSolver
 } 
  
 ===== ComponentRegistry.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Editor\ComponentRegistry.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Editor\ComponentRegistry.h 
 #pragma once
 #include <string>
 #include <vector>
@@ -5262,7 +5262,7 @@ private:
 }; 
  
 ===== ComponentRegistryInitializer.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Editor\ComponentRegistryInitializer.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Editor\ComponentRegistryInitializer.h 
 #pragma once
 
 class ComponentRegistryInitializer
@@ -5273,7 +5273,7 @@ public:
 }; 
  
 ===== EditorContext.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Editor\EditorContext.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Editor\EditorContext.h 
 #pragma once
 #include <string>
 #include <unordered_map>
@@ -5329,7 +5329,7 @@ struct EditorContext
 }; 
  
 ===== HierarchyWindow.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Editor\HierarchyWindow.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Editor\HierarchyWindow.h 
 #pragma once
 #include "entt.hpp"
 #include "Editor/EditorContext.h"
@@ -5342,7 +5342,7 @@ public:
 }; 
  
 ===== InspectorWindow.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Editor\InspectorWindow.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Editor\InspectorWindow.h 
 #pragma once
 #include "entt.hpp"
 #include "EditorContext.h"
@@ -5365,7 +5365,7 @@ private:
 }; 
  
 ===== MetaRegistry.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Editor\MetaRegistry.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Editor\MetaRegistry.h 
 #pragma once
 #include <string>
 #include <vector>
@@ -5412,10 +5412,13 @@ public:
 
 	// “o˜^Ï‚İ‚ÌƒtƒB[ƒhˆê——‚ğæ“¾‚·‚é
 	static const std::vector<FieldEntry>& GetAllFields();
+
+	// Float2/3/4Œ^‚ÌA¬•ª”‚ğ•Ô‚·(‚»‚êˆÈŠO‚Í0)
+	static int GetComponentCount(ValueType type);
 }; 
  
 ===== ProjectWindow.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Editor\ProjectWindow.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Editor\ProjectWindow.h 
 #pragma once
 #include <string>
 #include <vector>
@@ -5489,7 +5492,7 @@ private:
 }; 
  
 ===== ComponentRegistry.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Editor\ComponentRegistry.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Editor\ComponentRegistry.cpp 
 #include "ComponentRegistry.h"
 
 std::unordered_map<std::string, ComponentInfo> ComponentRegistry::registry;
@@ -5516,7 +5519,7 @@ const ComponentInfo* ComponentRegistry::Get(const std::string& name)
 } 
  
 ===== ComponentRegistryInitializer.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Editor\ComponentRegistryInitializer.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Editor\ComponentRegistryInitializer.cpp 
 #include "ComponentRegistryInitializer.h"
 #include "Editor/ComponentRegistry.h"
 #include <imgui.h>
@@ -5951,7 +5954,7 @@ void ComponentRegistryInitializer::Initialize()
  
  
 ===== HierarchyWindow.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Editor\HierarchyWindow.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Editor\HierarchyWindow.cpp 
 #include "HierarchyWindow.h"
 #include "imgui_internal.h"
 #include <imgui.h>
@@ -6099,7 +6102,7 @@ void HierarchyWindow::Draw(entt::registry& registry, EditorContext& context)
 } 
  
 ===== InspectorWindow.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Editor\InspectorWindow.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Editor\InspectorWindow.cpp 
 #include "InspectorWindow.h"
 #include <imgui.h>
 #include "imgui_internal.h"
@@ -6224,7 +6227,7 @@ void InspectorWindow::DrawAddComponent(entt::registry& registry, EditorContext& 
  
  
 ===== MetaRegistry.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Editor\MetaRegistry.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Editor\MetaRegistry.cpp 
 #include "MetaRegistry.h"
 #include <DirectXMath.h>
 #include <filesystem>
@@ -6414,8 +6417,11 @@ const std::vector<FieldEntry>& MetaRegistry::GetAllFields()
 
 				entt::meta_type fieldType = metaData.type();
 				ValueType valueType = ValueType::Float;
-				if (fieldType == entt::resolve<bool>())      valueType = ValueType::Bool;
-				else if (fieldType == entt::resolve<int>())  valueType = ValueType::Int;
+				if (fieldType == entt::resolve<bool>())                   valueType = ValueType::Bool;
+				else if (fieldType == entt::resolve<int>())               valueType = ValueType::Int;
+				else if (fieldType == entt::resolve<DirectX::XMFLOAT2>()) valueType = ValueType::Float2;
+				else if (fieldType == entt::resolve<DirectX::XMFLOAT3>()) valueType = ValueType::Float3;
+				else if (fieldType == entt::resolve<DirectX::XMFLOAT4>()) valueType = ValueType::Float4;
 
 				fieldEntries.push_back(FieldEntry{
 					metaType, fieldId, componentName, category, label, valueType
@@ -6425,10 +6431,23 @@ const std::vector<FieldEntry>& MetaRegistry::GetAllFields()
 	}
 
 	return fieldEntries;
-} 
+}
+
+// Float2/3/4Œ^‚ÌA¬•ª”‚ğ•Ô‚·(‚»‚êˆÈŠO‚Í0)
+int MetaRegistry::GetComponentCount(ValueType type)
+{
+	switch (type)
+	{
+	case ValueType::Float2: return 2;
+	case ValueType::Float3: return 3;
+	case ValueType::Float4: return 4;
+	default: return 0;
+	}
+}
+ 
  
 ===== ProjectWindow.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Editor\ProjectWindow.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Editor\ProjectWindow.cpp 
 #include "ProjectWindow.h"
 #include <imgui.h>
 
@@ -7028,7 +7047,7 @@ void ProjectWindow::CommitRename()
  
  
 ===== SceneGame.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Game\SceneGame.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Game\SceneGame.h 
 #pragma once
 #include "Core/Scene.h"
 
@@ -7095,7 +7114,7 @@ private:
  
  
 ===== SceneGame.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Game\SceneGame.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Game\SceneGame.cpp 
 ï»¿#include "SceneGame.h"
 #include <imgui.h>
 
@@ -7363,7 +7382,7 @@ void SceneGame::RenderImGui()
 } 
  
 ===== GBuffer.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Rendering\GBuffer.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Rendering\GBuffer.h 
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
@@ -7403,7 +7422,7 @@ private:
 }; 
  
 ===== LightManager.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Rendering\LightManager.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Rendering\LightManager.h 
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
@@ -7471,7 +7490,7 @@ private:
 }; 
  
 ===== PhysicsDebugRenderer.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Rendering\PhysicsDebugRenderer.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Rendering\PhysicsDebugRenderer.h 
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
@@ -7525,7 +7544,7 @@ private:
 }; 
  
 ===== PrimitiveRenderer.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Rendering\PrimitiveRenderer.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Rendering\PrimitiveRenderer.h 
 #pragma once
 #include <vector>
 #include <wrl.h>
@@ -7571,7 +7590,7 @@ private:
 }; 
  
 ===== ShapeRenderer.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Rendering\ShapeRenderer.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Rendering\ShapeRenderer.h 
 #pragma once
 #include <vector>
 #include <wrl.h>
@@ -7734,7 +7753,7 @@ private:
 }; 
  
 ===== SkyBox.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Rendering\SkyBox.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Rendering\SkyBox.h 
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
@@ -7803,7 +7822,7 @@ private:
 }; 
  
 ===== GBuffer.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Rendering\GBuffer.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Rendering\GBuffer.cpp 
 #include "GBuffer.h"
 #include "Utility/misc.h"
 
@@ -7885,7 +7904,7 @@ void GBuffer::EndGeometryPass(ID3D11DeviceContext* dc)
 } 
  
 ===== LightManager.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Rendering\LightManager.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Rendering\LightManager.cpp 
 #include "LightManager.h"
 #include "Resource/GpuResourceUtils.h"
 #include "Utility/misc.h"
@@ -7973,7 +7992,7 @@ void LightManager::Bind(ID3D11DeviceContext* dc)
  
  
 ===== PhysicsDebugRenderer.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Rendering\PhysicsDebugRenderer.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Rendering\PhysicsDebugRenderer.cpp 
 #include "PhysicsDebugRenderer.h"
 #include "ECS/Systems/PhysicsSystem.h"
 
@@ -8283,7 +8302,7 @@ PhysicsDebugRenderer::GetOrCreateTriangleMeshCache(
 } 
  
 ===== PrimitiveRenderer.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Rendering\PrimitiveRenderer.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Rendering\PrimitiveRenderer.cpp 
 #include "PrimitiveRenderer.h"
 #include "Resource/GpuResourceUtils.h"
 
@@ -8375,7 +8394,7 @@ void PrimitiveRenderer::Render(
 } 
  
 ===== ShapeRenderer.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Rendering\ShapeRenderer.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Rendering\ShapeRenderer.cpp 
 #include "ShapeRenderer.h"
 #include "Resource/GpuResourceUtils.h"
 
@@ -8965,7 +8984,7 @@ void ShapeRenderer::CreateSolidCylinderMesh(ID3D11Device* device, int subdivisio
  
  
 ===== SkyBox.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Rendering\SkyBox.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Rendering\SkyBox.cpp 
 #include "SkyBox.h"
 #include "Resource/GpuResourceUtils.h"
 #include "Utility/misc.h"
@@ -9143,7 +9162,7 @@ void SkyBox::Render(
  
  
 ===== GLTFConverter.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\GLTFConverter.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\GLTFConverter.h 
 #pragma once
 #include <memory>
 #include <d3d11.h>
@@ -9192,7 +9211,7 @@ private:
 }; 
  
 ===== GLTFData.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\GLTFData.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\GLTFData.h 
 #pragma once
 #include <string>
 #include <vector>
@@ -9309,7 +9328,7 @@ struct GLTFData
 }; 
  
 ===== GLTFImporter.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\GLTFImporter.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\GLTFImporter.h 
 #pragma once
 #include <memory>
 #include <string>
@@ -9385,7 +9404,7 @@ private:
 }; 
  
 ===== GpuResourceUtils.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\GpuResourceUtils.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\GpuResourceUtils.h 
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
@@ -9463,7 +9482,7 @@ public:
 }; 
  
 ===== Model.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\Model.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\Model.h 
 #pragma once
 
 #include <string>
@@ -9645,7 +9664,7 @@ private:
 }; 
  
 ===== ModelSerializer.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\ModelSerializer.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\ModelSerializer.h 
 #pragma once
 #include <memory>
 #include <string>
@@ -9676,7 +9695,7 @@ public:
 }; 
  
 ===== ResourceManager.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\ResourceManager.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\ResourceManager.h 
 #pragma once
 #include <string>
 #include <memory>
@@ -9715,7 +9734,7 @@ private:
 }; 
  
 ===== SkeletonUtils.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\SkeletonUtils.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\SkeletonUtils.h 
 #pragma once
 #include <vector>
 #include <DirectXMath.h>
@@ -9740,7 +9759,7 @@ namespace SkeletonUtils
 } 
  
 ===== GLTFConverter.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\GLTFConverter.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\GLTFConverter.cpp 
 #include "GLTFConverter.h"
 #include "GpuResourceUtils.h"
 #include "Utility/misc.h"
@@ -10113,7 +10132,7 @@ void GLTFConverter::ConvertAnimations(
  
  
 ===== GLTFImporter.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\GLTFImporter.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\GLTFImporter.cpp 
 #include "GLTFImporter.h"
 #include "Utility/misc.h"
 #include <filesystem>
@@ -10928,7 +10947,7 @@ void GLTFImporter::CalcGlobalTransform(
  
  
 ===== GpuResourceUtils.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\GpuResourceUtils.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\GpuResourceUtils.cpp 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 #include "GpuResourceUtils.h"
@@ -11250,7 +11269,7 @@ HRESULT GpuResourceUtils::CreateConstantBuffer(
  
  
 ===== Model.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\Model.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\Model.cpp 
 #include "Model.h"
 
 // “ü—ÍƒŒƒCƒAƒEƒg’è‹`
@@ -11265,7 +11284,7 @@ const std::vector<D3D11_INPUT_ELEMENT_DESC> Model::InputElementDescs =
 }; 
  
 ===== ModelSerializer.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\ModelSerializer.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\ModelSerializer.cpp 
 #include "ModelSerializer.h"
 #include "Model.h"
 #include "Utility/CerealHelper.h"
@@ -11425,7 +11444,7 @@ std::string ModelSerializer::ToCerealPath(const std::string& gltfPath)
 } 
  
 ===== ResourceManager.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\ResourceManager.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\ResourceManager.cpp 
 #include "ResourceManager.h"
 #include "GLTFImporter.h"
 #include "GLTFConverter.h" 
@@ -11486,7 +11505,7 @@ void ResourceManager::ReleaseAll()
  
  
 ===== SkeletonUtils.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Resource\SkeletonUtils.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Resource\SkeletonUtils.cpp 
 #include "SkeletonUtils.h"
 #include <functional>
 
@@ -11581,7 +11600,7 @@ namespace SkeletonUtils
 } 
  
 ===== AdaptiveTriggerToolWindow.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Tool\AdaptiveTriggerToolWindow.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\AdaptiveTriggerToolWindow.h 
 #pragma once
 #include <vector>
 #include "ECS/Components/ControllerComponent.h"
@@ -11623,29 +11642,43 @@ private:
 }; 
  
 ===== AnimatorGraph.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Tool\AnimatorGraph.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\AnimatorGraph.h 
 #pragma once
 #include <string>
 #include <vector>
 #include <json.hpp>
 
-// qŠK‘wƒm[ƒh‚Ìí—Ş
-enum class AnimNodeType
+// == StateƒOƒ‰ƒtŠÖ˜A == //
+enum class AnimNodeType // qŠK‘wƒm[ƒh‚Ìí—Ş
 {
 	Normal, // ƒAƒjƒ[ƒVƒ‡ƒ“ƒm[ƒh
 	Start,  // ŠJn“_
 	End,    // I—¹“_
 };
-
-// eŠK‘w‚Ìƒm[ƒh‚Ìí—Ş
-enum class AnimStateType
+enum class AnimStateType // eŠK‘w‚Ìƒm[ƒh‚Ìí—Ş
 {
 	Entry, // ŠJn“_
 	State, // ƒm[ƒh
 };
 
-// ”äŠr‰‰Zq‚Ìí—Ş
-enum class CompareOp
+
+// == ğŒƒOƒ‰ƒtŠÖ˜A == //
+enum class ValueType // •Ï”ƒm[ƒh‚ª‚Â’l‚ÌŒ^
+{
+	Int,
+	Float,
+	Bool,
+
+	Float2,
+	Float3,
+	Float4,
+};
+enum class FloatComponent // \‘¢‘Ì‚Ì‚Ç‚Ì¬•ª‚ğæ‚èo‚·‚©
+{
+	None,
+	X, Y, Z, W,
+};
+enum class CompareOp // ”äŠr‰‰Zq‚Ìí—Ş
 {
 	Greater,      // >
 	Less,         // <
@@ -11654,17 +11687,7 @@ enum class CompareOp
 	GreaterEqual, // >=
 	LessEqual,    // <=
 };
-
-// •Ï”ƒm[ƒh‚ª‚Â’l‚ÌŒ^
-enum class ValueType
-{
-	Int,
-	Float,
-	Bool,
-};
-
-// ƒRƒ“ƒ|[ƒlƒ“ƒg‚Ì’l‚ğæ“¾‚·‚éƒm[ƒh
-struct ConditionGetterNode
+struct ConditionGetterNode // ƒRƒ“ƒ|[ƒlƒ“ƒg‚Ì’l‚ğæ“¾‚·‚éƒm[ƒh
 {
 	int id = -1;
 	float posX = 0.0f;
@@ -11672,66 +11695,59 @@ struct ConditionGetterNode
 	std::string componentName; // MetaRegistry‚Å“o˜^‚µ‚½Œ^–¼
 	std::string fieldName;     // entt::metaã‚ÌƒtƒB[ƒ‹ƒh–¼
 	ValueType type = ValueType::Float;
+	FloatComponent selectedComponent = FloatComponent::None;
 };  
-
-
-// •Ï”ƒm[ƒh
-struct ConditionVariableNode
+struct ConditionVariableNode // •Ï”ƒm[ƒh
 {
 	int id = -1;
 	float posX = 0.0f;
 	float posY = 0.0f;
 	std::string name; // ‹ó‚ÌŠÔ‚Í"Variable"‚Æ•\¦
 	ValueType type = ValueType::Float;
+	
+	// •Ï”Œ^‚É‰‚¶‚ÄˆÈ‰º‚Ì‚Ç‚ê‚©‚ğg—p‚·‚é
 	int intValue = 0;
 	float floatValue = 0.0f;
 	bool boolValue = false;
 };
-
-// ”äŠrƒm[ƒh
-struct ConditionOperatorNode
+struct ConditionOperatorNode // ”äŠrƒm[ƒh
 {
 	int id = -1;
 	float posX = 0.0f;
 	float posY = 0.0f;
 
 	CompareOp op = CompareOp::Greater;
-	float compareValue = 0.0f;
 };
-
-// ğŒƒOƒ‰ƒt“à‚ÌƒŠƒ“ƒN
-struct ConditionLink
+struct ConditionReturnNode // ğŒƒOƒ‰ƒt‚ÌI’…“_
+{
+	int id = -1;
+	float posX = 0.0f;
+	float posY = 0.0f;
+};
+struct ConditionLink // ğŒƒOƒ‰ƒt“à‚ÌƒŠƒ“ƒN
 {
 	int id = -1;
 	int fromId = -1;
 	int toId = -1;
 	bool toPinB = false;
 };
-
-// ğŒƒOƒ‰ƒt‚ÌI’…“_
-struct ConditionReturnNode
-{
-	int id = -1;
-	float posX = 0.0f;
-	float posY = 0.0f;
-};
-
-// Link1–{•ª‚ÌğŒƒOƒ‰ƒt
-struct ConditionGraph
+struct ConditionGraph // Link1–{•ª‚ÌğŒƒOƒ‰ƒt
 {
 	ConditionReturnNode returnNode;
 
 	std::vector<ConditionVariableNode> variableNodes;
 	std::vector<ConditionGetterNode>   getterNodes;
 	std::vector<ConditionOperatorNode> operatorNodes;
-	std::vector<ConditionLink> links;
+	std::vector<ConditionLink> links;   // Getter/Variable/Operator/Return“¯m‚ğŒq‚®ƒŠƒ“ƒN
 
+	// ‚±‚ÌLinkê—p‚ÌIDÌ”ÔƒJƒEƒ“ƒ^[
 	int nextId = 1;
 	int GenerateId() { return nextId++; }
 };
 
-// ƒŠƒ“ƒN
-struct AnimLink
+
+// == StateƒOƒ‰ƒO–{‘Ì == //
+struct AnimLink // ƒŠƒ“ƒN
 {
 	int id = -1;     // ‚±‚ÌƒŠƒ“ƒN‚ÌID
 	int fromId = -1; // ‘JˆÚŒ³‚ÌID
@@ -11739,9 +11755,7 @@ struct AnimLink
 
 	ConditionGraph condition; // ‚±‚ÌLink‚Ì‘JˆÚğŒƒOƒ‰ƒt
 };
-
-// qŠK‘wƒm[ƒh
-struct AnimNode
+struct AnimNode // qŠK‘wƒm[ƒh
 {
 	int id = -1;
 	std::string name;
@@ -11752,9 +11766,7 @@ struct AnimNode
 	AnimNodeType type = AnimNodeType::Normal;
 	std::string clipName;
 };
-
-// eŠK‘wƒm[ƒh
-struct AnimState
+struct AnimState // eŠK‘wƒm[ƒh
 {
 	int id = -1;
 	std::string name;
@@ -11764,13 +11776,11 @@ struct AnimState
 
 	AnimStateType type = AnimStateType::State;
 
-	//float color[3] = { 0.45f, 0.45f, 0.45f }; // ‰Šú’l‚ÍƒOƒŒ[
 	float color[3] = { 0.27f, 0.35f, 0.47f };
 
 	std::vector<AnimNode> children;
 	std::vector<AnimLink> childLinks;
 };
-
 
 
 class AnimatorGraph
@@ -11791,6 +11801,7 @@ public:
 	// Link‚ğíœ‚·‚é
 	void DeleteLink(int linkId);
 
+	// State/StateLink—p‚ÌIDÌ”ÔƒJƒEƒ“ƒ^[
 	int GenerateId() { return nextId++; }
 
 	// ƒOƒ‰ƒt“à—e‚ğJson‚É•ÏŠ·‚·‚é
@@ -11802,11 +11813,21 @@ private:
 	// Entry‚ª‚È‚¯‚ê‚Îì¬‚·‚é
 	void EnsureEntryExists();
 
+	// States‚ğ•Û‘¶“à—e‚Ö•ÏŠ·
+	nlohmann::ordered_json StatesToJson() const;
+	// States‚ğ•Û‘¶“à—e‚©‚ç•œŒ³‚·‚é
+	void StatesFromJson(const nlohmann::json& j);
+
+	// StateLinks‚ğ•Û‘¶“à—e‚Ö•ÏŠ·
+	nlohmann::ordered_json StateLinksToJson() const;
+	// StateLinks‚ğ•Û‘¶“à—e‚©‚ç•œŒ³‚·‚é
+	void StateLinksFromJson(const nlohmann::json& j);
+
 	int nextId = 1;
 }; 
  
 ===== IEditorNode.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Tool\IEditorNode.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\IEditorNode.h 
 #pragma once
 
 class IEditorNode
@@ -11824,7 +11845,7 @@ public:
 }; 
  
 ===== NodeEditorCanvas.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Tool\NodeEditorCanvas.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\NodeEditorCanvas.h 
 #pragma once
 #include <imgui_node_editor.h>
 
@@ -11847,7 +11868,7 @@ private:
 }; 
  
 ===== AdaptiveTriggerToolWindow.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Tool\AdaptiveTriggerToolWindow.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\AdaptiveTriggerToolWindow.cpp 
 #include "AdaptiveTriggerToolWindow.h"
 #include <imgui.h>
 #include <algorithm>
@@ -12242,32 +12263,16 @@ void AdaptiveTriggerToolWindow::DrawSelectedPointPanel(std::vector<AdaptiveTrigg
 } 
  
 ===== AnimatorGraph.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Tool\AnimatorGraph.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\AnimatorGraph.cpp 
 #include "AnimatorGraph.h"
 #include <algorithm>
 
+// == enum‚Ì•¶š•ÏŠ· == //
 namespace
 {
-	// enum‚Ì•¶š•ÏŠ·
-	std::string ToString(AnimStateType type)
-	{
-		switch (type)
-		{
-		case AnimStateType::Entry: return "Entry";
-		case AnimStateType::State: return "State";
-		}
-		return "State";
-	}
+	// ===== enum‚Ì•¶š•ÏŠ·(StateƒOƒ‰ƒtŠÖ˜A) =====
 
-	AnimStateType ToAnimStateType(const std::string& s)
-	{
-		if (s == "Entry") 
-		{
-			return AnimStateType::Entry;
-		}
-		return AnimStateType::State;
-	}
-
+	// AnimNodeType(qŠK‘wƒm[ƒh‚Ìí—Ş)
 	std::string ToString(AnimNodeType type)
 	{
 		switch (type)
@@ -12278,24 +12283,6 @@ namespace
 		}
 		return "Normal";
 	}
-
-	std::string ToString(ValueType type)
-	{
-		switch (type)
-		{
-		case ValueType::Int:   return "Int";
-		case ValueType::Float: return "Float";
-		case ValueType::Bool:  return "Bool";
-		default:               return "Float";
-		}
-	}
-	ValueType ToValueType(const std::string& s)
-	{
-		if (s == "Int")  return ValueType::Int;
-		if (s == "Bool") return ValueType::Bool;
-		return ValueType::Float;
-	}
-
 	AnimNodeType ToAnimNodeType(const std::string& s)
 	{
 		if (s == "Start") return AnimNodeType::Start;
@@ -12303,6 +12290,77 @@ namespace
 		return AnimNodeType::Normal;
 	}
 
+
+	// AnimStateType(eŠK‘w‚Ìƒm[ƒh‚Ìí—Ş)
+	std::string ToString(AnimStateType type)
+	{
+		switch (type)
+		{
+		case AnimStateType::Entry: return "Entry";
+		case AnimStateType::State: return "State";
+		}
+		return "State";
+	}
+	AnimStateType ToAnimStateType(const std::string& s)
+	{
+		if (s == "Entry") 
+		{
+			return AnimStateType::Entry;
+		}
+		return AnimStateType::State;
+	}
+
+
+	// ===== enum‚Ì•¶š•ÏŠ·(ğŒƒOƒ‰ƒtŠÖ˜A) =====
+
+	// ValueType(•Ï”ƒm[ƒh‚ª‚Â’l‚ÌŒ^)
+	std::string ToString(ValueType type)
+	{
+		switch (type)
+		{
+		case ValueType::Int:    return "Int";
+		case ValueType::Float:  return "Float";
+		case ValueType::Bool:   return "Bool";
+
+		case ValueType::Float2: return "Float2";
+		case ValueType::Float3: return "Float3";
+		case ValueType::Float4: return "Float4";
+		default:                return "Float";
+		}
+	}
+	ValueType ToValueType(const std::string& s)
+	{
+		if (s == "Int")    return ValueType::Int;
+		if (s == "Bool")   return ValueType::Bool;
+		if (s == "Float2") return ValueType::Float2;
+		if (s == "Float3") return ValueType::Float3;
+		if (s == "Float4") return ValueType::Float4;
+		return ValueType::Float;
+	}
+
+
+	// FloatComponent(\‘¢‘Ì‚Ì‚Ç‚Ì¬•ª‚ğæ‚èo‚·‚©)
+	std::string ToString(FloatComponent c)
+	{
+		switch (c)
+		{
+		case FloatComponent::X: return "X";
+		case FloatComponent::Y: return "Y";
+		case FloatComponent::Z: return "Z";
+		case FloatComponent::W: return "W";
+		default:                return "None";
+		}
+	}
+	FloatComponent ToFloatComponent(const std::string& s)
+	{
+		if (s == "X") return FloatComponent::X;
+		if (s == "Y") return FloatComponent::Y;
+		if (s == "Z") return FloatComponent::Z;
+		if (s == "W") return FloatComponent::W;
+		return FloatComponent::None;
+	}
+
+	// CompareOp(”äŠr‰‰Zq‚Ìí—Ş)
 	std::string ToString(CompareOp op)
 	{
 		switch (op)
@@ -12327,12 +12385,14 @@ namespace
 	}
 }
 
-
+// ƒRƒ“ƒXƒgƒ‰ƒNƒ^
 AnimatorGraph::AnimatorGraph()
 {
+	// ‹ó‚ÌƒOƒ‰ƒt‚ğì‚éê‡‚Å‚àAEntry‚¾‚¯‚Í•K‚¸‘¶İ‚·‚éó‘Ô‚É‚·‚é
 	EnsureEntryExists();
 }
 
+// State‚ğì¬‚·‚é
 int AnimatorGraph::CreateState(const std::string& name, float posX, float posY)
 {
 	AnimState state;
@@ -12343,9 +12403,12 @@ int AnimatorGraph::CreateState(const std::string& name, float posX, float posY)
 	state.type = AnimStateType::State;
 
 	states.push_back(state);
+
+	// ì»‚µ‚½State‚ÌID‚ğ•Ô‚·
 	return state.id;
 }
 
+// State‚ğíœ‚·‚é
 void AnimatorGraph::DeleteState(int stateId)
 {
 	states.erase(
@@ -12400,8 +12463,54 @@ void AnimatorGraph::DeleteLink(int linkId)
 nlohmann::ordered_json AnimatorGraph::ToJson() const
 {
 	nlohmann::ordered_json j;
+	j["states"] = StatesToJson();
+	j["stateLinks"] = StateLinksToJson();
+	return j;
+}
 
-	j["states"] = nlohmann::json::array();
+// Json‚©‚ç’†g‚ğ•ÏŠ·‚·‚é
+void AnimatorGraph::FromJson(const nlohmann::json& j)
+{
+	states.clear();
+	stateLinks.clear();
+
+	if (j.contains("states")) StatesFromJson(j["states"]);
+	if (j.contains("stateLinks")) StateLinksFromJson(j["stateLinks"]);
+
+	// “Ç‚İ‚ñ‚¾Œ‹‰ÊEntry‚ª–³‚©‚Á‚½ê‡‚Ì•ÛŒ¯
+	EnsureEntryExists();
+}
+
+// Entry‚ª‚È‚¯‚ê‚Îì¬‚·‚é
+void AnimatorGraph::EnsureEntryExists()
+{
+	bool hasEntry = false;
+	for (const auto& s : states)
+	{
+		if (s.type == AnimStateType::Entry)
+		{
+			hasEntry = true;
+			break;
+		}
+	}
+
+	if (!hasEntry)
+	{
+		AnimState entry;
+		entry.id = GenerateId();
+		entry.name = "Entry";
+		entry.posX = 50.0f;
+		entry.posY = 200.0f;
+		entry.type = AnimStateType::Entry;
+		states.push_back(entry);
+	}
+}
+
+// States‚ğ•Û‘¶“à—e‚Ö•ÏŠ·
+nlohmann::ordered_json AnimatorGraph::StatesToJson() const
+{
+	nlohmann::ordered_json jStates = nlohmann::json::array();
+
 	for (const auto& state : states)
 	{
 		nlohmann::ordered_json js;
@@ -12435,10 +12544,70 @@ nlohmann::ordered_json AnimatorGraph::ToJson() const
 			js["childLinks"].push_back(jl);
 		}
 
-		j["states"].push_back(js);
+		jStates.push_back(js);
 	}
 
-	j["stateLinks"] = nlohmann::json::array();
+	return jStates;
+}
+// States‚ğ•Û‘¶“à—e‚©‚ç•œŒ³‚·‚é
+void AnimatorGraph::StatesFromJson(const nlohmann::json& j)
+{
+	for (const auto& js : j)
+	{
+		AnimState state;
+		state.id = js.value("id", -1);
+		state.name = js.value("name", "");
+		state.posX = js.value("posX", 0.0f);
+		state.posY = js.value("posY", 0.0f);
+		state.type = ToAnimStateType(js.value("type", "State"));
+
+		if (js.contains("color") && js["color"].is_array() && js["color"].size() == 3)
+		{
+			state.color[0] = js["color"][0].get<float>();
+			state.color[1] = js["color"][1].get<float>();
+			state.color[2] = js["color"][2].get<float>();
+		}
+
+		if (js.contains("children"))
+		{
+			for (const auto& jn : js["children"])
+			{
+				AnimNode node;
+				node.id = jn.value("id", -1);
+				node.name = jn.value("name", "");
+				node.posX = jn.value("posX", 0.0f);
+				node.posY = jn.value("posY", 0.0f);
+				node.type = ToAnimNodeType(jn.value("type", "Normal"));
+				node.clipName = jn.value("clipName", "");
+				state.children.push_back(node);
+			}
+		}
+
+		if (js.contains("childLinks"))
+		{
+			for (const auto& jl : js["childLinks"])
+			{
+				AnimLink link;
+				link.id = jl.value("id", -1);
+				link.fromId = jl.value("fromId", -1);
+				link.toId = jl.value("toId", -1);
+				state.childLinks.push_back(link);
+			}
+		}
+
+		states.push_back(state);
+
+		// •œŒ³Œã‚àID‚ªd•¡‚µ‚È‚¢‚æ‚¤AÌ”ÔƒJƒEƒ“ƒ^‚ğ’Ç]‚³‚¹‚é
+		if (state.id >= nextId) nextId = state.id + 1;
+	}
+
+}
+
+// StateLinks‚ğ•Û‘¶“à—e‚Ö•ÏŠ·
+nlohmann::ordered_json AnimatorGraph::StateLinksToJson() const
+{
+	nlohmann::ordered_json jLinks = nlohmann::json::array();
+
 	for (const auto& link : stateLinks)
 	{
 		nlohmann::ordered_json jl;
@@ -12476,7 +12645,6 @@ nlohmann::ordered_json AnimatorGraph::ToJson() const
 			jo["posX"] = o.posX;
 			jo["posY"] = o.posY;
 			jo["op"] = ToString(o.op);
-			jo["compareValue"] = o.compareValue;
 			jc["operatorNodes"].push_back(jo);
 		}
 
@@ -12490,6 +12658,7 @@ nlohmann::ordered_json AnimatorGraph::ToJson() const
 			jg["componentName"] = g.componentName;
 			jg["fieldName"] = g.fieldName;
 			jg["type"] = ToString(g.type);
+			jg["selectedComponent"] = ToString(g.selectedComponent);
 			jc["getterNodes"].push_back(jg);
 		}
 
@@ -12506,196 +12675,110 @@ nlohmann::ordered_json AnimatorGraph::ToJson() const
 
 		jl["condition"] = jc;
 
-		j["stateLinks"].push_back(jl);
+		jLinks.push_back(jl);
 	}
-	return j;
+
+	return jLinks;
 }
-
-// Json‚©‚ç’†g‚ğ•ÏŠ·‚·‚é
-void AnimatorGraph::FromJson(const nlohmann::json& j)
+// StateLinks‚ğ•Û‘¶“à—e‚©‚ç•œŒ³‚·‚é
+void AnimatorGraph::StateLinksFromJson(const nlohmann::json& j)
 {
-	states.clear();
-	stateLinks.clear();
-
-	if (j.contains("states"))
+	for (const auto& jl : j)
 	{
-		for (const auto& js : j["states"])
+		AnimLink link;
+		link.id = jl.value("id", -1);
+		link.fromId = jl.value("fromId", -1);
+		link.toId = jl.value("toId", -1);
+
+		if (jl.contains("condition"))
 		{
-			AnimState state;
-			state.id = js.value("id", -1);
-			state.name = js.value("name", "");
-			state.posX = js.value("posX", 0.0f);
-			state.posY = js.value("posY", 0.0f);
-			state.type = ToAnimStateType(js.value("type", "State"));
+			const auto& jc = jl["condition"];
+			link.condition.nextId = jc.value("nextId", 1);
 
-			if (js.contains("color") && js["color"].is_array() && js["color"].size() == 3)
+			if (jc.contains("returnNode"))
 			{
-				state.color[0] = js["color"][0].get<float>();
-				state.color[1] = js["color"][1].get<float>();
-				state.color[2] = js["color"][2].get<float>();
+				link.condition.returnNode.id = jc["returnNode"].value("id", -1);
+				link.condition.returnNode.posX = jc["returnNode"].value("posX", 500.0f);
+				link.condition.returnNode.posY = jc["returnNode"].value("posY", 200.0f);
 			}
 
-			if (js.contains("children"))
+			// ŒÃ‚¢•Û‘¶ƒf[ƒ^‚ÉReturnƒm[ƒh‚ª–³‚©‚Á‚½ê‡‚Ì•ÛŒ¯
+			if (link.condition.returnNode.id < 0)
 			{
-				for (const auto& jn : js["children"])
+				link.condition.returnNode.id = link.condition.GenerateId();
+				link.condition.returnNode.posX = 500.0f;
+				link.condition.returnNode.posY = 200.0f;
+			}
+
+			if (jc.contains("variableNodes"))
+			{
+				for (const auto& jv : jc["variableNodes"])
 				{
-					AnimNode node;
-					node.id = jn.value("id", -1);
-					node.name = jn.value("name", "");
-					node.posX = jn.value("posX", 0.0f);
-					node.posY = jn.value("posY", 0.0f);
-					node.type = ToAnimNodeType(jn.value("type", "Normal"));
-					node.clipName = jn.value("clipName", "");
-					state.children.push_back(node);
+					ConditionVariableNode v;
+					v.id = jv.value("id", -1);
+					v.posX = jv.value("posX", 0.0f);
+					v.posY = jv.value("posY", 0.0f);
+					v.name = jv.value("name", "");
+					v.type = ToValueType(jv.value("type", "Float"));
+					v.intValue = jv.value("intValue", 0);
+					v.floatValue = jv.value("floatValue", 0.0f);
+					v.boolValue = jv.value("boolValue", false);
+					link.condition.variableNodes.push_back(v);
 				}
 			}
 
-			if (js.contains("childLinks"))
+			if (jc.contains("operatorNodes"))
 			{
-				for (const auto& jl : js["childLinks"])
+				for (const auto& jo : jc["operatorNodes"])
 				{
-					AnimLink link;
-					link.id = jl.value("id", -1);
-					link.fromId = jl.value("fromId", -1);
-					link.toId = jl.value("toId", -1);
-					state.childLinks.push_back(link);
+					ConditionOperatorNode o;
+					o.id = jo.value("id", -1);
+					o.posX = jo.value("posX", 0.0f);
+					o.posY = jo.value("posY", 0.0f);
+					o.op = ToCompareOp(jo.value("op", "Greater"));
+					link.condition.operatorNodes.push_back(o);
 				}
 			}
 
-			states.push_back(state);
+			if (jc.contains("getterNodes"))
+			{
+				for (const auto& jg : jc["getterNodes"])
+				{
+					ConditionGetterNode g;
+					g.id = jg.value("id", -1);
+					g.posX = jg.value("posX", 0.0f);
+					g.posY = jg.value("posY", 0.0f);
+					g.componentName = jg.value("componentName", "");
+					g.fieldName = jg.value("fieldName", "");
+					g.type = ToValueType(jg.value("type", "Float"));
+					g.selectedComponent = ToFloatComponent(jg.value("selectedComponent", "None"));
+					link.condition.getterNodes.push_back(g);
+				}
+			}
 
-			// •œŒ³Œã‚àID‚ªd•¡‚µ‚È‚¢‚æ‚¤AÌ”ÔƒJƒEƒ“ƒ^‚ğ’Ç]‚³‚¹‚é
-			if (state.id >= nextId) nextId = state.id + 1;
+			if (jc.contains("links"))
+			{
+				for (const auto& jcl : jc["links"])
+				{
+					ConditionLink cl;
+					cl.id = jcl.value("id", -1);
+					cl.fromId = jcl.value("fromId", -1);
+					cl.toId = jcl.value("toId", -1);
+					cl.toPinB = jcl.value("toPinB", false);
+					link.condition.links.push_back(cl);
+				}
+			}
 		}
-	}
 
-	if (j.contains("stateLinks"))
-	{
-		for (const auto& jl : j["stateLinks"])
-		{
-			AnimLink link;
-			link.id = jl.value("id", -1);
-			link.fromId = jl.value("fromId", -1);
-			link.toId = jl.value("toId", -1);
+		stateLinks.push_back(link);
 
-			if (jl.contains("condition"))
-			{
-				const auto& jc = jl["condition"];
-				link.condition.nextId = jc.value("nextId", 1);
-
-				if (jc.contains("returnNode"))
-				{
-					link.condition.returnNode.id = jc["returnNode"].value("id", -1);
-					link.condition.returnNode.posX = jc["returnNode"].value("posX", 500.0f);
-					link.condition.returnNode.posY = jc["returnNode"].value("posY", 200.0f);
-				}
-
-				// ŒÃ‚¢•Û‘¶ƒf[ƒ^‚ÉReturnƒm[ƒh‚ª–³‚©‚Á‚½ê‡‚Ì•ÛŒ¯
-				if (link.condition.returnNode.id < 0)
-				{
-					link.condition.returnNode.id = link.condition.GenerateId();
-					link.condition.returnNode.posX = 500.0f;
-					link.condition.returnNode.posY = 200.0f;
-				}
-
-				if (jc.contains("variableNodes"))
-				{
-					for (const auto& jv : jc["variableNodes"])
-					{
-						ConditionVariableNode v;
-						v.id = jv.value("id", -1);
-						v.posX = jv.value("posX", 0.0f);
-						v.posY = jv.value("posY", 0.0f);
-						v.name = jv.value("name", "");
-						v.type = ToValueType(jv.value("type", "Float"));
-						v.intValue = jv.value("intValue", 0);
-						v.floatValue = jv.value("floatValue", 0.0f);
-						v.boolValue = jv.value("boolValue", false);
-						link.condition.variableNodes.push_back(v);
-					}
-				}
-
-				if (jc.contains("operatorNodes"))
-				{
-					for (const auto& jo : jc["operatorNodes"])
-					{
-						ConditionOperatorNode o;
-						o.id = jo.value("id", -1);
-						o.posX = jo.value("posX", 0.0f);
-						o.posY = jo.value("posY", 0.0f);
-						o.op = ToCompareOp(jo.value("op", "Greater"));
-						o.compareValue = jo.value("compareValue", 0.0f);
-						link.condition.operatorNodes.push_back(o);
-					}
-				}
-
-				if (jc.contains("getterNodes"))
-				{
-					for (const auto& jg : jc["getterNodes"])
-					{
-						ConditionGetterNode g;
-						g.id = jg.value("id", -1);
-						g.posX = jg.value("posX", 0.0f);
-						g.posY = jg.value("posY", 0.0f);
-						g.componentName = jg.value("componentName", "");
-						g.fieldName = jg.value("fieldName", "");
-						g.type = ToValueType(jg.value("type", "Float"));
-						link.condition.getterNodes.push_back(g);
-					}
-				}
-
-				if (jc.contains("links"))
-				{
-					for (const auto& jcl : jc["links"])
-					{
-						ConditionLink cl;
-						cl.id = jcl.value("id", -1);
-						cl.fromId = jcl.value("fromId", -1);
-						cl.toId = jcl.value("toId", -1);
-						cl.toPinB = jcl.value("toPinB", false);
-						link.condition.links.push_back(cl);
-					}
-				}
-			}
-
-			stateLinks.push_back(link);
-
-			if (link.id >= nextId) nextId = link.id + 1;
-		}
-	}
-
-	// “Ç‚İ‚ñ‚¾Œ‹‰ÊEntry‚ª–³‚©‚Á‚½ê‡‚Ì•ÛŒ¯
-	EnsureEntryExists();
-}
-
-// Entry‚ª‚È‚¯‚ê‚Îì¬‚·‚é
-void AnimatorGraph::EnsureEntryExists()
-{
-	bool hasEntry = false;
-	for (const auto& s : states)
-	{
-		if (s.type == AnimStateType::Entry)
-		{
-			hasEntry = true;
-			break;
-		}
-	}
-
-	if (!hasEntry)
-	{
-		AnimState entry;
-		entry.id = GenerateId();
-		entry.name = "Entry";
-		entry.posX = 50.0f;
-		entry.posY = 200.0f;
-		entry.type = AnimStateType::Entry;
-		states.push_back(entry);
+		if (link.id >= nextId) nextId = link.id + 1;
 	}
 }
  
  
 ===== NodeEditorCanvas.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Tool\NodeEditorCanvas.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\NodeEditorCanvas.cpp 
 #include "NodeEditorCanvas.h"
 
 NodeEditorCanvas::~NodeEditorCanvas()
@@ -12727,7 +12810,7 @@ void NodeEditorCanvas::End()
 } 
  
 ===== IStudioAttachment.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Tool\Studio\IStudioAttachment.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\IStudioAttachment.h 
 #pragma once
 #include <d3d11.h>
 #include <DirectXMath.h>
@@ -12759,7 +12842,7 @@ public:
 }; 
  
 ===== StudioAnimator.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Tool\Studio\StudioAnimator.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioAnimator.h 
 #pragma once
 #include "IStudioAttachment.h"
 #include "ECS/Components/AnimatorComponent.h"
@@ -12783,18 +12866,18 @@ private:
 }; 
  
 ===== StudioAnimatorGraph.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Tool\Studio\StudioAnimatorGraph.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioAnimatorGraph.h 
 #pragma once
 #include "IStudioAttachment.h"
 #include "Tool/AnimatorGraph.h"
 #include "Tool/NodeEditorCanvas.h"
+#include "StudioConditionGraph.h"
 #include <vector>
 #include <string>
 #include <unordered_map>
+#include <functional>
 #include <imgui.h>
 #include <imgui_node_editor.h>
-
-#include "StudioConditionGraph.h"
 
 namespace ed = ax::NodeEditor;
 
@@ -12811,90 +12894,84 @@ public:
 	void DrawGUI(entt::registry& registry, StudioContext& context) override;
 
 private:
-
-	// ƒAƒjƒ[ƒ^[ƒLƒƒƒ“ƒoƒX
-	void DrawStateCanvas(StudioContext& context);
-	// ‘JˆÚğŒƒLƒƒƒ“ƒoƒX
-	void DrawConditionCanvas();
-
-	// ã‘¤ƒc[ƒ‹ƒo[
-	void DrawToolbar(StudioContext& context);
-
-	// .animgraph‚ÌD&Dó‚¯Œû
-	void DrawDropTarget(StudioContext& context);
-	void TryAttachGraph(const std::string& path, StudioContext& context);
-
-	// State•`‰æ
-	void DrawNodes();
-	void PushStateStyle(const AnimState& state);
-	void PopStateStyle(const AnimState& state);
-
-	// Link•`‰æ
-	void DrawLinks();
-	// ƒŠƒ“ƒN1–{•ª‚ÌÚ‘±“_‚ğŒvZ‚·‚é
-	void CalcLinkPoints(const AnimLink& link, ImVec2& outStart, ImVec2& outEnd);
-	// ŒvZÏ‚İ‚ÌÀ•W‚Éƒsƒ“‚ğ”z’u‚·‚é
-	void DrawLinkPins(const AnimLink& link, const ImVec2& start, const ImVec2& end);
-	// •Ó‚©‚çƒŠƒ“ƒN‚ğL‚Î‚·
-	ImVec2 GetEdgePoint(const ImVec2& rectMin, const ImVec2& rectMax, const ImVec2& target);
-	// ‘o•ûŒü‚ÌLink‚ª‚ ‚é‚©Šm”F‚·‚é
-	bool HasReverseLink(int fromId, int toId) const;
-	// –îˆó•`‰æ
-	void DrawArrowHead(ImDrawList* drawList, const ImVec2& start, const ImVec2& end, ImU32 color);
-	// LinkID
-	static ed::PinId GetOutPinId(int linkId) { return ed::PinId((int64_t)20000000 + (int64_t)linkId * 2); }
-	static ed::PinId GetInPinId(int linkId) { return ed::PinId((int64_t)20000000 + (int64_t)linkId * 2 + 1); }
-	// ‰EƒNƒŠƒbƒNƒƒjƒ…[
-	void DrawCreateNodeMenu();
-	void DrawNodeContextMenu();
-	void UpdateLinkCreation();
-	void DrawPendingLink();
-
-	// ‰E‘¤ƒƒjƒ…[
-	void DrawInspector(AnimState* selectedState, AnimLink* selectedLink);
-	void DrawStateInspector(AnimState* selectedState);
-	void DrawLinkInspector(AnimLink* selectedLink);
-	AnimState* GetSelectedState();
-	AnimLink* GetSelectedLink();
-
-	void RefreshAvailableAnimations(entt::registry& registry);
-
-	// •Û‘¶E“Ç‚İ‚İ
-	void Save(StudioContext& context);
-	void Load(StudioContext& context);
-
+	// == “à•”ó‘Ô == //
 	NodeEditorCanvas canvas;
 	AnimatorGraph graph;
-	
+
 	StudioConditionGraph conditionGraph; // Link1–{•ª‚ÌğŒ•ÒW—p(•ÊƒLƒƒƒ“ƒoƒX)
 	bool showConditionGraph = false;     // Œ»İ‚Ç‚¿‚ç‚ÌƒLƒƒƒ“ƒoƒX‚ğ•\¦’†‚©
+	
+	int windowId = 0; // ƒEƒBƒ“ƒhƒE”Ô†
 
-	int windowId = 0;
+	std::vector<std::string> availableAnimations; // ƒAƒjƒ[ƒVƒ‡ƒ“ˆê——
+	ImVec2 pendingCreatePos{};                    // ‰EƒNƒŠƒbƒNˆÊ’u
+	int pendingLinkFromId = -1;                   // Link‹N“_StateID
 
-	// ƒAƒjƒ[ƒVƒ‡ƒ“ˆê——
-	std::vector<std::string> availableAnimations;
-	// ‰EƒNƒŠƒbƒNˆÊ’u
-	ImVec2 pendingCreatePos{};
+	bool loaded = false;                 // “Ç‚İ‚İÏ‚İƒtƒ‰ƒO
+	bool needsApplyPositions = false;    // ˆÊ’u”½‰fƒtƒ‰ƒO
+	bool columnWidthInitialized = false; // ‰E‘¤ƒƒjƒ…[‰Šú•
 
-	// “Ç‚İ‚İÏ‚İƒtƒ‰ƒO
-	bool loaded = false;
-	// ˆÊ’u”½‰fƒtƒ‰ƒO
-	bool needsApplyPositions = false;
-	// ‰E‘¤ƒƒjƒ…[‰Šú•
-	bool columnWidthInitialized = false;
+	std::string attachError; // •R‚Ã‚¯ƒGƒ‰[ƒƒbƒZ[ƒW
+	
+	std::unordered_map<int, std::pair<ImVec2, ImVec2>> nodeScreenRects; // ƒm[ƒh‚Ì‹éŒ`•Û‘¶
 
-	// •R‚Ã‚¯ƒGƒ‰[ƒƒbƒZ[ƒW
-	std::string attachError;
 
-	// ƒm[ƒh‚Ì‹éŒ`•Û‘¶
-	std::unordered_map<int, std::pair<ImVec2, ImVec2>> nodeScreenRects;
+	// == ŠeƒLƒƒƒ“ƒoƒX•`‰æ == /
+	void DrawStateCanvas(StudioContext& context); // ƒAƒjƒ[ƒ^[ƒLƒƒƒ“ƒoƒX
+	void DrawConditionCanvas();                   // ‘JˆÚğŒƒLƒƒƒ“ƒoƒX
+	void DrawToolbar(StudioContext& context);     // ã‘¤ƒc[ƒ‹ƒo[ 
+	void DrawDropTarget(StudioContext& context);  // .animgraph‚ÌD&Dó‚¯Œû
+	void TryAttachGraph(const std::string& path, StudioContext& context); // ƒhƒƒbƒv‚³‚ê‚½ƒpƒX‚ğ•R‚Ã‚¯‰Â”\‚©ŒŸØ‚·‚é
 
-	// Link‹N“_StateID
-	int pendingLinkFromId = -1;
+
+	// == State•`‰æ == //
+	void DrawNodes();  // ƒm[ƒh•`‰æ
+	void PushStateStyle(const AnimState& state); // State‚Ìí—Ş‚É‰‚¶‚½Œ©‚½–Ú‚ÌƒXƒ^ƒCƒ‹‚ğ“K—p‚·‚é
+	void PopStateStyle(const AnimState& state);  // PushStateStyle‚Å“K—p‚µ‚½ƒXƒ^ƒCƒ‹‚ğ‰ğœ‚·‚é 
+
+
+	// == Link•`‰æ == //
+	void DrawLinks(); // Link‘S‘Ì‚Ì•`‰æ
+	void CalcLinkPoints(const AnimLink& link, ImVec2& outStart, ImVec2& outEnd);     // ƒŠƒ“ƒN1–{•ª‚ÌÚ‘±“_‚ğŒvZ‚·‚é
+	void DrawLinkPins(const AnimLink& link, const ImVec2& start, const ImVec2& end); // ŒvZÏ‚İ‚ÌÀ•W‚Éƒsƒ“‚ğ”z’u‚·‚é
+	ImVec2 GetEdgePoint(const ImVec2& rectMin, const ImVec2& rectMax, const ImVec2& target); // •Ó‚©‚çƒŠƒ“ƒN‚ğL‚Î‚·
+	bool HasReverseLink(int fromId, int toId) const;                                         // ‘o•ûŒü‚ÌLink‚ª‚ ‚é‚©Šm”F‚·‚é
+	void DrawArrowHead(ImDrawList* drawList, const ImVec2& start, const ImVec2& end, ImU32 color);	// –îˆó•`‰æ
+
+
+	// == ƒm[ƒhì¬ == //
+	void DrawCreateNodeMenu();  // ‰EƒNƒŠƒbƒNƒƒjƒ…[
+	void DrawNodeContextMenu(); // ƒm[ƒh‚Ì‰EƒNƒŠƒbƒNƒƒjƒ…[
+	void UpdateLinkCreation();  // Linkì¬ƒ‚[ƒh’†‚Ì“ü—Íˆ—
+	void DrawPendingLink();     // Linkì¬’†‚ÌƒvƒŒƒrƒ…[ü•`‰æ
+
+
+	// == ‘I‘ğó‘Ô‚ÆƒCƒ“ƒXƒyƒNƒ^[ == //
+	void DrawInspector(AnimState* selectedState, AnimLink* selectedLink); // ‰E‘¤ƒƒjƒ…[‚ÌU‚è•ª‚¯
+	void DrawStateInspector(AnimState* selectedState); // State‘I‘ğ‚ÌInspector
+	void DrawLinkInspector(AnimLink* selectedLink);    // Link‘I‘ğ‚Ì Inspector
+	AnimState* GetSelectedState(); // ‘I‘ğ’†‚ÌState‚ğæ“¾‚·‚é
+	AnimLink* GetSelectedLink();   // ‘I‘ğ’†‚ÌLink‚ğæ“¾‚·‚é
+
+
+	// == •\¦—pƒwƒ‹ƒp[ == //
+	static void CenterNextItem(float totalWidth, float itemWidth);                   // ƒm[ƒh“à‚Å’†‰›Šñ‚¹‚É‚·‚é
+	void DrawDeleteButton(const char* label, const std::function<void()>& onDelete); // ‹¤’Ê‚Ìíœƒ{ƒ^ƒ“
+
+
+	// == “®“Iƒsƒ“‚ÌID == //
+	static ed::PinId GetOutPinId(int linkId) { return ed::PinId((int64_t)20000000 + (int64_t)linkId * 2); }
+	static ed::PinId GetInPinId(int linkId) { return ed::PinId((int64_t)20000000 + (int64_t)linkId * 2 + 1); }
+
+
+	// == ‚»‚Ì‘¼ == //
+	void RefreshAvailableAnimations(entt::registry& registry); // ƒ‚ƒfƒ‹‚ª‚ÂƒAƒjƒ[ƒVƒ‡ƒ“ˆê——‚ğXV‚·‚é
+	void Save(StudioContext& context); // •Û‘¶
+	void Load(StudioContext& context); // “Ç‚İ‚İ
 }; 
  
 ===== StudioCamera.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Tool\Studio\StudioCamera.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioCamera.h 
 #pragma once
 #include <DirectXMath.h>
 
@@ -12943,7 +13020,7 @@ private:
 }; 
  
 ===== StudioConditionGraph.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Tool\Studio\StudioConditionGraph.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioConditionGraph.h 
 #pragma once
 #include "Tool/AnimatorGraph.h"
 #include "Tool/NodeEditorCanvas.h"
@@ -13019,10 +13096,48 @@ private:
 	static ed::PinId GetOperatorOutPinId(int nodeId) { return ed::PinId((int64_t)2000000 + (int64_t)nodeId * 3 + 2); }
 	static ed::PinId GetGetterOutPinId(int nodeId)   { return ed::PinId((int64_t)3000000 + (int64_t)nodeId);         }
 	static ed::PinId GetReturnInPinId(int nodeId)    { return ed::PinId((int64_t)4000000 + (int64_t)nodeId);         }
+
+
+private:
+	// ƒsƒ“‚Ì–ğŠ„
+	enum class PinRole
+	{
+		VariableIn, VariableOut,
+		OperatorA, OperatorB, OperatorOut,
+		GetterOut,
+		ReturnIn,
+		Unknown
+	};
+	// ƒm[ƒh‚Ìí—Ş
+	enum class NodeKind { Variable, Getter, Operator, Return, Unknown };
+	// ¶‚Ìƒsƒ“ID(int64_t)‚©‚çA–ğŠ„‚Æƒm[ƒhID‚ğ‹tZ‚·‚é
+	static void ResolvePinRole(int64_t rawPinId, PinRole& outRole, int& outNodeId);
+	// ¶‚Ìƒm[ƒhID(int)‚©‚çA‚±‚ÌLink“à‚Å‚Ç‚Ìí—Ş‚Ìƒm[ƒh‚©‚ğ’²‚×‚é
+	NodeKind GetNodeKind(int id) const;
+	// ƒsƒ“Ú‘±(ƒhƒ‰ƒbƒO)‚Ìˆ—
+	void DrawLinkCreation();
+	// Ú‘±Ï‚İConditionLink‚Ì•`‰æ
+	void DrawConditionLinks();
+	// fromId/toId‚©‚çed::Link‚ğˆø‚­‚½‚ß‚ÌAÀÛ‚Ìƒsƒ“ID‚ğ‹‚ß‚é
+	ed::PinId GetOutputPinIdOf(int nodeId, NodeKind kind) const;
+	ed::PinId GetInputPinIdOf(int nodeId, NodeKind kind, bool toPinB) const;
+
+	// ƒm[ƒh‚Ì’l‚ÌŒ^‚ğæ“¾‚·‚é(Operator/Return‚ÍŒ^‚ğ‚½‚È‚¢‚½‚ßŒÄ‚Ño‚µ‹Ö~)
+	ValueType GetNodeValueType(NodeKind kind, int nodeId) const;
+	// ‘å¬Œn‰‰Zq‚©(Bool‹Ö~‚Ì‘ÎÛ)‚ğ”»’è‚·‚é
+	static bool IsOrderCompareOp(CompareOp op);
+
+	// o—Íƒsƒ“‚ÌuÀ¿“I‚ÈŒ^v‚ğæ“¾‚·‚é(Operator‚Ìo—Í‚Íí‚ÉBoolˆµ‚¢)
+	ValueType GetOutputValueType(PinRole outRole, int outNodeId) const;
+
+	ConditionLink* selectedConditionLink = nullptr;
+
+	ConditionLink* GetSelectedConditionLink();
+	void DeleteConditionLink(int id);
 }; 
  
 ===== StudioContext.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Tool\Studio\StudioContext.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioContext.h 
 #pragma once
 #include <d3d11.h>
 #include <string>
@@ -13053,7 +13168,7 @@ struct StudioContext
 }; 
  
 ===== StudioModelViewer.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Tool\Studio\StudioModelViewer.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioModelViewer.h 
 #pragma once
 #include <string>
 #include <d3d11.h>
@@ -13114,7 +13229,7 @@ private:
 }; 
  
 ===== StudioSharedContext.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Tool\Studio\StudioSharedContext.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioSharedContext.h 
 #pragma once
 #include <d3d11.h>
 #include "Rendering/SkyBox.h"
@@ -13136,7 +13251,7 @@ struct StudioSharedContext
 }; 
  
 ===== StudioTimeline.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Tool\Studio\StudioTimeline.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioTimeline.h 
 #pragma once
 #include "IStudioAttachment.h"
 #include "ECS/Components/AnimatorComponent.h"
@@ -13159,7 +13274,7 @@ private:
 }; 
  
 ===== StudioWindow.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Tool\Studio\StudioWindow.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioWindow.h 
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
@@ -13277,7 +13392,7 @@ private:
 }; 
  
 ===== StudioAnimator.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Tool\Studio\StudioAnimator.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioAnimator.cpp 
 #include "Tool/Studio/StudioAnimator.h"
 #include <imgui.h>
 
@@ -13349,7 +13464,7 @@ void StudioAnimator::DrawGUI(
 } 
  
 ===== StudioAnimatorGraph.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Tool\Studio\StudioAnimatorGraph.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioAnimatorGraph.cpp 
 #include "StudioAnimatorGraph.h"
 #include "ECS/Components/SkinnedMeshComponent.h"
 #include <fstream>
@@ -13445,7 +13560,6 @@ void StudioAnimatorGraph::DrawConditionCanvas()
 
 	conditionGraph.DrawInspector();
 }
-
 // ã‘¤ƒc[ƒ‹ƒo[
 void StudioAnimatorGraph::DrawToolbar(StudioContext& context)
 {
@@ -13471,7 +13585,6 @@ void StudioAnimatorGraph::DrawToolbar(StudioContext& context)
 	}
 	ImGui::Separator();
 }
-
 // .animgraph‚ÌD&Dó‚¯Œû
 void StudioAnimatorGraph::DrawDropTarget(StudioContext& context)
 {
@@ -13486,6 +13599,7 @@ void StudioAnimatorGraph::DrawDropTarget(StudioContext& context)
 		ImGui::EndDragDropTarget();
 	}
 }
+// ƒhƒƒbƒv‚³‚ê‚½ƒpƒX‚ğ•R‚Ã‚¯‰Â”\‚©ŒŸØ‚·‚é
 void StudioAnimatorGraph::TryAttachGraph(const std::string& path, StudioContext& context)
 {
 	std::ifstream ifs(path);
@@ -13520,7 +13634,9 @@ void StudioAnimatorGraph::TryAttachGraph(const std::string& path, StudioContext&
 	loaded = false;
 }
 
-// State•`‰æ
+
+
+// ƒm[ƒh•`‰æ
 void StudioAnimatorGraph::DrawNodes()
 {
 	nodeScreenRects.clear();
@@ -13537,47 +13653,16 @@ void StudioAnimatorGraph::DrawNodes()
 		PushStateStyle(state);
 
 		ed::BeginNode(nodeId);
-		if (state.type == AnimStateType::Entry)
-		{
-			const float totalWidth = 100.0f;
-			float textWidth = ImGui::CalcTextSize(state.name.c_str()).x;
-			float padding = (totalWidth - textWidth) * 0.5f;
 
-			if (padding > 0.0f)
-			{
-				ImGui::Dummy(ImVec2(padding, 0.0f));
-				ImGui::SameLine(0.0f, 0.0f);
-			}
+		float nodeWidth = (state.type == AnimStateType::Entry) ? 100.0f : ImGui::CalcTextSize("New State").x;
+		float textWidth = ImGui::CalcTextSize(state.name.c_str()).x;
 
-			ImGui::Text("%s", state.name.c_str());
+		CenterNextItem(nodeWidth, textWidth);
+		ImGui::Text("%s", state.name.c_str());
 
-			if (padding > 0.0f)
-			{
-				ImGui::SameLine(0.0f, 0.0f);
-				ImGui::Dummy(ImVec2(padding, 0.0f));
-			}
-		}
-		else
-		{
-			static const float minWidth = ImGui::CalcTextSize("New State").x;
+		ImGui::SameLine(nodeWidth);
+		ImGui::Dummy(ImVec2(0.0f, 0.0f));
 
-			float textWidth = ImGui::CalcTextSize(state.name.c_str()).x;
-			float padding = (minWidth - textWidth) * 0.5f;
-
-			if (padding > 0.0f)
-			{
-				ImGui::Dummy(ImVec2(padding, 0.0f));
-				ImGui::SameLine(0.0f, 0.0f);
-			}
-
-			ImGui::Text("%s", state.name.c_str());
-
-			if (padding > 0.0f)
-			{
-				ImGui::SameLine(0.0f, 0.0f);
-				ImGui::Dummy(ImVec2(padding, 0.0f));
-			}
-		}
 		ed::EndNode();
 
 		nodeScreenRects[state.id] = { ImGui::GetItemRectMin(), ImGui::GetItemRectMax() };
@@ -13590,6 +13675,7 @@ void StudioAnimatorGraph::DrawNodes()
 	}
 	needsApplyPositions = false;
 }
+// 
 void StudioAnimatorGraph::PushStateStyle(const AnimState& state)
 {
 	switch (state.type)
@@ -13934,21 +14020,9 @@ void StudioAnimatorGraph::DrawStateInspector(AnimState* selectedState)
 
 	ImGui::ColorEdit3("Color", selectedState->color);
 
-	ImGui::Spacing();
-	ImGui::Spacing();
+	int stateId = selectedState->id;
+	DrawDeleteButton("Delete State", [this, stateId]() { graph.DeleteState(stateId); });
 
-	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.15f, 0.15f, 1.0f));
-	ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.85f, 0.2f, 0.2f, 1.0f));
-	ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.6f, 0.1f, 0.1f, 1.0f));
-
-	bool pressed = ImGui::Button("Delete State", ImVec2(-1.0f, 0.0f));
-
-	ImGui::PopStyleColor(3);
-
-	if (pressed)
-	{
-		graph.DeleteState(selectedState->id);
-	}
 }
 void StudioAnimatorGraph::DrawLinkInspector(AnimLink* selectedLink)
 {
@@ -13971,18 +14045,8 @@ void StudioAnimatorGraph::DrawLinkInspector(AnimLink* selectedLink)
 		showConditionGraph = true;
 	}
 
-	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.15f, 0.15f, 1.0f));
-	ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.85f, 0.2f, 0.2f, 1.0f));
-	ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.6f, 0.1f, 0.1f, 1.0f));
-
-	bool pressed = ImGui::Button("Delete Link", ImVec2(-1.0f, 0.0f));
-
-	ImGui::PopStyleColor(3);
-
-	if (pressed)
-	{
-		graph.DeleteLink(selectedLink->id);
-	}
+	int linkId = selectedLink->id;
+	DrawDeleteButton("Delete Link", [this, linkId]() { graph.DeleteLink(linkId); });
 }
 AnimState* StudioAnimatorGraph::GetSelectedState()
 {
@@ -14069,10 +14133,40 @@ void StudioAnimatorGraph::Load(StudioContext& context)
 	{
 		// ‰ó‚ê‚Ä‚¢‚é‚©‹ó‚Ìjson‚Ìê‡‚È‚É‚à‚µ‚È‚¢
 	}
-} 
+}
+
+void StudioAnimatorGraph::CenterNextItem(float totalWidth, float itemWidth)
+{
+	float pad = (totalWidth - itemWidth) * 0.5f;
+	if (pad > 0.0f)
+	{
+		ImGui::Dummy(ImVec2(pad, 0.0f));
+		ImGui::SameLine(0.0f, 0.0f);
+	}
+}
+
+void StudioAnimatorGraph::DrawDeleteButton(const char* label, const std::function<void()>& onDelete)
+{
+	ImGui::Spacing();
+	ImGui::Spacing();
+
+	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.15f, 0.15f, 1.0f));
+	ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.85f, 0.2f, 0.2f, 1.0f));
+	ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.6f, 0.1f, 0.1f, 1.0f));
+
+	bool pressed = ImGui::Button(label, ImVec2(-1.0f, 0.0f));
+
+	ImGui::PopStyleColor(3);
+
+	if (pressed)
+	{
+		onDelete();
+	}
+}
+ 
  
 ===== StudioCamera.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Tool\Studio\StudioCamera.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioCamera.cpp 
 #include "StudioCamera.h"
 #include <imgui.h>
 #include <Windows.h>
@@ -14228,7 +14322,7 @@ DirectX::XMFLOAT3 StudioCamera::GetRight() const
 } 
  
 ===== StudioConditionGraph.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Tool\Studio\StudioConditionGraph.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioConditionGraph.cpp 
 ï»¿#include "StudioConditionGraph.h"
 #include <algorithm>
 #include <vector>
@@ -14257,10 +14351,17 @@ void StudioConditionGraph::DrawGUI()
 
 	canvas.Begin("ConditionCanvas");
 
+	ed::PushStyleVar(ed::StyleVar_LinkStrength, 0.0f);
+
 	DrawReturnNode();
 	DrawVariableNodes();
 	DrawOperatorNodes();
 	DrawGetterNodes();
+
+	ed::PopStyleVar(1);
+
+	DrawConditionLinks();
+	DrawLinkCreation();
 
 	DrawCreateNodeMenu();
 
@@ -14299,6 +14400,7 @@ void StudioConditionGraph::DrawInspector()
 			break;
 		}
 
+
 		DrawDeleteButton("Delete Node", selectedVariable->id, [this](int id) { DeleteVariableNode(id); });
 		return;
 	}
@@ -14306,7 +14408,6 @@ void StudioConditionGraph::DrawInspector()
 	if (selectedGetter)
 	{
 		ImGui::Text("Getter");
-		ImGui::Separator();
 
 		const auto& fields = MetaRegistry::GetAllFields();
 
@@ -14351,13 +14452,43 @@ void StudioConditionGraph::DrawInspector()
 					bool isSelected = (f.fieldLabel == selectedGetter->fieldName);
 					if (ImGui::Selectable(f.fieldLabel.c_str(), isSelected))
 					{
+						// ãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰ã‚’å¤‰ãˆãŸã‚‰ã€æˆåˆ†é¸æŠã‚‚ãƒªã‚»ãƒƒãƒˆã™ã‚‹
 						selectedGetter->fieldName = f.fieldLabel;
 						selectedGetter->type = f.type;
+						selectedGetter->selectedComponent = FloatComponent::None;
 					}
 				}
 				ImGui::EndCombo();
 			}
 		}
+
+		// 3æ®µç›®:é¸æŠä¸­ãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰ãŒFloat2/3/4ã®å ´åˆã®ã¿ã€æˆåˆ†é¸æŠã‚’è¡¨ç¤ºã™ã‚‹
+		int componentCount = MetaRegistry::GetComponentCount(selectedGetter->type);
+		if (componentCount > 0)
+		{
+			static const char* names[] = { "X", "Y", "Z", "W" };
+			static const FloatComponent values[] = { FloatComponent::X, FloatComponent::Y, FloatComponent::Z, FloatComponent::W };
+
+			std::string currentComp = "(Select Component)";
+			for (int i = 0; i < componentCount; i++)
+			{
+				if (values[i] == selectedGetter->selectedComponent) currentComp = names[i];
+			}
+
+			if (ImGui::BeginCombo("Axis", currentComp.c_str())) 
+			{
+				for (int i = 0; i < componentCount; i++)
+				{
+					bool isSelected = (values[i] == selectedGetter->selectedComponent);
+					if (ImGui::Selectable(names[i], isSelected))
+					{
+						selectedGetter->selectedComponent = values[i];
+					}
+				}
+				ImGui::EndCombo();
+			}
+		}
+
 
 		DrawDeleteButton("Delete Getter", selectedGetter->id, [this](int id) { DeleteGetterNode(id); });
 		return;
@@ -14378,6 +14509,16 @@ void StudioConditionGraph::DrawInspector()
 		DrawDeleteButton("Delete Operator", selectedOperator->id, [this](int id) { DeleteOperatorNode(id); });
 		return;
 	}
+
+	if (selectedConditionLink)
+	{
+		ImGui::Text("Link");
+
+		int linkId = selectedConditionLink->id;
+		DrawDeleteButton("Delete Link", linkId, [this](int id) { DeleteConditionLink(id); });
+		return;
+	}
+
 
 	ImGui::TextDisabled("No node selected.");
 }
@@ -14484,21 +14625,21 @@ void StudioConditionGraph::DrawVariableNodes()
 		{
 			CenterNextItem(totalWidth, valueWidth);
 			ImGui::SetNextItemWidth(valueWidth);
-			ImGui::DragInt("##value", &v.intValue, 1);
+			ImGui::DragInt("##int", &v.intValue, 1);
 		}
 		// floatå‹ãƒãƒ¼ãƒ‰
 		else if (v.type == ValueType::Float)
 		{
 			CenterNextItem(totalWidth, valueWidth);
 			ImGui::SetNextItemWidth(valueWidth);
-			ImGui::DragFloat("##value", &v.floatValue, 0.1f);
+			ImGui::DragFloat("##float", &v.floatValue, 0.1f);
 		}
 		// boolå‹ãƒãƒ¼ãƒ‰
 		else
 		{
 			float checkboxWidth = ImGui::GetFrameHeight();
 			CenterNextItem(totalWidth, checkboxWidth);
-			ImGui::Checkbox("##value", &v.boolValue);
+			ImGui::Checkbox("##bool", &v.boolValue);
 		}
 
 		ImGui::PopID();
@@ -14534,7 +14675,7 @@ void StudioConditionGraph::DrawOperatorNodes()
 
 		// Aå´å…¥åŠ›ãƒ”ãƒ³
 		ed::BeginPin(GetOperatorPinA(o.id), ed::PinKind::Input);
-		ImGui::Text(u8"A â–¶");
+		ImGui::Text(u8"â–¶");
 		ed::EndPin();
 
 		// æ¼”ç®—å­è¨˜å·(ä¸­å¤®å¯„ã›ã€å°‘ã—å¤§ãã‚ã«è¡¨ç¤º)
@@ -14549,7 +14690,7 @@ void StudioConditionGraph::DrawOperatorNodes()
 
 		// Bå´å…¥åŠ›ãƒ”ãƒ³ã¨ã€å‡ºåŠ›ãƒ”ãƒ³(åŒã˜è¡Œ)
 		ed::BeginPin(GetOperatorPinB(o.id), ed::PinKind::Input);
-		ImGui::Text(u8"B â–¶");
+		ImGui::Text(u8"â–¶");
 		ed::EndPin();
 
 		ImGui::SameLine(nodeWidth);
@@ -14640,8 +14781,27 @@ void StudioConditionGraph::DrawAssignedGetterNode(ConditionGetterNode& g)
 
 	// 1è¡Œç›®:ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆå
 	std::string line1 = g.componentName;
-	// 2è¡Œç›®:[å‹] ãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰å
-	std::string line2 = "[" + std::string(GetValueTypeName(g.type)) + "] " + g.fieldName;
+
+	// 2è¡Œç›®:ãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰å(æ§‹é€ ä½“ã®å ´åˆã¯ã€Œãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰å.æˆåˆ†ã€ã€å˜ç´”ãªå‹ãªã‚‰ãã®ã¾ã¾)
+	std::string line2;
+	int componentCount = MetaRegistry::GetComponentCount(g.type);
+	if (componentCount > 0)
+	{
+		std::string axisName = "?"; // æœªé¸æŠã®å ´åˆ
+		switch (g.selectedComponent)
+		{
+		case FloatComponent::X: axisName = "X"; break;
+		case FloatComponent::Y: axisName = "Y"; break;
+		case FloatComponent::Z: axisName = "Z"; break;
+		case FloatComponent::W: axisName = "W"; break;
+		default: break;
+		}
+		line2 = g.fieldName + "." + axisName;
+	}
+	else
+	{
+		line2 = g.fieldName;
+	}
 
 	float line1Width = ImGui::CalcTextSize(line1.c_str()).x;
 	float line2Width = ImGui::CalcTextSize(line2.c_str()).x;
@@ -14783,6 +14943,7 @@ void StudioConditionGraph::DrawDeleteButton(const char* label, int targetId, con
 		selectedVariable = nullptr;
 		selectedGetter = nullptr;
 		selectedOperator = nullptr;
+		selectedConditionLink = nullptr;
 	}
 }
 // å¤‰æ•°ãƒãƒ¼ãƒ‰å‰Šé™¤
@@ -14844,6 +15005,7 @@ void StudioConditionGraph::UpdateSelection()
 	selectedVariable = nullptr;
 	selectedGetter = nullptr;
 	selectedOperator = nullptr;
+	selectedConditionLink = nullptr;
 
 	if (ed::GetSelectedObjectCount() == 0) return;
 
@@ -14863,6 +15025,9 @@ void StudioConditionGraph::UpdateSelection()
 	{
 		if (o.id == id) { selectedOperator = &o; return; }
 	}
+
+	// Linkã®é¸æŠ
+	selectedConditionLink = GetSelectedConditionLink();
 }
 
 
@@ -14881,10 +15046,16 @@ ImColor StudioConditionGraph::GetValueTypeColor(ValueType type)
 {
 	switch (type)
 	{
-	case ValueType::Int:   return ImColor(68, 201, 156, 255);  // æ°´è‰²
-	case ValueType::Float: return ImColor(147, 226, 74, 255);  // ç·‘
-	case ValueType::Bool:  return ImColor(220, 48, 48, 255);   // èµ¤
-	default:               return ImColor(255, 255, 255, 255);
+	case ValueType::Int:    return ImColor(68, 201, 156, 255);  // æ°´è‰²
+	
+	case ValueType::Float:  return ImColor(147, 226, 74, 255);  // ç·‘(Float2/3/4ã‚‚åŒã˜ç·‘ã«ã™ã‚‹)
+	case ValueType::Float2:
+	case ValueType::Float3:
+	case ValueType::Float4: return ImColor(147, 226, 74, 255);
+
+	case ValueType::Bool:   return ImColor(220, 48, 48, 255);   // èµ¤
+	
+	default:                return ImColor(255, 255, 255, 255);
 	}
 }
 // å€¤ã®å‹åã‚’æ–‡å­—ã«ã—ã¦è¿”ã™
@@ -14924,10 +15095,310 @@ CompareOp StudioConditionGraph::InvertCompareOp(CompareOp op)
 	default: return op; // Equal/NotEqualã¯å‘ãã®æ¦‚å¿µãŒç„¡ã„ãŸã‚å¤‰åŒ–ãªã—
 	}
 }
+
+
+// ç”Ÿã®ãƒ”ãƒ³ID(int64_t)ã‹ã‚‰ã€å½¹å‰²ã¨ãƒãƒ¼ãƒ‰IDã‚’é€†ç®—ã™ã‚‹
+void StudioConditionGraph::ResolvePinRole(int64_t rawPinId, PinRole& outRole, int& outNodeId)
+{
+	if (rawPinId >= 4000000 && rawPinId < 5000000)
+	{
+		outRole = PinRole::ReturnIn;
+		outNodeId = (int)(rawPinId - 4000000);
+		return;
+	}
+	if (rawPinId >= 3000000 && rawPinId < 4000000)
+	{
+		outRole = PinRole::GetterOut;
+		outNodeId = (int)(rawPinId - 3000000);
+		return;
+	}
+	if (rawPinId >= 2000000 && rawPinId < 3000000)
+	{
+		int64_t offset = rawPinId - 2000000;
+		int64_t nodeId = offset / 3;
+		int64_t rem = offset % 3;
+		outNodeId = (int)nodeId;
+		outRole = (rem == 0) ? PinRole::OperatorA : (rem == 1) ? PinRole::OperatorB : PinRole::OperatorOut;
+		return;
+	}
+	if (rawPinId >= 1000000 && rawPinId < 2000000)
+	{
+		int64_t offset = rawPinId - 1000000;
+		int64_t nodeId = offset / 2;
+		int64_t rem = offset % 2;
+		outNodeId = (int)nodeId;
+		outRole = (rem == 0) ? PinRole::VariableIn : PinRole::VariableOut;
+		return;
+	}
+
+	outRole = PinRole::Unknown;
+	outNodeId = -1;
+}
+// ç”Ÿã®ãƒãƒ¼ãƒ‰ID(int)ã‹ã‚‰ã€ã“ã®Linkå†…ã§ã©ã®ç¨®é¡ã®ãƒãƒ¼ãƒ‰ã‹ã‚’èª¿ã¹ã‚‹
+
+StudioConditionGraph::NodeKind StudioConditionGraph::GetNodeKind(int id) const
+{
+	if (targetLink->condition.returnNode.id == id) return NodeKind::Return;
+
+	for (const auto& v : targetLink->condition.variableNodes)
+		if (v.id == id) return NodeKind::Variable;
+
+	for (const auto& g : targetLink->condition.getterNodes)
+		if (g.id == id) return NodeKind::Getter;
+
+	for (const auto& o : targetLink->condition.operatorNodes)
+		if (o.id == id) return NodeKind::Operator;
+
+	return NodeKind::Unknown;
+}
+
+void StudioConditionGraph::DrawLinkCreation()
+{
+	if (ed::BeginCreate())
+	{
+		ed::PinId pinIdA, pinIdB;
+		if (ed::QueryNewLink(&pinIdA, &pinIdB))
+		{
+			PinRole roleA, roleB;
+			int nodeIdA, nodeIdB;
+			ResolvePinRole(pinIdA.Get(), roleA, nodeIdA);
+			ResolvePinRole(pinIdB.Get(), roleB, nodeIdB);
+
+			// å‡ºåŠ›å´/å…¥åŠ›å´ã‚’åˆ¤å®šã™ã‚‹(ãƒ‰ãƒ©ãƒƒã‚°ã®å‘ãã«é–¢ã‚ã‚‰ãšæ­£è¦åŒ–ã™ã‚‹)
+			auto isOutputRole = [](PinRole r)
+				{
+					return r == PinRole::VariableOut || r == PinRole::GetterOut || r == PinRole::OperatorOut;
+				};
+			auto isInputRole = [](PinRole r)
+				{
+					return r == PinRole::VariableIn || r == PinRole::OperatorA || r == PinRole::OperatorB || r == PinRole::ReturnIn;
+				};
+
+			PinRole outRole, inRole;
+			int outNodeId, inNodeId;
+			bool orderOk = false;
+
+			if (isOutputRole(roleA) && isInputRole(roleB))
+			{
+				outRole = roleA; outNodeId = nodeIdA;
+				inRole = roleB; inNodeId = nodeIdB;
+				orderOk = true;
+			}
+			else if (isOutputRole(roleB) && isInputRole(roleA))
+			{
+				outRole = roleB; outNodeId = nodeIdB;
+				inRole = roleA; inNodeId = nodeIdA;
+				orderOk = true;
+			}
+
+			// è¨±å¯ã™ã‚‹çµ„ã¿åˆã‚ã›:Getterâ†’Variableã€Variable/Operatorâ†’OperatorA/Bã€Operatorâ†’Returnã€Getter/Variable(bool)â†’Return
+			bool isValid = orderOk && (
+				(outRole == PinRole::GetterOut && inRole == PinRole::VariableIn) ||
+				((outRole == PinRole::VariableOut || outRole == PinRole::OperatorOut) && (inRole == PinRole::OperatorA || inRole == PinRole::OperatorB)) ||
+				(outRole == PinRole::OperatorOut && inRole == PinRole::ReturnIn) ||
+				((outRole == PinRole::GetterOut || outRole == PinRole::VariableOut) && inRole == PinRole::ReturnIn)
+				);
+
+			// åŒã˜ãƒãƒ¼ãƒ‰åŒå£«ã¯ç¦æ­¢
+			if (isValid && outNodeId == inNodeId) isValid = false;
+
+			// Getterâ†’Variableã¯ã€å‹ãŒå®Œå…¨ä¸€è‡´ã—ã¦ã„ã‚‹å¿…è¦ãŒã‚ã‚‹
+			if (isValid && outRole == PinRole::GetterOut && inRole == PinRole::VariableIn)
+			{
+				ValueType outType = GetNodeValueType(NodeKind::Getter, outNodeId);
+				ValueType inType = GetNodeValueType(NodeKind::Variable, inNodeId);
+				if (outType != inType) isValid = false;
+			}
+
+			// Variable/Operatorâ†’Operatorã®A/Bã¯ã€å¤§å°ç³»æ¼”ç®—å­ãªã‚‰Boolã‚’ç¦æ­¢ã™ã‚‹ã€‚==/!=ãªã‚‰å‹ä¸€è‡´ã®ã¿è¦‹ã‚‹
+			if (isValid && (outRole == PinRole::VariableOut || outRole == PinRole::OperatorOut) && (inRole == PinRole::OperatorA || inRole == PinRole::OperatorB))
+			{
+				ValueType srcType = GetOutputValueType(outRole, outNodeId);
+
+				CompareOp op = CompareOp::Greater;
+				for (const auto& o : targetLink->condition.operatorNodes)
+				{
+					if (o.id == inNodeId) { op = o.op; break; }
+				}
+
+				if (srcType == ValueType::Bool && IsOrderCompareOp(op))
+				{
+					isValid = false;
+				}
+
+				// æ—¢ã«A/Bã®ã©ã¡ã‚‰ã‹ã«ç¹‹ãŒã£ã¦ã„ã‚‹å´ãŒã‚ã‚Œã°ã€ãã®å‹ã¨ä¸€è‡´ã—ã¦ã„ã‚‹å¿…è¦ãŒã‚ã‚‹
+				int otherPinNodeId = -1;
+				PinRole otherOutRole = PinRole::Unknown;
+				bool wantPinB = (inRole == PinRole::OperatorB);
+				for (const auto& cl : targetLink->condition.links)
+				{
+					if (cl.toId == inNodeId && cl.toPinB != wantPinB)
+					{
+						otherPinNodeId = cl.fromId;
+						otherOutRole = (GetNodeKind(cl.fromId) == NodeKind::Operator) ? PinRole::OperatorOut : PinRole::VariableOut;
+						break;
+					}
+				}
+				if (otherPinNodeId != -1)
+				{
+					ValueType otherType = GetOutputValueType(otherOutRole, otherPinNodeId);
+					if (otherType != srcType) isValid = false;
+				}
+			}
+
+			// Getter/Variable(bool)â†’Returnã¯ã€boolå‹ã®ã¿è¨±å¯
+			if (isValid && (outRole == PinRole::GetterOut || outRole == PinRole::VariableOut) && inRole == PinRole::ReturnIn)
+			{
+				NodeKind outKind = (outRole == PinRole::GetterOut) ? NodeKind::Getter : NodeKind::Variable;
+				ValueType outType = GetNodeValueType(outKind, outNodeId);
+				if (outType != ValueType::Bool) isValid = false;
+			}
+
+			if (isValid)
+			{
+				if (ed::AcceptNewItem())
+				{
+					bool toPinB = (inRole == PinRole::OperatorB);
+
+					// å…¥åŠ›ãƒ”ãƒ³ã¯1æœ¬ã¾ã§:æ—¢ã«åŒã˜å…¥åŠ›ã«ç¹‹ãŒã£ã¦ã„ã‚‹LinkãŒã‚ã‚Œã°ç½®ãæ›ãˆã‚‹
+					auto& links = targetLink->condition.links;
+					links.erase(
+						std::remove_if(links.begin(), links.end(),
+							[&](const ConditionLink& l)
+							{
+								return l.toId == inNodeId && l.toPinB == toPinB;
+							}),
+						links.end()
+					);
+
+					ConditionLink newLink;
+					newLink.id = targetLink->condition.GenerateId();
+					newLink.fromId = outNodeId;
+					newLink.toId = inNodeId;
+					newLink.toPinB = toPinB;
+					links.push_back(newLink);
+				}
+			}
+			else
+			{
+				ed::RejectNewItem(ImColor(255, 0, 0, 255), 2.0f);
+			}
+		}
+	}
+	ed::EndCreate();
+}
+
+void StudioConditionGraph::DrawConditionLinks()
+{
+	const ImColor linkColor(210, 210, 210, 255);
+	const float linkThickness = 2.0f;
+
+	for (const auto& cl : targetLink->condition.links)
+	{
+		NodeKind fromKind = GetNodeKind(cl.fromId);
+		NodeKind toKind = GetNodeKind(cl.toId);
+
+		ed::PinId fromPin = GetOutputPinIdOf(cl.fromId, fromKind);
+		ed::PinId toPin = GetInputPinIdOf(cl.toId, toKind, cl.toPinB);
+
+		ed::Link(ed::LinkId(cl.id), fromPin, toPin, linkColor, linkThickness);
+	}
+}
+
+ed::PinId StudioConditionGraph::GetOutputPinIdOf(int nodeId, NodeKind kind) const
+{
+	switch (kind)
+	{
+	case NodeKind::Variable: return GetVariableOutPinId(nodeId);
+	case NodeKind::Getter:   return GetGetterOutPinId(nodeId);
+	case NodeKind::Operator: return GetOperatorOutPinId(nodeId);
+	default:                 return ed::PinId();
+	}
+}
+
+ed::PinId StudioConditionGraph::GetInputPinIdOf(int nodeId, NodeKind kind, bool toPinB) const
+{
+	switch (kind)
+	{
+	case NodeKind::Variable: return GetVariableInPinId(nodeId);
+	case NodeKind::Operator: return toPinB ? GetOperatorPinB(nodeId) : GetOperatorPinA(nodeId);
+	case NodeKind::Return:   return GetReturnInPinId(nodeId);
+	default:                 return ed::PinId();
+	}
+}
+
+ValueType StudioConditionGraph::GetNodeValueType(NodeKind kind, int nodeId) const
+{
+	if (kind == NodeKind::Variable)
+	{
+		for (const auto& v : targetLink->condition.variableNodes)
+			if (v.id == nodeId) return v.type;
+	}
+	else if (kind == NodeKind::Getter)
+	{
+		for (const auto& g : targetLink->condition.getterNodes)
+		{
+			if (g.id == nodeId)
+			{
+				// Float2/3/4ã¯ã€è»¸(X/Y/Z/W)ã‚’é¸ã‚“ã§åˆã‚ã¦ã€Œå®Ÿè³ªFloatã€ã¨ã—ã¦æ‰±ã†
+				if (MetaRegistry::GetComponentCount(g.type) > 0)
+				{
+					return (g.selectedComponent != FloatComponent::None) ? ValueType::Float : g.type;
+				}
+				return g.type;
+			}
+		}
+	}
+	return ValueType::Float;
+}
+
+bool StudioConditionGraph::IsOrderCompareOp(CompareOp op)
+{
+	switch (op)
+	{
+	case CompareOp::Greater:
+	case CompareOp::Less:
+	case CompareOp::GreaterEqual:
+	case CompareOp::LessEqual:
+		return true;
+	default:
+		return false;
+	}
+}
+
+// å‡ºåŠ›ãƒ”ãƒ³ã®å®Ÿè³ªçš„ãªå‹ã‚’å–å¾—ã™ã‚‹
+ValueType StudioConditionGraph::GetOutputValueType(PinRole outRole, int outNodeId) const
+{
+	if (outRole == PinRole::OperatorOut) return ValueType::Bool; // Operatorã®å‡ºåŠ›ã¯å¸¸ã«Bool
+	if (outRole == PinRole::GetterOut)   return GetNodeValueType(NodeKind::Getter, outNodeId);
+	return GetNodeValueType(NodeKind::Variable, outNodeId); // VariableOut
+}
+
+ConditionLink* StudioConditionGraph::GetSelectedConditionLink()
+{
+	ed::LinkId selectedId;
+	if (ed::GetSelectedLinks(&selectedId, 1) == 0) return nullptr;
+
+	for (auto& cl : targetLink->condition.links)
+	{
+		if (cl.id == (int)selectedId.Get()) return &cl;
+	}
+	return nullptr;
+}
+
+void StudioConditionGraph::DeleteConditionLink(int id)
+{
+	auto& links = targetLink->condition.links;
+	links.erase(
+		std::remove_if(links.begin(), links.end(),
+			[id](const ConditionLink& l) { return l.id == id; }),
+		links.end()
+	);
+}
  
  
 ===== StudioModelViewer.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Tool\Studio\StudioModelViewer.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioModelViewer.cpp 
 #include "StudioModelViewer.h"
 
 #include <windows.h>
@@ -15076,7 +15547,7 @@ void StudioModelViewer::LoadModel(
  
  
 ===== StudioTimeline.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Tool\Studio\StudioTimeline.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioTimeline.cpp 
 ï»¿#include "StudioTimeline.h"
 #include <imgui.h>
 #include <string>
@@ -15176,7 +15647,7 @@ void StudioTimeline::DrawGUI(entt::registry& registry, StudioContext& context)
  
  
 ===== StudioWindow.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Tool\Studio\StudioWindow.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioWindow.cpp 
 #include "StudioWindow.h"
 #include <imgui.h>
 #include <imgui_internal.h>
@@ -15542,7 +16013,7 @@ void StudioWindow::ResizeRenderTarget()
  
  
 ===== CerealHelper.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Utility\CerealHelper.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Utility\CerealHelper.h 
 #pragma once
 #include <DirectXMath.h>
 
@@ -15576,7 +16047,7 @@ namespace DirectX
 } 
  
 ===== high_resolution_timer.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Utility\high_resolution_timer.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Utility\high_resolution_timer.h 
 #pragma once
 
 #include <windows.h>
@@ -15715,7 +16186,7 @@ private:
  
  
 ===== misc.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Utility\misc.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Utility\misc.h 
 #pragma once
 
 #include <windows.h>
@@ -15779,7 +16250,7 @@ public:
  
  
 ===== CerealHelper.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Utility\CerealHelper.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Utility\CerealHelper.cpp 
 #include "CerealHelper.h"
 #include <cereal/archives/binary.hpp>
 
@@ -15860,7 +16331,7 @@ namespace DirectX
 } 
  
 ===== main.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Utility\main.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Utility\main.cpp 
 #include <time.h>
 
 #include "Core/framework.h"

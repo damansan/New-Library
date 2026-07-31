@@ -75,6 +75,7 @@ void StudioConditionGraph::DrawInspector()
 			break;
 		}
 
+
 		DrawDeleteButton("Delete Node", selectedVariable->id, [this](int id) { DeleteVariableNode(id); });
 		return;
 	}
@@ -82,7 +83,6 @@ void StudioConditionGraph::DrawInspector()
 	if (selectedGetter)
 	{
 		ImGui::Text("Getter");
-		ImGui::Separator();
 
 		const auto& fields = MetaRegistry::GetAllFields();
 
@@ -127,13 +127,43 @@ void StudioConditionGraph::DrawInspector()
 					bool isSelected = (f.fieldLabel == selectedGetter->fieldName);
 					if (ImGui::Selectable(f.fieldLabel.c_str(), isSelected))
 					{
+						// フィールドを変えたら、成分選択もリセットする
 						selectedGetter->fieldName = f.fieldLabel;
 						selectedGetter->type = f.type;
+						selectedGetter->selectedComponent = FloatComponent::None;
 					}
 				}
 				ImGui::EndCombo();
 			}
 		}
+
+		// 3段目:選択中フィールドがFloat2/3/4の場合のみ、成分選択を表示する
+		int componentCount = MetaRegistry::GetComponentCount(selectedGetter->type);
+		if (componentCount > 0)
+		{
+			static const char* names[] = { "X", "Y", "Z", "W" };
+			static const FloatComponent values[] = { FloatComponent::X, FloatComponent::Y, FloatComponent::Z, FloatComponent::W };
+
+			std::string currentComp = "(Select Component)";
+			for (int i = 0; i < componentCount; i++)
+			{
+				if (values[i] == selectedGetter->selectedComponent) currentComp = names[i];
+			}
+
+			if (ImGui::BeginCombo("Axis", currentComp.c_str())) 
+			{
+				for (int i = 0; i < componentCount; i++)
+				{
+					bool isSelected = (values[i] == selectedGetter->selectedComponent);
+					if (ImGui::Selectable(names[i], isSelected))
+					{
+						selectedGetter->selectedComponent = values[i];
+					}
+				}
+				ImGui::EndCombo();
+			}
+		}
+
 
 		DrawDeleteButton("Delete Getter", selectedGetter->id, [this](int id) { DeleteGetterNode(id); });
 		return;
@@ -154,6 +184,16 @@ void StudioConditionGraph::DrawInspector()
 		DrawDeleteButton("Delete Operator", selectedOperator->id, [this](int id) { DeleteOperatorNode(id); });
 		return;
 	}
+
+	if (selectedConditionLink)
+	{
+		ImGui::Text("Link");
+
+		int linkId = selectedConditionLink->id;
+		DrawDeleteButton("Delete Link", linkId, [this](int id) { DeleteConditionLink(id); });
+		return;
+	}
+
 
 	ImGui::TextDisabled("No node selected.");
 }
@@ -260,21 +300,21 @@ void StudioConditionGraph::DrawVariableNodes()
 		{
 			CenterNextItem(totalWidth, valueWidth);
 			ImGui::SetNextItemWidth(valueWidth);
-			ImGui::DragInt("##value", &v.intValue, 1);
+			ImGui::DragInt("##int", &v.intValue, 1);
 		}
 		// float型ノード
 		else if (v.type == ValueType::Float)
 		{
 			CenterNextItem(totalWidth, valueWidth);
 			ImGui::SetNextItemWidth(valueWidth);
-			ImGui::DragFloat("##value", &v.floatValue, 0.1f);
+			ImGui::DragFloat("##float", &v.floatValue, 0.1f);
 		}
 		// bool型ノード
 		else
 		{
 			float checkboxWidth = ImGui::GetFrameHeight();
 			CenterNextItem(totalWidth, checkboxWidth);
-			ImGui::Checkbox("##value", &v.boolValue);
+			ImGui::Checkbox("##bool", &v.boolValue);
 		}
 
 		ImGui::PopID();
@@ -416,8 +456,27 @@ void StudioConditionGraph::DrawAssignedGetterNode(ConditionGetterNode& g)
 
 	// 1行目:コンポーネント名
 	std::string line1 = g.componentName;
-	// 2行目:[型] フィールド名
-	std::string line2 = "[" + std::string(GetValueTypeName(g.type)) + "] " + g.fieldName;
+
+	// 2行目:フィールド名(構造体の場合は「フィールド名.成分」、単純な型ならそのまま)
+	std::string line2;
+	int componentCount = MetaRegistry::GetComponentCount(g.type);
+	if (componentCount > 0)
+	{
+		std::string axisName = "?"; // 未選択の場合
+		switch (g.selectedComponent)
+		{
+		case FloatComponent::X: axisName = "X"; break;
+		case FloatComponent::Y: axisName = "Y"; break;
+		case FloatComponent::Z: axisName = "Z"; break;
+		case FloatComponent::W: axisName = "W"; break;
+		default: break;
+		}
+		line2 = g.fieldName + "." + axisName;
+	}
+	else
+	{
+		line2 = g.fieldName;
+	}
 
 	float line1Width = ImGui::CalcTextSize(line1.c_str()).x;
 	float line2Width = ImGui::CalcTextSize(line2.c_str()).x;
@@ -559,6 +618,7 @@ void StudioConditionGraph::DrawDeleteButton(const char* label, int targetId, con
 		selectedVariable = nullptr;
 		selectedGetter = nullptr;
 		selectedOperator = nullptr;
+		selectedConditionLink = nullptr;
 	}
 }
 // 変数ノード削除
@@ -620,6 +680,7 @@ void StudioConditionGraph::UpdateSelection()
 	selectedVariable = nullptr;
 	selectedGetter = nullptr;
 	selectedOperator = nullptr;
+	selectedConditionLink = nullptr;
 
 	if (ed::GetSelectedObjectCount() == 0) return;
 
@@ -639,6 +700,9 @@ void StudioConditionGraph::UpdateSelection()
 	{
 		if (o.id == id) { selectedOperator = &o; return; }
 	}
+
+	// Linkの選択
+	selectedConditionLink = GetSelectedConditionLink();
 }
 
 
@@ -657,10 +721,16 @@ ImColor StudioConditionGraph::GetValueTypeColor(ValueType type)
 {
 	switch (type)
 	{
-	case ValueType::Int:   return ImColor(68, 201, 156, 255);  // 水色
-	case ValueType::Float: return ImColor(147, 226, 74, 255);  // 緑
-	case ValueType::Bool:  return ImColor(220, 48, 48, 255);   // 赤
-	default:               return ImColor(255, 255, 255, 255);
+	case ValueType::Int:    return ImColor(68, 201, 156, 255);  // 水色
+	
+	case ValueType::Float:  return ImColor(147, 226, 74, 255);  // 緑(Float2/3/4も同じ緑にする)
+	case ValueType::Float2:
+	case ValueType::Float3:
+	case ValueType::Float4: return ImColor(147, 226, 74, 255);
+
+	case ValueType::Bool:   return ImColor(220, 48, 48, 255);   // 赤
+	
+	default:                return ImColor(255, 255, 255, 255);
 	}
 }
 // 値の型名を文字にして返す
@@ -796,15 +866,68 @@ void StudioConditionGraph::DrawLinkCreation()
 				orderOk = true;
 			}
 
-			// 許可する組み合わせ:Getter→Variable、Variable→OperatorA/B、Operator→Return
+			// 許可する組み合わせ:Getter→Variable、Variable/Operator→OperatorA/B、Operator→Return、Getter/Variable(bool)→Return
 			bool isValid = orderOk && (
 				(outRole == PinRole::GetterOut && inRole == PinRole::VariableIn) ||
-				(outRole == PinRole::VariableOut && (inRole == PinRole::OperatorA || inRole == PinRole::OperatorB)) ||
-				(outRole == PinRole::OperatorOut && inRole == PinRole::ReturnIn)
+				((outRole == PinRole::VariableOut || outRole == PinRole::OperatorOut) && (inRole == PinRole::OperatorA || inRole == PinRole::OperatorB)) ||
+				(outRole == PinRole::OperatorOut && inRole == PinRole::ReturnIn) ||
+				((outRole == PinRole::GetterOut || outRole == PinRole::VariableOut) && inRole == PinRole::ReturnIn)
 				);
 
 			// 同じノード同士は禁止
 			if (isValid && outNodeId == inNodeId) isValid = false;
+
+			// Getter→Variableは、型が完全一致している必要がある
+			if (isValid && outRole == PinRole::GetterOut && inRole == PinRole::VariableIn)
+			{
+				ValueType outType = GetNodeValueType(NodeKind::Getter, outNodeId);
+				ValueType inType = GetNodeValueType(NodeKind::Variable, inNodeId);
+				if (outType != inType) isValid = false;
+			}
+
+			// Variable/Operator→OperatorのA/Bは、大小系演算子ならBoolを禁止する。==/!=なら型一致のみ見る
+			if (isValid && (outRole == PinRole::VariableOut || outRole == PinRole::OperatorOut) && (inRole == PinRole::OperatorA || inRole == PinRole::OperatorB))
+			{
+				ValueType srcType = GetOutputValueType(outRole, outNodeId);
+
+				CompareOp op = CompareOp::Greater;
+				for (const auto& o : targetLink->condition.operatorNodes)
+				{
+					if (o.id == inNodeId) { op = o.op; break; }
+				}
+
+				if (srcType == ValueType::Bool && IsOrderCompareOp(op))
+				{
+					isValid = false;
+				}
+
+				// 既にA/Bのどちらかに繋がっている側があれば、その型と一致している必要がある
+				int otherPinNodeId = -1;
+				PinRole otherOutRole = PinRole::Unknown;
+				bool wantPinB = (inRole == PinRole::OperatorB);
+				for (const auto& cl : targetLink->condition.links)
+				{
+					if (cl.toId == inNodeId && cl.toPinB != wantPinB)
+					{
+						otherPinNodeId = cl.fromId;
+						otherOutRole = (GetNodeKind(cl.fromId) == NodeKind::Operator) ? PinRole::OperatorOut : PinRole::VariableOut;
+						break;
+					}
+				}
+				if (otherPinNodeId != -1)
+				{
+					ValueType otherType = GetOutputValueType(otherOutRole, otherPinNodeId);
+					if (otherType != srcType) isValid = false;
+				}
+			}
+
+			// Getter/Variable(bool)→Returnは、bool型のみ許可
+			if (isValid && (outRole == PinRole::GetterOut || outRole == PinRole::VariableOut) && inRole == PinRole::ReturnIn)
+			{
+				NodeKind outKind = (outRole == PinRole::GetterOut) ? NodeKind::Getter : NodeKind::Variable;
+				ValueType outType = GetNodeValueType(outKind, outNodeId);
+				if (outType != ValueType::Bool) isValid = false;
+			}
 
 			if (isValid)
 			{
@@ -877,4 +1000,73 @@ ed::PinId StudioConditionGraph::GetInputPinIdOf(int nodeId, NodeKind kind, bool 
 	case NodeKind::Return:   return GetReturnInPinId(nodeId);
 	default:                 return ed::PinId();
 	}
+}
+
+ValueType StudioConditionGraph::GetNodeValueType(NodeKind kind, int nodeId) const
+{
+	if (kind == NodeKind::Variable)
+	{
+		for (const auto& v : targetLink->condition.variableNodes)
+			if (v.id == nodeId) return v.type;
+	}
+	else if (kind == NodeKind::Getter)
+	{
+		for (const auto& g : targetLink->condition.getterNodes)
+		{
+			if (g.id == nodeId)
+			{
+				// Float2/3/4は、軸(X/Y/Z/W)を選んで初めて「実質Float」として扱う
+				if (MetaRegistry::GetComponentCount(g.type) > 0)
+				{
+					return (g.selectedComponent != FloatComponent::None) ? ValueType::Float : g.type;
+				}
+				return g.type;
+			}
+		}
+	}
+	return ValueType::Float;
+}
+
+bool StudioConditionGraph::IsOrderCompareOp(CompareOp op)
+{
+	switch (op)
+	{
+	case CompareOp::Greater:
+	case CompareOp::Less:
+	case CompareOp::GreaterEqual:
+	case CompareOp::LessEqual:
+		return true;
+	default:
+		return false;
+	}
+}
+
+// 出力ピンの実質的な型を取得する
+ValueType StudioConditionGraph::GetOutputValueType(PinRole outRole, int outNodeId) const
+{
+	if (outRole == PinRole::OperatorOut) return ValueType::Bool; // Operatorの出力は常にBool
+	if (outRole == PinRole::GetterOut)   return GetNodeValueType(NodeKind::Getter, outNodeId);
+	return GetNodeValueType(NodeKind::Variable, outNodeId); // VariableOut
+}
+
+ConditionLink* StudioConditionGraph::GetSelectedConditionLink()
+{
+	ed::LinkId selectedId;
+	if (ed::GetSelectedLinks(&selectedId, 1) == 0) return nullptr;
+
+	for (auto& cl : targetLink->condition.links)
+	{
+		if (cl.id == (int)selectedId.Get()) return &cl;
+	}
+	return nullptr;
+}
+
+void StudioConditionGraph::DeleteConditionLink(int id)
+{
+	auto& links = targetLink->condition.links;
+	links.erase(
+		std::remove_if(links.begin(), links.end(),
+			[id](const ConditionLink& l) { return l.id == id; }),
+		links.end()
+	);
 }

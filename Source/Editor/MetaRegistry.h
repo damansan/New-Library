@@ -44,4 +44,7 @@ public:
 
 	// 登録済みのフィード一覧を取得する
 	static const std::vector<FieldEntry>& GetAllFields();
+
+	// Float2/3/4型の、成分数を返す(それ以外は0)
+	static int GetComponentCount(ValueType type);
 };

@@ -3,23 +3,37 @@
 #include <vector>
 #include <json.hpp>
 
-// 子階層ノードの種類
-enum class AnimNodeType
+// == Stateグラフ関連 == //
+enum class AnimNodeType // 子階層ノードの種類
 {
 	Normal, // アニメーションノード
 	Start,  // 開始点
 	End,    // 終了点
 };
-
-// 親階層のノードの種類
-enum class AnimStateType
+enum class AnimStateType // 親階層のノードの種類
 {
 	Entry, // 開始点
 	State, // ノード
 };
 
-// 比較演算子の種類
-enum class CompareOp
+
+// == 条件グラフ関連 == //
+enum class ValueType // 変数ノードが持つ値の型
+{
+	Int,
+	Float,
+	Bool,
+
+	Float2,
+	Float3,
+	Float4,
+};
+enum class FloatComponent // 構造体のどの成分を取り出すか
+{
+	None,
+	X, Y, Z, W,
+};
+enum class CompareOp // 比較演算子の種類
 {
 	Greater,      // >
 	Less,         // <
@@ -28,17 +42,7 @@ enum class CompareOp
 	GreaterEqual, // >=
 	LessEqual,    // <=
 };
-
-// 変数ノードが持つ値の型
-enum class ValueType
-{
-	Int,
-	Float,
-	Bool,
-};
-
-// コンポーネントの値を取得するノード
-struct ConditionGetterNode
+struct ConditionGetterNode // コンポーネントの値を取得するノード
 {
 	int id = -1;
 	float posX = 0.0f;
@@ -46,66 +50,59 @@ struct ConditionGetterNode
 	std::string componentName; // MetaRegistryで登録した型名
 	std::string fieldName;     // entt::meta上のフィールド名
 	ValueType type = ValueType::Float;
+	FloatComponent selectedComponent = FloatComponent::None;
 };  
-
-
-// 変数ノード
-struct ConditionVariableNode
+struct ConditionVariableNode // 変数ノード
 {
 	int id = -1;
 	float posX = 0.0f;
 	float posY = 0.0f;
 	std::string name; // 空の間は"Variable"と表示
 	ValueType type = ValueType::Float;
+	
+	// 変数型に応じて以下のどれかを使用する
 	int intValue = 0;
 	float floatValue = 0.0f;
 	bool boolValue = false;
 };
-
-// 比較ノード
-struct ConditionOperatorNode
+struct ConditionOperatorNode // 比較ノード
 {
 	int id = -1;
 	float posX = 0.0f;
 	float posY = 0.0f;
 
 	CompareOp op = CompareOp::Greater;
-	float compareValue = 0.0f;
 };
-
-// 条件グラフ内のリンク
-struct ConditionLink
+struct ConditionReturnNode // 条件グラフの終着点
+{
+	int id = -1;
+	float posX = 0.0f;
+	float posY = 0.0f;
+};
+struct ConditionLink // 条件グラフ内のリンク
 {
 	int id = -1;
 	int fromId = -1;
 	int toId = -1;
 	bool toPinB = false;
 };
-
-// 条件グラフの終着点
-struct ConditionReturnNode
-{
-	int id = -1;
-	float posX = 0.0f;
-	float posY = 0.0f;
-};
-
-// Link1本分の条件グラフ
-struct ConditionGraph
+struct ConditionGraph // Link1本分の条件グラフ
 {
 	ConditionReturnNode returnNode;
 
 	std::vector<ConditionVariableNode> variableNodes;
 	std::vector<ConditionGetterNode>   getterNodes;
 	std::vector<ConditionOperatorNode> operatorNodes;
-	std::vector<ConditionLink> links;
+	std::vector<ConditionLink> links;   // Getter/Variable/Operator/Return同士を繋ぐリンク
 
+	// このLink専用のID採番カウンター
 	int nextId = 1;
 	int GenerateId() { return nextId++; }
 };
 
-// リンク
-struct AnimLink
+
+// == Stateグラグ本体 == //
+struct AnimLink // リンク
 {
 	int id = -1;     // このリンクのID
 	int fromId = -1; // 遷移元のID
@@ -113,9 +110,7 @@ struct AnimLink
 
 	ConditionGraph condition; // このLinkの遷移条件グラフ
 };
-
-// 子階層ノード
-struct AnimNode
+struct AnimNode // 子階層ノード
 {
 	int id = -1;
 	std::string name;
@@ -126,9 +121,7 @@ struct AnimNode
 	AnimNodeType type = AnimNodeType::Normal;
 	std::string clipName;
 };
-
-// 親階層ノード
-struct AnimState
+struct AnimState // 親階層ノード
 {
 	int id = -1;
 	std::string name;
@@ -138,13 +131,11 @@ struct AnimState
 
 	AnimStateType type = AnimStateType::State;
 
-	//float color[3] = { 0.45f, 0.45f, 0.45f }; // 初期値はグレー
 	float color[3] = { 0.27f, 0.35f, 0.47f };
 
 	std::vector<AnimNode> children;
 	std::vector<AnimLink> childLinks;
 };
-
 
 
 class AnimatorGraph
@@ -165,6 +156,7 @@ public:
 	// Linkを削除する
 	void DeleteLink(int linkId);
 
+	// State/StateLink用のID採番カウンター
 	int GenerateId() { return nextId++; }
 
 	// グラフ内容をJsonに変換する
@@ -175,6 +167,16 @@ public:
 private:
 	// Entryがなければ作成する
 	void EnsureEntryExists();
+
+	// Statesを保存内容へ変換
+	nlohmann::ordered_json StatesToJson() const;
+	// Statesを保存内容から復元する
+	void StatesFromJson(const nlohmann::json& j);
+
+	// StateLinksを保存内容へ変換
+	nlohmann::ordered_json StateLinksToJson() const;
+	// StateLinksを保存内容から復元する
+	void StateLinksFromJson(const nlohmann::json& j);
 
 	int nextId = 1;
 };

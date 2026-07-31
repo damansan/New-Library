@@ -93,7 +93,6 @@ void StudioAnimatorGraph::DrawConditionCanvas()
 
 	conditionGraph.DrawInspector();
 }
-
 // 上側ツールバー
 void StudioAnimatorGraph::DrawToolbar(StudioContext& context)
 {
@@ -119,7 +118,6 @@ void StudioAnimatorGraph::DrawToolbar(StudioContext& context)
 	}
 	ImGui::Separator();
 }
-
 // .animgraphのD&D受け口
 void StudioAnimatorGraph::DrawDropTarget(StudioContext& context)
 {
@@ -134,6 +132,7 @@ void StudioAnimatorGraph::DrawDropTarget(StudioContext& context)
 		ImGui::EndDragDropTarget();
 	}
 }
+// ドロップされたパスを紐づけ可能か検証する
 void StudioAnimatorGraph::TryAttachGraph(const std::string& path, StudioContext& context)
 {
 	std::ifstream ifs(path);
@@ -168,7 +167,9 @@ void StudioAnimatorGraph::TryAttachGraph(const std::string& path, StudioContext&
 	loaded = false;
 }
 
-// State描画
+
+
+// ノード描画
 void StudioAnimatorGraph::DrawNodes()
 {
 	nodeScreenRects.clear();
@@ -185,47 +186,16 @@ void StudioAnimatorGraph::DrawNodes()
 		PushStateStyle(state);
 
 		ed::BeginNode(nodeId);
-		if (state.type == AnimStateType::Entry)
-		{
-			const float totalWidth = 100.0f;
-			float textWidth = ImGui::CalcTextSize(state.name.c_str()).x;
-			float padding = (totalWidth - textWidth) * 0.5f;
 
-			if (padding > 0.0f)
-			{
-				ImGui::Dummy(ImVec2(padding, 0.0f));
-				ImGui::SameLine(0.0f, 0.0f);
-			}
+		float nodeWidth = (state.type == AnimStateType::Entry) ? 100.0f : ImGui::CalcTextSize("New State").x;
+		float textWidth = ImGui::CalcTextSize(state.name.c_str()).x;
 
-			ImGui::Text("%s", state.name.c_str());
+		CenterNextItem(nodeWidth, textWidth);
+		ImGui::Text("%s", state.name.c_str());
 
-			if (padding > 0.0f)
-			{
-				ImGui::SameLine(0.0f, 0.0f);
-				ImGui::Dummy(ImVec2(padding, 0.0f));
-			}
-		}
-		else
-		{
-			static const float minWidth = ImGui::CalcTextSize("New State").x;
+		ImGui::SameLine(nodeWidth);
+		ImGui::Dummy(ImVec2(0.0f, 0.0f));
 
-			float textWidth = ImGui::CalcTextSize(state.name.c_str()).x;
-			float padding = (minWidth - textWidth) * 0.5f;
-
-			if (padding > 0.0f)
-			{
-				ImGui::Dummy(ImVec2(padding, 0.0f));
-				ImGui::SameLine(0.0f, 0.0f);
-			}
-
-			ImGui::Text("%s", state.name.c_str());
-
-			if (padding > 0.0f)
-			{
-				ImGui::SameLine(0.0f, 0.0f);
-				ImGui::Dummy(ImVec2(padding, 0.0f));
-			}
-		}
 		ed::EndNode();
 
 		nodeScreenRects[state.id] = { ImGui::GetItemRectMin(), ImGui::GetItemRectMax() };
@@ -238,6 +208,7 @@ void StudioAnimatorGraph::DrawNodes()
 	}
 	needsApplyPositions = false;
 }
+// 
 void StudioAnimatorGraph::PushStateStyle(const AnimState& state)
 {
 	switch (state.type)
@@ -582,21 +553,9 @@ void StudioAnimatorGraph::DrawStateInspector(AnimState* selectedState)
 
 	ImGui::ColorEdit3("Color", selectedState->color);
 
-	ImGui::Spacing();
-	ImGui::Spacing();
+	int stateId = selectedState->id;
+	DrawDeleteButton("Delete State", [this, stateId]() { graph.DeleteState(stateId); });
 
-	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.15f, 0.15f, 1.0f));
-	ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.85f, 0.2f, 0.2f, 1.0f));
-	ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.6f, 0.1f, 0.1f, 1.0f));
-
-	bool pressed = ImGui::Button("Delete State", ImVec2(-1.0f, 0.0f));
-
-	ImGui::PopStyleColor(3);
-
-	if (pressed)
-	{
-		graph.DeleteState(selectedState->id);
-	}
 }
 void StudioAnimatorGraph::DrawLinkInspector(AnimLink* selectedLink)
 {
@@ -619,18 +578,8 @@ void StudioAnimatorGraph::DrawLinkInspector(AnimLink* selectedLink)
 		showConditionGraph = true;
 	}
 
-	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.15f, 0.15f, 1.0f));
-	ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.85f, 0.2f, 0.2f, 1.0f));
-	ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.6f, 0.1f, 0.1f, 1.0f));
-
-	bool pressed = ImGui::Button("Delete Link", ImVec2(-1.0f, 0.0f));
-
-	ImGui::PopStyleColor(3);
-
-	if (pressed)
-	{
-		graph.DeleteLink(selectedLink->id);
-	}
+	int linkId = selectedLink->id;
+	DrawDeleteButton("Delete Link", [this, linkId]() { graph.DeleteLink(linkId); });
 }
 AnimState* StudioAnimatorGraph::GetSelectedState()
 {
@@ -716,5 +665,34 @@ void StudioAnimatorGraph::Load(StudioContext& context)
 	catch (const std::exception&)
 	{
 		// 壊れているか空のjsonの場合なにもしない
+	}
+}
+
+void StudioAnimatorGraph::CenterNextItem(float totalWidth, float itemWidth)
+{
+	float pad = (totalWidth - itemWidth) * 0.5f;
+	if (pad > 0.0f)
+	{
+		ImGui::Dummy(ImVec2(pad, 0.0f));
+		ImGui::SameLine(0.0f, 0.0f);
+	}
+}
+
+void StudioAnimatorGraph::DrawDeleteButton(const char* label, const std::function<void()>& onDelete)
+{
+	ImGui::Spacing();
+	ImGui::Spacing();
+
+	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.15f, 0.15f, 1.0f));
+	ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.85f, 0.2f, 0.2f, 1.0f));
+	ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.6f, 0.1f, 0.1f, 1.0f));
+
+	bool pressed = ImGui::Button(label, ImVec2(-1.0f, 0.0f));
+
+	ImGui::PopStyleColor(3);
+
+	if (pressed)
+	{
+		onDelete();
 	}
 }

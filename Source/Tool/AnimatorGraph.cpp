@@ -1,28 +1,12 @@
 #include "AnimatorGraph.h"
 #include <algorithm>
 
+// == enumの文字変換 == //
 namespace
 {
-	// enumの文字変換
-	std::string ToString(AnimStateType type)
-	{
-		switch (type)
-		{
-		case AnimStateType::Entry: return "Entry";
-		case AnimStateType::State: return "State";
-		}
-		return "State";
-	}
+	// ===== enumの文字変換(Stateグラフ関連) =====
 
-	AnimStateType ToAnimStateType(const std::string& s)
-	{
-		if (s == "Entry") 
-		{
-			return AnimStateType::Entry;
-		}
-		return AnimStateType::State;
-	}
-
+	// AnimNodeType(子階層ノードの種類)
 	std::string ToString(AnimNodeType type)
 	{
 		switch (type)
@@ -33,24 +17,6 @@ namespace
 		}
 		return "Normal";
 	}
-
-	std::string ToString(ValueType type)
-	{
-		switch (type)
-		{
-		case ValueType::Int:   return "Int";
-		case ValueType::Float: return "Float";
-		case ValueType::Bool:  return "Bool";
-		default:               return "Float";
-		}
-	}
-	ValueType ToValueType(const std::string& s)
-	{
-		if (s == "Int")  return ValueType::Int;
-		if (s == "Bool") return ValueType::Bool;
-		return ValueType::Float;
-	}
-
 	AnimNodeType ToAnimNodeType(const std::string& s)
 	{
 		if (s == "Start") return AnimNodeType::Start;
@@ -58,6 +24,77 @@ namespace
 		return AnimNodeType::Normal;
 	}
 
+
+	// AnimStateType(親階層のノードの種類)
+	std::string ToString(AnimStateType type)
+	{
+		switch (type)
+		{
+		case AnimStateType::Entry: return "Entry";
+		case AnimStateType::State: return "State";
+		}
+		return "State";
+	}
+	AnimStateType ToAnimStateType(const std::string& s)
+	{
+		if (s == "Entry") 
+		{
+			return AnimStateType::Entry;
+		}
+		return AnimStateType::State;
+	}
+
+
+	// ===== enumの文字変換(条件グラフ関連) =====
+
+	// ValueType(変数ノードが持つ値の型)
+	std::string ToString(ValueType type)
+	{
+		switch (type)
+		{
+		case ValueType::Int:    return "Int";
+		case ValueType::Float:  return "Float";
+		case ValueType::Bool:   return "Bool";
+
+		case ValueType::Float2: return "Float2";
+		case ValueType::Float3: return "Float3";
+		case ValueType::Float4: return "Float4";
+		default:                return "Float";
+		}
+	}
+	ValueType ToValueType(const std::string& s)
+	{
+		if (s == "Int")    return ValueType::Int;
+		if (s == "Bool")   return ValueType::Bool;
+		if (s == "Float2") return ValueType::Float2;
+		if (s == "Float3") return ValueType::Float3;
+		if (s == "Float4") return ValueType::Float4;
+		return ValueType::Float;
+	}
+
+
+	// FloatComponent(構造体のどの成分を取り出すか)
+	std::string ToString(FloatComponent c)
+	{
+		switch (c)
+		{
+		case FloatComponent::X: return "X";
+		case FloatComponent::Y: return "Y";
+		case FloatComponent::Z: return "Z";
+		case FloatComponent::W: return "W";
+		default:                return "None";
+		}
+	}
+	FloatComponent ToFloatComponent(const std::string& s)
+	{
+		if (s == "X") return FloatComponent::X;
+		if (s == "Y") return FloatComponent::Y;
+		if (s == "Z") return FloatComponent::Z;
+		if (s == "W") return FloatComponent::W;
+		return FloatComponent::None;
+	}
+
+	// CompareOp(比較演算子の種類)
 	std::string ToString(CompareOp op)
 	{
 		switch (op)
@@ -82,12 +119,14 @@ namespace
 	}
 }
 
-
+// コンストラクタ
 AnimatorGraph::AnimatorGraph()
 {
+	// 空のグラフを作る場合でも、Entryだけは必ず存在する状態にする
 	EnsureEntryExists();
 }
 
+// Stateを作成する
 int AnimatorGraph::CreateState(const std::string& name, float posX, float posY)
 {
 	AnimState state;
@@ -98,9 +137,12 @@ int AnimatorGraph::CreateState(const std::string& name, float posX, float posY)
 	state.type = AnimStateType::State;
 
 	states.push_back(state);
+
+	// 作製したStateのIDを返す
 	return state.id;
 }
 
+// Stateを削除する
 void AnimatorGraph::DeleteState(int stateId)
 {
 	states.erase(
@@ -155,8 +197,54 @@ void AnimatorGraph::DeleteLink(int linkId)
 nlohmann::ordered_json AnimatorGraph::ToJson() const
 {
 	nlohmann::ordered_json j;
+	j["states"] = StatesToJson();
+	j["stateLinks"] = StateLinksToJson();
+	return j;
+}
 
-	j["states"] = nlohmann::json::array();
+// Jsonから中身を変換する
+void AnimatorGraph::FromJson(const nlohmann::json& j)
+{
+	states.clear();
+	stateLinks.clear();
+
+	if (j.contains("states")) StatesFromJson(j["states"]);
+	if (j.contains("stateLinks")) StateLinksFromJson(j["stateLinks"]);
+
+	// 読み込んだ結果Entryが無かった場合の保険
+	EnsureEntryExists();
+}
+
+// Entryがなければ作成する
+void AnimatorGraph::EnsureEntryExists()
+{
+	bool hasEntry = false;
+	for (const auto& s : states)
+	{
+		if (s.type == AnimStateType::Entry)
+		{
+			hasEntry = true;
+			break;
+		}
+	}
+
+	if (!hasEntry)
+	{
+		AnimState entry;
+		entry.id = GenerateId();
+		entry.name = "Entry";
+		entry.posX = 50.0f;
+		entry.posY = 200.0f;
+		entry.type = AnimStateType::Entry;
+		states.push_back(entry);
+	}
+}
+
+// Statesを保存内容へ変換
+nlohmann::ordered_json AnimatorGraph::StatesToJson() const
+{
+	nlohmann::ordered_json jStates = nlohmann::json::array();
+
 	for (const auto& state : states)
 	{
 		nlohmann::ordered_json js;
@@ -190,10 +278,70 @@ nlohmann::ordered_json AnimatorGraph::ToJson() const
 			js["childLinks"].push_back(jl);
 		}
 
-		j["states"].push_back(js);
+		jStates.push_back(js);
 	}
 
-	j["stateLinks"] = nlohmann::json::array();
+	return jStates;
+}
+// Statesを保存内容から復元する
+void AnimatorGraph::StatesFromJson(const nlohmann::json& j)
+{
+	for (const auto& js : j)
+	{
+		AnimState state;
+		state.id = js.value("id", -1);
+		state.name = js.value("name", "");
+		state.posX = js.value("posX", 0.0f);
+		state.posY = js.value("posY", 0.0f);
+		state.type = ToAnimStateType(js.value("type", "State"));
+
+		if (js.contains("color") && js["color"].is_array() && js["color"].size() == 3)
+		{
+			state.color[0] = js["color"][0].get<float>();
+			state.color[1] = js["color"][1].get<float>();
+			state.color[2] = js["color"][2].get<float>();
+		}
+
+		if (js.contains("children"))
+		{
+			for (const auto& jn : js["children"])
+			{
+				AnimNode node;
+				node.id = jn.value("id", -1);
+				node.name = jn.value("name", "");
+				node.posX = jn.value("posX", 0.0f);
+				node.posY = jn.value("posY", 0.0f);
+				node.type = ToAnimNodeType(jn.value("type", "Normal"));
+				node.clipName = jn.value("clipName", "");
+				state.children.push_back(node);
+			}
+		}
+
+		if (js.contains("childLinks"))
+		{
+			for (const auto& jl : js["childLinks"])
+			{
+				AnimLink link;
+				link.id = jl.value("id", -1);
+				link.fromId = jl.value("fromId", -1);
+				link.toId = jl.value("toId", -1);
+				state.childLinks.push_back(link);
+			}
+		}
+
+		states.push_back(state);
+
+		// 復元後もIDが重複しないよう、採番カウンタを追従させる
+		if (state.id >= nextId) nextId = state.id + 1;
+	}
+
+}
+
+// StateLinksを保存内容へ変換
+nlohmann::ordered_json AnimatorGraph::StateLinksToJson() const
+{
+	nlohmann::ordered_json jLinks = nlohmann::json::array();
+
 	for (const auto& link : stateLinks)
 	{
 		nlohmann::ordered_json jl;
@@ -231,7 +379,6 @@ nlohmann::ordered_json AnimatorGraph::ToJson() const
 			jo["posX"] = o.posX;
 			jo["posY"] = o.posY;
 			jo["op"] = ToString(o.op);
-			jo["compareValue"] = o.compareValue;
 			jc["operatorNodes"].push_back(jo);
 		}
 
@@ -245,6 +392,7 @@ nlohmann::ordered_json AnimatorGraph::ToJson() const
 			jg["componentName"] = g.componentName;
 			jg["fieldName"] = g.fieldName;
 			jg["type"] = ToString(g.type);
+			jg["selectedComponent"] = ToString(g.selectedComponent);
 			jc["getterNodes"].push_back(jg);
 		}
 
@@ -261,189 +409,103 @@ nlohmann::ordered_json AnimatorGraph::ToJson() const
 
 		jl["condition"] = jc;
 
-		j["stateLinks"].push_back(jl);
+		jLinks.push_back(jl);
 	}
-	return j;
+
+	return jLinks;
 }
-
-// Jsonから中身を変換する
-void AnimatorGraph::FromJson(const nlohmann::json& j)
+// StateLinksを保存内容から復元する
+void AnimatorGraph::StateLinksFromJson(const nlohmann::json& j)
 {
-	states.clear();
-	stateLinks.clear();
-
-	if (j.contains("states"))
+	for (const auto& jl : j)
 	{
-		for (const auto& js : j["states"])
+		AnimLink link;
+		link.id = jl.value("id", -1);
+		link.fromId = jl.value("fromId", -1);
+		link.toId = jl.value("toId", -1);
+
+		if (jl.contains("condition"))
 		{
-			AnimState state;
-			state.id = js.value("id", -1);
-			state.name = js.value("name", "");
-			state.posX = js.value("posX", 0.0f);
-			state.posY = js.value("posY", 0.0f);
-			state.type = ToAnimStateType(js.value("type", "State"));
+			const auto& jc = jl["condition"];
+			link.condition.nextId = jc.value("nextId", 1);
 
-			if (js.contains("color") && js["color"].is_array() && js["color"].size() == 3)
+			if (jc.contains("returnNode"))
 			{
-				state.color[0] = js["color"][0].get<float>();
-				state.color[1] = js["color"][1].get<float>();
-				state.color[2] = js["color"][2].get<float>();
+				link.condition.returnNode.id = jc["returnNode"].value("id", -1);
+				link.condition.returnNode.posX = jc["returnNode"].value("posX", 500.0f);
+				link.condition.returnNode.posY = jc["returnNode"].value("posY", 200.0f);
 			}
 
-			if (js.contains("children"))
+			// 古い保存データにReturnノードが無かった場合の保険
+			if (link.condition.returnNode.id < 0)
 			{
-				for (const auto& jn : js["children"])
+				link.condition.returnNode.id = link.condition.GenerateId();
+				link.condition.returnNode.posX = 500.0f;
+				link.condition.returnNode.posY = 200.0f;
+			}
+
+			if (jc.contains("variableNodes"))
+			{
+				for (const auto& jv : jc["variableNodes"])
 				{
-					AnimNode node;
-					node.id = jn.value("id", -1);
-					node.name = jn.value("name", "");
-					node.posX = jn.value("posX", 0.0f);
-					node.posY = jn.value("posY", 0.0f);
-					node.type = ToAnimNodeType(jn.value("type", "Normal"));
-					node.clipName = jn.value("clipName", "");
-					state.children.push_back(node);
+					ConditionVariableNode v;
+					v.id = jv.value("id", -1);
+					v.posX = jv.value("posX", 0.0f);
+					v.posY = jv.value("posY", 0.0f);
+					v.name = jv.value("name", "");
+					v.type = ToValueType(jv.value("type", "Float"));
+					v.intValue = jv.value("intValue", 0);
+					v.floatValue = jv.value("floatValue", 0.0f);
+					v.boolValue = jv.value("boolValue", false);
+					link.condition.variableNodes.push_back(v);
 				}
 			}
 
-			if (js.contains("childLinks"))
+			if (jc.contains("operatorNodes"))
 			{
-				for (const auto& jl : js["childLinks"])
+				for (const auto& jo : jc["operatorNodes"])
 				{
-					AnimLink link;
-					link.id = jl.value("id", -1);
-					link.fromId = jl.value("fromId", -1);
-					link.toId = jl.value("toId", -1);
-					state.childLinks.push_back(link);
+					ConditionOperatorNode o;
+					o.id = jo.value("id", -1);
+					o.posX = jo.value("posX", 0.0f);
+					o.posY = jo.value("posY", 0.0f);
+					o.op = ToCompareOp(jo.value("op", "Greater"));
+					link.condition.operatorNodes.push_back(o);
 				}
 			}
 
-			states.push_back(state);
+			if (jc.contains("getterNodes"))
+			{
+				for (const auto& jg : jc["getterNodes"])
+				{
+					ConditionGetterNode g;
+					g.id = jg.value("id", -1);
+					g.posX = jg.value("posX", 0.0f);
+					g.posY = jg.value("posY", 0.0f);
+					g.componentName = jg.value("componentName", "");
+					g.fieldName = jg.value("fieldName", "");
+					g.type = ToValueType(jg.value("type", "Float"));
+					g.selectedComponent = ToFloatComponent(jg.value("selectedComponent", "None"));
+					link.condition.getterNodes.push_back(g);
+				}
+			}
 
-			// 復元後もIDが重複しないよう、採番カウンタを追従させる
-			if (state.id >= nextId) nextId = state.id + 1;
+			if (jc.contains("links"))
+			{
+				for (const auto& jcl : jc["links"])
+				{
+					ConditionLink cl;
+					cl.id = jcl.value("id", -1);
+					cl.fromId = jcl.value("fromId", -1);
+					cl.toId = jcl.value("toId", -1);
+					cl.toPinB = jcl.value("toPinB", false);
+					link.condition.links.push_back(cl);
+				}
+			}
 		}
-	}
 
-	if (j.contains("stateLinks"))
-	{
-		for (const auto& jl : j["stateLinks"])
-		{
-			AnimLink link;
-			link.id = jl.value("id", -1);
-			link.fromId = jl.value("fromId", -1);
-			link.toId = jl.value("toId", -1);
+		stateLinks.push_back(link);
 
-			if (jl.contains("condition"))
-			{
-				const auto& jc = jl["condition"];
-				link.condition.nextId = jc.value("nextId", 1);
-
-				if (jc.contains("returnNode"))
-				{
-					link.condition.returnNode.id = jc["returnNode"].value("id", -1);
-					link.condition.returnNode.posX = jc["returnNode"].value("posX", 500.0f);
-					link.condition.returnNode.posY = jc["returnNode"].value("posY", 200.0f);
-				}
-
-				// 古い保存データにReturnノードが無かった場合の保険
-				if (link.condition.returnNode.id < 0)
-				{
-					link.condition.returnNode.id = link.condition.GenerateId();
-					link.condition.returnNode.posX = 500.0f;
-					link.condition.returnNode.posY = 200.0f;
-				}
-
-				if (jc.contains("variableNodes"))
-				{
-					for (const auto& jv : jc["variableNodes"])
-					{
-						ConditionVariableNode v;
-						v.id = jv.value("id", -1);
-						v.posX = jv.value("posX", 0.0f);
-						v.posY = jv.value("posY", 0.0f);
-						v.name = jv.value("name", "");
-						v.type = ToValueType(jv.value("type", "Float"));
-						v.intValue = jv.value("intValue", 0);
-						v.floatValue = jv.value("floatValue", 0.0f);
-						v.boolValue = jv.value("boolValue", false);
-						link.condition.variableNodes.push_back(v);
-					}
-				}
-
-				if (jc.contains("operatorNodes"))
-				{
-					for (const auto& jo : jc["operatorNodes"])
-					{
-						ConditionOperatorNode o;
-						o.id = jo.value("id", -1);
-						o.posX = jo.value("posX", 0.0f);
-						o.posY = jo.value("posY", 0.0f);
-						o.op = ToCompareOp(jo.value("op", "Greater"));
-						o.compareValue = jo.value("compareValue", 0.0f);
-						link.condition.operatorNodes.push_back(o);
-					}
-				}
-
-				if (jc.contains("getterNodes"))
-				{
-					for (const auto& jg : jc["getterNodes"])
-					{
-						ConditionGetterNode g;
-						g.id = jg.value("id", -1);
-						g.posX = jg.value("posX", 0.0f);
-						g.posY = jg.value("posY", 0.0f);
-						g.componentName = jg.value("componentName", "");
-						g.fieldName = jg.value("fieldName", "");
-						g.type = ToValueType(jg.value("type", "Float"));
-						link.condition.getterNodes.push_back(g);
-					}
-				}
-
-				if (jc.contains("links"))
-				{
-					for (const auto& jcl : jc["links"])
-					{
-						ConditionLink cl;
-						cl.id = jcl.value("id", -1);
-						cl.fromId = jcl.value("fromId", -1);
-						cl.toId = jcl.value("toId", -1);
-						cl.toPinB = jcl.value("toPinB", false);
-						link.condition.links.push_back(cl);
-					}
-				}
-			}
-
-			stateLinks.push_back(link);
-
-			if (link.id >= nextId) nextId = link.id + 1;
-		}
-	}
-
-	// 読み込んだ結果Entryが無かった場合の保険
-	EnsureEntryExists();
-}
-
-// Entryがなければ作成する
-void AnimatorGraph::EnsureEntryExists()
-{
-	bool hasEntry = false;
-	for (const auto& s : states)
-	{
-		if (s.type == AnimStateType::Entry)
-		{
-			hasEntry = true;
-			break;
-		}
-	}
-
-	if (!hasEntry)
-	{
-		AnimState entry;
-		entry.id = GenerateId();
-		entry.name = "Entry";
-		entry.posX = 50.0f;
-		entry.posY = 200.0f;
-		entry.type = AnimStateType::Entry;
-		states.push_back(entry);
+		if (link.id >= nextId) nextId = link.id + 1;
 	}
 }

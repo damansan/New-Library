@@ -187,8 +187,11 @@ const std::vector<FieldEntry>& MetaRegistry::GetAllFields()
 
 				entt::meta_type fieldType = metaData.type();
 				ValueType valueType = ValueType::Float;
-				if (fieldType == entt::resolve<bool>())      valueType = ValueType::Bool;
-				else if (fieldType == entt::resolve<int>())  valueType = ValueType::Int;
+				if (fieldType == entt::resolve<bool>())                   valueType = ValueType::Bool;
+				else if (fieldType == entt::resolve<int>())               valueType = ValueType::Int;
+				else if (fieldType == entt::resolve<DirectX::XMFLOAT2>()) valueType = ValueType::Float2;
+				else if (fieldType == entt::resolve<DirectX::XMFLOAT3>()) valueType = ValueType::Float3;
+				else if (fieldType == entt::resolve<DirectX::XMFLOAT4>()) valueType = ValueType::Float4;
 
 				fieldEntries.push_back(FieldEntry{
 					metaType, fieldId, componentName, category, label, valueType
@@ -198,4 +201,16 @@ const std::vector<FieldEntry>& MetaRegistry::GetAllFields()
 	}
 
 	return fieldEntries;
+}
+
+// Float2/3/4å^ÇÃÅAê¨ï™êîÇï‘Ç∑(ÇªÇÍà»äOÇÕ0)
+int MetaRegistry::GetComponentCount(ValueType type)
+{
+	switch (type)
+	{
+	case ValueType::Float2: return 2;
+	case ValueType::Float3: return 3;
+	case ValueType::Float4: return 4;
+	default: return 0;
+	}
 }
