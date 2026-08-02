@@ -6,42 +6,42 @@ namespace
 {
 	// ===== enum‚Ì•¶š•ÏŠ·(StateƒOƒ‰ƒtŠÖ˜A) =====
 
-	// AnimNodeType(qŠK‘wƒm[ƒh‚Ìí—Ş)
-	std::string ToString(AnimNodeType type)
+	// ChildStateType(qŠK‘w‚Ìí—Ş)
+	std::string ToString(ChildStateType type)
 	{
 		switch (type)
 		{
-		case AnimNodeType::Normal: return "Normal";
-		case AnimNodeType::Start:  return "Start";
-		case AnimNodeType::End:    return "End";
+		case ChildStateType::Normal: return "Normal";
+		case ChildStateType::Start:  return "Start";
+		case ChildStateType::End:    return "End";
 		}
 		return "Normal";
 	}
-	AnimNodeType ToAnimNodeType(const std::string& s)
+	ChildStateType ToChildStateType(const std::string& s)
 	{
-		if (s == "Start") return AnimNodeType::Start;
-		if (s == "End")   return AnimNodeType::End;
-		return AnimNodeType::Normal;
+		if (s == "Start") return ChildStateType::Start;
+		if (s == "End")   return ChildStateType::End;
+		return ChildStateType::Normal;
 	}
 
 
-	// AnimStateType(eŠK‘w‚Ìƒm[ƒh‚Ìí—Ş)
-	std::string ToString(AnimStateType type)
+	// ParentStateType(eŠK‘w‚Ìí—Ş)
+	std::string ToString(ParentStateType type)
 	{
 		switch (type)
 		{
-		case AnimStateType::Entry: return "Entry";
-		case AnimStateType::State: return "State";
+		case ParentStateType::Entry: return "Entry";
+		case ParentStateType::State: return "State";
 		}
 		return "State";
 	}
-	AnimStateType ToAnimStateType(const std::string& s)
+	ParentStateType ToParentStateType(const std::string& s)
 	{
-		if (s == "Entry") 
+		if (s == "Entry")
 		{
-			return AnimStateType::Entry;
+			return ParentStateType::Entry;
 		}
-		return AnimStateType::State;
+		return ParentStateType::State;
 	}
 
 
@@ -129,12 +129,12 @@ AnimatorGraph::AnimatorGraph()
 // State‚ğì¬‚·‚é
 int AnimatorGraph::CreateState(const std::string& name, float posX, float posY)
 {
-	AnimState state;
+	ParentState state;
 	state.id = GenerateId();
 	state.name = name;
 	state.posX = posX;
 	state.posY = posY;
-	state.type = AnimStateType::State;
+	state.type = ParentStateType::State;
 
 	states.push_back(state);
 
@@ -147,10 +147,10 @@ void AnimatorGraph::DeleteState(int stateId)
 {
 	states.erase(
 		std::remove_if(states.begin(), states.end(),
-			[stateId](const AnimState& s)
+			[stateId](const ParentState& s)
 			{
 				// Entry‚Ííœ‚³‚¹‚È‚¢
-				if (s.type == AnimStateType::Entry) return false;
+				if (s.type == ParentStateType::Entry) return false;
 				return s.id == stateId;
 			}),
 		states.end()
@@ -221,7 +221,7 @@ void AnimatorGraph::EnsureEntryExists()
 	bool hasEntry = false;
 	for (const auto& s : states)
 	{
-		if (s.type == AnimStateType::Entry)
+		if (s.type == ParentStateType::Entry)
 		{
 			hasEntry = true;
 			break;
@@ -230,12 +230,12 @@ void AnimatorGraph::EnsureEntryExists()
 
 	if (!hasEntry)
 	{
-		AnimState entry;
+		ParentState entry;
 		entry.id = GenerateId();
 		entry.name = "Entry";
 		entry.posX = 50.0f;
 		entry.posY = 200.0f;
-		entry.type = AnimStateType::Entry;
+		entry.type = ParentStateType::Entry;
 		states.push_back(entry);
 	}
 }
@@ -288,12 +288,12 @@ void AnimatorGraph::StatesFromJson(const nlohmann::json& j)
 {
 	for (const auto& js : j)
 	{
-		AnimState state;
+		ParentState state;
 		state.id = js.value("id", -1);
 		state.name = js.value("name", "");
 		state.posX = js.value("posX", 0.0f);
 		state.posY = js.value("posY", 0.0f);
-		state.type = ToAnimStateType(js.value("type", "State"));
+		state.type = ToParentStateType(js.value("type", "State"));
 
 		if (js.contains("color") && js["color"].is_array() && js["color"].size() == 3)
 		{
@@ -306,12 +306,12 @@ void AnimatorGraph::StatesFromJson(const nlohmann::json& j)
 		{
 			for (const auto& jn : js["children"])
 			{
-				AnimNode node;
+				ChildState node;
 				node.id = jn.value("id", -1);
 				node.name = jn.value("name", "");
 				node.posX = jn.value("posX", 0.0f);
 				node.posY = jn.value("posY", 0.0f);
-				node.type = ToAnimNodeType(jn.value("type", "Normal"));
+				node.type = ToChildStateType(jn.value("type", "Normal"));
 				node.clipName = jn.value("clipName", "");
 				state.children.push_back(node);
 			}

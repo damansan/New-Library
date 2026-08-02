@@ -4,13 +4,13 @@
 #include <json.hpp>
 
 // == StateƒOƒ‰ƒtŠÖ˜A == //
-enum class AnimNodeType // qŠK‘wƒm[ƒh‚Ìí—Ş
+enum class ChildStateType // qŠK‘w(ChildState)‚Ìí—Ş
 {
 	Normal, // ƒAƒjƒ[ƒVƒ‡ƒ“ƒm[ƒh
 	Start,  // ŠJn“_
 	End,    // I—¹“_
 };
-enum class AnimStateType // eŠK‘w‚Ìƒm[ƒh‚Ìí—Ş
+enum class ParentStateType // eŠK‘w(ParentState)‚Ìí—Ş
 {
 	Entry, // ŠJn“_
 	State, // ƒm[ƒh
@@ -110,7 +110,7 @@ struct AnimLink // ƒŠƒ“ƒN
 
 	ConditionGraph condition; // ‚±‚ÌLink‚Ì‘JˆÚğŒƒOƒ‰ƒt
 };
-struct AnimNode // qŠK‘wƒm[ƒh
+struct ChildState  // qŠK‘wState
 {
 	int id = -1;
 	std::string name;
@@ -118,10 +118,10 @@ struct AnimNode // qŠK‘wƒm[ƒh
 	float posX = 0.0f;
 	float posY = 0.0f;
 
-	AnimNodeType type = AnimNodeType::Normal;
+	ChildStateType type = ChildStateType::Normal;
 	std::string clipName;
 };
-struct AnimState // eŠK‘wƒm[ƒh
+struct ParentState  // eŠK‘wState
 {
 	int id = -1;
 	std::string name;
@@ -129,11 +129,11 @@ struct AnimState // eŠK‘wƒm[ƒh
 	float posX = 0.0f;
 	float posY = 0.0f;
 
-	AnimStateType type = AnimStateType::State;
+	ParentStateType type = ParentStateType::State;
 
 	float color[3] = { 0.27f, 0.35f, 0.47f };
 
-	std::vector<AnimNode> children;
+	std::vector<ChildState> children;
 	std::vector<AnimLink> childLinks;
 };
 
@@ -143,7 +143,7 @@ class AnimatorGraph
 public:
 	AnimatorGraph();
 
-	std::vector<AnimState>states;
+	std::vector<ParentState>states;
 	std::vector<AnimLink>stateLinks;
 
 	// State‚ğì¬‚·‚é
