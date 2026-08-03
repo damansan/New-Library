@@ -729,6 +729,9 @@
     <ClInclude Include="Source\Tool\Studio\StudioParentStateGraph.h">
       <Filter>Sources\Tool\Studio\StudioAnimator\StudioParentStateGraph</Filter>
     </ClInclude>
+    <ClInclude Include="Source\ECS\Components\SequencerComponent.h">
+      <Filter>Sources\ECS\Components</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shader\Static_VS.hlsl">

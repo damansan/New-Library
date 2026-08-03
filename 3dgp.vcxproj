@@ -115,6 +115,7 @@
     <ClInclude Include="Source\ECS\Components\MeshComponent.h" />
     <ClInclude Include="Source\ECS\Components\MovementComponent.h" />
     <ClInclude Include="Source\ECS\Components\PhysicsComponents.h" />
+    <ClInclude Include="Source\ECS\Components\SequencerComponent.h" />
     <ClInclude Include="Source\ECS\Components\SkinnedMeshComponent.h" />
     <ClInclude Include="Source\ECS\Components\StaticMeshComponent.h" />
     <ClInclude Include="Source\ECS\Components\Tags.h" />
