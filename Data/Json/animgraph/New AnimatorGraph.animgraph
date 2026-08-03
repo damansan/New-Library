@@ -42,6 +42,20 @@
             ],
             "children": [],
             "childLinks": []
+        },
+        {
+            "id": 8,
+            "name": "New State",
+            "posX": -11.0,
+            "posY": -40.0,
+            "type": "State",
+            "color": [
+                0.27000001072883606,
+                0.3499999940395355,
+                0.4699999988079071
+            ],
+            "children": [],
+            "childLinks": []
         }
     ],
     "stateLinks": [

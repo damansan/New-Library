@@ -48,7 +48,7 @@ private:
 	enum class PinRole // ƒsƒ“‚Ì–ðŠ„
 	{
 		VariableIn, VariableOut,
-		OperatorA, OperatorB, OperatorOut,
+		OperatorA,  OperatorB,   OperatorOut,
 		GetterOut,
 		ReturnIn,
 		Unknown
