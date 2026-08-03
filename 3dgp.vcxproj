@@ -77,6 +77,7 @@
     <ClCompile Include="Source\Tool\Studio\StudioCamera.cpp" />
     <ClCompile Include="Source\Tool\Studio\StudioConditionGraph.cpp" />
     <ClCompile Include="Source\Tool\Studio\StudioModelViewer.cpp" />
+    <ClCompile Include="Source\Tool\Studio\StudioParentStateGraph.cpp" />
     <ClCompile Include="Source\Tool\Studio\StudioTimeline.cpp" />
     <ClCompile Include="Source\Tool\Studio\StudioWindow.cpp" />
     <ClCompile Include="Source\Utility\CerealHelper.cpp" />
@@ -162,6 +163,7 @@
     <ClInclude Include="Source\Tool\Studio\StudioConditionGraph.h" />
     <ClInclude Include="Source\Tool\Studio\StudioContext.h" />
     <ClInclude Include="Source\Tool\Studio\StudioModelViewer.h" />
+    <ClInclude Include="Source\Tool\Studio\StudioParentStateGraph.h" />
     <ClInclude Include="Source\Tool\Studio\StudioSharedContext.h" />
     <ClInclude Include="Source\Tool\Studio\StudioTimeline.h" />
     <ClInclude Include="Source\Tool\Studio\StudioWindow.h" />

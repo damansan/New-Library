@@ -52,6 +52,7 @@ void StudioConditionGraph::DrawInspector()
 	if (selectedVariable)
 	{
 		ImGui::Text("Variable");
+		ImGui::Separator();
 
 		char nameBuf[128];
 		strncpy_s(nameBuf, selectedVariable->name.c_str(), sizeof(nameBuf) - 1);
@@ -75,7 +76,6 @@ void StudioConditionGraph::DrawInspector()
 			break;
 		}
 
-
 		DrawDeleteButton("Delete Node", selectedVariable->id, [this](int id) { DeleteVariableNode(id); });
 		return;
 	}
@@ -83,6 +83,7 @@ void StudioConditionGraph::DrawInspector()
 	if (selectedGetter)
 	{
 		ImGui::Text("Getter");
+		ImGui::Separator();
 
 		const auto& fields = MetaRegistry::GetAllFields();
 
@@ -150,7 +151,7 @@ void StudioConditionGraph::DrawInspector()
 				if (values[i] == selectedGetter->selectedComponent) currentComp = names[i];
 			}
 
-			if (ImGui::BeginCombo("Axis", currentComp.c_str())) 
+			if (ImGui::BeginCombo("Axis", currentComp.c_str()))
 			{
 				for (int i = 0; i < componentCount; i++)
 				{
@@ -163,7 +164,6 @@ void StudioConditionGraph::DrawInspector()
 				ImGui::EndCombo();
 			}
 		}
-
 
 		DrawDeleteButton("Delete Getter", selectedGetter->id, [this](int id) { DeleteGetterNode(id); });
 		return;
@@ -188,12 +188,12 @@ void StudioConditionGraph::DrawInspector()
 	if (selectedConditionLink)
 	{
 		ImGui::Text("Link");
+		ImGui::Separator();
 
 		int linkId = selectedConditionLink->id;
 		DrawDeleteButton("Delete Link", linkId, [this](int id) { DeleteConditionLink(id); });
 		return;
 	}
-
 
 	ImGui::TextDisabled("No node selected.");
 }
@@ -604,6 +604,9 @@ void StudioConditionGraph::CreateGetterNode()
 // 削除ボタン
 void StudioConditionGraph::DrawDeleteButton(const char* label, int targetId, const std::function<void(int)>& onDelete)
 {
+	ImGui::Spacing();
+	ImGui::Spacing();
+
 	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.15f, 0.15f, 1.0f));
 	ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.85f, 0.2f, 0.2f, 1.0f));
 	ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.6f, 0.1f, 0.1f, 1.0f));
@@ -672,6 +675,16 @@ void StudioConditionGraph::DeleteOperatorNode(int id)
 		links.end()
 	);
 }
+// ConditionLink削除
+void StudioConditionGraph::DeleteConditionLink(int id)
+{
+	auto& links = targetLink->condition.links;
+	links.erase(
+		std::remove_if(links.begin(), links.end(),
+			[id](const ConditionLink& l) { return l.id == id; }),
+		links.end()
+	);
+}
 
 
 // ノード選択状態を更新
@@ -704,6 +717,18 @@ void StudioConditionGraph::UpdateSelection()
 	// Linkの選択
 	selectedConditionLink = GetSelectedConditionLink();
 }
+// 選択中のConditionLinkを取得する
+ConditionLink* StudioConditionGraph::GetSelectedConditionLink()
+{
+	ed::LinkId selectedId;
+	if (ed::GetSelectedLinks(&selectedId, 1) == 0) return nullptr;
+
+	for (auto& cl : targetLink->condition.links)
+	{
+		if (cl.id == (int)selectedId.Get()) return &cl;
+	}
+	return nullptr;
+}
 
 
 // ノード内で中央寄せにする
@@ -722,14 +747,14 @@ ImColor StudioConditionGraph::GetValueTypeColor(ValueType type)
 	switch (type)
 	{
 	case ValueType::Int:    return ImColor(68, 201, 156, 255);  // 水色
-	
+
 	case ValueType::Float:  return ImColor(147, 226, 74, 255);  // 緑(Float2/3/4も同じ緑にする)
 	case ValueType::Float2:
 	case ValueType::Float3:
 	case ValueType::Float4: return ImColor(147, 226, 74, 255);
 
 	case ValueType::Bool:   return ImColor(220, 48, 48, 255);   // 赤
-	
+
 	default:                return ImColor(255, 255, 255, 255);
 	}
 }
@@ -810,7 +835,6 @@ void StudioConditionGraph::ResolvePinRole(int64_t rawPinId, PinRole& outRole, in
 	outNodeId = -1;
 }
 // 生のノードID(int)から、このLink内でどの種類のノードかを調べる
-
 StudioConditionGraph::NodeKind StudioConditionGraph::GetNodeKind(int id) const
 {
 	if (targetLink->condition.returnNode.id == id) return NodeKind::Return;
@@ -826,7 +850,7 @@ StudioConditionGraph::NodeKind StudioConditionGraph::GetNodeKind(int id) const
 
 	return NodeKind::Unknown;
 }
-
+// ピン接続(ドラッグ)の処理
 void StudioConditionGraph::DrawLinkCreation()
 {
 	if (ed::BeginCreate())
@@ -962,7 +986,7 @@ void StudioConditionGraph::DrawLinkCreation()
 	}
 	ed::EndCreate();
 }
-
+// 接続済みConditionLinkの描画
 void StudioConditionGraph::DrawConditionLinks()
 {
 	const ImColor linkColor(210, 210, 210, 255);
@@ -979,7 +1003,7 @@ void StudioConditionGraph::DrawConditionLinks()
 		ed::Link(ed::LinkId(cl.id), fromPin, toPin, linkColor, linkThickness);
 	}
 }
-
+// fromId/toIdからed::Linkを引くための、実際のピンIDを求める
 ed::PinId StudioConditionGraph::GetOutputPinIdOf(int nodeId, NodeKind kind) const
 {
 	switch (kind)
@@ -990,7 +1014,6 @@ ed::PinId StudioConditionGraph::GetOutputPinIdOf(int nodeId, NodeKind kind) cons
 	default:                 return ed::PinId();
 	}
 }
-
 ed::PinId StudioConditionGraph::GetInputPinIdOf(int nodeId, NodeKind kind, bool toPinB) const
 {
 	switch (kind)
@@ -1001,7 +1024,7 @@ ed::PinId StudioConditionGraph::GetInputPinIdOf(int nodeId, NodeKind kind, bool 
 	default:                 return ed::PinId();
 	}
 }
-
+// ノードの値の型を取得する
 ValueType StudioConditionGraph::GetNodeValueType(NodeKind kind, int nodeId) const
 {
 	if (kind == NodeKind::Variable)
@@ -1026,7 +1049,7 @@ ValueType StudioConditionGraph::GetNodeValueType(NodeKind kind, int nodeId) cons
 	}
 	return ValueType::Float;
 }
-
+// 大小系演算子か判定する
 bool StudioConditionGraph::IsOrderCompareOp(CompareOp op)
 {
 	switch (op)
@@ -1040,33 +1063,10 @@ bool StudioConditionGraph::IsOrderCompareOp(CompareOp op)
 		return false;
 	}
 }
-
 // 出力ピンの実質的な型を取得する
 ValueType StudioConditionGraph::GetOutputValueType(PinRole outRole, int outNodeId) const
 {
 	if (outRole == PinRole::OperatorOut) return ValueType::Bool; // Operatorの出力は常にBool
 	if (outRole == PinRole::GetterOut)   return GetNodeValueType(NodeKind::Getter, outNodeId);
 	return GetNodeValueType(NodeKind::Variable, outNodeId); // VariableOut
-}
-
-ConditionLink* StudioConditionGraph::GetSelectedConditionLink()
-{
-	ed::LinkId selectedId;
-	if (ed::GetSelectedLinks(&selectedId, 1) == 0) return nullptr;
-
-	for (auto& cl : targetLink->condition.links)
-	{
-		if (cl.id == (int)selectedId.Get()) return &cl;
-	}
-	return nullptr;
-}
-
-void StudioConditionGraph::DeleteConditionLink(int id)
-{
-	auto& links = targetLink->condition.links;
-	links.erase(
-		std::remove_if(links.begin(), links.end(),
-			[id](const ConditionLink& l) { return l.id == id; }),
-		links.end()
-	);
 }

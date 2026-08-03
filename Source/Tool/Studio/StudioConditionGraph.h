@@ -33,6 +33,7 @@ private:
 	ConditionVariableNode* selectedVariable = nullptr;
 	ConditionGetterNode* selectedGetter = nullptr;
 	ConditionOperatorNode* selectedOperator = nullptr;
+	ConditionLink* selectedConditionLink = nullptr;
 
 	// == 各ノード描画 == //
 	void DrawReturnNode();    // リターンノード描画
@@ -43,6 +44,31 @@ private:
 	void DrawUnassignedGetterNode(ConditionGetterNode& g); // 未設定ゲッターノード
 	void DrawAssignedGetterNode(ConditionGetterNode& g);   // 設定済みゲッターノード
 
+	// == ピン接続 == //
+	enum class PinRole // ピンの役割
+	{
+		VariableIn, VariableOut,
+		OperatorA, OperatorB, OperatorOut,
+		GetterOut,
+		ReturnIn,
+		Unknown
+	};
+	enum class NodeKind { Variable, Getter, Operator, Return, Unknown }; // ノードの種類
+
+	static void ResolvePinRole(int64_t rawPinId, PinRole& outRole, int& outNodeId); // 生のピンID(int64_t)から、役割とノードIDを逆算する
+	NodeKind GetNodeKind(int id) const; // 生のノードID(int)から、このLink内でどの種類のノードかを調べる
+
+	void DrawLinkCreation();    // ピン接続(ドラッグ)の処理
+	void DrawConditionLinks();  // 接続済みConditionLinkの描画
+
+	// fromId/toIdからed::Linkを引くための、実際のピンIDを求める
+	ed::PinId GetOutputPinIdOf(int nodeId, NodeKind kind) const;
+	ed::PinId GetInputPinIdOf(int nodeId, NodeKind kind, bool toPinB) const;
+
+	ValueType GetNodeValueType(NodeKind kind, int nodeId) const;        // ノードの値の型を取得する
+	ValueType GetOutputValueType(PinRole outRole, int outNodeId) const; // 出力ピンの実質的な型を取得する
+	static bool IsOrderCompareOp(CompareOp op);                         // 大小系演算子かを判定する
+
 	// == ノードの作成 == //		
 	void DrawCreateNodeMenu();               // 右クリックメニュー
 	void CreateVariableNode(ValueType type); // 変数ノード作成
@@ -51,12 +77,14 @@ private:
 
 	// == ノードの削除 == //
 	void DrawDeleteButton(const char* label, int targetId, const std::function<void(int)>& onDelete);
-	void DeleteVariableNode(int id); // 変数ノード削除
-	void DeleteGetterNode(int id);   // ゲッターノード削除
-	void DeleteOperatorNode(int id); // 比較演算ノード削除
+	void DeleteVariableNode(int id);  // 変数ノード削除
+	void DeleteGetterNode(int id);    // ゲッターノード削除
+	void DeleteOperatorNode(int id);  // 比較演算ノード削除
+	void DeleteConditionLink(int id); // ConditionLink削除
 
 	// == 選択状態 == //
 	void UpdateSelection();
+	ConditionLink* GetSelectedConditionLink();
 
 	// == 表示用ヘルパー == //
 	static void CenterNextItem(float totalWidth, float itemWidth); // ノード内で中央寄せにする
@@ -66,49 +94,11 @@ private:
 	static CompareOp InvertCompareOp(CompareOp op);                // 比較演算子の向きを反転する
 
 	// == ピンID == //
-	static ed::PinId GetVariableInPinId(int nodeId)  { return ed::PinId((int64_t)1000000 + (int64_t)nodeId * 2);     }
+	static ed::PinId GetVariableInPinId(int nodeId) { return ed::PinId((int64_t)1000000 + (int64_t)nodeId * 2); }
 	static ed::PinId GetVariableOutPinId(int nodeId) { return ed::PinId((int64_t)1000000 + (int64_t)nodeId * 2 + 1); }
-	static ed::PinId GetOperatorPinA(int nodeId)     { return ed::PinId((int64_t)2000000 + (int64_t)nodeId * 3);     }
-	static ed::PinId GetOperatorPinB(int nodeId)     { return ed::PinId((int64_t)2000000 + (int64_t)nodeId * 3 + 1); }
+	static ed::PinId GetOperatorPinA(int nodeId) { return ed::PinId((int64_t)2000000 + (int64_t)nodeId * 3); }
+	static ed::PinId GetOperatorPinB(int nodeId) { return ed::PinId((int64_t)2000000 + (int64_t)nodeId * 3 + 1); }
 	static ed::PinId GetOperatorOutPinId(int nodeId) { return ed::PinId((int64_t)2000000 + (int64_t)nodeId * 3 + 2); }
-	static ed::PinId GetGetterOutPinId(int nodeId)   { return ed::PinId((int64_t)3000000 + (int64_t)nodeId);         }
-	static ed::PinId GetReturnInPinId(int nodeId)    { return ed::PinId((int64_t)4000000 + (int64_t)nodeId);         }
-
-
-private:
-	// ピンの役割
-	enum class PinRole
-	{
-		VariableIn, VariableOut,
-		OperatorA, OperatorB, OperatorOut,
-		GetterOut,
-		ReturnIn,
-		Unknown
-	};
-	// ノードの種類
-	enum class NodeKind { Variable, Getter, Operator, Return, Unknown };
-	// 生のピンID(int64_t)から、役割とノードIDを逆算する
-	static void ResolvePinRole(int64_t rawPinId, PinRole& outRole, int& outNodeId);
-	// 生のノードID(int)から、このLink内でどの種類のノードかを調べる
-	NodeKind GetNodeKind(int id) const;
-	// ピン接続(ドラッグ)の処理
-	void DrawLinkCreation();
-	// 接続済みConditionLinkの描画
-	void DrawConditionLinks();
-	// fromId/toIdからed::Linkを引くための、実際のピンIDを求める
-	ed::PinId GetOutputPinIdOf(int nodeId, NodeKind kind) const;
-	ed::PinId GetInputPinIdOf(int nodeId, NodeKind kind, bool toPinB) const;
-
-	// ノードの値の型を取得する(Operator/Returnは型を持たないため呼び出し禁止)
-	ValueType GetNodeValueType(NodeKind kind, int nodeId) const;
-	// 大小系演算子か(Bool禁止の対象)を判定する
-	static bool IsOrderCompareOp(CompareOp op);
-
-	// 出力ピンの「実質的な型」を取得する(Operatorの出力は常にBool扱い)
-	ValueType GetOutputValueType(PinRole outRole, int outNodeId) const;
-
-	ConditionLink* selectedConditionLink = nullptr;
-
-	ConditionLink* GetSelectedConditionLink();
-	void DeleteConditionLink(int id);
+	static ed::PinId GetGetterOutPinId(int nodeId) { return ed::PinId((int64_t)3000000 + (int64_t)nodeId); }
+	static ed::PinId GetReturnInPinId(int nodeId) { return ed::PinId((int64_t)4000000 + (int64_t)nodeId); }
 };
