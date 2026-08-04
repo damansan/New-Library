@@ -25,6 +25,7 @@
 
 #include "ECS/Components/IKComponent.h"
 
+#include "ECS/Components/SequencerComponent.h"
 
 #include "MetaRegistry.h"
 
@@ -428,4 +429,18 @@ void ComponentRegistryInitializer::Initialize()
 					ik->feet.push_back(FootIKSettings{});
 				}
 			}); 
+
+
+		// シーケンサーコンポーネントの登録
+		REGISTER_COMPONENT(SequencerComponent, "Sequencer",
+			[](auto& reg, auto e)
+			{
+				auto* seq = reg.try_get<SequencerComponent>(e);
+				if (!seq) return;
+
+				if (ImGui::CollapsingHeader("Sequencer", ImGuiTreeNodeFlags_DefaultOpen))
+				{
+					MetaRegistry::DrawMetaFields(entt::resolve<SequencerComponent>(), entt::forward_as_meta(*seq));
+				}
+			});
 }

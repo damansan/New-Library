@@ -1,0 +1,116 @@
+#include "SequencerData.h"
+
+namespace
+{
+	std::string ToString(SequencerFlag flag)
+	{
+		switch (flag)
+		{
+		case SequencerFlag::AnimExit: return "AnimExit";
+		case SequencerFlag::Attack:   return "Attack";
+		}
+		return "AnimExit";
+	}
+	SequencerFlag ToSequencerFlag(const std::string& s)
+	{
+		if (s == "Attack") return SequencerFlag::Attack;
+		return SequencerFlag::AnimExit;
+	}
+}
+
+
+// 指定したクリップ名のデータを探す
+SequencerClipData* SequencerData::FindOrCreateClip(const std::string& clipName)
+{
+	for (auto& clip : clips)
+	{
+		if (clip.clipName == clipName) return &clip;
+	}
+
+	SequencerClipData newClip;
+	newClip.clipName = clipName;
+	clips.push_back(newClip);
+	return &clips.back();
+}
+
+
+// 保存
+nlohmann::ordered_json SequencerData::ToJson() const
+{
+	nlohmann::ordered_json j;
+	j["clips"] = nlohmann::json::array();
+
+	for (const auto& clip : clips)
+	{
+		nlohmann::ordered_json jc;
+		jc["clipName"] = clip.clipName;
+		jc["nextId"] = clip.nextId;
+
+		jc["ranges"] = nlohmann::json::array();
+		for (const auto& r : clip.ranges)
+		{
+			nlohmann::ordered_json jr;
+			jr["id"] = r.id;
+			jr["start"] = r.start;
+			jr["end"] = r.end;
+			jr["flag"] = ToString(r.flag);
+			jc["ranges"].push_back(jr);
+		}
+
+		jc["points"] = nlohmann::json::array();
+		for (const auto& p : clip.points)
+		{
+			nlohmann::ordered_json jp;
+			jp["id"] = p.id;
+			jp["time"] = p.time;
+			jp["flag"] = ToString(p.flag);
+			jc["points"].push_back(jp);
+		}
+
+		j["clips"].push_back(jc);
+	}
+
+	return j;
+}
+
+// 読み込み
+void SequencerData::FromJson(const nlohmann::json& j)
+{
+	clips.clear();
+
+	if (!j.contains("clips")) return;
+
+	for (const auto& jc : j["clips"])
+	{
+		SequencerClipData clip;
+		clip.clipName = jc.value("clipName", "");
+		clip.nextId = jc.value("nextId", 1);
+
+		if (jc.contains("ranges"))
+		{
+			for (const auto& jr : jc["ranges"])
+			{
+				SequencerRange r;
+				r.id = jr.value("id", -1);
+				r.start = jr.value("start", 0.0f);
+				r.end = jr.value("end", 1.0f);
+				r.flag = ToSequencerFlag(jr.value("flag", "AnimExit"));
+				clip.ranges.push_back(r);
+			}
+		}
+
+		if (jc.contains("points"))
+		{
+			for (const auto& jp : jc["points"])
+			{
+				SequencerPoint p;
+				p.id = jp.value("id", -1);
+				p.time = jp.value("time", 0.0f);
+				p.flag = ToSequencerFlag(jp.value("flag", "AnimExit"));
+				clip.points.push_back(p);
+			}
+		}
+
+		clips.push_back(clip);
+	}
+}

@@ -10,6 +10,7 @@ using namespace entt::literals;
 #include "ECS/Components/MovementComponent.h"
 #include "ECS/Components/InputComponent.h"
 #include "ECS/Components/AnimatorComponent.h"
+#include "ECS/Components/SequencerComponent.h"
 
 void MetaRegistry::Initialize()
 {
@@ -68,6 +69,14 @@ void MetaRegistry::Initialize()
 		.custom<FieldInfo>(FieldInfo{ "Use Root Motion Y" })
 		.data<&AnimatorComponent::rootMotionNodeName>("rootMotionNodeName"_hs)
 		.custom<FieldInfo>(FieldInfo{ "Root Motion Node" });
+
+	entt::meta_factory<SequencerComponent>{}
+	.type("SequencerComponent")
+		.custom<TypeInfo>(TypeInfo{ "Sequencer" })
+		.data<&SequencerComponent::animExit>("animExit"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Anim Exit" })
+		.data<&SequencerComponent::attack>("attack"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Attack" });
 }
 
 // ìoò^çœÇ›ÉÅÉ^èÓïÒÇ©ÇÁInspectorUIÇé©ìÆï`âÊ

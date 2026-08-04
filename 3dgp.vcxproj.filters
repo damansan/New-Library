@@ -469,6 +469,9 @@
     <ClCompile Include="Source\Tool\Studio\StudioParentStateGraph.cpp">
       <Filter>Sources\Tool\Studio\StudioAnimator\StudioParentStateGraph</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Tool\SequencerData.cpp">
+      <Filter>Sources\Tool</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Core\framework.h">
@@ -731,6 +734,9 @@
     </ClInclude>
     <ClInclude Include="Source\ECS\Components\SequencerComponent.h">
       <Filter>Sources\ECS\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Tool\SequencerData.h">
+      <Filter>Sources\Tool</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

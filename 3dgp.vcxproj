@@ -72,6 +72,7 @@
     <ClCompile Include="Source\Tool\AdaptiveTriggerToolWindow.cpp" />
     <ClCompile Include="Source\Tool\AnimatorGraph.cpp" />
     <ClCompile Include="Source\Tool\NodeEditorCanvas.cpp" />
+    <ClCompile Include="Source\Tool\SequencerData.cpp" />
     <ClCompile Include="Source\Tool\Studio\StudioAnimator.cpp" />
     <ClCompile Include="Source\Tool\Studio\StudioAnimatorGraph.cpp" />
     <ClCompile Include="Source\Tool\Studio\StudioCamera.cpp" />
@@ -157,6 +158,7 @@
     <ClInclude Include="Source\Tool\AnimatorGraph.h" />
     <ClInclude Include="Source\Tool\IEditorNode.h" />
     <ClInclude Include="Source\Tool\NodeEditorCanvas.h" />
+    <ClInclude Include="Source\Tool\SequencerData.h" />
     <ClInclude Include="Source\Tool\Studio\IStudioAttachment.h" />
     <ClInclude Include="Source\Tool\Studio\StudioAnimator.h" />
     <ClInclude Include="Source\Tool\Studio\StudioAnimatorGraph.h" />

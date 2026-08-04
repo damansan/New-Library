@@ -1,5 +1,6 @@
 #include "AnimatorGraph.h"
 #include <algorithm>
+#include "SequencerData.h"
 
 // == enum‚Ì•¶Žš•ÏŠ· == //
 namespace
