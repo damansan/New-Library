@@ -146,6 +146,7 @@ void StudioWindow::DrawWindow(const char* windowName)
 		{
 			ImGui::MenuItem("Animator", nullptr, &context.showAnimator);
 			ImGui::MenuItem("Timeline", nullptr, &context.showTimeline);
+			ImGui::MenuItem("Sequencer", nullptr, &context.showSequencer);
 			ImGui::MenuItem("AnimatorGraph", nullptr, &context.showAnimatorGraph);
 
 			ImGui::EndMenu();
@@ -174,15 +175,19 @@ void StudioWindow::DrawWindow(const char* windowName)
 			dockMain, ImGuiDir_Right, 0.7f, nullptr, &dockMain);
 		ImGuiID dockBottom = ImGui::DockBuilderSplitNode(
 			dockMain, ImGuiDir_Down, 0.2f, nullptr, &dockMain);
+		ImGuiID dockSequencer = ImGui::DockBuilderSplitNode(
+			dockBottom, ImGuiDir_Down, 0.5f, nullptr, &dockBottom);
 
 		std::string viewportName = "Viewport##" + std::to_string(windowId);
 		std::string animatorName = "Animator##" + std::to_string(windowId);
 		std::string timelineName = "Timeline##" + std::to_string(windowId);
+		std::string sequencerName = "Sequencer##" + std::to_string(windowId);
 		std::string animatorGraphName = "AnimatorGraph##" + std::to_string(windowId);
 
 		ImGui::DockBuilderDockWindow(viewportName.c_str(), dockMain);
 		ImGui::DockBuilderDockWindow(animatorName.c_str(), dockLeft);
 		ImGui::DockBuilderDockWindow(timelineName.c_str(), dockBottom);
+		ImGui::DockBuilderDockWindow(sequencerName.c_str(), dockSequencer);
 		ImGui::DockBuilderDockWindow(animatorGraphName.c_str(), dockRight);
 
 		ImGui::DockBuilderFinish(dockSpaceId);
@@ -241,6 +246,12 @@ void StudioWindow::DrawWindow(const char* windowName)
 	if (context.showTimeline)
 	{
 		studioTimeline.DrawGUI(studioRegistry, context);
+	}
+
+	// Sequencerパネル
+	if (context.showSequencer)
+	{
+		studioSequencer.DrawGUI(studioRegistry, context);
 	}
 
 	// AnimatorGraphパネル

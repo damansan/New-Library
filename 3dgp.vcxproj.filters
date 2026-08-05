@@ -278,6 +278,9 @@
     <Filter Include="Sources\Tool\Studio\StudioAnimator\StudioAnimatorGraph">
       <UniqueIdentifier>{bd6b7422-38f4-45bf-8ad4-d87ee49acbe8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\Tool\Studio\StudioSequencer">
+      <UniqueIdentifier>{d6e1a9c2-f7fc-4144-ae4f-627fe3784c08}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Core\framework.cpp">
@@ -471,6 +474,9 @@
     </ClCompile>
     <ClCompile Include="Source\Tool\SequencerData.cpp">
       <Filter>Sources\Tool</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Tool\Studio\StudioSequencer.cpp">
+      <Filter>Sources\Tool\Studio\StudioSequencer</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -737,6 +743,9 @@
     </ClInclude>
     <ClInclude Include="Source\Tool\SequencerData.h">
       <Filter>Sources\Tool</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Tool\Studio\StudioSequencer.h">
+      <Filter>Sources\Tool\Studio\StudioSequencer</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

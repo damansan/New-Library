@@ -19,6 +19,7 @@ struct StudioContext
     bool showAnimator      = false;
     bool showTimeline      = false;
     bool showAnimatorGraph = false;
+    bool showSequencer = false;
 
     std::string attachedGraphPath;
     std::string currentModelPath;

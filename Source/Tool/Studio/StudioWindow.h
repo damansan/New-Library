@@ -19,6 +19,7 @@
 #include "StudioModelViewer.h"
 #include "StudioAnimator.h"
 #include "StudioTimeline.h"
+#include "StudioSequencer.h"
 #include "StudioAnimatorGraph.h"
 
 class StudioWindow
@@ -51,6 +52,7 @@ public:
         windowId = id; 
         studioAnimator.SetWindowId(id);
         studioTimeline.SetWindowId(id);
+        studioSequencer.SetWindowId(id);
         animatorGraph.SetWindowId(id);
 
     }
@@ -89,6 +91,7 @@ private:
     StudioModelViewer stadoiModelViewer;
     StudioAnimator    studioAnimator;
     StudioTimeline    studioTimeline;
+    StudioSequencer   studioSequencer;
     StudioAnimatorGraph animatorGraph;
 
 
