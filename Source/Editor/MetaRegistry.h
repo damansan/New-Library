@@ -3,7 +3,7 @@
 #include <vector>
 #include "entt.hpp"
 
-#include "Tool/AnimatorGraph.h"
+#include "Data/AnimatorGraphData.h"
 
 // フィールド1つに添付する付加情報
 struct FieldInfo

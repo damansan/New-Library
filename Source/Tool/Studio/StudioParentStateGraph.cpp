@@ -6,7 +6,7 @@ void StudioParentStateGraph::Initialize()
 }
 
 // ImGui描画(Stateキャンバス本体)
-void StudioParentStateGraph::DrawGUI(AnimatorGraph& g, const std::function<void(AnimLink*)>& onEditCondition)
+void StudioParentStateGraph::DrawGUI(AnimatorGraphData& g, const std::function<void(AnimLink*)>& onEditCondition)
 {
 	graph = &g;
 	pendingEditCondition = onEditCondition;

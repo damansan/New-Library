@@ -1,6 +1,6 @@
 #pragma once
 #include "IStudioAttachment.h"
-#include "Tool/AnimatorGraph.h"
+#include "Data/AnimatorGraphData.h"
 #include "StudioParentStateGraph.h"
 #include "StudioConditionGraph.h"
 
@@ -24,7 +24,7 @@ public:
 
 private:
 	// == 内部状態 == //
-	AnimatorGraph graph;
+	AnimatorGraphData graphData;
 
 	StudioParentStateGraph parentStateGraph; // 親階層キャンバス
 	StudioConditionGraph conditionGraph;     // 条件編集キャンバス

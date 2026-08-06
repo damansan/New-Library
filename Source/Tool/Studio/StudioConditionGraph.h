@@ -1,5 +1,5 @@
 #pragma once
-#include "Tool/AnimatorGraph.h"
+#include "Data/AnimatorGraphData.h"
 #include "Tool/NodeEditorCanvas.h"
 #include <imgui.h>
 #include <functional>

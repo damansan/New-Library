@@ -1,4 +1,4 @@
-#include "AnimatorGraph.h"
+#include "AnimatorGraphData.h"
 #include <algorithm>
 #include "SequencerData.h"
 
@@ -121,14 +121,14 @@ namespace
 }
 
 // コンストラクタ
-AnimatorGraph::AnimatorGraph()
+AnimatorGraphData::AnimatorGraphData()
 {
 	// 空のグラフを作る場合でも、Entryだけは必ず存在する状態にする
 	EnsureEntryExists();
 }
 
 // Stateを作成する
-int AnimatorGraph::CreateState(const std::string& name, float posX, float posY)
+int AnimatorGraphData::CreateState(const std::string& name, float posX, float posY)
 {
 	ParentState state;
 	state.id = GenerateId();
@@ -144,7 +144,7 @@ int AnimatorGraph::CreateState(const std::string& name, float posX, float posY)
 }
 
 // Stateを削除する
-void AnimatorGraph::DeleteState(int stateId)
+void AnimatorGraphData::DeleteState(int stateId)
 {
 	states.erase(
 		std::remove_if(states.begin(), states.end(),
@@ -169,7 +169,7 @@ void AnimatorGraph::DeleteState(int stateId)
 }
 
 // Linkを作成する
-int AnimatorGraph::CreateLink(int fromId, int toId)
+int AnimatorGraphData::CreateLink(int fromId, int toId)
 {
 	AnimLink link;
 	link.id = GenerateId();
@@ -185,7 +185,7 @@ int AnimatorGraph::CreateLink(int fromId, int toId)
 	return link.id;
 }
 // Linkを削除する
-void AnimatorGraph::DeleteLink(int linkId)
+void AnimatorGraphData::DeleteLink(int linkId)
 {
 	stateLinks.erase(
 		std::remove_if(stateLinks.begin(), stateLinks.end(),
@@ -195,7 +195,7 @@ void AnimatorGraph::DeleteLink(int linkId)
 }
 
 // グラフ内容をJsonに変換する
-nlohmann::ordered_json AnimatorGraph::ToJson() const
+nlohmann::ordered_json AnimatorGraphData::ToJson() const
 {
 	nlohmann::ordered_json j;
 	j["states"] = StatesToJson();
@@ -204,7 +204,7 @@ nlohmann::ordered_json AnimatorGraph::ToJson() const
 }
 
 // Jsonから中身を変換する
-void AnimatorGraph::FromJson(const nlohmann::json& j)
+void AnimatorGraphData::FromJson(const nlohmann::json& j)
 {
 	states.clear();
 	stateLinks.clear();
@@ -217,7 +217,7 @@ void AnimatorGraph::FromJson(const nlohmann::json& j)
 }
 
 // Entryがなければ作成する
-void AnimatorGraph::EnsureEntryExists()
+void AnimatorGraphData::EnsureEntryExists()
 {
 	bool hasEntry = false;
 	for (const auto& s : states)
@@ -242,7 +242,7 @@ void AnimatorGraph::EnsureEntryExists()
 }
 
 // Statesを保存内容へ変換
-nlohmann::ordered_json AnimatorGraph::StatesToJson() const
+nlohmann::ordered_json AnimatorGraphData::StatesToJson() const
 {
 	nlohmann::ordered_json jStates = nlohmann::json::array();
 
@@ -285,7 +285,7 @@ nlohmann::ordered_json AnimatorGraph::StatesToJson() const
 	return jStates;
 }
 // Statesを保存内容から復元する
-void AnimatorGraph::StatesFromJson(const nlohmann::json& j)
+void AnimatorGraphData::StatesFromJson(const nlohmann::json& j)
 {
 	for (const auto& js : j)
 	{
@@ -339,7 +339,7 @@ void AnimatorGraph::StatesFromJson(const nlohmann::json& j)
 }
 
 // StateLinksを保存内容へ変換
-nlohmann::ordered_json AnimatorGraph::StateLinksToJson() const
+nlohmann::ordered_json AnimatorGraphData::StateLinksToJson() const
 {
 	nlohmann::ordered_json jLinks = nlohmann::json::array();
 
@@ -416,7 +416,7 @@ nlohmann::ordered_json AnimatorGraph::StateLinksToJson() const
 	return jLinks;
 }
 // StateLinksを保存内容から復元する
-void AnimatorGraph::StateLinksFromJson(const nlohmann::json& j)
+void AnimatorGraphData::StateLinksFromJson(const nlohmann::json& j)
 {
 	for (const auto& jl : j)
 	{

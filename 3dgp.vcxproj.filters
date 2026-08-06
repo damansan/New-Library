@@ -284,6 +284,15 @@
     <Filter Include="Sources\ECS\Systems\SequencerSystem">
       <UniqueIdentifier>{ca69925d-b0af-472a-a86c-b778e34d61cc}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\Data">
+      <UniqueIdentifier>{2cb25a25-af31-4c64-add1-c00cbf274ab3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Data\SequencerData">
+      <UniqueIdentifier>{b5bb31c2-5760-4216-a731-12f5c9ef3baa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Data\AnimatorGraphData">
+      <UniqueIdentifier>{1b149959-27fa-4ed0-a892-e1c7c3352e96}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Core\framework.cpp">
@@ -457,9 +466,6 @@
     <ClCompile Include="Source\Tool\NodeEditorCanvas.cpp">
       <Filter>Sources\Tool\NodeGraph</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Tool\AnimatorGraph.cpp">
-      <Filter>Sources\Tool\NodeGraph\AnimatorGraph</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Tool\Studio\StudioAnimatorGraph.cpp">
       <Filter>Sources\Tool\Studio\StudioAnimator\StudioAnimatorGraph</Filter>
     </ClCompile>
@@ -475,14 +481,17 @@
     <ClCompile Include="Source\Tool\Studio\StudioParentStateGraph.cpp">
       <Filter>Sources\Tool\Studio\StudioAnimator\StudioParentStateGraph</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Tool\SequencerData.cpp">
-      <Filter>Sources\Tool</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Tool\Studio\StudioSequencer.cpp">
       <Filter>Sources\Tool\Studio\StudioSequencer</Filter>
     </ClCompile>
     <ClCompile Include="Source\ECS\Systems\SequencerSystem.cpp">
       <Filter>Sources\ECS\Systems\SequencerSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Data\SequencerData.cpp">
+      <Filter>Sources\Data\SequencerData</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Data\AnimatorGraphData.cpp">
+      <Filter>Sources\Data\AnimatorGraphData</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -726,9 +735,6 @@
     <ClInclude Include="Source\Tool\NodeEditorCanvas.h">
       <Filter>Sources\Tool\NodeGraph</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Tool\AnimatorGraph.h">
-      <Filter>Sources\Tool\NodeGraph\AnimatorGraph</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Tool\Studio\StudioAnimatorGraph.h">
       <Filter>Sources\Tool\Studio\StudioAnimator\StudioAnimatorGraph</Filter>
     </ClInclude>
@@ -747,14 +753,17 @@
     <ClInclude Include="Source\ECS\Components\SequencerComponent.h">
       <Filter>Sources\ECS\Components</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Tool\SequencerData.h">
-      <Filter>Sources\Tool</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Tool\Studio\StudioSequencer.h">
       <Filter>Sources\Tool\Studio\StudioSequencer</Filter>
     </ClInclude>
     <ClInclude Include="Source\ECS\Systems\SequencerSystem.h">
       <Filter>Sources\ECS\Systems\SequencerSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Data\SequencerData.h">
+      <Filter>Sources\Data\SequencerData</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Data\AnimatorGraphData.h">
+      <Filter>Sources\Data\AnimatorGraphData</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

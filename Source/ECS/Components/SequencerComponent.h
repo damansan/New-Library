@@ -1,4 +1,5 @@
 #pragma once
+#include <string>
 
 // フラグの種類
 enum class SequencerFlag
@@ -6,7 +7,7 @@ enum class SequencerFlag
 	AnimExit,
 	Attack,
 
-	// ここに追加していく
+	// 種類が増えたらここに追加していく
 
 };
 
@@ -21,5 +22,4 @@ struct SequencerComponent
 
 
 	float previousNormalizedTime = 0.0f; // 前フレームの正規化時間
-
 };

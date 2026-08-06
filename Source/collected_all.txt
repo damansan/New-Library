@@ -481,11 +481,12 @@ namespace PhysicsLayer
 }
 
 // フィルタリング
-class PhysXFilter : public physx::PxQueryFilterCallback
+// フィルタリング
+class PhysicsQueryFilter : public physx::PxQueryFilterCallback
 {
 public:
-    explicit PhysXFilter(physx::PxU32 wantedLayers)
-        : wantedLayers(wantedLayers) {
+    explicit PhysicsQueryFilter(physx::PxU32 wantedLayers) : wantedLayers(wantedLayers) 
+    {
     }
 
     physx::PxQueryHitType::Enum preFilter(
@@ -794,6 +795,9 @@ framework::~framework()
 	
 	// PhysX終了処理
 	physX.Cleanup();
+
+	// Graphics終了処理
+	graphics.Cleanup();
 }
 
 void framework::update(float elapsedTime)
@@ -1489,7 +1493,7 @@ void ImGuiManager::Initialize(HWND hWnd, ID3D11Device* device, ID3D11DeviceConte
 
 	// 日本語フォント設定
 	io.Fonts->AddFontFromFileTTF(
-		"C:\\Windows\\Fonts\\meiryo.ttc",
+		"SystemData/Fonts/NotoSansJP-Regular.ttf",
 		16.0f, nullptr, io.Fonts->GetGlyphRangesJapanese());
 
 	ImGui_ImplWin32_Init(hWnd);
@@ -1577,10 +1581,12 @@ void PhysX::Initialize()
 	// Foundatio作成
 	foundation = PxCreateFoundation(PX_PHYSICS_VERSION, allocator, errorCallback);
 
+#ifdef _DEBUG
 	// PhysXVisualDebuggerに接続
 	pvd = PxCreatePvd(*foundation);
 	pvdTransport = PxDefaultPvdSocketTransportCreate("127.0.0.1", 5425, 10);
 	pvd->connect(*pvdTransport, physx::PxPvdInstrumentationFlag::eALL);
+#endif
 
 	// PxPhysics本体作成
 	physics = PxCreatePhysics(PX_PHYSICS_VERSION, *foundation, PxTolerancesScale(), true, pvd);
@@ -4267,7 +4273,7 @@ RaycastHitResult PhysicsSystem::Raycast(physx::PxScene* pxScene, const DirectX::
 	PxVec3 pxDirection(normalizedDir.x, normalizedDir.y, normalizedDir.z);
 
 	// 欲しいレイヤーだけを通す
-	PhysXFilter filter(wantedLayers);
+	PhysicsQueryFilter filter(wantedLayers);
 
 	// 欲しい剛体で絞り込む
 	PxQueryFilterData filterData;

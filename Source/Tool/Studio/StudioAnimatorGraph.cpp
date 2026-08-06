@@ -57,7 +57,7 @@ void StudioAnimatorGraph::DrawGUI(entt::registry& registry, StudioContext& conte
 // eŠK‘w(State)ƒLƒƒƒ“ƒoƒX
 void StudioAnimatorGraph::DrawStateCanvas()
 {
-	parentStateGraph.DrawGUI(graph, [this](AnimLink* link)
+	parentStateGraph.DrawGUI(graphData, [this](AnimLink* link)
 		{
 			conditionGraph.SetTarget(link);
 			showConditionGraph = true;
@@ -185,7 +185,7 @@ void StudioAnimatorGraph::Save(StudioContext& context)
 	nlohmann::ordered_json j;
 	j["sourceModelPath"] = context.currentModelPath;
 
-	nlohmann::ordered_json graphJson = graph.ToJson();
+	nlohmann::ordered_json graphJson = graphData.ToJson();
 	j["states"] = graphJson["states"];
 	j["stateLinks"] = graphJson["stateLinks"];
 
@@ -205,7 +205,7 @@ void StudioAnimatorGraph::Load(StudioContext& context)
 	{
 		nlohmann::json j;
 		ifs >> j;
-		graph.FromJson(j);
+		graphData.FromJson(j);
 	}
 	catch (const std::exception&)
 	{

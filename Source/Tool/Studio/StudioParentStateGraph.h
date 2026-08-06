@@ -1,5 +1,5 @@
 #pragma once
-#include "Tool/AnimatorGraph.h"
+#include "Data/AnimatorGraphData.h"
 #include "Tool/NodeEditorCanvas.h"
 #include <unordered_map>
 #include <functional>
@@ -17,7 +17,7 @@ public:
 	void Initialize();
 
 	// ImGui•`‰æ
-	void DrawGUI(AnimatorGraph& graph, const std::function<void(AnimLink*)>& onEditCondition);
+	void DrawGUI(AnimatorGraphData& graph, const std::function<void(AnimLink*)>& onEditCondition);
 	void DrawInspector();
 
 	// •Û‘¶/“Ç‚İ‚İ’¼Œã‚È‚ÇAÀ•W‚ğ‹­§“I‚É”½‰f‚³‚¹‚½‚¢‚ÉŒÄ‚Ô
@@ -25,7 +25,7 @@ public:
 private:
 	// == “à•”ó‘Ô == //
 	NodeEditorCanvas canvas;
-	AnimatorGraph* graph = nullptr; 
+	AnimatorGraphData* graph = nullptr;
 
 	ImVec2 pendingCreatePos{};
 	int pendingLinkFromId = -1;

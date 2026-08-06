@@ -138,10 +138,10 @@ struct ParentState  // êeäKëwState
 };
 
 
-class AnimatorGraph
+class AnimatorGraphData
 {
 public:
-	AnimatorGraph();
+	AnimatorGraphData();
 
 	std::vector<ParentState>states;
 	std::vector<AnimLink>stateLinks;

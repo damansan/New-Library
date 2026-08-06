@@ -23,5 +23,9 @@ struct AnimatorComponent
     std::string rootMotionNodeName;      // ルートノード名
     DirectX::XMFLOAT3 rootMotionDelta{ 0.0f, 0.0f, 0.0f }; // ルートモーション移動量
 
-    
+
+    // State遷移用
+	std::string animatorGraphPath; // .animatorファイルのパス
+	int         currentParentStateId{ -1 }; // 現在の親ステートID
+	int         currentChildStateId{ -1 };  // 現在の子ステートID
 };
