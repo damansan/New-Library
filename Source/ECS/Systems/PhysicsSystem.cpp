@@ -47,7 +47,7 @@ RaycastHitResult PhysicsSystem::Raycast(physx::PxScene* pxScene, const DirectX::
 	PxVec3 pxDirection(normalizedDir.x, normalizedDir.y, normalizedDir.z);
 
 	// —~‚µ‚¢ƒŒƒCƒ„[‚¾‚¯‚ğ’Ê‚·
-	PhysXFilter filter(wantedLayers);
+	PhysicsQueryFilter filter(wantedLayers);
 
 	// —~‚µ‚¢„‘Ì‚Åi‚è‚Ş
 	PxQueryFilterData filterData;

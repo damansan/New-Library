@@ -8,10 +8,12 @@ void PhysX::Initialize()
 	// FoundatioçÏê¨
 	foundation = PxCreateFoundation(PX_PHYSICS_VERSION, allocator, errorCallback);
 
+#ifdef _DEBUG
 	// PhysXVisualDebuggerÇ…ê⁄ë±
 	pvd = PxCreatePvd(*foundation);
 	pvdTransport = PxDefaultPvdSocketTransportCreate("127.0.0.1", 5425, 10);
 	pvd->connect(*pvdTransport, physx::PxPvdInstrumentationFlag::eALL);
+#endif
 
 	// PxPhysicsñ{ëÃçÏê¨
 	physics = PxCreatePhysics(PX_PHYSICS_VERSION, *foundation, PxTolerancesScale(), true, pvd);

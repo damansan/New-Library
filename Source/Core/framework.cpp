@@ -44,6 +44,9 @@ framework::~framework()
 	
 	// PhysXI—¹ˆ—
 	physX.Cleanup();
+
+	// GraphicsI—¹ˆ—
+	graphics.Cleanup();
 }
 
 void framework::update(float elapsedTime)

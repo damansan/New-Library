@@ -21,7 +21,7 @@ void ImGuiManager::Initialize(HWND hWnd, ID3D11Device* device, ID3D11DeviceConte
 
 	// 日本語フォント設定
 	io.Fonts->AddFontFromFileTTF(
-		"C:\\Windows\\Fonts\\meiryo.ttc",
+		"SystemData/Fonts/NotoSansJP-Regular.ttf",
 		16.0f, nullptr, io.Fonts->GetGlyphRangesJapanese());
 
 	ImGui_ImplWin32_Init(hWnd);

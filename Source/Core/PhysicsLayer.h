@@ -17,11 +17,12 @@ namespace PhysicsLayer
 }
 
 // フィルタリング
-class PhysXFilter : public physx::PxQueryFilterCallback
+// フィルタリング
+class PhysicsQueryFilter : public physx::PxQueryFilterCallback
 {
 public:
-    explicit PhysXFilter(physx::PxU32 wantedLayers)
-        : wantedLayers(wantedLayers) {
+    explicit PhysicsQueryFilter(physx::PxU32 wantedLayers) : wantedLayers(wantedLayers) 
+    {
     }
 
     physx::PxQueryHitType::Enum preFilter(
