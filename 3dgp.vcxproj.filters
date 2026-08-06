@@ -281,6 +281,9 @@
     <Filter Include="Sources\Tool\Studio\StudioSequencer">
       <UniqueIdentifier>{d6e1a9c2-f7fc-4144-ae4f-627fe3784c08}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\ECS\Systems\SequencerSystem">
+      <UniqueIdentifier>{ca69925d-b0af-472a-a86c-b778e34d61cc}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Core\framework.cpp">
@@ -477,6 +480,9 @@
     </ClCompile>
     <ClCompile Include="Source\Tool\Studio\StudioSequencer.cpp">
       <Filter>Sources\Tool\Studio\StudioSequencer</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\ECS\Systems\SequencerSystem.cpp">
+      <Filter>Sources\ECS\Systems\SequencerSystem</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -746,6 +752,9 @@
     </ClInclude>
     <ClInclude Include="Source\Tool\Studio\StudioSequencer.h">
       <Filter>Sources\Tool\Studio\StudioSequencer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ECS\Systems\SequencerSystem.h">
+      <Filter>Sources\ECS\Systems\SequencerSystem</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

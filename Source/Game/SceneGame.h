@@ -19,6 +19,8 @@
 #include "ECS/Systems/PhysicsSystem.h"
 #include "ECS/Systems/IKSystem.h"
 
+#include "ECS/Systems/SequencerSystem.h"
+
 #include "Tool/AdaptiveTriggerToolWindow.h"
 
 
@@ -55,7 +57,7 @@ private:
 
 	IKSystem         ikSystem;
 
-
+	SequencerSystem sequencerSystem;
 
 private:
 	// ƒfƒ‚—p

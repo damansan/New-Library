@@ -1,0 +1,29 @@
+{
+    "clips": [
+        {
+            "clipName": "GS_Idle",
+            "nextId": 4,
+            "ranges": [
+                {
+                    "id": 2,
+                    "start": 0.27647864818573,
+                    "end": 0.3764786124229431,
+                    "flag": "AnimExit"
+                },
+                {
+                    "id": 3,
+                    "start": 0.0,
+                    "end": 1.0,
+                    "flag": "AnimExit"
+                }
+            ],
+            "points": [
+                {
+                    "id": 1,
+                    "time": 0.18449999392032623,
+                    "flag": "Attack"
+                }
+            ]
+        }
+    ]
+}

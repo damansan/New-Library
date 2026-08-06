@@ -291,7 +291,7 @@ private:
 
 private:
 	// VSync ON OFF
-	bool vsync = false;
+	bool vsync = true;
 
 	// UpdateŒv‘ª
 	int updateCount = 0;
@@ -2197,10 +2197,15 @@ enum class SequencerFlag
 
 struct SequencerComponent
 {
+	std::string sequencerPath; // .sequencerƒtƒ@ƒCƒ‹‚ÌƒpƒX
+
 	bool animExit = false;
 	bool attack = false;
 	
 	// í—Ş‚ª‘‚¦‚½‚ç‚±‚±‚É‚à’Ç‰Á‚·‚é
+
+
+	float previousNormalizedTime = 0.0f; // ‘OƒtƒŒ[ƒ€‚Ì³‹K‰»ŠÔ
 
 }; 
  
@@ -2217,6 +2222,8 @@ struct SkinnedMeshComponent
 {
     // ƒ‚ƒfƒ‹ƒf[ƒ^
     std::shared_ptr<Model> model; 
+    // ƒ‚ƒfƒ‹‚Ì“Ç‚İ‚İŒ³ƒpƒX
+    std::string modelPath;
 
     // ƒƒbƒVƒ…‚²‚Æ‚Ìƒ{[ƒ“s—ñ
     std::vector<std::vector<DirectX::XMFLOAT4X4>> boneTransforms;
@@ -2807,6 +2814,30 @@ private:
 	// ‰æ–ÊƒTƒCƒY
 	UINT screenWidth = 0;
 	UINT screenHeight = 0;
+}; 
+ 
+===== SequencerSystem.h ===== 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\SequencerSystem.h 
+#pragma once
+#include "entt.hpp"
+#include <string>
+#include <unordered_map>
+#include "Tool/SequencerData.h"
+
+class SequencerSystem
+{
+public:
+	void Update(entt::registry& registry);
+
+private:
+	// ƒtƒ@ƒCƒ‹ƒpƒX‚²‚Æ‚ÉA“Ç‚İ‚İÏ‚İ‚ÌSequencerData‚ğƒLƒƒƒbƒVƒ…‚·‚é
+	std::unordered_map<std::string, SequencerData> cache;
+
+	// ƒpƒX‚©‚çA‘Î‰‚·‚éSequencerData‚ğæ“¾‚·‚é(–¢“Ç‚İ‚İ‚È‚çA‚»‚Ìê‚Å“Ç‚İ‚Ş)
+	SequencerData& GetOrLoadSequencerData(const std::string& sequencerPath);
+
+	// 1‘Ì‚ÌƒGƒ“ƒeƒBƒeƒB‚É‚Â‚¢‚ÄAƒtƒ‰ƒO‚ğXV‚·‚é
+	void UpdateFlags(SequencerComponent& seq, const SequencerClipData* clip, float normalizedTime);
 }; 
  
 ===== TwoBoneIKSolver.h ===== 
@@ -4067,6 +4098,7 @@ void MeshLoaderSystem::Update(
             // ƒXƒLƒjƒ“ƒO‚ ‚è (SkinnedMeshComponent + AnimatorComponent•t—^)
             auto& skinned = registry.emplace<SkinnedMeshComponent>(entity);
             skinned.model = model;
+            skinned.modelPath = mesh.modelPath;
 
             // ƒ{[ƒ“s—ñ‰Šú‰»iƒƒbƒVƒ…‚²‚Æj
             const auto& meshes = model->GetMeshes();
@@ -5074,6 +5106,130 @@ void RenderSystem::ForwardTransparentPass(
 }
  
  
+===== SequencerSystem.cpp ===== 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\SequencerSystem.cpp 
+#include "SequencerSystem.h"
+#include "ECS/Components/SkinnedMeshComponent.h"
+#include "ECS/Components/AnimatorComponent.h"
+#include <fstream>
+
+// ƒpƒX‚©‚çA‘Î‰‚·‚éSequencerData‚ğæ“¾‚·‚é(–¢“Ç‚İ‚İ‚È‚ç“Ç‚İ‚Ş)
+SequencerData& SequencerSystem::GetOrLoadSequencerData(const std::string& sequencerPath)
+{
+	auto it = cache.find(sequencerPath);
+	if (it != cache.end())
+	{
+		return it->second;
+	}
+
+	SequencerData data;
+
+	std::ifstream ifs(sequencerPath);
+	if (ifs.is_open())
+	{
+		try
+		{
+			nlohmann::json j;
+			ifs >> j;
+			data.FromJson(j);
+		}
+		catch (const std::exception&) {}
+	}
+	// Œ©‚Â‚©‚ç‚È‚¢/‰ó‚ê‚Ä‚¢‚éê‡‚àA‹ó‚ÌSequencerData‚ğƒLƒƒƒbƒVƒ…‚µ‚Ä‚¨‚­
+	// (–ˆƒtƒŒ[ƒ€A“¯‚¶‰ó‚ê‚½ƒtƒ@ƒCƒ‹‚ğ“Ç‚İ’¼‚³‚È‚¢‚æ‚¤‚É‚·‚é‚½‚ß)
+
+	auto result = cache.emplace(sequencerPath, std::move(data));
+	return result.first->second;
+}
+
+// 1‘Ì‚ÌƒGƒ“ƒeƒBƒeƒB‚É‚Â‚¢‚ÄAƒtƒ‰ƒO‚ğXV‚·‚é
+void SequencerSystem::UpdateFlags(SequencerComponent& seq, const SequencerClipData* clip, float normalizedTime)
+{
+	// ƒtƒ‰ƒO‚ğˆê’U‘S•”false‚É–ß‚·
+	seq.animExit = false;
+	seq.attack = false;
+
+	if (clip)
+	{
+		auto setFlag = [&](SequencerFlag flag, bool value)
+			{
+				switch (flag)
+				{
+				case SequencerFlag::AnimExit: seq.animExit = seq.animExit || value; break;
+				case SequencerFlag::Attack:   seq.attack = seq.attack || value; break;
+				}
+			};
+
+		// Range:¡‚Ì‚ª”ÍˆÍ“à‚È‚çtrue
+		for (const auto& r : clip->ranges)
+		{
+			bool inRange = (normalizedTime >= r.start && normalizedTime <= r.end);
+			setFlag(r.flag, inRange);
+		}
+
+		// Point:‘OƒtƒŒ[ƒ€‚©‚ç¡ƒtƒŒ[ƒ€‚ÌŠÔ‚ğA‚±‚Ì‚ª’Ê‰ß‚µ‚Ä‚¢‚ê‚Îtrue
+		for (const auto& p : clip->points)
+		{
+			bool passed = (seq.previousNormalizedTime < p.time && normalizedTime >= p.time);
+			setFlag(p.flag, passed);
+		}
+	}
+
+	// ¡‰ñ‚Ì‚ğAŸ‚ÌƒtƒŒ[ƒ€‚Ì‚½‚ß‚É•Û‘¶‚µ‚Ä‚¨‚­
+	seq.previousNormalizedTime = normalizedTime;
+}
+
+void SequencerSystem::Update(entt::registry& registry)
+{
+	auto view = registry.view<SkinnedMeshComponent, AnimatorComponent, SequencerComponent>();
+
+	for (auto entity : view)
+	{
+		auto& skinned = view.get<SkinnedMeshComponent>(entity);
+		auto& animator = view.get<AnimatorComponent>(entity);
+		auto& seq = view.get<SequencerComponent>(entity);
+
+		// ƒpƒX‚ª–¢İ’è‚È‚çA‚±‚ÌƒGƒ“ƒeƒBƒeƒB‚ÍSequencer‚ğg‚í‚È‚¢
+		if (seq.sequencerPath.empty())
+		{
+			continue;
+		}
+
+		if (!skinned.model)
+		{
+			continue;
+		}
+
+		SequencerData& data = GetOrLoadSequencerData(seq.sequencerPath);
+
+		SequencerClipData* clip = nullptr;
+		for (auto& c : data.clips)
+		{
+			if (c.clipName == animator.currentAnimation) { clip = &c; break; }
+		}
+
+		// ƒNƒŠƒbƒv‚Ì’·‚³‚ğæ“¾‚·‚é
+		float clipLength = 0.0f;
+		for (const auto& anim : skinned.model->GetAnimations())
+		{
+			if (anim.name == animator.currentAnimation)
+			{
+				clipLength = anim.secondsLength;
+				break;
+			}
+		}
+
+		if (clipLength <= 0.0001f)
+		{
+			continue;
+		}
+
+		float normalizedTime = animator.animationTime / clipLength;
+
+		UpdateFlags(seq, clip, normalizedTime);
+	}
+} 
+ 
 ===== TwoBoneIKSolver.cpp ===== 
 Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\TwoBoneIKSolver.cpp 
 #include "TwoBoneIKSolver.h"
@@ -5490,6 +5646,8 @@ private:
     bool IsModelFile(const std::filesystem::path& path);
     // ƒtƒ@ƒCƒ‹‚ªƒAƒjƒ[ƒVƒ‡ƒ“ƒOƒ‰ƒtƒtƒ@ƒCƒ‹‚©”»’è
     bool IsAnimGraphFile(const std::filesystem::path& path);
+	// ƒtƒ@ƒCƒ‹‚ªƒV[ƒPƒ“ƒT[ƒtƒ@ƒCƒ‹‚©”»’è
+    static bool IsSequencerFile(const std::filesystem::path& path);
 
     // d•¡‚µ‚È‚¢–¼‘O‚Åì¬
     std::string GenerateUniqueName(const std::filesystem::path& parentDir, const std::string& baseName);
@@ -5570,6 +5728,7 @@ Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Editor\ComponentRegistr
 
 #include "ECS/Components/IKComponent.h"
 
+#include "ECS/Components/SequencerComponent.h"
 
 #include "MetaRegistry.h"
 
@@ -5973,6 +6132,20 @@ void ComponentRegistryInitializer::Initialize()
 					ik->feet.push_back(FootIKSettings{});
 				}
 			}); 
+
+
+		// ƒV[ƒPƒ“ƒT[ƒRƒ“ƒ|[ƒlƒ“ƒg‚Ì“o˜^
+		REGISTER_COMPONENT(SequencerComponent, "Sequencer",
+			[](auto& reg, auto e)
+			{
+				auto* seq = reg.try_get<SequencerComponent>(e);
+				if (!seq) return;
+
+				if (ImGui::CollapsingHeader("Sequencer", ImGuiTreeNodeFlags_DefaultOpen))
+				{
+					MetaRegistry::DrawMetaFields(entt::resolve<SequencerComponent>(), entt::forward_as_meta(*seq));
+				}
+			}); 
 }
  
  
@@ -6263,6 +6436,7 @@ using namespace entt::literals;
 #include "ECS/Components/MovementComponent.h"
 #include "ECS/Components/InputComponent.h"
 #include "ECS/Components/AnimatorComponent.h"
+#include "ECS/Components/SequencerComponent.h"
 
 void MetaRegistry::Initialize()
 {
@@ -6321,6 +6495,16 @@ void MetaRegistry::Initialize()
 		.custom<FieldInfo>(FieldInfo{ "Use Root Motion Y" })
 		.data<&AnimatorComponent::rootMotionNodeName>("rootMotionNodeName"_hs)
 		.custom<FieldInfo>(FieldInfo{ "Root Motion Node" });
+
+	entt::meta_factory<SequencerComponent>{}
+	.type("SequencerComponent")
+		.custom<TypeInfo>(TypeInfo{ "Sequencer" })
+		.data<&SequencerComponent::sequencerPath>("sequencerPath"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Sequencer File", 0.0f, 0.0f, 0.1f, "SEQUENCER_PATH" })
+		.data<&SequencerComponent::animExit>("animExit"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Anim Exit", 0.0f, 0.0f, 0.1f, "", true })
+		.data<&SequencerComponent::attack>("attack"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Attack", 0.0f, 0.0f, 0.1f, "", true });
 }
 
 // “o˜^Ï‚İƒƒ^î•ñ‚©‚çInspectorUI‚ğ©“®•`‰æ
@@ -6749,7 +6933,8 @@ void ProjectWindow::DrawFileGrid(entt::registry& registry, EditorContext& contex
 
 		bool isModel = IsModelFile(entry.path());
 		bool isAnimGraph = IsAnimGraphFile(entry.path());
-		if (!isModel && !isAnimGraph) continue;
+		bool isSequencer = IsSequencerFile(entry.path());
+		if (!isModel && !isAnimGraph && !isSequencer) continue;
 
 		std::string filename = entry.path().stem().string();
 		std::string modelPath = entry.path().string();
@@ -6776,7 +6961,9 @@ void ProjectWindow::DrawFileGrid(entt::registry& registry, EditorContext& contex
 		}
 		else
 		{
-			ImU32 color = isAnimGraph ? IM_COL32(200, 130, 60, 255) : IM_COL32(80, 120, 200, 255);
+			ImU32 color = isAnimGraph ? IM_COL32(200, 130, 60, 255)
+				: isSequencer ? IM_COL32(120, 200, 130, 255)
+				: IM_COL32(80, 120, 200, 255);
 			ImGui::GetWindowDrawList()->AddRectFilled(
 				pos,
 				ImVec2(pos.x + iconSize, pos.y + iconSize),
@@ -6830,8 +7017,8 @@ void ProjectWindow::DrawFileGrid(entt::registry& registry, EditorContext& contex
 			}
 		}
 
-		// ƒhƒ‰ƒbƒOŠJniƒ‚ƒfƒ‹^ƒAƒjƒ[ƒVƒ‡ƒ“ƒOƒ‰ƒtj
-		if ((isModel || isAnimGraph) && ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
+		// ƒhƒ‰ƒbƒOŠJniƒ‚ƒfƒ‹^ƒAƒjƒ[ƒVƒ‡ƒ“ƒOƒ‰ƒt/ƒV[ƒPƒ“ƒT[j
+		if ((isModel || isAnimGraph || isSequencer) && ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID)) 
 		{
 			if (isModel)
 			{
@@ -6841,10 +7028,18 @@ void ProjectWindow::DrawFileGrid(entt::registry& registry, EditorContext& contex
 					modelPath.size() + 1
 				);
 			}
-			else // isAnimGraph
+			else if (isAnimGraph)
 			{
 				ImGui::SetDragDropPayload(
 					"ANIMGRAPH_PATH",
+					modelPath.c_str(),
+					modelPath.size() + 1
+				);
+			}
+			else // isSequencer
+			{
+				ImGui::SetDragDropPayload(
+					"SEQUENCER_PATH",
 					modelPath.c_str(),
 					modelPath.size() + 1
 				);
@@ -6953,6 +7148,14 @@ bool ProjectWindow::IsAnimGraphFile(const std::filesystem::path& path)
 	std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
 
 	return ext == ".animgraph";
+}
+// ƒtƒ@ƒCƒ‹‚ªƒV[ƒPƒ“ƒT[ƒtƒ@ƒCƒ‹‚©”»’è
+bool ProjectWindow::IsSequencerFile(const std::filesystem::path& path)
+{
+	std::string ext = path.extension().string();
+	std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+
+	return ext == ".sequencer";
 }
 
 // d•¡‚µ‚È‚¢–¼‘O‚Åì¬
@@ -7092,6 +7295,8 @@ Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Game\SceneGame.h
 #include "ECS/Systems/PhysicsSystem.h"
 #include "ECS/Systems/IKSystem.h"
 
+#include "ECS/Systems/SequencerSystem.h"
+
 #include "Tool/AdaptiveTriggerToolWindow.h"
 
 
@@ -7128,7 +7333,7 @@ private:
 
 	IKSystem         ikSystem;
 
-
+	SequencerSystem sequencerSystem;
 
 private:
 	// ƒfƒ‚—p
@@ -7244,6 +7449,12 @@ void SceneGame::Update(float elapsedTime, const SceneContext& context)
 		animationSystem.Update(registry, elapsedTime);
 	}
 	{
+		// Sequencerã®ãƒ•ãƒ©ã‚°æ›´æ–°
+		ZoneScopedN("SequencerSystem");
+		sequencerSystem.Update(registry);
+	}
+	{
+
 		// IKæ›´æ–°(ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã®å¾Œã«ä¸Šæ›¸ãã™ã‚‹)
 		ZoneScopedN("IKSystem");
 		ikSystem.Update(registry, GetPhysicsScene());
@@ -11890,6 +12101,57 @@ private:
     ed::EditorContext* editorContext = nullptr;
 }; 
  
+===== SequencerData.h ===== 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Tool\SequencerData.h 
+#pragma once
+#include <string>
+#include <vector>
+#include <json.hpp>
+#include "ECS/Components/SequencerComponent.h"
+
+
+// ”ÍˆÍ : ŠJn‚©‚çI—¹‚ÌŠÔí‚Étrue‚ğ•Ô‚·
+struct SequencerRange
+{
+	int id = -1;
+	float start = 0.0f; // ŠJnˆÊ’u
+	float end = 1.0f;   // I—¹ˆÊ’u
+	SequencerFlag flag = SequencerFlag::AnimExit;
+};
+
+// uŠÔ : ’Ê‰ß‚µ‚½‚»‚ÌƒtƒŒ[ƒ€‚¾‚¯true
+struct SequencerPoint
+{
+	int id = -1;
+	float time = 0.0f; // 
+	SequencerFlag flag = SequencerFlag::AnimExit;
+};
+
+// 1ƒNƒŠƒbƒv•ª‚ÌRange/Point‚ğ‚Ü‚Æ‚ß‚½‚à‚Ì
+struct SequencerClipData
+{
+	std::string clipName;
+	std::vector<SequencerRange> ranges;
+	std::vector<SequencerPoint> points;
+
+	int nextId = 1;
+	int GenerateId() { return nextId++; }
+};
+
+// ƒ‚ƒfƒ‹1‘Ì•ªA‘SƒNƒŠƒbƒv‚ÌSequencerİ’è‚ğ‚Ü‚Æ‚ß‚½‚à‚Ì
+class SequencerData
+{
+public:
+	std::vector<SequencerClipData> clips;
+
+	// w’è‚µ‚½ƒNƒŠƒbƒv–¼‚Ìƒf[ƒ^‚ğ’T‚·
+	SequencerClipData* FindOrCreateClip(const std::string& clipName);
+
+	// •Û‘¶/“Ç‚İ‚İ
+	nlohmann::ordered_json ToJson() const;
+	void FromJson(const nlohmann::json& j);
+}; 
+ 
 ===== AdaptiveTriggerToolWindow.cpp ===== 
 Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Tool\AdaptiveTriggerToolWindow.cpp 
 #include "AdaptiveTriggerToolWindow.h"
@@ -12289,6 +12551,7 @@ void AdaptiveTriggerToolWindow::DrawSelectedPointPanel(std::vector<AdaptiveTrigg
 Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Tool\AnimatorGraph.cpp 
 #include "AnimatorGraph.h"
 #include <algorithm>
+#include "SequencerData.h"
 
 // == enum‚Ì•¶š•ÏŠ· == //
 namespace
@@ -12832,6 +13095,125 @@ void NodeEditorCanvas::End()
     ed::SetCurrentEditor(nullptr);
 } 
  
+===== SequencerData.cpp ===== 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Tool\SequencerData.cpp 
+#include "SequencerData.h"
+
+namespace
+{
+	std::string ToString(SequencerFlag flag)
+	{
+		switch (flag)
+		{
+		case SequencerFlag::AnimExit: return "AnimExit";
+		case SequencerFlag::Attack:   return "Attack";
+		}
+		return "AnimExit";
+	}
+	SequencerFlag ToSequencerFlag(const std::string& s)
+	{
+		if (s == "Attack") return SequencerFlag::Attack;
+		return SequencerFlag::AnimExit;
+	}
+}
+
+
+// w’è‚µ‚½ƒNƒŠƒbƒv–¼‚Ìƒf[ƒ^‚ğ’T‚·
+SequencerClipData* SequencerData::FindOrCreateClip(const std::string& clipName)
+{
+	for (auto& clip : clips)
+	{
+		if (clip.clipName == clipName) return &clip;
+	}
+
+	SequencerClipData newClip;
+	newClip.clipName = clipName;
+	clips.push_back(newClip);
+	return &clips.back();
+}
+
+
+// •Û‘¶
+nlohmann::ordered_json SequencerData::ToJson() const
+{
+	nlohmann::ordered_json j;
+	j["clips"] = nlohmann::json::array();
+
+	for (const auto& clip : clips)
+	{
+		nlohmann::ordered_json jc;
+		jc["clipName"] = clip.clipName;
+		jc["nextId"] = clip.nextId;
+
+		jc["ranges"] = nlohmann::json::array();
+		for (const auto& r : clip.ranges)
+		{
+			nlohmann::ordered_json jr;
+			jr["id"] = r.id;
+			jr["start"] = r.start;
+			jr["end"] = r.end;
+			jr["flag"] = ToString(r.flag);
+			jc["ranges"].push_back(jr);
+		}
+
+		jc["points"] = nlohmann::json::array();
+		for (const auto& p : clip.points)
+		{
+			nlohmann::ordered_json jp;
+			jp["id"] = p.id;
+			jp["time"] = p.time;
+			jp["flag"] = ToString(p.flag);
+			jc["points"].push_back(jp);
+		}
+
+		j["clips"].push_back(jc);
+	}
+
+	return j;
+}
+
+// “Ç‚İ‚İ
+void SequencerData::FromJson(const nlohmann::json& j)
+{
+	clips.clear();
+
+	if (!j.contains("clips")) return;
+
+	for (const auto& jc : j["clips"])
+	{
+		SequencerClipData clip;
+		clip.clipName = jc.value("clipName", "");
+		clip.nextId = jc.value("nextId", 1);
+
+		if (jc.contains("ranges"))
+		{
+			for (const auto& jr : jc["ranges"])
+			{
+				SequencerRange r;
+				r.id = jr.value("id", -1);
+				r.start = jr.value("start", 0.0f);
+				r.end = jr.value("end", 1.0f);
+				r.flag = ToSequencerFlag(jr.value("flag", "AnimExit"));
+				clip.ranges.push_back(r);
+			}
+		}
+
+		if (jc.contains("points"))
+		{
+			for (const auto& jp : jc["points"])
+			{
+				SequencerPoint p;
+				p.id = jp.value("id", -1);
+				p.time = jp.value("time", 0.0f);
+				p.flag = ToSequencerFlag(jp.value("flag", "AnimExit"));
+				clip.points.push_back(p);
+			}
+		}
+
+		clips.push_back(clip);
+	}
+} 
+ 
 ===== IStudioAttachment.h ===== 
 Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Tool\Studio\IStudioAttachment.h 
 #pragma once
@@ -13124,6 +13506,7 @@ struct StudioContext
     bool showAnimator      = false;
     bool showTimeline      = false;
     bool showAnimatorGraph = false;
+    bool showSequencer = false;
 
     std::string attachedGraphPath;
     std::string currentModelPath;
@@ -13268,6 +13651,64 @@ private:
 	static ed::PinId GetInPinId(int linkId) { return ed::PinId((int64_t)20000000 + (int64_t)linkId * 2 + 1); }
 }; 
  
+===== StudioSequencer.h ===== 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Tool\Studio\StudioSequencer.h 
+#pragma once
+#include "IStudioAttachment.h"
+#include "Tool/SequencerData.h"
+#include <imgui.h>
+#include <functional>
+#include <string>
+#include <vector>
+
+class StudioSequencer : public IStudioAttachment
+{
+public:
+	StudioSequencer() = default;
+	~StudioSequencer() = default;
+
+	void SetWindowId(int id) { windowId = id; }
+
+	// ImGui•`‰æ
+	void DrawGUI(entt::registry& registry, StudioContext& context) override;
+
+private:
+	// == “à•”ó‘Ô == //
+	int windowId = 0;
+
+	SequencerData sequencerData;   // •ÒW’†‚ÌSequencerƒf[ƒ^
+	std::string selectedClipName;  // ¡•ÒW‚µ‚Ä‚¢‚éƒNƒŠƒbƒv–¼
+	std::vector<std::string> availableAnimations; // ƒ‚ƒfƒ‹‚ª‚ÂƒAƒjƒ[ƒVƒ‡ƒ“–¼ˆê——
+
+	enum class SelectionType { None, Range, Point };
+	SelectionType selectedType = SelectionType::None;
+	int selectedId = -1; // ‘I‘ğ’†‚ÌRange/Point‚ÌID
+	std::string loadedModelPath; // ÅŒã‚É“Ç‚İ‚ñ‚¾ƒ‚ƒfƒ‹ƒpƒX
+
+	// == Šeƒgƒ‰ƒbƒN‚Ì•`‰æ == //
+	void DrawToolbar(SequencerClipData& clip, float previewTime); // ƒc[ƒ‹ƒo[
+	void DrawPointTrack(SequencerClipData& clip, float previewTime, float clipLength); // Point‚Ìƒgƒ‰ƒbƒN•`‰æ
+	void DrawRangeTrack(SequencerClipData& clip, float previewTime, float clipLength); // Range‚Ìƒgƒ‰ƒbƒN•`‰æ
+	void DrawDetailPanel(SequencerClipData& clip, const std::string& modelPath); // Ú×ƒpƒlƒ‹
+
+	// == íœ == //
+	void DeleteRange(SequencerClipData& clip, int id); // Rangeíœ
+	void DeletePoint(SequencerClipData& clip, int id); // Pointíœ
+	void DrawDeleteButton(const char* label, const std::function<void()>& onDelete); // íœƒ{ƒ^ƒ“
+
+	// == À•W•ÏŠ·ƒwƒ‹ƒp[ == //
+	static float TimeToNormalized(float time, float clipLength);       // •b”‚ğ0.0`1.0‚É
+	static float NormalizedToTime(float normalized, float clipLength); // 0.0`1.0‚ğ•b”‚É
+
+	// == •Û‘¶ == //
+	void Save(const std::string& modelPath); // •Û‘¶
+	static std::string GetSequencerFilePath(const std::string& modelPath); // ƒ‚ƒfƒ‹ƒpƒX‚©‚ç•Û‘¶æ‚ÌƒpƒX‚ğ‘g‚İ—§‚Ä‚é
+
+	// == ‚»‚Ì‘¼ == //
+	void RefreshAvailableAnimations(entt::registry& registry);   // ƒAƒjƒ[ƒVƒ‡ƒ“ˆê——‚ğXV‚·‚é
+	static const char* GetSequencerFlagName(SequencerFlag flag); // ƒV[ƒPƒ“ƒT[ƒtƒ‰ƒO‚Ì•\¦–¼‚ğ•Ô‚·
+};  
+ 
 ===== StudioSharedContext.h ===== 
 Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Tool\Studio\StudioSharedContext.h 
 #pragma once
@@ -13336,6 +13777,7 @@ Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Tool\Studio\StudioWindo
 #include "StudioModelViewer.h"
 #include "StudioAnimator.h"
 #include "StudioTimeline.h"
+#include "StudioSequencer.h"
 #include "StudioAnimatorGraph.h"
 
 class StudioWindow
@@ -13368,6 +13810,7 @@ public:
         windowId = id; 
         studioAnimator.SetWindowId(id);
         studioTimeline.SetWindowId(id);
+        studioSequencer.SetWindowId(id);
         animatorGraph.SetWindowId(id);
 
     }
@@ -13406,6 +13849,7 @@ private:
     StudioModelViewer stadoiModelViewer;
     StudioAnimator    studioAnimator;
     StudioTimeline    studioTimeline;
+    StudioSequencer   studioSequencer;
     StudioAnimatorGraph animatorGraph;
 
 
@@ -15595,6 +16039,493 @@ void StudioParentStateGraph::DrawDeleteButton(const char* label, const std::func
 	}
 } 
  
+===== StudioSequencer.cpp ===== 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Tool\Studio\StudioSequencer.cpp 
+#include "StudioSequencer.h"
+#include "ECS/Components/SkinnedMeshComponent.h"
+#include "ECS/Components/AnimatorComponent.h"
+#include <algorithm>
+#include <fstream>
+#include <filesystem>
+
+// ImGui•`‰æ
+void StudioSequencer::DrawGUI(entt::registry& registry, StudioContext& context)
+{
+	if (!context.showSequencer) return;
+
+	std::string panelName = "Sequencer##" + std::to_string(windowId);
+	ImGui::Begin(panelName.c_str());
+
+	RefreshAvailableAnimations(registry);
+
+	auto view = registry.view<SkinnedMeshComponent, AnimatorComponent>();
+	if (view.begin() == view.end())
+	{
+		ImGui::Text("No skinned model.");
+		ImGui::End();
+		return;
+	}
+
+	auto entity = *view.begin();
+	auto& skinned = view.get<SkinnedMeshComponent>(entity);
+	auto& animator = view.get<AnimatorComponent>(entity);
+
+	if (!skinned.model)
+	{
+		ImGui::End();
+		return;
+	}
+
+	// ƒ‚ƒfƒ‹‚ªØ‚è‘Ö‚í‚Á‚½‚çA‚»‚Ìƒ‚ƒfƒ‹—p‚ÌSequencerƒf[ƒ^‚ğ“Ç‚İ‚İ’¼‚·
+	if (loadedModelPath != context.currentModelPath)
+	{
+		sequencerData = SequencerData();
+
+		std::string loadPath = GetSequencerFilePath(context.currentModelPath);
+		std::ifstream ifs(loadPath);
+		if (ifs.is_open())
+		{
+			try
+			{
+				nlohmann::json j;
+				ifs >> j;
+				sequencerData.FromJson(j);
+			}
+			catch (const std::exception&) {}
+		}
+
+		loadedModelPath = context.currentModelPath;
+	}
+
+	if (animator.currentAnimation.empty())
+	{
+		ImGui::TextDisabled("Select an animation from the Animator panel.");
+		ImGui::End();
+		return;
+	}
+
+	// ‘I‚ñ‚Å‚¢‚éƒNƒŠƒbƒv‚ªØ‚è‘Ö‚í‚Á‚½‚çA‘I‘ğó‘Ô‚ğƒŠƒZƒbƒg‚·‚é
+	if (selectedClipName != animator.currentAnimation)
+	{
+		selectedClipName = animator.currentAnimation;
+		selectedType = SelectionType::None;
+		selectedId = -1;
+	}
+
+	// ‚±‚ÌƒNƒŠƒbƒv‚Ì’·‚³‚ğæ“¾‚·‚é
+	float clipLength = 0.0f;
+	for (const auto& anim : skinned.model->GetAnimations())
+	{
+		if (anim.name == selectedClipName)
+		{
+			clipLength = anim.secondsLength;
+			break;
+		}
+	}
+
+	// ‚±‚ÌƒNƒŠƒbƒv‚ª¡Ä¶’†‚È‚çAƒvƒŒƒrƒ…[‚Æ‚µ‚Äg‚¤
+	float previewTime = (animator.currentAnimation == selectedClipName) ? animator.animationTime : 0.0f;
+
+	SequencerClipData* clip = sequencerData.FindOrCreateClip(selectedClipName);
+
+	const float detailPanelWidth = 220.0f;
+
+	ImGui::BeginChild("SequencerTracks", ImVec2(-detailPanelWidth, 0.0f));
+	DrawPointTrack(*clip, previewTime, clipLength);
+	DrawRangeTrack(*clip, previewTime, clipLength);
+	ImGui::EndChild();
+
+	ImGui::SameLine();
+
+	ImGui::BeginChild("SequencerDetail", ImVec2(detailPanelWidth, 0.0f), true);
+	DrawDetailPanel(*clip, context.currentModelPath);
+	ImGui::EndChild();
+
+	ImGui::End();
+}
+
+// ƒc[ƒ‹ƒo[
+void StudioSequencer::DrawToolbar(SequencerClipData& clip, float previewTime)
+{
+	ImGui::TextDisabled("Clip: %s", clip.clipName.c_str());
+	ImGui::TextDisabled("Ranges: %d  Points: %d", (int)clip.ranges.size(), (int)clip.points.size());
+	ImGui::Separator();
+}
+// Point‚Ìƒgƒ‰ƒbƒN•`‰æ
+void StudioSequencer::DrawPointTrack(SequencerClipData& clip, float previewTime, float clipLength)
+{
+	ImGui::Text("Points");
+	ImGui::SameLine(ImGui::GetContentRegionAvail().x - 60.0f);
+	if (ImGui::Button("+ Add##Point"))
+	{
+		SequencerPoint p;
+		p.id = clip.GenerateId();
+		p.time = TimeToNormalized(previewTime, clipLength);
+		clip.points.push_back(p);
+
+		selectedType = SelectionType::Point;
+		selectedId = p.id;
+	}
+
+	ImVec2 trackMin = ImGui::GetCursorScreenPos();
+	float trackWidth = ImGui::GetContentRegionAvail().x;
+	const float trackHeight = 24.0f;
+	ImVec2 trackMax(trackMin.x + trackWidth, trackMin.y + trackHeight);
+
+	ImDrawList* dl = ImGui::GetWindowDrawList();
+	dl->AddRectFilled(trackMin, trackMax, IM_COL32(40, 40, 40, 255));
+
+	auto timeToX = [&](float normalized) { return trackMin.x + normalized * trackWidth; };
+
+	// ƒvƒŒƒCƒwƒbƒh
+	float phX = timeToX(TimeToNormalized(previewTime, clipLength));
+	dl->AddLine(ImVec2(phX, trackMin.y), ImVec2(phX, trackMax.y), IM_COL32(29, 158, 117, 200), 1.5f);
+
+	ImGui::PushID("PointTrack");
+	for (auto& p : clip.points)
+	{
+		float x = timeToX(p.time);
+		ImVec2 markerMin(x - 3.0f, trackMin.y);
+		ImVec2 markerMax(x + 3.0f, trackMax.y);
+
+		bool isSelected = (selectedType == SelectionType::Point && selectedId == p.id);
+		ImU32 color = isSelected ? IM_COL32(255, 200, 80, 255) : IM_COL32(120, 170, 255, 255);
+		dl->AddRectFilled(markerMin, markerMax, color);
+
+		ImGui::SetCursorScreenPos(markerMin);
+		ImGui::PushID(p.id);
+		ImGui::InvisibleButton("marker", ImVec2(6.0f, trackHeight));
+
+		if (ImGui::IsItemActive() && ImGui::IsMouseDragging(ImGuiMouseButton_Left))
+		{
+			float mouseX = ImGui::GetMousePos().x;
+			float normalized = (mouseX - trackMin.x) / trackWidth;
+			p.time = std::clamp(normalized, 0.0f, 1.0f);
+		}
+
+		if (ImGui::IsItemClicked())
+		{
+			selectedType = SelectionType::Point;
+			selectedId = p.id;
+		}
+
+		ImGui::PopID();
+	}
+	ImGui::PopID();
+
+	ImGui::SetCursorScreenPos(ImVec2(trackMin.x, trackMax.y + 4.0f));
+	ImGui::Dummy(ImVec2(0.0f, 0.0f));
+}
+// Range‚Ìƒgƒ‰ƒbƒN•`‰æ
+void StudioSequencer::DrawRangeTrack(SequencerClipData& clip, float previewTime, float clipLength)
+{
+	ImGui::Spacing();
+	ImGui::Text("Ranges");
+	ImGui::SameLine(ImGui::GetContentRegionAvail().x - 60.0f);
+	if (ImGui::Button("+ Add##Range"))
+	{
+		SequencerRange r;
+		r.id = clip.GenerateId();
+		r.start = TimeToNormalized(previewTime, clipLength);
+		r.end = (std::min)(1.0f, r.start + 0.1f);
+		clip.ranges.push_back(r);
+
+		selectedType = SelectionType::Range;
+		selectedId = r.id;
+	}
+
+	float trackWidth = ImGui::GetContentRegionAvail().x;
+	const float rowHeight = 24.0f;
+	const float rowSpacing = 4.0f;
+
+	auto timeToX = [&](float normalized, float originX) { return originX + normalized * trackWidth; };
+
+	ImDrawList* dl = ImGui::GetWindowDrawList();
+
+	ImGui::PushID("RangeTrack");
+	for (auto& r : clip.ranges)
+	{
+		ImVec2 rowMin = ImGui::GetCursorScreenPos();
+		ImVec2 rowMax(rowMin.x + trackWidth, rowMin.y + rowHeight);
+
+		dl->AddRectFilled(rowMin, rowMax, IM_COL32(40, 40, 40, 255));
+
+		float startX = timeToX(r.start, rowMin.x);
+		float endX = timeToX(r.end, rowMin.x);
+
+		bool isSelected = (selectedType == SelectionType::Range && selectedId == r.id);
+		ImU32 barColor = isSelected ? IM_COL32(255, 200, 80, 180) : IM_COL32(120, 170, 255, 180);
+		ImU32 handleColor = isSelected ? IM_COL32(255, 200, 80, 255) : IM_COL32(120, 170, 255, 255);
+
+		dl->AddRectFilled(ImVec2(startX, rowMin.y), ImVec2(endX, rowMax.y), barColor);
+		dl->AddRectFilled(ImVec2(startX - 3.0f, rowMin.y), ImVec2(startX + 3.0f, rowMax.y), handleColor);
+		dl->AddRectFilled(ImVec2(endX - 3.0f, rowMin.y), ImVec2(endX + 3.0f, rowMax.y), handleColor);
+		dl->AddText(ImVec2(startX + 6.0f, rowMin.y + 4.0f), IM_COL32(255, 255, 255, 255), GetSequencerFlagName(r.flag));
+
+		// ƒvƒŒƒCƒwƒbƒh
+		float phX = timeToX(TimeToNormalized(previewTime, clipLength), rowMin.x);
+		dl->AddLine(ImVec2(phX, rowMin.y), ImVec2(phX, rowMax.y), IM_COL32(29, 158, 117, 200), 1.5f);
+
+		ImGui::PushID(r.id);
+
+		// ’†‰›(ƒo[‘S‘Ì)
+		ImGui::SetCursorScreenPos(ImVec2(startX + 6.0f, rowMin.y));
+		ImGui::InvisibleButton("body", ImVec2((std::max)(1.0f, endX - startX - 12.0f), rowHeight));
+		if (ImGui::IsItemActive() && ImGui::IsMouseDragging(ImGuiMouseButton_Left))
+		{
+			float deltaNorm = ImGui::GetIO().MouseDelta.x / trackWidth;
+			float width = r.end - r.start;
+			r.start = std::clamp(r.start + deltaNorm, 0.0f, 1.0f - width);
+			r.end = r.start + width;
+		}
+		if (ImGui::IsItemClicked())
+		{
+			selectedType = SelectionType::Range;
+			selectedId = r.id;
+		}
+
+		// ¶’[(ŠJnˆÊ’u)
+		ImGui::SetCursorScreenPos(ImVec2(startX - 4.0f, rowMin.y));
+		ImGui::InvisibleButton("startHandle", ImVec2(8.0f, rowHeight));
+		if (ImGui::IsItemActive() && ImGui::IsMouseDragging(ImGuiMouseButton_Left))
+		{
+			float mouseX = ImGui::GetMousePos().x;
+			float normalized = (mouseX - rowMin.x) / trackWidth;
+			r.start = std::clamp(normalized, 0.0f, r.end);
+		}
+
+		// ‰E’[(I—¹ˆÊ’u)
+		ImGui::SetCursorScreenPos(ImVec2(endX - 4.0f, rowMin.y));
+		ImGui::InvisibleButton("endHandle", ImVec2(8.0f, rowHeight));
+		if (ImGui::IsItemActive() && ImGui::IsMouseDragging(ImGuiMouseButton_Left))
+		{
+			float mouseX = ImGui::GetMousePos().x;
+			float normalized = (mouseX - rowMin.x) / trackWidth;
+			r.end = std::clamp(normalized, r.start, 1.0f);
+		}
+
+		ImGui::PopID();
+
+		ImGui::SetCursorScreenPos(ImVec2(rowMin.x, rowMax.y + rowSpacing));
+		ImGui::Dummy(ImVec2(0.0f, 0.0f));
+	}
+	ImGui::PopID();
+}
+// Ú×ƒpƒlƒ‹
+void StudioSequencer::DrawDetailPanel(SequencerClipData& clip, const std::string& modelPath)
+{
+	if (ImGui::Button("Save", ImVec2(-1.0f, 0.0f)))
+	{
+		Save(modelPath);
+	}
+
+	if (selectedType == SelectionType::Range)
+	{
+		SequencerRange* range = nullptr;
+		for (auto& r : clip.ranges)
+		{
+			if (r.id == selectedId) { range = &r; break; }
+		}
+
+		if (!range)
+		{
+			selectedType = SelectionType::None;
+			selectedId = -1;
+			ImGui::TextDisabled("No selection.");
+			return;
+		}
+
+		ImGui::Text("Range");
+		ImGui::Separator();
+
+		if (ImGui::BeginCombo("Flag", GetSequencerFlagName(range->flag)))
+		{
+			for (int i = 0; i <= (int)SequencerFlag::Attack; i++)
+			{
+				SequencerFlag f = (SequencerFlag)i;
+				bool isSelected = (range->flag == f);
+				if (ImGui::Selectable(GetSequencerFlagName(f), isSelected))
+				{
+					range->flag = f;
+				}
+			}
+			ImGui::EndCombo();
+		}
+
+		float startPct = range->start * 100.0f;
+		float endPct = range->end * 100.0f;
+
+		if (ImGui::DragFloat("Start %", &startPct, 0.1f, 0.0f, endPct))
+		{
+			range->start = startPct * 0.01f;
+		}
+		if (ImGui::DragFloat("End %", &endPct, 0.1f, startPct, 100.0f))
+		{
+			range->end = endPct * 0.01f;
+		}
+
+		int rangeId = range->id;
+		DrawDeleteButton("Delete Range", [this, &clip, rangeId]() { DeleteRange(clip, rangeId); });
+		return;
+	}
+
+	if (selectedType == SelectionType::Point)
+	{
+		SequencerPoint* point = nullptr;
+		for (auto& p : clip.points)
+		{
+			if (p.id == selectedId) { point = &p; break; }
+		}
+
+		if (!point)
+		{
+			selectedType = SelectionType::None;
+			selectedId = -1;
+			ImGui::TextDisabled("No selection.");
+			return;
+		}
+
+		ImGui::Text("Point");
+		ImGui::Separator();
+
+		if (ImGui::BeginCombo("Flag", GetSequencerFlagName(point->flag)))
+		{
+			for (int i = 0; i <= (int)SequencerFlag::Attack; i++)
+			{
+				SequencerFlag f = (SequencerFlag)i;
+				bool isSelected = (point->flag == f);
+				if (ImGui::Selectable(GetSequencerFlagName(f), isSelected))
+				{
+					point->flag = f;
+				}
+			}
+			ImGui::EndCombo();
+		}
+
+		float timePct = point->time * 100.0f;
+		if (ImGui::DragFloat("Time (%)", &timePct, 0.1f, 0.0f, 100.0f))
+		{
+			point->time = timePct * 0.01f;
+		}
+
+		int pointId = point->id;
+		DrawDeleteButton("Delete Point", [this, &clip, pointId]() { DeletePoint(clip, pointId); });
+		return;
+	}
+
+	ImGui::TextDisabled("No selection.");
+}
+
+// Rangeíœ
+void StudioSequencer::DeleteRange(SequencerClipData& clip, int id)
+{
+	clip.ranges.erase(
+		std::remove_if(clip.ranges.begin(), clip.ranges.end(),
+			[id](const SequencerRange& r) { return r.id == id; }),
+		clip.ranges.end()
+	);
+	selectedType = SelectionType::None;
+	selectedId = -1;
+}
+// Pointíœ
+void StudioSequencer::DeletePoint(SequencerClipData& clip, int id)
+{
+	clip.points.erase(
+		std::remove_if(clip.points.begin(), clip.points.end(),
+			[id](const SequencerPoint& p) { return p.id == id; }),
+		clip.points.end()
+	);
+	selectedType = SelectionType::None;
+	selectedId = -1;
+}
+
+// íœƒ{ƒ^ƒ“
+void StudioSequencer::DrawDeleteButton(const char* label, const std::function<void()>& onDelete)
+{
+	ImGui::Spacing();
+	ImGui::Spacing();
+
+	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.15f, 0.15f, 1.0f));
+	ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.85f, 0.2f, 0.2f, 1.0f));
+	ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.6f, 0.1f, 0.1f, 1.0f));
+
+	bool pressed = ImGui::Button(label, ImVec2(-1.0f, 0.0f));
+
+	ImGui::PopStyleColor(3);
+
+	if (pressed)
+	{
+		onDelete();
+	}
+}
+
+// •b”‚ğ0.0`1.0‚É
+float StudioSequencer::TimeToNormalized(float time, float clipLength)
+{
+	if (clipLength <= 0.0001f) return 0.0f;
+	return time / clipLength;
+}
+// 0.0`1.0‚ğ•b”‚É
+float StudioSequencer::NormalizedToTime(float normalized, float clipLength)
+{
+	return normalized * clipLength;
+}
+
+// •Û‘¶
+void StudioSequencer::Save(const std::string& modelPath)
+{
+	if (modelPath.empty()) return;
+
+	std::string savePath = GetSequencerFilePath(modelPath);
+
+	// ƒtƒHƒ‹ƒ_‚ª–³‚¯‚ê‚Îì¬‚·‚é
+	std::filesystem::create_directories("Data/Json/Sequencer");
+
+	std::ofstream ofs(savePath);
+	if (ofs.is_open())
+	{
+		ofs << sequencerData.ToJson().dump(4);
+	}
+}
+// ƒ‚ƒfƒ‹ƒpƒX‚©‚ç•Û‘¶æ‚ÌƒpƒX‚ğ‘g‚İ—§‚Ä‚é
+std::string StudioSequencer::GetSequencerFilePath(const std::string& modelPath)
+{
+	std::filesystem::path p(modelPath);
+	std::string modelName = p.stem().string(); // Šg’£q‚ğœ‚¢‚½Aƒ‚ƒfƒ‹‚Ìƒtƒ@ƒCƒ‹–¼
+
+	return "Data/Json/Sequencer/" + modelName + ".sequencer";
+}
+
+// ƒAƒjƒ[ƒVƒ‡ƒ“ˆê——‚ğXV‚·‚é
+void StudioSequencer::RefreshAvailableAnimations(entt::registry& registry)
+{
+	availableAnimations.clear();
+
+	auto view = registry.view<SkinnedMeshComponent>();
+	if (view.begin() == view.end()) return;
+
+	auto entity = *view.begin();
+	auto& skinned = view.get<SkinnedMeshComponent>(entity);
+
+	if (!skinned.model) return;
+
+	for (const auto& anim : skinned.model->GetAnimations())
+	{
+		availableAnimations.push_back(anim.name);
+	}
+}
+// ƒV[ƒPƒ“ƒT[ƒtƒ‰ƒO‚Ì•\¦–¼‚ğ•Ô‚·
+const char* StudioSequencer::GetSequencerFlagName(SequencerFlag flag)
+{
+	switch (flag)
+	{
+	case SequencerFlag::AnimExit: return "AnimExit";
+	case SequencerFlag::Attack:   return "Attack";
+	}
+	return "?";
+}
+ 
+ 
 ===== StudioTimeline.cpp ===== 
 Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Tool\Studio\StudioTimeline.cpp 
 ï»¿#include "StudioTimeline.h"
@@ -15845,6 +16776,7 @@ void StudioWindow::DrawWindow(const char* windowName)
 		{
 			ImGui::MenuItem("Animator", nullptr, &context.showAnimator);
 			ImGui::MenuItem("Timeline", nullptr, &context.showTimeline);
+			ImGui::MenuItem("Sequencer", nullptr, &context.showSequencer);
 			ImGui::MenuItem("AnimatorGraph", nullptr, &context.showAnimatorGraph);
 
 			ImGui::EndMenu();
@@ -15873,15 +16805,19 @@ void StudioWindow::DrawWindow(const char* windowName)
 			dockMain, ImGuiDir_Right, 0.7f, nullptr, &dockMain);
 		ImGuiID dockBottom = ImGui::DockBuilderSplitNode(
 			dockMain, ImGuiDir_Down, 0.2f, nullptr, &dockMain);
+		ImGuiID dockSequencer = ImGui::DockBuilderSplitNode(
+			dockBottom, ImGuiDir_Down, 0.5f, nullptr, &dockBottom);
 
 		std::string viewportName = "Viewport##" + std::to_string(windowId);
 		std::string animatorName = "Animator##" + std::to_string(windowId);
 		std::string timelineName = "Timeline##" + std::to_string(windowId);
+		std::string sequencerName = "Sequencer##" + std::to_string(windowId);
 		std::string animatorGraphName = "AnimatorGraph##" + std::to_string(windowId);
 
 		ImGui::DockBuilderDockWindow(viewportName.c_str(), dockMain);
 		ImGui::DockBuilderDockWindow(animatorName.c_str(), dockLeft);
 		ImGui::DockBuilderDockWindow(timelineName.c_str(), dockBottom);
+		ImGui::DockBuilderDockWindow(sequencerName.c_str(), dockSequencer);
 		ImGui::DockBuilderDockWindow(animatorGraphName.c_str(), dockRight);
 
 		ImGui::DockBuilderFinish(dockSpaceId);
@@ -15940,6 +16876,12 @@ void StudioWindow::DrawWindow(const char* windowName)
 	if (context.showTimeline)
 	{
 		studioTimeline.DrawGUI(studioRegistry, context);
+	}
+
+	// Sequencerƒpƒlƒ‹
+	if (context.showSequencer)
+	{
+		studioSequencer.DrawGUI(studioRegistry, context);
 	}
 
 	// AnimatorGraphƒpƒlƒ‹

@@ -28,12 +28,13 @@ private:
 	enum class SelectionType { None, Range, Point };
 	SelectionType selectedType = SelectionType::None;
 	int selectedId = -1; // 選択中のRange/PointのID
+	std::string loadedModelPath; // 最後に読み込んだモデルパス
 
 	// == 各トラックの描画 == //
 	void DrawToolbar(SequencerClipData& clip, float previewTime); // ツールバー
 	void DrawPointTrack(SequencerClipData& clip, float previewTime, float clipLength); // Pointのトラック描画
 	void DrawRangeTrack(SequencerClipData& clip, float previewTime, float clipLength); // Rangeのトラック描画
-	void DrawDetailPanel(SequencerClipData& clip); // 詳細パネル
+	void DrawDetailPanel(SequencerClipData& clip, const std::string& modelPath); // 詳細パネル
 
 	// == 削除 == //
 	void DeleteRange(SequencerClipData& clip, int id); // Range削除
@@ -43,6 +44,10 @@ private:
 	// == 座標変換ヘルパー == //
 	static float TimeToNormalized(float time, float clipLength);       // 秒数を0.0～1.0に
 	static float NormalizedToTime(float normalized, float clipLength); // 0.0～1.0を秒数に
+
+	// == 保存 == //
+	void Save(const std::string& modelPath); // 保存
+	static std::string GetSequencerFilePath(const std::string& modelPath); // モデルパスから保存先のパスを組み立てる
 
 	// == その他 == //
 	void RefreshAvailableAnimations(entt::registry& registry);   // アニメーション一覧を更新する

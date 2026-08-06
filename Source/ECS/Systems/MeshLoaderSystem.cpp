@@ -45,6 +45,7 @@ void MeshLoaderSystem::Update(
             // スキニングあり (SkinnedMeshComponent + AnimatorComponent付与)
             auto& skinned = registry.emplace<SkinnedMeshComponent>(entity);
             skinned.model = model;
+            skinned.modelPath = mesh.modelPath;
 
             // ボーン行列初期化（メッシュごと）
             const auto& meshes = model->GetMeshes();

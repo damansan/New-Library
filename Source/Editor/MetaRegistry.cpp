@@ -73,10 +73,12 @@ void MetaRegistry::Initialize()
 	entt::meta_factory<SequencerComponent>{}
 	.type("SequencerComponent")
 		.custom<TypeInfo>(TypeInfo{ "Sequencer" })
+		.data<&SequencerComponent::sequencerPath>("sequencerPath"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Sequencer File", 0.0f, 0.0f, 0.1f, "SEQUENCER_PATH" })
 		.data<&SequencerComponent::animExit>("animExit"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Anim Exit" })
+		.custom<FieldInfo>(FieldInfo{ "Anim Exit", 0.0f, 0.0f, 0.1f, "", true })
 		.data<&SequencerComponent::attack>("attack"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Attack" });
+		.custom<FieldInfo>(FieldInfo{ "Attack", 0.0f, 0.0f, 0.1f, "", true });
 }
 
 // “o˜^Ï‚İƒƒ^î•ñ‚©‚çInspectorUI‚ğ©“®•`‰æ

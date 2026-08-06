@@ -46,6 +46,8 @@ private:
     bool IsModelFile(const std::filesystem::path& path);
     // ファイルがアニメーショングラフファイルか判定
     bool IsAnimGraphFile(const std::filesystem::path& path);
+	// ファイルがシーケンサーファイルか判定
+    static bool IsSequencerFile(const std::filesystem::path& path);
 
     // 重複しない名前で作成
     std::string GenerateUniqueName(const std::filesystem::path& parentDir, const std::string& baseName);

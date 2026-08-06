@@ -48,6 +48,7 @@
     <ClCompile Include="Source\ECS\Systems\MovementSystem.cpp" />
     <ClCompile Include="Source\ECS\Systems\RenderSystem.cpp" />
     <ClCompile Include="Source\ECS\Systems\PhysicsSystem.cpp" />
+    <ClCompile Include="Source\ECS\Systems\SequencerSystem.cpp" />
     <ClCompile Include="Source\ECS\Systems\TwoBoneIKSolver.cpp" />
     <ClCompile Include="Source\Editor\ComponentRegistry.cpp" />
     <ClCompile Include="Source\Editor\ComponentRegistryInitializer.cpp" />
@@ -132,6 +133,7 @@
     <ClInclude Include="Source\ECS\Systems\MovementSystem.h" />
     <ClInclude Include="Source\ECS\Systems\RenderSystem.h" />
     <ClInclude Include="Source\ECS\Systems\PhysicsSystem.h" />
+    <ClInclude Include="Source\ECS\Systems\SequencerSystem.h" />
     <ClInclude Include="Source\ECS\Systems\TwoBoneIKSolver.h" />
     <ClInclude Include="Source\Editor\ComponentRegistry.h" />
     <ClInclude Include="Source\Editor\ComponentRegistryInitializer.h" />

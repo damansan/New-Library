@@ -442,5 +442,5 @@ void ComponentRegistryInitializer::Initialize()
 				{
 					MetaRegistry::DrawMetaFields(entt::resolve<SequencerComponent>(), entt::forward_as_meta(*seq));
 				}
-			});
+			}); 
 }

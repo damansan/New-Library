@@ -276,7 +276,8 @@ void ProjectWindow::DrawFileGrid(entt::registry& registry, EditorContext& contex
 
 		bool isModel = IsModelFile(entry.path());
 		bool isAnimGraph = IsAnimGraphFile(entry.path());
-		if (!isModel && !isAnimGraph) continue;
+		bool isSequencer = IsSequencerFile(entry.path());
+		if (!isModel && !isAnimGraph && !isSequencer) continue;
 
 		std::string filename = entry.path().stem().string();
 		std::string modelPath = entry.path().string();
@@ -303,7 +304,9 @@ void ProjectWindow::DrawFileGrid(entt::registry& registry, EditorContext& contex
 		}
 		else
 		{
-			ImU32 color = isAnimGraph ? IM_COL32(200, 130, 60, 255) : IM_COL32(80, 120, 200, 255);
+			ImU32 color = isAnimGraph ? IM_COL32(200, 130, 60, 255)
+				: isSequencer ? IM_COL32(120, 200, 130, 255)
+				: IM_COL32(80, 120, 200, 255);
 			ImGui::GetWindowDrawList()->AddRectFilled(
 				pos,
 				ImVec2(pos.x + iconSize, pos.y + iconSize),
@@ -357,8 +360,8 @@ void ProjectWindow::DrawFileGrid(entt::registry& registry, EditorContext& contex
 			}
 		}
 
-		// ドラッグ開始（モデル／アニメーショングラフ）
-		if ((isModel || isAnimGraph) && ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
+		// ドラッグ開始（モデル／アニメーショングラフ/シーケンサー）
+		if ((isModel || isAnimGraph || isSequencer) && ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID)) 
 		{
 			if (isModel)
 			{
@@ -368,10 +371,18 @@ void ProjectWindow::DrawFileGrid(entt::registry& registry, EditorContext& contex
 					modelPath.size() + 1
 				);
 			}
-			else // isAnimGraph
+			else if (isAnimGraph)
 			{
 				ImGui::SetDragDropPayload(
 					"ANIMGRAPH_PATH",
+					modelPath.c_str(),
+					modelPath.size() + 1
+				);
+			}
+			else // isSequencer
+			{
+				ImGui::SetDragDropPayload(
+					"SEQUENCER_PATH",
 					modelPath.c_str(),
 					modelPath.size() + 1
 				);
@@ -480,6 +491,14 @@ bool ProjectWindow::IsAnimGraphFile(const std::filesystem::path& path)
 	std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
 
 	return ext == ".animgraph";
+}
+// ファイルがシーケンサーファイルか判定
+bool ProjectWindow::IsSequencerFile(const std::filesystem::path& path)
+{
+	std::string ext = path.extension().string();
+	std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+
+	return ext == ".sequencer";
 }
 
 // 重複しない名前で作成

@@ -2,6 +2,8 @@
 #include "ECS/Components/SkinnedMeshComponent.h"
 #include "ECS/Components/AnimatorComponent.h"
 #include <algorithm>
+#include <fstream>
+#include <filesystem>
 
 // ImGui描画
 void StudioSequencer::DrawGUI(entt::registry& registry, StudioContext& context)
@@ -29,6 +31,27 @@ void StudioSequencer::DrawGUI(entt::registry& registry, StudioContext& context)
 	{
 		ImGui::End();
 		return;
+	}
+
+	// モデルが切り替わったら、そのモデル用のSequencerデータを読み込み直す
+	if (loadedModelPath != context.currentModelPath)
+	{
+		sequencerData = SequencerData();
+
+		std::string loadPath = GetSequencerFilePath(context.currentModelPath);
+		std::ifstream ifs(loadPath);
+		if (ifs.is_open())
+		{
+			try
+			{
+				nlohmann::json j;
+				ifs >> j;
+				sequencerData.FromJson(j);
+			}
+			catch (const std::exception&) {}
+		}
+
+		loadedModelPath = context.currentModelPath;
 	}
 
 	if (animator.currentAnimation.empty())
@@ -72,7 +95,7 @@ void StudioSequencer::DrawGUI(entt::registry& registry, StudioContext& context)
 	ImGui::SameLine();
 
 	ImGui::BeginChild("SequencerDetail", ImVec2(detailPanelWidth, 0.0f), true);
-	DrawDetailPanel(*clip);
+	DrawDetailPanel(*clip, context.currentModelPath);
 	ImGui::EndChild();
 
 	ImGui::End();
@@ -246,8 +269,13 @@ void StudioSequencer::DrawRangeTrack(SequencerClipData& clip, float previewTime,
 	ImGui::PopID();
 }
 // 詳細パネル
-void StudioSequencer::DrawDetailPanel(SequencerClipData& clip)
+void StudioSequencer::DrawDetailPanel(SequencerClipData& clip, const std::string& modelPath)
 {
+	if (ImGui::Button("Save", ImVec2(-1.0f, 0.0f)))
+	{
+		Save(modelPath);
+	}
+
 	if (selectedType == SelectionType::Range)
 	{
 		SequencerRange* range = nullptr;
@@ -332,7 +360,7 @@ void StudioSequencer::DrawDetailPanel(SequencerClipData& clip)
 		}
 
 		float timePct = point->time * 100.0f;
-		if (ImGui::DragFloat("Time %", &timePct, 0.1f, 0.0f, 100.0f))
+		if (ImGui::DragFloat("Time (%)", &timePct, 0.1f, 0.0f, 100.0f))
 		{
 			point->time = timePct * 0.01f;
 		}
@@ -398,6 +426,31 @@ float StudioSequencer::TimeToNormalized(float time, float clipLength)
 float StudioSequencer::NormalizedToTime(float normalized, float clipLength)
 {
 	return normalized * clipLength;
+}
+
+// 保存
+void StudioSequencer::Save(const std::string& modelPath)
+{
+	if (modelPath.empty()) return;
+
+	std::string savePath = GetSequencerFilePath(modelPath);
+
+	// フォルダが無ければ作成する
+	std::filesystem::create_directories("Data/Json/Sequencer");
+
+	std::ofstream ofs(savePath);
+	if (ofs.is_open())
+	{
+		ofs << sequencerData.ToJson().dump(4);
+	}
+}
+// モデルパスから保存先のパスを組み立てる
+std::string StudioSequencer::GetSequencerFilePath(const std::string& modelPath)
+{
+	std::filesystem::path p(modelPath);
+	std::string modelName = p.stem().string(); // 拡張子を除いた、モデルのファイル名
+
+	return "Data/Json/Sequencer/" + modelName + ".sequencer";
 }
 
 // アニメーション一覧を更新する

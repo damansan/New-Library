@@ -104,6 +104,12 @@ void SceneGame::Update(float elapsedTime, const SceneContext& context)
 		animationSystem.Update(registry, elapsedTime);
 	}
 	{
+		// Sequencerのフラグ更新
+		ZoneScopedN("SequencerSystem");
+		sequencerSystem.Update(registry);
+	}
+	{
+
 		// IK更新(アニメーションの後に上書きする)
 		ZoneScopedN("IKSystem");
 		ikSystem.Update(registry, GetPhysicsScene());
