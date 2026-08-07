@@ -297,7 +297,7 @@ void StudioSequencer::DrawDetailPanel(SequencerClipData& clip, const std::string
 
 		if (ImGui::BeginCombo("Flag", GetSequencerFlagName(range->flag)))
 		{
-			for (int i = 0; i <= (int)SequencerFlag::Attack; i++)
+			for (int i = 0; i < (int)SequencerFlag::Count; i++) 
 			{
 				SequencerFlag f = (SequencerFlag)i;
 				bool isSelected = (range->flag == f);
@@ -347,7 +347,7 @@ void StudioSequencer::DrawDetailPanel(SequencerClipData& clip, const std::string
 
 		if (ImGui::BeginCombo("Flag", GetSequencerFlagName(point->flag)))
 		{
-			for (int i = 0; i <= (int)SequencerFlag::Attack; i++)
+			for (int i = 0; i < (int)SequencerFlag::Count; i++) 
 			{
 				SequencerFlag f = (SequencerFlag)i;
 				bool isSelected = (point->flag == f);
@@ -473,11 +473,22 @@ void StudioSequencer::RefreshAvailableAnimations(entt::registry& registry)
 }
 // シーケンサーフラグの表示名を返す
 const char* StudioSequencer::GetSequencerFlagName(SequencerFlag flag)
+
 {
-	switch (flag)
-	{
-	case SequencerFlag::AnimExit: return "AnimExit";
-	case SequencerFlag::Attack:   return "Attack";
-	}
-	return "?";
+	// 種類が増えたらここにも追加する
+	static const char* names[] = 
+	{ 
+		"AnimExit", 
+		"Attack", 
+		"SuperArmor" 
+	};
+
+	// namesの要素数と、SequencerFlagの個数が食い違っていたら、ビルド時にエラーにする
+	static_assert(sizeof(names) / sizeof(names[0]) == (size_t)SequencerFlag::Count,
+		u8"SequencerFlag と names の数が一致していません。追加・削除時は両方直してください。");
+
+	int index = (int)flag;
+	if (index < 0 || index >= (int)SequencerFlag::Count) return "?";
+
+	return names[index];
 }

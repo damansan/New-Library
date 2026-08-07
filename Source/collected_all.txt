@@ -1757,6 +1757,877 @@ void SceneManager::ClearScene()
 }
  
  
+===== AnimatorGraphData.h ===== 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Data\AnimatorGraphData.h 
+#pragma once
+#include <string>
+#include <vector>
+#include <json.hpp>
+
+// == Stateグラフ関連 == //
+enum class ChildStateType // 子階層(ChildState)の種類
+{
+	Normal, // アニメーションノード
+	Start,  // 開始点
+	End,    // 終了点
+};
+enum class ParentStateType // 親階層(ParentState)の種類
+{
+	Entry, // 開始点
+	State, // ノード
+};
+
+
+// == 条件グラフ関連 == //
+enum class ValueType // 変数ノードが持つ値の型
+{
+	Int,
+	Float,
+	Bool,
+
+	Float2,
+	Float3,
+	Float4,
+};
+enum class FloatComponent // 構造体のどの成分を取り出すか
+{
+	None,
+	X, Y, Z, W,
+};
+enum class CompareOp // 比較演算子の種類
+{
+	Greater,      // >
+	Less,         // <
+	Equal,        // ==
+	NotEqual,     // !=
+	GreaterEqual, // >=
+	LessEqual,    // <=
+};
+struct ConditionGetterNode // コンポーネントの値を取得するノード
+{
+	int id = -1;
+	float posX = 0.0f;
+	float posY = 0.0f;
+	std::string componentName; // MetaRegistryで登録した型名
+	std::string fieldName;     // entt::meta上のフィールド名
+	ValueType type = ValueType::Float;
+	FloatComponent selectedComponent = FloatComponent::None;
+};  
+struct ConditionVariableNode // 変数ノード
+{
+	int id = -1;
+	float posX = 0.0f;
+	float posY = 0.0f;
+	std::string name; // 空の間は"Variable"と表示
+	ValueType type = ValueType::Float;
+	
+	// 変数型に応じて以下のどれかを使用する
+	int intValue = 0;
+	float floatValue = 0.0f;
+	bool boolValue = false;
+};
+struct ConditionOperatorNode // 比較ノード
+{
+	int id = -1;
+	float posX = 0.0f;
+	float posY = 0.0f;
+
+	CompareOp op = CompareOp::Greater;
+};
+struct ConditionReturnNode // 条件グラフの終着点
+{
+	int id = -1;
+	float posX = 0.0f;
+	float posY = 0.0f;
+};
+struct ConditionLink // 条件グラフ内のリンク
+{
+	int id = -1;
+	int fromId = -1;
+	int toId = -1;
+	bool toPinB = false;
+};
+struct ConditionGraph // Link1本分の条件グラフ
+{
+	ConditionReturnNode returnNode;
+
+	std::vector<ConditionVariableNode> variableNodes;
+	std::vector<ConditionGetterNode>   getterNodes;
+	std::vector<ConditionOperatorNode> operatorNodes;
+	std::vector<ConditionLink> links;   // Getter/Variable/Operator/Return同士を繋ぐリンク
+
+	// このLink専用のID採番カウンター
+	int nextId = 1;
+	int GenerateId() { return nextId++; }
+};
+
+
+// == Stateグラグ本体 == //
+struct AnimLink // リンク
+{
+	int id = -1;     // このリンクのID
+	int fromId = -1; // 遷移元のID
+	int toId = -1;   // 遷移先のID
+
+	ConditionGraph condition; // このLinkの遷移条件グラフ
+};
+struct ChildState  // 子階層State
+{
+	int id = -1;
+	std::string name;
+
+	float posX = 0.0f;
+	float posY = 0.0f;
+
+	ChildStateType type = ChildStateType::Normal;
+	std::string clipName;
+};
+struct ParentState  // 親階層State
+{
+	int id = -1;
+	std::string name;
+
+	float posX = 0.0f;
+	float posY = 0.0f;
+
+	ParentStateType type = ParentStateType::State;
+
+	float color[3] = { 0.27f, 0.35f, 0.47f };
+
+	std::vector<ChildState> children;
+	std::vector<AnimLink> childLinks;
+};
+
+
+class AnimatorGraphData
+{
+public:
+	AnimatorGraphData();
+
+	std::vector<ParentState>states;
+	std::vector<AnimLink>stateLinks;
+
+	// Stateを作成する
+	int CreateState(const std::string& name, float posX, float posY);
+	// Stateを削除する
+	void DeleteState(int stateId);
+
+	// Linkを作成する
+	int CreateLink(int fromId, int toId);
+	// Linkを削除する
+	void DeleteLink(int linkId);
+
+	// State/StateLink用のID採番カウンター
+	int GenerateId() { return nextId++; }
+
+	// グラフ内容をJsonに変換する
+	nlohmann::ordered_json ToJson() const;
+	// Jsonから中身を変換する
+	void FromJson(const nlohmann::json& j);
+
+private:
+	// Entryがなければ作成する
+	void EnsureEntryExists();
+
+	// Statesを保存内容へ変換
+	nlohmann::ordered_json StatesToJson() const;
+	// Statesを保存内容から復元する
+	void StatesFromJson(const nlohmann::json& j);
+
+	// StateLinksを保存内容へ変換
+	nlohmann::ordered_json StateLinksToJson() const;
+	// StateLinksを保存内容から復元する
+	void StateLinksFromJson(const nlohmann::json& j);
+
+	int nextId = 1;
+}; 
+ 
+===== SequencerData.h ===== 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Data\SequencerData.h 
+#pragma once
+#include <string>
+#include <vector>
+#include <json.hpp>
+#include "ECS/Components/SequencerComponent.h"
+
+
+// 範囲 : 開始から終了の間常にtrueを返す
+struct SequencerRange
+{
+	int id = -1;
+	float start = 0.0f; // 開始位置
+	float end = 1.0f;   // 終了位置
+	SequencerFlag flag = SequencerFlag::AnimExit;
+};
+
+// 瞬間 : 通過したそのフレームだけtrue
+struct SequencerPoint
+{
+	int id = -1;
+	float time = 0.0f; // 時刻
+	SequencerFlag flag = SequencerFlag::AnimExit;
+};
+
+// 1クリップ分のRange/Pointをまとめたもの
+struct SequencerClipData
+{
+	std::string clipName;
+	std::vector<SequencerRange> ranges;
+	std::vector<SequencerPoint> points;
+
+	int nextId = 1;
+	int GenerateId() { return nextId++; }
+};
+
+// モデル1体分、全クリップのSequencer設定をまとめたもの
+class SequencerData
+{
+public:
+	std::vector<SequencerClipData> clips;
+
+	// 指定したクリップ名のデータを探す
+	SequencerClipData* FindOrCreateClip(const std::string& clipName);
+
+	// 保存/読み込み
+	nlohmann::ordered_json ToJson() const;
+	void FromJson(const nlohmann::json& j);
+}; 
+ 
+===== AnimatorGraphData.cpp ===== 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Data\AnimatorGraphData.cpp 
+#include "AnimatorGraphData.h"
+#include <algorithm>
+#include "SequencerData.h"
+
+// == enumの文字変換 == //
+namespace
+{
+	// ===== enumの文字変換(Stateグラフ関連) =====
+
+	// ChildStateType(子階層の種類)
+	std::string ToString(ChildStateType type)
+	{
+		switch (type)
+		{
+		case ChildStateType::Normal: return "Normal";
+		case ChildStateType::Start:  return "Start";
+		case ChildStateType::End:    return "End";
+		}
+		return "Normal";
+	}
+	ChildStateType ToChildStateType(const std::string& s)
+	{
+		if (s == "Start") return ChildStateType::Start;
+		if (s == "End")   return ChildStateType::End;
+		return ChildStateType::Normal;
+	}
+
+
+	// ParentStateType(親階層の種類)
+	std::string ToString(ParentStateType type)
+	{
+		switch (type)
+		{
+		case ParentStateType::Entry: return "Entry";
+		case ParentStateType::State: return "State";
+		}
+		return "State";
+	}
+	ParentStateType ToParentStateType(const std::string& s)
+	{
+		if (s == "Entry")
+		{
+			return ParentStateType::Entry;
+		}
+		return ParentStateType::State;
+	}
+
+
+	// ===== enumの文字変換(条件グラフ関連) =====
+
+	// ValueType(変数ノードが持つ値の型)
+	std::string ToString(ValueType type)
+	{
+		switch (type)
+		{
+		case ValueType::Int:    return "Int";
+		case ValueType::Float:  return "Float";
+		case ValueType::Bool:   return "Bool";
+
+		case ValueType::Float2: return "Float2";
+		case ValueType::Float3: return "Float3";
+		case ValueType::Float4: return "Float4";
+		default:                return "Float";
+		}
+	}
+	ValueType ToValueType(const std::string& s)
+	{
+		if (s == "Int")    return ValueType::Int;
+		if (s == "Bool")   return ValueType::Bool;
+		if (s == "Float2") return ValueType::Float2;
+		if (s == "Float3") return ValueType::Float3;
+		if (s == "Float4") return ValueType::Float4;
+		return ValueType::Float;
+	}
+
+
+	// FloatComponent(構造体のどの成分を取り出すか)
+	std::string ToString(FloatComponent c)
+	{
+		switch (c)
+		{
+		case FloatComponent::X: return "X";
+		case FloatComponent::Y: return "Y";
+		case FloatComponent::Z: return "Z";
+		case FloatComponent::W: return "W";
+		default:                return "None";
+		}
+	}
+	FloatComponent ToFloatComponent(const std::string& s)
+	{
+		if (s == "X") return FloatComponent::X;
+		if (s == "Y") return FloatComponent::Y;
+		if (s == "Z") return FloatComponent::Z;
+		if (s == "W") return FloatComponent::W;
+		return FloatComponent::None;
+	}
+
+	// CompareOp(比較演算子の種類)
+	std::string ToString(CompareOp op)
+	{
+		switch (op)
+		{
+		case CompareOp::Greater:      return "Greater";
+		case CompareOp::Less:         return "Less";
+		case CompareOp::Equal:        return "Equal";
+		case CompareOp::NotEqual:     return "NotEqual";
+		case CompareOp::GreaterEqual: return "GreaterEqual";
+		case CompareOp::LessEqual:    return "LessEqual";
+		default:                      return "Greater";
+		}
+	}
+	CompareOp ToCompareOp(const std::string& s)
+	{
+		if (s == "Less")         return CompareOp::Less;
+		if (s == "Equal")        return CompareOp::Equal;
+		if (s == "NotEqual")     return CompareOp::NotEqual;
+		if (s == "GreaterEqual") return CompareOp::GreaterEqual;
+		if (s == "LessEqual")    return CompareOp::LessEqual;
+		return CompareOp::Greater;
+	}
+}
+
+// コンストラクタ
+AnimatorGraphData::AnimatorGraphData()
+{
+	// 空のグラフを作る場合でも、Entryだけは必ず存在する状態にする
+	EnsureEntryExists();
+}
+
+// Stateを作成する
+int AnimatorGraphData::CreateState(const std::string& name, float posX, float posY)
+{
+	ParentState state;
+	state.id = GenerateId();
+	state.name = name;
+	state.posX = posX;
+	state.posY = posY;
+	state.type = ParentStateType::State;
+
+	states.push_back(state);
+
+	// 作製したStateのIDを返す
+	return state.id;
+}
+
+// Stateを削除する
+void AnimatorGraphData::DeleteState(int stateId)
+{
+	states.erase(
+		std::remove_if(states.begin(), states.end(),
+			[stateId](const ParentState& s)
+			{
+				// Entryは削除させない
+				if (s.type == ParentStateType::Entry) return false;
+				return s.id == stateId;
+			}),
+		states.end()
+	);
+
+	// このStateに繋がっていたリンクも一緒に削除する
+	stateLinks.erase(
+		std::remove_if(stateLinks.begin(), stateLinks.end(),
+			[stateId](const AnimLink& l)
+			{
+				return l.fromId == stateId || l.toId == stateId;
+			}),
+		stateLinks.end()
+	);
+}
+
+// Linkを作成する
+int AnimatorGraphData::CreateLink(int fromId, int toId)
+{
+	AnimLink link;
+	link.id = GenerateId();
+	link.fromId = fromId;
+	link.toId = toId;
+
+	// このLink専用の条件グラフに、固定のReturnノードを1つ配置しておく
+	link.condition.returnNode.id = link.condition.GenerateId();
+	link.condition.returnNode.posX = 500.0f;
+	link.condition.returnNode.posY = 200.0f;
+
+	stateLinks.push_back(link);
+	return link.id;
+}
+// Linkを削除する
+void AnimatorGraphData::DeleteLink(int linkId)
+{
+	stateLinks.erase(
+		std::remove_if(stateLinks.begin(), stateLinks.end(),
+			[linkId](const AnimLink& l) { return l.id == linkId; }),
+		stateLinks.end()
+	);
+}
+
+// グラフ内容をJsonに変換する
+nlohmann::ordered_json AnimatorGraphData::ToJson() const
+{
+	nlohmann::ordered_json j;
+	j["states"] = StatesToJson();
+	j["stateLinks"] = StateLinksToJson();
+	return j;
+}
+
+// Jsonから中身を変換する
+void AnimatorGraphData::FromJson(const nlohmann::json& j)
+{
+	states.clear();
+	stateLinks.clear();
+
+	if (j.contains("states")) StatesFromJson(j["states"]);
+	if (j.contains("stateLinks")) StateLinksFromJson(j["stateLinks"]);
+
+	// 読み込んだ結果Entryが無かった場合の保険
+	EnsureEntryExists();
+}
+
+// Entryがなければ作成する
+void AnimatorGraphData::EnsureEntryExists()
+{
+	bool hasEntry = false;
+	for (const auto& s : states)
+	{
+		if (s.type == ParentStateType::Entry)
+		{
+			hasEntry = true;
+			break;
+		}
+	}
+
+	if (!hasEntry)
+	{
+		ParentState entry;
+		entry.id = GenerateId();
+		entry.name = "Entry";
+		entry.posX = 50.0f;
+		entry.posY = 200.0f;
+		entry.type = ParentStateType::Entry;
+		states.push_back(entry);
+	}
+}
+
+// Statesを保存内容へ変換
+nlohmann::ordered_json AnimatorGraphData::StatesToJson() const
+{
+	nlohmann::ordered_json jStates = nlohmann::json::array();
+
+	for (const auto& state : states)
+	{
+		nlohmann::ordered_json js;
+		js["id"] = state.id;
+		js["name"] = state.name;
+		js["posX"] = state.posX;
+		js["posY"] = state.posY;
+		js["type"] = ToString(state.type);
+		js["color"] = { state.color[0], state.color[1], state.color[2] };
+
+		js["children"] = nlohmann::json::array();
+		for (const auto& node : state.children)
+		{
+			nlohmann::ordered_json jn;
+			jn["id"] = node.id;
+			jn["name"] = node.name;
+			jn["posX"] = node.posX;
+			jn["posY"] = node.posY;
+			jn["type"] = ToString(node.type);
+			jn["clipName"] = node.clipName;
+			js["children"].push_back(jn);
+		}
+
+		js["childLinks"] = nlohmann::json::array();
+		for (const auto& link : state.childLinks)
+		{
+			nlohmann::ordered_json jl;
+			jl["id"] = link.id;
+			jl["fromId"] = link.fromId;
+			jl["toId"] = link.toId;
+			js["childLinks"].push_back(jl);
+		}
+
+		jStates.push_back(js);
+	}
+
+	return jStates;
+}
+// Statesを保存内容から復元する
+void AnimatorGraphData::StatesFromJson(const nlohmann::json& j)
+{
+	for (const auto& js : j)
+	{
+		ParentState state;
+		state.id = js.value("id", -1);
+		state.name = js.value("name", "");
+		state.posX = js.value("posX", 0.0f);
+		state.posY = js.value("posY", 0.0f);
+		state.type = ToParentStateType(js.value("type", "State"));
+
+		if (js.contains("color") && js["color"].is_array() && js["color"].size() == 3)
+		{
+			state.color[0] = js["color"][0].get<float>();
+			state.color[1] = js["color"][1].get<float>();
+			state.color[2] = js["color"][2].get<float>();
+		}
+
+		if (js.contains("children"))
+		{
+			for (const auto& jn : js["children"])
+			{
+				ChildState node;
+				node.id = jn.value("id", -1);
+				node.name = jn.value("name", "");
+				node.posX = jn.value("posX", 0.0f);
+				node.posY = jn.value("posY", 0.0f);
+				node.type = ToChildStateType(jn.value("type", "Normal"));
+				node.clipName = jn.value("clipName", "");
+				state.children.push_back(node);
+			}
+		}
+
+		if (js.contains("childLinks"))
+		{
+			for (const auto& jl : js["childLinks"])
+			{
+				AnimLink link;
+				link.id = jl.value("id", -1);
+				link.fromId = jl.value("fromId", -1);
+				link.toId = jl.value("toId", -1);
+				state.childLinks.push_back(link);
+			}
+		}
+
+		states.push_back(state);
+
+		// 復元後もIDが重複しないよう、採番カウンタを追従させる
+		if (state.id >= nextId) nextId = state.id + 1;
+	}
+
+}
+
+// StateLinksを保存内容へ変換
+nlohmann::ordered_json AnimatorGraphData::StateLinksToJson() const
+{
+	nlohmann::ordered_json jLinks = nlohmann::json::array();
+
+	for (const auto& link : stateLinks)
+	{
+		nlohmann::ordered_json jl;
+		jl["id"] = link.id;
+		jl["fromId"] = link.fromId;
+		jl["toId"] = link.toId;
+
+		nlohmann::ordered_json jc;
+		jc["nextId"] = link.condition.nextId;
+
+		jc["returnNode"]["id"] = link.condition.returnNode.id;
+		jc["returnNode"]["posX"] = link.condition.returnNode.posX;
+		jc["returnNode"]["posY"] = link.condition.returnNode.posY;
+
+		jc["variableNodes"] = nlohmann::json::array();
+		for (const auto& v : link.condition.variableNodes)
+		{
+			nlohmann::ordered_json jv;
+			jv["id"] = v.id;
+			jv["posX"] = v.posX;
+			jv["posY"] = v.posY;
+			jv["name"] = v.name;
+			jv["type"] = ToString(v.type);
+			jv["intValue"] = v.intValue;
+			jv["floatValue"] = v.floatValue;
+			jv["boolValue"] = v.boolValue;
+			jc["variableNodes"].push_back(jv);
+		}
+
+		jc["operatorNodes"] = nlohmann::json::array();
+		for (const auto& o : link.condition.operatorNodes)
+		{
+			nlohmann::ordered_json jo;
+			jo["id"] = o.id;
+			jo["posX"] = o.posX;
+			jo["posY"] = o.posY;
+			jo["op"] = ToString(o.op);
+			jc["operatorNodes"].push_back(jo);
+		}
+
+		jc["getterNodes"] = nlohmann::json::array();
+		for (const auto& g : link.condition.getterNodes)
+		{
+			nlohmann::ordered_json jg;
+			jg["id"] = g.id;
+			jg["posX"] = g.posX;
+			jg["posY"] = g.posY;
+			jg["componentName"] = g.componentName;
+			jg["fieldName"] = g.fieldName;
+			jg["type"] = ToString(g.type);
+			jg["selectedComponent"] = ToString(g.selectedComponent);
+			jc["getterNodes"].push_back(jg);
+		}
+
+		jc["links"] = nlohmann::json::array();
+		for (const auto& cl : link.condition.links)
+		{
+			nlohmann::ordered_json jcl;
+			jcl["id"] = cl.id;
+			jcl["fromId"] = cl.fromId;
+			jcl["toId"] = cl.toId;
+			jcl["toPinB"] = cl.toPinB;
+			jc["links"].push_back(jcl);
+		}
+
+		jl["condition"] = jc;
+
+		jLinks.push_back(jl);
+	}
+
+	return jLinks;
+}
+// StateLinksを保存内容から復元する
+void AnimatorGraphData::StateLinksFromJson(const nlohmann::json& j)
+{
+	for (const auto& jl : j)
+	{
+		AnimLink link;
+		link.id = jl.value("id", -1);
+		link.fromId = jl.value("fromId", -1);
+		link.toId = jl.value("toId", -1);
+
+		if (jl.contains("condition"))
+		{
+			const auto& jc = jl["condition"];
+			link.condition.nextId = jc.value("nextId", 1);
+
+			if (jc.contains("returnNode"))
+			{
+				link.condition.returnNode.id = jc["returnNode"].value("id", -1);
+				link.condition.returnNode.posX = jc["returnNode"].value("posX", 500.0f);
+				link.condition.returnNode.posY = jc["returnNode"].value("posY", 200.0f);
+			}
+
+			// 古い保存データにReturnノードが無かった場合の保険
+			if (link.condition.returnNode.id < 0)
+			{
+				link.condition.returnNode.id = link.condition.GenerateId();
+				link.condition.returnNode.posX = 500.0f;
+				link.condition.returnNode.posY = 200.0f;
+			}
+
+			if (jc.contains("variableNodes"))
+			{
+				for (const auto& jv : jc["variableNodes"])
+				{
+					ConditionVariableNode v;
+					v.id = jv.value("id", -1);
+					v.posX = jv.value("posX", 0.0f);
+					v.posY = jv.value("posY", 0.0f);
+					v.name = jv.value("name", "");
+					v.type = ToValueType(jv.value("type", "Float"));
+					v.intValue = jv.value("intValue", 0);
+					v.floatValue = jv.value("floatValue", 0.0f);
+					v.boolValue = jv.value("boolValue", false);
+					link.condition.variableNodes.push_back(v);
+				}
+			}
+
+			if (jc.contains("operatorNodes"))
+			{
+				for (const auto& jo : jc["operatorNodes"])
+				{
+					ConditionOperatorNode o;
+					o.id = jo.value("id", -1);
+					o.posX = jo.value("posX", 0.0f);
+					o.posY = jo.value("posY", 0.0f);
+					o.op = ToCompareOp(jo.value("op", "Greater"));
+					link.condition.operatorNodes.push_back(o);
+				}
+			}
+
+			if (jc.contains("getterNodes"))
+			{
+				for (const auto& jg : jc["getterNodes"])
+				{
+					ConditionGetterNode g;
+					g.id = jg.value("id", -1);
+					g.posX = jg.value("posX", 0.0f);
+					g.posY = jg.value("posY", 0.0f);
+					g.componentName = jg.value("componentName", "");
+					g.fieldName = jg.value("fieldName", "");
+					g.type = ToValueType(jg.value("type", "Float"));
+					g.selectedComponent = ToFloatComponent(jg.value("selectedComponent", "None"));
+					link.condition.getterNodes.push_back(g);
+				}
+			}
+
+			if (jc.contains("links"))
+			{
+				for (const auto& jcl : jc["links"])
+				{
+					ConditionLink cl;
+					cl.id = jcl.value("id", -1);
+					cl.fromId = jcl.value("fromId", -1);
+					cl.toId = jcl.value("toId", -1);
+					cl.toPinB = jcl.value("toPinB", false);
+					link.condition.links.push_back(cl);
+				}
+			}
+		}
+
+		stateLinks.push_back(link);
+
+		if (link.id >= nextId) nextId = link.id + 1;
+	}
+}
+ 
+ 
+===== SequencerData.cpp ===== 
+Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Data\SequencerData.cpp 
+#include "SequencerData.h"
+
+namespace
+{
+	std::string ToString(SequencerFlag flag)
+	{
+		switch (flag)
+		{
+		case SequencerFlag::AnimExit: return "AnimExit";
+		case SequencerFlag::Attack:   return "Attack";
+		}
+		return "AnimExit";
+	}
+	SequencerFlag ToSequencerFlag(const std::string& s)
+	{
+		if (s == "Attack") return SequencerFlag::Attack;
+		return SequencerFlag::AnimExit;
+	}
+}
+
+
+// 指定したクリップ名のデータを探す
+SequencerClipData* SequencerData::FindOrCreateClip(const std::string& clipName)
+{
+	for (auto& clip : clips)
+	{
+		if (clip.clipName == clipName) return &clip;
+	}
+
+	SequencerClipData newClip;
+	newClip.clipName = clipName;
+	clips.push_back(newClip);
+	return &clips.back();
+}
+
+
+// 保存
+nlohmann::ordered_json SequencerData::ToJson() const
+{
+	nlohmann::ordered_json j;
+	j["clips"] = nlohmann::json::array();
+
+	for (const auto& clip : clips)
+	{
+		nlohmann::ordered_json jc;
+		jc["clipName"] = clip.clipName;
+		jc["nextId"] = clip.nextId;
+
+		jc["ranges"] = nlohmann::json::array();
+		for (const auto& r : clip.ranges)
+		{
+			nlohmann::ordered_json jr;
+			jr["id"] = r.id;
+			jr["start"] = r.start;
+			jr["end"] = r.end;
+			jr["flag"] = ToString(r.flag);
+			jc["ranges"].push_back(jr);
+		}
+
+		jc["points"] = nlohmann::json::array();
+		for (const auto& p : clip.points)
+		{
+			nlohmann::ordered_json jp;
+			jp["id"] = p.id;
+			jp["time"] = p.time;
+			jp["flag"] = ToString(p.flag);
+			jc["points"].push_back(jp);
+		}
+
+		j["clips"].push_back(jc);
+	}
+
+	return j;
+}
+
+// 読み込み
+void SequencerData::FromJson(const nlohmann::json& j)
+{
+	clips.clear();
+
+	if (!j.contains("clips")) return;
+
+	for (const auto& jc : j["clips"])
+	{
+		SequencerClipData clip;
+		clip.clipName = jc.value("clipName", "");
+		clip.nextId = jc.value("nextId", 1);
+
+		if (jc.contains("ranges"))
+		{
+			for (const auto& jr : jc["ranges"])
+			{
+				SequencerRange r;
+				r.id = jr.value("id", -1);
+				r.start = jr.value("start", 0.0f);
+				r.end = jr.value("end", 1.0f);
+				r.flag = ToSequencerFlag(jr.value("flag", "AnimExit"));
+				clip.ranges.push_back(r);
+			}
+		}
+
+		if (jc.contains("points"))
+		{
+			for (const auto& jp : jc["points"])
+			{
+				SequencerPoint p;
+				p.id = jp.value("id", -1);
+				p.time = jp.value("time", 0.0f);
+				p.flag = ToSequencerFlag(jp.value("flag", "AnimExit"));
+				clip.points.push_back(p);
+			}
+		}
+
+		clips.push_back(clip);
+	}
+} 
+ 
 ===== WaveDemo.h ===== 
 Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Demo\WaveDemo.h 
 #pragma once
@@ -1888,7 +2759,11 @@ struct AnimatorComponent
     std::string rootMotionNodeName;      // 繝ｫ繝ｼ繝医ヮ繝ｼ繝牙錐
     DirectX::XMFLOAT3 rootMotionDelta{ 0.0f, 0.0f, 0.0f }; // 繝ｫ繝ｼ繝医Δ繝ｼ繧ｷ繝ｧ繝ｳ遘ｻ蜍暮㍼
 
-    
+
+    // State驕ｷ遘ｻ逕ｨ
+	std::string animatorGraphPath; // .animator繝輔ぃ繧､繝ｫ縺ｮ繝代せ
+	int         currentParentStateId{ -1 }; // 迴ｾ蝨ｨ縺ｮ隕ｪ繧ｹ繝�繝ｼ繝�ID
+	int         currentChildStateId{ -1 };  // 迴ｾ蝨ｨ縺ｮ蟄舌せ繝�繝ｼ繝�ID
 }; 
  
 ===== BaseCameraComponent.h ===== 
@@ -2190,6 +3065,7 @@ struct CharacterControllerComponent
 ===== SequencerComponent.h ===== 
 Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Components\SequencerComponent.h 
 #pragma once
+#include <string>
 
 // フラグの種類
 enum class SequencerFlag
@@ -2197,7 +3073,7 @@ enum class SequencerFlag
 	AnimExit,
 	Attack,
 
-	// ここに追加していく
+	// 種類が増えたらここに追加していく
 
 };
 
@@ -2212,7 +3088,6 @@ struct SequencerComponent
 
 
 	float previousNormalizedTime = 0.0f; // 前フレームの正規化時間
-
 }; 
  
 ===== SkinnedMeshComponent.h ===== 
@@ -2828,7 +3703,7 @@ Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\ECS\Systems\SequencerSy
 #include "entt.hpp"
 #include <string>
 #include <unordered_map>
-#include "Tool/SequencerData.h"
+#include "Data/SequencerData.h"
 
 class SequencerSystem
 {
@@ -5556,7 +6431,7 @@ Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Editor\MetaRegistry.h
 #include <vector>
 #include "entt.hpp"
 
-#include "Tool/AnimatorGraph.h"
+#include "Data/AnimatorGraphData.h"
 
 // フィールド1つに添付する付加情報
 struct FieldInfo
@@ -11881,209 +12756,6 @@ private:
     RangeDragState rightRangeDrag;
 }; 
  
-===== AnimatorGraph.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Tool\AnimatorGraph.h 
-#pragma once
-#include <string>
-#include <vector>
-#include <json.hpp>
-
-// == Stateグラフ関連 == //
-enum class ChildStateType // 子階層(ChildState)の種類
-{
-	Normal, // アニメーションノード
-	Start,  // 開始点
-	End,    // 終了点
-};
-enum class ParentStateType // 親階層(ParentState)の種類
-{
-	Entry, // 開始点
-	State, // ノード
-};
-
-
-// == 条件グラフ関連 == //
-enum class ValueType // 変数ノードが持つ値の型
-{
-	Int,
-	Float,
-	Bool,
-
-	Float2,
-	Float3,
-	Float4,
-};
-enum class FloatComponent // 構造体のどの成分を取り出すか
-{
-	None,
-	X, Y, Z, W,
-};
-enum class CompareOp // 比較演算子の種類
-{
-	Greater,      // >
-	Less,         // <
-	Equal,        // ==
-	NotEqual,     // !=
-	GreaterEqual, // >=
-	LessEqual,    // <=
-};
-struct ConditionGetterNode // コンポーネントの値を取得するノード
-{
-	int id = -1;
-	float posX = 0.0f;
-	float posY = 0.0f;
-	std::string componentName; // MetaRegistryで登録した型名
-	std::string fieldName;     // entt::meta上のフィールド名
-	ValueType type = ValueType::Float;
-	FloatComponent selectedComponent = FloatComponent::None;
-};  
-struct ConditionVariableNode // 変数ノード
-{
-	int id = -1;
-	float posX = 0.0f;
-	float posY = 0.0f;
-	std::string name; // 空の間は"Variable"と表示
-	ValueType type = ValueType::Float;
-	
-	// 変数型に応じて以下のどれかを使用する
-	int intValue = 0;
-	float floatValue = 0.0f;
-	bool boolValue = false;
-};
-struct ConditionOperatorNode // 比較ノード
-{
-	int id = -1;
-	float posX = 0.0f;
-	float posY = 0.0f;
-
-	CompareOp op = CompareOp::Greater;
-};
-struct ConditionReturnNode // 条件グラフの終着点
-{
-	int id = -1;
-	float posX = 0.0f;
-	float posY = 0.0f;
-};
-struct ConditionLink // 条件グラフ内のリンク
-{
-	int id = -1;
-	int fromId = -1;
-	int toId = -1;
-	bool toPinB = false;
-};
-struct ConditionGraph // Link1本分の条件グラフ
-{
-	ConditionReturnNode returnNode;
-
-	std::vector<ConditionVariableNode> variableNodes;
-	std::vector<ConditionGetterNode>   getterNodes;
-	std::vector<ConditionOperatorNode> operatorNodes;
-	std::vector<ConditionLink> links;   // Getter/Variable/Operator/Return同士を繋ぐリンク
-
-	// このLink専用のID採番カウンター
-	int nextId = 1;
-	int GenerateId() { return nextId++; }
-};
-
-
-// == Stateグラグ本体 == //
-struct AnimLink // リンク
-{
-	int id = -1;     // このリンクのID
-	int fromId = -1; // 遷移元のID
-	int toId = -1;   // 遷移先のID
-
-	ConditionGraph condition; // このLinkの遷移条件グラフ
-};
-struct ChildState  // 子階層State
-{
-	int id = -1;
-	std::string name;
-
-	float posX = 0.0f;
-	float posY = 0.0f;
-
-	ChildStateType type = ChildStateType::Normal;
-	std::string clipName;
-};
-struct ParentState  // 親階層State
-{
-	int id = -1;
-	std::string name;
-
-	float posX = 0.0f;
-	float posY = 0.0f;
-
-	ParentStateType type = ParentStateType::State;
-
-	float color[3] = { 0.27f, 0.35f, 0.47f };
-
-	std::vector<ChildState> children;
-	std::vector<AnimLink> childLinks;
-};
-
-
-class AnimatorGraph
-{
-public:
-	AnimatorGraph();
-
-	std::vector<ParentState>states;
-	std::vector<AnimLink>stateLinks;
-
-	// Stateを作成する
-	int CreateState(const std::string& name, float posX, float posY);
-	// Stateを削除する
-	void DeleteState(int stateId);
-
-	// Linkを作成する
-	int CreateLink(int fromId, int toId);
-	// Linkを削除する
-	void DeleteLink(int linkId);
-
-	// State/StateLink用のID採番カウンター
-	int GenerateId() { return nextId++; }
-
-	// グラフ内容をJsonに変換する
-	nlohmann::ordered_json ToJson() const;
-	// Jsonから中身を変換する
-	void FromJson(const nlohmann::json& j);
-
-private:
-	// Entryがなければ作成する
-	void EnsureEntryExists();
-
-	// Statesを保存内容へ変換
-	nlohmann::ordered_json StatesToJson() const;
-	// Statesを保存内容から復元する
-	void StatesFromJson(const nlohmann::json& j);
-
-	// StateLinksを保存内容へ変換
-	nlohmann::ordered_json StateLinksToJson() const;
-	// StateLinksを保存内容から復元する
-	void StateLinksFromJson(const nlohmann::json& j);
-
-	int nextId = 1;
-}; 
- 
-===== IEditorNode.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Tool\IEditorNode.h 
-#pragma once
-
-class IEditorNode
-{
-public:
-    virtual ~IEditorNode() = default;
-
-    virtual int GetId() const = 0;
-
-    // ノード中身の描画
-    virtual void DrawContent() = 0;
-
-    // ピンの設定
-    virtual void DrawPins() = 0;
-}; 
- 
 ===== NodeEditorCanvas.h ===== 
 Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Tool\NodeEditorCanvas.h 
 #pragma once
@@ -12105,57 +12777,6 @@ public:
 
 private:
     ed::EditorContext* editorContext = nullptr;
-}; 
- 
-===== SequencerData.h ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Tool\SequencerData.h 
-#pragma once
-#include <string>
-#include <vector>
-#include <json.hpp>
-#include "ECS/Components/SequencerComponent.h"
-
-
-// 範囲 : 開始から終了の間常にtrueを返す
-struct SequencerRange
-{
-	int id = -1;
-	float start = 0.0f; // 開始位置
-	float end = 1.0f;   // 終了位置
-	SequencerFlag flag = SequencerFlag::AnimExit;
-};
-
-// 瞬間 : 通過したそのフレームだけtrue
-struct SequencerPoint
-{
-	int id = -1;
-	float time = 0.0f; // 時刻
-	SequencerFlag flag = SequencerFlag::AnimExit;
-};
-
-// 1クリップ分のRange/Pointをまとめたもの
-struct SequencerClipData
-{
-	std::string clipName;
-	std::vector<SequencerRange> ranges;
-	std::vector<SequencerPoint> points;
-
-	int nextId = 1;
-	int GenerateId() { return nextId++; }
-};
-
-// モデル1体分、全クリップのSequencer設定をまとめたもの
-class SequencerData
-{
-public:
-	std::vector<SequencerClipData> clips;
-
-	// 指定したクリップ名のデータを探す
-	SequencerClipData* FindOrCreateClip(const std::string& clipName);
-
-	// 保存/読み込み
-	nlohmann::ordered_json ToJson() const;
-	void FromJson(const nlohmann::json& j);
 }; 
  
 ===== AdaptiveTriggerToolWindow.cpp ===== 
@@ -12553,522 +13174,6 @@ void AdaptiveTriggerToolWindow::DrawSelectedPointPanel(std::vector<AdaptiveTrigg
     ImGui::PopID();
 } 
  
-===== AnimatorGraph.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Tool\AnimatorGraph.cpp 
-#include "AnimatorGraph.h"
-#include <algorithm>
-#include "SequencerData.h"
-
-// == enumの文字変換 == //
-namespace
-{
-	// ===== enumの文字変換(Stateグラフ関連) =====
-
-	// ChildStateType(子階層の種類)
-	std::string ToString(ChildStateType type)
-	{
-		switch (type)
-		{
-		case ChildStateType::Normal: return "Normal";
-		case ChildStateType::Start:  return "Start";
-		case ChildStateType::End:    return "End";
-		}
-		return "Normal";
-	}
-	ChildStateType ToChildStateType(const std::string& s)
-	{
-		if (s == "Start") return ChildStateType::Start;
-		if (s == "End")   return ChildStateType::End;
-		return ChildStateType::Normal;
-	}
-
-
-	// ParentStateType(親階層の種類)
-	std::string ToString(ParentStateType type)
-	{
-		switch (type)
-		{
-		case ParentStateType::Entry: return "Entry";
-		case ParentStateType::State: return "State";
-		}
-		return "State";
-	}
-	ParentStateType ToParentStateType(const std::string& s)
-	{
-		if (s == "Entry")
-		{
-			return ParentStateType::Entry;
-		}
-		return ParentStateType::State;
-	}
-
-
-	// ===== enumの文字変換(条件グラフ関連) =====
-
-	// ValueType(変数ノードが持つ値の型)
-	std::string ToString(ValueType type)
-	{
-		switch (type)
-		{
-		case ValueType::Int:    return "Int";
-		case ValueType::Float:  return "Float";
-		case ValueType::Bool:   return "Bool";
-
-		case ValueType::Float2: return "Float2";
-		case ValueType::Float3: return "Float3";
-		case ValueType::Float4: return "Float4";
-		default:                return "Float";
-		}
-	}
-	ValueType ToValueType(const std::string& s)
-	{
-		if (s == "Int")    return ValueType::Int;
-		if (s == "Bool")   return ValueType::Bool;
-		if (s == "Float2") return ValueType::Float2;
-		if (s == "Float3") return ValueType::Float3;
-		if (s == "Float4") return ValueType::Float4;
-		return ValueType::Float;
-	}
-
-
-	// FloatComponent(構造体のどの成分を取り出すか)
-	std::string ToString(FloatComponent c)
-	{
-		switch (c)
-		{
-		case FloatComponent::X: return "X";
-		case FloatComponent::Y: return "Y";
-		case FloatComponent::Z: return "Z";
-		case FloatComponent::W: return "W";
-		default:                return "None";
-		}
-	}
-	FloatComponent ToFloatComponent(const std::string& s)
-	{
-		if (s == "X") return FloatComponent::X;
-		if (s == "Y") return FloatComponent::Y;
-		if (s == "Z") return FloatComponent::Z;
-		if (s == "W") return FloatComponent::W;
-		return FloatComponent::None;
-	}
-
-	// CompareOp(比較演算子の種類)
-	std::string ToString(CompareOp op)
-	{
-		switch (op)
-		{
-		case CompareOp::Greater:      return "Greater";
-		case CompareOp::Less:         return "Less";
-		case CompareOp::Equal:        return "Equal";
-		case CompareOp::NotEqual:     return "NotEqual";
-		case CompareOp::GreaterEqual: return "GreaterEqual";
-		case CompareOp::LessEqual:    return "LessEqual";
-		default:                      return "Greater";
-		}
-	}
-	CompareOp ToCompareOp(const std::string& s)
-	{
-		if (s == "Less")         return CompareOp::Less;
-		if (s == "Equal")        return CompareOp::Equal;
-		if (s == "NotEqual")     return CompareOp::NotEqual;
-		if (s == "GreaterEqual") return CompareOp::GreaterEqual;
-		if (s == "LessEqual")    return CompareOp::LessEqual;
-		return CompareOp::Greater;
-	}
-}
-
-// コンストラクタ
-AnimatorGraph::AnimatorGraph()
-{
-	// 空のグラフを作る場合でも、Entryだけは必ず存在する状態にする
-	EnsureEntryExists();
-}
-
-// Stateを作成する
-int AnimatorGraph::CreateState(const std::string& name, float posX, float posY)
-{
-	ParentState state;
-	state.id = GenerateId();
-	state.name = name;
-	state.posX = posX;
-	state.posY = posY;
-	state.type = ParentStateType::State;
-
-	states.push_back(state);
-
-	// 作製したStateのIDを返す
-	return state.id;
-}
-
-// Stateを削除する
-void AnimatorGraph::DeleteState(int stateId)
-{
-	states.erase(
-		std::remove_if(states.begin(), states.end(),
-			[stateId](const ParentState& s)
-			{
-				// Entryは削除させない
-				if (s.type == ParentStateType::Entry) return false;
-				return s.id == stateId;
-			}),
-		states.end()
-	);
-
-	// このStateに繋がっていたリンクも一緒に削除する
-	stateLinks.erase(
-		std::remove_if(stateLinks.begin(), stateLinks.end(),
-			[stateId](const AnimLink& l)
-			{
-				return l.fromId == stateId || l.toId == stateId;
-			}),
-		stateLinks.end()
-	);
-}
-
-// Linkを作成する
-int AnimatorGraph::CreateLink(int fromId, int toId)
-{
-	AnimLink link;
-	link.id = GenerateId();
-	link.fromId = fromId;
-	link.toId = toId;
-
-	// このLink専用の条件グラフに、固定のReturnノードを1つ配置しておく
-	link.condition.returnNode.id = link.condition.GenerateId();
-	link.condition.returnNode.posX = 500.0f;
-	link.condition.returnNode.posY = 200.0f;
-
-	stateLinks.push_back(link);
-	return link.id;
-}
-// Linkを削除する
-void AnimatorGraph::DeleteLink(int linkId)
-{
-	stateLinks.erase(
-		std::remove_if(stateLinks.begin(), stateLinks.end(),
-			[linkId](const AnimLink& l) { return l.id == linkId; }),
-		stateLinks.end()
-	);
-}
-
-// グラフ内容をJsonに変換する
-nlohmann::ordered_json AnimatorGraph::ToJson() const
-{
-	nlohmann::ordered_json j;
-	j["states"] = StatesToJson();
-	j["stateLinks"] = StateLinksToJson();
-	return j;
-}
-
-// Jsonから中身を変換する
-void AnimatorGraph::FromJson(const nlohmann::json& j)
-{
-	states.clear();
-	stateLinks.clear();
-
-	if (j.contains("states")) StatesFromJson(j["states"]);
-	if (j.contains("stateLinks")) StateLinksFromJson(j["stateLinks"]);
-
-	// 読み込んだ結果Entryが無かった場合の保険
-	EnsureEntryExists();
-}
-
-// Entryがなければ作成する
-void AnimatorGraph::EnsureEntryExists()
-{
-	bool hasEntry = false;
-	for (const auto& s : states)
-	{
-		if (s.type == ParentStateType::Entry)
-		{
-			hasEntry = true;
-			break;
-		}
-	}
-
-	if (!hasEntry)
-	{
-		ParentState entry;
-		entry.id = GenerateId();
-		entry.name = "Entry";
-		entry.posX = 50.0f;
-		entry.posY = 200.0f;
-		entry.type = ParentStateType::Entry;
-		states.push_back(entry);
-	}
-}
-
-// Statesを保存内容へ変換
-nlohmann::ordered_json AnimatorGraph::StatesToJson() const
-{
-	nlohmann::ordered_json jStates = nlohmann::json::array();
-
-	for (const auto& state : states)
-	{
-		nlohmann::ordered_json js;
-		js["id"] = state.id;
-		js["name"] = state.name;
-		js["posX"] = state.posX;
-		js["posY"] = state.posY;
-		js["type"] = ToString(state.type);
-		js["color"] = { state.color[0], state.color[1], state.color[2] };
-
-		js["children"] = nlohmann::json::array();
-		for (const auto& node : state.children)
-		{
-			nlohmann::ordered_json jn;
-			jn["id"] = node.id;
-			jn["name"] = node.name;
-			jn["posX"] = node.posX;
-			jn["posY"] = node.posY;
-			jn["type"] = ToString(node.type);
-			jn["clipName"] = node.clipName;
-			js["children"].push_back(jn);
-		}
-
-		js["childLinks"] = nlohmann::json::array();
-		for (const auto& link : state.childLinks)
-		{
-			nlohmann::ordered_json jl;
-			jl["id"] = link.id;
-			jl["fromId"] = link.fromId;
-			jl["toId"] = link.toId;
-			js["childLinks"].push_back(jl);
-		}
-
-		jStates.push_back(js);
-	}
-
-	return jStates;
-}
-// Statesを保存内容から復元する
-void AnimatorGraph::StatesFromJson(const nlohmann::json& j)
-{
-	for (const auto& js : j)
-	{
-		ParentState state;
-		state.id = js.value("id", -1);
-		state.name = js.value("name", "");
-		state.posX = js.value("posX", 0.0f);
-		state.posY = js.value("posY", 0.0f);
-		state.type = ToParentStateType(js.value("type", "State"));
-
-		if (js.contains("color") && js["color"].is_array() && js["color"].size() == 3)
-		{
-			state.color[0] = js["color"][0].get<float>();
-			state.color[1] = js["color"][1].get<float>();
-			state.color[2] = js["color"][2].get<float>();
-		}
-
-		if (js.contains("children"))
-		{
-			for (const auto& jn : js["children"])
-			{
-				ChildState node;
-				node.id = jn.value("id", -1);
-				node.name = jn.value("name", "");
-				node.posX = jn.value("posX", 0.0f);
-				node.posY = jn.value("posY", 0.0f);
-				node.type = ToChildStateType(jn.value("type", "Normal"));
-				node.clipName = jn.value("clipName", "");
-				state.children.push_back(node);
-			}
-		}
-
-		if (js.contains("childLinks"))
-		{
-			for (const auto& jl : js["childLinks"])
-			{
-				AnimLink link;
-				link.id = jl.value("id", -1);
-				link.fromId = jl.value("fromId", -1);
-				link.toId = jl.value("toId", -1);
-				state.childLinks.push_back(link);
-			}
-		}
-
-		states.push_back(state);
-
-		// 復元後もIDが重複しないよう、採番カウンタを追従させる
-		if (state.id >= nextId) nextId = state.id + 1;
-	}
-
-}
-
-// StateLinksを保存内容へ変換
-nlohmann::ordered_json AnimatorGraph::StateLinksToJson() const
-{
-	nlohmann::ordered_json jLinks = nlohmann::json::array();
-
-	for (const auto& link : stateLinks)
-	{
-		nlohmann::ordered_json jl;
-		jl["id"] = link.id;
-		jl["fromId"] = link.fromId;
-		jl["toId"] = link.toId;
-
-		nlohmann::ordered_json jc;
-		jc["nextId"] = link.condition.nextId;
-
-		jc["returnNode"]["id"] = link.condition.returnNode.id;
-		jc["returnNode"]["posX"] = link.condition.returnNode.posX;
-		jc["returnNode"]["posY"] = link.condition.returnNode.posY;
-
-		jc["variableNodes"] = nlohmann::json::array();
-		for (const auto& v : link.condition.variableNodes)
-		{
-			nlohmann::ordered_json jv;
-			jv["id"] = v.id;
-			jv["posX"] = v.posX;
-			jv["posY"] = v.posY;
-			jv["name"] = v.name;
-			jv["type"] = ToString(v.type);
-			jv["intValue"] = v.intValue;
-			jv["floatValue"] = v.floatValue;
-			jv["boolValue"] = v.boolValue;
-			jc["variableNodes"].push_back(jv);
-		}
-
-		jc["operatorNodes"] = nlohmann::json::array();
-		for (const auto& o : link.condition.operatorNodes)
-		{
-			nlohmann::ordered_json jo;
-			jo["id"] = o.id;
-			jo["posX"] = o.posX;
-			jo["posY"] = o.posY;
-			jo["op"] = ToString(o.op);
-			jc["operatorNodes"].push_back(jo);
-		}
-
-		jc["getterNodes"] = nlohmann::json::array();
-		for (const auto& g : link.condition.getterNodes)
-		{
-			nlohmann::ordered_json jg;
-			jg["id"] = g.id;
-			jg["posX"] = g.posX;
-			jg["posY"] = g.posY;
-			jg["componentName"] = g.componentName;
-			jg["fieldName"] = g.fieldName;
-			jg["type"] = ToString(g.type);
-			jg["selectedComponent"] = ToString(g.selectedComponent);
-			jc["getterNodes"].push_back(jg);
-		}
-
-		jc["links"] = nlohmann::json::array();
-		for (const auto& cl : link.condition.links)
-		{
-			nlohmann::ordered_json jcl;
-			jcl["id"] = cl.id;
-			jcl["fromId"] = cl.fromId;
-			jcl["toId"] = cl.toId;
-			jcl["toPinB"] = cl.toPinB;
-			jc["links"].push_back(jcl);
-		}
-
-		jl["condition"] = jc;
-
-		jLinks.push_back(jl);
-	}
-
-	return jLinks;
-}
-// StateLinksを保存内容から復元する
-void AnimatorGraph::StateLinksFromJson(const nlohmann::json& j)
-{
-	for (const auto& jl : j)
-	{
-		AnimLink link;
-		link.id = jl.value("id", -1);
-		link.fromId = jl.value("fromId", -1);
-		link.toId = jl.value("toId", -1);
-
-		if (jl.contains("condition"))
-		{
-			const auto& jc = jl["condition"];
-			link.condition.nextId = jc.value("nextId", 1);
-
-			if (jc.contains("returnNode"))
-			{
-				link.condition.returnNode.id = jc["returnNode"].value("id", -1);
-				link.condition.returnNode.posX = jc["returnNode"].value("posX", 500.0f);
-				link.condition.returnNode.posY = jc["returnNode"].value("posY", 200.0f);
-			}
-
-			// 古い保存データにReturnノードが無かった場合の保険
-			if (link.condition.returnNode.id < 0)
-			{
-				link.condition.returnNode.id = link.condition.GenerateId();
-				link.condition.returnNode.posX = 500.0f;
-				link.condition.returnNode.posY = 200.0f;
-			}
-
-			if (jc.contains("variableNodes"))
-			{
-				for (const auto& jv : jc["variableNodes"])
-				{
-					ConditionVariableNode v;
-					v.id = jv.value("id", -1);
-					v.posX = jv.value("posX", 0.0f);
-					v.posY = jv.value("posY", 0.0f);
-					v.name = jv.value("name", "");
-					v.type = ToValueType(jv.value("type", "Float"));
-					v.intValue = jv.value("intValue", 0);
-					v.floatValue = jv.value("floatValue", 0.0f);
-					v.boolValue = jv.value("boolValue", false);
-					link.condition.variableNodes.push_back(v);
-				}
-			}
-
-			if (jc.contains("operatorNodes"))
-			{
-				for (const auto& jo : jc["operatorNodes"])
-				{
-					ConditionOperatorNode o;
-					o.id = jo.value("id", -1);
-					o.posX = jo.value("posX", 0.0f);
-					o.posY = jo.value("posY", 0.0f);
-					o.op = ToCompareOp(jo.value("op", "Greater"));
-					link.condition.operatorNodes.push_back(o);
-				}
-			}
-
-			if (jc.contains("getterNodes"))
-			{
-				for (const auto& jg : jc["getterNodes"])
-				{
-					ConditionGetterNode g;
-					g.id = jg.value("id", -1);
-					g.posX = jg.value("posX", 0.0f);
-					g.posY = jg.value("posY", 0.0f);
-					g.componentName = jg.value("componentName", "");
-					g.fieldName = jg.value("fieldName", "");
-					g.type = ToValueType(jg.value("type", "Float"));
-					g.selectedComponent = ToFloatComponent(jg.value("selectedComponent", "None"));
-					link.condition.getterNodes.push_back(g);
-				}
-			}
-
-			if (jc.contains("links"))
-			{
-				for (const auto& jcl : jc["links"])
-				{
-					ConditionLink cl;
-					cl.id = jcl.value("id", -1);
-					cl.fromId = jcl.value("fromId", -1);
-					cl.toId = jcl.value("toId", -1);
-					cl.toPinB = jcl.value("toPinB", false);
-					link.condition.links.push_back(cl);
-				}
-			}
-		}
-
-		stateLinks.push_back(link);
-
-		if (link.id >= nextId) nextId = link.id + 1;
-	}
-}
- 
- 
 ===== NodeEditorCanvas.cpp ===== 
 Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Tool\NodeEditorCanvas.cpp 
 #include "NodeEditorCanvas.h"
@@ -13099,125 +13204,6 @@ void NodeEditorCanvas::End()
 {
     ed::End();
     ed::SetCurrentEditor(nullptr);
-} 
- 
-===== SequencerData.cpp ===== 
-Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Tool\SequencerData.cpp 
-#include "SequencerData.h"
-
-namespace
-{
-	std::string ToString(SequencerFlag flag)
-	{
-		switch (flag)
-		{
-		case SequencerFlag::AnimExit: return "AnimExit";
-		case SequencerFlag::Attack:   return "Attack";
-		}
-		return "AnimExit";
-	}
-	SequencerFlag ToSequencerFlag(const std::string& s)
-	{
-		if (s == "Attack") return SequencerFlag::Attack;
-		return SequencerFlag::AnimExit;
-	}
-}
-
-
-// 指定したクリップ名のデータを探す
-SequencerClipData* SequencerData::FindOrCreateClip(const std::string& clipName)
-{
-	for (auto& clip : clips)
-	{
-		if (clip.clipName == clipName) return &clip;
-	}
-
-	SequencerClipData newClip;
-	newClip.clipName = clipName;
-	clips.push_back(newClip);
-	return &clips.back();
-}
-
-
-// 保存
-nlohmann::ordered_json SequencerData::ToJson() const
-{
-	nlohmann::ordered_json j;
-	j["clips"] = nlohmann::json::array();
-
-	for (const auto& clip : clips)
-	{
-		nlohmann::ordered_json jc;
-		jc["clipName"] = clip.clipName;
-		jc["nextId"] = clip.nextId;
-
-		jc["ranges"] = nlohmann::json::array();
-		for (const auto& r : clip.ranges)
-		{
-			nlohmann::ordered_json jr;
-			jr["id"] = r.id;
-			jr["start"] = r.start;
-			jr["end"] = r.end;
-			jr["flag"] = ToString(r.flag);
-			jc["ranges"].push_back(jr);
-		}
-
-		jc["points"] = nlohmann::json::array();
-		for (const auto& p : clip.points)
-		{
-			nlohmann::ordered_json jp;
-			jp["id"] = p.id;
-			jp["time"] = p.time;
-			jp["flag"] = ToString(p.flag);
-			jc["points"].push_back(jp);
-		}
-
-		j["clips"].push_back(jc);
-	}
-
-	return j;
-}
-
-// 読み込み
-void SequencerData::FromJson(const nlohmann::json& j)
-{
-	clips.clear();
-
-	if (!j.contains("clips")) return;
-
-	for (const auto& jc : j["clips"])
-	{
-		SequencerClipData clip;
-		clip.clipName = jc.value("clipName", "");
-		clip.nextId = jc.value("nextId", 1);
-
-		if (jc.contains("ranges"))
-		{
-			for (const auto& jr : jc["ranges"])
-			{
-				SequencerRange r;
-				r.id = jr.value("id", -1);
-				r.start = jr.value("start", 0.0f);
-				r.end = jr.value("end", 1.0f);
-				r.flag = ToSequencerFlag(jr.value("flag", "AnimExit"));
-				clip.ranges.push_back(r);
-			}
-		}
-
-		if (jc.contains("points"))
-		{
-			for (const auto& jp : jc["points"])
-			{
-				SequencerPoint p;
-				p.id = jp.value("id", -1);
-				p.time = jp.value("time", 0.0f);
-				p.flag = ToSequencerFlag(jp.value("flag", "AnimExit"));
-				clip.points.push_back(p);
-			}
-		}
-
-		clips.push_back(clip);
-	}
 } 
  
 ===== IStudioAttachment.h ===== 
@@ -13280,7 +13266,7 @@ private:
 Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Tool\Studio\StudioAnimatorGraph.h 
 #pragma once
 #include "IStudioAttachment.h"
-#include "Tool/AnimatorGraph.h"
+#include "Data/AnimatorGraphData.h"
 #include "StudioParentStateGraph.h"
 #include "StudioConditionGraph.h"
 
@@ -13304,7 +13290,7 @@ public:
 
 private:
 	// == 内部状態 == //
-	AnimatorGraph graph;
+	AnimatorGraphData graphData;
 
 	StudioParentStateGraph parentStateGraph; // 親階層キャンバス
 	StudioConditionGraph conditionGraph;     // 条件編集キャンバス
@@ -13385,7 +13371,7 @@ private:
 ===== StudioConditionGraph.h ===== 
 Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Tool\Studio\StudioConditionGraph.h 
 #pragma once
-#include "Tool/AnimatorGraph.h"
+#include "Data/AnimatorGraphData.h"
 #include "Tool/NodeEditorCanvas.h"
 #include <imgui.h>
 #include <functional>
@@ -13585,7 +13571,7 @@ private:
 ===== StudioParentStateGraph.h ===== 
 Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Tool\Studio\StudioParentStateGraph.h 
 #pragma once
-#include "Tool/AnimatorGraph.h"
+#include "Data/AnimatorGraphData.h"
 #include "Tool/NodeEditorCanvas.h"
 #include <unordered_map>
 #include <functional>
@@ -13603,7 +13589,7 @@ public:
 	void Initialize();
 
 	// ImGui描画
-	void DrawGUI(AnimatorGraph& graph, const std::function<void(AnimLink*)>& onEditCondition);
+	void DrawGUI(AnimatorGraphData& graph, const std::function<void(AnimLink*)>& onEditCondition);
 	void DrawInspector();
 
 	// 保存/読み込み直後など、座標を強制的に反映させたい時に呼ぶ
@@ -13611,7 +13597,7 @@ public:
 private:
 	// == 内部状態 == //
 	NodeEditorCanvas canvas;
-	AnimatorGraph* graph = nullptr; 
+	AnimatorGraphData* graph = nullptr;
 
 	ImVec2 pendingCreatePos{};
 	int pendingLinkFromId = -1;
@@ -13661,7 +13647,7 @@ private:
 Path: C:\Users\offri\OneDrive\Desktop\New-Library\Source\Tool\Studio\StudioSequencer.h 
 #pragma once
 #include "IStudioAttachment.h"
-#include "Tool/SequencerData.h"
+#include "Data/SequencerData.h"
 #include <imgui.h>
 #include <functional>
 #include <string>
@@ -14014,7 +14000,7 @@ void StudioAnimatorGraph::DrawGUI(entt::registry& registry, StudioContext& conte
 // 親階層(State)キャンバス
 void StudioAnimatorGraph::DrawStateCanvas()
 {
-	parentStateGraph.DrawGUI(graph, [this](AnimLink* link)
+	parentStateGraph.DrawGUI(graphData, [this](AnimLink* link)
 		{
 			conditionGraph.SetTarget(link);
 			showConditionGraph = true;
@@ -14142,7 +14128,7 @@ void StudioAnimatorGraph::Save(StudioContext& context)
 	nlohmann::ordered_json j;
 	j["sourceModelPath"] = context.currentModelPath;
 
-	nlohmann::ordered_json graphJson = graph.ToJson();
+	nlohmann::ordered_json graphJson = graphData.ToJson();
 	j["states"] = graphJson["states"];
 	j["stateLinks"] = graphJson["stateLinks"];
 
@@ -14162,7 +14148,7 @@ void StudioAnimatorGraph::Load(StudioContext& context)
 	{
 		nlohmann::json j;
 		ifs >> j;
-		graph.FromJson(j);
+		graphData.FromJson(j);
 	}
 	catch (const std::exception&)
 	{
@@ -15560,7 +15546,7 @@ void StudioParentStateGraph::Initialize()
 }
 
 // ImGui描画(Stateキャンバス本体)
-void StudioParentStateGraph::DrawGUI(AnimatorGraph& g, const std::function<void(AnimLink*)>& onEditCondition)
+void StudioParentStateGraph::DrawGUI(AnimatorGraphData& g, const std::function<void(AnimLink*)>& onEditCondition)
 {
 	graph = &g;
 	pendingEditCondition = onEditCondition;

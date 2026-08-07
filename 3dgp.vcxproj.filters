@@ -251,9 +251,6 @@
     <Filter Include="Sources\Tool\NodeGraph">
       <UniqueIdentifier>{7ab45984-c873-4035-b702-23c95bbb7970}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Sources\Tool\NodeGraph\AnimatorGraph">
-      <UniqueIdentifier>{88e6eb28-b94d-447e-ba7e-efa533cf0df4}</UniqueIdentifier>
-    </Filter>
     <Filter Include="External\imgui-node-editor">
       <UniqueIdentifier>{7f346661-3b9b-4835-be73-9c1b34c9f0ed}</UniqueIdentifier>
     </Filter>
@@ -265,18 +262,6 @@
     </Filter>
     <Filter Include="Sources\Demo\WaveDemo">
       <UniqueIdentifier>{ca84409e-bd97-4180-9b9a-81885ddfc5b4}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Tool\Studio\StudioAnimator\StudioParentStateGraph">
-      <UniqueIdentifier>{a99d813c-307c-40ce-a556-30687976b257}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Tool\Studio\StudioAnimator\StudioChildGraph">
-      <UniqueIdentifier>{4d2d7650-5e90-404c-9990-7e0685c66d17}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Tool\Studio\StudioAnimator\StudioConditionGraph">
-      <UniqueIdentifier>{260c5d2b-5dec-46b7-bc51-bfba29954be0}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Tool\Studio\StudioAnimator\StudioAnimatorGraph">
-      <UniqueIdentifier>{bd6b7422-38f4-45bf-8ad4-d87ee49acbe8}</UniqueIdentifier>
     </Filter>
     <Filter Include="Sources\Tool\Studio\StudioSequencer">
       <UniqueIdentifier>{d6e1a9c2-f7fc-4144-ae4f-627fe3784c08}</UniqueIdentifier>
@@ -292,6 +277,18 @@
     </Filter>
     <Filter Include="Sources\Data\AnimatorGraphData">
       <UniqueIdentifier>{1b149959-27fa-4ed0-a892-e1c7c3352e96}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Tool\Studio\StudioAnimatorGraph">
+      <UniqueIdentifier>{c9bcc1cb-f344-4d94-9efd-1fbc9e13d3db}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Tool\Studio\StudioAnimatorGraph\StudioChildGraph">
+      <UniqueIdentifier>{4d2d7650-5e90-404c-9990-7e0685c66d17}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Tool\Studio\StudioAnimatorGraph\StudioConditionGraph">
+      <UniqueIdentifier>{260c5d2b-5dec-46b7-bc51-bfba29954be0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Tool\Studio\StudioAnimatorGraph\StudioParentStateGraph">
+      <UniqueIdentifier>{a99d813c-307c-40ce-a556-30687976b257}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -466,20 +463,17 @@
     <ClCompile Include="Source\Tool\NodeEditorCanvas.cpp">
       <Filter>Sources\Tool\NodeGraph</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Tool\Studio\StudioAnimatorGraph.cpp">
-      <Filter>Sources\Tool\Studio\StudioAnimator\StudioAnimatorGraph</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Editor\MetaRegistry.cpp">
       <Filter>Sources\Editor\MetaRegistry</Filter>
     </ClCompile>
     <ClCompile Include="Source\Tool\Studio\StudioConditionGraph.cpp">
-      <Filter>Sources\Tool\Studio\StudioAnimator\StudioConditionGraph</Filter>
+      <Filter>Sources\Tool\Studio\StudioAnimatorGraph\StudioConditionGraph</Filter>
     </ClCompile>
     <ClCompile Include="Source\Demo\WaveDemo.cpp">
       <Filter>Sources\Demo\WaveDemo</Filter>
     </ClCompile>
     <ClCompile Include="Source\Tool\Studio\StudioParentStateGraph.cpp">
-      <Filter>Sources\Tool\Studio\StudioAnimator\StudioParentStateGraph</Filter>
+      <Filter>Sources\Tool\Studio\StudioAnimatorGraph\StudioParentStateGraph</Filter>
     </ClCompile>
     <ClCompile Include="Source\Tool\Studio\StudioSequencer.cpp">
       <Filter>Sources\Tool\Studio\StudioSequencer</Filter>
@@ -492,6 +486,9 @@
     </ClCompile>
     <ClCompile Include="Source\Data\AnimatorGraphData.cpp">
       <Filter>Sources\Data\AnimatorGraphData</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Tool\Studio\StudioAnimatorGraph.cpp">
+      <Filter>Sources\Tool\Studio\StudioAnimatorGraph</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -729,26 +726,20 @@
     <ClInclude Include="Source\ECS\Systems\TwoBoneIKSolver.h">
       <Filter>Sources\ECS\Systems\IKSystem</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Tool\IEditorNode.h">
-      <Filter>Sources\Tool\NodeGraph</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Tool\NodeEditorCanvas.h">
       <Filter>Sources\Tool\NodeGraph</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Tool\Studio\StudioAnimatorGraph.h">
-      <Filter>Sources\Tool\Studio\StudioAnimator\StudioAnimatorGraph</Filter>
     </ClInclude>
     <ClInclude Include="Source\Editor\MetaRegistry.h">
       <Filter>Sources\Editor\MetaRegistry</Filter>
     </ClInclude>
     <ClInclude Include="Source\Tool\Studio\StudioConditionGraph.h">
-      <Filter>Sources\Tool\Studio\StudioAnimator\StudioConditionGraph</Filter>
+      <Filter>Sources\Tool\Studio\StudioAnimatorGraph\StudioConditionGraph</Filter>
     </ClInclude>
     <ClInclude Include="Source\Demo\WaveDemo.h">
       <Filter>Sources\Demo\WaveDemo</Filter>
     </ClInclude>
     <ClInclude Include="Source\Tool\Studio\StudioParentStateGraph.h">
-      <Filter>Sources\Tool\Studio\StudioAnimator\StudioParentStateGraph</Filter>
+      <Filter>Sources\Tool\Studio\StudioAnimatorGraph\StudioParentStateGraph</Filter>
     </ClInclude>
     <ClInclude Include="Source\ECS\Components\SequencerComponent.h">
       <Filter>Sources\ECS\Components</Filter>
@@ -764,6 +755,9 @@
     </ClInclude>
     <ClInclude Include="Source\Data\AnimatorGraphData.h">
       <Filter>Sources\Data\AnimatorGraphData</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Tool\Studio\StudioAnimatorGraph.h">
+      <Filter>Sources\Tool\Studio\StudioAnimatorGraph</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

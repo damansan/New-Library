@@ -78,7 +78,9 @@ void MetaRegistry::Initialize()
 		.data<&SequencerComponent::animExit>("animExit"_hs)
 		.custom<FieldInfo>(FieldInfo{ "Anim Exit", 0.0f, 0.0f, 0.1f, "", true })
 		.data<&SequencerComponent::attack>("attack"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Attack", 0.0f, 0.0f, 0.1f, "", true });
+		.custom<FieldInfo>(FieldInfo{ "Attack", 0.0f, 0.0f, 0.1f, "", true })
+		.data<&SequencerComponent::superArmor>("superArmor"_hs)
+		.custom<FieldInfo>(FieldInfo{ "SuperArmor", 0.0f, 0.0f, 0.1f, "", true });
 }
 
 // “o˜^Ï‚İƒƒ^î•ñ‚©‚çInspectorUI‚ğ©“®•`‰æ

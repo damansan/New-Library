@@ -4,11 +4,13 @@
 // フラグの種類
 enum class SequencerFlag
 {
-	AnimExit,
-	Attack,
+	AnimExit,   // アニメーション終了フラグ
+	SuperArmor, // 発生保障フラグ
+	Attack,     // 攻撃フラグ
 
 	// 種類が増えたらここに追加していく
 
+	Count
 };
 
 struct SequencerComponent
@@ -16,8 +18,8 @@ struct SequencerComponent
 	std::string sequencerPath; // .sequencerファイルのパス
 
 	bool animExit = false;
+	bool superArmor = false;
 	bool attack = false;
-	
 	// 種類が増えたらここにも追加する
 
 
