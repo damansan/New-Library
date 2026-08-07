@@ -5,6 +5,7 @@ void StudioParentStateGraph::Initialize()
 	canvas.Initialize();
 }
 
+
 // ImGui描画(Stateキャンバス本体)
 void StudioParentStateGraph::DrawGUI(AnimatorGraphData& g, const std::function<void(AnimLink*)>& onEditCondition)
 {
@@ -26,6 +27,7 @@ void StudioParentStateGraph::DrawGUI(AnimatorGraphData& g, const std::function<v
 	canvas.End();
 }
 
+
 // 右側メニュー
 void StudioParentStateGraph::DrawInspector()
 {
@@ -44,6 +46,7 @@ void StudioParentStateGraph::DrawInspector()
 	// どちらも選択されていない場合
 	ImGui::TextDisabled("No state selected.");
 }
+
 
 // State描画
 void StudioParentStateGraph::DrawStates()
@@ -84,6 +87,7 @@ void StudioParentStateGraph::DrawStates()
 	}
 	needsApplyPositions = false;
 }
+// Stateの種類に応じた見た目のスタイルを適用する
 void StudioParentStateGraph::PushStateStyle(const ParentState& state)
 {
 	switch (state.type)
@@ -104,6 +108,7 @@ void StudioParentStateGraph::PushStateStyle(const ParentState& state)
 		break;
 	}
 }
+// PushStateStyleで適用したスタイルを解除する
 void StudioParentStateGraph::PopStateStyle(const ParentState& state)
 {
 	switch (state.type)
@@ -122,6 +127,7 @@ void StudioParentStateGraph::PopStateStyle(const ParentState& state)
 		break;
 	}
 }
+
 
 // Link描画
 void StudioParentStateGraph::DrawLinks()
@@ -158,6 +164,7 @@ void StudioParentStateGraph::DrawLinks()
 		}
 	}
 }
+// リンク1本分の接続点を計算する
 void StudioParentStateGraph::CalcLinkPoints(const AnimLink& link, ImVec2& outStart, ImVec2& outEnd)
 {
 	auto fromIt = stateScreenRects.find(link.fromId);
@@ -207,6 +214,7 @@ void StudioParentStateGraph::CalcLinkPoints(const AnimLink& link, ImVec2& outSta
 	outStart = startPoint;
 	outEnd = endPoint;
 }
+// 計算済みの座標にピンを配置する
 void StudioParentStateGraph::DrawLinkPins(const AnimLink& link, const ImVec2& start, const ImVec2& end)
 {
 	const int64_t idOffset = 10000000;
@@ -241,6 +249,7 @@ void StudioParentStateGraph::DrawLinkPins(const AnimLink& link, const ImVec2& st
 
 	ed::Link(ed::LinkId(link.id), outPinId, inPinId);
 }
+// 辺からリンクを伸ばす
 ImVec2 StudioParentStateGraph::GetEdgePoint(const ImVec2& rectMin, const ImVec2& rectMax, const ImVec2& target)
 {
 	ImVec2 center((rectMin.x + rectMax.x) * 0.5f, (rectMin.y + rectMax.y) * 0.5f);
@@ -256,6 +265,7 @@ ImVec2 StudioParentStateGraph::GetEdgePoint(const ImVec2& rectMin, const ImVec2&
 
 	return ImVec2(center.x + dir.x * scale, center.y + dir.y * scale);
 }
+// 双方向のLinkがあるか確認する
 bool StudioParentStateGraph::HasReverseLink(int fromId, int toId) const
 {
 	for (const auto& link : graph->stateLinks)
@@ -267,6 +277,7 @@ bool StudioParentStateGraph::HasReverseLink(int fromId, int toId) const
 	}
 	return false;
 }
+// 矢印描画
 void StudioParentStateGraph::DrawArrowHead(ImDrawList* drawList, const ImVec2& start, const ImVec2& end, ImU32 color)
 {
 	ImVec2 dir(end.x - start.x, end.y - start.y);
@@ -289,7 +300,8 @@ void StudioParentStateGraph::DrawArrowHead(ImDrawList* drawList, const ImVec2& s
 	drawList->AddTriangleFilled(tip, baseLeft, baseRight, color);
 }
 
-// State作成メニュー(右クリック)
+
+// 右クリックメニュー
 void StudioParentStateGraph::DrawCreateStateMenu()
 {
 	ed::Suspend();
@@ -330,6 +342,7 @@ void StudioParentStateGraph::DrawStateContextMenu()
 	}
 	ed::Resume();
 }
+// Link作成モード中の入力処理
 void StudioParentStateGraph::UpdateLinkCreation()
 {
 	if (pendingLinkFromId == -1) return;
@@ -361,6 +374,7 @@ void StudioParentStateGraph::UpdateLinkCreation()
 		pendingLinkFromId = -1;
 	}
 }
+// Link作成中のプレビュー線描画
 void StudioParentStateGraph::DrawPendingLink()
 {
 	if (pendingLinkFromId == -1) return;

@@ -119,7 +119,10 @@ struct ChildState  // 子階層State
 	float posY = 0.0f;
 
 	ChildStateType type = ChildStateType::Normal;
-	std::string clipName;
+
+	std::string clipName;       // 再生するアニメーション名
+	bool useRootMotion = false; // ルートモーションの使用
+	bool blend = false;         // 遷移時にブレンドするか
 };
 struct ParentState  // 親階層State
 {
@@ -135,6 +138,20 @@ struct ParentState  // 親階層State
 
 	std::vector<ChildState> children;
 	std::vector<AnimLink> childLinks;
+
+	// この子階層専用のID採番カウンター
+	int nextId = 1;
+	int GenerateId() { return nextId++; }
+
+	// 子階層のStateを作成する(作成したStateのIDを返す)
+	int CreateChildState(const std::string& name, float posX, float posY);
+	// 子階層のLinkを作成する(作成したLinkのIDを返す)
+	int CreateChildLink(int fromId, int toId);
+
+	// 子階層のStateを削除する(Entry/Exitは削除できない。関係するLinkも一緒に削除する)
+	void DeleteChildState(int stateId);
+	// 子階層のLinkを削除する
+	void DeleteChildLink(int linkId);
 };
 
 
@@ -165,8 +182,11 @@ public:
 	void FromJson(const nlohmann::json& j);
 
 private:
-	// Entryがなければ作成する
-	void EnsureEntryExists();
+	// ParentState(Entry)がなければ作成する
+	void EnsureParentEntryExists();
+
+	// ChildState(Entry/Exit)がなければ作成する
+	void EnsureChildEntryAndExitExist(ParentState& parent);
 
 	// Statesを保存内容へ変換
 	nlohmann::ordered_json StatesToJson() const;

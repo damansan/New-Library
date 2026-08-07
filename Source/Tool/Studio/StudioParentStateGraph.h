@@ -44,7 +44,7 @@ private:
 	void PopStateStyle(const ParentState& state);  // PushStateStyleで適用したスタイルを解除する 
 
 	// == Link描画 == //
-	void DrawLinks(); //  Link描画
+	void DrawLinks(); // Link描画
 	void CalcLinkPoints(const AnimLink& link, ImVec2& outStart, ImVec2& outEnd);			 // リンク1本分の接続点を計算する
 	void DrawLinkPins(const AnimLink& link, const ImVec2& start, const ImVec2& end);		 // 計算済みの座標にピンを配置する
 	ImVec2 GetEdgePoint(const ImVec2& rectMin, const ImVec2& rectMax, const ImVec2& target); // 辺からリンクを伸ばす
@@ -58,7 +58,7 @@ private:
 	void DrawPendingLink();		 // Link作成中のプレビュー線描画
 
 	// == 選択状態とインスペクター == //
-	void UpdateSelection();
+	void UpdateSelection(); // 選択状態を更新
 	void DrawStateInspector(ParentState* state); // State選択時のInspector
 	void DrawLinkInspector(AnimLink* link, const std::function<void(AnimLink*)>& onEditCondition); // Link選択時の Inspector
 

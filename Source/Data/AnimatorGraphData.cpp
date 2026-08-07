@@ -1,6 +1,5 @@
 #include "AnimatorGraphData.h"
 #include <algorithm>
-#include "SequencerData.h"
 
 // == enum‚Ì•¶š•ÏŠ· == //
 namespace
@@ -124,7 +123,7 @@ namespace
 AnimatorGraphData::AnimatorGraphData()
 {
 	// ‹ó‚ÌƒOƒ‰ƒt‚ğì‚éê‡‚Å‚àAEntry‚¾‚¯‚Í•K‚¸‘¶İ‚·‚éó‘Ô‚É‚·‚é
-	EnsureEntryExists();
+	EnsureParentEntryExists();
 }
 
 // State‚ğì¬‚·‚é
@@ -136,6 +135,9 @@ int AnimatorGraphData::CreateState(const std::string& name, float posX, float po
 	state.posX = posX;
 	state.posY = posY;
 	state.type = ParentStateType::State;
+
+	// V‹Kì¬‚µ‚½State‚ÌqŠK‘w‚ÉAEntry/Exit‚ğ•ÛØ‚·‚é
+	EnsureChildEntryAndExitExist(state);
 
 	states.push_back(state);
 
@@ -194,6 +196,68 @@ void AnimatorGraphData::DeleteLink(int linkId)
 	);
 }
 
+// qŠK‘w‚ÌState‚ğì¬‚·‚é(ì¬‚µ‚½State‚ÌID‚ğ•Ô‚·)
+int ParentState::CreateChildState(const std::string& name, float posX, float posY)
+{
+	ChildState state;
+	state.id = GenerateId();
+	state.name = name;
+	state.posX = posX;
+	state.posY = posY;
+	state.type = ChildStateType::Normal;
+
+	children.push_back(state);
+
+	return state.id;
+}
+
+// qŠK‘w‚ÌLink‚ğì¬‚·‚é(ì¬‚µ‚½Link‚ÌID‚ğ•Ô‚·)
+int ParentState::CreateChildLink(int fromId, int toId)
+{
+	AnimLink link;
+	link.id = GenerateId();
+	link.fromId = fromId;
+	link.toId = toId;
+
+	childLinks.push_back(link);
+
+	return link.id;
+}
+
+// qŠK‘w‚ÌState‚ğíœ‚·‚é(Entry/Exit‚Ííœ‚Å‚«‚È‚¢BŠÖŒW‚·‚éLink‚àˆê‚Éíœ‚·‚é)
+void ParentState::DeleteChildState(int stateId)
+{
+	children.erase(
+		std::remove_if(children.begin(), children.end(),
+			[stateId](const ChildState& s)
+			{
+				// Entry/Exit‚Ííœ‚³‚¹‚È‚¢
+				if (s.type == ChildStateType::Start || s.type == ChildStateType::End) return false;
+				return s.id == stateId;
+			}),
+		children.end()
+	);
+
+	// ‚±‚ÌState‚ÉŒq‚ª‚Á‚Ä‚¢‚½Link‚àˆê‚Éíœ‚·‚é
+	childLinks.erase(
+		std::remove_if(childLinks.begin(), childLinks.end(),
+			[stateId](const AnimLink& l)
+			{
+				return l.fromId == stateId || l.toId == stateId;
+			}),
+		childLinks.end()
+	);
+}
+// qŠK‘w‚ÌLink‚ğíœ‚·‚é
+void ParentState::DeleteChildLink(int linkId)
+{
+	childLinks.erase(
+		std::remove_if(childLinks.begin(), childLinks.end(),
+			[linkId](const AnimLink& l) { return l.id == linkId; }),
+		childLinks.end()
+	);
+}
+
 // ƒOƒ‰ƒt“à—e‚ğJson‚É•ÏŠ·‚·‚é
 nlohmann::ordered_json AnimatorGraphData::ToJson() const
 {
@@ -213,11 +277,11 @@ void AnimatorGraphData::FromJson(const nlohmann::json& j)
 	if (j.contains("stateLinks")) StateLinksFromJson(j["stateLinks"]);
 
 	// “Ç‚İ‚ñ‚¾Œ‹‰ÊEntry‚ª–³‚©‚Á‚½ê‡‚Ì•ÛŒ¯
-	EnsureEntryExists();
+	EnsureParentEntryExists();
 }
 
-// Entry‚ª‚È‚¯‚ê‚Îì¬‚·‚é
-void AnimatorGraphData::EnsureEntryExists()
+// ParentState(Entry)‚ª‚È‚¯‚ê‚Îì¬‚·‚é
+void AnimatorGraphData::EnsureParentEntryExists()
 {
 	bool hasEntry = false;
 	for (const auto& s : states)
@@ -238,6 +302,31 @@ void AnimatorGraphData::EnsureEntryExists()
 		entry.posY = 200.0f;
 		entry.type = ParentStateType::Entry;
 		states.push_back(entry);
+	}
+}
+
+// ChildState(Entry/Exit)‚ª‚È‚¯‚ê‚Îì¬‚·‚é
+void AnimatorGraphData::EnsureChildEntryAndExitExist(ParentState& parent)
+{
+	bool hasStart = false;
+	bool hasEnd = false;
+
+	for (const auto& child : parent.children)
+	{
+		if (child.type == ChildStateType::Start) hasStart = true;
+		if (child.type == ChildStateType::End)   hasEnd = true;
+	}
+
+	if (!hasStart)
+	{
+		parent.CreateChildState("Entry", 50.0f, 200.0f);
+		parent.children.back().type = ChildStateType::Start;
+	}
+
+	if (!hasEnd)
+	{
+		parent.CreateChildState("Exit", 400.0f, 200.0f);
+		parent.children.back().type = ChildStateType::End;
 	}
 }
 
@@ -266,6 +355,8 @@ nlohmann::ordered_json AnimatorGraphData::StatesToJson() const
 			jn["posY"] = node.posY;
 			jn["type"] = ToString(node.type);
 			jn["clipName"] = node.clipName;
+			jn["useRootMotion"] = node.useRootMotion;
+			jn["blend"] = node.blend;
 			js["children"].push_back(jn);
 		}
 
@@ -314,6 +405,8 @@ void AnimatorGraphData::StatesFromJson(const nlohmann::json& j)
 				node.posY = jn.value("posY", 0.0f);
 				node.type = ToChildStateType(jn.value("type", "Normal"));
 				node.clipName = jn.value("clipName", "");
+				node.useRootMotion = jn.value("useRootMotion", false);
+				node.blend = jn.value("blend", false);
 				state.children.push_back(node);
 			}
 		}
@@ -329,6 +422,9 @@ void AnimatorGraphData::StatesFromJson(const nlohmann::json& j)
 				state.childLinks.push_back(link);
 			}
 		}
+
+		// ŒÃ‚¢•Û‘¶ƒf[ƒ^‚ÉAqŠK‘w‚ÌEntry/Exit‚ª–³‚©‚Á‚½ê‡‚Ì•ÛŒ¯
+		EnsureChildEntryAndExitExist(state);
 
 		states.push_back(state);
 

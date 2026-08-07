@@ -490,6 +490,9 @@
     <ClCompile Include="Source\Tool\Studio\StudioAnimatorGraph.cpp">
       <Filter>Sources\Tool\Studio\StudioAnimatorGraph</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Tool\Studio\StudioChildStateGraph.cpp">
+      <Filter>Sources\Tool\Studio\StudioAnimatorGraph\StudioChildGraph</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Core\framework.h">
@@ -758,6 +761,9 @@
     </ClInclude>
     <ClInclude Include="Source\Tool\Studio\StudioAnimatorGraph.h">
       <Filter>Sources\Tool\Studio\StudioAnimatorGraph</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Tool\Studio\StudioChildStateGraph.h">
+      <Filter>Sources\Tool\Studio\StudioAnimatorGraph\StudioChildGraph</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
