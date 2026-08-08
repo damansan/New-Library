@@ -95,9 +95,9 @@ struct ConditionGraph // Link1本分の条件グラフ
 	std::vector<ConditionOperatorNode> operatorNodes;
 	std::vector<ConditionLink> links;   // Getter/Variable/Operator/Return同士を繋ぐリンク
 
-	// このLink専用のID採番カウンター
-	int nextId = 1;
-	int GenerateId() { return nextId++; }
+	// ID採番カウンター
+	int* idCounter = nullptr;
+	int GenerateId() { return (*idCounter)++; }
 };
 
 
@@ -110,6 +110,7 @@ struct AnimLink // リンク
 
 	ConditionGraph condition; // このLinkの遷移条件グラフ
 };
+
 struct ChildState  // 子階層State
 {
 	int id = -1;
@@ -124,6 +125,29 @@ struct ChildState  // 子階層State
 	bool useRootMotion = false; // ルートモーションの使用
 	bool blend = false;         // 遷移時にブレンドするか
 };
+struct ChildStateGraph // 子階層グラフ
+{
+	std::vector<ChildState> children;
+	std::vector<AnimLink> childLinks;
+
+	// ID採番カウンター
+	int* idCounter = nullptr;
+	int GenerateId() { return (*idCounter)++; }
+
+	// 子階層のStateを作成する
+	int CreateChildState(const std::string& name, float posX, float posY);
+	// 子階層のLinkを作成する
+	int CreateChildLink(int fromId, int toId);
+
+	// 子階層のStateを削除する
+	void DeleteChildState(int stateId);
+	// 子階層のLinkを削除する
+	void DeleteChildLink(int linkId);
+
+	// Start/Endがなければ作成する(古い保存データの復元時にも使う)
+	void EnsureStartAndEndExist();
+};
+
 struct ParentState  // 親階層State
 {
 	int id = -1;
@@ -136,45 +160,44 @@ struct ParentState  // 親階層State
 
 	float color[3] = { 0.27f, 0.35f, 0.47f };
 
-	std::vector<ChildState> children;
-	std::vector<AnimLink> childLinks;
-
-	// この子階層専用のID採番カウンター
-	int nextId = 1;
-	int GenerateId() { return nextId++; }
-
-	// 子階層のStateを作成する(作成したStateのIDを返す)
-	int CreateChildState(const std::string& name, float posX, float posY);
-	// 子階層のLinkを作成する(作成したLinkのIDを返す)
-	int CreateChildLink(int fromId, int toId);
-
-	// 子階層のStateを削除する(Entry/Exitは削除できない。関係するLinkも一緒に削除する)
-	void DeleteChildState(int stateId);
-	// 子階層のLinkを削除する
-	void DeleteChildLink(int linkId);
+	ChildStateGraph childGraph; // 親階層は子階層グラフを持つ
 };
+struct ParentStateGraph // 親階層グラフ
+{
+	std::vector<ParentState> states;
+	std::vector<AnimLink> stateLinks;
 
+	// ID採番カウンター
+	int* idCounter = nullptr;
+	int GenerateId() { return (*idCounter)++; }
+
+	// 親階層のStateを作成する
+	int CreateParentState(const std::string& name, float posX, float posY);
+	// 親階層のLinkを作成する
+	int CreateParentLink(int fromId, int toId);
+
+	// 親階層のStateを削除する
+	void DeleteParentState(int stateId);
+	// 親階層のLinkを削除する
+	void DeleteParentLink(int linkId);
+
+	// Entryがなければ作成する(古い保存データの復元時にも使う)
+	void EnsureEntryExists();
+};
 
 class AnimatorGraphData
 {
 public:
 	AnimatorGraphData();
 
-	std::vector<ParentState>states;
-	std::vector<AnimLink>stateLinks;
+	// コピー禁止
+	AnimatorGraphData(const AnimatorGraphData&) = delete;
+	AnimatorGraphData& operator=(const AnimatorGraphData&) = delete;
+	// ムーブ禁止
+	AnimatorGraphData(AnimatorGraphData&&) = delete;
+	AnimatorGraphData& operator=(AnimatorGraphData&&) = delete;
 
-	// Stateを作成する
-	int CreateState(const std::string& name, float posX, float posY);
-	// Stateを削除する
-	void DeleteState(int stateId);
-
-	// Linkを作成する
-	int CreateLink(int fromId, int toId);
-	// Linkを削除する
-	void DeleteLink(int linkId);
-
-	// State/StateLink用のID採番カウンター
-	int GenerateId() { return nextId++; }
+	ParentStateGraph parentGraph; // 親階層グラフ本体
 
 	// グラフ内容をJsonに変換する
 	nlohmann::ordered_json ToJson() const;
@@ -182,12 +205,6 @@ public:
 	void FromJson(const nlohmann::json& j);
 
 private:
-	// ParentState(Entry)がなければ作成する
-	void EnsureParentEntryExists();
-
-	// ChildState(Entry/Exit)がなければ作成する
-	void EnsureChildEntryAndExitExist(ParentState& parent);
-
 	// Statesを保存内容へ変換
 	nlohmann::ordered_json StatesToJson() const;
 	// Statesを保存内容から復元する
@@ -198,5 +215,14 @@ private:
 	// StateLinksを保存内容から復元する
 	void StateLinksFromJson(const nlohmann::json& j);
 
-	int nextId = 1;
+	// AnimLink1本分をJsonに変換する(親Link・子Link共通)
+	nlohmann::ordered_json AnimLinkToJson(const AnimLink& link) const;
+	// AnimLink1本分をJsonから復元する(親Link・子Link共通)
+	void AnimLinkFromJson(AnimLink& link, const nlohmann::json& jl);
+
+	// 読み込んだIDにカウンタを追従させる
+	void SyncIdCounter(int id);
+
+	// ID採番カウンターの実体
+	int idCounter = 1;
 };
