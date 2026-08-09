@@ -8,6 +8,15 @@
 
 namespace ed = ax::NodeEditor;
 
+// 画面遷移の要求
+enum class NavigationRequest
+{
+	None,
+	EditCondition,  // 選択中の Link  の条件グラフへ
+	EditChildGraph, // 選択中の State の子階層へ
+};
+
+
 class StudioParentStateGraph
 {
 public:
@@ -17,8 +26,11 @@ public:
 	void Initialize();
 
 	// ImGui描画
-	void DrawGUI(AnimatorGraphData& graph, const std::function<void(AnimLink*)>& onEditCondition);
+	void DrawGUI(AnimatorGraphData& graph);
 	void DrawInspector();
+
+	// 画面遷移が要求されていれば取り出す
+	NavigationRequest ConsumeNavigationRequest(AnimLink*& outLink, ParentState*& outState);
 
 	// 保存/読み込み直後など、座標を強制的に反映させたい時に呼ぶ
 	void RequestApplyPositions() { needsApplyPositions = true; }
@@ -36,8 +48,8 @@ private:
 	ParentState* selectedState = nullptr;
 	AnimLink* selectedLink = nullptr;
 
-	std::function<void(AnimLink*)> pendingEditCondition; // DrawGUIで受け取り、DrawInspectorで使う
-	        
+	NavigationRequest pendingNavigation = NavigationRequest::None; // 画面遷移の要求
+
 	// == State描画 == //
 	void DrawStates(); // State描画
 	void PushStateStyle(const ParentState& state); // Stateの種類に応じた見た目のスタイルを適用する
@@ -60,13 +72,12 @@ private:
 	// == 選択状態とインスペクター == //
 	void UpdateSelection(); // 選択状態を更新
 	void DrawStateInspector(ParentState* state); // State選択時のInspector
-	void DrawLinkInspector(AnimLink* link, const std::function<void(AnimLink*)>& onEditCondition); // Link選択時の Inspector
+	void DrawLinkInspector(AnimLink* link); // Link選択時の Inspector
 
 	// == 表示用ヘルパー == //
 	static void CenterNextItem(float totalWidth, float itemWidth);					 // ノード内で中央寄せにする
 	void DrawDeleteButton(const char* label, const std::function<void()>& onDelete); // 共通の削除ボタン
 
-	// == 動的ピンのID == //
-	static ed::PinId GetOutPinId(int linkId) { return ed::PinId((int64_t)20000000 + (int64_t)linkId * 2); }
-	static ed::PinId GetInPinId(int linkId) { return ed::PinId((int64_t)20000000 + (int64_t)linkId * 2 + 1); }
+	// == 動的ピンID == //
+	static ed::PinId GetPinId(int linkId, bool isOutput) { return ed::PinId((int64_t)20000000 + (int64_t)linkId * 2 + (isOutput ? 0 : 1)); }
 };

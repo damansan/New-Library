@@ -51,4 +51,7 @@ private:
 	void RefreshAvailableAnimations(entt::registry& registry); // モデルが持つアニメーション一覧を更新する
 	void Save(StudioContext& context); // .animgraphへの保存
 	void Load(StudioContext& context); // .animgraphの読み込み
+
+	// 新規保存先のパスを決定する
+	std::string BuildNewSavePath(StudioContext& context);
 };

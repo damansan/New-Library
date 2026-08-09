@@ -1,6 +1,9 @@
 #include "StudioAnimatorGraph.h"
 #include "ECS/Components/SkinnedMeshComponent.h"
+#include "Editor/ProjectWindow.h"
 #include <json.hpp>
+#include <filesystem>
+#include <algorithm>
 
 void StudioAnimatorGraph::Initialize()
 {
@@ -57,15 +60,22 @@ void StudioAnimatorGraph::DrawGUI(entt::registry& registry, StudioContext& conte
 // 親階層(State)キャンバス
 void StudioAnimatorGraph::DrawStateCanvas()
 {
-	parentStateGraph.DrawGUI(graphData, [this](AnimLink* link)
-		{
-			conditionGraph.SetTarget(link);
-			showConditionGraph = true;
-		});
+	parentStateGraph.DrawGUI(graphData);
 
 	ImGui::NextColumn();
 
 	parentStateGraph.DrawInspector();
+
+	// 画面遷移の要求を確認する
+	AnimLink* navLink = nullptr;
+	ParentState* navState = nullptr;
+	NavigationRequest request = parentStateGraph.ConsumeNavigationRequest(navLink, navState);
+
+	if (request == NavigationRequest::EditCondition && navLink)
+	{
+		conditionGraph.SetTarget(navLink);
+		showConditionGraph = true;
+	}
 }
 // 遷移条件キャンバス
 void StudioAnimatorGraph::DrawConditionCanvas()
@@ -91,19 +101,19 @@ void StudioAnimatorGraph::DrawToolbar(StudioContext& context)
 		ImGui::TextColored(ImVec4(1, 0.4f, 0.4f, 1), "%s", attachError.c_str());
 	}
 
-	// 保存ボタン
+	// 保存ボタン(未紐づけでも押せる。押した時点で新規保存先が決まる)
+	if (ImGui::Button("Save"))
+	{
+		Save(context);
+	}
+	ImGui::SameLine();
 	if (!context.attachedGraphPath.empty())
 	{
-		if (ImGui::Button("Save"))
-		{
-			Save(context);
-		}
-		ImGui::SameLine();
 		ImGui::TextDisabled("%s", context.attachedGraphPath.c_str());
 	}
 	else
 	{
-		ImGui::TextDisabled("No graph attached.");
+		ImGui::TextDisabled("Not saved yet.");
 	}
 	ImGui::Separator();
 
@@ -180,7 +190,12 @@ void StudioAnimatorGraph::RefreshAvailableAnimations(entt::registry& registry)
 // 保存
 void StudioAnimatorGraph::Save(StudioContext& context)
 {
-	if (context.attachedGraphPath.empty()) return;
+	// 未紐づけなら、保存先を自動で決定する
+	if (context.attachedGraphPath.empty())
+	{
+		context.attachedGraphPath = BuildNewSavePath(context);
+		loaded = true;
+	}
 
 	nlohmann::ordered_json j;
 	j["sourceModelPath"] = context.currentModelPath;
@@ -211,4 +226,20 @@ void StudioAnimatorGraph::Load(StudioContext& context)
 	{
 		// 壊れているか空のjsonの場合なにもしない
 	}
+}
+
+// 新規保存先のパスを決定する
+std::string StudioAnimatorGraph::BuildNewSavePath(StudioContext& context)
+{
+	std::filesystem::path saveDir = "Data/Json/Animgraph";
+	std::filesystem::create_directories(saveDir); // フォルダが無ければ作る
+
+	std::string modelName = std::filesystem::path(context.currentModelPath).stem().string();
+	std::string baseName = modelName + ".animgraph";
+
+	std::string uniqueName = ProjectWindow::GenerateUniqueName(saveDir, baseName);
+
+	std::string result = (saveDir / uniqueName).string();
+	std::replace(result.begin(), result.end(), '\\', '/');
+	return result;
 }

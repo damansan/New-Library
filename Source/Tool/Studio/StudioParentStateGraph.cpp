@@ -7,10 +7,9 @@ void StudioParentStateGraph::Initialize()
 
 
 // ImGui描画(Stateキャンバス本体)
-void StudioParentStateGraph::DrawGUI(AnimatorGraphData& g, const std::function<void(AnimLink*)>& onEditCondition)
+void StudioParentStateGraph::DrawGUI(AnimatorGraphData& g)
 {
 	graph = &g;
-	pendingEditCondition = onEditCondition;
 
 	canvas.Begin("AnimatorCanvas");
 
@@ -39,12 +38,23 @@ void StudioParentStateGraph::DrawInspector()
 
 	if (selectedLink)
 	{
-		DrawLinkInspector(selectedLink, pendingEditCondition);
+		DrawLinkInspector(selectedLink);
 		return;
 	}
 
 	// どちらも選択されていない場合
 	ImGui::TextDisabled("No state selected.");
+}
+
+// 画面遷移が要求されていれば取り出す
+NavigationRequest StudioParentStateGraph::ConsumeNavigationRequest(AnimLink*& outLink, ParentState*& outState)
+{
+	NavigationRequest request = pendingNavigation;
+	outLink = (request == NavigationRequest::EditCondition) ? selectedLink : nullptr;
+	outState = (request == NavigationRequest::EditChildGraph) ? selectedState : nullptr;
+
+	pendingNavigation = NavigationRequest::None;
+	return request;
 }
 
 
@@ -53,7 +63,7 @@ void StudioParentStateGraph::DrawStates()
 {
 	stateScreenRects.clear();
 
-	for (auto& state : graph->states)
+	for (auto& state : graph->parentGraph.states) 
 	{
 		ed::NodeId nodeId(state.id);
 
@@ -134,7 +144,7 @@ void StudioParentStateGraph::DrawLinks()
 {
 	const float arrowTrim = 10.0f; // 矢印の底辺の位置まで、線を手前に引く量
 
-	for (const auto& link : graph->stateLinks)
+	for (const auto& link : graph->parentGraph.stateLinks) 
 	{
 		ImVec2 startPoint, endPoint;
 		CalcLinkPoints(link, startPoint, endPoint);
@@ -221,8 +231,8 @@ void StudioParentStateGraph::DrawLinkPins(const AnimLink& link, const ImVec2& st
 	ed::NodeId outNodeId(idOffset + (int64_t)link.id * 2);
 	ed::NodeId inNodeId(idOffset + (int64_t)link.id * 2 + 1);
 
-	ed::PinId outPinId = GetOutPinId(link.id);
-	ed::PinId inPinId = GetInPinId(link.id);
+	ed::PinId outPinId = GetPinId(link.id, true);
+	ed::PinId inPinId = GetPinId(link.id, false);
 
 	ed::PushStyleVar(ed::StyleVar_NodePadding, ImVec4(0, 0, 0, 0));
 	ed::PushStyleColor(ed::StyleColor_NodeBg, ImColor(0, 0, 0, 0));
@@ -268,7 +278,7 @@ ImVec2 StudioParentStateGraph::GetEdgePoint(const ImVec2& rectMin, const ImVec2&
 // 双方向のLinkがあるか確認する
 bool StudioParentStateGraph::HasReverseLink(int fromId, int toId) const
 {
-	for (const auto& link : graph->stateLinks)
+	for (const auto& link : graph->parentGraph.stateLinks) 
 	{
 		if (link.fromId == toId && link.toId == fromId)
 		{
@@ -315,7 +325,7 @@ void StudioParentStateGraph::DrawCreateStateMenu()
 		if (ImGui::MenuItem(u8"State"))
 		{
 			ImVec2 canvasPos = ed::ScreenToCanvas(pendingCreatePos);
-			int newId = graph->CreateState("New State", canvasPos.x, canvasPos.y);
+			int newId = graph->parentGraph.CreateParentState("New State", canvasPos.x, canvasPos.y);
 			ed::SetNodePosition(ed::NodeId(newId), canvasPos);
 		}
 		ImGui::EndPopup();
@@ -356,7 +366,7 @@ void StudioParentStateGraph::UpdateLinkCreation()
 			int targetId = (int)hovered.Get();
 
 			bool targetIsEntry = false;
-			for (const auto& state : graph->states)
+			for (const auto& state : graph->parentGraph.states)
 			{
 				if (state.id == targetId && state.type == ParentStateType::Entry)
 				{
@@ -367,7 +377,7 @@ void StudioParentStateGraph::UpdateLinkCreation()
 
 			if (!targetIsEntry)
 			{
-				graph->CreateLink(pendingLinkFromId, targetId);
+				graph->parentGraph.CreateParentLink(pendingLinkFromId, targetId);
 			}
 		}
 
@@ -404,7 +414,7 @@ void StudioParentStateGraph::UpdateSelection()
 	ed::NodeId selectedNodeId;
 	if (ed::GetSelectedNodes(&selectedNodeId, 1) > 0)
 	{
-		for (auto& state : graph->states)
+		for (auto& state : graph->parentGraph.states)
 		{
 			if (state.id == (int)selectedNodeId.Get())
 			{
@@ -417,7 +427,7 @@ void StudioParentStateGraph::UpdateSelection()
 	ed::LinkId selectedLinkId;
 	if (ed::GetSelectedLinks(&selectedLinkId, 1) > 0)
 	{
-		for (auto& link : graph->stateLinks)
+		for (auto& link : graph->parentGraph.stateLinks)
 		{
 			if (link.id == (int)selectedLinkId.Get())
 			{
@@ -448,14 +458,14 @@ void StudioParentStateGraph::DrawStateInspector(ParentState* state)
 	ImGui::ColorEdit3("Color", state->color);
 
 	int stateId = state->id;
-	DrawDeleteButton("Delete State", [this, stateId]() { graph->DeleteState(stateId); });
+	DrawDeleteButton("Delete State", [this, stateId]() { graph->parentGraph.DeleteParentState(stateId); });
 }
 // Link選択時のInspector
-void StudioParentStateGraph::DrawLinkInspector(AnimLink* link, const std::function<void(AnimLink*)>& onEditCondition)
+void StudioParentStateGraph::DrawLinkInspector(AnimLink* link)
 {
 	const ParentState* fromState = nullptr;
 	const ParentState* toState = nullptr;
-	for (const auto& state : graph->states)
+	for (const auto& state : graph->parentGraph.states)
 	{
 		if (state.id == link->fromId) fromState = &state;
 		if (state.id == link->toId)   toState = &state;
@@ -468,11 +478,11 @@ void StudioParentStateGraph::DrawLinkInspector(AnimLink* link, const std::functi
 
 	if (ImGui::Button("Edit Condition", ImVec2(-1.0f, 0.0f)))
 	{
-		if (onEditCondition) onEditCondition(link);
+		pendingNavigation = NavigationRequest::EditCondition;
 	}
 
 	int linkId = link->id;
-	DrawDeleteButton("Delete Link", [this, linkId]() { graph->DeleteLink(linkId); });
+	DrawDeleteButton("Delete Link", [this, linkId]() { graph->parentGraph.DeleteParentLink(linkId); });
 }
 
 // ノード内で中央寄せにする

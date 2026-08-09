@@ -65,6 +65,32 @@ void ProjectWindow::Draw(entt::registry& registry, EditorContext& context)
 	ImGui::End();
 }
 
+// 重複しない名前で作成
+std::string ProjectWindow::GenerateUniqueName(const std::filesystem::path& parentDir, const std::string& baseName) 
+{
+	std::filesystem::path candidate = parentDir / baseName;
+	if (!std::filesystem::exists(candidate))
+	{
+		return baseName;
+	}
+
+	// 拡張子の手前に連番を挟む
+	std::filesystem::path basePath(baseName);
+	std::string stem = basePath.stem().string();
+	std::string ext = basePath.extension().string();
+
+	int suffix = 2;
+	while (true)
+	{
+		std::string name = stem + " (" + std::to_string(suffix) + ")" + ext;
+		if (!std::filesystem::exists(parentDir / name))
+		{
+			return name;
+		}
+		++suffix;
+	}
+}
+
 // フォルダツリー
 void ProjectWindow::DrawFolderTree(const std::filesystem::path& path)
 {
@@ -330,34 +356,6 @@ void ProjectWindow::DrawFileGrid(entt::registry& registry, EditorContext& contex
 				context.studioRequest.assetPath = modelPath;
 				context.studioRequest.graphPath = "";
 			}
-			else if (isAnimGraph)
-			{
-				// jsonの中身を読んで、モデルが紐付いているか確認する
-				std::string sourceModelPath;
-
-				std::ifstream ifs(entry.path());
-				if (ifs.is_open())
-				{
-					try
-					{
-						nlohmann::json j;
-						ifs >> j;
-
-						if (j.contains("sourceModelPath"))
-						{
-							sourceModelPath = j["sourceModelPath"].get<std::string>();
-						}
-					}
-					catch (const std::exception&)
-					{
-						// 壊れている/空のjsonの場合はモデル無しとして扱う
-					}
-				}
-
-				context.studioRequest.pending = true;
-				context.studioRequest.assetPath = sourceModelPath; // 空ならモデル無しで開く
-				context.studioRequest.graphPath = modelPath;        // 変数名はmodelPathだが実体はentry.path()の文字列
-			}
 		}
 
 		// ドラッグ開始（モデル／アニメーショングラフ/シーケンサー）
@@ -462,12 +460,6 @@ void ProjectWindow::DrawFileGrid(entt::registry& registry, EditorContext& contex
 				std::string newName = GenerateUniqueName(itemState.selectedPath, "New Folder");
 				std::filesystem::create_directory(itemState.selectedPath / newName);
 			}
-			if (ImGui::MenuItem(u8"アニメーショングラフ"))
-			{
-				std::string newName = GenerateUniqueName(itemState.selectedPath, "New AnimatorGraph.animgraph");
-				std::ofstream ofs(itemState.selectedPath / newName);
-				ofs << "{}";
-			}
 			ImGui::EndMenu();
 		}
 		ImGui::EndPopup();
@@ -501,31 +493,6 @@ bool ProjectWindow::IsSequencerFile(const std::filesystem::path& path)
 	return ext == ".sequencer";
 }
 
-// 重複しない名前で作成
-std::string ProjectWindow::GenerateUniqueName(const std::filesystem::path& parentDir, const std::string& baseName)
-{
-	std::filesystem::path candidate = parentDir / baseName;
-	if (!std::filesystem::exists(candidate))
-	{
-		return baseName;
-	}
-
-	// 拡張子の手前に連番を挟む
-	std::filesystem::path basePath(baseName);
-	std::string stem = basePath.stem().string();
-	std::string ext = basePath.extension().string();
-
-	int suffix = 2;
-	while (true)
-	{
-		std::string name = stem + " (" + std::to_string(suffix) + ")" + ext;
-		if (!std::filesystem::exists(parentDir / name))
-		{
-			return name;
-		}
-		++suffix;
-	}
-}
 
 // 削除確認ポップ
 void ProjectWindow::DrawDeleteConfirmPopup()

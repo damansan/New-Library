@@ -1951,6 +1951,13 @@ class AnimatorGraphData
 public:
 	AnimatorGraphData();
 
+	// コピー禁止
+	AnimatorGraphData(const AnimatorGraphData&) = delete;
+	AnimatorGraphData& operator=(const AnimatorGraphData&) = delete;
+	// ムーブ禁止
+	AnimatorGraphData(AnimatorGraphData&&) = delete;
+	AnimatorGraphData& operator=(AnimatorGraphData&&) = delete;
+
 	ParentStateGraph parentGraph; // 親階層グラフ本体
 
 	// グラフ内容をJsonに変換する
@@ -2418,11 +2425,7 @@ nlohmann::ordered_json AnimatorGraphData::StatesToJson() const
 		js["childLinks"] = nlohmann::json::array();
 		for (const auto& link : state.childGraph.childLinks)
 		{
-			nlohmann::ordered_json jl;
-			jl["id"] = link.id;
-			jl["fromId"] = link.fromId;
-			jl["toId"] = link.toId;
-			js["childLinks"].push_back(jl);
+			js["childLinks"].push_back(AnimLinkToJson(link));
 		}
 
 		jStates.push_back(js);
@@ -2480,12 +2483,8 @@ void AnimatorGraphData::StatesFromJson(const nlohmann::json& j)
 			for (const auto& jl : js["childLinks"])
 			{
 				AnimLink link;
-				link.id = jl.value("id", -1);
-				link.fromId = jl.value("fromId", -1);
-				link.toId = jl.value("toId", -1);
+				AnimLinkFromJson(link, jl);
 				state.childGraph.childLinks.push_back(link);
-
-				SyncIdCounter(link.id);
 			}
 		}
 
@@ -2681,8 +2680,6 @@ void AnimatorGraphData::AnimLinkFromJson(AnimLink& link, const nlohmann::json& j
 	}
 
 	// 古い保存データ、あるいは"condition"キー自体が無かった場合の保険
-	// (以前の実装ではこのチェックがcontains("condition")の内側にあり、
-	//  キー自体が無いケースを見落としていたので、外側に出して直した)
 	if (link.condition.returnNode.id < 0)
 	{
 		link.condition.returnNode.id = link.condition.GenerateId();
@@ -2697,6 +2694,7 @@ void AnimatorGraphData::AnimLinkFromJson(AnimLink& link, const nlohmann::json& j
 // 読み込んだIDにカウンタを追従させる
 void AnimatorGraphData::SyncIdCounter(int id)
 {
+	if (id >= idCounter) idCounter = id + 1;
 }
  
  
@@ -6710,6 +6708,9 @@ public:
     // 描画
     void Draw(entt::registry& registry, EditorContext& context);
 
+    // 重複しない名前で作成
+    static std::string GenerateUniqueName(const std::filesystem::path& parentDir, const std::string& baseName);
+
 private:
     // 左側：フォルダツリー
     void DrawFolderTree(const std::filesystem::path& path);
@@ -6723,8 +6724,6 @@ private:
 	// ファイルがシーケンサーファイルか判定
     static bool IsSequencerFile(const std::filesystem::path& path);
 
-    // 重複しない名前で作成
-    std::string GenerateUniqueName(const std::filesystem::path& parentDir, const std::string& baseName);
 
     // 削除確認ポップ
     void DrawDeleteConfirmPopup();
@@ -7798,6 +7797,32 @@ void ProjectWindow::Draw(entt::registry& registry, EditorContext& context)
 	ImGui::End();
 }
 
+// 重複しない名前で作成
+std::string ProjectWindow::GenerateUniqueName(const std::filesystem::path& parentDir, const std::string& baseName) 
+{
+	std::filesystem::path candidate = parentDir / baseName;
+	if (!std::filesystem::exists(candidate))
+	{
+		return baseName;
+	}
+
+	// 拡張子の手前に連番を挟む
+	std::filesystem::path basePath(baseName);
+	std::string stem = basePath.stem().string();
+	std::string ext = basePath.extension().string();
+
+	int suffix = 2;
+	while (true)
+	{
+		std::string name = stem + " (" + std::to_string(suffix) + ")" + ext;
+		if (!std::filesystem::exists(parentDir / name))
+		{
+			return name;
+		}
+		++suffix;
+	}
+}
+
 // フォルダツリー
 void ProjectWindow::DrawFolderTree(const std::filesystem::path& path)
 {
@@ -8063,34 +8088,6 @@ void ProjectWindow::DrawFileGrid(entt::registry& registry, EditorContext& contex
 				context.studioRequest.assetPath = modelPath;
 				context.studioRequest.graphPath = "";
 			}
-			else if (isAnimGraph)
-			{
-				// jsonの中身を読んで、モデルが紐付いているか確認する
-				std::string sourceModelPath;
-
-				std::ifstream ifs(entry.path());
-				if (ifs.is_open())
-				{
-					try
-					{
-						nlohmann::json j;
-						ifs >> j;
-
-						if (j.contains("sourceModelPath"))
-						{
-							sourceModelPath = j["sourceModelPath"].get<std::string>();
-						}
-					}
-					catch (const std::exception&)
-					{
-						// 壊れている/空のjsonの場合はモデル無しとして扱う
-					}
-				}
-
-				context.studioRequest.pending = true;
-				context.studioRequest.assetPath = sourceModelPath; // 空ならモデル無しで開く
-				context.studioRequest.graphPath = modelPath;        // 変数名はmodelPathだが実体はentry.path()の文字列
-			}
 		}
 
 		// ドラッグ開始（モデル／アニメーショングラフ/シーケンサー）
@@ -8195,12 +8192,6 @@ void ProjectWindow::DrawFileGrid(entt::registry& registry, EditorContext& contex
 				std::string newName = GenerateUniqueName(itemState.selectedPath, "New Folder");
 				std::filesystem::create_directory(itemState.selectedPath / newName);
 			}
-			if (ImGui::MenuItem(u8"アニメーショングラフ"))
-			{
-				std::string newName = GenerateUniqueName(itemState.selectedPath, "New AnimatorGraph.animgraph");
-				std::ofstream ofs(itemState.selectedPath / newName);
-				ofs << "{}";
-			}
 			ImGui::EndMenu();
 		}
 		ImGui::EndPopup();
@@ -8234,31 +8225,6 @@ bool ProjectWindow::IsSequencerFile(const std::filesystem::path& path)
 	return ext == ".sequencer";
 }
 
-// 重複しない名前で作成
-std::string ProjectWindow::GenerateUniqueName(const std::filesystem::path& parentDir, const std::string& baseName)
-{
-	std::filesystem::path candidate = parentDir / baseName;
-	if (!std::filesystem::exists(candidate))
-	{
-		return baseName;
-	}
-
-	// 拡張子の手前に連番を挟む
-	std::filesystem::path basePath(baseName);
-	std::string stem = basePath.stem().string();
-	std::string ext = basePath.extension().string();
-
-	int suffix = 2;
-	while (true)
-	{
-		std::string name = stem + " (" + std::to_string(suffix) + ")" + ext;
-		if (!std::filesystem::exists(parentDir / name))
-		{
-			return name;
-		}
-		++suffix;
-	}
-}
 
 // 削除確認ポップ
 void ProjectWindow::DrawDeleteConfirmPopup()
@@ -13512,6 +13478,9 @@ private:
 	void RefreshAvailableAnimations(entt::registry& registry); // モデルが持つアニメーション一覧を更新する
 	void Save(StudioContext& context); // .animgraphへの保存
 	void Load(StudioContext& context); // .animgraphの読み込み
+
+	// 新規保存先のパスを決定する
+	std::string BuildNewSavePath(StudioContext& context);
 }; 
  
 ===== StudioCamera.h ===== 
@@ -13851,6 +13820,15 @@ Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioParentStateGra
 
 namespace ed = ax::NodeEditor;
 
+// 画面遷移の要求
+enum class NavigationRequest
+{
+	None,
+	EditCondition,  // 選択中の Link  の条件グラフへ
+	EditChildGraph, // 選択中の State の子階層へ
+};
+
+
 class StudioParentStateGraph
 {
 public:
@@ -13860,8 +13838,11 @@ public:
 	void Initialize();
 
 	// ImGui描画
-	void DrawGUI(AnimatorGraphData& graph, const std::function<void(AnimLink*)>& onEditCondition);
+	void DrawGUI(AnimatorGraphData& graph);
 	void DrawInspector();
+
+	// 画面遷移が要求されていれば取り出す
+	NavigationRequest ConsumeNavigationRequest(AnimLink*& outLink, ParentState*& outState);
 
 	// 保存/読み込み直後など、座標を強制的に反映させたい時に呼ぶ
 	void RequestApplyPositions() { needsApplyPositions = true; }
@@ -13879,8 +13860,8 @@ private:
 	ParentState* selectedState = nullptr;
 	AnimLink* selectedLink = nullptr;
 
-	std::function<void(AnimLink*)> pendingEditCondition; // DrawGUIで受け取り、DrawInspectorで使う
-	        
+	NavigationRequest pendingNavigation = NavigationRequest::None; // 画面遷移の要求
+
 	// == State描画 == //
 	void DrawStates(); // State描画
 	void PushStateStyle(const ParentState& state); // Stateの種類に応じた見た目のスタイルを適用する
@@ -13903,15 +13884,14 @@ private:
 	// == 選択状態とインスペクター == //
 	void UpdateSelection(); // 選択状態を更新
 	void DrawStateInspector(ParentState* state); // State選択時のInspector
-	void DrawLinkInspector(AnimLink* link, const std::function<void(AnimLink*)>& onEditCondition); // Link選択時の Inspector
+	void DrawLinkInspector(AnimLink* link); // Link選択時の Inspector
 
 	// == 表示用ヘルパー == //
 	static void CenterNextItem(float totalWidth, float itemWidth);					 // ノード内で中央寄せにする
 	void DrawDeleteButton(const char* label, const std::function<void()>& onDelete); // 共通の削除ボタン
 
-	// == 動的ピンのID == //
-	static ed::PinId GetOutPinId(int linkId) { return ed::PinId((int64_t)20000000 + (int64_t)linkId * 2); }
-	static ed::PinId GetInPinId(int linkId) { return ed::PinId((int64_t)20000000 + (int64_t)linkId * 2 + 1); }
+	// == 動的ピンID == //
+	static ed::PinId GetPinId(int linkId, bool isOutput) { return ed::PinId((int64_t)20000000 + (int64_t)linkId * 2 + (isOutput ? 0 : 1)); }
 }; 
  
 ===== StudioSequencer.h ===== 
@@ -14214,7 +14194,10 @@ void StudioAnimator::DrawGUI(
 Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioAnimatorGraph.cpp 
 #include "StudioAnimatorGraph.h"
 #include "ECS/Components/SkinnedMeshComponent.h"
+#include "Editor/ProjectWindow.h"
 #include <json.hpp>
+#include <filesystem>
+#include <algorithm>
 
 void StudioAnimatorGraph::Initialize()
 {
@@ -14271,15 +14254,22 @@ void StudioAnimatorGraph::DrawGUI(entt::registry& registry, StudioContext& conte
 // 親階層(State)キャンバス
 void StudioAnimatorGraph::DrawStateCanvas()
 {
-	parentStateGraph.DrawGUI(graphData, [this](AnimLink* link)
-		{
-			conditionGraph.SetTarget(link);
-			showConditionGraph = true;
-		});
+	parentStateGraph.DrawGUI(graphData);
 
 	ImGui::NextColumn();
 
 	parentStateGraph.DrawInspector();
+
+	// 画面遷移の要求を確認する
+	AnimLink* navLink = nullptr;
+	ParentState* navState = nullptr;
+	NavigationRequest request = parentStateGraph.ConsumeNavigationRequest(navLink, navState);
+
+	if (request == NavigationRequest::EditCondition && navLink)
+	{
+		conditionGraph.SetTarget(navLink);
+		showConditionGraph = true;
+	}
 }
 // 遷移条件キャンバス
 void StudioAnimatorGraph::DrawConditionCanvas()
@@ -14305,19 +14295,19 @@ void StudioAnimatorGraph::DrawToolbar(StudioContext& context)
 		ImGui::TextColored(ImVec4(1, 0.4f, 0.4f, 1), "%s", attachError.c_str());
 	}
 
-	// 保存ボタン
+	// 保存ボタン(未紐づけでも押せる。押した時点で新規保存先が決まる)
+	if (ImGui::Button("Save"))
+	{
+		Save(context);
+	}
+	ImGui::SameLine();
 	if (!context.attachedGraphPath.empty())
 	{
-		if (ImGui::Button("Save"))
-		{
-			Save(context);
-		}
-		ImGui::SameLine();
 		ImGui::TextDisabled("%s", context.attachedGraphPath.c_str());
 	}
 	else
 	{
-		ImGui::TextDisabled("No graph attached.");
+		ImGui::TextDisabled("Not saved yet.");
 	}
 	ImGui::Separator();
 
@@ -14394,7 +14384,12 @@ void StudioAnimatorGraph::RefreshAvailableAnimations(entt::registry& registry)
 // 保存
 void StudioAnimatorGraph::Save(StudioContext& context)
 {
-	if (context.attachedGraphPath.empty()) return;
+	// 未紐づけなら、保存先を自動で決定する
+	if (context.attachedGraphPath.empty())
+	{
+		context.attachedGraphPath = BuildNewSavePath(context);
+		loaded = true;
+	}
 
 	nlohmann::ordered_json j;
 	j["sourceModelPath"] = context.currentModelPath;
@@ -14425,7 +14420,24 @@ void StudioAnimatorGraph::Load(StudioContext& context)
 	{
 		// 壊れているか空のjsonの場合なにもしない
 	}
-} 
+}
+
+// 新規保存先のパスを決定する
+std::string StudioAnimatorGraph::BuildNewSavePath(StudioContext& context)
+{
+	std::filesystem::path saveDir = "Data/Json/Animgraph";
+	std::filesystem::create_directories(saveDir); // フォルダが無ければ作る
+
+	std::string modelName = std::filesystem::path(context.currentModelPath).stem().string();
+	std::string baseName = modelName + ".animgraph";
+
+	std::string uniqueName = ProjectWindow::GenerateUniqueName(saveDir, baseName);
+
+	std::string result = (saveDir / uniqueName).string();
+	std::replace(result.begin(), result.end(), '\\', '/');
+	return result;
+}
+ 
  
 ===== StudioCamera.cpp ===== 
 Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioCamera.cpp 
@@ -16243,10 +16255,9 @@ void StudioParentStateGraph::Initialize()
 
 
 // ImGui描画(Stateキャンバス本体)
-void StudioParentStateGraph::DrawGUI(AnimatorGraphData& g, const std::function<void(AnimLink*)>& onEditCondition)
+void StudioParentStateGraph::DrawGUI(AnimatorGraphData& g)
 {
 	graph = &g;
-	pendingEditCondition = onEditCondition;
 
 	canvas.Begin("AnimatorCanvas");
 
@@ -16275,12 +16286,23 @@ void StudioParentStateGraph::DrawInspector()
 
 	if (selectedLink)
 	{
-		DrawLinkInspector(selectedLink, pendingEditCondition);
+		DrawLinkInspector(selectedLink);
 		return;
 	}
 
 	// どちらも選択されていない場合
 	ImGui::TextDisabled("No state selected.");
+}
+
+// 画面遷移が要求されていれば取り出す
+NavigationRequest StudioParentStateGraph::ConsumeNavigationRequest(AnimLink*& outLink, ParentState*& outState)
+{
+	NavigationRequest request = pendingNavigation;
+	outLink = (request == NavigationRequest::EditCondition) ? selectedLink : nullptr;
+	outState = (request == NavigationRequest::EditChildGraph) ? selectedState : nullptr;
+
+	pendingNavigation = NavigationRequest::None;
+	return request;
 }
 
 
@@ -16289,7 +16311,7 @@ void StudioParentStateGraph::DrawStates()
 {
 	stateScreenRects.clear();
 
-	for (auto& state : graph->states)
+	for (auto& state : graph->parentGraph.states) 
 	{
 		ed::NodeId nodeId(state.id);
 
@@ -16370,7 +16392,7 @@ void StudioParentStateGraph::DrawLinks()
 {
 	const float arrowTrim = 10.0f; // 矢印の底辺の位置まで、線を手前に引く量
 
-	for (const auto& link : graph->stateLinks)
+	for (const auto& link : graph->parentGraph.stateLinks) 
 	{
 		ImVec2 startPoint, endPoint;
 		CalcLinkPoints(link, startPoint, endPoint);
@@ -16457,8 +16479,8 @@ void StudioParentStateGraph::DrawLinkPins(const AnimLink& link, const ImVec2& st
 	ed::NodeId outNodeId(idOffset + (int64_t)link.id * 2);
 	ed::NodeId inNodeId(idOffset + (int64_t)link.id * 2 + 1);
 
-	ed::PinId outPinId = GetOutPinId(link.id);
-	ed::PinId inPinId = GetInPinId(link.id);
+	ed::PinId outPinId = GetPinId(link.id, true);
+	ed::PinId inPinId = GetPinId(link.id, false);
 
 	ed::PushStyleVar(ed::StyleVar_NodePadding, ImVec4(0, 0, 0, 0));
 	ed::PushStyleColor(ed::StyleColor_NodeBg, ImColor(0, 0, 0, 0));
@@ -16504,7 +16526,7 @@ ImVec2 StudioParentStateGraph::GetEdgePoint(const ImVec2& rectMin, const ImVec2&
 // 双方向のLinkがあるか確認する
 bool StudioParentStateGraph::HasReverseLink(int fromId, int toId) const
 {
-	for (const auto& link : graph->stateLinks)
+	for (const auto& link : graph->parentGraph.stateLinks) 
 	{
 		if (link.fromId == toId && link.toId == fromId)
 		{
@@ -16551,7 +16573,7 @@ void StudioParentStateGraph::DrawCreateStateMenu()
 		if (ImGui::MenuItem(u8"State"))
 		{
 			ImVec2 canvasPos = ed::ScreenToCanvas(pendingCreatePos);
-			int newId = graph->CreateState("New State", canvasPos.x, canvasPos.y);
+			int newId = graph->parentGraph.CreateParentState("New State", canvasPos.x, canvasPos.y);
 			ed::SetNodePosition(ed::NodeId(newId), canvasPos);
 		}
 		ImGui::EndPopup();
@@ -16592,7 +16614,7 @@ void StudioParentStateGraph::UpdateLinkCreation()
 			int targetId = (int)hovered.Get();
 
 			bool targetIsEntry = false;
-			for (const auto& state : graph->states)
+			for (const auto& state : graph->parentGraph.states)
 			{
 				if (state.id == targetId && state.type == ParentStateType::Entry)
 				{
@@ -16603,7 +16625,7 @@ void StudioParentStateGraph::UpdateLinkCreation()
 
 			if (!targetIsEntry)
 			{
-				graph->CreateLink(pendingLinkFromId, targetId);
+				graph->parentGraph.CreateParentLink(pendingLinkFromId, targetId);
 			}
 		}
 
@@ -16640,7 +16662,7 @@ void StudioParentStateGraph::UpdateSelection()
 	ed::NodeId selectedNodeId;
 	if (ed::GetSelectedNodes(&selectedNodeId, 1) > 0)
 	{
-		for (auto& state : graph->states)
+		for (auto& state : graph->parentGraph.states)
 		{
 			if (state.id == (int)selectedNodeId.Get())
 			{
@@ -16653,7 +16675,7 @@ void StudioParentStateGraph::UpdateSelection()
 	ed::LinkId selectedLinkId;
 	if (ed::GetSelectedLinks(&selectedLinkId, 1) > 0)
 	{
-		for (auto& link : graph->stateLinks)
+		for (auto& link : graph->parentGraph.stateLinks)
 		{
 			if (link.id == (int)selectedLinkId.Get())
 			{
@@ -16684,14 +16706,14 @@ void StudioParentStateGraph::DrawStateInspector(ParentState* state)
 	ImGui::ColorEdit3("Color", state->color);
 
 	int stateId = state->id;
-	DrawDeleteButton("Delete State", [this, stateId]() { graph->DeleteState(stateId); });
+	DrawDeleteButton("Delete State", [this, stateId]() { graph->parentGraph.DeleteParentState(stateId); });
 }
 // Link選択時のInspector
-void StudioParentStateGraph::DrawLinkInspector(AnimLink* link, const std::function<void(AnimLink*)>& onEditCondition)
+void StudioParentStateGraph::DrawLinkInspector(AnimLink* link)
 {
 	const ParentState* fromState = nullptr;
 	const ParentState* toState = nullptr;
-	for (const auto& state : graph->states)
+	for (const auto& state : graph->parentGraph.states)
 	{
 		if (state.id == link->fromId) fromState = &state;
 		if (state.id == link->toId)   toState = &state;
@@ -16704,11 +16726,11 @@ void StudioParentStateGraph::DrawLinkInspector(AnimLink* link, const std::functi
 
 	if (ImGui::Button("Edit Condition", ImVec2(-1.0f, 0.0f)))
 	{
-		if (onEditCondition) onEditCondition(link);
+		pendingNavigation = NavigationRequest::EditCondition;
 	}
 
 	int linkId = link->id;
-	DrawDeleteButton("Delete Link", [this, linkId]() { graph->DeleteLink(linkId); });
+	DrawDeleteButton("Delete Link", [this, linkId]() { graph->parentGraph.DeleteParentLink(linkId); });
 }
 
 // ノード内で中央寄せにする

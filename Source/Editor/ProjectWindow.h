@@ -36,6 +36,9 @@ public:
     // 描画
     void Draw(entt::registry& registry, EditorContext& context);
 
+    // 重複しない名前で作成
+    static std::string GenerateUniqueName(const std::filesystem::path& parentDir, const std::string& baseName);
+
 private:
     // 左側：フォルダツリー
     void DrawFolderTree(const std::filesystem::path& path);
@@ -49,8 +52,6 @@ private:
 	// ファイルがシーケンサーファイルか判定
     static bool IsSequencerFile(const std::filesystem::path& path);
 
-    // 重複しない名前で作成
-    std::string GenerateUniqueName(const std::filesystem::path& parentDir, const std::string& baseName);
 
     // 削除確認ポップ
     void DrawDeleteConfirmPopup();
