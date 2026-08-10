@@ -1,21 +1,12 @@
-#pragma once
 #include "Data/AnimatorGraphData.h"
 #include "Tool/NodeEditorCanvas.h"
+#include "Tool/Studio/AnimatorGraphNavigation.h"
 #include <unordered_map>
 #include <functional>
 #include <imgui.h>
 #include <imgui_node_editor.h>
 
 namespace ed = ax::NodeEditor;
-
-// 画面遷移の要求
-enum class NavigationRequest
-{
-	None,
-	EditCondition,  // 選択中の Link  の条件グラフへ
-	EditChildGraph, // 選択中の State の子階層へ
-};
-
 
 class StudioParentStateGraph
 {
@@ -72,7 +63,7 @@ private:
 	// == 選択状態とインスペクター == //
 	void UpdateSelection(); // 選択状態を更新
 	void DrawStateInspector(ParentState* state); // State選択時のInspector
-	void DrawLinkInspector(AnimLink* link); // Link選択時の Inspector
+	void DrawLinkInspector(AnimLink* link);      // Link選択時の Inspector
 
 	// == 表示用ヘルパー == //
 	static void CenterNextItem(float totalWidth, float itemWidth);					 // ノード内で中央寄せにする

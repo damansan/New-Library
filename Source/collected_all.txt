@@ -13367,6 +13367,18 @@ void NodeEditorCanvas::End()
     ed::SetCurrentEditor(nullptr);
 } 
  
+===== AnimatorGraphNavigation.h ===== 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\AnimatorGraphNavigation.h 
+#pragma once
+
+// ƒAƒjƒ[ƒ^[ƒOƒ‰ƒt•ÒW’†‚Ì‰æ–Ê‘JˆÚ—v‹
+enum class NavigationRequest
+{
+	None,
+	EditCondition,  // ‘I‘ğ’†‚ÌLink‚ÌğŒƒOƒ‰ƒt‚Ö
+	EditChildGraph, // ‘I‘ğ’†‚ÌState‚ÌqŠK‘w‚Ö
+}; 
+ 
 ===== IStudioAttachment.h ===== 
 Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\IStudioAttachment.h 
 #pragma once
@@ -13429,6 +13441,7 @@ Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioAnimatorGraph.
 #include "IStudioAttachment.h"
 #include "Data/AnimatorGraphData.h"
 #include "StudioParentStateGraph.h"
+#include "StudioChildStateGraph.h"
 #include "StudioConditionGraph.h"
 
 #include <vector>
@@ -13436,6 +13449,14 @@ Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioAnimatorGraph.
 #include <fstream>
 
 namespace ed = ax::NodeEditor;
+
+// Œ»İ‚Ç‚ÌƒLƒƒƒ“ƒoƒX‚ğ•\¦‚µ‚Ä‚¢‚é‚©
+enum class AnimatorGraphView
+{
+	ParentGraph,
+	ChildGraph,
+	ConditionGraph,
+};
 
 class StudioAnimatorGraph : public IStudioAttachment
 {
@@ -13454,8 +13475,12 @@ private:
 	AnimatorGraphData graphData;
 
 	StudioParentStateGraph parentStateGraph; // eŠK‘wƒLƒƒƒ“ƒoƒX
+	StudioChildStateGraph childStateGraph;   // qŠK‘wƒLƒƒƒ“ƒoƒX
 	StudioConditionGraph conditionGraph;     // ğŒ•ÒWƒLƒƒƒ“ƒoƒX
-	bool showConditionGraph = false;         // Œ»İ‚Ç‚¿‚ç‚ÌƒLƒƒƒ“ƒoƒX‚ğ•\¦’†‚©
+
+	AnimatorGraphView currentView = AnimatorGraphView::ParentGraph;  // Œ»İ•\¦’†‚ÌƒLƒƒƒ“ƒoƒX
+	AnimatorGraphView previousView = AnimatorGraphView::ParentGraph; // ğŒƒOƒ‰ƒt‚©‚ç–ß‚éæ
+	ParentState* editingParent = nullptr; // qŠK‘w•ÒW’†‚Ì‘ÎÛ
 
 	int windowId = 0; // ƒEƒBƒ“ƒhƒE”Ô†
 	std::vector<std::string> availableAnimations; // ƒAƒjƒ[ƒVƒ‡ƒ“ˆê——
@@ -13465,9 +13490,13 @@ private:
 	std::string attachError;             // •R‚Ã‚¯ƒGƒ‰[ƒƒbƒZ[ƒW
 
 	// == ŠeƒLƒƒƒ“ƒoƒX•`‰æ == //
-	void DrawStateCanvas();      // eŠK‘w(State)ƒLƒƒƒ“ƒoƒX
-	void DrawConditionCanvas();  // ‘JˆÚğŒƒLƒƒƒ“ƒoƒX
+	void DrawParentCanvas();    // eŠK‘wƒLƒƒƒ“ƒoƒX
+	void DrawChildCanvas();     // qŠK‘wƒLƒƒƒ“ƒoƒX
+	void DrawConditionCanvas(); // ‘JˆÚğŒƒLƒƒƒ“ƒoƒX
 
+	// == ‰æ–Ê‘JˆÚ == //
+	void GoToCondition();                    // ğŒƒOƒ‰ƒt‚ÖˆÚ“®‚·‚é(–ß‚èæ‚ğ‹L˜^‚·‚é)
+	void GoToChildGraph(ParentState* state); // qŠK‘wƒOƒ‰ƒt‚ÖˆÚ“®‚·‚é
 
 	// == ã‘¤ƒc[ƒ‹ƒo[ == //
 	void DrawToolbar(StudioContext& context);
@@ -13537,6 +13566,7 @@ Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioChildStateGrap
 #pragma once
 #include "Data/AnimatorGraphData.h"
 #include "Tool/NodeEditorCanvas.h"
+#include "Tool/Studio/AnimatorGraphNavigation.h"
 #include <unordered_map>
 #include <functional>
 #include <imgui.h>
@@ -13553,8 +13583,11 @@ public:
 	void Initialize();
 
 	// ImGui•`‰æ
-	void DrawGUI(ParentState& parentState, const std::function<void(AnimLink*)>& onEditCondition);
-	void DrawInspector(); // ‰E‘¤ƒƒjƒ…[
+	void DrawGUI(ChildStateGraph& childGraph, const std::vector<std::string>& availableAnimations);
+	void DrawInspector();
+	
+	// ‰æ–Ê‘JˆÚ‚ª—v‹‚³‚ê‚Ä‚¢‚ê‚Îæ‚èo‚·
+	NavigationRequest ConsumeNavigationRequest(AnimLink*& outLink);
 
 	// •Û‘¶/“Ç‚İ‚İ’¼Œã‚È‚ÇAÀ•W‚ğ‹­§“I‚É”½‰f‚³‚¹‚½‚¢‚ÉŒÄ‚Ô
 	void RequestApplyPositions() { needsApplyPositions = true; }
@@ -13562,7 +13595,8 @@ public:
 private:
 	// == “à•”ó‘Ô == //
 	NodeEditorCanvas canvas;
-	ParentState* parent = nullptr; // ¡ŠJ‚¢‚Ä‚¢‚éA‘ÎÛ‚ÌParentState
+	ChildStateGraph* graph = nullptr;
+	const std::vector<std::string>* availableAnimations = nullptr; // ‘I‘ğ‰Â”\‚ÈƒAƒjƒ[ƒVƒ‡ƒ“–¼ˆê——
 
 	ImVec2 pendingCreatePos{};
 	int pendingLinkFromId = -1;
@@ -13573,12 +13607,12 @@ private:
 	ChildState* selectedState = nullptr;
 	AnimLink* selectedLink = nullptr;
 
-	std::function<void(AnimLink*)> pendingEditCondition; // DrawGUI‚Åó‚¯æ‚èADrawInspector‚Åg‚¤
+	NavigationRequest pendingNavigation = NavigationRequest::None; // ‰æ–Ê‘JˆÚ‚Ì—v‹
 
 	// == State•`‰æ == //
 	void DrawStates(); // State•`‰æ
 	void PushStateStyle(const ChildState& state); // State‚Ìí—Ş‚É‰‚¶‚½Œ©‚½–Ú‚ÌƒXƒ^ƒCƒ‹‚ğ“K—p‚·‚é
-	void PopStateStyle(const ChildState& state);  // PushStateStyle‚Å“K—p‚µ‚½ƒXƒ^ƒCƒ‹‚ğ‰ğœ‚·‚é 
+	void PopStateStyle(const ChildState& state);  // PushStateStyle‚Å“K—p‚µ‚½ƒXƒ^ƒCƒ‹‚ğ‰ğœ‚·‚é
 
 	// == Link•`‰æ == //
 	void DrawLinks(); // Link•`‰æ
@@ -13597,15 +13631,14 @@ private:
 	// == ‘I‘ğó‘Ô‚ÆƒCƒ“ƒXƒyƒNƒ^[ == //
 	void UpdateSelection();  // ‘I‘ğó‘Ô‚ğXV
 	void DrawStateInspector(ChildState* state); // State‘I‘ğ‚ÌInspector
-	void DrawLinkInspector(AnimLink* link, const std::function<void(AnimLink*)>& onEditCondition); // Link‘I‘ğ‚Ì Inspector
+	void DrawLinkInspector(AnimLink* link);     // Link‘I‘ğ‚Ì Inspector
 
 	// == •\¦—pƒwƒ‹ƒp[ == //
 	static void CenterNextItem(float totalWidth, float itemWidth);					 // ƒm[ƒh“à‚Å’†‰›Šñ‚¹‚É‚·‚é
 	void DrawDeleteButton(const char* label, const std::function<void()>& onDelete); // ‹¤’Ê‚Ìíœƒ{ƒ^ƒ“
 
-	// == “®“Iƒsƒ“‚ÌID == //
-	static ed::PinId GetOutPinId(int linkId) { return ed::PinId((int64_t)30000000 + (int64_t)linkId * 2); }
-	static ed::PinId GetInPinId(int linkId) { return ed::PinId((int64_t)30000000 + (int64_t)linkId * 2 + 1); }
+	// == “®“Iƒsƒ“ID == //
+	static ed::PinId GetPinId(int linkId, bool isOutput) { return ed::PinId((int64_t)30000000 + (int64_t)linkId * 2 + (isOutput ? 0 : 1)); }
 }; 
  
 ===== StudioConditionGraph.h ===== 
@@ -13810,24 +13843,15 @@ private:
  
 ===== StudioParentStateGraph.h ===== 
 Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioParentStateGraph.h 
-#pragma once
 #include "Data/AnimatorGraphData.h"
 #include "Tool/NodeEditorCanvas.h"
+#include "Tool/Studio/AnimatorGraphNavigation.h"
 #include <unordered_map>
 #include <functional>
 #include <imgui.h>
 #include <imgui_node_editor.h>
 
 namespace ed = ax::NodeEditor;
-
-// ‰æ–Ê‘JˆÚ‚Ì—v‹
-enum class NavigationRequest
-{
-	None,
-	EditCondition,  // ‘I‘ğ’†‚Ì Link  ‚ÌğŒƒOƒ‰ƒt‚Ö
-	EditChildGraph, // ‘I‘ğ’†‚Ì State ‚ÌqŠK‘w‚Ö
-};
-
 
 class StudioParentStateGraph
 {
@@ -13884,7 +13908,7 @@ private:
 	// == ‘I‘ğó‘Ô‚ÆƒCƒ“ƒXƒyƒNƒ^[ == //
 	void UpdateSelection(); // ‘I‘ğó‘Ô‚ğXV
 	void DrawStateInspector(ParentState* state); // State‘I‘ğ‚ÌInspector
-	void DrawLinkInspector(AnimLink* link); // Link‘I‘ğ‚Ì Inspector
+	void DrawLinkInspector(AnimLink* link);      // Link‘I‘ğ‚Ì Inspector
 
 	// == •\¦—pƒwƒ‹ƒp[ == //
 	static void CenterNextItem(float totalWidth, float itemWidth);					 // ƒm[ƒh“à‚Å’†‰›Šñ‚¹‚É‚·‚é
@@ -14195,6 +14219,7 @@ Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioAnimatorGraph.
 #include "StudioAnimatorGraph.h"
 #include "ECS/Components/SkinnedMeshComponent.h"
 #include "Editor/ProjectWindow.h"
+#include "Tool/Studio/AnimatorGraphNavigation.h"
 #include <json.hpp>
 #include <filesystem>
 #include <algorithm>
@@ -14202,6 +14227,7 @@ Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioAnimatorGraph.
 void StudioAnimatorGraph::Initialize()
 {
 	parentStateGraph.Initialize();
+	childStateGraph.Initialize();
 	conditionGraph.Initialize();
 }
 
@@ -14237,13 +14263,18 @@ void StudioAnimatorGraph::DrawGUI(entt::registry& registry, StudioContext& conte
 		ImGui::SetColumnWidth(0, ImGui::GetWindowWidth() - 220.0f);
 	}
 
-	if (showConditionGraph)
+	switch (currentView)
 	{
+	case AnimatorGraphView::ChildGraph:
+		DrawChildCanvas();
+		break;
+	case AnimatorGraphView::ConditionGraph:
 		DrawConditionCanvas();
-	}
-	else
-	{
-		DrawStateCanvas();
+		break;
+	case AnimatorGraphView::ParentGraph:
+	default:
+		DrawParentCanvas();
+		break;
 	}
 
 	ImGui::Columns(1);
@@ -14252,7 +14283,7 @@ void StudioAnimatorGraph::DrawGUI(entt::registry& registry, StudioContext& conte
 }
 
 // eŠK‘w(State)ƒLƒƒƒ“ƒoƒX
-void StudioAnimatorGraph::DrawStateCanvas()
+void StudioAnimatorGraph::DrawParentCanvas()
 {
 	parentStateGraph.DrawGUI(graphData);
 
@@ -14268,15 +14299,54 @@ void StudioAnimatorGraph::DrawStateCanvas()
 	if (request == NavigationRequest::EditCondition && navLink)
 	{
 		conditionGraph.SetTarget(navLink);
-		showConditionGraph = true;
+		GoToCondition();
+	}
+	else if (request == NavigationRequest::EditChildGraph && navState)
+	{
+		GoToChildGraph(navState);
+	}
+}
+// qŠK‘wƒLƒƒƒ“ƒoƒX
+void StudioAnimatorGraph::DrawChildCanvas()
+{
+	if (ImGui::Button("< Back to Parent"))
+	{
+		currentView = AnimatorGraphView::ParentGraph;
+		editingParent = nullptr;
+	}
+
+	if (!editingParent)
+	{
+		// ‘ÎÛ‚ğŒ©¸‚Á‚½ê‡(–ß‚éƒ{ƒ^ƒ“‰Ÿ‰º’¼ŒãŠÜ‚Ş)Ae‰æ–Ê‚Ö
+		currentView = AnimatorGraphView::ParentGraph;
+		ImGui::NextColumn();
+		return;
+	}
+
+	ImGui::SameLine();
+	ImGui::TextDisabled("Editing: %s", editingParent->name.c_str());
+
+	childStateGraph.DrawGUI(editingParent->childGraph, availableAnimations);
+
+	ImGui::NextColumn();
+
+	childStateGraph.DrawInspector();
+
+	AnimLink* navLink = nullptr;
+	NavigationRequest request = childStateGraph.ConsumeNavigationRequest(navLink);
+
+	if (request == NavigationRequest::EditCondition && navLink)
+	{
+		conditionGraph.SetTarget(navLink);
+		GoToCondition();
 	}
 }
 // ‘JˆÚğŒƒLƒƒƒ“ƒoƒX
 void StudioAnimatorGraph::DrawConditionCanvas()
 {
-	if (ImGui::Button("< Back to States"))
+	if (ImGui::Button("< Back"))
 	{
-		showConditionGraph = false;
+		currentView = previousView;
 	}
 
 	conditionGraph.DrawGUI();
@@ -14284,6 +14354,19 @@ void StudioAnimatorGraph::DrawConditionCanvas()
 	ImGui::NextColumn();
 
 	conditionGraph.DrawInspector();
+}
+
+// ğŒƒOƒ‰ƒt‚ÖˆÚ“®‚·‚é
+void StudioAnimatorGraph::GoToCondition()
+{
+	previousView = currentView;
+	currentView = AnimatorGraphView::ConditionGraph;
+}
+// qŠK‘wƒOƒ‰ƒt‚ÖˆÚ“®‚·‚é
+void StudioAnimatorGraph::GoToChildGraph(ParentState* state)
+{
+	editingParent = state;
+	currentView = AnimatorGraphView::ChildGraph;
 }
 
 // ã‘¤ƒc[ƒ‹ƒo[
@@ -14295,7 +14378,7 @@ void StudioAnimatorGraph::DrawToolbar(StudioContext& context)
 		ImGui::TextColored(ImVec4(1, 0.4f, 0.4f, 1), "%s", attachError.c_str());
 	}
 
-	// •Û‘¶ƒ{ƒ^ƒ“(–¢•R‚Ã‚¯‚Å‚à‰Ÿ‚¹‚éB‰Ÿ‚µ‚½“_‚ÅV‹K•Û‘¶æ‚ªŒˆ‚Ü‚é)
+	// •Û‘¶ƒ{ƒ^ƒ“
 	if (ImGui::Button("Save"))
 	{
 		Save(context);
@@ -14597,19 +14680,18 @@ DirectX::XMFLOAT3 StudioCamera::GetRight() const
  
 ===== StudioChildStateGraph.cpp ===== 
 Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioChildStateGraph.cpp 
-#include "StudioChildStateGraph.h"
+ï»¿#include "StudioChildStateGraph.h"
 
 void StudioChildStateGraph::Initialize()
 {
 	canvas.Initialize();
 }
 
-
-// ImGui•`‰æ
-void StudioChildStateGraph::DrawGUI(ParentState& parentState, const std::function<void(AnimLink*)>& onEditCondition)
+// ImGuiæç”»
+void StudioChildStateGraph::DrawGUI(ChildStateGraph& childGraph, const std::vector<std::string>& animations)
 {
-	parent = &parentState;
-	pendingEditCondition = onEditCondition;
+	graph = &childGraph;
+	availableAnimations = &animations;
 
 	canvas.Begin("ChildStateCanvas");
 
@@ -14626,8 +14708,7 @@ void StudioChildStateGraph::DrawGUI(ParentState& parentState, const std::functio
 	canvas.End();
 }
 
-
-// ‰E‘¤ƒƒjƒ…[
+// å³å´ãƒ¡ãƒ‹ãƒ¥ãƒ¼
 void StudioChildStateGraph::DrawInspector()
 {
 	if (selectedState)
@@ -14638,21 +14719,30 @@ void StudioChildStateGraph::DrawInspector()
 
 	if (selectedLink)
 	{
-		DrawLinkInspector(selectedLink, pendingEditCondition);
+		DrawLinkInspector(selectedLink);
 		return;
 	}
 
-	// ‚Ç‚¿‚ç‚à‘I‘ğ‚³‚ê‚Ä‚¢‚È‚¢ê‡
+	// ã©ã¡ã‚‰ã‚‚é¸æŠã•ã‚Œã¦ã„ãªã„å ´åˆ
 	ImGui::TextDisabled("No state selected.");
 }
 
+// ç”»é¢é·ç§»ãŒè¦æ±‚ã•ã‚Œã¦ã„ã‚Œã°å–ã‚Šå‡ºã™
+NavigationRequest StudioChildStateGraph::ConsumeNavigationRequest(AnimLink*& outLink)
+{
+	NavigationRequest request = pendingNavigation;
+	outLink = (request == NavigationRequest::EditCondition) ? selectedLink : nullptr;
 
-// State•`‰æ
+	pendingNavigation = NavigationRequest::None;
+	return request;
+}
+
+// Stateæç”»
 void StudioChildStateGraph::DrawStates()
 {
 	stateScreenRects.clear();
 
-	for (auto& state : parent->children)
+	for (auto& state : graph->children)
 	{
 		ed::NodeId nodeId(state.id);
 
@@ -14686,7 +14776,7 @@ void StudioChildStateGraph::DrawStates()
 	}
 	needsApplyPositions = false;
 }
-// State‚Ìí—Ş‚É‰‚¶‚½Œ©‚½–Ú‚ÌƒXƒ^ƒCƒ‹‚ğ“K—p‚·‚é
+// Stateã®ç¨®é¡ã«å¿œã˜ãŸè¦‹ãŸç›®ã®ã‚¹ã‚¿ã‚¤ãƒ«ã‚’é©ç”¨ã™ã‚‹
 void StudioChildStateGraph::PushStateStyle(const ChildState& state)
 {
 	switch (state.type)
@@ -14710,20 +14800,21 @@ void StudioChildStateGraph::PushStateStyle(const ChildState& state)
 		break;
 	}
 }
-// PushStateStyle‚Å“K—p‚µ‚½ƒXƒ^ƒCƒ‹‚ğ‰ğœ‚·‚é
+// PushStateStyleã§é©ç”¨ã—ãŸã‚¹ã‚¿ã‚¤ãƒ«ã‚’è§£é™¤ã™ã‚‹
 void StudioChildStateGraph::PopStateStyle(const ChildState& state)
 {
+	// ã©ã®ç¨®é¡ã§ã‚‚ã€ç©ã‚“ã æ•°(ã‚¹ã‚¿ã‚¤ãƒ«1ã¤+è‰²2ã¤)ã¯å…±é€šãªã®ã§åˆ†å²ä¸è¦
 	ed::PopStyleVar(1);
 	ed::PopStyleColor(2);
 }
 
 
-// Link•`‰æ
+// Linkæç”»
 void StudioChildStateGraph::DrawLinks()
 {
-	const float arrowTrim = 10.0f; // –îˆó‚Ì’ê•Ó‚ÌˆÊ’u‚Ü‚ÅAü‚ğè‘O‚Éˆø‚­—Ê
+	const float arrowTrim = 10.0f; // çŸ¢å°ã®åº•è¾ºã®ä½ç½®ã¾ã§ã€ç·šã‚’æ‰‹å‰ã«å¼•ãé‡
 
-	for (const auto& link : parent->childLinks)
+	for (const auto& link : graph->childLinks)
 	{
 		ImVec2 startPoint, endPoint;
 		CalcLinkPoints(link, startPoint, endPoint);
@@ -14753,7 +14844,7 @@ void StudioChildStateGraph::DrawLinks()
 		}
 	}
 }
-// ƒŠƒ“ƒN1–{•ª‚ÌÚ‘±“_‚ğŒvZ‚·‚é
+// ãƒªãƒ³ã‚¯1æœ¬åˆ†ã®æ¥ç¶šç‚¹ã‚’è¨ˆç®—ã™ã‚‹
 void StudioChildStateGraph::CalcLinkPoints(const AnimLink& link, ImVec2& outStart, ImVec2& outEnd)
 {
 	auto fromIt = stateScreenRects.find(link.fromId);
@@ -14803,15 +14894,15 @@ void StudioChildStateGraph::CalcLinkPoints(const AnimLink& link, ImVec2& outStar
 	outStart = startPoint;
 	outEnd = endPoint;
 }
-// ŒvZÏ‚İ‚ÌÀ•W‚Éƒsƒ“‚ğ”z’u‚·‚é
+// è¨ˆç®—æ¸ˆã¿ã®åº§æ¨™ã«ãƒ”ãƒ³ã‚’é…ç½®ã™ã‚‹
 void StudioChildStateGraph::DrawLinkPins(const AnimLink& link, const ImVec2& start, const ImVec2& end)
 {
-	const int64_t idOffset = 15000000;
+	const int64_t idOffset = 40000000; // è¦ª(10,000,000)ãƒ»æ¡ä»¶(1Mã€œ4M)ãƒ»è‡ªèº«ã®GetPinId(30,000,000)ã¨è¢«ã‚‰ãªã„å€¤
 	ed::NodeId outNodeId(idOffset + (int64_t)link.id * 2);
 	ed::NodeId inNodeId(idOffset + (int64_t)link.id * 2 + 1);
 
-	ed::PinId outPinId = GetOutPinId(link.id);
-	ed::PinId inPinId = GetInPinId(link.id);
+	ed::PinId outPinId = GetPinId(link.id, true);
+	ed::PinId inPinId = GetPinId(link.id, false);
 
 	ed::PushStyleVar(ed::StyleVar_NodePadding, ImVec4(0, 0, 0, 0));
 	ed::PushStyleColor(ed::StyleColor_NodeBg, ImColor(0, 0, 0, 0));
@@ -14838,7 +14929,7 @@ void StudioChildStateGraph::DrawLinkPins(const AnimLink& link, const ImVec2& sta
 
 	ed::Link(ed::LinkId(link.id), outPinId, inPinId);
 }
-// •Ó‚©‚çƒŠƒ“ƒN‚ğL‚Î‚·
+// è¾ºã‹ã‚‰ãƒªãƒ³ã‚¯ã‚’ä¼¸ã°ã™
 ImVec2 StudioChildStateGraph::GetEdgePoint(const ImVec2& rectMin, const ImVec2& rectMax, const ImVec2& target)
 {
 	ImVec2 center((rectMin.x + rectMax.x) * 0.5f, (rectMin.y + rectMax.y) * 0.5f);
@@ -14854,10 +14945,10 @@ ImVec2 StudioChildStateGraph::GetEdgePoint(const ImVec2& rectMin, const ImVec2& 
 
 	return ImVec2(center.x + dir.x * scale, center.y + dir.y * scale);
 }
-// ‘o•ûŒü‚ÌLink‚ª‚ ‚é‚©Šm”F‚·‚é
+// åŒæ–¹å‘ã®LinkãŒã‚ã‚‹ã‹ç¢ºèªã™ã‚‹
 bool StudioChildStateGraph::HasReverseLink(int fromId, int toId) const
 {
-	for (const auto& link : parent->childLinks)
+	for (const auto& link : graph->childLinks)
 	{
 		if (link.fromId == toId && link.toId == fromId)
 		{
@@ -14866,7 +14957,7 @@ bool StudioChildStateGraph::HasReverseLink(int fromId, int toId) const
 	}
 	return false;
 }
-// –îˆó•`‰æ
+// çŸ¢å°æç”»
 void StudioChildStateGraph::DrawArrowHead(ImDrawList* drawList, const ImVec2& start, const ImVec2& end, ImU32 color)
 {
 	ImVec2 dir(end.x - start.x, end.y - start.y);
@@ -14890,62 +14981,48 @@ void StudioChildStateGraph::DrawArrowHead(ImDrawList* drawList, const ImVec2& st
 }
 
 
-// ‰EƒNƒŠƒbƒNƒƒjƒ…[
+// å³ã‚¯ãƒªãƒƒã‚¯ãƒ¡ãƒ‹ãƒ¥ãƒ¼
 void StudioChildStateGraph::DrawCreateStateMenu()
 {
 	ed::Suspend();
 	if (ed::ShowBackgroundContextMenu())
 	{
 		pendingCreatePos = ImGui::GetMousePos();
-		ImGui::OpenPopup("CreateChildState");
+		ImGui::OpenPopup("CreateNewChildState");
 	}
-	if (ImGui::BeginPopup("CreateChildState"))
+	if (ImGui::BeginPopup("CreateNewChildState"))
 	{
 		if (ImGui::MenuItem(u8"State"))
 		{
 			ImVec2 canvasPos = ed::ScreenToCanvas(pendingCreatePos);
-			int newId = parent->CreateChildState("New State", canvasPos.x, canvasPos.y);
+			int newId = graph->CreateChildState("New State", canvasPos.x, canvasPos.y);
 			ed::SetNodePosition(ed::NodeId(newId), canvasPos);
 		}
 		ImGui::EndPopup();
 	}
 	ed::Resume();
 }
-// Linkì¬‚Ì‹N“_‘I‘ğ(State‰EƒNƒŠƒbƒN)
+// Linkä½œæˆã®èµ·ç‚¹é¸æŠ(Stateå³ã‚¯ãƒªãƒƒã‚¯)
 void StudioChildStateGraph::DrawStateContextMenu()
 {
-	ed::Suspend();
+	static ed::NodeId contextNodeId;
 
-	ed::NodeId contextNodeId;
+	ed::Suspend();
 	if (ed::ShowNodeContextMenu(&contextNodeId))
 	{
-		int nodeId = (int)contextNodeId.Get();
-
-		bool isValidSource = false;
-		for (const auto& state : parent->children)
-		{
-			if (state.id == nodeId) { isValidSource = true; break; }
-		}
-
-		if (isValidSource)
-		{
-			ImGui::OpenPopup("ChildStateContextMenu");
-			pendingLinkFromId = nodeId;
-		}
+		ImGui::OpenPopup("ChildNodeContextMenu");
 	}
-
-	if (ImGui::BeginPopup("ChildStateContextMenu"))
+	if (ImGui::BeginPopup("ChildNodeContextMenu"))
 	{
-		if (ImGui::MenuItem("Link"))
+		if (ImGui::MenuItem(u8"Link"))
 		{
-			// UpdateLinkCreation‚ªApendingLinkFromId‚ğŒ©‚Äˆ—‚ğ‘±‚¯‚é
+			pendingLinkFromId = (int)contextNodeId.Get();
 		}
 		ImGui::EndPopup();
 	}
-
 	ed::Resume();
 }
-// Linkì¬ƒ‚[ƒh’†‚Ì“ü—Íˆ—
+// Linkä½œæˆãƒ¢ãƒ¼ãƒ‰ä¸­ã®å…¥åŠ›å‡¦ç†
 void StudioChildStateGraph::UpdateLinkCreation()
 {
 	if (pendingLinkFromId == -1) return;
@@ -14958,26 +15035,27 @@ void StudioChildStateGraph::UpdateLinkCreation()
 		{
 			int targetId = (int)hovered.Get();
 
-			bool targetIsEntry = false;
-			for (const auto& state : parent->children)
+			// Startã«ã¯ä»–ã®Stateã‹ã‚‰é·ç§»ã•ã›ã‚‰ã‚Œãªã„(å¸¸ã«å§‹ç‚¹ã§ã‚ã‚‹ã¹ããªã®ã§)
+			bool targetIsStart = false;
+			for (const auto& state : graph->children)
 			{
 				if (state.id == targetId && state.type == ChildStateType::Start)
 				{
-					targetIsEntry = true;
+					targetIsStart = true;
 					break;
 				}
 			}
 
-			if (!targetIsEntry)
+			if (!targetIsStart)
 			{
-				parent->CreateChildLink(pendingLinkFromId, targetId);
+				graph->CreateChildLink(pendingLinkFromId, targetId);
 			}
 		}
 
 		pendingLinkFromId = -1;
 	}
 }
-// Linkì¬’†‚ÌƒvƒŒƒrƒ…[ü•`‰æ
+// Linkä½œæˆä¸­ã®ãƒ—ãƒ¬ãƒ“ãƒ¥ãƒ¼ç·šæç”»
 void StudioChildStateGraph::DrawPendingLink()
 {
 	if (pendingLinkFromId == -1) return;
@@ -14985,39 +15063,150 @@ void StudioChildStateGraph::DrawPendingLink()
 	auto it = stateScreenRects.find(pendingLinkFromId);
 	if (it == stateScreenRects.end()) return;
 
-	ImVec2 fromMin = it->second.first;
-	ImVec2 fromMax = it->second.second;
-	ImVec2 fromCenter((fromMin.x + fromMax.x) * 0.5f, (fromMin.y + fromMax.y) * 0.5f);
-
 	ImVec2 mousePos = ImGui::GetMousePos();
-	ImVec2 startPoint = GetEdgePoint(fromMin, fromMax, mousePos);
+	ImVec2 startPoint = GetEdgePoint(it->second.first, it->second.second, mousePos);
 
-	ImDrawList* drawList = ImGui::GetForegroundDrawList();
-	drawList->AddLine(startPoint, mousePos, IM_COL32(210, 210, 210, 180), 2.0f);
+	ImDrawList* drawList = ed::GetNodeBackgroundDrawList(ed::NodeId(pendingLinkFromId));
+	if (!drawList) return;
+
+	const ImU32 previewColor = IM_COL32(255, 200, 80, 255);
+
+	drawList->AddLine(startPoint, mousePos, previewColor, 2.0f);
 }
 
 
-// ‘I‘ğó‘Ô‚ğXV
+// é¸æŠçŠ¶æ…‹ã‚’æ›´æ–°
 void StudioChildStateGraph::UpdateSelection()
 {
+	selectedState = nullptr;
+	selectedLink = nullptr;
+
+	if (ed::GetSelectedObjectCount() == 0) return;
+
+	ed::NodeId selectedNodeId;
+	if (ed::GetSelectedNodes(&selectedNodeId, 1) > 0)
+	{
+		for (auto& state : graph->children)
+		{
+			if (state.id == (int)selectedNodeId.Get())
+			{
+				selectedState = &state;
+				return;
+			}
+		}
+	}
+
+	ed::LinkId selectedLinkId;
+	if (ed::GetSelectedLinks(&selectedLinkId, 1) > 0)
+	{
+		for (auto& link : graph->childLinks)
+		{
+			if (link.id == (int)selectedLinkId.Get())
+			{
+				selectedLink = &link;
+				return;
+			}
+		}
+	}
 }
-// State‘I‘ğ‚ÌInspector
+
+
+// Stateé¸æŠæ™‚ã®Inspector
 void StudioChildStateGraph::DrawStateInspector(ChildState* state)
 {
+	if (state->type != ChildStateType::Normal)
+	{
+		ImGui::Text(state->type == ChildStateType::Start ? "Start" : "End");
+		ImGui::TextDisabled("This is a unique node and cannot be edited.");
+		return;
+	}
+
+	char nameBuf[256];
+	strncpy_s(nameBuf, state->name.c_str(), sizeof(nameBuf) - 1);
+	if (ImGui::InputText("Name", nameBuf, sizeof(nameBuf)))
+	{
+		state->name = nameBuf;
+	}
+
+	// å†ç”Ÿã™ã‚‹ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã®é¸æŠ
+	const char* previewName = state->clipName.empty() ? "(None)" : state->clipName.c_str();
+	if (availableAnimations && ImGui::BeginCombo("Animation", previewName))
+	{
+		for (const auto& animName : *availableAnimations)
+		{
+			bool isSelected = (state->clipName == animName);
+			if (ImGui::Selectable(animName.c_str(), isSelected))
+			{
+				state->clipName = animName;
+			}
+			if (isSelected)
+			{
+				ImGui::SetItemDefaultFocus();
+			}
+		}
+		ImGui::EndCombo();
+	}
+
+	ImGui::Checkbox("Use Root Motion", &state->useRootMotion);
+	ImGui::Checkbox("Blend", &state->blend);
+
+	int stateId = state->id;
+	DrawDeleteButton("Delete State", [this, stateId]() { graph->DeleteChildState(stateId); });
 }
-// Link‘I‘ğ‚Ì Inspector
-void StudioChildStateGraph::DrawLinkInspector(AnimLink* link, const std::function<void(AnimLink*)>& onEditCondition)
+// Linké¸æŠæ™‚ã®Inspector
+void StudioChildStateGraph::DrawLinkInspector(AnimLink* link)
 {
+	const ChildState* fromState = nullptr;
+	const ChildState* toState = nullptr;
+	for (const auto& state : graph->children)
+	{
+		if (state.id == link->fromId) fromState = &state;
+		if (state.id == link->toId)   toState = &state;
+	}
+
+	std::string fromName = fromState ? fromState->name : "?";
+	std::string toName = toState ? toState->name : "?";
+
+	ImGui::TextWrapped("%s -> %s", fromName.c_str(), toName.c_str());
+
+	if (ImGui::Button("Edit Condition", ImVec2(-1.0f, 0.0f)))
+	{
+		pendingNavigation = NavigationRequest::EditCondition;
+	}
+
+	int linkId = link->id;
+	DrawDeleteButton("Delete Link", [this, linkId]() { graph->DeleteChildLink(linkId); });
 }
 
 
-// ƒm[ƒh“à‚Å’†‰›Šñ‚¹‚É‚·‚é
+// ãƒãƒ¼ãƒ‰å†…ã§ä¸­å¤®å¯„ã›ã«ã™ã‚‹
 void StudioChildStateGraph::CenterNextItem(float totalWidth, float itemWidth)
 {
+	float pad = (totalWidth - itemWidth) * 0.5f;
+	if (pad > 0.0f)
+	{
+		ImGui::Dummy(ImVec2(pad, 0.0f));
+		ImGui::SameLine(0.0f, 0.0f);
+	}
 }
-// ‹¤’Ê‚Ìíœƒ{ƒ^ƒ“
+// å…±é€šã®å‰Šé™¤ãƒœã‚¿ãƒ³
 void StudioChildStateGraph::DrawDeleteButton(const char* label, const std::function<void()>& onDelete)
 {
+	ImGui::Spacing();
+	ImGui::Spacing();
+
+	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.15f, 0.15f, 1.0f));
+	ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.85f, 0.2f, 0.2f, 1.0f));
+	ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.6f, 0.1f, 0.1f, 1.0f));
+
+	bool pressed = ImGui::Button(label, ImVec2(-1.0f, 0.0f));
+
+	ImGui::PopStyleColor(3);
+
+	if (pressed)
+	{
+		onDelete();
+	}
 } 
  
 ===== StudioConditionGraph.cpp ===== 
@@ -16704,6 +16893,12 @@ void StudioParentStateGraph::DrawStateInspector(ParentState* state)
 	}
 
 	ImGui::ColorEdit3("Color", state->color);
+
+	// qŠK‘w‚ğ•ÒW‚·‚é‰æ–Ê‚Ö
+	if (ImGui::Button("Edit Child States", ImVec2(-1.0f, 0.0f)))
+	{
+		pendingNavigation = NavigationRequest::EditChildGraph;
+	}
 
 	int stateId = state->id;
 	DrawDeleteButton("Delete State", [this, stateId]() { graph->parentGraph.DeleteParentState(stateId); });

@@ -1,6 +1,7 @@
 #include "StudioAnimatorGraph.h"
 #include "ECS/Components/SkinnedMeshComponent.h"
 #include "Editor/ProjectWindow.h"
+#include "Tool/Studio/AnimatorGraphNavigation.h"
 #include <json.hpp>
 #include <filesystem>
 #include <algorithm>
@@ -8,6 +9,7 @@
 void StudioAnimatorGraph::Initialize()
 {
 	parentStateGraph.Initialize();
+	childStateGraph.Initialize();
 	conditionGraph.Initialize();
 }
 
@@ -43,13 +45,18 @@ void StudioAnimatorGraph::DrawGUI(entt::registry& registry, StudioContext& conte
 		ImGui::SetColumnWidth(0, ImGui::GetWindowWidth() - 220.0f);
 	}
 
-	if (showConditionGraph)
+	switch (currentView)
 	{
+	case AnimatorGraphView::ChildGraph:
+		DrawChildCanvas();
+		break;
+	case AnimatorGraphView::ConditionGraph:
 		DrawConditionCanvas();
-	}
-	else
-	{
-		DrawStateCanvas();
+		break;
+	case AnimatorGraphView::ParentGraph:
+	default:
+		DrawParentCanvas();
+		break;
 	}
 
 	ImGui::Columns(1);
@@ -58,7 +65,7 @@ void StudioAnimatorGraph::DrawGUI(entt::registry& registry, StudioContext& conte
 }
 
 // 親階層(State)キャンバス
-void StudioAnimatorGraph::DrawStateCanvas()
+void StudioAnimatorGraph::DrawParentCanvas()
 {
 	parentStateGraph.DrawGUI(graphData);
 
@@ -74,15 +81,54 @@ void StudioAnimatorGraph::DrawStateCanvas()
 	if (request == NavigationRequest::EditCondition && navLink)
 	{
 		conditionGraph.SetTarget(navLink);
-		showConditionGraph = true;
+		GoToCondition();
+	}
+	else if (request == NavigationRequest::EditChildGraph && navState)
+	{
+		GoToChildGraph(navState);
+	}
+}
+// 子階層キャンバス
+void StudioAnimatorGraph::DrawChildCanvas()
+{
+	if (ImGui::Button("< Back to Parent"))
+	{
+		currentView = AnimatorGraphView::ParentGraph;
+		editingParent = nullptr;
+	}
+
+	if (!editingParent)
+	{
+		// 対象を見失った場合(戻るボタン押下直後含む)、親画面へ
+		currentView = AnimatorGraphView::ParentGraph;
+		ImGui::NextColumn();
+		return;
+	}
+
+	ImGui::SameLine();
+	ImGui::TextDisabled("Editing: %s", editingParent->name.c_str());
+
+	childStateGraph.DrawGUI(editingParent->childGraph, availableAnimations);
+
+	ImGui::NextColumn();
+
+	childStateGraph.DrawInspector();
+
+	AnimLink* navLink = nullptr;
+	NavigationRequest request = childStateGraph.ConsumeNavigationRequest(navLink);
+
+	if (request == NavigationRequest::EditCondition && navLink)
+	{
+		conditionGraph.SetTarget(navLink);
+		GoToCondition();
 	}
 }
 // 遷移条件キャンバス
 void StudioAnimatorGraph::DrawConditionCanvas()
 {
-	if (ImGui::Button("< Back to States"))
+	if (ImGui::Button("< Back"))
 	{
-		showConditionGraph = false;
+		currentView = previousView;
 	}
 
 	conditionGraph.DrawGUI();
@@ -90,6 +136,19 @@ void StudioAnimatorGraph::DrawConditionCanvas()
 	ImGui::NextColumn();
 
 	conditionGraph.DrawInspector();
+}
+
+// 条件グラフへ移動する
+void StudioAnimatorGraph::GoToCondition()
+{
+	previousView = currentView;
+	currentView = AnimatorGraphView::ConditionGraph;
+}
+// 子階層グラフへ移動する
+void StudioAnimatorGraph::GoToChildGraph(ParentState* state)
+{
+	editingParent = state;
+	currentView = AnimatorGraphView::ChildGraph;
 }
 
 // 上側ツールバー
@@ -101,7 +160,7 @@ void StudioAnimatorGraph::DrawToolbar(StudioContext& context)
 		ImGui::TextColored(ImVec4(1, 0.4f, 0.4f, 1), "%s", attachError.c_str());
 	}
 
-	// 保存ボタン(未紐づけでも押せる。押した時点で新規保存先が決まる)
+	// 保存ボタン
 	if (ImGui::Button("Save"))
 	{
 		Save(context);

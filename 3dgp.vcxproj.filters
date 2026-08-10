@@ -290,6 +290,9 @@
     <Filter Include="Sources\Tool\Studio\StudioAnimatorGraph\StudioParentStateGraph">
       <UniqueIdentifier>{a99d813c-307c-40ce-a556-30687976b257}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\Tool\Studio\StudioAnimatorGraph\AnimatorGraphNavigation">
+      <UniqueIdentifier>{c84edd8f-efe1-43ef-b0d8-5df1f673520e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Core\framework.cpp">
@@ -764,6 +767,9 @@
     </ClInclude>
     <ClInclude Include="Source\Tool\Studio\StudioChildStateGraph.h">
       <Filter>Sources\Tool\Studio\StudioAnimatorGraph\StudioChildGraph</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Tool\Studio\AnimatorGraphNavigation.h">
+      <Filter>Sources\Tool\Studio\StudioAnimatorGraph\AnimatorGraphNavigation</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

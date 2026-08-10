@@ -1,0 +1,115 @@
+{
+    "sourceModelPath": "Data/Model/PlayerRobot/Map_Robot3.gltf",
+    "states": [
+        {
+            "id": 1,
+            "name": "Entry",
+            "posX": 0.0,
+            "posY": 0.0,
+            "type": "Entry",
+            "color": [
+                0.27000001072883606,
+                0.3499999940395355,
+                0.4699999988079071
+            ],
+            "children": [],
+            "childLinks": []
+        },
+        {
+            "id": 2,
+            "name": "New State",
+            "posX": 375.0,
+            "posY": -51.0,
+            "type": "State",
+            "color": [
+                0.27000001072883606,
+                0.3499999940395355,
+                0.4699999988079071
+            ],
+            "children": [
+                {
+                    "id": 3,
+                    "name": "Entry",
+                    "posX": 0.0,
+                    "posY": 0.0,
+                    "type": "Start",
+                    "clipName": "",
+                    "useRootMotion": false,
+                    "blend": false
+                },
+                {
+                    "id": 4,
+                    "name": "Exit",
+                    "posX": 272.0,
+                    "posY": 0.0,
+                    "type": "End",
+                    "clipName": "",
+                    "useRootMotion": false,
+                    "blend": false
+                },
+                {
+                    "id": 5,
+                    "name": "New State",
+                    "posX": 160.0,
+                    "posY": 0.0,
+                    "type": "Normal",
+                    "clipName": "GS_Idle",
+                    "useRootMotion": false,
+                    "blend": false
+                }
+            ],
+            "childLinks": [
+                {
+                    "id": 6,
+                    "fromId": 3,
+                    "toId": 5,
+                    "condition": {
+                        "returnNode": {
+                            "id": 7,
+                            "posX": 500.0,
+                            "posY": 200.0
+                        },
+                        "variableNodes": [],
+                        "operatorNodes": [],
+                        "getterNodes": [],
+                        "links": []
+                    }
+                },
+                {
+                    "id": 8,
+                    "fromId": 5,
+                    "toId": 4,
+                    "condition": {
+                        "returnNode": {
+                            "id": 9,
+                            "posX": 500.0,
+                            "posY": 200.0
+                        },
+                        "variableNodes": [],
+                        "operatorNodes": [],
+                        "getterNodes": [],
+                        "links": []
+                    }
+                }
+            ]
+        }
+    ],
+    "stateLinks": [
+        {
+            "id": 10,
+            "fromId": 1,
+            "toId": 2,
+            "condition": {
+                "returnNode": {
+                    "id": 11,
+                    "posX": 500.0,
+                    "posY": 200.0
+                },
+                "variableNodes": [],
+                "operatorNodes": [],
+                "getterNodes": [],
+                "links": []
+            }
+        }
+    ]
+}

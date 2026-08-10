@@ -162,6 +162,7 @@
     <ClInclude Include="Source\Resource\SkeletonUtils.h" />
     <ClInclude Include="Source\Tool\AdaptiveTriggerToolWindow.h" />
     <ClInclude Include="Source\Tool\NodeEditorCanvas.h" />
+    <ClInclude Include="Source\Tool\Studio\AnimatorGraphNavigation.h" />
     <ClInclude Include="Source\Tool\Studio\IStudioAttachment.h" />
     <ClInclude Include="Source\Tool\Studio\StudioAnimator.h" />
     <ClInclude Include="Source\Tool\Studio\StudioAnimatorGraph.h" />

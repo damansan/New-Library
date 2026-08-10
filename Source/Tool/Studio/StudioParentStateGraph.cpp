@@ -457,6 +457,12 @@ void StudioParentStateGraph::DrawStateInspector(ParentState* state)
 
 	ImGui::ColorEdit3("Color", state->color);
 
+	// ŽqŠK‘w‚ð•ÒW‚·‚é‰æ–Ê‚Ö
+	if (ImGui::Button("Edit Child States", ImVec2(-1.0f, 0.0f)))
+	{
+		pendingNavigation = NavigationRequest::EditChildGraph;
+	}
+
 	int stateId = state->id;
 	DrawDeleteButton("Delete State", [this, stateId]() { graph->parentGraph.DeleteParentState(stateId); });
 }

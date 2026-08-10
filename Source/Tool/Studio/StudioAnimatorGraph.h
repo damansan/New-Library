@@ -2,6 +2,7 @@
 #include "IStudioAttachment.h"
 #include "Data/AnimatorGraphData.h"
 #include "StudioParentStateGraph.h"
+#include "StudioChildStateGraph.h"
 #include "StudioConditionGraph.h"
 
 #include <vector>
@@ -9,6 +10,14 @@
 #include <fstream>
 
 namespace ed = ax::NodeEditor;
+
+// 現在どのキャンバスを表示しているか
+enum class AnimatorGraphView
+{
+	ParentGraph,
+	ChildGraph,
+	ConditionGraph,
+};
 
 class StudioAnimatorGraph : public IStudioAttachment
 {
@@ -27,8 +36,12 @@ private:
 	AnimatorGraphData graphData;
 
 	StudioParentStateGraph parentStateGraph; // 親階層キャンバス
+	StudioChildStateGraph childStateGraph;   // 子階層キャンバス
 	StudioConditionGraph conditionGraph;     // 条件編集キャンバス
-	bool showConditionGraph = false;         // 現在どちらのキャンバスを表示中か
+
+	AnimatorGraphView currentView = AnimatorGraphView::ParentGraph;  // 現在表示中のキャンバス
+	AnimatorGraphView previousView = AnimatorGraphView::ParentGraph; // 条件グラフから戻る先
+	ParentState* editingParent = nullptr; // 子階層編集中の対象
 
 	int windowId = 0; // ウィンドウ番号
 	std::vector<std::string> availableAnimations; // アニメーション一覧
@@ -38,9 +51,13 @@ private:
 	std::string attachError;             // 紐づけエラーメッセージ
 
 	// == 各キャンバス描画 == //
-	void DrawStateCanvas();      // 親階層(State)キャンバス
-	void DrawConditionCanvas();  // 遷移条件キャンバス
+	void DrawParentCanvas();    // 親階層キャンバス
+	void DrawChildCanvas();     // 子階層キャンバス
+	void DrawConditionCanvas(); // 遷移条件キャンバス
 
+	// == 画面遷移 == //
+	void GoToCondition();                    // 条件グラフへ移動する(戻り先を記録する)
+	void GoToChildGraph(ParentState* state); // 子階層グラフへ移動する
 
 	// == 上側ツールバー == //
 	void DrawToolbar(StudioContext& context);
