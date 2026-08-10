@@ -51,9 +51,9 @@ private:
 	std::string attachError;             // 紐づけエラーメッセージ
 
 	// == 各キャンバス描画 == //
-	void DrawParentCanvas();    // 親階層キャンバス
-	void DrawChildCanvas();     // 子階層キャンバス
-	void DrawConditionCanvas(); // 遷移条件キャンバス
+	void DrawParentCanvas(StudioContext& context); // 親階層キャンバス
+	void DrawChildCanvas();                        // 子階層キャンバス
+	void DrawConditionCanvas();                    // 遷移条件キャンバス
 
 	// == 画面遷移 == //
 	void GoToCondition();                    // 条件グラフへ移動する(戻り先を記録する)

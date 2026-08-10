@@ -55,7 +55,7 @@ void StudioAnimatorGraph::DrawGUI(entt::registry& registry, StudioContext& conte
 		break;
 	case AnimatorGraphView::ParentGraph:
 	default:
-		DrawParentCanvas();
+		DrawParentCanvas(context);
 		break;
 	}
 
@@ -65,9 +65,12 @@ void StudioAnimatorGraph::DrawGUI(entt::registry& registry, StudioContext& conte
 }
 
 // 親階層(State)キャンバス
-void StudioAnimatorGraph::DrawParentCanvas()
+void StudioAnimatorGraph::DrawParentCanvas(StudioContext& context)
 {
 	parentStateGraph.DrawGUI(graphData);
+
+	// ドロップ対象として紐づける
+	DrawDropTarget(context);
 
 	ImGui::NextColumn();
 
@@ -149,6 +152,8 @@ void StudioAnimatorGraph::GoToChildGraph(ParentState* state)
 {
 	editingParent = state;
 	currentView = AnimatorGraphView::ChildGraph;
+
+	childStateGraph.RequestApplyPositions();
 }
 
 // 上側ツールバー
@@ -175,8 +180,6 @@ void StudioAnimatorGraph::DrawToolbar(StudioContext& context)
 		ImGui::TextDisabled("Not saved yet.");
 	}
 	ImGui::Separator();
-
-	DrawDropTarget(context);
 }
 
 // .animgraphのD&D受け口

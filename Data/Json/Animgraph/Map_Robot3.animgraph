@@ -12,7 +12,28 @@
                 0.3499999940395355,
                 0.4699999988079071
             ],
-            "children": [],
+            "children": [
+                {
+                    "id": 12,
+                    "name": "Entry",
+                    "posX": 50.0,
+                    "posY": 200.0,
+                    "type": "Start",
+                    "clipName": "",
+                    "useRootMotion": false,
+                    "blend": false
+                },
+                {
+                    "id": 13,
+                    "name": "Exit",
+                    "posX": 400.0,
+                    "posY": 200.0,
+                    "type": "End",
+                    "clipName": "",
+                    "useRootMotion": false,
+                    "blend": false
+                }
+            ],
             "childLinks": []
         },
         {
@@ -30,7 +51,7 @@
                 {
                     "id": 3,
                     "name": "Entry",
-                    "posX": 0.0,
+                    "posX": -160.0,
                     "posY": 0.0,
                     "type": "Start",
                     "clipName": "",
@@ -40,7 +61,7 @@
                 {
                     "id": 4,
                     "name": "Exit",
-                    "posX": 272.0,
+                    "posX": 256.0,
                     "posY": 0.0,
                     "type": "End",
                     "clipName": "",
@@ -50,7 +71,7 @@
                 {
                     "id": 5,
                     "name": "New State",
-                    "posX": 160.0,
+                    "posX": 48.0,
                     "posY": 0.0,
                     "type": "Normal",
                     "clipName": "GS_Idle",
@@ -69,10 +90,57 @@
                             "posX": 500.0,
                             "posY": 200.0
                         },
-                        "variableNodes": [],
-                        "operatorNodes": [],
+                        "variableNodes": [
+                            {
+                                "id": 21,
+                                "posX": 163.0,
+                                "posY": 258.0,
+                                "name": "float2",
+                                "type": "Float",
+                                "intValue": 0,
+                                "floatValue": 0.0,
+                                "boolValue": false
+                            },
+                            {
+                                "id": 22,
+                                "posX": 162.0,
+                                "posY": 112.0,
+                                "name": "float1",
+                                "type": "Float",
+                                "intValue": 0,
+                                "floatValue": 0.0,
+                                "boolValue": false
+                            }
+                        ],
+                        "operatorNodes": [
+                            {
+                                "id": 23,
+                                "posX": 354.0,
+                                "posY": 160.0,
+                                "op": "Greater"
+                            }
+                        ],
                         "getterNodes": [],
-                        "links": []
+                        "links": [
+                            {
+                                "id": 24,
+                                "fromId": 22,
+                                "toId": 23,
+                                "toPinB": false
+                            },
+                            {
+                                "id": 25,
+                                "fromId": 21,
+                                "toId": 23,
+                                "toPinB": true
+                            },
+                            {
+                                "id": 26,
+                                "fromId": 23,
+                                "toId": 7,
+                                "toPinB": false
+                            }
+                        ]
                     }
                 },
                 {
@@ -102,13 +170,60 @@
             "condition": {
                 "returnNode": {
                     "id": 11,
-                    "posX": 500.0,
-                    "posY": 200.0
+                    "posX": 546.0,
+                    "posY": 208.0
                 },
-                "variableNodes": [],
-                "operatorNodes": [],
+                "variableNodes": [
+                    {
+                        "id": 14,
+                        "posX": 162.0,
+                        "posY": 80.0,
+                        "name": "Int1",
+                        "type": "Int",
+                        "intValue": 0,
+                        "floatValue": 0.0,
+                        "boolValue": false
+                    },
+                    {
+                        "id": 15,
+                        "posX": 162.0,
+                        "posY": 256.0,
+                        "name": "Int2",
+                        "type": "Int",
+                        "intValue": 0,
+                        "floatValue": 0.0,
+                        "boolValue": false
+                    }
+                ],
+                "operatorNodes": [
+                    {
+                        "id": 16,
+                        "posX": 354.0,
+                        "posY": 152.0,
+                        "op": "Greater"
+                    }
+                ],
                 "getterNodes": [],
-                "links": []
+                "links": [
+                    {
+                        "id": 17,
+                        "fromId": 14,
+                        "toId": 16,
+                        "toPinB": false
+                    },
+                    {
+                        "id": 18,
+                        "fromId": 15,
+                        "toId": 16,
+                        "toPinB": true
+                    },
+                    {
+                        "id": 19,
+                        "fromId": 16,
+                        "toId": 11,
+                        "toPinB": false
+                    }
+                ]
             }
         }
     ]
