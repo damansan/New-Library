@@ -48,12 +48,18 @@ private:
 	enum class PinRole // ピンの役割
 	{
 		VariableIn, VariableOut,
-		OperatorA,  OperatorB,   OperatorOut,
+		OperatorA, OperatorB, OperatorOut,
 		GetterOut,
 		ReturnIn,
 		Unknown
 	};
 	enum class NodeKind { Variable, Getter, Operator, Return, Unknown }; // ノードの種類
+
+	// ピンID計算用のベースオフセット
+	static constexpr int64_t VariableOffset = 1000000;
+	static constexpr int64_t OperatorOffset = 2000000;
+	static constexpr int64_t GetterOffset = 3000000;  
+	static constexpr int64_t ReturnOffset = 4000000;  
 
 	static void ResolvePinRole(int64_t rawPinId, PinRole& outRole, int& outNodeId); // 生のピンID(int64_t)から、役割とノードIDを逆算する
 	NodeKind GetNodeKind(int id) const; // 生のノードID(int)から、このLink内でどの種類のノードかを調べる
@@ -94,11 +100,11 @@ private:
 	static CompareOp InvertCompareOp(CompareOp op);                // 比較演算子の向きを反転する
 
 	// == ピンID == //
-	static ed::PinId GetVariableInPinId(int nodeId) { return ed::PinId((int64_t)1000000 + (int64_t)nodeId * 2); }
-	static ed::PinId GetVariableOutPinId(int nodeId) { return ed::PinId((int64_t)1000000 + (int64_t)nodeId * 2 + 1); }
-	static ed::PinId GetOperatorPinA(int nodeId) { return ed::PinId((int64_t)2000000 + (int64_t)nodeId * 3); }
-	static ed::PinId GetOperatorPinB(int nodeId) { return ed::PinId((int64_t)2000000 + (int64_t)nodeId * 3 + 1); }
-	static ed::PinId GetOperatorOutPinId(int nodeId) { return ed::PinId((int64_t)2000000 + (int64_t)nodeId * 3 + 2); }
-	static ed::PinId GetGetterOutPinId(int nodeId) { return ed::PinId((int64_t)3000000 + (int64_t)nodeId); }
-	static ed::PinId GetReturnInPinId(int nodeId) { return ed::PinId((int64_t)4000000 + (int64_t)nodeId); }
+	static ed::PinId GetVariableInPinId(int nodeId) { return ed::PinId(VariableOffset + (int64_t)nodeId * 2); }
+	static ed::PinId GetVariableOutPinId(int nodeId) { return ed::PinId(VariableOffset + (int64_t)nodeId * 2 + 1); }
+	static ed::PinId GetOperatorPinA(int nodeId) { return ed::PinId(OperatorOffset + (int64_t)nodeId * 3); }
+	static ed::PinId GetOperatorPinB(int nodeId) { return ed::PinId(OperatorOffset + (int64_t)nodeId * 3 + 1); }
+	static ed::PinId GetOperatorOutPinId(int nodeId) { return ed::PinId(OperatorOffset + (int64_t)nodeId * 3 + 2); }
+	static ed::PinId GetGetterOutPinId(int nodeId) { return ed::PinId(GetterOffset + (int64_t)nodeId); }
+	static ed::PinId GetReturnInPinId(int nodeId) { return ed::PinId(ReturnOffset + (int64_t)nodeId); }
 };

@@ -800,30 +800,30 @@ CompareOp StudioConditionGraph::InvertCompareOp(CompareOp op)
 // 生のピンID(int64_t)から、役割とノードIDを逆算する
 void StudioConditionGraph::ResolvePinRole(int64_t rawPinId, PinRole& outRole, int& outNodeId)
 {
-	if (rawPinId >= 4000000 && rawPinId < 5000000)
+	if (rawPinId >= ReturnOffset && rawPinId < ReturnOffset + 1000000)
 	{
 		outRole = PinRole::ReturnIn;
-		outNodeId = (int)(rawPinId - 4000000);
+		outNodeId = (int)(rawPinId - ReturnOffset);
 		return;
 	}
-	if (rawPinId >= 3000000 && rawPinId < 4000000)
+	if (rawPinId >= GetterOffset && rawPinId < GetterOffset + 1000000)
 	{
 		outRole = PinRole::GetterOut;
-		outNodeId = (int)(rawPinId - 3000000);
+		outNodeId = (int)(rawPinId - GetterOffset);
 		return;
 	}
-	if (rawPinId >= 2000000 && rawPinId < 3000000)
+	if (rawPinId >= OperatorOffset && rawPinId < OperatorOffset + 1000000)
 	{
-		int64_t offset = rawPinId - 2000000;
+		int64_t offset = rawPinId - OperatorOffset;
 		int64_t nodeId = offset / 3;
 		int64_t rem = offset % 3;
 		outNodeId = (int)nodeId;
 		outRole = (rem == 0) ? PinRole::OperatorA : (rem == 1) ? PinRole::OperatorB : PinRole::OperatorOut;
 		return;
 	}
-	if (rawPinId >= 1000000 && rawPinId < 2000000)
+	if (rawPinId >= VariableOffset && rawPinId < VariableOffset + 1000000)
 	{
-		int64_t offset = rawPinId - 1000000;
+		int64_t offset = rawPinId - VariableOffset;
 		int64_t nodeId = offset / 2;
 		int64_t rem = offset % 2;
 		outNodeId = (int)nodeId;

@@ -219,8 +219,8 @@ void StudioAnimatorGraph::TryAttachGraph(const std::string& path, StudioContext&
 		return;
 	}
 
-	// 新規作成Jsonは受け入れ、既存Jsonならモデルパスを比較
-	if (!sourceModelPath.empty() && sourceModelPath != context.currentModelPath)
+	// 別モデル用のグラフは紐づけさせない
+	if (sourceModelPath != context.currentModelPath)
 	{
 		attachError = "This graph belongs to a different model.";
 		return;

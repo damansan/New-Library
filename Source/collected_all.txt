@@ -13490,9 +13490,9 @@ private:
 	std::string attachError;             // •R‚Ã‚¯ƒGƒ‰[ƒƒbƒZ[ƒW
 
 	// == ŠeƒLƒƒƒ“ƒoƒX•`‰æ == //
-	void DrawParentCanvas();    // eŠK‘wƒLƒƒƒ“ƒoƒX
-	void DrawChildCanvas();     // ŽqŠK‘wƒLƒƒƒ“ƒoƒX
-	void DrawConditionCanvas(); // ‘JˆÚðŒƒLƒƒƒ“ƒoƒX
+	void DrawParentCanvas(StudioContext& context); // eŠK‘wƒLƒƒƒ“ƒoƒX
+	void DrawChildCanvas();                        // ŽqŠK‘wƒLƒƒƒ“ƒoƒX
+	void DrawConditionCanvas();                    // ‘JˆÚðŒƒLƒƒƒ“ƒoƒX
 
 	// == ‰æ–Ê‘JˆÚ == //
 	void GoToCondition();                    // ðŒƒOƒ‰ƒt‚ÖˆÚ“®‚·‚é(–ß‚èæ‚ð‹L˜^‚·‚é)
@@ -13693,12 +13693,18 @@ private:
 	enum class PinRole // ƒsƒ“‚Ì–ðŠ„
 	{
 		VariableIn, VariableOut,
-		OperatorA,  OperatorB,   OperatorOut,
+		OperatorA, OperatorB, OperatorOut,
 		GetterOut,
 		ReturnIn,
 		Unknown
 	};
 	enum class NodeKind { Variable, Getter, Operator, Return, Unknown }; // ƒm[ƒh‚ÌŽí—Þ
+
+	// ƒsƒ“IDŒvŽZ—p‚Ìƒx[ƒXƒIƒtƒZƒbƒg
+	static constexpr int64_t VariableOffset = 1000000;
+	static constexpr int64_t OperatorOffset = 2000000;
+	static constexpr int64_t GetterOffset = 3000000;  
+	static constexpr int64_t ReturnOffset = 4000000;  
 
 	static void ResolvePinRole(int64_t rawPinId, PinRole& outRole, int& outNodeId); // ¶‚Ìƒsƒ“ID(int64_t)‚©‚çA–ðŠ„‚Æƒm[ƒhID‚ð‹tŽZ‚·‚é
 	NodeKind GetNodeKind(int id) const; // ¶‚Ìƒm[ƒhID(int)‚©‚çA‚±‚ÌLink“à‚Å‚Ç‚ÌŽí—Þ‚Ìƒm[ƒh‚©‚ð’²‚×‚é
@@ -13739,13 +13745,13 @@ private:
 	static CompareOp InvertCompareOp(CompareOp op);                // ”äŠr‰‰ŽZŽq‚ÌŒü‚«‚ð”½“]‚·‚é
 
 	// == ƒsƒ“ID == //
-	static ed::PinId GetVariableInPinId(int nodeId) { return ed::PinId((int64_t)1000000 + (int64_t)nodeId * 2); }
-	static ed::PinId GetVariableOutPinId(int nodeId) { return ed::PinId((int64_t)1000000 + (int64_t)nodeId * 2 + 1); }
-	static ed::PinId GetOperatorPinA(int nodeId) { return ed::PinId((int64_t)2000000 + (int64_t)nodeId * 3); }
-	static ed::PinId GetOperatorPinB(int nodeId) { return ed::PinId((int64_t)2000000 + (int64_t)nodeId * 3 + 1); }
-	static ed::PinId GetOperatorOutPinId(int nodeId) { return ed::PinId((int64_t)2000000 + (int64_t)nodeId * 3 + 2); }
-	static ed::PinId GetGetterOutPinId(int nodeId) { return ed::PinId((int64_t)3000000 + (int64_t)nodeId); }
-	static ed::PinId GetReturnInPinId(int nodeId) { return ed::PinId((int64_t)4000000 + (int64_t)nodeId); }
+	static ed::PinId GetVariableInPinId(int nodeId) { return ed::PinId(VariableOffset + (int64_t)nodeId * 2); }
+	static ed::PinId GetVariableOutPinId(int nodeId) { return ed::PinId(VariableOffset + (int64_t)nodeId * 2 + 1); }
+	static ed::PinId GetOperatorPinA(int nodeId) { return ed::PinId(OperatorOffset + (int64_t)nodeId * 3); }
+	static ed::PinId GetOperatorPinB(int nodeId) { return ed::PinId(OperatorOffset + (int64_t)nodeId * 3 + 1); }
+	static ed::PinId GetOperatorOutPinId(int nodeId) { return ed::PinId(OperatorOffset + (int64_t)nodeId * 3 + 2); }
+	static ed::PinId GetGetterOutPinId(int nodeId) { return ed::PinId(GetterOffset + (int64_t)nodeId); }
+	static ed::PinId GetReturnInPinId(int nodeId) { return ed::PinId(ReturnOffset + (int64_t)nodeId); }
 }; 
  
 ===== StudioContext.h ===== 
@@ -14273,7 +14279,7 @@ void StudioAnimatorGraph::DrawGUI(entt::registry& registry, StudioContext& conte
 		break;
 	case AnimatorGraphView::ParentGraph:
 	default:
-		DrawParentCanvas();
+		DrawParentCanvas(context);
 		break;
 	}
 
@@ -14283,9 +14289,12 @@ void StudioAnimatorGraph::DrawGUI(entt::registry& registry, StudioContext& conte
 }
 
 // eŠK‘w(State)ƒLƒƒƒ“ƒoƒX
-void StudioAnimatorGraph::DrawParentCanvas()
+void StudioAnimatorGraph::DrawParentCanvas(StudioContext& context)
 {
 	parentStateGraph.DrawGUI(graphData);
+
+	// ƒhƒƒbƒv‘ÎÛ‚Æ‚µ‚Ä•R‚Ã‚¯‚é
+	DrawDropTarget(context);
 
 	ImGui::NextColumn();
 
@@ -14367,6 +14376,8 @@ void StudioAnimatorGraph::GoToChildGraph(ParentState* state)
 {
 	editingParent = state;
 	currentView = AnimatorGraphView::ChildGraph;
+
+	childStateGraph.RequestApplyPositions();
 }
 
 // ã‘¤ƒc[ƒ‹ƒo[
@@ -14393,8 +14404,6 @@ void StudioAnimatorGraph::DrawToolbar(StudioContext& context)
 		ImGui::TextDisabled("Not saved yet.");
 	}
 	ImGui::Separator();
-
-	DrawDropTarget(context);
 }
 
 // .animgraph‚ÌD&DŽó‚¯Œû
@@ -14431,13 +14440,6 @@ void StudioAnimatorGraph::TryAttachGraph(const std::string& path, StudioContext&
 	catch (const std::exception&)
 	{
 		attachError = "Invalid json.";
-		return;
-	}
-
-	// V‹Kì¬Json‚ÍŽó‚¯“ü‚êAŠù‘¶Json‚È‚çƒ‚ƒfƒ‹ƒpƒX‚ð”äŠr
-	if (!sourceModelPath.empty() && sourceModelPath != context.currentModelPath)
-	{
-		attachError = "This graph belongs to a different model.";
 		return;
 	}
 
@@ -16013,30 +16015,30 @@ CompareOp StudioConditionGraph::InvertCompareOp(CompareOp op)
 // ç”Ÿã®ãƒ”ãƒ³ID(int64_t)ã‹ã‚‰ã€å½¹å‰²ã¨ãƒŽãƒ¼ãƒ‰IDã‚’é€†ç®—ã™ã‚‹
 void StudioConditionGraph::ResolvePinRole(int64_t rawPinId, PinRole& outRole, int& outNodeId)
 {
-	if (rawPinId >= 4000000 && rawPinId < 5000000)
+	if (rawPinId >= ReturnOffset && rawPinId < ReturnOffset + 1000000)
 	{
 		outRole = PinRole::ReturnIn;
-		outNodeId = (int)(rawPinId - 4000000);
+		outNodeId = (int)(rawPinId - ReturnOffset);
 		return;
 	}
-	if (rawPinId >= 3000000 && rawPinId < 4000000)
+	if (rawPinId >= GetterOffset && rawPinId < GetterOffset + 1000000)
 	{
 		outRole = PinRole::GetterOut;
-		outNodeId = (int)(rawPinId - 3000000);
+		outNodeId = (int)(rawPinId - GetterOffset);
 		return;
 	}
-	if (rawPinId >= 2000000 && rawPinId < 3000000)
+	if (rawPinId >= OperatorOffset && rawPinId < OperatorOffset + 1000000)
 	{
-		int64_t offset = rawPinId - 2000000;
+		int64_t offset = rawPinId - OperatorOffset;
 		int64_t nodeId = offset / 3;
 		int64_t rem = offset % 3;
 		outNodeId = (int)nodeId;
 		outRole = (rem == 0) ? PinRole::OperatorA : (rem == 1) ? PinRole::OperatorB : PinRole::OperatorOut;
 		return;
 	}
-	if (rawPinId >= 1000000 && rawPinId < 2000000)
+	if (rawPinId >= VariableOffset && rawPinId < VariableOffset + 1000000)
 	{
-		int64_t offset = rawPinId - 1000000;
+		int64_t offset = rawPinId - VariableOffset;
 		int64_t nodeId = offset / 2;
 		int64_t rem = offset % 2;
 		outNodeId = (int)nodeId;
