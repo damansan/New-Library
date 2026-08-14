@@ -3,9 +3,6 @@
 
 struct MovementComponent
 {
-    // 移動速度
-    float moveSpeed{ 3.0f };
-
     // 重力・ジャンプ
     float jumpPower{ 8.0f };
     float gravity{ -20.0f };
@@ -15,4 +12,7 @@ struct MovementComponent
 
     // 地面に接しているか
     bool isGrounded{ false };
+
+	// 移動をロックするかどうか
+    bool movementLocked{ false };
 };

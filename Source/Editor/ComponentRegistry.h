@@ -12,6 +12,9 @@ struct ComponentInfo
     std::function<void(entt::registry&, entt::entity)> remove;
     std::function<bool(entt::registry&, entt::entity)> has;
     std::function<void(entt::registry&, entt::entity)> drawImGui;
+
+	// エンティティが持つコンポーネントの実態をmeta_anyとして取得する
+    std::function<entt::meta_any(entt::registry&, entt::entity)> getMeta;
 };
 
 class ComponentRegistry
@@ -21,7 +24,12 @@ public:
     static const std::vector<std::string>& GetNames();
     static const ComponentInfo* Get(const std::string& name);
 
+    static void RegisterTypeName(const std::string& typeName, const std::string& displayName);
+    static const ComponentInfo* GetByTypeName(const std::string& typeName);
+
 private:
     static std::unordered_map<std::string, ComponentInfo> registry;
     static std::vector<std::string> names;
+
+    static std::unordered_map<std::string, std::string> typeNameToDisplayName;
 };

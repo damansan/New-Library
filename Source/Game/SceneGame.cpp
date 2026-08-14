@@ -94,9 +94,19 @@ void SceneGame::Update(float elapsedTime, const SceneContext& context)
 		inputSystem.Update(registry, controllerSystem.GetSettings());
 	}
 	{
+		// Player移動(XZ平面、歩き/小走り判定)
+		ZoneScopedN("PlayerMoveSystem");
+		playerMoveSystem.Update(registry, elapsedTime, context);
+	}
+	{
 		// 移動
 		ZoneScopedN("MovementSystem");
 		movementSystem.Update(registry, elapsedTime, context);
+	}
+	{
+		// State遷移判定
+		ZoneScopedN("AnimatorControllerSystem");
+		animatorControllerSystem.Update(registry);
 	}
 	{
 		// アニメーション更新

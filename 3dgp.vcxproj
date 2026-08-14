@@ -41,6 +41,8 @@
     <ClCompile Include="Source\Data\SequencerData.cpp" />
     <ClCompile Include="Source\Demo\WaveDemo.cpp" />
     <ClCompile Include="Source\ECS\Systems\AnimationSystem.cpp" />
+    <ClCompile Include="Source\ECS\Systems\AnimatorControllerSystem.cpp" />
+    <ClCompile Include="Source\ECS\Systems\ConditionGraphEvaluator.cpp" />
     <ClCompile Include="Source\ECS\Systems\ControllerSystem.cpp" />
     <ClCompile Include="Source\ECS\Systems\DebugCameraSystem.cpp" />
     <ClCompile Include="Source\ECS\Systems\GameCameraSystem.cpp" />
@@ -48,6 +50,7 @@
     <ClCompile Include="Source\ECS\Systems\InputSystem.cpp" />
     <ClCompile Include="Source\ECS\Systems\MeshLoaderSystem.cpp" />
     <ClCompile Include="Source\ECS\Systems\MovementSystem.cpp" />
+    <ClCompile Include="Source\ECS\Systems\PlayerMoveSystem.cpp" />
     <ClCompile Include="Source\ECS\Systems\RenderSystem.cpp" />
     <ClCompile Include="Source\ECS\Systems\PhysicsSystem.cpp" />
     <ClCompile Include="Source\ECS\Systems\SequencerSystem.cpp" />
@@ -121,12 +124,15 @@
     <ClInclude Include="Source\ECS\Components\MeshComponent.h" />
     <ClInclude Include="Source\ECS\Components\MovementComponent.h" />
     <ClInclude Include="Source\ECS\Components\PhysicsComponents.h" />
+    <ClInclude Include="Source\ECS\Components\PlayerMoveComponent.h" />
     <ClInclude Include="Source\ECS\Components\SequencerComponent.h" />
     <ClInclude Include="Source\ECS\Components\SkinnedMeshComponent.h" />
     <ClInclude Include="Source\ECS\Components\StaticMeshComponent.h" />
     <ClInclude Include="Source\ECS\Components\Tags.h" />
     <ClInclude Include="Source\ECS\Components\TransformComponent.h" />
     <ClInclude Include="Source\ECS\Systems\AnimationSystem.h" />
+    <ClInclude Include="Source\ECS\Systems\AnimatorControllerSystem.h" />
+    <ClInclude Include="Source\ECS\Systems\ConditionGraphEvaluator.h" />
     <ClInclude Include="Source\ECS\Systems\ControllerSystem.h" />
     <ClInclude Include="Source\ECS\Systems\DebugCameraSystem.h" />
     <ClInclude Include="Source\ECS\Systems\GameCameraSystem.h" />
@@ -134,6 +140,7 @@
     <ClInclude Include="Source\ECS\Systems\InputSystem.h" />
     <ClInclude Include="Source\ECS\Systems\MeshLoaderSystem.h" />
     <ClInclude Include="Source\ECS\Systems\MovementSystem.h" />
+    <ClInclude Include="Source\ECS\Systems\PlayerMoveSystem.h" />
     <ClInclude Include="Source\ECS\Systems\RenderSystem.h" />
     <ClInclude Include="Source\ECS\Systems\PhysicsSystem.h" />
     <ClInclude Include="Source\ECS\Systems\SequencerSystem.h" />

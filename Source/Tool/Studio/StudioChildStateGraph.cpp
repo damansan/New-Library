@@ -466,7 +466,7 @@ void StudioChildStateGraph::DrawStateInspector(ChildState* state)
 	}
 
 	ImGui::Checkbox("Use Root Motion", &state->useRootMotion);
-	ImGui::Checkbox("Blend", &state->blend);
+	ImGui::Checkbox("Loop", &state->loop);
 
 	int stateId = state->id;
 	DrawDeleteButton("Delete State", [this, stateId]() { graph->DeleteChildState(stateId); });
@@ -487,6 +487,12 @@ void StudioChildStateGraph::DrawLinkInspector(AnimLink* link)
 
 	ImGui::TextWrapped("%s -> %s", fromName.c_str(), toName.c_str());
 
+	ImGui::Checkbox("Blend", &link->blend);
+	if (link->blend)
+	{
+		ImGui::DragFloat("Blend Duration", &link->blendDuration, 0.01f, 0.0f, 5.0f, "%.2f s");
+	}
+
 	if (ImGui::Button("Edit Condition", ImVec2(-1.0f, 0.0f)))
 	{
 		pendingNavigation = NavigationRequest::EditCondition;
@@ -495,7 +501,6 @@ void StudioChildStateGraph::DrawLinkInspector(AnimLink* link)
 	int linkId = link->id;
 	DrawDeleteButton("Delete Link", [this, linkId]() { graph->DeleteChildLink(linkId); });
 }
-
 
 // ノード内で中央寄せにする
 void StudioChildStateGraph::CenterNextItem(float totalWidth, float itemWidth)

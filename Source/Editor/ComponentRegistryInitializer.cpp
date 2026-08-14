@@ -13,6 +13,7 @@
 #include "ECS/Components/InputComponent.h"
 #include "ECS/Components/ControllerComponent.h"
 #include "ECS/Components/MovementComponent.h"
+#include "ECS/Components/PlayerMoveComponent.h"
 
 #include "ECS/Components/AnimatorComponent.h"
 #include "ECS/Components/SkinnedMeshComponent.h"
@@ -36,8 +37,15 @@
         [](auto& r, auto e){ if (!r.any_of<Type>(e)) r.emplace<Type>(e); },         \
         [](auto& r, auto e){ r.remove<Type>(e); },                                  \
         [](auto& r, auto e){ return r.any_of<Type>(e); },                           \
-        DrawFunc                                                                    \
-    })
+        DrawFunc,                                                                   \
+        [](entt::registry& r, entt::entity e) -> entt::meta_any                     \
+        {                                                                           \
+            auto* c = r.try_get<Type>(e);                                           \
+            if (!c) return entt::meta_any{};                                        \
+            return entt::forward_as_meta(*c);                                       \
+        }                                                                           \
+    });                                                                             \
+    ComponentRegistry::RegisterTypeName(#Type, Name)
 
 #define DRAW_COMPONENT(Type, Label, body)                                           \
     [](auto& reg, auto e)                                                           \
@@ -108,6 +116,19 @@ void ComponentRegistryInitializer::Initialize()
 			if (ImGui::CollapsingHeader("Movement", ImGuiTreeNodeFlags_DefaultOpen))
 			{
 				MetaRegistry::DrawMetaFields(entt::resolve<MovementComponent>(), entt::forward_as_meta(*_c));
+			}
+		});
+
+	// Player移動コンポーネントの登録
+	REGISTER_COMPONENT(PlayerMoveComponent, "Player Move",
+		[](auto& reg, auto e)
+		{
+			auto* _c = reg.try_get<PlayerMoveComponent>(e);
+			if (!_c) return;
+
+			if (ImGui::CollapsingHeader("Player Move", ImGuiTreeNodeFlags_DefaultOpen))
+			{
+				MetaRegistry::DrawMetaFields(entt::resolve<PlayerMoveComponent>(), entt::forward_as_meta(*_c));
 			}
 		});
 

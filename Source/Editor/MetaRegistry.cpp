@@ -8,6 +8,7 @@ using namespace entt::literals;
 #include "ECS/Components/TransformComponent.h"
 #include "ECS/Components/MeshComponent.h"
 #include "ECS/Components/MovementComponent.h"
+#include "ECS/Components/PlayerMoveComponent.h"
 #include "ECS/Components/InputComponent.h"
 #include "ECS/Components/AnimatorComponent.h"
 #include "ECS/Components/SequencerComponent.h"
@@ -33,8 +34,6 @@ void MetaRegistry::Initialize()
 	entt::meta_factory<MovementComponent>{}
 	.type("MovementComponent")
 		.custom<TypeInfo>(TypeInfo{ "Movement" })
-		.data<&MovementComponent::moveSpeed>("moveSpeed"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Move Speed", 0.0f, 20.0f })
 		.data<&MovementComponent::jumpPower>("jumpPower"_hs)
 		.custom<FieldInfo>(FieldInfo{ "Jump Power", 0.0f, 50.0f })
 		.data<&MovementComponent::gravity>("gravity"_hs)
@@ -43,6 +42,22 @@ void MetaRegistry::Initialize()
 		.custom<FieldInfo>(FieldInfo{ "Velocity", 0.0f, 0.0f, 0.01f })
 		.data<&MovementComponent::isGrounded>("isGrounded"_hs)
 		.custom<FieldInfo>(FieldInfo{ "Is Grounded" });
+
+	entt::meta_factory<PlayerMoveComponent>{}
+	.type("PlayerMoveComponent")
+		.custom<TypeInfo>(TypeInfo{ "Player Move" })
+		.data<&PlayerMoveComponent::walkSpeed>("walkSpeed"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Walk Speed", 0.0f, 10.0f })
+		.data<&PlayerMoveComponent::jogSpeed>("jogSpeed"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Jog Speed", 0.0f, 10.0f })
+		.data<&PlayerMoveComponent::jogThreshold>("jogThreshold"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Jog Threshold", 0.0f, 1.0f })
+		.data<&PlayerMoveComponent::isWalking>("isWalking"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Is Walking" })
+		.data<&PlayerMoveComponent::isJogging>("isJogging"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Is Jogging" })
+		.data<&PlayerMoveComponent::isMoving>("isMoving"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Is Moving" });
 
 	entt::meta_factory<InputComponent>{}
 	.type("InputComponent")
@@ -59,6 +74,8 @@ void MetaRegistry::Initialize()
 	entt::meta_factory<AnimatorComponent>{}
 	.type("AnimatorComponent")
 		.custom<TypeInfo>(TypeInfo{ "Animator" })
+		.data<&AnimatorComponent::animatorGraphPath>("animatorGraphPath"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Animator Graph", 0.0f, 0.0f, 0.1f, "ANIMGRAPH_PATH" })
 		.data<&AnimatorComponent::playSpeed>("playSpeed"_hs)
 		.custom<FieldInfo>(FieldInfo{ "Play Speed", 0.0f, 3.0f })
 		.data<&AnimatorComponent::loop>("loop"_hs)

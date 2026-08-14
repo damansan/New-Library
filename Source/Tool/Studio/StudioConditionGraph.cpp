@@ -890,10 +890,16 @@ void StudioConditionGraph::DrawLinkCreation()
 				orderOk = true;
 			}
 
-			// 許可する組み合わせ:Getter→Variable、Variable/Operator→OperatorA/B、Operator→Return、Getter/Variable(bool)→Return
+			//// 許可する組み合わせ:Getter→Variable、Variable/Operator→OperatorA/B、Operator→Return、Getter/Variable(bool)→Return
+			//bool isValid = orderOk && (
+			//	(outRole == PinRole::GetterOut && inRole == PinRole::VariableIn) ||
+			//	((outRole == PinRole::VariableOut || outRole == PinRole::OperatorOut) && (inRole == PinRole::OperatorA || inRole == PinRole::OperatorB)) ||
+			//	(outRole == PinRole::OperatorOut && inRole == PinRole::ReturnIn) ||
+			//	((outRole == PinRole::GetterOut || outRole == PinRole::VariableOut) && inRole == PinRole::ReturnIn)
+			//	);
+			// 許可する組み合わせ:Getter/Variable/Operator→OperatorA/B、Operator→Return、Getter/Variable(bool)→Return
 			bool isValid = orderOk && (
-				(outRole == PinRole::GetterOut && inRole == PinRole::VariableIn) ||
-				((outRole == PinRole::VariableOut || outRole == PinRole::OperatorOut) && (inRole == PinRole::OperatorA || inRole == PinRole::OperatorB)) ||
+				((outRole == PinRole::GetterOut || outRole == PinRole::VariableOut || outRole == PinRole::OperatorOut) && (inRole == PinRole::OperatorA || inRole == PinRole::OperatorB)) ||
 				(outRole == PinRole::OperatorOut && inRole == PinRole::ReturnIn) ||
 				((outRole == PinRole::GetterOut || outRole == PinRole::VariableOut) && inRole == PinRole::ReturnIn)
 				);
@@ -901,16 +907,19 @@ void StudioConditionGraph::DrawLinkCreation()
 			// 同じノード同士は禁止
 			if (isValid && outNodeId == inNodeId) isValid = false;
 
-			// Getter→Variableは、型が完全一致している必要がある
-			if (isValid && outRole == PinRole::GetterOut && inRole == PinRole::VariableIn)
-			{
-				ValueType outType = GetNodeValueType(NodeKind::Getter, outNodeId);
-				ValueType inType = GetNodeValueType(NodeKind::Variable, inNodeId);
-				if (outType != inType) isValid = false;
-			}
+			//// Getter→Variableは、型が完全一致している必要がある
+			//if (isValid && outRole == PinRole::GetterOut && inRole == PinRole::VariableIn)
+			//{
+			//	ValueType outType = GetNodeValueType(NodeKind::Getter, outNodeId);
+			//	ValueType inType = GetNodeValueType(NodeKind::Variable, inNodeId);
+			//	if (outType != inType) isValid = false;
+			//}
 
-			// Variable/Operator→OperatorのA/Bは、大小系演算子ならBoolを禁止する。==/!=なら型一致のみ見る
-			if (isValid && (outRole == PinRole::VariableOut || outRole == PinRole::OperatorOut) && (inRole == PinRole::OperatorA || inRole == PinRole::OperatorB))
+			//// Variable/Operator→OperatorのA/Bは、大小系演算子ならBoolを禁止する。==/!=なら型一致のみ見る
+			//if (isValid && (outRole == PinRole::VariableOut || outRole == PinRole::OperatorOut) && (inRole == PinRole::OperatorA || inRole == PinRole::OperatorB))
+			//{
+			// Getter/Variable/Operator→OperatorのA/Bは、大小系演算子ならBoolを禁止する。==/!=なら型一致のみ見る
+			if (isValid && (outRole == PinRole::GetterOut || outRole == PinRole::VariableOut || outRole == PinRole::OperatorOut) && (inRole == PinRole::OperatorA || inRole == PinRole::OperatorB))
 			{
 				ValueType srcType = GetOutputValueType(outRole, outNodeId);
 
@@ -933,8 +942,14 @@ void StudioConditionGraph::DrawLinkCreation()
 				{
 					if (cl.toId == inNodeId && cl.toPinB != wantPinB)
 					{
+						//otherPinNodeId = cl.fromId;
+						//otherOutRole = (GetNodeKind(cl.fromId) == NodeKind::Operator) ? PinRole::OperatorOut : PinRole::VariableOut;
+						//break;
 						otherPinNodeId = cl.fromId;
-						otherOutRole = (GetNodeKind(cl.fromId) == NodeKind::Operator) ? PinRole::OperatorOut : PinRole::VariableOut;
+						NodeKind otherKind = GetNodeKind(cl.fromId);
+						otherOutRole = (otherKind == NodeKind::Operator) ? PinRole::OperatorOut
+							: (otherKind == NodeKind::Getter) ? PinRole::GetterOut
+							: PinRole::VariableOut;
 						break;
 					}
 				}

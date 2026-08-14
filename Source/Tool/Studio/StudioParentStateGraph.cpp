@@ -482,6 +482,12 @@ void StudioParentStateGraph::DrawLinkInspector(AnimLink* link)
 
 	ImGui::TextWrapped("%s -> %s", fromName.c_str(), toName.c_str());
 
+	ImGui::Checkbox("Blend", &link->blend);
+	if (link->blend)
+	{
+		ImGui::DragFloat("Blend Duration", &link->blendDuration, 0.01f, 0.0f, 5.0f, "%.2f s");
+	}
+
 	if (ImGui::Button("Edit Condition", ImVec2(-1.0f, 0.0f)))
 	{
 		pendingNavigation = NavigationRequest::EditCondition;

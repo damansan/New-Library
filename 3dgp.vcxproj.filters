@@ -32,17 +32,11 @@
     <Filter Include="Sources\Core\SceneManager">
       <UniqueIdentifier>{4fc7a6e1-8203-4d24-8368-e1c800c332fa}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Sources\Game">
-      <UniqueIdentifier>{af7ea351-40f9-49aa-a98a-cd3762f6400a}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Sources\ECS">
       <UniqueIdentifier>{254d4a1d-83ad-4b69-b33f-8b8b4920a726}</UniqueIdentifier>
     </Filter>
     <Filter Include="Sources\ECS\Components">
       <UniqueIdentifier>{785c1b8e-4a32-4f0a-97be-b9bf54340cfc}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Game\SceneGame">
-      <UniqueIdentifier>{65464cfa-23e7-4110-95ce-df8abc882584}</UniqueIdentifier>
     </Filter>
     <Filter Include="Sources\Resource">
       <UniqueIdentifier>{a5a88041-86ee-429a-8804-0a733f1a3583}</UniqueIdentifier>
@@ -293,6 +287,27 @@
     <Filter Include="Sources\Tool\Studio\StudioAnimatorGraph\AnimatorGraphNavigation">
       <UniqueIdentifier>{c84edd8f-efe1-43ef-b0d8-5df1f673520e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\ECS\Systems\ConditionGraphEvaluator">
+      <UniqueIdentifier>{137eac83-9000-4230-831e-c7a2b8b392ea}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\ECS\Systems\AnimatorControllerSystem">
+      <UniqueIdentifier>{694be59f-4ec5-472b-818e-640e3b878f9b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Scene">
+      <UniqueIdentifier>{af7ea351-40f9-49aa-a98a-cd3762f6400a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Scene\SceneGame">
+      <UniqueIdentifier>{65464cfa-23e7-4110-95ce-df8abc882584}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\ECS\Components\Player">
+      <UniqueIdentifier>{32a92033-3f64-4db5-9b8e-d6da34ec89cb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\ECS\Systems\Player">
+      <UniqueIdentifier>{bb1c2fd2-f77b-44b0-955b-ec0a35decd20}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\ECS\Systems\Player\PlayerMoveSystem">
+      <UniqueIdentifier>{fe1b0576-4f97-48de-a9de-cd6ee13e2008}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Core\framework.cpp">
@@ -332,7 +347,7 @@
       <Filter>Sources\Resource\GpuResourceUtils</Filter>
     </ClCompile>
     <ClCompile Include="Source\Game\SceneGame.cpp">
-      <Filter>Sources\Game\SceneGame</Filter>
+      <Filter>Sources\Scene\SceneGame</Filter>
     </ClCompile>
     <ClCompile Include="Source\Resource\Model.cpp">
       <Filter>Sources\Resource\Model</Filter>
@@ -496,6 +511,15 @@
     <ClCompile Include="Source\Tool\Studio\StudioChildStateGraph.cpp">
       <Filter>Sources\Tool\Studio\StudioAnimatorGraph\StudioChildGraph</Filter>
     </ClCompile>
+    <ClCompile Include="Source\ECS\Systems\ConditionGraphEvaluator.cpp">
+      <Filter>Sources\ECS\Systems\ConditionGraphEvaluator</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\ECS\Systems\AnimatorControllerSystem.cpp">
+      <Filter>Sources\ECS\Systems\AnimatorControllerSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\ECS\Systems\PlayerMoveSystem.cpp">
+      <Filter>Sources\ECS\Systems\Player\PlayerMoveSystem</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Core\framework.h">
@@ -520,7 +544,7 @@
       <Filter>Sources\Core\SceneManager</Filter>
     </ClInclude>
     <ClInclude Include="Source\Game\SceneGame.h">
-      <Filter>Sources\Game\SceneGame</Filter>
+      <Filter>Sources\Scene\SceneGame</Filter>
     </ClInclude>
     <ClInclude Include="Source\Resource\GpuResourceUtils.h">
       <Filter>Sources\Resource\GpuResourceUtils</Filter>
@@ -770,6 +794,18 @@
     </ClInclude>
     <ClInclude Include="Source\Tool\Studio\AnimatorGraphNavigation.h">
       <Filter>Sources\Tool\Studio\StudioAnimatorGraph\AnimatorGraphNavigation</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ECS\Systems\ConditionGraphEvaluator.h">
+      <Filter>Sources\ECS\Systems\ConditionGraphEvaluator</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ECS\Systems\AnimatorControllerSystem.h">
+      <Filter>Sources\ECS\Systems\AnimatorControllerSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ECS\Components\PlayerMoveComponent.h">
+      <Filter>Sources\ECS\Components\Player</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ECS\Systems\PlayerMoveSystem.h">
+      <Filter>Sources\ECS\Systems\Player\PlayerMoveSystem</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

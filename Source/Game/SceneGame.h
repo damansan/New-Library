@@ -5,6 +5,11 @@
 #include "ECS/Systems/InputSystem.h"    
 #include "ECS/Systems/MovementSystem.h" 
 #include "ECS/Systems/AnimationSystem.h"
+#include "ECS/Systems/AnimatorControllerSystem.h"
+
+
+#include "ECS/Systems/PlayerMoveSystem.h"
+
 
 #include "ECS/Systems/MeshLoaderSystem.h"
 #include "ECS/Systems/RenderSystem.h"
@@ -40,6 +45,8 @@ private:
 	InputSystem      inputSystem;
 	MovementSystem   movementSystem;
 	AnimationSystem  animationSystem;
+	AnimatorControllerSystem animatorControllerSystem;
+	PlayerMoveSystem playerMoveSystem;
 
 	MeshLoaderSystem meshLoaderSystem;
 	RenderSystem     renderSystem;

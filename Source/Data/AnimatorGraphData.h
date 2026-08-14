@@ -108,6 +108,9 @@ struct AnimLink // リンク
 	int fromId = -1; // 遷移元のID
 	int toId = -1;   // 遷移先のID
 
+	bool blend = true;         // 遷移時にブレンドするか
+	float blendDuration = 0.2f; // ブレンドにかける秒数
+
 	ConditionGraph condition; // このLinkの遷移条件グラフ
 };
 
@@ -122,8 +125,8 @@ struct ChildState  // 子階層State
 	ChildStateType type = ChildStateType::Normal;
 
 	std::string clipName;       // 再生するアニメーション名
+	bool loop = true;           // ループ再生するか
 	bool useRootMotion = false; // ルートモーションの使用
-	bool blend = false;         // 遷移時にブレンドするか
 };
 struct ChildStateGraph // 子階層グラフ
 {

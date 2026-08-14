@@ -374,8 +374,8 @@ nlohmann::ordered_json AnimatorGraphData::StatesToJson() const
 			jn["posY"] = node.posY;
 			jn["type"] = ToString(node.type);
 			jn["clipName"] = node.clipName;
+			jn["loop"] = node.loop;
 			jn["useRootMotion"] = node.useRootMotion;
-			jn["blend"] = node.blend;
 			js["children"].push_back(jn);
 		}
 
@@ -427,8 +427,8 @@ void AnimatorGraphData::StatesFromJson(const nlohmann::json& j)
 				node.posY = jn.value("posY", 0.0f);
 				node.type = ToChildStateType(jn.value("type", "Normal"));
 				node.clipName = jn.value("clipName", "");
+				node.loop = jn.value("loop", true);
 				node.useRootMotion = jn.value("useRootMotion", false);
-				node.blend = jn.value("blend", false);
 				state.childGraph.children.push_back(node);
 
 				SyncIdCounter(node.id);
@@ -485,6 +485,8 @@ nlohmann::ordered_json AnimatorGraphData::AnimLinkToJson(const AnimLink& link) c
 	jl["id"] = link.id;
 	jl["fromId"] = link.fromId;
 	jl["toId"] = link.toId;
+	jl["blend"] = link.blend;
+	jl["blendDuration"] = link.blendDuration;
 
 	nlohmann::ordered_json jc;
 
@@ -553,6 +555,8 @@ void AnimatorGraphData::AnimLinkFromJson(AnimLink& link, const nlohmann::json& j
 	link.id = jl.value("id", -1);
 	link.fromId = jl.value("fromId", -1);
 	link.toId = jl.value("toId", -1);
+	link.blend = jl.value("blend", true);
+	link.blendDuration = jl.value("blendDuration", 0.2f);
 
 	// 条件グラフに案内板を配線してから使う
 	link.condition.idCounter = &idCounter;
