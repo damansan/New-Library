@@ -74,7 +74,7 @@
                     "posX": 224.0,
                     "posY": 192.0,
                     "type": "Normal",
-                    "clipName": "NS_Idle",
+                    "clipName": "AS_Idle",
                     "loop": true,
                     "useRootMotion": false
                 }
@@ -103,8 +103,8 @@
         {
             "id": 10,
             "name": "Walk",
-            "posX": 299.0,
-            "posY": -111.0,
+            "posX": 176.0,
+            "posY": -128.0,
             "type": "State",
             "color": [
                 0.27000001072883606,
@@ -125,8 +125,8 @@
                 {
                     "id": 12,
                     "name": "Exit",
-                    "posX": 400.0,
-                    "posY": 200.0,
+                    "posX": 432.0,
+                    "posY": 128.0,
                     "type": "End",
                     "clipName": "",
                     "loop": true,
@@ -138,19 +138,19 @@
                     "posX": 128.0,
                     "posY": 128.0,
                     "type": "Normal",
-                    "clipName": "AS_Walk_Loop_F_R_45_Seq_0",
+                    "clipName": "AS_Walk_Loop",
                     "loop": true,
-                    "useRootMotion": false
+                    "useRootMotion": true
                 },
                 {
                     "id": 40,
-                    "name": "Jogging",
-                    "posX": 224.0,
-                    "posY": 0.0,
+                    "name": "Run",
+                    "posX": 272.0,
+                    "posY": 128.0,
                     "type": "Normal",
-                    "clipName": "NS_AttackCombo1",
+                    "clipName": "AS_Run_Loop",
                     "loop": true,
-                    "useRootMotion": false
+                    "useRootMotion": true
                 }
             ],
             "childLinks": [
@@ -163,11 +163,29 @@
                     "condition": {
                         "returnNode": {
                             "id": 56,
-                            "posX": 258.0,
-                            "posY": 208.0
+                            "posX": 418.0,
+                            "posY": 288.0
                         },
-                        "variableNodes": [],
-                        "operatorNodes": [],
+                        "variableNodes": [
+                            {
+                                "id": 79,
+                                "posX": 33.0,
+                                "posY": 322.0,
+                                "name": "",
+                                "type": "Bool",
+                                "intValue": 0,
+                                "floatValue": 0.0,
+                                "boolValue": true
+                            }
+                        ],
+                        "operatorNodes": [
+                            {
+                                "id": 80,
+                                "posX": 242.0,
+                                "posY": 232.0,
+                                "op": "Equal"
+                            }
+                        ],
                         "getterNodes": [
                             {
                                 "id": 57,
@@ -181,8 +199,20 @@
                         ],
                         "links": [
                             {
-                                "id": 58,
+                                "id": 81,
                                 "fromId": 57,
+                                "toId": 80,
+                                "toPinB": false
+                            },
+                            {
+                                "id": 82,
+                                "fromId": 79,
+                                "toId": 80,
+                                "toPinB": true
+                            },
+                            {
+                                "id": 83,
+                                "fromId": 80,
                                 "toId": 56,
                                 "toPinB": false
                             }
@@ -198,15 +228,33 @@
                     "condition": {
                         "returnNode": {
                             "id": 60,
-                            "posX": 402.0,
-                            "posY": 224.0
+                            "posX": 482.0,
+                            "posY": 304.0
                         },
-                        "variableNodes": [],
-                        "operatorNodes": [],
+                        "variableNodes": [
+                            {
+                                "id": 74,
+                                "posX": 102.0,
+                                "posY": 320.0,
+                                "name": "",
+                                "type": "Bool",
+                                "intValue": 0,
+                                "floatValue": 0.0,
+                                "boolValue": true
+                            }
+                        ],
+                        "operatorNodes": [
+                            {
+                                "id": 75,
+                                "posX": 318.0,
+                                "posY": 248.0,
+                                "op": "Equal"
+                            }
+                        ],
                         "getterNodes": [
                             {
                                 "id": 61,
-                                "posX": 192.0,
+                                "posX": 112.0,
                                 "posY": 204.0,
                                 "componentName": "PlayerMoveComponent",
                                 "fieldName": "Is Jogging",
@@ -216,8 +264,20 @@
                         ],
                         "links": [
                             {
-                                "id": 62,
+                                "id": 76,
                                 "fromId": 61,
+                                "toId": 75,
+                                "toPinB": false
+                            },
+                            {
+                                "id": 77,
+                                "fromId": 74,
+                                "toId": 75,
+                                "toPinB": true
+                            },
+                            {
+                                "id": 78,
+                                "fromId": 75,
                                 "toId": 60,
                                 "toPinB": false
                             }
@@ -273,11 +333,29 @@
             "condition": {
                 "returnNode": {
                     "id": 14,
-                    "posX": 530.0,
-                    "posY": 256.0
+                    "posX": 562.0,
+                    "posY": 320.0
                 },
-                "variableNodes": [],
-                "operatorNodes": [],
+                "variableNodes": [
+                    {
+                        "id": 69,
+                        "posX": 214.0,
+                        "posY": 336.0,
+                        "name": "",
+                        "type": "Bool",
+                        "intValue": 0,
+                        "floatValue": 0.0,
+                        "boolValue": true
+                    }
+                ],
+                "operatorNodes": [
+                    {
+                        "id": 70,
+                        "posX": 402.0,
+                        "posY": 264.0,
+                        "op": "Equal"
+                    }
+                ],
                 "getterNodes": [
                     {
                         "id": 45,
@@ -291,8 +369,20 @@
                 ],
                 "links": [
                     {
-                        "id": 46,
+                        "id": 71,
                         "fromId": 45,
+                        "toId": 70,
+                        "toPinB": false
+                    },
+                    {
+                        "id": 72,
+                        "fromId": 69,
+                        "toId": 70,
+                        "toPinB": true
+                    },
+                    {
+                        "id": 73,
+                        "fromId": 70,
                         "toId": 14,
                         "toPinB": false
                     }
@@ -308,7 +398,7 @@
             "condition": {
                 "returnNode": {
                     "id": 48,
-                    "posX": 578.0,
+                    "posX": 546.0,
                     "posY": 304.0
                 },
                 "variableNodes": [
@@ -327,7 +417,7 @@
                     {
                         "id": 63,
                         "posX": 386.0,
-                        "posY": 240.0,
+                        "posY": 248.0,
                         "op": "Equal"
                     }
                 ],

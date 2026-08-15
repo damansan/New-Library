@@ -68,10 +68,10 @@ void AnimationSystem::Update(
 				}
 			}
 
-			// ルートモーションの移動量を計算
+			// ルートボーンの固定に使うノードを探す
 			animator.rootMotionDelta = { 0.0f, 0.0f, 0.0f };
 			int rootMotionNodeIndex = -1;
-			if (animator.useRootMotion)
+			if (!animator.rootMotionNodeName.empty())
 			{
 				rootMotionNodeIndex = FindNodeIndex(*skinned.model, animator.rootMotionNodeName);
 				if (rootMotionNodeIndex >= 0)
@@ -85,12 +85,13 @@ void AnimationSystem::Update(
 			// ボーン行列を計算
 			CalcBoneTransforms(
 				*skinned.model,
-				animation, 
+				animation,
 				animator.animationTime,
 				skinned,
 				rootMotionNodeIndex);
 
-			if (rootMotionNodeIndex >= 0 && elapsedTime > 0.0f)
+			// 実際の移動へ反映するのは、useRootMotionがtrueのときだけ
+			if (animator.useRootMotion && rootMotionNodeIndex >= 0 && elapsedTime > 0.0f)
 			{
 				auto* transform = registry.try_get<TransformComponent>(entity);
 				auto* movement = registry.try_get<MovementComponent>(entity);
@@ -108,7 +109,6 @@ void AnimationSystem::Update(
 					DirectX::XMStoreFloat3(&worldDeltaF, worldDelta);
 
 					// 移動量(位置の差分)を速度に変換して上書きする
-					// （PhysicsSystem側で velocity * elapsedTime として使われるため）
 					movement->velocity.x = worldDeltaF.x / elapsedTime;
 					movement->velocity.z = worldDeltaF.z / elapsedTime;
 
