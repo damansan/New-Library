@@ -3,35 +3,6 @@
 #include "ECS/Components/AnimatorComponent.h"
 #include <fstream>
 
-// パスから、対応するSequencerDataを取得する(未読み込みなら読み込む)
-SequencerData& SequencerSystem::GetOrLoadSequencerData(const std::string& sequencerPath)
-{
-	auto it = cache.find(sequencerPath);
-	if (it != cache.end())
-	{
-		return it->second;
-	}
-
-	SequencerData data;
-
-	std::ifstream ifs(sequencerPath);
-	if (ifs.is_open())
-	{
-		try
-		{
-			nlohmann::json j;
-			ifs >> j;
-			data.FromJson(j);
-		}
-		catch (const std::exception&) {}
-	}
-	// 見つからない/壊れている場合も、空のSequencerDataをキャッシュしておく
-	// (毎フレーム、同じ壊れたファイルを読み直さないようにするため)
-
-	auto result = cache.emplace(sequencerPath, std::move(data));
-	return result.first->second;
-}
-
 // 1体のエンティティについて、フラグを更新する
 void SequencerSystem::UpdateFlags(SequencerComponent& seq, const SequencerClipData* clip, float normalizedTime)
 {
@@ -90,7 +61,8 @@ void SequencerSystem::Update(entt::registry& registry)
 			continue;
 		}
 
-		SequencerData& data = GetOrLoadSequencerData(seq.sequencerPath);
+		SequencerData& data = dataCache.GetOrLoad(seq.sequencerPath,
+			[](SequencerData& data, const nlohmann::json& j) { data.FromJson(j); });
 
 		SequencerClipData* clip = nullptr;
 		for (auto& c : data.clips)

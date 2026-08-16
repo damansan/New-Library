@@ -16,7 +16,8 @@ void AnimatorControllerSystem::Update(entt::registry& registry)
 			continue;
 		}
 
-		AnimatorGraphData& data = GetOrLoadAnimatorGraphData(animator.animatorGraphPath);
+		AnimatorGraphData& data = graphCache.GetOrLoad(animator.animatorGraphPath,
+			[](AnimatorGraphData& data, const nlohmann::json& j) { data.FromJson(j); });
 
 		if (animator.currentParentStateId == -1)
 		{
@@ -35,7 +36,11 @@ void AnimatorControllerSystem::Update(entt::registry& registry)
 
 		// 子階層: 親の遷移が無かった場合のみチェックする
 		ParentState* parent = FindParentStateById(data.parentGraph, animator.currentParentStateId);
-		if (!parent) continue;
+		if (!parent)
+		{
+			animator.currentParentStateId = -1;
+			continue;
+		}
 
 		int newChildId = FindTransition(parent->childGraph.childLinks, animator.currentChildStateId, registry, entity);
 		if (newChildId == -1) continue;
@@ -54,34 +59,6 @@ void AnimatorControllerSystem::Update(entt::registry& registry)
 			ApplyChildState(animator, *newChild);
 		}
 	}
-}
-
-// パスから、対応するAnimatorGraphDataを取得する
-AnimatorGraphData& AnimatorControllerSystem::GetOrLoadAnimatorGraphData(const std::string& path)
-{
-	auto it = cache.find(path);
-	if (it != cache.end())
-	{
-		return it->second;
-	}
-
-	// マップの中に直接デフォルト構築してから、その場でJsonを読み込む
-	auto result = cache.try_emplace(path);
-	AnimatorGraphData& data = result.first->second;
-
-	std::ifstream ifs(path);
-	if (ifs.is_open())
-	{
-		try
-		{
-			nlohmann::json j;
-			ifs >> j;
-			data.FromJson(j);
-		}
-		catch (const std::exception&) {}
-	}
-
-	return data;
 }
 
 // 遷移条件が成立している物を探す、複数ある場合は最初に見つかったものを通し、警告を出す

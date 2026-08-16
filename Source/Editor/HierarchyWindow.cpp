@@ -5,6 +5,7 @@
 
 #include "ECS/Components/TransformComponent.h"
 #include "ECS/Components/MeshComponent.h"
+#include "ECS/Components/MaterialComponent.h"
 
 #include "tracy/Tracy.hpp"
 
@@ -18,6 +19,8 @@ void HierarchyWindow::Draw(entt::registry& registry, EditorContext& context)
     if (ImGui::Button("+ Add Entity"))
     {
         entt::entity e = registry.create();
+
+        registry.emplace<TransformComponent>(e);
 
         // 名前を自動設定
         context.SetName(e, "Entity");
@@ -133,6 +136,7 @@ void HierarchyWindow::Draw(entt::registry& registry, EditorContext& context)
             t.scale = { 1.0f, 1.0f, 1.0f };
 
             registry.emplace<MeshComponent>(e, modelPath);
+            registry.emplace<MaterialComponent>(e);
 
             // ファイル名から Entity 名を設定
             std::filesystem::path p(modelPath);

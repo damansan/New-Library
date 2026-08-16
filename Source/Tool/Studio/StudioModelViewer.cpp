@@ -5,6 +5,7 @@
 #include <imgui.h>
 
 #include "ECS/Components/AnimatorComponent.h"
+#include "ECS/Components/MaterialComponent.h"
 
 // 初期化
 void StudioModelViewer::Initialize(
@@ -106,6 +107,8 @@ void StudioModelViewer::LoadModel(
     auto& mesh = registry.emplace<MeshComponent>(modelEntity);
     mesh.modelPath = path;
     mesh.previousPath = path;
+    // MaterialComponent追加
+    registry.emplace<MaterialComponent>(modelEntity);
 
     // スキニングの有無で分岐
     if (model->HasSkin())

@@ -4121,10 +4121,10 @@ void AnimationSystem::Update(
 				}
 			}
 
-			// ルートモーションの移動量を計算
+			// ルートボーンの固定に使うノードを探す
 			animator.rootMotionDelta = { 0.0f, 0.0f, 0.0f };
 			int rootMotionNodeIndex = -1;
-			if (animator.useRootMotion)
+			if (!animator.rootMotionNodeName.empty())
 			{
 				rootMotionNodeIndex = FindNodeIndex(*skinned.model, animator.rootMotionNodeName);
 				if (rootMotionNodeIndex >= 0)
@@ -4138,12 +4138,13 @@ void AnimationSystem::Update(
 			// ボーン行列を計算
 			CalcBoneTransforms(
 				*skinned.model,
-				animation, 
+				animation,
 				animator.animationTime,
 				skinned,
 				rootMotionNodeIndex);
 
-			if (rootMotionNodeIndex >= 0 && elapsedTime > 0.0f)
+			// 実際の移動へ反映するのは、useRootMotionがtrueのときだけ
+			if (animator.useRootMotion && rootMotionNodeIndex >= 0 && elapsedTime > 0.0f)
 			{
 				auto* transform = registry.try_get<TransformComponent>(entity);
 				auto* movement = registry.try_get<MovementComponent>(entity);
@@ -4161,7 +4162,6 @@ void AnimationSystem::Update(
 					DirectX::XMStoreFloat3(&worldDeltaF, worldDelta);
 
 					// 移動量(位置の差分)を速度に変換して上書きする
-					// （PhysicsSystem側で velocity * elapsedTime として使われるため）
 					movement->velocity.x = worldDeltaF.x / elapsedTime;
 					movement->velocity.z = worldDeltaF.z / elapsedTime;
 
@@ -4686,7 +4686,8 @@ float ConditionGraphEvaluator::GetGetterValue(const ConditionGetterNode& node, e
 	if (!found) return 0.0f;
 
 	// コンポーネント名からエンティティの持つ
-	const ComponentInfo* info = ComponentRegistry::Get(node.componentName);
+	const ComponentInfo* info = ComponentRegistry::GetByTypeName(node.componentName);
+
 	if (!info) return 0.0f;
 
 	entt::meta_any instance = info->getMeta(registry, entity);
@@ -6994,9 +6995,14 @@ public:
     static const std::vector<std::string>& GetNames();
     static const ComponentInfo* Get(const std::string& name);
 
+    static void RegisterTypeName(const std::string& typeName, const std::string& displayName);
+    static const ComponentInfo* GetByTypeName(const std::string& typeName);
+
 private:
     static std::unordered_map<std::string, ComponentInfo> registry;
     static std::vector<std::string> names;
+
+    static std::unordered_map<std::string, std::string> typeNameToDisplayName;
 }; 
  
 ===== ComponentRegistryInitializer.h ===== 
@@ -7238,6 +7244,7 @@ Path: C:\Users\offri\Desktop\New-Library\Source\Editor\ComponentRegistry.cpp
 
 std::unordered_map<std::string, ComponentInfo> ComponentRegistry::registry;
 std::vector<std::string> ComponentRegistry::names;
+std::unordered_map<std::string, std::string> ComponentRegistry::typeNameToDisplayName;
 
 void ComponentRegistry::Register(const std::string& name, ComponentInfo info)
 {
@@ -7257,6 +7264,18 @@ const ComponentInfo* ComponentRegistry::Get(const std::string& name)
     auto it = registry.find(name);
     if (it == registry.end()) return nullptr;
     return &it->second;
+}
+
+void ComponentRegistry::RegisterTypeName(const std::string& typeName, const std::string& displayName)
+{
+    typeNameToDisplayName[typeName] = displayName;
+}
+
+const ComponentInfo* ComponentRegistry::GetByTypeName(const std::string& typeName)
+{
+    auto it = typeNameToDisplayName.find(typeName);
+    if (it == typeNameToDisplayName.end()) return nullptr;
+    return Get(it->second);
 } 
  
 ===== ComponentRegistryInitializer.cpp ===== 
@@ -7307,7 +7326,8 @@ Path: C:\Users\offri\Desktop\New-Library\Source\Editor\ComponentRegistryInitiali
             if (!c) return entt::meta_any{};                                        \
             return entt::forward_as_meta(*c);                                       \
         }                                                                           \
-    })
+    });                                                                             \
+    ComponentRegistry::RegisterTypeName(#Type, Name)
 
 #define DRAW_COMPONENT(Type, Label, body)                                           \
     [](auto& reg, auto e)                                                           \

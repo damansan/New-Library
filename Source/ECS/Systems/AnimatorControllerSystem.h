@@ -2,6 +2,8 @@
 #include "entt.hpp"
 #include "Data/AnimatorGraphData.h"
 #include "ECS/Components/AnimatorComponent.h"
+#include "Core/JsonFileCache.h"
+
 #include <unordered_map>
 #include <string>
 
@@ -11,10 +13,7 @@ public:
 	void Update(entt::registry& registry);
 
 private:
-	// ファイルパスごとに、読み込み済みのAnimatorGraphDataをキャッシュする
-	std::unordered_map<std::string, AnimatorGraphData> cache;
-	// パスから、対応するAnimatorGraphDataを取得する
-	AnimatorGraphData& GetOrLoadAnimatorGraphData(const std::string& path);
+	JsonFileCache<AnimatorGraphData> graphCache;
 
 	// 遷移条件が成立している物を探す、複数ある場合は最初に見つかったものを通し、警告を出す
 	static int FindTransition(const std::vector<AnimLink>& links, int fromId, entt::registry& registry, entt::entity entity);

@@ -308,6 +308,9 @@
     <Filter Include="Sources\ECS\Systems\Player\PlayerMoveSystem">
       <UniqueIdentifier>{fe1b0576-4f97-48de-a9de-cd6ee13e2008}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\Core\JsonFileCache">
+      <UniqueIdentifier>{556fe70e-71ae-43ef-a73e-678c485fc2d8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Core\framework.cpp">
@@ -806,6 +809,9 @@
     </ClInclude>
     <ClInclude Include="Source\ECS\Systems\PlayerMoveSystem.h">
       <Filter>Sources\ECS\Systems\Player\PlayerMoveSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Core\JsonFileCache.h">
+      <Filter>Sources\Core\JsonFileCache</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
