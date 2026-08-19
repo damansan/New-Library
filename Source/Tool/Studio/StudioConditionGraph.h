@@ -1,6 +1,6 @@
 #pragma once
-#include "Data/AnimatorGraphData.h"
-#include "Tool/NodeEditorCanvas.h"
+#include "Engine/Data/AnimatorGraphData.h"
+#include "Tool/NodeEditor/NodeEditorCanvas.h"
 #include <imgui.h>
 #include <functional>
 #include <imgui_node_editor.h>

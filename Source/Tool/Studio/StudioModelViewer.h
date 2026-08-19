@@ -4,13 +4,13 @@
 
 #include "IStudioAttachment.h"
 
-#include "Resource/ResourceManager.h"
+#include "Engine/Resource/ResourceManager.h"
 
-#include "ECS/Components/TransformComponent.h"
-#include "ECS/Components/MeshComponent.h"
-#include "ECS/Components/SkinnedMeshComponent.h"
-#include "ECS/Components/StaticMeshComponent.h"
-#include "ECS/Components/Tags.h"
+#include "Engine/ECS/Components/TransformComponent.h"
+#include "Engine/ECS/Components/MeshComponent.h"
+#include "Engine/ECS/Components/SkinnedMeshComponent.h"
+#include "Engine/ECS/Components/StaticMeshComponent.h"
+#include "Engine/ECS/Components/Tags.h"
 
 class StudioModelViewer : public IStudioAttachment
 {

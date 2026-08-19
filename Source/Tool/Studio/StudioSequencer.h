@@ -1,6 +1,6 @@
 #pragma once
 #include "IStudioAttachment.h"
-#include "Data/SequencerData.h"
+#include "Engine/Data/SequencerData.h"
 #include <imgui.h>
 #include <functional>
 #include <string>

@@ -5,20 +5,8 @@
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
-    <Filter Include="Sources\Core">
-      <UniqueIdentifier>{4fa40759-1629-49dc-a039-50a365ce633a}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Utility">
-      <UniqueIdentifier>{9aff6af3-bd4a-4153-97ce-dd4b673a0c2f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Core\Graphics">
-      <UniqueIdentifier>{743595f0-ba63-4405-b6d8-562472aea530}</UniqueIdentifier>
-    </Filter>
     <Filter Include="External">
       <UniqueIdentifier>{1788a1af-73ea-481f-b3fe-0a450fd90d64}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Core\ImGuiManager">
-      <UniqueIdentifier>{b591756c-554a-407b-b270-80442c4d3c08}</UniqueIdentifier>
     </Filter>
     <Filter Include="External\imgui-docking">
       <UniqueIdentifier>{e5be45de-3dc9-46cc-9e73-6c4c60d21fe4}</UniqueIdentifier>
@@ -26,50 +14,8 @@
     <Filter Include="External\imgui-docking\backends">
       <UniqueIdentifier>{b67ded63-317b-429c-bab8-0ec5491ff767}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Sources\Core\Scene">
-      <UniqueIdentifier>{818a02ce-1e53-4b13-9baa-2ae2aee427b2}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Core\SceneManager">
-      <UniqueIdentifier>{4fc7a6e1-8203-4d24-8368-e1c800c332fa}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\ECS">
-      <UniqueIdentifier>{254d4a1d-83ad-4b69-b33f-8b8b4920a726}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\ECS\Components">
-      <UniqueIdentifier>{785c1b8e-4a32-4f0a-97be-b9bf54340cfc}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Resource">
-      <UniqueIdentifier>{a5a88041-86ee-429a-8804-0a733f1a3583}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Resource\GpuResourceUtils">
-      <UniqueIdentifier>{89127baf-1c59-4c9a-b00a-50a695fbac89}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Resource\Model">
-      <UniqueIdentifier>{1f0b8bd2-9192-45ac-a2ed-056192dafc9b}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Resource\GLTFImporter">
-      <UniqueIdentifier>{80c1af71-670b-4762-8a44-8872bcbdcf91}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Resource\ResourceManager">
-      <UniqueIdentifier>{57d02242-59cd-4c57-b129-c3d5fab95d36}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Core\SceneContext">
-      <UniqueIdentifier>{a5c24d2f-c25e-4d3d-9711-a394ec1f8d34}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\ECS\Systems">
-      <UniqueIdentifier>{9af20c20-35bd-4993-909a-def20a230f33}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\ECS\Systems\MeshLoaderSystem">
-      <UniqueIdentifier>{cd386e78-fd88-4304-897f-067c33faa4be}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\ECS\Systems\RenderSystem">
-      <UniqueIdentifier>{da3004cc-92eb-45c1-8584-ecc0cc8e78bf}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Shader">
       <UniqueIdentifier>{c2dc3734-b94f-4533-90fb-cd70336ef861}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Core\Camera">
-      <UniqueIdentifier>{76dfb451-1d60-4db8-aa17-60004c934c2c}</UniqueIdentifier>
     </Filter>
     <Filter Include="Shader\Base">
       <UniqueIdentifier>{0478ecab-c2c7-42fb-83f7-f2de25f18e85}</UniqueIdentifier>
@@ -83,18 +29,6 @@
     <Filter Include="Shader\Debug">
       <UniqueIdentifier>{384dfe56-abfb-492f-9fd3-ffba750579fd}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Sources\ECS\Systems\AnimationSystem">
-      <UniqueIdentifier>{a1a8b9cb-ee01-4447-846a-22cc8a736186}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Resource\GLTFData">
-      <UniqueIdentifier>{205a4808-d48f-4931-be47-daa633376db1}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Core\framework">
-      <UniqueIdentifier>{e239fe73-39c1-4c17-8857-b874ee90de0f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Resource\GLTFConverter">
-      <UniqueIdentifier>{1657cb11-f1cf-455e-b22f-50bd2a08c56c}</UniqueIdentifier>
-    </Filter>
     <Filter Include="External\tracy-0.13.1">
       <UniqueIdentifier>{054ca6fc-d2f6-4f82-9ad5-f6505e353961}</UniqueIdentifier>
     </Filter>
@@ -107,71 +41,221 @@
     <Filter Include="Shader\IBL">
       <UniqueIdentifier>{89857270-8749-4d50-962f-65309e5333a1}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Sources\Rendering">
-      <UniqueIdentifier>{86e23669-f22d-47df-b29e-1d4285214f46}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Rendering\SkyBox">
-      <UniqueIdentifier>{9e97e8a1-a467-46bd-9240-1e362631dcf8}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Rendering\GBuffer">
-      <UniqueIdentifier>{95c9f472-eff5-45d9-a729-6be6db67f6cd}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Shader\Gbuffer">
       <UniqueIdentifier>{7fed1a80-c51b-4ebf-9f46-020f1a9788f5}</UniqueIdentifier>
     </Filter>
     <Filter Include="Shader\Lighting">
       <UniqueIdentifier>{9359414c-cb4d-40dd-9279-5b2e93257f5a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Sources\Rendering\LightManager">
-      <UniqueIdentifier>{eea5f1f4-67d2-4d9b-8709-0c60219fde2f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\ECS\Systems\InputSystem">
-      <UniqueIdentifier>{81216e75-0473-4f8d-b425-d5c760c69d33}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Utility\CerealHelper">
-      <UniqueIdentifier>{ec682482-b10b-4925-908f-ef5913aaea45}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Resource\ModelSerializer">
-      <UniqueIdentifier>{50e40258-8912-418f-a58d-91ad1a5d0f5a}</UniqueIdentifier>
-    </Filter>
     <Filter Include="External\json-3.12.0">
       <UniqueIdentifier>{21e8e830-d41f-441f-a456-7efbeae5c971}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Sources\Editor">
-      <UniqueIdentifier>{2056686f-274e-4486-9d5b-5c6c5813702e}</UniqueIdentifier>
+    <Filter Include="External\DualSense-Windows">
+      <UniqueIdentifier>{a642a7d8-01cc-49ef-85d4-d1a9603e1792}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Sources\Editor\ProjectWindow">
-      <UniqueIdentifier>{ae186463-3a03-4397-828d-1e2bbc6201b9}</UniqueIdentifier>
+    <Filter Include="External\entt">
+      <UniqueIdentifier>{55738d4a-41b7-4726-ba78-e0ba6e927136}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Sources\Editor\EditorContext">
-      <UniqueIdentifier>{1b3722c7-6ab5-4eb4-a603-1a6961a5ca5c}</UniqueIdentifier>
+    <Filter Include="Shader\SolidShape">
+      <UniqueIdentifier>{04db11b6-db1d-4f75-ad68-6f7711de9e6b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Sources\Editor\HierarchyWindow">
-      <UniqueIdentifier>{cb8c5499-42b7-4649-9e40-52be04a873d2}</UniqueIdentifier>
+    <Filter Include="Shader\WiredShape">
+      <UniqueIdentifier>{a178dacc-07f0-4c69-997f-72920c2a5185}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Sources\Editor\InspectorWindow">
-      <UniqueIdentifier>{8f919397-1970-48ac-bce8-3e0ae6d02a96}</UniqueIdentifier>
+    <Filter Include="External\imgui-node-editor">
+      <UniqueIdentifier>{7f346661-3b9b-4835-be73-9c1b34c9f0ed}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Sources\Editor\ComponentRegistry">
-      <UniqueIdentifier>{0284df2a-6828-42c8-96ed-1fa09f18d31a}</UniqueIdentifier>
+    <Filter Include="Sources\Engine">
+      <UniqueIdentifier>{4d7fbc4d-5e50-4fe3-8408-778976156706}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Sources\ECS\Systems\Camera">
-      <UniqueIdentifier>{6852dba2-f126-4ff7-82ae-cab96735ede9}</UniqueIdentifier>
+    <Filter Include="Sources\Engine\Core">
+      <UniqueIdentifier>{d12e9f03-3f01-4ba6-9e63-44ab99413a17}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Sources\ECS\Systems\Camera\DebugCameraSystem">
-      <UniqueIdentifier>{a54904db-f57a-495e-b0cd-8ed663a0f187}</UniqueIdentifier>
+    <Filter Include="Sources\Engine\Data">
+      <UniqueIdentifier>{7b834e06-34fb-43c2-9a6a-7e976a13c5a8}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Sources\ECS\Systems\Camera\GameCameraSystem">
-      <UniqueIdentifier>{4b9767af-ddd1-4243-a944-103e5fc19c1c}</UniqueIdentifier>
+    <Filter Include="Sources\Engine\Resource">
+      <UniqueIdentifier>{ef966537-2b08-4233-8eea-39230abf7c58}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Engine\Utility">
+      <UniqueIdentifier>{3d8dd4f2-3716-4f6f-b73a-40fee4e3e0ad}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Engine\ECS">
+      <UniqueIdentifier>{e93a87f6-fdc9-4ec2-bfb7-ca9f5115183d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Engine\ECS\Components">
+      <UniqueIdentifier>{5fb2698b-1b0d-4696-ab48-9fb8be4ae9ae}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Engine\ECS\Systems">
+      <UniqueIdentifier>{4593dc18-6f36-414e-afc6-eb94ed7e57db}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Engine\Core\Camera">
+      <UniqueIdentifier>{cab047e8-c092-49fa-8924-97d80476a619}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Engine\Core\Graphics">
+      <UniqueIdentifier>{e8287e22-fedc-400d-92d5-fa3d6cc7dfc6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Engine\Core\ImGuiManager">
+      <UniqueIdentifier>{ad54d0c2-d686-4e49-9a66-f1c18e4c67a3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Engine\Core\JsonFileCache">
+      <UniqueIdentifier>{bd6107c1-967d-4430-aa5d-6dcfcc7c1e8d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Engine\Core\PhysX">
+      <UniqueIdentifier>{ff7f02b3-29f0-46cc-adb5-fd519af790e8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Engine\Core\Scene">
+      <UniqueIdentifier>{c344a1d8-73fc-4bf9-991d-a7e423be9913}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Engine\Core\SceneContext">
+      <UniqueIdentifier>{0681ecf7-3242-4d68-8301-3ca6add65802}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Engine\Core\SceneManager">
+      <UniqueIdentifier>{ebfd552c-2a66-42c3-bd45-840a47ecaaee}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Engine\Core\framework">
+      <UniqueIdentifier>{1ee56292-2a69-4909-8346-7358b5e8563d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Engine\Data\AnimatorGraphData">
+      <UniqueIdentifier>{0037436e-e550-4b31-8612-daa286cfad1a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Engine\Data\SequencerData">
+      <UniqueIdentifier>{80960241-8600-4ce7-8325-04725dcd216c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Engine\Resource\GLTFConverter">
+      <UniqueIdentifier>{a1d80a41-0cc0-4705-8dea-1ae1d2897127}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Engine\Resource\GLTFData">
+      <UniqueIdentifier>{31152fc8-6d4f-4bd0-b3a5-35f19ba35315}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Engine\Resource\GLTFImporter">
+      <UniqueIdentifier>{f94560d5-09df-4b7c-8e1d-887bd7f57ad1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Engine\Resource\GpuResourceUtils">
+      <UniqueIdentifier>{be1c6753-cd52-40ac-8452-dcd9c6b6bebd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Engine\Resource\Model">
+      <UniqueIdentifier>{df2049da-8257-4fdd-b0c8-ad7b0874dd84}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Engine\Resource\ModelSerializer">
+      <UniqueIdentifier>{75dcf95f-3bc8-4b40-b351-fa0406cc82b7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Engine\Resource\ResourceManager">
+      <UniqueIdentifier>{05c1e3b1-1252-41f6-a047-20c8632982b7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Engine\Resource\SkeletonUtils">
+      <UniqueIdentifier>{d2a14a1b-b44e-435d-9916-86f6f6e368ed}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Engine\Rendering">
+      <UniqueIdentifier>{73c4be26-903a-4e1e-824d-5f54d990610f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Engine\Rendering\GBuffer">
+      <UniqueIdentifier>{057288ea-7e63-4954-9dd5-fd5a4cc543c6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Engine\Rendering\LightManager">
+      <UniqueIdentifier>{9624ce05-d8f9-48bf-b4cc-78d2d65b6e09}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Engine\Rendering\PhysicsDebugRenderer">
+      <UniqueIdentifier>{01031851-ae02-438d-9c0c-17e3398f6f8e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Engine\Rendering\PrimitiveRenderer">
+      <UniqueIdentifier>{047cf292-3896-4a28-80c2-9c6a52a7200d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Engine\Rendering\ShapeRenderer">
+      <UniqueIdentifier>{78afd276-21ae-4fc4-a069-c7a931371fef}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Engine\Rendering\SkyBox">
+      <UniqueIdentifier>{e869530b-72f4-48e7-b6d4-0ffa603647d8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Engine\Utility\CerealHelper">
+      <UniqueIdentifier>{89ca9c6f-8fba-4788-8ad8-e0beb9bbc7a1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Engine\ECS\Systems\AnimationSystem">
+      <UniqueIdentifier>{f69091ad-2d57-4fbd-90a7-62ed12e4dd6d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Engine\ECS\Systems\AnimatorControllerSystem">
+      <UniqueIdentifier>{1db4bbc0-5c16-4f98-b2f6-653a1bcd629e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Engine\ECS\Systems\ConditionGraphEvaluator">
+      <UniqueIdentifier>{a0da15e5-e20f-4819-96b5-73b08ee77a6d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Engine\ECS\Systems\ControllerSystem">
+      <UniqueIdentifier>{fc136a6e-3607-4dad-9551-662d13d43f9d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Engine\ECS\Systems\DebugCameraSystem">
+      <UniqueIdentifier>{049738be-4bb2-40b3-9d25-7358d1b8c238}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Engine\ECS\Systems\IKSystem">
+      <UniqueIdentifier>{37228b2f-ddbf-4cbd-acf1-9f47cb2ce622}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Engine\ECS\Systems\MeshLoaderSystem">
+      <UniqueIdentifier>{d686bea7-1c91-4218-a01f-dab93363fa8b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Engine\ECS\Systems\MovementSystem">
+      <UniqueIdentifier>{77e7d549-9af1-481a-8f6b-2e856b088df3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Engine\ECS\Systems\PhysicsSystem">
+      <UniqueIdentifier>{1a22d318-ae1b-4738-8bbd-f7f7ad2d19cb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Engine\ECS\Systems\RenderSystem">
+      <UniqueIdentifier>{3f4fe08d-d0dd-4ac2-b19c-2bc85a6328ee}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Engine\ECS\Systems\SequencerSystem">
+      <UniqueIdentifier>{0dba5680-07e7-4be4-a931-55d178436de6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Engine\ECS\Systems\TwoBoneIKSolver">
+      <UniqueIdentifier>{5249677a-2140-4d64-9247-256197ffd656}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Project">
+      <UniqueIdentifier>{6a0f5ed5-0237-415d-8801-9c85f40ece45}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Project\Scene">
+      <UniqueIdentifier>{767a3eaa-ef59-4be1-993b-e2f8d96a773e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Project\Scene\SceneGame">
+      <UniqueIdentifier>{6ab9239c-2cbe-4197-b608-2cf4aec60a75}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Project\ECS">
+      <UniqueIdentifier>{12046767-ec3b-4166-9a13-f4230aef8748}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Project\ECS\Systems">
+      <UniqueIdentifier>{34b40661-0762-41cc-9b8c-089280b222c8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Project\ECS\Components">
+      <UniqueIdentifier>{764d3f1a-a0b9-4d8a-8055-2c4613f6c2f9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Project\ECS\Systems\PlayerMoveSystem">
+      <UniqueIdentifier>{5e66f5c9-df36-47c2-baf9-a760e7d161cc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Project\ECS\Systems\GameInputSystem">
+      <UniqueIdentifier>{1c29e3c3-daa4-46f8-b1cb-952f3787701c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Project\ECS\Systems\GameCameraSystem">
+      <UniqueIdentifier>{913db32d-c45c-42f4-9e15-73025ebfcc70}</UniqueIdentifier>
     </Filter>
     <Filter Include="Sources\Tool">
-      <UniqueIdentifier>{23e4b07c-cfcd-4813-a8cf-40c4b46ed99e}</UniqueIdentifier>
+      <UniqueIdentifier>{3c870b85-b668-4d77-9fa8-109cf33b7670}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Sources\ECS\Systems\ControllerSystem">
-      <UniqueIdentifier>{8bbb39fc-fb3e-496c-b238-9b7e186c167b}</UniqueIdentifier>
+    <Filter Include="Sources\Tool\Editor">
+      <UniqueIdentifier>{2056686f-274e-4486-9d5b-5c6c5813702e}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Sources\ECS\Systems\MovementSystem">
-      <UniqueIdentifier>{4e0d7caa-8bb9-4429-b709-00c4339d3742}</UniqueIdentifier>
+    <Filter Include="Sources\Tool\Editor\ProjectWindow">
+      <UniqueIdentifier>{ae186463-3a03-4397-828d-1e2bbc6201b9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Tool\Editor\EditorContext">
+      <UniqueIdentifier>{1b3722c7-6ab5-4eb4-a603-1a6961a5ca5c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Tool\Editor\HierarchyWindow">
+      <UniqueIdentifier>{cb8c5499-42b7-4649-9e40-52be04a873d2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Tool\Editor\InspectorWindow">
+      <UniqueIdentifier>{8f919397-1970-48ac-bce8-3e0ae6d02a96}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Tool\Editor\ComponentRegistry">
+      <UniqueIdentifier>{0284df2a-6828-42c8-96ed-1fa09f18d31a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Tool\Editor\MetaRegistry">
+      <UniqueIdentifier>{38e775c4-e2df-4716-a917-43a4d843c549}</UniqueIdentifier>
     </Filter>
     <Filter Include="Sources\Tool\Studio">
       <UniqueIdentifier>{21076735-99c0-40a6-a825-56b47ffbeba3}</UniqueIdentifier>
@@ -200,74 +284,8 @@
     <Filter Include="Sources\Tool\Studio\StudioTimeline">
       <UniqueIdentifier>{a416fbb5-b919-48e7-8ec9-4231c54beaad}</UniqueIdentifier>
     </Filter>
-    <Filter Include="External\DualSense-Windows">
-      <UniqueIdentifier>{a642a7d8-01cc-49ef-85d4-d1a9603e1792}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="External\entt">
-      <UniqueIdentifier>{55738d4a-41b7-4726-ba78-e0ba6e927136}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Controller">
-      <UniqueIdentifier>{978c7c42-5b8d-4f00-8245-0d5eda95177a}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Controller\AdaptiveTrigger">
-      <UniqueIdentifier>{2f5c2900-8742-4188-ba83-d0fbe51b5b3c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Core\PhysX">
-      <UniqueIdentifier>{7b37c787-a13c-4b06-bde0-de1bf7da7717}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\ECS\Systems\Physics">
-      <UniqueIdentifier>{10b1343a-c2bb-4c0c-b129-74224b9d6d5c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Resource\SkeletonUtils">
-      <UniqueIdentifier>{693b5829-0612-4b99-9d43-61e63e0c5924}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\ECS\Systems\IKSystem">
-      <UniqueIdentifier>{981b2a8d-37c3-47c1-88ec-ed492a78b603}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Shader\SolidShape">
-      <UniqueIdentifier>{04db11b6-db1d-4f75-ad68-6f7711de9e6b}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Shader\WiredShape">
-      <UniqueIdentifier>{a178dacc-07f0-4c69-997f-72920c2a5185}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Rendering\PrimitiveRenderer">
-      <UniqueIdentifier>{fbfd72b5-2d6a-4362-a6b2-340ca8d55329}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Rendering\ShapeRenderer">
-      <UniqueIdentifier>{d43a4bbe-3061-447a-9c3c-a0fa4d251535}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Rendering\PhysicsDebugRenderer">
-      <UniqueIdentifier>{20769f89-a928-42f4-bdcd-902df135b837}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Tool\NodeGraph">
-      <UniqueIdentifier>{7ab45984-c873-4035-b702-23c95bbb7970}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="External\imgui-node-editor">
-      <UniqueIdentifier>{7f346661-3b9b-4835-be73-9c1b34c9f0ed}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Editor\MetaRegistry">
-      <UniqueIdentifier>{38e775c4-e2df-4716-a917-43a4d843c549}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Demo">
-      <UniqueIdentifier>{598b4d6c-5023-42ba-aa49-bb95857e3a1f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Demo\WaveDemo">
-      <UniqueIdentifier>{ca84409e-bd97-4180-9b9a-81885ddfc5b4}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Sources\Tool\Studio\StudioSequencer">
       <UniqueIdentifier>{d6e1a9c2-f7fc-4144-ae4f-627fe3784c08}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\ECS\Systems\SequencerSystem">
-      <UniqueIdentifier>{ca69925d-b0af-472a-a86c-b778e34d61cc}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Data">
-      <UniqueIdentifier>{2cb25a25-af31-4c64-add1-c00cbf274ab3}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Data\SequencerData">
-      <UniqueIdentifier>{b5bb31c2-5760-4216-a731-12f5c9ef3baa}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Data\AnimatorGraphData">
-      <UniqueIdentifier>{1b149959-27fa-4ed0-a892-e1c7c3352e96}</UniqueIdentifier>
     </Filter>
     <Filter Include="Sources\Tool\Studio\StudioAnimatorGraph">
       <UniqueIdentifier>{c9bcc1cb-f344-4d94-9efd-1fbc9e13d3db}</UniqueIdentifier>
@@ -284,35 +302,20 @@
     <Filter Include="Sources\Tool\Studio\StudioAnimatorGraph\AnimatorGraphNavigation">
       <UniqueIdentifier>{c84edd8f-efe1-43ef-b0d8-5df1f673520e}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Sources\ECS\Systems\ConditionGraphEvaluator">
-      <UniqueIdentifier>{137eac83-9000-4230-831e-c7a2b8b392ea}</UniqueIdentifier>
+    <Filter Include="Sources\Tool\NodeEditor">
+      <UniqueIdentifier>{1e6bec02-ed0d-41b5-b709-174b02895842}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Sources\ECS\Systems\AnimatorControllerSystem">
-      <UniqueIdentifier>{694be59f-4ec5-472b-818e-640e3b878f9b}</UniqueIdentifier>
+    <Filter Include="Sources\Unsorted">
+      <UniqueIdentifier>{573ce6ca-00c7-4788-80b0-acf6c162487a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Sources\Scene">
-      <UniqueIdentifier>{af7ea351-40f9-49aa-a98a-cd3762f6400a}</UniqueIdentifier>
+    <Filter Include="Sources\Unsorted\Controller">
+      <UniqueIdentifier>{618cd29d-591e-4ad7-b40c-2f0cbcfa416c}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Sources\Scene\SceneGame">
-      <UniqueIdentifier>{65464cfa-23e7-4110-95ce-df8abc882584}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Core\JsonFileCache">
-      <UniqueIdentifier>{556fe70e-71ae-43ef-a73e-678c485fc2d8}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\ECS\Systems\PlayerMoveSystem">
-      <UniqueIdentifier>{fe1b0576-4f97-48de-a9de-cd6ee13e2008}</UniqueIdentifier>
+    <Filter Include="Sources\Unsorted\Demo">
+      <UniqueIdentifier>{c6b7fce3-f3fa-45f6-b39e-e851c4173f11}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Source\Core\framework.cpp">
-      <Filter>Sources\Core\framework</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Utility\main.cpp">
-      <Filter>Sources\Utility</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Core\Graphics.cpp">
-      <Filter>Sources\Core\Graphics</Filter>
-    </ClCompile>
     <ClCompile Include="External\imgui-docking\imgui.cpp">
       <Filter>External\imgui-docking</Filter>
     </ClCompile>
@@ -331,89 +334,8 @@
     <ClCompile Include="External\imgui-docking\backends\imgui_impl_win32.cpp">
       <Filter>External\imgui-docking\backends</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Core\ImGuiManager.cpp">
-      <Filter>Sources\Core\ImGuiManager</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Core\SceneManager.cpp">
-      <Filter>Sources\Core\SceneManager</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Resource\GpuResourceUtils.cpp">
-      <Filter>Sources\Resource\GpuResourceUtils</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Game\SceneGame.cpp">
-      <Filter>Sources\Scene\SceneGame</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Resource\Model.cpp">
-      <Filter>Sources\Resource\Model</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Resource\GLTFImporter.cpp">
-      <Filter>Sources\Resource\GLTFImporter</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Resource\ResourceManager.cpp">
-      <Filter>Sources\Resource\ResourceManager</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\ECS\Systems\MeshLoaderSystem.cpp">
-      <Filter>Sources\ECS\Systems\MeshLoaderSystem</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\ECS\Systems\RenderSystem.cpp">
-      <Filter>Sources\ECS\Systems\RenderSystem</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Core\Camera.cpp">
-      <Filter>Sources\Core\Camera</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Resource\GLTFConverter.cpp">
-      <Filter>Sources\Resource\GLTFConverter</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\ECS\Systems\AnimationSystem.cpp">
-      <Filter>Sources\ECS\Systems\AnimationSystem</Filter>
-    </ClCompile>
     <ClCompile Include="External\tracy-0.13.1\public\TracyClient.cpp">
       <Filter>External\tracy-0.13.1</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Rendering\SkyBox.cpp">
-      <Filter>Sources\Rendering\SkyBox</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Rendering\GBuffer.cpp">
-      <Filter>Sources\Rendering\GBuffer</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Rendering\LightManager.cpp">
-      <Filter>Sources\Rendering\LightManager</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\ECS\Systems\GameInputSystem.cpp">
-      <Filter>Sources\ECS\Systems\InputSystem</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\ECS\Systems\MovementSystem.cpp">
-      <Filter>Sources\ECS\Systems\MovementSystem</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Utility\CerealHelper.cpp">
-      <Filter>Sources\Utility\CerealHelper</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Resource\ModelSerializer.cpp">
-      <Filter>Sources\Resource\ModelSerializer</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Editor\ProjectWindow.cpp">
-      <Filter>Sources\Editor\ProjectWindow</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Editor\HierarchyWindow.cpp">
-      <Filter>Sources\Editor\HierarchyWindow</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Editor\InspectorWindow.cpp">
-      <Filter>Sources\Editor\InspectorWindow</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Editor\ComponentRegistry.cpp">
-      <Filter>Sources\Editor\ComponentRegistry</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Editor\ComponentRegistryInitializer.cpp">
-      <Filter>Sources\Editor\ComponentRegistry</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\ECS\Systems\DebugCameraSystem.cpp">
-      <Filter>Sources\ECS\Systems\Camera\DebugCameraSystem</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\ECS\Systems\GameCameraSystem.cpp">
-      <Filter>Sources\ECS\Systems\Camera\GameCameraSystem</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\ECS\Systems\ControllerSystem.cpp">
-      <Filter>Sources\ECS\Systems\ControllerSystem</Filter>
     </ClCompile>
     <ClCompile Include="Source\Tool\Studio\StudioCamera.cpp">
       <Filter>Sources\Tool\Studio\StudioCamera</Filter>
@@ -430,36 +352,6 @@
     <ClCompile Include="Source\Tool\Studio\StudioTimeline.cpp">
       <Filter>Sources\Tool\Studio\StudioTimeline</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Tool\AdaptiveTriggerToolWindow.cpp">
-      <Filter>Sources\Tool</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Core\PhysX.cpp">
-      <Filter>Sources\Core\PhysX</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Core\Scene.cpp">
-      <Filter>Sources\Core\Scene</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\ECS\Systems\PhysicsSystem.cpp">
-      <Filter>Sources\ECS\Systems\Physics</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Resource\SkeletonUtils.cpp">
-      <Filter>Sources\Resource\SkeletonUtils</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\ECS\Systems\IKSystem.cpp">
-      <Filter>Sources\ECS\Systems\IKSystem</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Rendering\PrimitiveRenderer.cpp">
-      <Filter>Sources\Rendering\PrimitiveRenderer</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Rendering\ShapeRenderer.cpp">
-      <Filter>Sources\Rendering\ShapeRenderer</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Rendering\PhysicsDebugRenderer.cpp">
-      <Filter>Sources\Rendering\PhysicsDebugRenderer</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\ECS\Systems\TwoBoneIKSolver.cpp">
-      <Filter>Sources\ECS\Systems\IKSystem</Filter>
-    </ClCompile>
     <ClCompile Include="External\imgui-node-editor-master\crude_json.cpp">
       <Filter>External\imgui-node-editor</Filter>
     </ClCompile>
@@ -472,17 +364,8 @@
     <ClCompile Include="External\imgui-node-editor-master\imgui_node_editor_api.cpp">
       <Filter>External\imgui-node-editor</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Tool\NodeEditorCanvas.cpp">
-      <Filter>Sources\Tool\NodeGraph</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Editor\MetaRegistry.cpp">
-      <Filter>Sources\Editor\MetaRegistry</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Tool\Studio\StudioConditionGraph.cpp">
       <Filter>Sources\Tool\Studio\StudioAnimatorGraph\StudioConditionGraph</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Demo\WaveDemo.cpp">
-      <Filter>Sources\Demo\WaveDemo</Filter>
     </ClCompile>
     <ClCompile Include="Source\Tool\Studio\StudioParentStateGraph.cpp">
       <Filter>Sources\Tool\Studio\StudioAnimatorGraph\StudioParentStateGraph</Filter>
@@ -490,178 +373,166 @@
     <ClCompile Include="Source\Tool\Studio\StudioSequencer.cpp">
       <Filter>Sources\Tool\Studio\StudioSequencer</Filter>
     </ClCompile>
-    <ClCompile Include="Source\ECS\Systems\SequencerSystem.cpp">
-      <Filter>Sources\ECS\Systems\SequencerSystem</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Data\SequencerData.cpp">
-      <Filter>Sources\Data\SequencerData</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Data\AnimatorGraphData.cpp">
-      <Filter>Sources\Data\AnimatorGraphData</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Tool\Studio\StudioAnimatorGraph.cpp">
       <Filter>Sources\Tool\Studio\StudioAnimatorGraph</Filter>
     </ClCompile>
     <ClCompile Include="Source\Tool\Studio\StudioChildStateGraph.cpp">
       <Filter>Sources\Tool\Studio\StudioAnimatorGraph\StudioChildGraph</Filter>
     </ClCompile>
-    <ClCompile Include="Source\ECS\Systems\ConditionGraphEvaluator.cpp">
-      <Filter>Sources\ECS\Systems\ConditionGraphEvaluator</Filter>
+    <ClCompile Include="Source\Engine\Core\Camera.cpp">
+      <Filter>Sources\Engine\Core\Camera</Filter>
     </ClCompile>
-    <ClCompile Include="Source\ECS\Systems\AnimatorControllerSystem.cpp">
-      <Filter>Sources\ECS\Systems\AnimatorControllerSystem</Filter>
+    <ClCompile Include="Source\Engine\Core\Graphics.cpp">
+      <Filter>Sources\Engine\Core\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="Source\ECS\Systems\PlayerMoveSystem.cpp">
-      <Filter>Sources\ECS\Systems\PlayerMoveSystem</Filter>
+    <ClCompile Include="Source\Engine\Core\ImGuiManager.cpp">
+      <Filter>Sources\Engine\Core\ImGuiManager</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Engine\Core\PhysX.cpp">
+      <Filter>Sources\Engine\Core\PhysX</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Engine\Core\Scene.cpp">
+      <Filter>Sources\Engine\Core\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Engine\Core\SceneManager.cpp">
+      <Filter>Sources\Engine\Core\SceneManager</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Engine\Core\framework.cpp">
+      <Filter>Sources\Engine\Core\framework</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Engine\Data\AnimatorGraphData.cpp">
+      <Filter>Sources\Engine\Data\AnimatorGraphData</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Engine\Data\SequencerData.cpp">
+      <Filter>Sources\Engine\Data\SequencerData</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Engine\Resource\GLTFConverter.cpp">
+      <Filter>Sources\Engine\Resource\GLTFConverter</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Engine\Resource\GLTFImporter.cpp">
+      <Filter>Sources\Engine\Resource\GLTFImporter</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Engine\Resource\GpuResourceUtils.cpp">
+      <Filter>Sources\Engine\Resource\GpuResourceUtils</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Engine\Resource\Model.cpp">
+      <Filter>Sources\Engine\Resource\Model</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Engine\Resource\ModelSerializer.cpp">
+      <Filter>Sources\Engine\Resource\ModelSerializer</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Engine\Resource\ResourceManager.cpp">
+      <Filter>Sources\Engine\Resource\ResourceManager</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Engine\Resource\SkeletonUtils.cpp">
+      <Filter>Sources\Engine\Resource\SkeletonUtils</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Engine\Rendering\GBuffer.cpp">
+      <Filter>Sources\Engine\Rendering\GBuffer</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Engine\Rendering\LightManager.cpp">
+      <Filter>Sources\Engine\Rendering\LightManager</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Engine\Rendering\PhysicsDebugRenderer.cpp">
+      <Filter>Sources\Engine\Rendering\PhysicsDebugRenderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Engine\Rendering\PrimitiveRenderer.cpp">
+      <Filter>Sources\Engine\Rendering\PrimitiveRenderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Engine\Rendering\ShapeRenderer.cpp">
+      <Filter>Sources\Engine\Rendering\ShapeRenderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Engine\Rendering\SkyBox.cpp">
+      <Filter>Sources\Engine\Rendering\SkyBox</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Engine\ECS\Systems\AnimationSystem.cpp">
+      <Filter>Sources\Engine\ECS\Systems\AnimationSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Engine\ECS\Systems\AnimatorControllerSystem.cpp">
+      <Filter>Sources\Engine\ECS\Systems\AnimatorControllerSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Engine\ECS\Systems\ConditionGraphEvaluator.cpp">
+      <Filter>Sources\Engine\ECS\Systems\ConditionGraphEvaluator</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Engine\ECS\Systems\ControllerSystem.cpp">
+      <Filter>Sources\Engine\ECS\Systems\ControllerSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Engine\ECS\Systems\DebugCameraSystem.cpp">
+      <Filter>Sources\Engine\ECS\Systems\DebugCameraSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Engine\ECS\Systems\IKSystem.cpp">
+      <Filter>Sources\Engine\ECS\Systems\IKSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Engine\ECS\Systems\MeshLoaderSystem.cpp">
+      <Filter>Sources\Engine\ECS\Systems\MeshLoaderSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Engine\ECS\Systems\MovementSystem.cpp">
+      <Filter>Sources\Engine\ECS\Systems\MovementSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Engine\ECS\Systems\PhysicsSystem.cpp">
+      <Filter>Sources\Engine\ECS\Systems\PhysicsSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Engine\ECS\Systems\RenderSystem.cpp">
+      <Filter>Sources\Engine\ECS\Systems\RenderSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Engine\ECS\Systems\SequencerSystem.cpp">
+      <Filter>Sources\Engine\ECS\Systems\SequencerSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Engine\ECS\Systems\TwoBoneIKSolver.cpp">
+      <Filter>Sources\Engine\ECS\Systems\TwoBoneIKSolver</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Engine\Utility\CerealHelper.cpp">
+      <Filter>Sources\Engine\Utility\CerealHelper</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Project\Scene\SceneGame.cpp">
+      <Filter>Sources\Project\Scene\SceneGame</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Project\ECS\Systems\PlayerMoveSystem.cpp">
+      <Filter>Sources\Project\ECS\Systems\PlayerMoveSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Project\ECS\Systems\GameInputSystem.cpp">
+      <Filter>Sources\Project\ECS\Systems\GameInputSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Project\ECS\Systems\GameCameraSystem.cpp">
+      <Filter>Sources\Project\ECS\Systems\GameCameraSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Tool\Editor\ComponentRegistry.cpp">
+      <Filter>Sources\Tool\Editor\ComponentRegistry</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Tool\Editor\ComponentRegistryInitializer.cpp">
+      <Filter>Sources\Tool\Editor\ComponentRegistry</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Tool\Editor\HierarchyWindow.cpp">
+      <Filter>Sources\Tool\Editor\HierarchyWindow</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Tool\Editor\InspectorWindow.cpp">
+      <Filter>Sources\Tool\Editor\InspectorWindow</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Tool\Editor\MetaRegistry.cpp">
+      <Filter>Sources\Tool\Editor\MetaRegistry</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Tool\Editor\ProjectWindow.cpp">
+      <Filter>Sources\Tool\Editor\ProjectWindow</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Tool\NodeEditor\NodeEditorCanvas.cpp">
+      <Filter>Sources\Tool\NodeEditor</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Unsorted\Demo\WaveDemo.cpp">
+      <Filter>Sources\Unsorted\Demo</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\main.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Tool\AdaptiveTriggerToolWindow.cpp">
+      <Filter>Sources\Tool</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Source\Core\framework.h">
-      <Filter>Sources\Core\framework</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Utility\high_resolution_timer.h">
-      <Filter>Sources\Utility</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Utility\misc.h">
-      <Filter>Sources\Utility</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Core\Graphics.h">
-      <Filter>Sources\Core\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Core\ImGuiManager.h">
-      <Filter>Sources\Core\ImGuiManager</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Core\Scene.h">
-      <Filter>Sources\Core\Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Core\SceneManager.h">
-      <Filter>Sources\Core\SceneManager</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Game\SceneGame.h">
-      <Filter>Sources\Scene\SceneGame</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Resource\GpuResourceUtils.h">
-      <Filter>Sources\Resource\GpuResourceUtils</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Resource\Model.h">
-      <Filter>Sources\Resource\Model</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Resource\GLTFImporter.h">
-      <Filter>Sources\Resource\GLTFImporter</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Resource\ResourceManager.h">
-      <Filter>Sources\Resource\ResourceManager</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Core\SceneContext.h">
-      <Filter>Sources\Core\SceneContext</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\ECS\Systems\MeshLoaderSystem.h">
-      <Filter>Sources\ECS\Systems\MeshLoaderSystem</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\ECS\Systems\RenderSystem.h">
-      <Filter>Sources\ECS\Systems\RenderSystem</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Core\Camera.h">
-      <Filter>Sources\Core\Camera</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Resource\GLTFData.h">
-      <Filter>Sources\Resource\GLTFData</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Resource\GLTFConverter.h">
-      <Filter>Sources\Resource\GLTFConverter</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\ECS\Systems\AnimationSystem.h">
-      <Filter>Sources\ECS\Systems\AnimationSystem</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Rendering\SkyBox.h">
-      <Filter>Sources\Rendering\SkyBox</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Rendering\GBuffer.h">
-      <Filter>Sources\Rendering\GBuffer</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Rendering\LightManager.h">
-      <Filter>Sources\Rendering\LightManager</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\ECS\Systems\GameInputSystem.h">
-      <Filter>Sources\ECS\Systems\InputSystem</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\ECS\Systems\MovementSystem.h">
-      <Filter>Sources\ECS\Systems\MovementSystem</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Utility\CerealHelper.h">
-      <Filter>Sources\Utility\CerealHelper</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Resource\ModelSerializer.h">
-      <Filter>Sources\Resource\ModelSerializer</Filter>
-    </ClInclude>
     <ClInclude Include="External\json-3.12.0\single_include\nlohmann\json.hpp">
       <Filter>External\json-3.12.0</Filter>
     </ClInclude>
     <ClInclude Include="External\entt-main\single_include\entt\entt.hpp">
       <Filter>External\entt</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Editor\ProjectWindow.h">
-      <Filter>Sources\Editor\ProjectWindow</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Editor\EditorContext.h">
-      <Filter>Sources\Editor\EditorContext</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Editor\HierarchyWindow.h">
-      <Filter>Sources\Editor\HierarchyWindow</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Editor\InspectorWindow.h">
-      <Filter>Sources\Editor\InspectorWindow</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Editor\ComponentRegistry.h">
-      <Filter>Sources\Editor\ComponentRegistry</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Editor\ComponentRegistryInitializer.h">
-      <Filter>Sources\Editor\ComponentRegistry</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\ECS\Components\AnimatorComponent.h">
-      <Filter>Sources\ECS\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\ECS\Components\GameInputComponent.h">
-      <Filter>Sources\ECS\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\ECS\Components\MeshComponent.h">
-      <Filter>Sources\ECS\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\ECS\Components\MovementComponent.h">
-      <Filter>Sources\ECS\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\ECS\Components\SkinnedMeshComponent.h">
-      <Filter>Sources\ECS\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\ECS\Components\StaticMeshComponent.h">
-      <Filter>Sources\ECS\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\ECS\Components\Tags.h">
-      <Filter>Sources\ECS\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\ECS\Components\TransformComponent.h">
-      <Filter>Sources\ECS\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\ECS\Systems\DebugCameraSystem.h">
-      <Filter>Sources\ECS\Systems\Camera\DebugCameraSystem</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\ECS\Systems\GameCameraSystem.h">
-      <Filter>Sources\ECS\Systems\Camera\GameCameraSystem</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\ECS\Systems\ControllerSystem.h">
-      <Filter>Sources\ECS\Systems\ControllerSystem</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\ECS\Components\BaseCameraComponent.h">
-      <Filter>Sources\ECS\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\ECS\Components\FreeCameraComponent.h">
-      <Filter>Sources\ECS\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\ECS\Components\GameCameraComponent.h">
-      <Filter>Sources\ECS\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\ECS\Components\MaterialComponent.h">
-      <Filter>Sources\ECS\Components</Filter>
     </ClInclude>
     <ClInclude Include="Source\Tool\Studio\StudioCamera.h">
       <Filter>Sources\Tool\Studio\StudioCamera</Filter>
@@ -702,77 +573,14 @@
     <ClInclude Include="External\DualSense-Windows-main\VS19_Solution\DualSenseWindows\include\DualSenseWindows\IO.h">
       <Filter>External\DualSense-Windows</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Controller\AdaptiveTrigger.h">
-      <Filter>Sources\Controller\AdaptiveTrigger</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Tool\AdaptiveTriggerToolWindow.h">
-      <Filter>Sources\Tool</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Core\PhysX.h">
-      <Filter>Sources\Core\PhysX</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Core\PhysicsDestroyQueue.h">
-      <Filter>Sources\Core\PhysX</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\ECS\Components\PhysicsComponents.h">
-      <Filter>Sources\ECS\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\ECS\Systems\PhysicsSystem.h">
-      <Filter>Sources\ECS\Systems\Physics</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Core\PhysicsLayer.h">
-      <Filter>Sources\Core\PhysX</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Resource\SkeletonUtils.h">
-      <Filter>Sources\Resource\SkeletonUtils</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\ECS\Components\IKComponent.h">
-      <Filter>Sources\ECS\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\ECS\Systems\IKSystem.h">
-      <Filter>Sources\ECS\Systems\IKSystem</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Rendering\PrimitiveRenderer.h">
-      <Filter>Sources\Rendering\PrimitiveRenderer</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Rendering\ShapeRenderer.h">
-      <Filter>Sources\Rendering\ShapeRenderer</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Rendering\PhysicsDebugRenderer.h">
-      <Filter>Sources\Rendering\PhysicsDebugRenderer</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\ECS\Systems\TwoBoneIKSolver.h">
-      <Filter>Sources\ECS\Systems\IKSystem</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Tool\NodeEditorCanvas.h">
-      <Filter>Sources\Tool\NodeGraph</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Editor\MetaRegistry.h">
-      <Filter>Sources\Editor\MetaRegistry</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Tool\Studio\StudioConditionGraph.h">
       <Filter>Sources\Tool\Studio\StudioAnimatorGraph\StudioConditionGraph</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Demo\WaveDemo.h">
-      <Filter>Sources\Demo\WaveDemo</Filter>
     </ClInclude>
     <ClInclude Include="Source\Tool\Studio\StudioParentStateGraph.h">
       <Filter>Sources\Tool\Studio\StudioAnimatorGraph\StudioParentStateGraph</Filter>
     </ClInclude>
-    <ClInclude Include="Source\ECS\Components\SequencerComponent.h">
-      <Filter>Sources\ECS\Components</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Tool\Studio\StudioSequencer.h">
       <Filter>Sources\Tool\Studio\StudioSequencer</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\ECS\Systems\SequencerSystem.h">
-      <Filter>Sources\ECS\Systems\SequencerSystem</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Data\SequencerData.h">
-      <Filter>Sources\Data\SequencerData</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Data\AnimatorGraphData.h">
-      <Filter>Sources\Data\AnimatorGraphData</Filter>
     </ClInclude>
     <ClInclude Include="Source\Tool\Studio\StudioAnimatorGraph.h">
       <Filter>Sources\Tool\Studio\StudioAnimatorGraph</Filter>
@@ -783,26 +591,230 @@
     <ClInclude Include="Source\Tool\Studio\AnimatorGraphNavigation.h">
       <Filter>Sources\Tool\Studio\StudioAnimatorGraph\AnimatorGraphNavigation</Filter>
     </ClInclude>
-    <ClInclude Include="Source\ECS\Systems\ConditionGraphEvaluator.h">
-      <Filter>Sources\ECS\Systems\ConditionGraphEvaluator</Filter>
+    <ClInclude Include="Source\Engine\Core\Camera.h">
+      <Filter>Sources\Engine\Core\Camera</Filter>
     </ClInclude>
-    <ClInclude Include="Source\ECS\Systems\AnimatorControllerSystem.h">
-      <Filter>Sources\ECS\Systems\AnimatorControllerSystem</Filter>
+    <ClInclude Include="Source\Engine\Core\Graphics.h">
+      <Filter>Sources\Engine\Core\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Source\ECS\Systems\PlayerMoveSystem.h">
-      <Filter>Sources\ECS\Systems\PlayerMoveSystem</Filter>
+    <ClInclude Include="Source\Engine\Core\ImGuiManager.h">
+      <Filter>Sources\Engine\Core\ImGuiManager</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Core\JsonFileCache.h">
-      <Filter>Sources\Core\JsonFileCache</Filter>
+    <ClInclude Include="Source\Engine\Core\JsonFileCache.h">
+      <Filter>Sources\Engine\Core\JsonFileCache</Filter>
     </ClInclude>
-    <ClInclude Include="Source\ECS\Components\PlayerMoveComponent.h">
-      <Filter>Sources\ECS\Components</Filter>
+    <ClInclude Include="Source\Engine\Core\PhysicsDestroyQueue.h">
+      <Filter>Sources\Engine\Core\PhysX</Filter>
     </ClInclude>
-    <ClInclude Include="Source\ECS\Components\ControllerComponent.h">
-      <Filter>Sources\ECS\Components</Filter>
+    <ClInclude Include="Source\Engine\Core\PhysX.h">
+      <Filter>Sources\Engine\Core\PhysX</Filter>
     </ClInclude>
-    <ClInclude Include="Source\ECS\Components\ControllerSettings.h">
-      <Filter>Sources\ECS\Components</Filter>
+    <ClInclude Include="Source\Engine\Core\PhysicsLayer.h">
+      <Filter>Sources\Engine\Core\PhysX</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Engine\Core\Scene.h">
+      <Filter>Sources\Engine\Core\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Engine\Core\SceneContext.h">
+      <Filter>Sources\Engine\Core\SceneContext</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Engine\Core\SceneManager.h">
+      <Filter>Sources\Engine\Core\SceneManager</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Engine\Core\framework.h">
+      <Filter>Sources\Engine\Core\framework</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Engine\Data\AnimatorGraphData.h">
+      <Filter>Sources\Engine\Data\AnimatorGraphData</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Engine\Data\SequencerData.h">
+      <Filter>Sources\Engine\Data\SequencerData</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Engine\Resource\GLTFConverter.h">
+      <Filter>Sources\Engine\Resource\GLTFConverter</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Engine\Resource\GLTFData.h">
+      <Filter>Sources\Engine\Resource\GLTFData</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Engine\Resource\GLTFImporter.h">
+      <Filter>Sources\Engine\Resource\GLTFImporter</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Engine\Resource\GpuResourceUtils.h">
+      <Filter>Sources\Engine\Resource\GpuResourceUtils</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Engine\Resource\Model.h">
+      <Filter>Sources\Engine\Resource\Model</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Engine\Resource\ModelSerializer.h">
+      <Filter>Sources\Engine\Resource\ModelSerializer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Engine\Resource\ResourceManager.h">
+      <Filter>Sources\Engine\Resource\ResourceManager</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Engine\Resource\SkeletonUtils.h">
+      <Filter>Sources\Engine\Resource\SkeletonUtils</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Engine\Rendering\GBuffer.h">
+      <Filter>Sources\Engine\Rendering\GBuffer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Engine\Rendering\LightManager.h">
+      <Filter>Sources\Engine\Rendering\LightManager</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Engine\Rendering\PhysicsDebugRenderer.h">
+      <Filter>Sources\Engine\Rendering\PhysicsDebugRenderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Engine\Rendering\PrimitiveRenderer.h">
+      <Filter>Sources\Engine\Rendering\PrimitiveRenderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Engine\Rendering\ShapeRenderer.h">
+      <Filter>Sources\Engine\Rendering\ShapeRenderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Engine\Rendering\SkyBox.h">
+      <Filter>Sources\Engine\Rendering\SkyBox</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Engine\Utility\high_resolution_timer.h">
+      <Filter>Sources\Engine\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Engine\Utility\misc.h">
+      <Filter>Sources\Engine\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Engine\Utility\CerealHelper.h">
+      <Filter>Sources\Engine\Utility\CerealHelper</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Engine\ECS\Components\AnimatorComponent.h">
+      <Filter>Sources\Engine\ECS\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Engine\ECS\Components\BaseCameraComponent.h">
+      <Filter>Sources\Engine\ECS\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Engine\ECS\Components\ControllerComponent.h">
+      <Filter>Sources\Engine\ECS\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Engine\ECS\Components\ControllerSettings.h">
+      <Filter>Sources\Engine\ECS\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Engine\ECS\Components\FreeCameraComponent.h">
+      <Filter>Sources\Engine\ECS\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Engine\ECS\Components\IKComponent.h">
+      <Filter>Sources\Engine\ECS\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Engine\ECS\Components\MaterialComponent.h">
+      <Filter>Sources\Engine\ECS\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Engine\ECS\Components\MeshComponent.h">
+      <Filter>Sources\Engine\ECS\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Engine\ECS\Components\MovementComponent.h">
+      <Filter>Sources\Engine\ECS\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Engine\ECS\Components\PhysicsComponents.h">
+      <Filter>Sources\Engine\ECS\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Engine\ECS\Components\SequencerComponent.h">
+      <Filter>Sources\Engine\ECS\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Engine\ECS\Components\SkinnedMeshComponent.h">
+      <Filter>Sources\Engine\ECS\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Engine\ECS\Components\StaticMeshComponent.h">
+      <Filter>Sources\Engine\ECS\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Engine\ECS\Components\Tags.h">
+      <Filter>Sources\Engine\ECS\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Engine\ECS\Components\TransformComponent.h">
+      <Filter>Sources\Engine\ECS\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Engine\ECS\Systems\AnimationSystem.h">
+      <Filter>Sources\Engine\ECS\Systems\AnimationSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Engine\ECS\Systems\AnimatorControllerSystem.h">
+      <Filter>Sources\Engine\ECS\Systems\AnimatorControllerSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Engine\ECS\Systems\ConditionGraphEvaluator.h">
+      <Filter>Sources\Engine\ECS\Systems\ConditionGraphEvaluator</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Engine\ECS\Systems\ControllerSystem.h">
+      <Filter>Sources\Engine\ECS\Systems\ControllerSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Engine\ECS\Systems\DebugCameraSystem.h">
+      <Filter>Sources\Engine\ECS\Systems\DebugCameraSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Engine\ECS\Systems\IKSystem.h">
+      <Filter>Sources\Engine\ECS\Systems\IKSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Engine\ECS\Systems\MeshLoaderSystem.h">
+      <Filter>Sources\Engine\ECS\Systems\MeshLoaderSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Engine\ECS\Systems\MovementSystem.h">
+      <Filter>Sources\Engine\ECS\Systems\MovementSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Engine\ECS\Systems\PhysicsSystem.h">
+      <Filter>Sources\Engine\ECS\Systems\PhysicsSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Engine\ECS\Systems\RenderSystem.h">
+      <Filter>Sources\Engine\ECS\Systems\RenderSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Engine\ECS\Systems\SequencerSystem.h">
+      <Filter>Sources\Engine\ECS\Systems\SequencerSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Engine\ECS\Systems\TwoBoneIKSolver.h">
+      <Filter>Sources\Engine\ECS\Systems\TwoBoneIKSolver</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Project\Scene\SceneGame.h">
+      <Filter>Sources\Project\Scene\SceneGame</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Project\ECS\Components\GameInputComponent.h">
+      <Filter>Sources\Project\ECS\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Project\ECS\Components\PlayerMoveComponent.h">
+      <Filter>Sources\Project\ECS\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Project\ECS\Systems\PlayerMoveSystem.h">
+      <Filter>Sources\Project\ECS\Systems\PlayerMoveSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Project\ECS\Systems\GameInputSystem.h">
+      <Filter>Sources\Project\ECS\Systems\GameInputSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Project\ECS\Components\GameCameraComponent.h">
+      <Filter>Sources\Project\ECS\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Project\ECS\Systems\GameCameraSystem.h">
+      <Filter>Sources\Project\ECS\Systems\GameCameraSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Tool\Editor\ComponentRegistry.h">
+      <Filter>Sources\Tool\Editor\ComponentRegistry</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Tool\Editor\ComponentRegistryInitializer.h">
+      <Filter>Sources\Tool\Editor\ComponentRegistry</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Tool\Editor\EditorContext.h">
+      <Filter>Sources\Tool\Editor\EditorContext</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Tool\Editor\HierarchyWindow.h">
+      <Filter>Sources\Tool\Editor\HierarchyWindow</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Tool\Editor\InspectorWindow.h">
+      <Filter>Sources\Tool\Editor\InspectorWindow</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Tool\Editor\MetaRegistry.h">
+      <Filter>Sources\Tool\Editor\MetaRegistry</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Tool\Editor\ProjectWindow.h">
+      <Filter>Sources\Tool\Editor\ProjectWindow</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Tool\NodeEditor\NodeEditorCanvas.h">
+      <Filter>Sources\Tool\NodeEditor</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Unsorted\Controller\AdaptiveTrigger.h">
+      <Filter>Sources\Unsorted\Controller</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Unsorted\Demo\WaveDemo.h">
+      <Filter>Sources\Unsorted\Demo</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Tool\AdaptiveTriggerToolWindow.h">
+      <Filter>Sources\Tool</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

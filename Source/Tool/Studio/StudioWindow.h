@@ -9,11 +9,11 @@
 #include "IStudioAttachment.h"
 
 #include "entt.hpp"
-#include "ECS/Systems/RenderSystem.h"
-#include "ECS/Systems/AnimationSystem.h"
+#include "Engine/ECS/Systems/RenderSystem.h"
+#include "Engine/ECS/Systems/AnimationSystem.h"
 
-#include "Rendering/LightManager.h"
-#include "Resource/ResourceManager.h"
+#include "Engine/Rendering/LightManager.h"
+#include "Engine/Resource/ResourceManager.h"
 
 #include "StudioSharedContext.h"
 #include "StudioModelViewer.h"

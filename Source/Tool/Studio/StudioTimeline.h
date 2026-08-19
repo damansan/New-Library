@@ -1,7 +1,7 @@
 #pragma once
 #include "IStudioAttachment.h"
-#include "ECS/Components/AnimatorComponent.h"
-#include "ECS/Components/SkinnedMeshComponent.h"
+#include "Engine/ECS/Components/AnimatorComponent.h"
+#include "Engine/ECS/Components/SkinnedMeshComponent.h"
 
 class StudioTimeline : public IStudioAttachment
 {

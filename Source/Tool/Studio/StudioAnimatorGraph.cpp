@@ -1,6 +1,6 @@
 #include "StudioAnimatorGraph.h"
-#include "ECS/Components/SkinnedMeshComponent.h"
-#include "Editor/ProjectWindow.h"
+#include "Engine/ECS/Components/SkinnedMeshComponent.h"
+#include "Tool/Editor/ProjectWindow.h"
 #include "Tool/Studio/AnimatorGraphNavigation.h"
 #include <json.hpp>
 #include <filesystem>

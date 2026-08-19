@@ -1,7 +1,7 @@
 #pragma once
 #include <d3d11.h>
-#include "Rendering/SkyBox.h"
-#include "Resource/ResourceManager.h"
+#include "Engine/Rendering/SkyBox.h"
+#include "Engine/Resource/ResourceManager.h"
 
 struct StudioSharedContext
 {

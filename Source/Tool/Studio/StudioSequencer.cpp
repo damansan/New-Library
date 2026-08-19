@@ -1,6 +1,6 @@
 #include "StudioSequencer.h"
-#include "ECS/Components/SkinnedMeshComponent.h"
-#include "ECS/Components/AnimatorComponent.h"
+#include "Engine/ECS/Components/SkinnedMeshComponent.h"
+#include "Engine/ECS/Components/AnimatorComponent.h"
 #include <algorithm>
 #include <fstream>
 #include <filesystem>

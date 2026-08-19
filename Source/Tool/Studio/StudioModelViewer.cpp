@@ -4,8 +4,8 @@
 #include <commdlg.h>
 #include <imgui.h>
 
-#include "ECS/Components/AnimatorComponent.h"
-#include "ECS/Components/MaterialComponent.h"
+#include "Engine/ECS/Components/AnimatorComponent.h"
+#include "Engine/ECS/Components/MaterialComponent.h"
 
 // ‰Šú‰»
 void StudioModelViewer::Initialize(

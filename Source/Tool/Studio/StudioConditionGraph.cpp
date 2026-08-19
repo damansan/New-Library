@@ -2,7 +2,7 @@
 #include <algorithm>
 #include <vector>
 
-#include "Editor/MetaRegistry.h"
+#include "Tool/Editor/MetaRegistry.h"
 
 void StudioConditionGraph::Initialize()
 {

@@ -1,6 +1,6 @@
 #pragma once
 #include "IStudioAttachment.h"
-#include "Data/AnimatorGraphData.h"
+#include "Engine/Data/AnimatorGraphData.h"
 #include "StudioParentStateGraph.h"
 #include "StudioChildStateGraph.h"
 #include "StudioConditionGraph.h"
