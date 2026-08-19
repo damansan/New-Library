@@ -303,6 +303,76 @@
                     }
                 }
             ]
+        },
+        {
+            "id": 84,
+            "name": "Dodg",
+            "posX": 352.0,
+            "posY": 0.0,
+            "type": "State",
+            "color": [
+                0.27000001072883606,
+                0.3499999940395355,
+                0.4699999988079071
+            ],
+            "children": [
+                {
+                    "id": 85,
+                    "name": "Entry",
+                    "posX": 50.0,
+                    "posY": 200.0,
+                    "type": "Start",
+                    "clipName": "",
+                    "loop": true,
+                    "useRootMotion": false
+                },
+                {
+                    "id": 86,
+                    "name": "Exit",
+                    "posX": 400.0,
+                    "posY": 200.0,
+                    "type": "End",
+                    "clipName": "",
+                    "loop": true,
+                    "useRootMotion": false
+                }
+            ],
+            "childLinks": []
+        },
+        {
+            "id": 87,
+            "name": "Sprint",
+            "posX": 272.0,
+            "posY": 96.0,
+            "type": "State",
+            "color": [
+                0.27000001072883606,
+                0.3499999940395355,
+                0.4699999988079071
+            ],
+            "children": [
+                {
+                    "id": 88,
+                    "name": "Entry",
+                    "posX": 50.0,
+                    "posY": 200.0,
+                    "type": "Start",
+                    "clipName": "",
+                    "loop": true,
+                    "useRootMotion": false
+                },
+                {
+                    "id": 89,
+                    "name": "Exit",
+                    "posX": 400.0,
+                    "posY": 200.0,
+                    "type": "End",
+                    "clipName": "",
+                    "loop": true,
+                    "useRootMotion": false
+                }
+            ],
+            "childLinks": []
         }
     ],
     "stateLinks": [
@@ -452,6 +522,114 @@
                         "toPinB": false
                     }
                 ]
+            }
+        },
+        {
+            "id": 90,
+            "fromId": 2,
+            "toId": 84,
+            "blend": true,
+            "blendDuration": 0.20000000298023224,
+            "condition": {
+                "returnNode": {
+                    "id": 91,
+                    "posX": 500.0,
+                    "posY": 200.0
+                },
+                "variableNodes": [],
+                "operatorNodes": [],
+                "getterNodes": [],
+                "links": []
+            }
+        },
+        {
+            "id": 92,
+            "fromId": 84,
+            "toId": 2,
+            "blend": true,
+            "blendDuration": 0.20000000298023224,
+            "condition": {
+                "returnNode": {
+                    "id": 93,
+                    "posX": 500.0,
+                    "posY": 200.0
+                },
+                "variableNodes": [],
+                "operatorNodes": [],
+                "getterNodes": [],
+                "links": []
+            }
+        },
+        {
+            "id": 94,
+            "fromId": 87,
+            "toId": 84,
+            "blend": true,
+            "blendDuration": 0.20000000298023224,
+            "condition": {
+                "returnNode": {
+                    "id": 95,
+                    "posX": 500.0,
+                    "posY": 200.0
+                },
+                "variableNodes": [],
+                "operatorNodes": [],
+                "getterNodes": [],
+                "links": []
+            }
+        },
+        {
+            "id": 96,
+            "fromId": 84,
+            "toId": 87,
+            "blend": true,
+            "blendDuration": 0.20000000298023224,
+            "condition": {
+                "returnNode": {
+                    "id": 97,
+                    "posX": 500.0,
+                    "posY": 200.0
+                },
+                "variableNodes": [],
+                "operatorNodes": [],
+                "getterNodes": [],
+                "links": []
+            }
+        },
+        {
+            "id": 98,
+            "fromId": 87,
+            "toId": 2,
+            "blend": true,
+            "blendDuration": 0.20000000298023224,
+            "condition": {
+                "returnNode": {
+                    "id": 99,
+                    "posX": 500.0,
+                    "posY": 200.0
+                },
+                "variableNodes": [],
+                "operatorNodes": [],
+                "getterNodes": [],
+                "links": []
+            }
+        },
+        {
+            "id": 100,
+            "fromId": 10,
+            "toId": 84,
+            "blend": true,
+            "blendDuration": 0.20000000298023224,
+            "condition": {
+                "returnNode": {
+                    "id": 101,
+                    "posX": 500.0,
+                    "posY": 200.0
+                },
+                "variableNodes": [],
+                "operatorNodes": [],
+                "getterNodes": [],
+                "links": []
             }
         }
     ]

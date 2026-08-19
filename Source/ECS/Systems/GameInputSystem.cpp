@@ -1,9 +1,9 @@
-﻿#include "InputSystem.h"
+﻿#include "GameInputSystem.h"
 #include <cmath>
 #include <algorithm>
 
 // 更新
-void InputSystem::Update(entt::registry& registry, const ControllerSettings& settings)
+void GameInputSystem::Update(entt::registry& registry, const ControllerSettings& settings)
 {
     // ControllerComponent を探す（なければ何もしない）
     ControllerComponent* ctrl = nullptr;
@@ -13,9 +13,9 @@ void InputSystem::Update(entt::registry& registry, const ControllerSettings& set
         ctrl = &ctrlView.get<ControllerComponent>(*ctrlView.begin());
     }
 
-    // InputComponent を持つ Entity を更新
-    auto inputView = registry.view<InputComponent>();
-    inputView.each([&](InputComponent& input)
+    // GameInputComponent を持つ Entity を更新
+    auto inputView = registry.view<GameInputComponent>();
+    inputView.each([&](GameInputComponent& input)
         {
             // リセット
             input.moveX = 0.0f;
@@ -50,13 +50,11 @@ void InputSystem::Update(entt::registry& registry, const ControllerSettings& set
             // ボタン判定
             input.jump = ctrl->IsPressed(ControllerButtons::Cross);
             input.attack = ctrl->IsPressed(ControllerButtons::Square);
-            input.dodge = ctrl->IsPressed(ControllerButtons::Circle);
 
-            // トリガーのデジタル判定（閾値は settings から）
-            // 必要であればここで input に追加のアクションを割り当てられる
-            // 例: input.heavyAttack = lt >= 1.0f;
+            // R2(アナログ)がしきい値を超えたら回避とみなす
+            input.dodge = (rt >= settings.rightTriggerThreshold);
+
             (void)lt;
-            (void)rt;
 
             // 移動入力を -1.0～1.0 にクランプ
             input.moveX = std::clamp(input.moveX, -1.0f, 1.0f);
@@ -65,7 +63,7 @@ void InputSystem::Update(entt::registry& registry, const ControllerSettings& set
 }
 
 // デッドゾーン適用
-float InputSystem::ApplyStickDeadzone(float value, float deadzone)
+float GameInputSystem::ApplyStickDeadzone(float value, float deadzone)
 {
     if (fabsf(value) < deadzone) return 0.0f;
     float sign = value > 0.0f ? 1.0f : -1.0f;
@@ -73,7 +71,7 @@ float InputSystem::ApplyStickDeadzone(float value, float deadzone)
 }
 
 // デッドゾーン適用
-float InputSystem::ApplyTriggerDeadzone(float value, float deadzone)
+float GameInputSystem::ApplyTriggerDeadzone(float value, float deadzone)
 {
     if (value < deadzone) return 0.0f;
     return (value - deadzone) / (1.0f - deadzone);

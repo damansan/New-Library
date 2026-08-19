@@ -215,9 +215,6 @@
     <Filter Include="Sources\Core\PhysX">
       <UniqueIdentifier>{7b37c787-a13c-4b06-bde0-de1bf7da7717}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Sources\ECS\Components\Controller">
-      <UniqueIdentifier>{0401dce0-502d-402a-b9f0-a01803d3c3b7}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Sources\ECS\Systems\Physics">
       <UniqueIdentifier>{10b1343a-c2bb-4c0c-b129-74224b9d6d5c}</UniqueIdentifier>
     </Filter>
@@ -299,17 +296,11 @@
     <Filter Include="Sources\Scene\SceneGame">
       <UniqueIdentifier>{65464cfa-23e7-4110-95ce-df8abc882584}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Sources\ECS\Components\Player">
-      <UniqueIdentifier>{32a92033-3f64-4db5-9b8e-d6da34ec89cb}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\ECS\Systems\Player">
-      <UniqueIdentifier>{bb1c2fd2-f77b-44b0-955b-ec0a35decd20}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\ECS\Systems\Player\PlayerMoveSystem">
-      <UniqueIdentifier>{fe1b0576-4f97-48de-a9de-cd6ee13e2008}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Sources\Core\JsonFileCache">
       <UniqueIdentifier>{556fe70e-71ae-43ef-a73e-678c485fc2d8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\ECS\Systems\PlayerMoveSystem">
+      <UniqueIdentifier>{fe1b0576-4f97-48de-a9de-cd6ee13e2008}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -388,7 +379,7 @@
     <ClCompile Include="Source\Rendering\LightManager.cpp">
       <Filter>Sources\Rendering\LightManager</Filter>
     </ClCompile>
-    <ClCompile Include="Source\ECS\Systems\InputSystem.cpp">
+    <ClCompile Include="Source\ECS\Systems\GameInputSystem.cpp">
       <Filter>Sources\ECS\Systems\InputSystem</Filter>
     </ClCompile>
     <ClCompile Include="Source\ECS\Systems\MovementSystem.cpp">
@@ -521,7 +512,7 @@
       <Filter>Sources\ECS\Systems\AnimatorControllerSystem</Filter>
     </ClCompile>
     <ClCompile Include="Source\ECS\Systems\PlayerMoveSystem.cpp">
-      <Filter>Sources\ECS\Systems\Player\PlayerMoveSystem</Filter>
+      <Filter>Sources\ECS\Systems\PlayerMoveSystem</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -591,7 +582,7 @@
     <ClInclude Include="Source\Rendering\LightManager.h">
       <Filter>Sources\Rendering\LightManager</Filter>
     </ClInclude>
-    <ClInclude Include="Source\ECS\Systems\InputSystem.h">
+    <ClInclude Include="Source\ECS\Systems\GameInputSystem.h">
       <Filter>Sources\ECS\Systems\InputSystem</Filter>
     </ClInclude>
     <ClInclude Include="Source\ECS\Systems\MovementSystem.h">
@@ -630,7 +621,7 @@
     <ClInclude Include="Source\ECS\Components\AnimatorComponent.h">
       <Filter>Sources\ECS\Components</Filter>
     </ClInclude>
-    <ClInclude Include="Source\ECS\Components\InputComponent.h">
+    <ClInclude Include="Source\ECS\Components\GameInputComponent.h">
       <Filter>Sources\ECS\Components</Filter>
     </ClInclude>
     <ClInclude Include="Source\ECS\Components\MeshComponent.h">
@@ -720,12 +711,6 @@
     <ClInclude Include="Source\Core\PhysX.h">
       <Filter>Sources\Core\PhysX</Filter>
     </ClInclude>
-    <ClInclude Include="Source\ECS\Components\ControllerComponent.h">
-      <Filter>Sources\ECS\Components\Controller</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\ECS\Components\ControllerSettings.h">
-      <Filter>Sources\ECS\Components\Controller</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Core\PhysicsDestroyQueue.h">
       <Filter>Sources\Core\PhysX</Filter>
     </ClInclude>
@@ -804,14 +789,20 @@
     <ClInclude Include="Source\ECS\Systems\AnimatorControllerSystem.h">
       <Filter>Sources\ECS\Systems\AnimatorControllerSystem</Filter>
     </ClInclude>
-    <ClInclude Include="Source\ECS\Components\PlayerMoveComponent.h">
-      <Filter>Sources\ECS\Components\Player</Filter>
-    </ClInclude>
     <ClInclude Include="Source\ECS\Systems\PlayerMoveSystem.h">
-      <Filter>Sources\ECS\Systems\Player\PlayerMoveSystem</Filter>
+      <Filter>Sources\ECS\Systems\PlayerMoveSystem</Filter>
     </ClInclude>
     <ClInclude Include="Source\Core\JsonFileCache.h">
       <Filter>Sources\Core\JsonFileCache</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ECS\Components\PlayerMoveComponent.h">
+      <Filter>Sources\ECS\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ECS\Components\ControllerComponent.h">
+      <Filter>Sources\ECS\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ECS\Components\ControllerSettings.h">
+      <Filter>Sources\ECS\Components</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

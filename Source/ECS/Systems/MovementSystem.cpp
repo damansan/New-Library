@@ -1,6 +1,6 @@
 #include "MovementSystem.h"
 
-#include "ECS/Components/InputComponent.h"
+#include "ECS/Components/GameInputComponent.h"
 #include "ECS/Components/MovementComponent.h"
 #include "ECS/Components/TransformComponent.h"
 #include "ECS/Components/PhysicsComponents.h"
@@ -10,9 +10,9 @@
 
 void MovementSystem::Update(entt::registry& registry, float elapsedTime, const SceneContext& context)
 {
-    auto view = registry.view<InputComponent, MovementComponent, TransformComponent>();
+    auto view = registry.view<GameInputComponent, MovementComponent, TransformComponent>();
     view.each([&](auto entity,
-        InputComponent& input,
+        GameInputComponent& input,
         MovementComponent& movement,
         TransformComponent& transform)
         {

@@ -1,5 +1,6 @@
 #pragma once
-struct InputComponent
+
+struct GameInputComponent
 {
     // ˆÚ“®
     float moveX = 0.0f;

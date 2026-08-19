@@ -2,7 +2,7 @@
 #include "Core/Scene.h"
 
 #include "ECS/Systems/ControllerSystem.h" 
-#include "ECS/Systems/InputSystem.h"    
+#include "ECS/Systems/GameInputSystem.h"    
 #include "ECS/Systems/MovementSystem.h" 
 #include "ECS/Systems/AnimationSystem.h"
 #include "ECS/Systems/AnimatorControllerSystem.h"
@@ -42,7 +42,7 @@ public:
 
 private:
 	ControllerSystem controllerSystem;
-	InputSystem      inputSystem;
+	GameInputSystem  gameInputSystem;
 	MovementSystem   movementSystem;
 	AnimationSystem  animationSystem;
 	AnimatorControllerSystem animatorControllerSystem;

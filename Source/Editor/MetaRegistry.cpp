@@ -9,7 +9,7 @@ using namespace entt::literals;
 #include "ECS/Components/MeshComponent.h"
 #include "ECS/Components/MovementComponent.h"
 #include "ECS/Components/PlayerMoveComponent.h"
-#include "ECS/Components/InputComponent.h"
+#include "ECS/Components/GameInputComponent.h"
 #include "ECS/Components/AnimatorComponent.h"
 #include "ECS/Components/SequencerComponent.h"
 
@@ -59,16 +59,16 @@ void MetaRegistry::Initialize()
 		.data<&PlayerMoveComponent::isMoving>("isMoving"_hs)
 		.custom<FieldInfo>(FieldInfo{ "Is Moving" });
 
-	entt::meta_factory<InputComponent>{}
-	.type("InputComponent")
+	entt::meta_factory<GameInputComponent>{}
+	.type("GameInputComponent")
 		.custom<TypeInfo>(TypeInfo{ "Input" })
-		.data<&InputComponent::moveX>("moveX"_hs)
+		.data<&GameInputComponent::moveX>("moveX"_hs)
 		.custom<FieldInfo>(FieldInfo{ "MoveX", 0.0f, 0.0f, 0.1f, "", true })
-		.data<&InputComponent::moveZ>("moveZ"_hs)
+		.data<&GameInputComponent::moveZ>("moveZ"_hs)
 		.custom<FieldInfo>(FieldInfo{ "MoveZ", 0.0f, 0.0f, 0.1f, "", true })
-		.data<&InputComponent::jump>("jump"_hs)
+		.data<&GameInputComponent::jump>("jump"_hs)
 		.custom<FieldInfo>(FieldInfo{ "Jump", 0.0f, 0.0f, 0.1f, "", true })
-		.data<&InputComponent::attack>("attack"_hs)
+		.data<&GameInputComponent::attack>("attack"_hs)
 		.custom<FieldInfo>(FieldInfo{ "Attack", 0.0f, 0.0f, 0.1f, "", true });
 
 	entt::meta_factory<AnimatorComponent>{}

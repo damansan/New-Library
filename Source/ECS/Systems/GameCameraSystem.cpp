@@ -28,7 +28,7 @@ void GameCameraSystem::Update(entt::registry& registry, float elapsedTime)
             }
 
             // InputComponent ‚©‚çƒJƒƒ‰‘€ì“ü—Í‚ğæ“¾
-            auto* input = registry.try_get<InputComponent>(cam.target);
+            auto* input = registry.try_get<GameInputComponent>(cam.target);
             if (input)
             {
                 const float rotSpeed = 2.0f;

@@ -3,7 +3,7 @@
 #include "Core/Camera.h"
 #include "ECS/Components/GameCameraComponent.h"
 #include "ECS/Components/TransformComponent.h"
-#include "ECS/Components/InputComponent.h"
+#include "ECS/Components/GameInputComponent.h"
 
 class GameCameraSystem
 {

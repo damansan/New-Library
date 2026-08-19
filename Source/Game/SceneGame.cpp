@@ -91,7 +91,7 @@ void SceneGame::Update(float elapsedTime, const SceneContext& context)
 	{
 		// 入力変換
 		ZoneScopedN("InputSystem");
-		inputSystem.Update(registry, controllerSystem.GetSettings());
+		gameInputSystem.Update(registry, controllerSystem.GetSettings());
 	}
 	{
 		// Player移動(XZ平面、歩き/小走り判定)
@@ -148,10 +148,10 @@ void SceneGame::Update(float elapsedTime, const SceneContext& context)
 			// スティック入力があればGameモードに戻す
 			if (context.editorContext)
 			{
-				auto inputView = registry.view<InputComponent>();
+				auto inputView = registry.view<GameInputComponent>();
 				for (auto entity : inputView)
 				{
-					auto& input = inputView.get<InputComponent>(entity);
+					auto& input = inputView.get<GameInputComponent>(entity);
 					const float threshold = 0.2f;
 					if (fabsf(input.moveX) > threshold ||
 						fabsf(input.moveZ) > threshold ||

@@ -1,16 +1,16 @@
 #include "PlayerMoveSystem.h"
 
-#include "ECS/Components/InputComponent.h"
+#include "ECS/Components/GameInputComponent.h"
 #include "ECS/Components/PlayerMoveComponent.h"
 #include "ECS/Components/MovementComponent.h"
 #include "ECS/Components/TransformComponent.h"
 
 void PlayerMoveSystem::Update(entt::registry& registry, float elapsedTime, const SceneContext& context)
 {
-	auto view = registry.view<InputComponent, PlayerMoveComponent, MovementComponent, TransformComponent>();
+	auto view = registry.view<GameInputComponent, PlayerMoveComponent, MovementComponent, TransformComponent>();
 
 	view.each([&](auto entity,
-		InputComponent& input,
+		GameInputComponent& input,
 		PlayerMoveComponent& playerMove,
 		MovementComponent& movement,
 		TransformComponent& transform) 
@@ -22,7 +22,7 @@ void PlayerMoveSystem::Update(entt::registry& registry, float elapsedTime, const
 			DirectX::XMFLOAT3 front = context.camera->GetFront();
 			DirectX::XMFLOAT3 right = context.camera->GetRight();
 
-			// XZ平面で正規化し直す
+			// XZ平面で正規化
 			float frontLen = sqrtf(front.x * front.x + front.z * front.z);
 			float rightLen = sqrtf(right.x * right.x + right.z * right.z);
 
@@ -31,10 +31,13 @@ void PlayerMoveSystem::Update(entt::registry& registry, float elapsedTime, const
 			float rightX = (rightLen > 0.0f) ? right.x / rightLen : 0.0f;
 			float rightZ = (rightLen > 0.0f) ? right.z / rightLen : 0.0f;
 
-			// 移動ベクトルを合成
+			// 移動方向ベクトル
 			float vecX = frontX * input.moveZ + rightX * input.moveX;
 			float vecZ = frontZ * input.moveZ + rightZ * input.moveX;
 			float vecLen = sqrtf(vecX * vecX + vecZ * vecZ); // スティックの倒し具合
+
+
+
 
 			// 倒し具合に応じて、Idle/歩き/小走りを判定する
 			playerMove.isJogging = (vecLen > playerMove.jogThreshold);
@@ -55,10 +58,12 @@ void PlayerMoveSystem::Update(entt::registry& registry, float elapsedTime, const
 			movement.velocity.x = moveX;
 			movement.velocity.z = moveZ;
 
-			// 入力があった場合は、キャラクターの向きを変える
+			// キャラクターの向きを変える
 			if (vecLen > 0.0f)
 			{
 				transform.rotation.y = atan2f(-moveX, -moveZ);
 			}
+
+
 		});
 }

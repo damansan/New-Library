@@ -10,7 +10,7 @@
 #include "ECS/Components/MeshComponent.h"
 #include "ECS/Components/MaterialComponent.h"
 
-#include "ECS/Components/InputComponent.h"
+#include "ECS/Components/GameInputComponent.h"
 #include "ECS/Components/ControllerComponent.h"
 #include "ECS/Components/MovementComponent.h"
 #include "ECS/Components/PlayerMoveComponent.h"
@@ -106,19 +106,6 @@ void ComponentRegistryInitializer::Initialize()
 			}
 		});
 
-	// ムーブメントコンポーネントの登録
-	REGISTER_COMPONENT(MovementComponent, "Movement",
-		[](auto& reg, auto e)
-		{
-			auto* _c = reg.try_get<MovementComponent>(e);
-			if (!_c) return;
-
-			if (ImGui::CollapsingHeader("Movement", ImGuiTreeNodeFlags_DefaultOpen))
-			{
-				MetaRegistry::DrawMetaFields(entt::resolve<MovementComponent>(), entt::forward_as_meta(*_c));
-			}
-		});
-
 	// Player移動コンポーネントの登録
 	REGISTER_COMPONENT(PlayerMoveComponent, "Player Move",
 		[](auto& reg, auto e)
@@ -133,15 +120,15 @@ void ComponentRegistryInitializer::Initialize()
 		});
 
 	// インプットコンポーネントの登録
-	REGISTER_COMPONENT(InputComponent, "Input",
+	REGISTER_COMPONENT(GameInputComponent, "GameInput",
 		[](auto& reg, auto e)
 		{
-			auto* _c = reg.try_get<InputComponent>(e);
+			auto* _c = reg.try_get<GameInputComponent>(e);
 			if (!_c) return;
 
 			if (ImGui::CollapsingHeader("Input", ImGuiTreeNodeFlags_DefaultOpen))
 			{
-				MetaRegistry::DrawMetaFields(entt::resolve<InputComponent>(), entt::forward_as_meta(*_c));
+				MetaRegistry::DrawMetaFields(entt::resolve<GameInputComponent>(), entt::forward_as_meta(*_c));
 			}
 		});
 
@@ -279,20 +266,24 @@ void ComponentRegistryInitializer::Initialize()
 				if (!reg.any_of<PhysicsBodyTypeComponent>(e))
 					reg.emplace<PhysicsBodyTypeComponent>(e);
 			},
-		// Remove: 種別コンポーネントと紐づく実体コンポーネントを両方削除
-		[](auto& reg, auto e)
-		{
-			if (reg.any_of<StaticBodyComponent>(e))
-				reg.remove<StaticBodyComponent>(e);
-
-			if (auto* ctrl = reg.try_get<CharacterControllerComponent>(e))
+		// Remove: 共通コンポーネントと紐づいた個別のコンポーネントを両方削除
+			[](auto& reg, auto e)
 			{
-				// 解放を1フレーム遅延させ、次の物理更新の頭でまとめて処理する
-				PhysicsDestroyQueue::Push(ctrl->controller);
-				reg.remove<CharacterControllerComponent>(e);
-			}
+				if (reg.any_of<StaticBodyComponent>(e))
+					reg.remove<StaticBodyComponent>(e);
 
-			reg.remove<PhysicsBodyTypeComponent>(e);		},
+				if (auto* ctrl = reg.try_get<CharacterControllerComponent>(e))
+				{
+					// これは1フレーム遅延させ、他の更新の内でまとめて処理する
+					PhysicsDestroyQueue::Push(ctrl->controller);
+					reg.remove<CharacterControllerComponent>(e);
+				}
+
+				// CharacterControllerとセットで生まれたMovementComponentも一緒に外す
+				if (reg.any_of<MovementComponent>(e))
+					reg.remove<MovementComponent>(e);
+
+				reg.remove<PhysicsBodyTypeComponent>(e);		},
 		// Has
 		[](auto& reg, auto e) { return reg.any_of<PhysicsBodyTypeComponent>(e); },
 		// DrawImGui
@@ -309,7 +300,7 @@ void ComponentRegistryInitializer::Initialize()
 					{
 						auto newType = (PhysicsBodyTypeComponent::Type)current;
 
-						// 切り替え前の実体があれば削除予約してからComponentを外す
+						// 切り替え前の実体があれば削除予約してから外す
 						if (body->type == PhysicsBodyTypeComponent::Type::Static)
 						{
 							auto* staticBody = reg.try_get<StaticBodyComponent>(e);
@@ -327,6 +318,10 @@ void ComponentRegistryInitializer::Initialize()
 								PhysicsDestroyQueue::Push(ctrl->controller);
 							}
 							reg.remove<CharacterControllerComponent>(e);
+
+							// CharacterControllerとセットで生まれたMovementComponentも一緒に外す
+							if (reg.any_of<MovementComponent>(e))
+								reg.remove<MovementComponent>(e);
 						}
 
 						body->type = newType;
@@ -339,6 +334,10 @@ void ComponentRegistryInitializer::Initialize()
 						else if (newType == PhysicsBodyTypeComponent::Type::Character)
 						{
 							reg.emplace<CharacterControllerComponent>(e);
+
+							// CharacterControllerとセットでMovementComponentも生成
+							if (!reg.any_of<MovementComponent>(e))
+								reg.emplace<MovementComponent>(e);
 						}
 					}
 
