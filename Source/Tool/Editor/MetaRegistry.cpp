@@ -9,6 +9,7 @@ using namespace entt::literals;
 #include "Engine/ECS/Components/MeshComponent.h"
 #include "Engine/ECS/Components/MovementComponent.h"
 #include "Project/ECS/Components/PlayerMoveComponent.h"
+#include "Project/ECS/Components/PlayerDodgeComponent.h"
 #include "Project/ECS/Components/GameInputComponent.h"
 #include "Engine/ECS/Components/AnimatorComponent.h"
 #include "Engine/ECS/Components/SequencerComponent.h"
@@ -58,6 +59,13 @@ void MetaRegistry::Initialize()
 		.custom<FieldInfo>(FieldInfo{ "Is Jogging" })
 		.data<&PlayerMoveComponent::isMoving>("isMoving"_hs)
 		.custom<FieldInfo>(FieldInfo{ "Is Moving" });
+	entt::meta_factory<PlayerDodgeComponent>{}
+	.type("PlayerDodgeComponent")
+		.custom<TypeInfo>(TypeInfo{ "Player Dodge" })
+		.data<&PlayerDodgeComponent::triggerThreshold>("triggerThreshold"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Trigger Threshold", 0.0f, 1.0f })
+		.data<&PlayerDodgeComponent::isDodging>("isDodging"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Is Dodging" });
 
 	entt::meta_factory<GameInputComponent>{}
 	.type("GameInputComponent")

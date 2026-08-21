@@ -224,9 +224,6 @@
     <Filter Include="Sources\Project\ECS\Components">
       <UniqueIdentifier>{764d3f1a-a0b9-4d8a-8055-2c4613f6c2f9}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Sources\Project\ECS\Systems\PlayerMoveSystem">
-      <UniqueIdentifier>{5e66f5c9-df36-47c2-baf9-a760e7d161cc}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Sources\Project\ECS\Systems\GameInputSystem">
       <UniqueIdentifier>{1c29e3c3-daa4-46f8-b1cb-952f3787701c}</UniqueIdentifier>
     </Filter>
@@ -313,6 +310,21 @@
     </Filter>
     <Filter Include="Sources\Unsorted\Demo">
       <UniqueIdentifier>{c6b7fce3-f3fa-45f6-b39e-e851c4173f11}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Project\ECS\Components\Player">
+      <UniqueIdentifier>{cb561dc7-1c74-4412-86e3-9abfe4108b14}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Project\ECS\Systems\Player">
+      <UniqueIdentifier>{b1f4c0cc-68cf-447d-88e8-4ea98edfd9eb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Project\ECS\Systems\Player\PlayerMoveSystem">
+      <UniqueIdentifier>{5e66f5c9-df36-47c2-baf9-a760e7d161cc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Project\ECS\Systems\Player\PlayerMovementUtils">
+      <UniqueIdentifier>{d98687da-bb63-4a0a-b525-5eb3e28392ea}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Project\ECS\Systems\Player\PlayerDodgeSystem">
+      <UniqueIdentifier>{ecfdec2d-98cc-4fd3-9551-945365d16ee0}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -488,7 +500,7 @@
       <Filter>Sources\Project\Scene\SceneGame</Filter>
     </ClCompile>
     <ClCompile Include="Source\Project\ECS\Systems\PlayerMoveSystem.cpp">
-      <Filter>Sources\Project\ECS\Systems\PlayerMoveSystem</Filter>
+      <Filter>Sources\Project\ECS\Systems\Player\PlayerMoveSystem</Filter>
     </ClCompile>
     <ClCompile Include="Source\Project\ECS\Systems\GameInputSystem.cpp">
       <Filter>Sources\Project\ECS\Systems\GameInputSystem</Filter>
@@ -525,6 +537,12 @@
     </ClCompile>
     <ClCompile Include="Source\Tool\AdaptiveTriggerToolWindow.cpp">
       <Filter>Sources\Tool</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Project\ECS\Systems\PlayerMovementUtils.cpp">
+      <Filter>Sources\Project\ECS\Systems\Player\PlayerMovementUtils</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Project\ECS\Systems\PlayerDodgeSystem.cpp">
+      <Filter>Sources\Project\ECS\Systems\Player\PlayerDodgeSystem</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -768,11 +786,8 @@
     <ClInclude Include="Source\Project\ECS\Components\GameInputComponent.h">
       <Filter>Sources\Project\ECS\Components</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Project\ECS\Components\PlayerMoveComponent.h">
-      <Filter>Sources\Project\ECS\Components</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Project\ECS\Systems\PlayerMoveSystem.h">
-      <Filter>Sources\Project\ECS\Systems\PlayerMoveSystem</Filter>
+      <Filter>Sources\Project\ECS\Systems\Player\PlayerMoveSystem</Filter>
     </ClInclude>
     <ClInclude Include="Source\Project\ECS\Systems\GameInputSystem.h">
       <Filter>Sources\Project\ECS\Systems\GameInputSystem</Filter>
@@ -815,6 +830,21 @@
     </ClInclude>
     <ClInclude Include="Source\Tool\AdaptiveTriggerToolWindow.h">
       <Filter>Sources\Tool</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Project\ECS\Components\PlayerDodgeComponent.h">
+      <Filter>Sources\Project\ECS\Components\Player</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Project\ECS\Components\PlayerMoveComponent.h">
+      <Filter>Sources\Project\ECS\Components\Player</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Project\ECS\Components\PlayerSprintComponent.h">
+      <Filter>Sources\Project\ECS\Components\Player</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Project\ECS\Systems\PlayerMovementUtils.h">
+      <Filter>Sources\Project\ECS\Systems\Player\PlayerMovementUtils</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Project\ECS\Systems\PlayerDodgeSystem.h">
+      <Filter>Sources\Project\ECS\Systems\Player\PlayerDodgeSystem</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

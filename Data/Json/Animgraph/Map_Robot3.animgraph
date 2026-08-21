@@ -319,8 +319,8 @@
                 {
                     "id": 85,
                     "name": "Entry",
-                    "posX": 50.0,
-                    "posY": 200.0,
+                    "posX": 32.0,
+                    "posY": 208.0,
                     "type": "Start",
                     "clipName": "",
                     "loop": true,
@@ -335,9 +335,38 @@
                     "clipName": "",
                     "loop": true,
                     "useRootMotion": false
+                },
+                {
+                    "id": 115,
+                    "name": "DodgeBack",
+                    "posX": 224.0,
+                    "posY": 160.0,
+                    "type": "Normal",
+                    "clipName": "AS_Dodge_Back",
+                    "loop": false,
+                    "useRootMotion": true
                 }
             ],
-            "childLinks": []
+            "childLinks": [
+                {
+                    "id": 116,
+                    "fromId": 85,
+                    "toId": 115,
+                    "blend": true,
+                    "blendDuration": 0.20000000298023224,
+                    "condition": {
+                        "returnNode": {
+                            "id": 117,
+                            "posX": 500.0,
+                            "posY": 200.0
+                        },
+                        "variableNodes": [],
+                        "operatorNodes": [],
+                        "getterNodes": [],
+                        "links": []
+                    }
+                }
+            ]
         },
         {
             "id": 87,
@@ -533,13 +562,60 @@
             "condition": {
                 "returnNode": {
                     "id": 91,
-                    "posX": 500.0,
-                    "posY": 200.0
+                    "posX": 562.0,
+                    "posY": 352.0
                 },
-                "variableNodes": [],
-                "operatorNodes": [],
-                "getterNodes": [],
-                "links": []
+                "variableNodes": [
+                    {
+                        "id": 102,
+                        "posX": 166.0,
+                        "posY": 368.0,
+                        "name": "",
+                        "type": "Bool",
+                        "intValue": 0,
+                        "floatValue": 0.0,
+                        "boolValue": true
+                    }
+                ],
+                "operatorNodes": [
+                    {
+                        "id": 104,
+                        "posX": 382.0,
+                        "posY": 296.0,
+                        "op": "Equal"
+                    }
+                ],
+                "getterNodes": [
+                    {
+                        "id": 103,
+                        "posX": 170.0,
+                        "posY": 252.0,
+                        "componentName": "PlayerDodgeComponent",
+                        "fieldName": "Is Dodging",
+                        "type": "Bool",
+                        "selectedComponent": "None"
+                    }
+                ],
+                "links": [
+                    {
+                        "id": 105,
+                        "fromId": 102,
+                        "toId": 104,
+                        "toPinB": true
+                    },
+                    {
+                        "id": 106,
+                        "fromId": 103,
+                        "toId": 104,
+                        "toPinB": false
+                    },
+                    {
+                        "id": 107,
+                        "fromId": 104,
+                        "toId": 91,
+                        "toPinB": false
+                    }
+                ]
             }
         },
         {
@@ -551,85 +627,95 @@
             "condition": {
                 "returnNode": {
                     "id": 93,
-                    "posX": 500.0,
-                    "posY": 200.0
+                    "posX": 690.0,
+                    "posY": 352.0
                 },
-                "variableNodes": [],
-                "operatorNodes": [],
-                "getterNodes": [],
-                "links": []
+                "variableNodes": [
+                    {
+                        "id": 109,
+                        "posX": 278.0,
+                        "posY": 368.0,
+                        "name": "",
+                        "type": "Bool",
+                        "intValue": 0,
+                        "floatValue": 0.0,
+                        "boolValue": false
+                    }
+                ],
+                "operatorNodes": [
+                    {
+                        "id": 111,
+                        "posX": 514.0,
+                        "posY": 296.0,
+                        "op": "Equal"
+                    }
+                ],
+                "getterNodes": [
+                    {
+                        "id": 110,
+                        "posX": 282.0,
+                        "posY": 252.0,
+                        "componentName": "PlayerDodgeComponent",
+                        "fieldName": "Is Dodging",
+                        "type": "Bool",
+                        "selectedComponent": "None"
+                    }
+                ],
+                "links": [
+                    {
+                        "id": 112,
+                        "fromId": 111,
+                        "toId": 93,
+                        "toPinB": false
+                    },
+                    {
+                        "id": 113,
+                        "fromId": 109,
+                        "toId": 111,
+                        "toPinB": true
+                    },
+                    {
+                        "id": 114,
+                        "fromId": 110,
+                        "toId": 111,
+                        "toPinB": false
+                    }
+                ]
             }
         },
         {
-            "id": 94,
-            "fromId": 87,
-            "toId": 84,
-            "blend": true,
-            "blendDuration": 0.20000000298023224,
-            "condition": {
-                "returnNode": {
-                    "id": 95,
-                    "posX": 500.0,
-                    "posY": 200.0
-                },
-                "variableNodes": [],
-                "operatorNodes": [],
-                "getterNodes": [],
-                "links": []
-            }
-        },
-        {
-            "id": 96,
-            "fromId": 84,
-            "toId": 87,
-            "blend": true,
-            "blendDuration": 0.20000000298023224,
-            "condition": {
-                "returnNode": {
-                    "id": 97,
-                    "posX": 500.0,
-                    "posY": 200.0
-                },
-                "variableNodes": [],
-                "operatorNodes": [],
-                "getterNodes": [],
-                "links": []
-            }
-        },
-        {
-            "id": 98,
-            "fromId": 87,
-            "toId": 2,
-            "blend": true,
-            "blendDuration": 0.20000000298023224,
-            "condition": {
-                "returnNode": {
-                    "id": 99,
-                    "posX": 500.0,
-                    "posY": 200.0
-                },
-                "variableNodes": [],
-                "operatorNodes": [],
-                "getterNodes": [],
-                "links": []
-            }
-        },
-        {
-            "id": 100,
+            "id": 124,
             "fromId": 10,
             "toId": 84,
-            "blend": true,
+            "blend": false,
             "blendDuration": 0.20000000298023224,
             "condition": {
                 "returnNode": {
-                    "id": 101,
+                    "id": 125,
                     "posX": 500.0,
                     "posY": 200.0
                 },
                 "variableNodes": [],
                 "operatorNodes": [],
-                "getterNodes": [],
-                "links": []
+                "getterNodes": [
+                    {
+                        "id": 126,
+                        "posX": 286.0,
+                        "posY": 110.0,
+                        "componentName": "PlayerDodgeComponent",
+                        "fieldName": "Is Dodging",
+                        "type": "Bool",
+                        "selectedComponent": "None"
+                    }
+                ],
+                "links": [
+                    {
+                        "id": 127,
+                        "fromId": 126,
+                        "toId": 125,
+                        "toPinB": false
+                    }
+                ]
             }
         }
     ]

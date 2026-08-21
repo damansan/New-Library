@@ -94,6 +94,11 @@ void SceneGame::Update(float elapsedTime, const SceneContext& context)
 		gameInputSystem.Update(registry, controllerSystem.GetSettings());
 	}
 	{
+		// Dodge/Sprintの状態遷移
+		ZoneScopedN("PlayerDodgeSystem");
+		playerDodgeSystem.Update(registry, elapsedTime, context);
+	}
+	{
 		// Player移動(XZ平面、歩き/小走り判定)
 		ZoneScopedN("PlayerMoveSystem");
 		playerMoveSystem.Update(registry, elapsedTime, context);

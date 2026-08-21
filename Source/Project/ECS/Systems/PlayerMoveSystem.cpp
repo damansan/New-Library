@@ -2,6 +2,7 @@
 
 #include "Project/ECS/Components/GameInputComponent.h"
 #include "Project/ECS/Components/PlayerMoveComponent.h"
+#include "Project/ECS/Systems/PlayerMovementUtils.h"
 #include "Engine/ECS/Components/MovementComponent.h"
 #include "Engine/ECS/Components/TransformComponent.h"
 
@@ -9,11 +10,12 @@ void PlayerMoveSystem::Update(entt::registry& registry, float elapsedTime, const
 {
 	auto view = registry.view<GameInputComponent, PlayerMoveComponent, MovementComponent, TransformComponent>();
 
-	view.each([&](auto entity,
+	view.each(
+		[&](auto entity,
 		GameInputComponent& input,
 		PlayerMoveComponent& playerMove,
 		MovementComponent& movement,
-		TransformComponent& transform) 
+		TransformComponent& transform)
 		{
 			// 移動がロックされている間は、何もしない
 			if (movement.movementLocked) return;
@@ -21,6 +23,9 @@ void PlayerMoveSystem::Update(entt::registry& registry, float elapsedTime, const
 			// カメラの前後左右ベクトル取得
 			DirectX::XMFLOAT3 front = context.camera->GetFront();
 			DirectX::XMFLOAT3 right = context.camera->GetRight();
+
+			// スティック入力からワールド方向・倒し具合を算出
+			auto dir = PlayerMovementUtils::StickToWorldVelocity(input.moveX, input.moveZ, front, right, 1.0f);
 
 			// XZ平面で正規化
 			float frontLen = sqrtf(front.x * front.x + front.z * front.z);
@@ -36,34 +41,34 @@ void PlayerMoveSystem::Update(entt::registry& registry, float elapsedTime, const
 			float vecZ = frontZ * input.moveZ + rightZ * input.moveX;
 			float vecLen = sqrtf(vecX * vecX + vecZ * vecZ); // スティックの倒し具合
 
+			// 向きの制御権を持っているときのみ更新する
+			if (!movement.facingLocked && dir.inputLength > 0.0f)
+			{
+				transform.rotation.y = PlayerMovementUtils::CalcFacingYaw(dir.velocity.x, dir.velocity.z);
+			}
 
+			// 移動の制御権を持っているときのみ更新する
+			if (!movement.xzControlLocked)
+			{
+				// スティックの倒し具合に応じて、None/Walking/Joggingを判定する
+				if (dir.inputLength > playerMove.jogThreshold)
+					playerMove.state = PlayerMovementState::Jogging;
+				else if (dir.inputLength > 0.0f)
+					playerMove.state = PlayerMovementState::Walking;
+				else
+					playerMove.state = PlayerMovementState::None;
 
+				float speed = (playerMove.state == PlayerMovementState::Jogging) ? playerMove.jogSpeed : playerMove.walkSpeed;
 
-			// 倒し具合に応じて、Idle/歩き/小走りを判定する
-			playerMove.isJogging = (vecLen > playerMove.jogThreshold);
-			playerMove.isWalking = (vecLen > 0.0f && !playerMove.isJogging);
+				// 改めて実際の速度で計算し直す
+				auto vel = PlayerMovementUtils::StickToWorldVelocity(input.moveX, input.moveZ, front, right, speed);
+				movement.velocity.x = vel.velocity.x;
+				movement.velocity.z = vel.velocity.z;
+			}
+
+			// フラグ更新
+			playerMove.isWalking = (playerMove.state == PlayerMovementState::Walking);
+			playerMove.isJogging = (playerMove.state == PlayerMovementState::Jogging);
 			playerMove.isMoving = (playerMove.isWalking || playerMove.isJogging);
-			float speed = playerMove.isJogging ? playerMove.jogSpeed : playerMove.walkSpeed;
-
-			// 移動ベクトルを正規化して速度をかける
-			float moveX = 0.0f;
-			float moveZ = 0.0f;
-			if (vecLen > 0.0f)
-			{
-				moveX = (vecX / vecLen) * speed;
-				moveZ = (vecZ / vecLen) * speed;
-			}
-
-			// XZ方向だけをMovementComponentへ渡す
-			movement.velocity.x = moveX;
-			movement.velocity.z = moveZ;
-
-			// キャラクターの向きを変える
-			if (vecLen > 0.0f)
-			{
-				transform.rotation.y = atan2f(-moveX, -moveZ);
-			}
-
-
 		});
 }

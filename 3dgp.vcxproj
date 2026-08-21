@@ -68,6 +68,8 @@
     <ClCompile Include="Source\main.cpp" />
     <ClCompile Include="Source\Project\ECS\Systems\GameCameraSystem.cpp" />
     <ClCompile Include="Source\Project\ECS\Systems\GameInputSystem.cpp" />
+    <ClCompile Include="Source\Project\ECS\Systems\PlayerDodgeSystem.cpp" />
+    <ClCompile Include="Source\Project\ECS\Systems\PlayerMovementUtils.cpp" />
     <ClCompile Include="Source\Project\ECS\Systems\PlayerMoveSystem.cpp" />
     <ClCompile Include="Source\Project\Scene\SceneGame.cpp" />
     <ClCompile Include="Source\Tool\AdaptiveTriggerToolWindow.cpp" />
@@ -155,11 +157,15 @@
     <ClInclude Include="Source\Engine\Utility\CerealHelper.h" />
     <ClInclude Include="Source\Engine\Utility\high_resolution_timer.h" />
     <ClInclude Include="Source\Engine\Utility\misc.h" />
+    <ClInclude Include="Source\Project\ECS\Components\PlayerDodgeComponent.h" />
     <ClInclude Include="Source\Project\ECS\Components\GameCameraComponent.h" />
     <ClInclude Include="Source\Project\ECS\Components\GameInputComponent.h" />
     <ClInclude Include="Source\Project\ECS\Components\PlayerMoveComponent.h" />
+    <ClInclude Include="Source\Project\ECS\Components\PlayerSprintComponent.h" />
     <ClInclude Include="Source\Project\ECS\Systems\GameCameraSystem.h" />
     <ClInclude Include="Source\Project\ECS\Systems\GameInputSystem.h" />
+    <ClInclude Include="Source\Project\ECS\Systems\PlayerDodgeSystem.h" />
+    <ClInclude Include="Source\Project\ECS\Systems\PlayerMovementUtils.h" />
     <ClInclude Include="Source\Project\ECS\Systems\PlayerMoveSystem.h" />
     <ClInclude Include="Source\Project\Scene\SceneGame.h" />
     <ClInclude Include="Source\Tool\AdaptiveTriggerToolWindow.h" />

@@ -22,9 +22,11 @@ void GameInputSystem::Update(entt::registry& registry, const ControllerSettings&
             input.moveZ = 0.0f;
             input.cameraX = 0.0f;
             input.cameraY = 0.0f;
+
+            input.dodge = 0.0f;
+
             input.jump = false;
             input.attack = false;
-            input.dodge = false;
 
             // ControllerComponent がなければスキップ
             if (!ctrl || !ctrl->connected) return;
@@ -51,8 +53,8 @@ void GameInputSystem::Update(entt::registry& registry, const ControllerSettings&
             input.jump = ctrl->IsPressed(ControllerButtons::Cross);
             input.attack = ctrl->IsPressed(ControllerButtons::Square);
 
-            // R2(アナログ)がしきい値を超えたら回避とみなす
-            input.dodge = (rt >= settings.rightTriggerThreshold);
+            // R2の生値をそのまま渡す
+            input.dodge = rt;
 
             (void)lt;
 

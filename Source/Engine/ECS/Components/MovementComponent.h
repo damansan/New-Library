@@ -12,7 +12,11 @@ struct MovementComponent
     // ’n–Ê‚ÉÚ‚µ‚Ä‚¢‚é‚©
     bool isGrounded = false;
 
-	// ˆÚ“®‚ğƒƒbƒN‚·‚é‚©‚Ç‚¤‚©
+	// ˆÚ“®‚Ì§ŒäŒ 
     bool movementLocked = false;
-    bool xzControlLocked = false;  // XZ•ûŒü‚Ì§Œä‚ğ‰¡æ‚è‚µ‚Ä‚¢‚éÅ’†‚©
+    // Œü‚«‚Ì§ŒäŒ 
+    bool facingLocked = false;
+
+    // XZ•ûŒü‚Ì§Œä‚ğ‰¡æ‚è‚µ‚Ä‚¢‚éÅ’†‚©
+    bool xzControlLocked = false;  
 };

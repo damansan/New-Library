@@ -2,12 +2,11 @@
 #include "Engine/Core/Scene.h"
 
 #include "Engine/ECS/Systems/ControllerSystem.h" 
-#include "Project/ECS/Systems/GameInputSystem.h"    
+#include "Project/ECS/Systems/GameInputSystem.h"   
+#include "Project/ECS/Systems/PlayerDodgeSystem.h"
 #include "Engine/ECS/Systems/MovementSystem.h" 
 #include "Engine/ECS/Systems/AnimationSystem.h"
 #include "Engine/ECS/Systems/AnimatorControllerSystem.h"
-
-
 #include "Project/ECS/Systems/PlayerMoveSystem.h"
 
 
@@ -43,6 +42,7 @@ public:
 private:
 	ControllerSystem controllerSystem;
 	GameInputSystem  gameInputSystem;
+	PlayerDodgeSystem playerDodgeSystem;
 	MovementSystem   movementSystem;
 	AnimationSystem  animationSystem;
 	AnimatorControllerSystem animatorControllerSystem;

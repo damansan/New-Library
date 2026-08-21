@@ -3036,9 +3036,13 @@ struct MovementComponent
     // ’n–Ê‚ÉÚ‚µ‚Ä‚¢‚é‚©
     bool isGrounded = false;
 
-	// ˆÚ“®‚ğƒƒbƒN‚·‚é‚©‚Ç‚¤‚©
+	// ˆÚ“®‚Ì§ŒäŒ 
     bool movementLocked = false;
-    bool xzControlLocked = false;  // XZ•ûŒü‚Ì§Œä‚ğ‰¡æ‚è‚µ‚Ä‚¢‚éÅ’†‚©
+    // Œü‚«‚Ì§ŒäŒ 
+    bool facingLocked = false;
+
+    // XZ•ûŒü‚Ì§Œä‚ğ‰¡æ‚è‚µ‚Ä‚¢‚éÅ’†‚©
+    bool xzControlLocked = false;  
 }; 
  
 ===== PhysicsComponents.h ===== 
@@ -10933,17 +10937,45 @@ Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Components\GameInput
 
 struct GameInputComponent
 {
-    // ˆÚ“®
-    float moveX = 0.0f;
+    // ƒXƒeƒBƒbƒN
+    float moveX = 0.0f;   // ˆÚ“®
     float moveZ = 0.0f;
-    // ƒJƒƒ‰‘€ì
-    float cameraX = 0.0f;
+    float cameraX = 0.0f; // ƒJƒƒ‰‘€ì
     float cameraY = 0.0f;
+
+    // ƒgƒŠƒK[
+	float dodge = 0.0f; // ‰ñ”ğ
 
     // ƒAƒNƒVƒ‡ƒ“
     bool jump = false;
     bool attack = false;
-    bool dodge = false;
+}; 
+ 
+===== PlayerDodgeComponent.h ===== 
+Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Components\PlayerDodgeComponent.h 
+#pragma once
+
+enum class PlayerDodgeState
+{
+	None,      
+	Dodging,   // ‰ñ”ğ
+};
+
+struct PlayerDodgeComponent
+{
+	// İ’è’l
+	float triggerThreshold = 0.8f;        // ‚±‚êˆÈã‚Åu‰Ÿ‚µ‚½v‚Æ‚İ‚È‚·
+	float triggerReleaseThreshold = 0.3f; // ‚±‚êˆÈ‰º‚Åu—£‚µ‚½v‚Æ‚İ‚È‚·
+
+	// ó‘Ô
+	PlayerDodgeState state = PlayerDodgeState::None;
+
+	// ó‘Ôƒtƒ‰ƒO
+	bool isDodging = false;
+
+
+	// “à•”À‘•—p
+	bool wasTriggerHeld = false; // ‘OƒtƒŒ[ƒ€‚ÅƒgƒŠƒK[‚ª‰Ÿ‚³‚ê‚Ä‚¢‚½‚©‚Ç‚¤‚©
 }; 
  
 ===== PlayerMoveComponent.h ===== 
@@ -10952,30 +10984,48 @@ Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Components\PlayerMov
 
 enum class PlayerMovementState
 {
-	Idle,      // ‘Ò‹@
+	None, 
 	Walking,   // •à‚«
 	Jogging,   // ¬‘–‚è
-	Dodging,   // ‰ñ”ğ
-	Sprinting, // ƒ_ƒbƒVƒ…
 };
 
 struct PlayerMoveComponent
 {
-	// ˆÚ“®‘¬“x‚È‚Ç
-	float walkSpeed = 2.0f; // •à‚«‘¬“x
-	float jogSpeed = 4.0f; // ¬‘–‚è‘¬“x
-	float sprintSpeed = 6.0f; // ƒ_ƒbƒVƒ…‘¬“x
+	// İ’è’l
+	float walkSpeed    = 2.0f; // •à‚«‘¬“x
+	float jogSpeed     = 4.0f; // ¬‘–‚è‘¬“x
+	float sprintSpeed  = 6.0f; // ƒ_ƒbƒVƒ…‘¬“x
 	float jogThreshold = 0.8f; // ƒXƒeƒBƒbƒN‚Ì“|‚µ‹ï‡‚ªA‚±‚Ì’l‚ğ’´‚¦‚½‚ç¬‘–‚è‚Æ‚İ‚È‚·
 	
-	// Player‚ÌˆÚ“®ó‘Ô
-	PlayerMovementState state = PlayerMovementState::Idle;
+	// ó‘Ô
+	PlayerMovementState state = PlayerMovementState::None;
 
-	// ˆÚ“®ó‘Ô‚Ìƒtƒ‰ƒO
-	bool isMoving = false;    // Œ»İAˆÚ“®’†‚©‚Ç‚¤‚©
-	bool isWalking = false;   // Œ»İA•à‚«”»’è‚©‚Ç‚¤‚©
-	bool isJogging = false;   // Œ»İA¬‘–‚è”»’è‚©‚Ç‚¤‚©
-	bool isDodging = false;   // Œ»İA‰ñ”ğ’†‚©‚Ç‚¤‚©
-	bool isSprinting = false; // Œ»İAƒ_ƒbƒVƒ…’†‚©‚Ç‚¤‚©
+	// ó‘Ôƒtƒ‰ƒO
+	bool isMoving = false;  // Œ»İAˆÚ“®’†‚©‚Ç‚¤‚©
+	bool isWalking = false; // Œ»İA•à‚«”»’è‚©‚Ç‚¤‚©
+	bool isJogging = false; // Œ»İA¬‘–‚è”»’è‚©‚Ç‚¤‚©
+}; 
+ 
+===== PlayerSprintComponent.h ===== 
+Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Components\PlayerSprintComponent.h 
+#pragma once
+
+enum class PlayerSprintState
+{
+	None,
+	Sprinting, // ƒ_ƒbƒVƒ…
+};
+
+struct PlayerSprintComponent
+{
+	// İ’è’l
+	float sprintSpeed = 6.0f;
+
+	// ó‘Ô
+	PlayerSprintState state = PlayerSprintState::None;
+
+	// ó‘Ôƒtƒ‰ƒO
+	bool isSprinting = false;
 }; 
  
 ===== GameCameraSystem.h ===== 
@@ -11035,6 +11085,45 @@ private:
     // ƒfƒbƒhƒ][ƒ““K—piƒgƒŠƒK[—pj
     float ApplyTriggerDeadzone(float value, float deadzone);
 }; 
+ 
+===== PlayerDodgeSystem.h ===== 
+Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Systems\PlayerDodgeSystem.h 
+#pragma once
+#include "entt.hpp"
+#include "Engine/Core/SceneContext.h"
+
+class PlayerDodgeSystem
+{
+public:
+	void Update(entt::registry& registry, float elapsedTime, const SceneContext& context);
+}; 
+ 
+===== PlayerMovementUtils.h ===== 
+Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Systems\PlayerMovementUtils.h 
+#pragma once
+#include <DirectXMath.h>
+
+// ƒvƒŒƒCƒ„[‚ÌˆÚ“®ŒvZ
+namespace PlayerMovementUtils
+{
+	// ƒXƒeƒBƒbƒN“ü—Í‚ÆƒJƒƒ‰‚Ì‘O•û/‰E•ûŒü‚©‚çAƒ[ƒ‹ƒhÀ•WŒn‚Ì‘¬“xƒxƒNƒgƒ‹‚ÆA
+	// ƒXƒeƒBƒbƒN‚Ì“|‚µ‹ï‡‚ğ‹‚ß‚é
+	struct WorldVelocityResult
+	{
+		DirectX::XMFLOAT3 velocity{ 0.0f, 0.0f, 0.0f };
+		float inputLength = 0.0f; // ƒXƒeƒBƒbƒN‚Ì“|‚µ‹ï‡
+	};
+
+	WorldVelocityResult StickToWorldVelocity(
+		float inputX, float inputZ,
+		const DirectX::XMFLOAT3& cameraFront,
+		const DirectX::XMFLOAT3& cameraRight,
+		float speed);
+
+	// ƒ[ƒ‹ƒhÀ•WŒn‚ÌˆÚ“®•ûŒü‚©‚çAY²‰ñ“]Šp‚ğ‹‚ß‚é
+	float CalcFacingYaw(float worldDirX, float worldDirZ);
+
+} 
  
 ===== PlayerMoveSystem.h ===== 
 Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Systems\PlayerMoveSystem.h 
@@ -11207,9 +11296,11 @@ void GameInputSystem::Update(entt::registry& registry, const ControllerSettings&
             input.moveZ = 0.0f;
             input.cameraX = 0.0f;
             input.cameraY = 0.0f;
+
+            input.dodge = 0.0f;
+
             input.jump = false;
             input.attack = false;
-            input.dodge = false;
 
             // ControllerComponent ãŒãªã‘ã‚Œã°ã‚¹ã‚­ãƒƒãƒ—
             if (!ctrl || !ctrl->connected) return;
@@ -11236,8 +11327,8 @@ void GameInputSystem::Update(entt::registry& registry, const ControllerSettings&
             input.jump = ctrl->IsPressed(ControllerButtons::Cross);
             input.attack = ctrl->IsPressed(ControllerButtons::Square);
 
-            // R2(ã‚¢ãƒŠãƒ­ã‚°)ãŒã—ãã„å€¤ã‚’è¶…ãˆãŸã‚‰å›é¿ã¨ã¿ãªã™
-            input.dodge = (rt >= settings.rightTriggerThreshold);
+            // R2ã®ç”Ÿå€¤ã‚’ãã®ã¾ã¾æ¸¡ã™
+            input.dodge = rt;
 
             (void)lt;
 
@@ -11263,12 +11354,111 @@ float GameInputSystem::ApplyTriggerDeadzone(float value, float deadzone)
 }
  
  
+===== PlayerDodgeSystem.cpp ===== 
+Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Systems\PlayerDodgeSystem.cpp 
+#include "PlayerDodgeSystem.h"
+
+#include "Project/ECS/Components/GameInputComponent.h"
+#include "Project/ECS/Components/PlayerDodgeComponent.h"
+#include "Engine/ECS/Components/MovementComponent.h"
+#include "Engine/ECS/Components/AnimatorComponent.h"
+#include "Engine/ECS/Components/SequencerComponent.h"
+
+void PlayerDodgeSystem::Update(entt::registry& registry, float elapsedTime, const SceneContext& context)
+{
+	auto view = registry.view<GameInputComponent, PlayerDodgeComponent, MovementComponent, AnimatorComponent, SequencerComponent>();
+
+	view.each([&](auto entity,
+		GameInputComponent& input,
+		PlayerDodgeComponent& dodge,
+		MovementComponent& movement,
+		AnimatorComponent& animator,
+		SequencerComponent& sequencer)
+		{
+			// Šù‚É‰Ÿ‚µ‚Ä‚¢‚éŠÔ‚Íu—£‚µ‚½”»’èƒ‰ƒCƒ“v‚ğ‰º‰ñ‚é‚Ü‚Å‰Ÿ‚µ‚Ä‚¢‚éˆµ‚¢‚É‚·‚é(ƒqƒXƒeƒŠƒVƒX)
+			bool triggerHeld = dodge.wasTriggerHeld
+				? (input.dodge > dodge.triggerReleaseThreshold)
+				: (input.dodge >= dodge.triggerThreshold);
+
+			bool triggerPressed = (triggerHeld && !dodge.wasTriggerHeld);
+
+			if (dodge.state == PlayerDodgeState::None)
+			{
+				if (triggerPressed)
+				{
+					dodge.state = PlayerDodgeState::Dodging;
+					movement.xzControlLocked = true; // ˆÚ“®‚Ì§Œä‚ğƒƒbƒN
+				}
+			}
+			else // Dodging
+			{
+				// animExit‚ªTrueA‚©‚ÂŠù‚ÉƒgƒŠƒK[‚ª—£‚³‚ê‚Ä‚¢‚ê‚Î‘ŠúI—¹
+				bool exitRequested = sequencer.animExit && !triggerHeld;
+
+				if (animator.isEnd || exitRequested)
+				{
+					dodge.state = PlayerDodgeState::None;
+					movement.xzControlLocked = false; // ˆÚ“®‚Ì§Œä‚ğ‰ğœ
+				}
+
+				dodge.wasTriggerHeld = triggerHeld;
+
+				dodge.isDodging = (dodge.state == PlayerDodgeState::Dodging);
+			}
+		});
+} 
+ 
+===== PlayerMovementUtils.cpp ===== 
+Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Systems\PlayerMovementUtils.cpp 
+#include "PlayerMovementUtils.h"
+#include <cmath>
+
+namespace PlayerMovementUtils
+{
+	WorldVelocityResult StickToWorldVelocity(
+		float inputX, float inputZ,
+		const DirectX::XMFLOAT3& cameraFront,
+		const DirectX::XMFLOAT3& cameraRight,
+		float speed)
+	{
+		WorldVelocityResult result;
+
+		float frontLen = sqrtf(cameraFront.x * cameraFront.x + cameraFront.z * cameraFront.z);
+		float rightLen = sqrtf(cameraRight.x * cameraRight.x + cameraRight.z * cameraRight.z);
+
+		float frontX = (frontLen > 0.0f) ? cameraFront.x / frontLen : 0.0f;
+		float frontZ = (frontLen > 0.0f) ? cameraFront.z / frontLen : 0.0f;
+		float rightX = (rightLen > 0.0f) ? cameraRight.x / rightLen : 0.0f;
+		float rightZ = (rightLen > 0.0f) ? cameraRight.z / rightLen : 0.0f;
+
+		float dirX = frontX * inputZ + rightX * inputX;
+		float dirZ = frontZ * inputZ + rightZ * inputX;
+		float len = sqrtf(dirX * dirX + dirZ * dirZ);
+
+		result.inputLength = len;
+
+		if (len > 0.0f)
+		{
+			result.velocity.x = (dirX / len) * speed;
+			result.velocity.z = (dirZ / len) * speed;
+		}
+
+		return result;
+	}
+
+	float CalcFacingYaw(float worldDirX, float worldDirZ)
+	{
+		return atan2f(-worldDirX, -worldDirZ);
+	}
+} 
+ 
 ===== PlayerMoveSystem.cpp ===== 
 Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Systems\PlayerMoveSystem.cpp 
 #include "PlayerMoveSystem.h"
 
 #include "Project/ECS/Components/GameInputComponent.h"
 #include "Project/ECS/Components/PlayerMoveComponent.h"
+#include "Project/ECS/Systems/PlayerMovementUtils.h"
 #include "Engine/ECS/Components/MovementComponent.h"
 #include "Engine/ECS/Components/TransformComponent.h"
 
@@ -11276,11 +11466,12 @@ void PlayerMoveSystem::Update(entt::registry& registry, float elapsedTime, const
 {
 	auto view = registry.view<GameInputComponent, PlayerMoveComponent, MovementComponent, TransformComponent>();
 
-	view.each([&](auto entity,
+	view.each(
+		[&](auto entity,
 		GameInputComponent& input,
 		PlayerMoveComponent& playerMove,
 		MovementComponent& movement,
-		TransformComponent& transform) 
+		TransformComponent& transform)
 		{
 			// ˆÚ“®‚ªƒƒbƒN‚³‚ê‚Ä‚¢‚éŠÔ‚ÍA‰½‚à‚µ‚È‚¢
 			if (movement.movementLocked) return;
@@ -11288,6 +11479,9 @@ void PlayerMoveSystem::Update(entt::registry& registry, float elapsedTime, const
 			// ƒJƒƒ‰‚Ì‘OŒã¶‰EƒxƒNƒgƒ‹æ“¾
 			DirectX::XMFLOAT3 front = context.camera->GetFront();
 			DirectX::XMFLOAT3 right = context.camera->GetRight();
+
+			// ƒXƒeƒBƒbƒN“ü—Í‚©‚çƒ[ƒ‹ƒh•ûŒüE“|‚µ‹ï‡‚ğZo
+			auto dir = PlayerMovementUtils::StickToWorldVelocity(input.moveX, input.moveZ, front, right, 1.0f);
 
 			// XZ•½–Ê‚Å³‹K‰»
 			float frontLen = sqrtf(front.x * front.x + front.z * front.z);
@@ -11303,35 +11497,35 @@ void PlayerMoveSystem::Update(entt::registry& registry, float elapsedTime, const
 			float vecZ = frontZ * input.moveZ + rightZ * input.moveX;
 			float vecLen = sqrtf(vecX * vecX + vecZ * vecZ); // ƒXƒeƒBƒbƒN‚Ì“|‚µ‹ï‡
 
+			// Œü‚«‚Ì§ŒäŒ ‚ğ‚Á‚Ä‚¢‚é‚Æ‚«‚Ì‚İXV‚·‚é
+			if (!movement.facingLocked && dir.inputLength > 0.0f)
+			{
+				transform.rotation.y = PlayerMovementUtils::CalcFacingYaw(dir.velocity.x, dir.velocity.z);
+			}
 
+			// ˆÚ“®‚Ì§ŒäŒ ‚ğ‚Á‚Ä‚¢‚é‚Æ‚«‚Ì‚İXV‚·‚é
+			if (!movement.xzControlLocked)
+			{
+				// ƒXƒeƒBƒbƒN‚Ì“|‚µ‹ï‡‚É‰‚¶‚ÄANone/Walking/Jogging‚ğ”»’è‚·‚é
+				if (dir.inputLength > playerMove.jogThreshold)
+					playerMove.state = PlayerMovementState::Jogging;
+				else if (dir.inputLength > 0.0f)
+					playerMove.state = PlayerMovementState::Walking;
+				else
+					playerMove.state = PlayerMovementState::None;
 
+				float speed = (playerMove.state == PlayerMovementState::Jogging) ? playerMove.jogSpeed : playerMove.walkSpeed;
 
-			// “|‚µ‹ï‡‚É‰‚¶‚ÄAIdle/•à‚«/¬‘–‚è‚ğ”»’è‚·‚é
-			playerMove.isJogging = (vecLen > playerMove.jogThreshold);
-			playerMove.isWalking = (vecLen > 0.0f && !playerMove.isJogging);
+				// ‰ü‚ß‚ÄÀÛ‚Ì‘¬“x‚ÅŒvZ‚µ’¼‚·
+				auto vel = PlayerMovementUtils::StickToWorldVelocity(input.moveX, input.moveZ, front, right, speed);
+				movement.velocity.x = vel.velocity.x;
+				movement.velocity.z = vel.velocity.z;
+			}
+
+			// ƒtƒ‰ƒOXV
+			playerMove.isWalking = (playerMove.state == PlayerMovementState::Walking);
+			playerMove.isJogging = (playerMove.state == PlayerMovementState::Jogging);
 			playerMove.isMoving = (playerMove.isWalking || playerMove.isJogging);
-			float speed = playerMove.isJogging ? playerMove.jogSpeed : playerMove.walkSpeed;
-
-			// ˆÚ“®ƒxƒNƒgƒ‹‚ğ³‹K‰»‚µ‚Ä‘¬“x‚ğ‚©‚¯‚é
-			float moveX = 0.0f;
-			float moveZ = 0.0f;
-			if (vecLen > 0.0f)
-			{
-				moveX = (vecX / vecLen) * speed;
-				moveZ = (vecZ / vecLen) * speed;
-			}
-
-			// XZ•ûŒü‚¾‚¯‚ğMovementComponent‚Ö“n‚·
-			movement.velocity.x = moveX;
-			movement.velocity.z = moveZ;
-
-			// ƒLƒƒƒ‰ƒNƒ^[‚ÌŒü‚«‚ğ•Ï‚¦‚é
-			if (vecLen > 0.0f)
-			{
-				transform.rotation.y = atan2f(-moveX, -moveZ);
-			}
-
-
 		});
 } 
  
@@ -11341,12 +11535,11 @@ Path: C:\Users\offri\Desktop\New-Library\Source\Project\Scene\SceneGame.h
 #include "Engine/Core/Scene.h"
 
 #include "Engine/ECS/Systems/ControllerSystem.h" 
-#include "Project/ECS/Systems/GameInputSystem.h"    
+#include "Project/ECS/Systems/GameInputSystem.h"   
+#include "Project/ECS/Systems/PlayerDodgeSystem.h"
 #include "Engine/ECS/Systems/MovementSystem.h" 
 #include "Engine/ECS/Systems/AnimationSystem.h"
 #include "Engine/ECS/Systems/AnimatorControllerSystem.h"
-
-
 #include "Project/ECS/Systems/PlayerMoveSystem.h"
 
 
@@ -11382,6 +11575,7 @@ public:
 private:
 	ControllerSystem controllerSystem;
 	GameInputSystem  gameInputSystem;
+	PlayerDodgeSystem playerDodgeSystem;
 	MovementSystem   movementSystem;
 	AnimationSystem  animationSystem;
 	AnimatorControllerSystem animatorControllerSystem;
@@ -11507,6 +11701,11 @@ void SceneGame::Update(float elapsedTime, const SceneContext& context)
 		// å…¥åŠ›å¤‰æ›
 		ZoneScopedN("InputSystem");
 		gameInputSystem.Update(registry, controllerSystem.GetSettings());
+	}
+	{
+		// Dodge/Sprintã®çŠ¶æ…‹é·ç§»
+		ZoneScopedN("PlayerDodgeSystem");
+		playerDodgeSystem.Update(registry, elapsedTime, context);
 	}
 	{
 		// Playerç§»å‹•(XZå¹³é¢ã€æ­©ã/å°èµ°ã‚Šåˆ¤å®š)
@@ -12461,6 +12660,7 @@ Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Editor\ComponentRegistryIni
 #include "Engine/ECS/Components/ControllerComponent.h"
 #include "Engine/ECS/Components/MovementComponent.h"
 #include "Project/ECS/Components/PlayerMoveComponent.h"
+#include "Project/ECS/Components/PlayerDodgeComponent.h"
 
 #include "Engine/ECS/Components/AnimatorComponent.h"
 #include "Engine/ECS/Components/SkinnedMeshComponent.h"
@@ -12563,6 +12763,18 @@ void ComponentRegistryInitializer::Initialize()
 			if (ImGui::CollapsingHeader("Player Move", ImGuiTreeNodeFlags_DefaultOpen))
 			{
 				MetaRegistry::DrawMetaFields(entt::resolve<PlayerMoveComponent>(), entt::forward_as_meta(*_c));
+			}
+		});
+	// DodgeƒRƒ“ƒ|[ƒlƒ“ƒg‚Ì“o˜^
+	REGISTER_COMPONENT(PlayerDodgeComponent, "Player Dodge",
+		[](auto& reg, auto e)
+		{
+			auto* _c = reg.try_get<PlayerDodgeComponent>(e);
+			if (!_c) return;
+
+			if (ImGui::CollapsingHeader("Player Dodge", ImGuiTreeNodeFlags_DefaultOpen))
+			{
+				MetaRegistry::DrawMetaFields(entt::resolve<PlayerDodgeComponent>(), entt::forward_as_meta(*_c));
 			}
 		});
 
@@ -13203,6 +13415,7 @@ using namespace entt::literals;
 #include "Engine/ECS/Components/MeshComponent.h"
 #include "Engine/ECS/Components/MovementComponent.h"
 #include "Project/ECS/Components/PlayerMoveComponent.h"
+#include "Project/ECS/Components/PlayerDodgeComponent.h"
 #include "Project/ECS/Components/GameInputComponent.h"
 #include "Engine/ECS/Components/AnimatorComponent.h"
 #include "Engine/ECS/Components/SequencerComponent.h"
@@ -13252,6 +13465,13 @@ void MetaRegistry::Initialize()
 		.custom<FieldInfo>(FieldInfo{ "Is Jogging" })
 		.data<&PlayerMoveComponent::isMoving>("isMoving"_hs)
 		.custom<FieldInfo>(FieldInfo{ "Is Moving" });
+	entt::meta_factory<PlayerDodgeComponent>{}
+	.type("PlayerDodgeComponent")
+		.custom<TypeInfo>(TypeInfo{ "Player Dodge" })
+		.data<&PlayerDodgeComponent::triggerThreshold>("triggerThreshold"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Trigger Threshold", 0.0f, 1.0f })
+		.data<&PlayerDodgeComponent::isDodging>("isDodging"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Is Dodging" });
 
 	entt::meta_factory<GameInputComponent>{}
 	.type("GameInputComponent")
