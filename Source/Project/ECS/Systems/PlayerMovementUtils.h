@@ -21,4 +21,6 @@ namespace PlayerMovementUtils
 	// ƒ[ƒ‹ƒhÀ•WŒn‚ÌˆÚ“®•ûŒü‚©‚çAY²‰ñ“]Šp‚ğ‹‚ß‚é
 	float CalcFacingYaw(float worldDirX, float worldDirZ);
 
+	// ŠŠ‚ç‚©‚É‰ñ“]‚³‚¹‚é
+	float RotateTowards(float currentYaw, float targetYaw, float turnSpeed, float elapsedTime);
 }

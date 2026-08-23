@@ -38,4 +38,21 @@ namespace PlayerMovementUtils
 	{
 		return atan2f(-worldDirX, -worldDirZ);
 	}
+	float RotateTowards(float currentYaw, float targetYaw, float turnSpeed, float elapsedTime)
+	{
+		float diff = targetYaw - currentYaw;
+		while (diff > DirectX::XM_PI)  diff -= DirectX::XM_2PI;
+		while (diff < -DirectX::XM_PI) diff += DirectX::XM_2PI;
+
+		float maxStep = turnSpeed * elapsedTime;
+		if (diff > maxStep)       diff = maxStep;
+		else if (diff < -maxStep) diff = -maxStep;
+
+		float result = currentYaw + diff;
+
+		while (result > DirectX::XM_PI)  result -= DirectX::XM_2PI;
+		while (result < -DirectX::XM_PI) result += DirectX::XM_2PI;
+
+		return result;
+	}
 }

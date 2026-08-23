@@ -24,6 +24,64 @@
                     "flag": "Attack"
                 }
             ]
+        },
+        {
+            "clipName": "AS_Walk_End",
+            "nextId": 1,
+            "ranges": [],
+            "points": []
+        },
+        {
+            "clipName": "AS_Dodge_Back",
+            "nextId": 2,
+            "ranges": [
+                {
+                    "id": 1,
+                    "start": 0.34485000371932983,
+                    "end": 1.0,
+                    "flag": "AnimExit"
+                }
+            ],
+            "points": []
+        },
+        {
+            "clipName": "AS_Dodge_Forward",
+            "nextId": 2,
+            "ranges": [
+                {
+                    "id": 1,
+                    "start": 0.34484848380088806,
+                    "end": 1.0,
+                    "flag": "AnimExit"
+                }
+            ],
+            "points": []
+        },
+        {
+            "clipName": "AS_Dodge_Letf",
+            "nextId": 2,
+            "ranges": [
+                {
+                    "id": 1,
+                    "start": 0.34485000371932983,
+                    "end": 1.0,
+                    "flag": "AnimExit"
+                }
+            ],
+            "points": []
+        },
+        {
+            "clipName": "AS_Dodge_RIght",
+            "nextId": 2,
+            "ranges": [
+                {
+                    "id": 1,
+                    "start": 0.34485000371932983,
+                    "end": 1.0,
+                    "flag": "AnimExit"
+                }
+            ],
+            "points": []
         }
     ]
 }

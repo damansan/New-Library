@@ -44,7 +44,8 @@ void PlayerMoveSystem::Update(entt::registry& registry, float elapsedTime, const
 			// 向きの制御権を持っているときのみ更新する
 			if (!movement.facingLocked && dir.inputLength > 0.0f)
 			{
-				transform.rotation.y = PlayerMovementUtils::CalcFacingYaw(dir.velocity.x, dir.velocity.z);
+				float targetYaw = PlayerMovementUtils::CalcFacingYaw(dir.velocity.x, dir.velocity.z);
+				transform.rotation.y = PlayerMovementUtils::RotateTowards(transform.rotation.y, targetYaw, playerMove.turnSpeed, elapsedTime);
 			}
 
 			// 移動の制御権を持っているときのみ更新する

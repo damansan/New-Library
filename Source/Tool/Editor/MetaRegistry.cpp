@@ -59,13 +59,26 @@ void MetaRegistry::Initialize()
 		.custom<FieldInfo>(FieldInfo{ "Is Jogging" })
 		.data<&PlayerMoveComponent::isMoving>("isMoving"_hs)
 		.custom<FieldInfo>(FieldInfo{ "Is Moving" });
+	
 	entt::meta_factory<PlayerDodgeComponent>{}
 	.type("PlayerDodgeComponent")
 		.custom<TypeInfo>(TypeInfo{ "Player Dodge" })
 		.data<&PlayerDodgeComponent::triggerThreshold>("triggerThreshold"_hs)
 		.custom<FieldInfo>(FieldInfo{ "Trigger Threshold", 0.0f, 1.0f })
+		.data<&PlayerDodgeComponent::triggerReleaseThreshold>("triggerReleaseThreshold"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Trigger Release Threshold", 0.0f, 1.0f })
 		.data<&PlayerDodgeComponent::isDodging>("isDodging"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Is Dodging" });
+		.custom<FieldInfo>(FieldInfo{ "Is Dodging" })
+		.data<&PlayerDodgeComponent::isNoneInput>("isNoneInput"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Is None Input" })
+		.data<&PlayerDodgeComponent::isFrontInput>("isFrontInput"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Is Front Input" })
+		.data<&PlayerDodgeComponent::isBackInput>("isBackInput"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Is Back Input" })
+		.data<&PlayerDodgeComponent::isLeftInput>("isLeftInput"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Is Left Input" })
+		.data<&PlayerDodgeComponent::isRightInput>("isRightInput"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Is Right Input" });
 
 	entt::meta_factory<GameInputComponent>{}
 	.type("GameInputComponent")
