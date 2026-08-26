@@ -48,24 +48,52 @@ void PlayerMoveSystem::Update(entt::registry& registry, float elapsedTime, const
 				transform.rotation.y = PlayerMovementUtils::RotateTowards(transform.rotation.y, targetYaw, playerMove.turnSpeed, elapsedTime);
 			}
 
+			// 制御権を取り戻した直後の1フレームかどうか
+			bool justRegainedControl = playerMove.wasControlLocked && !movement.xzControlLocked;
+
 			// 移動の制御権を持っているときのみ更新する
 			if (!movement.xzControlLocked)
 			{
-				// スティックの倒し具合に応じて、None/Walking/Joggingを判定する
-				if (dir.inputLength > playerMove.jogThreshold)
-					playerMove.state = PlayerMovementState::Jogging;
-				else if (dir.inputLength > 0.0f)
-					playerMove.state = PlayerMovementState::Walking;
-				else
+				if (dir.inputLength > 0.0f)
+				{
+					// 入力中は猶予タイマーをリセット
+					playerMove.inputLossTimer = 0.0f;
+
+					// 倒し具合に応じて、Walking/Joggingを判定する
+					playerMove.state = (dir.inputLength > playerMove.jogThreshold)
+						? PlayerMovementState::Jogging
+						: PlayerMovementState::Walking;
+
+					float speed = (playerMove.state == PlayerMovementState::Jogging) ? playerMove.jogSpeed : playerMove.walkSpeed;
+
+					// 改めて実際の速度で計算し直す
+					auto vel = PlayerMovementUtils::StickToWorldVelocity(input.moveX, input.moveZ, front, right, speed);
+					movement.velocity.x = vel.velocity.x;
+					movement.velocity.z = vel.velocity.z;
+				}
+				else if (justRegainedControl)
+				{
+					// 制御を取り戻した瞬間、入力が無いなら猶予を挟まず即座に確定させる
 					playerMove.state = PlayerMovementState::None;
-
-				float speed = (playerMove.state == PlayerMovementState::Jogging) ? playerMove.jogSpeed : playerMove.walkSpeed;
-
-				// 改めて実際の速度で計算し直す
-				auto vel = PlayerMovementUtils::StickToWorldVelocity(input.moveX, input.moveZ, front, right, speed);
-				movement.velocity.x = vel.velocity.x;
-				movement.velocity.z = vel.velocity.z;
+					playerMove.inputLossTimer = 0.0f;
+					movement.velocity.x = 0.0f;
+					movement.velocity.z = 0.0f;
+				}
+				else
+				{
+					// 入力がない
+					playerMove.inputLossTimer += elapsedTime;
+					if (playerMove.inputLossTimer >= playerMove.inputLossGraceTime)
+					{
+						// 猶予切れ。ここで初めて停止させる
+						playerMove.state = PlayerMovementState::None;
+						movement.velocity.x = 0.0f;
+						movement.velocity.z = 0.0f;
+					}
+				}
 			}
+
+			playerMove.wasControlLocked = movement.xzControlLocked;
 
 			// フラグ更新
 			playerMove.isWalking = (playerMove.state == PlayerMovementState::Walking);

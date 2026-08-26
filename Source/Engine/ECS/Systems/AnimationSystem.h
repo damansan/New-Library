@@ -1,5 +1,6 @@
 #pragma once
 #include <d3d11.h>
+#include <algorithm>
 #include "entt.hpp"
 #include "Engine/Resource/Model.h" 
 #include "Engine/ECS/Components/AnimatorComponent.h"
@@ -37,8 +38,19 @@ private:
 		Model& model,
 		const Model::Animation& animation,
 		float time,
-		SkinnedMeshComponent& skinned,
+		std::vector<DirectX::XMFLOAT3>& outPositions,
+		std::vector<DirectX::XMFLOAT4>& outRotations,
+		std::vector<DirectX::XMFLOAT3>& outScales,
 		int rootMotionNodeIndex = -1);
+
+	// 2つのポーズをrateで補間する
+	static void BlendPoses(
+		const std::vector<DirectX::XMFLOAT3>& posA, const std::vector<DirectX::XMFLOAT4>& rotA, const std::vector<DirectX::XMFLOAT3>& scaleA,
+		const std::vector<DirectX::XMFLOAT3>& posB, const std::vector<DirectX::XMFLOAT4>& rotB, const std::vector<DirectX::XMFLOAT3>& scaleB,
+		float rate,
+		std::vector<DirectX::XMFLOAT3>& outPositions,
+		std::vector<DirectX::XMFLOAT4>& outRotations,
+		std::vector<DirectX::XMFLOAT3>& outScales);
 
 	// 名前からルートノードインデックスを探す
 	static int FindNodeIndex(const Model& model, const std::string& name);

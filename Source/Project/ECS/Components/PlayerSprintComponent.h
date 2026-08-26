@@ -9,7 +9,7 @@ enum class PlayerSprintState
 struct PlayerSprintComponent
 {
 	// 設定値
-	float sprintSpeed = 6.0f; // ダッシュ速度
+	float sprintSpeed = 15.0f; // ダッシュ速度
 
 	// 状態
 	PlayerSprintState state = PlayerSprintState::None;

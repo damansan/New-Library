@@ -26,18 +26,12 @@ void AnimationSystem::Update(
 			const auto& animations = skinned.model->GetAnimations();
 			if (animations.empty()) return;
 
-			// アニメーション名からインデックスを探す
+			// 新クリップの時間を進める
 			int animIndex = -1;
 			for (int i = 0; i < (int)animations.size(); i++)
 			{
-				if (animations[i].name == animator.currentAnimation)
-				{
-					animIndex = i;
-					break;
-				}
+				if (animations[i].name == animator.currentAnimation) { animIndex = i; break; }
 			}
-
-			// 見つからなければ0番目を使う
 			if (animIndex < 0)
 			{
 				animIndex = 0;
@@ -68,7 +62,7 @@ void AnimationSystem::Update(
 				}
 			}
 
-			// ルートボーンの固定に使うノードを探す
+			// 新クリップのルートモーション量とポーズを計算
 			animator.rootMotionDelta = { 0.0f, 0.0f, 0.0f };
 			int rootMotionNodeIndex = -1;
 			if (!animator.rootMotionNodeName.empty())
@@ -77,47 +71,149 @@ void AnimationSystem::Update(
 				if (rootMotionNodeIndex >= 0)
 				{
 					animator.rootMotionDelta = CalcRootMotionDelta(
-						*skinned.model, animation, rootMotionNodeIndex,
-						oldTime, animator.animationTime);
+						*skinned.model, animation, rootMotionNodeIndex, oldTime, animator.animationTime);
 				}
 			}
 
 			// ボーン行列を計算
 			CalcBoneTransforms(
-				*skinned.model,
-				animation,
-				animator.animationTime,
-				skinned,
+				*skinned.model, animation, animator.animationTime,
+				skinned.localPositions, skinned.localRotations, skinned.localScales,
 				rootMotionNodeIndex);
 
-			// 実際の移動へ反映するのは、useRootMotionがtrueのときだけ
-			if (animator.useRootMotion && rootMotionNodeIndex >= 0 && elapsedTime > 0.0f)
+			// 新クリップ由来のワールド速度
+			auto* transform = registry.try_get<TransformComponent>(entity);
+			auto* movement = registry.try_get<MovementComponent>(entity);
+
+			DirectX::XMFLOAT3 newVelocity = { 0.0f, 0.0f, 0.0f };
+			bool newHasVelocity = false;
+
+			if (animator.useRootMotion && rootMotionNodeIndex >= 0 && elapsedTime > 0.0f && transform && movement)
 			{
-				auto* transform = registry.try_get<TransformComponent>(entity);
-				auto* movement = registry.try_get<MovementComponent>(entity);
+				DirectX::XMMATRIX rotationMatrix = DirectX::XMMatrixRotationRollPitchYaw(
+					transform->rotation.x, transform->rotation.y, transform->rotation.z);
+				DirectX::XMVECTOR localDelta = DirectX::XMLoadFloat3(&animator.rootMotionDelta);
+				DirectX::XMVECTOR worldDelta = DirectX::XMVector3TransformNormal(localDelta, rotationMatrix);
+				DirectX::XMFLOAT3 worldDeltaF;
+				DirectX::XMStoreFloat3(&worldDeltaF, worldDelta);
 
-				if (transform && movement)
+				newVelocity.x = worldDeltaF.x / elapsedTime;
+				newVelocity.z = worldDeltaF.z / elapsedTime;
+				if (animator.useRootMotionY)
 				{
-					// ローカルの移動量を、キャラクターの向きに応じてワールド空間に変換する
-					DirectX::XMMATRIX rotationMatrix = DirectX::XMMatrixRotationRollPitchYaw(
-						transform->rotation.x, transform->rotation.y, transform->rotation.z);
+					newVelocity.y = worldDeltaF.y / elapsedTime;
+				}
+				newHasVelocity = true;
+			}
 
-					DirectX::XMVECTOR localDelta = DirectX::XMLoadFloat3(&animator.rootMotionDelta);
-					DirectX::XMVECTOR worldDelta = DirectX::XMVector3TransformNormal(localDelta, rotationMatrix);
+			// ブレンド中なら旧クリップも計算して混ぜる
+			if (animator.isBlending)
+			{
+				int oldAnimIndex = -1;
+				for (int i = 0; i < (int)animations.size(); i++)
+				{
+					if (animations[i].name == animator.blendAnimation) { oldAnimIndex = i; break; }
+				}
 
-					DirectX::XMFLOAT3 worldDeltaF;
-					DirectX::XMStoreFloat3(&worldDeltaF, worldDelta);
+				if (oldAnimIndex >= 0)
+				{
+					const auto& oldAnimation = animations[oldAnimIndex];
+					const float oldOldTime = animator.blendAnimationTime;
 
-					// 移動量(位置の差分)を速度に変換して上書きする
-					movement->velocity.x = worldDeltaF.x / elapsedTime;
-					movement->velocity.z = worldDeltaF.z / elapsedTime;
-
-					if (animator.useRootMotionY)
+					animator.blendAnimationTime += elapsedTime * animator.playSpeed;
+					if (animator.blendAnimationTime > oldAnimation.secondsLength)
 					{
-						movement->velocity.y = worldDeltaF.y / elapsedTime;
+						animator.blendAnimationTime -= oldAnimation.secondsLength;
+					}
+
+					int oldRootMotionNodeIndex = -1;
+					DirectX::XMFLOAT3 oldRootMotionDelta = { 0.0f, 0.0f, 0.0f };
+					if (!animator.rootMotionNodeName.empty())
+					{
+						oldRootMotionNodeIndex = FindNodeIndex(*skinned.model, animator.rootMotionNodeName);
+						if (oldRootMotionNodeIndex >= 0)
+						{
+							oldRootMotionDelta = CalcRootMotionDelta(
+								*skinned.model, oldAnimation, oldRootMotionNodeIndex, oldOldTime, animator.blendAnimationTime);
+						}
+					}
+
+					std::vector<DirectX::XMFLOAT3> blendPositions;
+					std::vector<DirectX::XMFLOAT4> blendRotations;
+					std::vector<DirectX::XMFLOAT3> blendScales;
+					CalcBoneTransforms(
+						*skinned.model, oldAnimation, animator.blendAnimationTime,
+						blendPositions, blendRotations, blendScales,
+						oldRootMotionNodeIndex);
+
+					// 進捗を進める
+					animator.blendRate += (animator.blendTime > 0.0f) ? (elapsedTime / animator.blendTime) : 1.0f;
+					float rate = std::clamp(animator.blendRate, 0.0f, 1.0f);
+
+					// ボーン行列を混ぜる
+					BlendPoses(
+						blendPositions, blendRotations, blendScales,
+						skinned.localPositions, skinned.localRotations, skinned.localScales,
+						rate,
+						skinned.localPositions, skinned.localRotations, skinned.localScales);
+
+					// ルートモーションブレンド(旧新でルートモーション使用)
+					if (animator.blendUseRootMotion && newHasVelocity && transform && movement)
+					{
+						DirectX::XMMATRIX rotationMatrix = DirectX::XMMatrixRotationRollPitchYaw(
+							transform->rotation.x, transform->rotation.y, transform->rotation.z);
+						DirectX::XMVECTOR localDelta = DirectX::XMLoadFloat3(&oldRootMotionDelta);
+						DirectX::XMVECTOR worldDelta = DirectX::XMVector3TransformNormal(localDelta, rotationMatrix);
+						DirectX::XMFLOAT3 worldDeltaF;
+						DirectX::XMStoreFloat3(&worldDeltaF, worldDelta);
+
+						DirectX::XMFLOAT3 oldVelocity = { worldDeltaF.x / elapsedTime, 0.0f, worldDeltaF.z / elapsedTime };
+						if (animator.useRootMotionY) oldVelocity.y = worldDeltaF.y / elapsedTime;
+
+						movement->velocity.x = oldVelocity.x * (1.0f - rate) + newVelocity.x * rate;
+						movement->velocity.z = oldVelocity.z * (1.0f - rate) + newVelocity.z * rate;
+						if (animator.useRootMotionY)
+							movement->velocity.y = oldVelocity.y * (1.0f - rate) + newVelocity.y * rate;
+					}
+					else if (newHasVelocity && movement)
+					{
+						// 片側だけルートモーション使用の場合は
+						// 新クリップの速度を使用
+						movement->velocity.x = newVelocity.x;
+						movement->velocity.z = newVelocity.z;
+						if (animator.useRootMotionY) movement->velocity.y = newVelocity.y;
+					}
+
+					if (animator.blendRate >= 1.0f)
+					{
+						animator.isBlending = false;
+					}
+				}
+				else
+				{
+					// 旧クリップが見つからない場合はブレンドを諦める
+					animator.isBlending = false;
+					if (newHasVelocity && movement)
+					{
+						movement->velocity.x = newVelocity.x;
+						movement->velocity.z = newVelocity.z;
+						if (animator.useRootMotionY) movement->velocity.y = newVelocity.y;
 					}
 				}
 			}
+			else if (newHasVelocity && movement)
+			{
+				movement->velocity.x = newVelocity.x;
+				movement->velocity.z = newVelocity.z;
+				if (animator.useRootMotionY) movement->velocity.y = newVelocity.y;
+			}
+
+			SkeletonUtils::CalcGlobalTransforms(
+				skinned.model->GetNodes(), skinned.localPositions, skinned.localRotations, skinned.localScales,
+				skinned.nodeGlobalTransforms);
+
+			SkeletonUtils::CalcSkinningMatrices(
+				*skinned.model, skinned.nodeGlobalTransforms, skinned.boneTransforms);
 		});
 
 
@@ -130,9 +226,7 @@ void AnimationSystem::EvaluatePose(entt::registry& registry)
 
 	auto view = registry.view<AnimatorComponent, SkinnedMeshComponent>();
 	view.each(
-		[&](auto entity,
-			AnimatorComponent& animator,
-			SkinnedMeshComponent& skinned)
+		[&](auto entity, AnimatorComponent& animator, SkinnedMeshComponent& skinned)
 		{
 			if (!skinned.model) return;
 
@@ -142,22 +236,22 @@ void AnimationSystem::EvaluatePose(entt::registry& registry)
 			int animIndex = -1;
 			for (int i = 0; i < (int)animations.size(); i++)
 			{
-				if (animations[i].name == animator.currentAnimation)
-				{
-					animIndex = i;
-					break;
-				}
+				if (animations[i].name == animator.currentAnimation) { animIndex = i; break; }
 			}
 			if (animIndex < 0) return;
 
 			const auto& animation = animations[animIndex];
 
-			// ボーン行列だけ計算（時間は進めない）
 			CalcBoneTransforms(
-				*skinned.model,
-				animation,
-				animator.animationTime,
-				skinned);
+				*skinned.model, animation, animator.animationTime,
+				skinned.localPositions, skinned.localRotations, skinned.localScales);
+
+			SkeletonUtils::CalcGlobalTransforms(
+				skinned.model->GetNodes(), skinned.localPositions, skinned.localRotations, skinned.localScales,
+				skinned.nodeGlobalTransforms);
+
+			SkeletonUtils::CalcSkinningMatrices(
+				*skinned.model, skinned.nodeGlobalTransforms, skinned.boneTransforms);
 		});
 }
 
@@ -258,24 +352,25 @@ DirectX::XMFLOAT3 AnimationSystem::InterpolateScale(
 
 // ノードのグローバル行列を再帰計算してボーン行列に書き込む
 void AnimationSystem::CalcBoneTransforms(
-	Model& model, 
+	Model& model,
 	const Model::Animation& animation,
 	float time,
-	SkinnedMeshComponent& skinned,
-	int rootMotionNodeIndex)
+	std::vector<DirectX::XMFLOAT3>& outPositions,
+	std::vector<DirectX::XMFLOAT4>& outRotations,
+	std::vector<DirectX::XMFLOAT3>& outScales,
+	int rootMotionNodeIndex) 
 {
 	auto& nodes = model.GetNodes();
 
-	// ローカルpose配列をノード数に合わせてリサイズ
-	skinned.localPositions.resize(nodes.size());
-	skinned.localRotations.resize(nodes.size());
-	skinned.localScales.resize(nodes.size());
+	outPositions.resize(nodes.size());
+	outRotations.resize(nodes.size());
+	outScales.resize(nodes.size());
 
 	for (int i = 0; i < (int)nodes.size(); i++)
 	{
-		skinned.localPositions[i] = nodes[i].position;
-		skinned.localRotations[i] = nodes[i].rotation;
-		skinned.localScales[i] = nodes[i].scale;
+		outPositions[i] = nodes[i].position;
+		outRotations[i] = nodes[i].rotation;
+		outScales[i] = nodes[i].scale;
 
 		// キーフレームがあれば補間して上書き
 		if (i < (int)animation.nodeAnims.size())
@@ -284,37 +379,59 @@ void AnimationSystem::CalcBoneTransforms(
 
 			if (!nodeAnim.positionKeyframes.empty())
 			{
-				skinned.localPositions[i] = InterpolatePosition(
-					nodeAnim.positionKeyframes, time);
+				outPositions[i] = InterpolatePosition(nodeAnim.positionKeyframes, time);
 			}
-
 			if (!nodeAnim.rotationKeyframes.empty())
 			{
-				skinned.localRotations[i] = InterpolateRotation(
-					nodeAnim.rotationKeyframes, time);
+				outRotations[i] = InterpolateRotation(nodeAnim.rotationKeyframes, time);
 			}
-
 			if (!nodeAnim.scaleKeyframes.empty())
 			{
-				skinned.localScales[i] = InterpolateScale(
-					nodeAnim.scaleKeyframes, time);
+				outScales[i] = InterpolateScale(nodeAnim.scaleKeyframes, time);
 			}
 		}
-		
+
 		if (i == rootMotionNodeIndex)
 		{
-			skinned.localPositions[i] = CalcNodeLocalPosition(
-				animation, i, nodes[i], 0.0f);
+			outPositions[i] = CalcNodeLocalPosition(animation, i, nodes[i], 0.0f);
 		}
 	}
+}
 
-	// 階層計算とスキニング行列化は共通ロジック(SkeletonUtils)に任せる
-	SkeletonUtils::CalcGlobalTransforms(
-		nodes, skinned.localPositions, skinned.localRotations, skinned.localScales,
-		skinned.nodeGlobalTransforms);
+// 2つのポーズをrateで補間する
+void AnimationSystem::BlendPoses(
+	const std::vector<DirectX::XMFLOAT3>& posA,
+	const std::vector<DirectX::XMFLOAT4>& rotA,
+	const std::vector<DirectX::XMFLOAT3>& scaleA,
+	const std::vector<DirectX::XMFLOAT3>& posB,
+	const std::vector<DirectX::XMFLOAT4>& rotB,
+	const std::vector<DirectX::XMFLOAT3>& scaleB,
+	float rate,
+	std::vector<DirectX::XMFLOAT3>& outPositions,
+	std::vector<DirectX::XMFLOAT4>& outRotations,
+	std::vector<DirectX::XMFLOAT3>& outScales)
+{
+	size_t count = posA.size();
 
-	SkeletonUtils::CalcSkinningMatrices(
-		model, skinned.nodeGlobalTransforms, skinned.boneTransforms);
+	std::vector<DirectX::XMFLOAT3> tempPos(count);
+	std::vector<DirectX::XMFLOAT4> tempRot(count);
+	std::vector<DirectX::XMFLOAT3> tempScale(count);
+
+	for (size_t i = 0; i < count; i++)
+	{
+		DirectX::XMStoreFloat3(&tempPos[i],
+			DirectX::XMVectorLerp(DirectX::XMLoadFloat3(&posA[i]), DirectX::XMLoadFloat3(&posB[i]), rate));
+
+		DirectX::XMStoreFloat4(&tempRot[i],
+			DirectX::XMQuaternionSlerp(DirectX::XMLoadFloat4(&rotA[i]), DirectX::XMLoadFloat4(&rotB[i]), rate));
+
+		DirectX::XMStoreFloat3(&tempScale[i],
+			DirectX::XMVectorLerp(DirectX::XMLoadFloat3(&scaleA[i]), DirectX::XMLoadFloat3(&scaleB[i]), rate));
+	}
+
+	outPositions = std::move(tempPos);
+	outRotations = std::move(tempRot);
+	outScales = std::move(tempScale);
 }
 
 // 名前からルートノードインデックスを探す

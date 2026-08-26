@@ -47,4 +47,7 @@ public:
 
 	// Float2/3/4Œ^‚ÌA¬•ª”‚ğ•Ô‚·(‚»‚êˆÈŠO‚Í0)
 	static int GetComponentCount(ValueType type);
+
+private:
+
 };

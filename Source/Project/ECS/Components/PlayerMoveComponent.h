@@ -24,4 +24,10 @@ struct PlayerMoveComponent
 	bool isMoving = false;  // 現在、移動中かどうか
 	bool isWalking = false; // 現在、歩き判定かどうか
 	bool isJogging = false; // 現在、小走り判定かどうか
+
+
+	// 内部実装用
+	float inputLossGraceTime = 0.1f; // 入力が一瞬無くなっても、猶予として維持する時間
+	float inputLossTimer = 0.0f;     // 内部実装用、入力が無くなってからの経過時間
+	bool wasControlLocked = false;   // 前フレーム、xzControlLockedがtrueだったか
 };

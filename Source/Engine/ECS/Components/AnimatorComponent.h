@@ -12,9 +12,11 @@ struct AnimatorComponent
     bool        isEnd{ false };        // 再生終了フラグ
 
     // ブレンド用
-    std::string blendAnimation;      // ブレンド先アニメーション名
-    float       blendTime{ 0.0f };   // ブレンド時間
-    float       blendRate{ 0.0f };   // ブレンド率（0.0～1.0）
+    std::string blendAnimation;              // 旧クリップ名
+    float       blendAnimationTime{ 0.0f };  // 旧クリップの、ブレンド中の再生時間
+    bool        blendUseRootMotion{ false }; // 旧クリップがルートモーションを使っていたか
+    float       blendTime{ 0.0f };   // ブレンドの合計時間
+    float       blendRate{ 0.0f };   // ブレンドの進捗
     bool        isBlending{ false }; // ブレンド中フラグ
 
     // ルートモーション用

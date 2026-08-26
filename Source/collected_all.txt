@@ -10958,24 +10958,38 @@ Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Components\PlayerDod
 enum class PlayerDodgeState
 {
 	None,      
-	Dodging,   // 回避
+	Deciding,   // 猶予中
+	Dodge,      // 回避
+
+	FrontDodge, // 前回避
+	BackDodge,  // 後回避
+	LeftDodge,  // 左回避
+	RightDodge, // 右回避
 };
 
 struct PlayerDodgeComponent
 {
 	// 設定値
-	float triggerThreshold = 0.8f;        // これ以上で「押した」とみなす
-	float triggerReleaseThreshold = 0.3f; // これ以下で「離した」とみなす
+	float triggerThreshold = 0.3f;        // これ以上で「押した」とみなす
+	float triggerReleaseThreshold = 0.1f; // これ以下で「離した」とみなす
+	float directionBufferTime = 0.12f;    // スティック入力を待つ猶予時間
 
 	// 状態
 	PlayerDodgeState state = PlayerDodgeState::None;
 
 	// 状態フラグ
-	bool isDodging = false;
+	bool isDodging = false; // 回避中かどうか
+
+	bool isNoneInput = false;  // 入力なし状態かどうか
+	bool isFrontInput = false; // 前入力中かどうか
+	bool isBackInput = false;  // 後入力中かどうか
+	bool isLeftInput = false;  // 左入力中かどうか
+	bool isRightInput = false; // 右入力中かどうか
 
 
 	// 内部実装用
 	bool wasTriggerHeld = false; // 前フレームでトリガーが押されていたかどうか
+	float bufferTimer = 0.0f;    // 猶予経過時間
 }; 
  
 ===== PlayerMoveComponent.h ===== 
@@ -10995,8 +11009,10 @@ struct PlayerMoveComponent
 	float walkSpeed    = 2.0f; // 歩き速度
 	float jogSpeed     = 4.0f; // 小走り速度
 	float sprintSpeed  = 6.0f; // ダッシュ速度
-	float jogThreshold = 0.8f; // スティックの倒し具合が、この値を超えたら小走りとみなす
+	float jogThreshold = 0.9f; // スティックの倒し具合が、この値を超えたら小走りとみなす
 	
+	float turnSpeed = 10.0f; // １秒当たりの最大旋回速度
+
 	// 状態
 	PlayerMovementState state = PlayerMovementState::None;
 
@@ -11004,6 +11020,11 @@ struct PlayerMoveComponent
 	bool isMoving = false;  // 現在、移動中かどうか
 	bool isWalking = false; // 現在、歩き判定かどうか
 	bool isJogging = false; // 現在、小走り判定かどうか
+
+
+	// 内部実装用
+	float inputLossGraceTime = 0.1f; // 入力が一瞬無くなっても、猶予として維持する時間
+	float inputLossTimer = 0.0f;     // 内部実装用、入力が無くなってからの経過時間
 }; 
  
 ===== PlayerSprintComponent.h ===== 
@@ -11019,7 +11040,7 @@ enum class PlayerSprintState
 struct PlayerSprintComponent
 {
 	// 設定値
-	float sprintSpeed = 6.0f;
+	float sprintSpeed = 15.0f; // ダッシュ速度
 
 	// 状態
 	PlayerSprintState state = PlayerSprintState::None;
@@ -11123,6 +11144,8 @@ namespace PlayerMovementUtils
 	// ワールド座標系の移動方向から、Y軸回転角を求める
 	float CalcFacingYaw(float worldDirX, float worldDirZ);
 
+	// 滑らかに回転させる
+	float RotateTowards(float currentYaw, float targetYaw, float turnSpeed, float elapsedTime);
 } 
  
 ===== PlayerMoveSystem.h ===== 
@@ -11360,51 +11383,167 @@ Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Systems\PlayerDodgeS
 
 #include "Project/ECS/Components/GameInputComponent.h"
 #include "Project/ECS/Components/PlayerDodgeComponent.h"
+#include "Project/ECS/Components/PlayerSprintComponent.h"
+#include "Project/ECS/Systems/PlayerMovementUtils.h"
+
 #include "Engine/ECS/Components/MovementComponent.h"
 #include "Engine/ECS/Components/AnimatorComponent.h"
 #include "Engine/ECS/Components/SequencerComponent.h"
+#include "Engine/ECS/Components/TransformComponent.h"
+#include <DirectXMath.h>
 
 void PlayerDodgeSystem::Update(entt::registry& registry, float elapsedTime, const SceneContext& context)
 {
-	auto view = registry.view<GameInputComponent, PlayerDodgeComponent, MovementComponent, AnimatorComponent, SequencerComponent>();
+	auto view = registry.view<GameInputComponent, PlayerDodgeComponent, PlayerSprintComponent, MovementComponent, AnimatorComponent, SequencerComponent, TransformComponent>();
 
 	view.each([&](auto entity,
 		GameInputComponent& input,
 		PlayerDodgeComponent& dodge,
+		PlayerSprintComponent& sprint,
 		MovementComponent& movement,
 		AnimatorComponent& animator,
-		SequencerComponent& sequencer)
+		SequencerComponent& sequencer,
+		TransformComponent& transform)
 		{
-			// 既に押している間は「離した判定ライン」を下回るまで押している扱いにする(ヒステリシス)
+			// 既に押している間は 離した判定ライン を下回るまで押している扱いにする
 			bool triggerHeld = dodge.wasTriggerHeld
 				? (input.dodge > dodge.triggerReleaseThreshold)
 				: (input.dodge >= dodge.triggerThreshold);
-
 			bool triggerPressed = (triggerHeld && !dodge.wasTriggerHeld);
 
-			if (dodge.state == PlayerDodgeState::None)
+			// スプリント中
+			if (sprint.state == PlayerSprintState::Sprinting)
 			{
+				// スプリント中にR2を押したらスプリントを終了、猶予時間内に移行
 				if (triggerPressed)
 				{
-					dodge.state = PlayerDodgeState::Dodging;
-					movement.xzControlLocked = true; // 移動の制御をロック
+					sprint.state = PlayerSprintState::None;
+					dodge.state = PlayerDodgeState::Deciding;
+					dodge.bufferTimer = 0.0f;
 				}
-			}
-			else // Dodging
-			{
-				// animExitがTrue、かつ既にトリガーが離されていれば早期終了
-				bool exitRequested = sequencer.animExit && !triggerHeld;
-
-				if (animator.isEnd || exitRequested)
+				else
 				{
-					dodge.state = PlayerDodgeState::None;
-					movement.xzControlLocked = false; // 移動の制御を解除
+					DirectX::XMFLOAT3 front = context.camera->GetFront();
+					DirectX::XMFLOAT3 right = context.camera->GetRight();
+
+					// スプリント中は、sprintSpeedを使う
+					auto dir = PlayerMovementUtils::StickToWorldVelocity(input.moveX, input.moveZ, front, right, sprint.sprintSpeed);
+					
+					// スティックを離したらIdleに戻す
+					if (dir.inputLength <= 0.0f)
+					{
+						sprint.state = PlayerSprintState::None;
+						movement.xzControlLocked = false;
+					}
+					// スティック入力があれば、スプリント速度で移動する
+					else
+					{
+						movement.velocity.x = dir.velocity.x;
+						movement.velocity.z = dir.velocity.z;
+					}
+				}
+			}
+			else
+			{
+				// R2入力が来たら、Deciding状態に遷移する
+				if (dodge.state == PlayerDodgeState::None && triggerPressed)
+				{
+					dodge.state = PlayerDodgeState::Deciding;
+					dodge.bufferTimer = 0.0f;
 				}
 
-				dodge.wasTriggerHeld = triggerHeld;
+				// スティック入力が来たら、４方向のいずれかに遷移する
+				if (dodge.state == PlayerDodgeState::Deciding)
+				{
+					DirectX::XMFLOAT3 front = context.camera->GetFront();
+					DirectX::XMFLOAT3 right = context.camera->GetRight();
 
-				dodge.isDodging = (dodge.state == PlayerDodgeState::Dodging);
+					// 入力方向と倒し具合を算出
+					auto dir = PlayerMovementUtils::StickToWorldVelocity(input.moveX, input.moveZ, front, right, 1.0f);
+
+					// 方向あり回避
+					if (dir.inputLength > 0.0f)
+					{
+						// 入力方向とキャラクターの向きの差を求める
+						float inputYaw = PlayerMovementUtils::CalcFacingYaw(dir.velocity.x, dir.velocity.z);
+						float diff = inputYaw - transform.rotation.y;
+
+						// 角度差を-180～180の範囲に正規化
+						while (diff > DirectX::XM_PI)  diff -= DirectX::XM_2PI;
+						while (diff < -DirectX::XM_PI) diff += DirectX::XM_2PI;
+
+						const float quarter = DirectX::XM_PIDIV4; // 45度
+
+						if (diff > -quarter && diff <= quarter)
+							dodge.state = PlayerDodgeState::FrontDodge;
+						else if (diff > quarter && diff <= quarter * 3.0f)
+							dodge.state = PlayerDodgeState::RightDodge;
+						else if (diff > -quarter * 3.0f && diff <= -quarter)
+							dodge.state = PlayerDodgeState::LeftDodge;
+						else
+							dodge.state = PlayerDodgeState::BackDodge;
+
+						// 向きの制御権を取得
+						movement.facingLocked = true;
+						// XZ方向の制御権を取得
+						movement.xzControlLocked = true;
+					}
+					else
+					{
+						// 猶予時間の消化
+						dodge.bufferTimer += elapsedTime;
+						if (dodge.bufferTimer >= dodge.directionBufferTime)
+						{
+							// スティック入力が来なかったので、単回避に遷移する
+							dodge.state = PlayerDodgeState::Dodge;
+							movement.facingLocked = true;
+							movement.xzControlLocked = true;
+						}
+					}
+				}
+				// ４方向回避の終了判定
+				else if (dodge.state != PlayerDodgeState::None)
+				{
+					// アニメーション終了範囲かつR2が離されたら、回避終了
+					bool exitRequested = sequencer.animExit && !triggerHeld;
+
+					if (animator.isEnd || exitRequested)
+					{
+						dodge.state = PlayerDodgeState::None;
+
+						// 回避終了時スティック入力の有無でスプリントへ引き継ぐか判断する
+						DirectX::XMFLOAT3 front = context.camera->GetFront();
+						DirectX::XMFLOAT3 right = context.camera->GetRight();
+						auto dir = PlayerMovementUtils::StickToWorldVelocity(input.moveX, input.moveZ, front, right, 1.0f);
+
+						// スティック入力があればスプリント状態に遷移する
+						if (dir.inputLength > 0.0f)
+						{
+							sprint.state = PlayerSprintState::Sprinting;
+							movement.facingLocked = false;
+						}
+						// スティック入力がなければ通常状態に戻す
+						else
+						{
+							movement.xzControlLocked = false;
+							movement.facingLocked = false;
+						}
+					}
+				}
 			}
+
+			// 前フレームのR2押下状態を保存
+			dodge.wasTriggerHeld = triggerHeld;
+
+			bool activeDodge = (dodge.state != PlayerDodgeState::None && dodge.state != PlayerDodgeState::Deciding);
+			dodge.isDodging = activeDodge;
+			dodge.isNoneInput = (dodge.state == PlayerDodgeState::Dodge);
+			dodge.isFrontInput = (dodge.state == PlayerDodgeState::FrontDodge);
+			dodge.isBackInput = (dodge.state == PlayerDodgeState::BackDodge);
+			dodge.isLeftInput = (dodge.state == PlayerDodgeState::LeftDodge);
+			dodge.isRightInput = (dodge.state == PlayerDodgeState::RightDodge);
+
+			sprint.isSprinting = (sprint.state == PlayerSprintState::Sprinting);
 		});
 } 
  
@@ -11449,6 +11588,23 @@ namespace PlayerMovementUtils
 	float CalcFacingYaw(float worldDirX, float worldDirZ)
 	{
 		return atan2f(-worldDirX, -worldDirZ);
+	}
+	float RotateTowards(float currentYaw, float targetYaw, float turnSpeed, float elapsedTime)
+	{
+		float diff = targetYaw - currentYaw;
+		while (diff > DirectX::XM_PI)  diff -= DirectX::XM_2PI;
+		while (diff < -DirectX::XM_PI) diff += DirectX::XM_2PI;
+
+		float maxStep = turnSpeed * elapsedTime;
+		if (diff > maxStep)       diff = maxStep;
+		else if (diff < -maxStep) diff = -maxStep;
+
+		float result = currentYaw + diff;
+
+		while (result > DirectX::XM_PI)  result -= DirectX::XM_2PI;
+		while (result < -DirectX::XM_PI) result += DirectX::XM_2PI;
+
+		return result;
 	}
 } 
  
@@ -11500,26 +11656,56 @@ void PlayerMoveSystem::Update(entt::registry& registry, float elapsedTime, const
 			// 向きの制御権を持っているときのみ更新する
 			if (!movement.facingLocked && dir.inputLength > 0.0f)
 			{
-				transform.rotation.y = PlayerMovementUtils::CalcFacingYaw(dir.velocity.x, dir.velocity.z);
+				float targetYaw = PlayerMovementUtils::CalcFacingYaw(dir.velocity.x, dir.velocity.z);
+				transform.rotation.y = PlayerMovementUtils::RotateTowards(transform.rotation.y, targetYaw, playerMove.turnSpeed, elapsedTime);
 			}
 
 			// 移動の制御権を持っているときのみ更新する
 			if (!movement.xzControlLocked)
 			{
-				// スティックの倒し具合に応じて、None/Walking/Joggingを判定する
-				if (dir.inputLength > playerMove.jogThreshold)
-					playerMove.state = PlayerMovementState::Jogging;
-				else if (dir.inputLength > 0.0f)
-					playerMove.state = PlayerMovementState::Walking;
+				if (dir.inputLength > 0.0f)
+				{
+					// 入力中は猶予タイマーをリセット
+					playerMove.inputLossTimer = 0.0f;
+
+					// 倒し具合に応じて、Walking/Joggingを判定する
+					playerMove.state = (dir.inputLength > playerMove.jogThreshold)
+						? PlayerMovementState::Jogging
+						: PlayerMovementState::Walking;
+
+					float speed = (playerMove.state == PlayerMovementState::Jogging) ? playerMove.jogSpeed : playerMove.walkSpeed;
+
+					// 改めて実際の速度で計算し直す
+					auto vel = PlayerMovementUtils::StickToWorldVelocity(input.moveX, input.moveZ, front, right, speed);
+					movement.velocity.x = vel.velocity.x;
+					movement.velocity.z = vel.velocity.z;
+				}
 				else
-					playerMove.state = PlayerMovementState::None;
+				{
+					// 入力がない
+					playerMove.inputLossTimer += elapsedTime;
+					if (playerMove.inputLossTimer >= playerMove.inputLossGraceTime)
+					{
+						// 猶予切れ。ここで初めて停止させる
+						playerMove.state = PlayerMovementState::None;
+						movement.velocity.x = 0.0f;
+						movement.velocity.z = 0.0f;
+					}
+				}
+				//// スティックの倒し具合に応じて、None/Walking/Joggingを判定する
+				//if (dir.inputLength > playerMove.jogThreshold)
+				//	playerMove.state = PlayerMovementState::Jogging;
+				//else if (dir.inputLength > 0.0f)
+				//	playerMove.state = PlayerMovementState::Walking;
+				//else
+				//	playerMove.state = PlayerMovementState::None;
 
-				float speed = (playerMove.state == PlayerMovementState::Jogging) ? playerMove.jogSpeed : playerMove.walkSpeed;
+				//float speed = (playerMove.state == PlayerMovementState::Jogging) ? playerMove.jogSpeed : playerMove.walkSpeed;
 
-				// 改めて実際の速度で計算し直す
-				auto vel = PlayerMovementUtils::StickToWorldVelocity(input.moveX, input.moveZ, front, right, speed);
-				movement.velocity.x = vel.velocity.x;
-				movement.velocity.z = vel.velocity.z;
+				//// 改めて実際の速度で計算し直す
+				//auto vel = PlayerMovementUtils::StickToWorldVelocity(input.moveX, input.moveZ, front, right, speed);
+				//movement.velocity.x = vel.velocity.x;
+				//movement.velocity.z = vel.velocity.z;
 			}
 
 			// フラグ更新
@@ -12523,6 +12709,9 @@ public:
 
 	// Float2/3/4型の、成分数を返す(それ以外は0)
 	static int GetComponentCount(ValueType type);
+
+private:
+
 }; 
  
 ===== ProjectWindow.h ===== 
@@ -12661,6 +12850,7 @@ Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Editor\ComponentRegistryIni
 #include "Engine/ECS/Components/MovementComponent.h"
 #include "Project/ECS/Components/PlayerMoveComponent.h"
 #include "Project/ECS/Components/PlayerDodgeComponent.h"
+#include "Project/ECS/Components/PlayerSprintComponent.h"
 
 #include "Engine/ECS/Components/AnimatorComponent.h"
 #include "Engine/ECS/Components/SkinnedMeshComponent.h"
@@ -12775,6 +12965,19 @@ void ComponentRegistryInitializer::Initialize()
 			if (ImGui::CollapsingHeader("Player Dodge", ImGuiTreeNodeFlags_DefaultOpen))
 			{
 				MetaRegistry::DrawMetaFields(entt::resolve<PlayerDodgeComponent>(), entt::forward_as_meta(*_c));
+			}
+		});
+
+	// Sprintコンポーネントの登録
+	REGISTER_COMPONENT(PlayerSprintComponent, "Player Sprint",
+		[](auto& reg, auto e)
+		{
+			auto* _c = reg.try_get<PlayerSprintComponent>(e);
+			if (!_c) return;
+
+			if (ImGui::CollapsingHeader("Player Sprint", ImGuiTreeNodeFlags_DefaultOpen))
+			{
+				MetaRegistry::DrawMetaFields(entt::resolve<PlayerSprintComponent>(), entt::forward_as_meta(*_c));
 			}
 		});
 
@@ -13414,8 +13617,11 @@ using namespace entt::literals;
 #include "Engine/ECS/Components/TransformComponent.h"
 #include "Engine/ECS/Components/MeshComponent.h"
 #include "Engine/ECS/Components/MovementComponent.h"
+
 #include "Project/ECS/Components/PlayerMoveComponent.h"
 #include "Project/ECS/Components/PlayerDodgeComponent.h"
+#include "Project/ECS/Components/PlayerSprintComponent.h"
+
 #include "Project/ECS/Components/GameInputComponent.h"
 #include "Engine/ECS/Components/AnimatorComponent.h"
 #include "Engine/ECS/Components/SequencerComponent.h"
@@ -13465,13 +13671,36 @@ void MetaRegistry::Initialize()
 		.custom<FieldInfo>(FieldInfo{ "Is Jogging" })
 		.data<&PlayerMoveComponent::isMoving>("isMoving"_hs)
 		.custom<FieldInfo>(FieldInfo{ "Is Moving" });
+	
 	entt::meta_factory<PlayerDodgeComponent>{}
 	.type("PlayerDodgeComponent")
 		.custom<TypeInfo>(TypeInfo{ "Player Dodge" })
 		.data<&PlayerDodgeComponent::triggerThreshold>("triggerThreshold"_hs)
 		.custom<FieldInfo>(FieldInfo{ "Trigger Threshold", 0.0f, 1.0f })
+		.data<&PlayerDodgeComponent::triggerReleaseThreshold>("triggerReleaseThreshold"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Trigger Release Threshold", 0.0f, 1.0f })
+		.data<&PlayerDodgeComponent::directionBufferTime>("directionBufferTime"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Direction Buffer Time", 0.0f, 1.0f })
 		.data<&PlayerDodgeComponent::isDodging>("isDodging"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Is Dodging" });
+		.custom<FieldInfo>(FieldInfo{ "Is Dodging" })
+		.data<&PlayerDodgeComponent::isNoneInput>("isNoneInput"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Is None Input" })
+		.data<&PlayerDodgeComponent::isFrontInput>("isFrontInput"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Is Front Input" })
+		.data<&PlayerDodgeComponent::isBackInput>("isBackInput"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Is Back Input" })
+		.data<&PlayerDodgeComponent::isLeftInput>("isLeftInput"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Is Left Input" })
+		.data<&PlayerDodgeComponent::isRightInput>("isRightInput"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Is Right Input" });
+
+	entt::meta_factory<PlayerSprintComponent>{}
+	.type("PlayerSprintComponent")
+		.custom<TypeInfo>(TypeInfo{ "Player Sprint" })
+		.data<&PlayerSprintComponent::sprintSpeed>("sprintSpeed"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Sprint Speed", 0.0f, 20.0f })
+		.data<&PlayerSprintComponent::isSprinting>("isSprinting"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Is Sprinting" });
 
 	entt::meta_factory<GameInputComponent>{}
 	.type("GameInputComponent")

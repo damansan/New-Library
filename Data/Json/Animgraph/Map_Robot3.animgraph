@@ -115,8 +115,8 @@
                 {
                     "id": 11,
                     "name": "Entry",
-                    "posX": -48.0,
-                    "posY": 128.0,
+                    "posX": -64.0,
+                    "posY": 176.0,
                     "type": "Start",
                     "clipName": "",
                     "loop": true,
@@ -145,8 +145,8 @@
                 {
                     "id": 40,
                     "name": "Run",
-                    "posX": 272.0,
-                    "posY": 128.0,
+                    "posX": 128.0,
+                    "posY": 240.0,
                     "type": "Normal",
                     "clipName": "AS_Run_Loop",
                     "loop": true,
@@ -293,13 +293,125 @@
                     "condition": {
                         "returnNode": {
                             "id": 68,
-                            "posX": 500.0,
-                            "posY": 200.0
+                            "posX": 626.0,
+                            "posY": 272.0
                         },
-                        "variableNodes": [],
-                        "operatorNodes": [],
-                        "getterNodes": [],
-                        "links": []
+                        "variableNodes": [
+                            {
+                                "id": 213,
+                                "posX": 226.0,
+                                "posY": 288.0,
+                                "name": "",
+                                "type": "Bool",
+                                "intValue": 0,
+                                "floatValue": 0.0,
+                                "boolValue": true
+                            }
+                        ],
+                        "operatorNodes": [
+                            {
+                                "id": 214,
+                                "posX": 434.0,
+                                "posY": 216.0,
+                                "op": "Equal"
+                            }
+                        ],
+                        "getterNodes": [
+                            {
+                                "id": 211,
+                                "posX": 240.0,
+                                "posY": 156.0,
+                                "componentName": "PlayerMoveComponent",
+                                "fieldName": "Is Walking",
+                                "type": "Bool",
+                                "selectedComponent": "None"
+                            }
+                        ],
+                        "links": [
+                            {
+                                "id": 215,
+                                "fromId": 214,
+                                "toId": 68,
+                                "toPinB": false
+                            },
+                            {
+                                "id": 216,
+                                "fromId": 211,
+                                "toId": 214,
+                                "toPinB": false
+                            },
+                            {
+                                "id": 217,
+                                "fromId": 213,
+                                "toId": 214,
+                                "toPinB": true
+                            }
+                        ]
+                    }
+                },
+                {
+                    "id": 209,
+                    "fromId": 11,
+                    "toId": 40,
+                    "blend": true,
+                    "blendDuration": 0.20000000298023224,
+                    "condition": {
+                        "returnNode": {
+                            "id": 210,
+                            "posX": 498.0,
+                            "posY": 192.0
+                        },
+                        "variableNodes": [
+                            {
+                                "id": 218,
+                                "posX": 102.0,
+                                "posY": 208.0,
+                                "name": "",
+                                "type": "Bool",
+                                "intValue": 0,
+                                "floatValue": 0.0,
+                                "boolValue": true
+                            }
+                        ],
+                        "operatorNodes": [
+                            {
+                                "id": 221,
+                                "posX": 338.0,
+                                "posY": 136.0,
+                                "op": "Equal"
+                            }
+                        ],
+                        "getterNodes": [
+                            {
+                                "id": 219,
+                                "posX": 112.0,
+                                "posY": 92.0,
+                                "componentName": "PlayerMoveComponent",
+                                "fieldName": "Is Jogging",
+                                "type": "Bool",
+                                "selectedComponent": "None"
+                            }
+                        ],
+                        "links": [
+                            {
+                                "id": 222,
+                                "fromId": 219,
+                                "toId": 221,
+                                "toPinB": false
+                            },
+                            {
+                                "id": 223,
+                                "fromId": 218,
+                                "toId": 221,
+                                "toPinB": true
+                            },
+                            {
+                                "id": 224,
+                                "fromId": 221,
+                                "toId": 210,
+                                "toPinB": false
+                            }
+                        ]
                     }
                 }
             ]
@@ -669,10 +781,10 @@
             ]
         },
         {
-            "id": 87,
+            "id": 169,
             "name": "Sprint",
             "posX": 256.0,
-            "posY": 80.0,
+            "posY": 96.0,
             "type": "State",
             "color": [
                 0.27000001072883606,
@@ -681,27 +793,56 @@
             ],
             "children": [
                 {
-                    "id": 88,
+                    "id": 170,
                     "name": "Entry",
-                    "posX": 50.0,
-                    "posY": 200.0,
+                    "posX": 48.0,
+                    "posY": 208.0,
                     "type": "Start",
                     "clipName": "",
                     "loop": true,
                     "useRootMotion": false
                 },
                 {
-                    "id": 89,
+                    "id": 171,
                     "name": "Exit",
                     "posX": 400.0,
-                    "posY": 200.0,
+                    "posY": 208.0,
                     "type": "End",
                     "clipName": "",
                     "loop": true,
                     "useRootMotion": false
+                },
+                {
+                    "id": 197,
+                    "name": "Sprinting ",
+                    "posX": 256.0,
+                    "posY": 208.0,
+                    "type": "Normal",
+                    "clipName": "AS_Sprint_Loop",
+                    "loop": true,
+                    "useRootMotion": false
                 }
             ],
-            "childLinks": []
+            "childLinks": [
+                {
+                    "id": 198,
+                    "fromId": 170,
+                    "toId": 197,
+                    "blend": true,
+                    "blendDuration": 0.20000000298023224,
+                    "condition": {
+                        "returnNode": {
+                            "id": 199,
+                            "posX": 500.0,
+                            "posY": 200.0
+                        },
+                        "variableNodes": [],
+                        "operatorNodes": [],
+                        "getterNodes": [],
+                        "links": []
+                    }
+                }
+            ]
         }
     ],
     "stateLinks": [
@@ -732,7 +873,7 @@
             "condition": {
                 "returnNode": {
                     "id": 14,
-                    "posX": 562.0,
+                    "posX": 578.0,
                     "posY": 320.0
                 },
                 "variableNodes": [
@@ -780,7 +921,7 @@
                         "toPinB": true
                     },
                     {
-                        "id": 73,
+                        "id": 234,
                         "fromId": 70,
                         "toId": 14,
                         "toPinB": false
@@ -927,14 +1068,24 @@
             "condition": {
                 "returnNode": {
                     "id": 93,
-                    "posX": 690.0,
-                    "posY": 352.0
+                    "posX": 882.0,
+                    "posY": 512.0
                 },
                 "variableNodes": [
                     {
                         "id": 109,
                         "posX": 278.0,
                         "posY": 368.0,
+                        "name": "",
+                        "type": "Bool",
+                        "intValue": 0,
+                        "floatValue": 0.0,
+                        "boolValue": false
+                    },
+                    {
+                        "id": 201,
+                        "posX": 278.0,
+                        "posY": 624.0,
                         "name": "",
                         "type": "Bool",
                         "intValue": 0,
@@ -948,6 +1099,18 @@
                         "posX": 514.0,
                         "posY": 296.0,
                         "op": "Equal"
+                    },
+                    {
+                        "id": 200,
+                        "posX": 510.0,
+                        "posY": 552.0,
+                        "op": "Equal"
+                    },
+                    {
+                        "id": 205,
+                        "posX": 702.0,
+                        "posY": 456.0,
+                        "op": "Equal"
                     }
                 ],
                 "getterNodes": [
@@ -959,15 +1122,18 @@
                         "fieldName": "Is Dodging",
                         "type": "Bool",
                         "selectedComponent": "None"
+                    },
+                    {
+                        "id": 202,
+                        "posX": 284.0,
+                        "posY": 508.0,
+                        "componentName": "PlayerSprintComponent",
+                        "fieldName": "Is Sprinting",
+                        "type": "Bool",
+                        "selectedComponent": "None"
                     }
                 ],
                 "links": [
-                    {
-                        "id": 112,
-                        "fromId": 111,
-                        "toId": 93,
-                        "toPinB": false
-                    },
                     {
                         "id": 113,
                         "fromId": 109,
@@ -979,6 +1145,36 @@
                         "fromId": 110,
                         "toId": 111,
                         "toPinB": false
+                    },
+                    {
+                        "id": 203,
+                        "fromId": 202,
+                        "toId": 200,
+                        "toPinB": false
+                    },
+                    {
+                        "id": 204,
+                        "fromId": 201,
+                        "toId": 200,
+                        "toPinB": true
+                    },
+                    {
+                        "id": 206,
+                        "fromId": 111,
+                        "toId": 205,
+                        "toPinB": false
+                    },
+                    {
+                        "id": 207,
+                        "fromId": 200,
+                        "toId": 205,
+                        "toPinB": true
+                    },
+                    {
+                        "id": 208,
+                        "fromId": 205,
+                        "toId": 93,
+                        "toPinB": false
                     }
                 ]
             }
@@ -987,7 +1183,7 @@
             "id": 124,
             "fromId": 10,
             "toId": 84,
-            "blend": false,
+            "blend": true,
             "blendDuration": 0.20000000298023224,
             "condition": {
                 "returnNode": {
@@ -1049,57 +1245,198 @@
             }
         },
         {
-            "id": 169,
+            "id": 172,
             "fromId": 84,
-            "toId": 87,
+            "toId": 169,
             "blend": true,
             "blendDuration": 0.20000000298023224,
             "condition": {
                 "returnNode": {
-                    "id": 170,
-                    "posX": 500.0,
-                    "posY": 200.0
+                    "id": 173,
+                    "posX": 498.0,
+                    "posY": 176.0
                 },
-                "variableNodes": [],
-                "operatorNodes": [],
-                "getterNodes": [],
-                "links": []
+                "variableNodes": [
+                    {
+                        "id": 174,
+                        "posX": 134.0,
+                        "posY": 192.0,
+                        "name": "",
+                        "type": "Bool",
+                        "intValue": 0,
+                        "floatValue": 0.0,
+                        "boolValue": true
+                    }
+                ],
+                "operatorNodes": [
+                    {
+                        "id": 176,
+                        "posX": 334.0,
+                        "posY": 120.0,
+                        "op": "Equal"
+                    }
+                ],
+                "getterNodes": [
+                    {
+                        "id": 175,
+                        "posX": 140.0,
+                        "posY": 76.0,
+                        "componentName": "PlayerSprintComponent",
+                        "fieldName": "Is Sprinting",
+                        "type": "Bool",
+                        "selectedComponent": "None"
+                    }
+                ],
+                "links": [
+                    {
+                        "id": 177,
+                        "fromId": 175,
+                        "toId": 176,
+                        "toPinB": false
+                    },
+                    {
+                        "id": 178,
+                        "fromId": 174,
+                        "toId": 176,
+                        "toPinB": true
+                    },
+                    {
+                        "id": 179,
+                        "fromId": 176,
+                        "toId": 173,
+                        "toPinB": false
+                    }
+                ]
             }
         },
         {
-            "id": 171,
-            "fromId": 87,
-            "toId": 84,
-            "blend": true,
-            "blendDuration": 0.20000000298023224,
-            "condition": {
-                "returnNode": {
-                    "id": 172,
-                    "posX": 500.0,
-                    "posY": 200.0
-                },
-                "variableNodes": [],
-                "operatorNodes": [],
-                "getterNodes": [],
-                "links": []
-            }
-        },
-        {
-            "id": 173,
-            "fromId": 87,
+            "id": 180,
+            "fromId": 169,
             "toId": 2,
             "blend": true,
             "blendDuration": 0.20000000298023224,
             "condition": {
                 "returnNode": {
-                    "id": 174,
-                    "posX": 500.0,
-                    "posY": 200.0
+                    "id": 181,
+                    "posX": 594.0,
+                    "posY": 336.0
                 },
-                "variableNodes": [],
-                "operatorNodes": [],
-                "getterNodes": [],
-                "links": []
+                "variableNodes": [
+                    {
+                        "id": 182,
+                        "posX": 230.0,
+                        "posY": 352.0,
+                        "name": "",
+                        "type": "Bool",
+                        "intValue": 0,
+                        "floatValue": 0.0,
+                        "boolValue": false
+                    }
+                ],
+                "operatorNodes": [
+                    {
+                        "id": 184,
+                        "posX": 430.0,
+                        "posY": 280.0,
+                        "op": "Equal"
+                    }
+                ],
+                "getterNodes": [
+                    {
+                        "id": 183,
+                        "posX": 236.0,
+                        "posY": 236.0,
+                        "componentName": "PlayerSprintComponent",
+                        "fieldName": "Is Sprinting",
+                        "type": "Bool",
+                        "selectedComponent": "None"
+                    }
+                ],
+                "links": [
+                    {
+                        "id": 185,
+                        "fromId": 184,
+                        "toId": 181,
+                        "toPinB": false
+                    },
+                    {
+                        "id": 186,
+                        "fromId": 183,
+                        "toId": 184,
+                        "toPinB": false
+                    },
+                    {
+                        "id": 187,
+                        "fromId": 182,
+                        "toId": 184,
+                        "toPinB": true
+                    }
+                ]
+            }
+        },
+        {
+            "id": 188,
+            "fromId": 169,
+            "toId": 84,
+            "blend": true,
+            "blendDuration": 0.20000000298023224,
+            "condition": {
+                "returnNode": {
+                    "id": 189,
+                    "posX": 578.0,
+                    "posY": 128.0
+                },
+                "variableNodes": [
+                    {
+                        "id": 190,
+                        "posX": 182.0,
+                        "posY": 144.0,
+                        "name": "",
+                        "type": "Bool",
+                        "intValue": 0,
+                        "floatValue": 0.0,
+                        "boolValue": true
+                    }
+                ],
+                "operatorNodes": [
+                    {
+                        "id": 193,
+                        "posX": 386.0,
+                        "posY": 72.0,
+                        "op": "Equal"
+                    }
+                ],
+                "getterNodes": [
+                    {
+                        "id": 191,
+                        "posX": 186.0,
+                        "posY": 28.0,
+                        "componentName": "PlayerDodgeComponent",
+                        "fieldName": "Is Dodging",
+                        "type": "Bool",
+                        "selectedComponent": "None"
+                    }
+                ],
+                "links": [
+                    {
+                        "id": 194,
+                        "fromId": 193,
+                        "toId": 189,
+                        "toPinB": false
+                    },
+                    {
+                        "id": 195,
+                        "fromId": 191,
+                        "toId": 193,
+                        "toPinB": false
+                    },
+                    {
+                        "id": 196,
+                        "fromId": 190,
+                        "toId": 193,
+                        "toPinB": true
+                    }
+                ]
             }
         }
     ]

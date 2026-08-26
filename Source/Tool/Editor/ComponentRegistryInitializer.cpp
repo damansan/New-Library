@@ -15,6 +15,7 @@
 #include "Engine/ECS/Components/MovementComponent.h"
 #include "Project/ECS/Components/PlayerMoveComponent.h"
 #include "Project/ECS/Components/PlayerDodgeComponent.h"
+#include "Project/ECS/Components/PlayerSprintComponent.h"
 
 #include "Engine/ECS/Components/AnimatorComponent.h"
 #include "Engine/ECS/Components/SkinnedMeshComponent.h"
@@ -129,6 +130,19 @@ void ComponentRegistryInitializer::Initialize()
 			if (ImGui::CollapsingHeader("Player Dodge", ImGuiTreeNodeFlags_DefaultOpen))
 			{
 				MetaRegistry::DrawMetaFields(entt::resolve<PlayerDodgeComponent>(), entt::forward_as_meta(*_c));
+			}
+		});
+
+	// Sprintコンポーネントの登録
+	REGISTER_COMPONENT(PlayerSprintComponent, "Player Sprint",
+		[](auto& reg, auto e)
+		{
+			auto* _c = reg.try_get<PlayerSprintComponent>(e);
+			if (!_c) return;
+
+			if (ImGui::CollapsingHeader("Player Sprint", ImGuiTreeNodeFlags_DefaultOpen))
+			{
+				MetaRegistry::DrawMetaFields(entt::resolve<PlayerSprintComponent>(), entt::forward_as_meta(*_c));
 			}
 		});
 

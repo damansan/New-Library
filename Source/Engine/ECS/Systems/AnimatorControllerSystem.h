@@ -15,8 +15,8 @@ public:
 private:
 	JsonFileCache<AnimatorGraphData> graphCache;
 
-	// ‘JˆÚğŒ‚ª¬—§‚µ‚Ä‚¢‚é•¨‚ğ’T‚·A•¡”‚ ‚éê‡‚ÍÅ‰‚ÉŒ©‚Â‚©‚Á‚½‚à‚Ì‚ğ’Ê‚µAŒx‚ğo‚·
-	static int FindTransition(const std::vector<AnimLink>& links, int fromId, entt::registry& registry, entt::entity entity);
+	// ‘JˆÚæ‚ÌƒuƒŒƒ“ƒhŠÔ‚ğ•Ô‚·
+	int FindTransition(const std::vector<AnimLink>& links, int fromId, entt::registry& registry, entt::entity entity, float& outBlendDuration);
 
 	// ParentStateGraph‚Ì’†‚©‚çAEntry‚Ìid‚ğ’T‚·
 	static int FindEntryParentState(const ParentStateGraph& parentGraph);
@@ -35,5 +35,5 @@ private:
 	// ‰‰ñ‚Ì‰Šúó‘Ô‚ğŒˆ‚ß‚é
 	void InitializeState(AnimatorComponent& animator, AnimatorGraphData& data, entt::registry& registry, entt::entity entity);
 	// ChildState‚Ì“à—e‚ğAnimatorComponent‚Ö”½‰f‚·‚é
-	void ApplyChildState(AnimatorComponent& animator, const ChildState& child);
+	void ApplyChildState(AnimatorComponent& animator, const ChildState& child, float blendDuration);
 };

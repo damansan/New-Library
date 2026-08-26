@@ -8,8 +8,11 @@ using namespace entt::literals;
 #include "Engine/ECS/Components/TransformComponent.h"
 #include "Engine/ECS/Components/MeshComponent.h"
 #include "Engine/ECS/Components/MovementComponent.h"
+
 #include "Project/ECS/Components/PlayerMoveComponent.h"
 #include "Project/ECS/Components/PlayerDodgeComponent.h"
+#include "Project/ECS/Components/PlayerSprintComponent.h"
+
 #include "Project/ECS/Components/GameInputComponent.h"
 #include "Engine/ECS/Components/AnimatorComponent.h"
 #include "Engine/ECS/Components/SequencerComponent.h"
@@ -53,13 +56,17 @@ void MetaRegistry::Initialize()
 		.custom<FieldInfo>(FieldInfo{ "Jog Speed", 0.0f, 10.0f })
 		.data<&PlayerMoveComponent::jogThreshold>("jogThreshold"_hs)
 		.custom<FieldInfo>(FieldInfo{ "Jog Threshold", 0.0f, 1.0f })
+		.data<&PlayerMoveComponent::turnSpeed>("turnSpeed"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Turn Speed", 0.0f, 30.0f })
+		.data<&PlayerMoveComponent::inputLossGraceTime>("inputLossGraceTime"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Input Loss Grace Time", 0.0f, 1.0f })
 		.data<&PlayerMoveComponent::isWalking>("isWalking"_hs)
 		.custom<FieldInfo>(FieldInfo{ "Is Walking" })
 		.data<&PlayerMoveComponent::isJogging>("isJogging"_hs)
 		.custom<FieldInfo>(FieldInfo{ "Is Jogging" })
 		.data<&PlayerMoveComponent::isMoving>("isMoving"_hs)
 		.custom<FieldInfo>(FieldInfo{ "Is Moving" });
-	
+
 	entt::meta_factory<PlayerDodgeComponent>{}
 	.type("PlayerDodgeComponent")
 		.custom<TypeInfo>(TypeInfo{ "Player Dodge" })
@@ -67,6 +74,8 @@ void MetaRegistry::Initialize()
 		.custom<FieldInfo>(FieldInfo{ "Trigger Threshold", 0.0f, 1.0f })
 		.data<&PlayerDodgeComponent::triggerReleaseThreshold>("triggerReleaseThreshold"_hs)
 		.custom<FieldInfo>(FieldInfo{ "Trigger Release Threshold", 0.0f, 1.0f })
+		.data<&PlayerDodgeComponent::directionBufferTime>("directionBufferTime"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Direction Buffer Time", 0.0f, 1.0f })
 		.data<&PlayerDodgeComponent::isDodging>("isDodging"_hs)
 		.custom<FieldInfo>(FieldInfo{ "Is Dodging" })
 		.data<&PlayerDodgeComponent::isNoneInput>("isNoneInput"_hs)
@@ -79,6 +88,14 @@ void MetaRegistry::Initialize()
 		.custom<FieldInfo>(FieldInfo{ "Is Left Input" })
 		.data<&PlayerDodgeComponent::isRightInput>("isRightInput"_hs)
 		.custom<FieldInfo>(FieldInfo{ "Is Right Input" });
+
+	entt::meta_factory<PlayerSprintComponent>{}
+	.type("PlayerSprintComponent")
+		.custom<TypeInfo>(TypeInfo{ "Player Sprint" })
+		.data<&PlayerSprintComponent::sprintSpeed>("sprintSpeed"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Sprint Speed", 0.0f, 20.0f })
+		.data<&PlayerSprintComponent::isSprinting>("isSprinting"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Is Sprinting" });
 
 	entt::meta_factory<GameInputComponent>{}
 	.type("GameInputComponent")
@@ -106,7 +123,13 @@ void MetaRegistry::Initialize()
 		.data<&AnimatorComponent::useRootMotionY>("useRootMotionY"_hs)
 		.custom<FieldInfo>(FieldInfo{ "Use Root Motion Y" })
 		.data<&AnimatorComponent::rootMotionNodeName>("rootMotionNodeName"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Root Motion Node" });
+		.custom<FieldInfo>(FieldInfo{ "Root Motion Node" })
+		.data<&AnimatorComponent::isBlending>("isBlending"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Is Blending", 0.0f, 0.0f, 0.1f, "", true })
+		.data<&AnimatorComponent::blendRate>("blendRate"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Blend Rate", 0.0f, 1.0f, 0.1f, "", true })
+		.data<&AnimatorComponent::blendAnimation>("blendAnimation"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Blend From (Old Clip)", 0.0f, 0.0f, 0.1f, "", true });
 
 	entt::meta_factory<SequencerComponent>{}
 	.type("SequencerComponent")
