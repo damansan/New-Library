@@ -57,8 +57,10 @@ void AnimatorControllerSystem::Update(entt::registry& registry)
 		}
 		else
 		{
+			SequencerComponent* sequencer = registry.try_get<SequencerComponent>(entity);
+
 			animator.currentChildStateId = newChildId;
-			ApplyChildState(animator, *newChild, childBlendDuration);
+			ApplyChildState(animator, *newChild, childBlendDuration, sequencer);
 		}
 	}
 }
@@ -139,8 +141,10 @@ void AnimatorControllerSystem::EnterChildGraphFromStart(AnimatorComponent& anima
 	ChildState* child = FindChildStateById(parent.childGraph, childId);
 	if (!child) return;
 
+	SequencerComponent* sequencer = registry.try_get<SequencerComponent>(entity);
+
 	animator.currentChildStateId = childId;
-	ApplyChildState(animator, *child, blendDuration);
+	ApplyChildState(animator, *child, blendDuration, sequencer);
 }
 // 初回の初期状態を決める
 void AnimatorControllerSystem::InitializeState(AnimatorComponent& animator, AnimatorGraphData& data, entt::registry& registry, entt::entity entity)
@@ -154,12 +158,50 @@ void AnimatorControllerSystem::InitializeState(AnimatorComponent& animator, Anim
 
 	EnterParentState(animator, data, parentId, registry, entity);
 }
-// ChildStateの内容をAnimatorComponentへ反映する
-void AnimatorControllerSystem::ApplyChildState(AnimatorComponent& animator, const ChildState& child, float blendDuration)
+bool AnimatorControllerSystem::FindTrimmingRange(SequencerData& data, const std::string& clipName, float& outStart, float& outEnd)
 {
+	for (auto& clip : data.clips)
+	{
+		if (clip.clipName != clipName) continue;
+
+		for (auto& range : clip.ranges)
+		{
+			if (range.flag == SequencerFlag::Trimming)
+			{
+				outStart = range.start;
+				outEnd = range.end;
+				return true;
+			}
+		}
+		break;
+	}
+	return false;
+}
+// ChildStateの内容をAnimatorComponentへ反映する
+void AnimatorControllerSystem::ApplyChildState(AnimatorComponent& animator, const ChildState& child, float blendDuration, SequencerComponent* sequencer)
+{
+	// トリミング範囲を調べる
+	float trimStart = 0.0f;
+	float trimEnd = -1.0f;
+	if (sequencer && !sequencer->sequencerPath.empty())
+	{
+		SequencerData& data = trimDataCache.GetOrLoad(sequencer->sequencerPath,
+			[](SequencerData& data, const nlohmann::json& j) { data.FromJson(j); });
+
+		float normStart = 0.0f, normEnd = 1.0f;
+		if (FindTrimmingRange(data, child.clipName, normStart, normEnd))
+		{
+			trimStart = normStart;
+			trimEnd = normEnd;
+		}
+	}
+
 	if (animator.currentAnimation.empty() || blendDuration <= 0.0f)
 	{
 		animator.currentAnimation = child.clipName;
+		animator.trimStart = trimStart;
+		animator.trimEnd = trimEnd;
+		animator.trimResolved = false;
 		animator.animationTime = 0.0f;
 		animator.isPlaying = true;
 		animator.isEnd = false;
@@ -173,11 +215,16 @@ void AnimatorControllerSystem::ApplyChildState(AnimatorComponent& animator, cons
 	animator.blendAnimation = animator.currentAnimation;
 	animator.blendAnimationTime = animator.animationTime;
 	animator.blendUseRootMotion = animator.useRootMotion;
+	animator.blendUseRootMotionY = animator.useRootMotionY;
+	animator.blendTrimEnd = animator.trimEnd; 
 	animator.blendTime = blendDuration;
 	animator.blendRate = 0.0f;
 	animator.isBlending = true;
 
 	animator.currentAnimation = child.clipName;
+	animator.trimStart = trimStart;
+	animator.trimEnd = trimEnd;
+	animator.trimResolved = false;
 	animator.animationTime = 0.0f;
 	animator.isPlaying = true;
 	animator.isEnd = false;

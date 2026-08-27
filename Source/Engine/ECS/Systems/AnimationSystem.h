@@ -68,6 +68,7 @@ private:
 		const Model::Animation& animation,
 		int rootMotionNodeIndex,
 		float oldTime,
-		float newTime);
-
+		float newTime,
+		float rangeStart = 0.0f,
+		float rangeEnd = -1.0f);
 };

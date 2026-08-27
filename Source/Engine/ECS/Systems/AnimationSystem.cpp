@@ -39,6 +39,22 @@ void AnimationSystem::Update(
 			}
 
 			const auto& animation = animations[animIndex];
+			
+			// トリミングを秒数に変換
+			if (!animator.trimResolved)
+			{
+				if (animator.trimEnd >= 0.0f)
+				{
+					animator.trimStart *= animation.secondsLength;
+					animator.trimEnd *= animation.secondsLength;
+					animator.animationTime = animator.trimStart;
+				}
+				animator.trimResolved = true;
+			}
+
+			const float effectiveEnd = (animator.trimEnd >= 0.0f) ? animator.trimEnd : animation.secondsLength;
+			const float effectiveStart = (animator.trimEnd >= 0.0f) ? animator.trimStart : 0.0f;
+			
 			const float oldTime = animator.animationTime;
 
 			animator.animationTime += elapsedTime * animator.playSpeed;
@@ -46,17 +62,17 @@ void AnimationSystem::Update(
 			// ループ処理
 			if (animator.loop)
 			{
-				if (animator.animationTime > animation.secondsLength)
+				if (animator.animationTime > effectiveEnd)
 				{
-					animator.animationTime -= animation.secondsLength;
+					animator.animationTime = effectiveStart + (animator.animationTime - effectiveEnd);
 					animator.isEnd = false;
 				}
 			}
 			else
 			{
-				if (animator.animationTime >= animation.secondsLength)
+				if (animator.animationTime >= effectiveEnd)
 				{
-					animator.animationTime = animation.secondsLength;
+					animator.animationTime = effectiveEnd;
 					animator.isPlaying = false;
 					animator.isEnd = true;
 				}
@@ -71,7 +87,8 @@ void AnimationSystem::Update(
 				if (rootMotionNodeIndex >= 0)
 				{
 					animator.rootMotionDelta = CalcRootMotionDelta(
-						*skinned.model, animation, rootMotionNodeIndex, oldTime, animator.animationTime);
+						*skinned.model, animation, rootMotionNodeIndex, oldTime, animator.animationTime,
+						effectiveStart, effectiveEnd);
 				}
 			}
 
@@ -120,10 +137,13 @@ void AnimationSystem::Update(
 					const auto& oldAnimation = animations[oldAnimIndex];
 					const float oldOldTime = animator.blendAnimationTime;
 
+					// トリミングされていた場合、そこを超えて進めない
+					float oldEffectiveEnd = (animator.blendTrimEnd >= 0.0f) ? animator.blendTrimEnd : oldAnimation.secondsLength;
+
 					animator.blendAnimationTime += elapsedTime * animator.playSpeed;
-					if (animator.blendAnimationTime > oldAnimation.secondsLength)
+					if (animator.blendAnimationTime > oldEffectiveEnd)
 					{
-						animator.blendAnimationTime -= oldAnimation.secondsLength;
+						animator.blendAnimationTime = oldEffectiveEnd;
 					}
 
 					int oldRootMotionNodeIndex = -1;
@@ -168,11 +188,11 @@ void AnimationSystem::Update(
 						DirectX::XMStoreFloat3(&worldDeltaF, worldDelta);
 
 						DirectX::XMFLOAT3 oldVelocity = { worldDeltaF.x / elapsedTime, 0.0f, worldDeltaF.z / elapsedTime };
-						if (animator.useRootMotionY) oldVelocity.y = worldDeltaF.y / elapsedTime;
+						if (animator.blendUseRootMotionY) oldVelocity.y = worldDeltaF.y / elapsedTime;
 
 						movement->velocity.x = oldVelocity.x * (1.0f - rate) + newVelocity.x * rate;
 						movement->velocity.z = oldVelocity.z * (1.0f - rate) + newVelocity.z * rate;
-						if (animator.useRootMotionY)
+						if (animator.blendUseRootMotionY || animator.useRootMotionY)
 							movement->velocity.y = oldVelocity.y * (1.0f - rate) + newVelocity.y * rate;
 					}
 					else if (newHasVelocity && movement)
@@ -469,29 +489,30 @@ DirectX::XMFLOAT3 AnimationSystem::CalcNodeLocalPosition(
 
 // ルートモーションの移動量を計算する
 DirectX::XMFLOAT3 AnimationSystem::CalcRootMotionDelta(
-	const Model& model, 
+	const Model& model,
 	const Model::Animation& animation,
-	int rootMotionNodeIndex, 
-	float oldTime, 
-	float newTime)
+	int rootMotionNodeIndex,
+	float oldTime,
+	float newTime,
+	float rangeStart,
+	float rangeEnd) 
 {
 	const auto& node = model.GetNodes()[rootMotionNodeIndex];
 
-	// ポーズ取得用のラムダ（毎回同じ引数を書かずに済むように）
+	// ポーズ取得用のラムダ
 	auto getPos = [&](float t)
 		{
 			return CalcNodeLocalPosition(animation, rootMotionNodeIndex, node, t);
 		};
 
 	DirectX::XMFLOAT3 delta{ 0.0f, 0.0f, 0.0f };
+	float actualRangeEnd = (rangeEnd >= 0.0f) ? rangeEnd : animation.secondsLength;
 
 	if (oldTime > newTime)
 	{
-		// ループで終端→開始に巻き戻った場合
-		// 「old→終端」の移動と「開始→new」の移動を合成する
-		DirectX::XMFLOAT3 beginPos = getPos(0.0f);
+		DirectX::XMFLOAT3 beginPos = getPos(rangeStart);
 		DirectX::XMFLOAT3 oldPos = getPos(oldTime);
-		DirectX::XMFLOAT3 endPos = getPos(animation.secondsLength);
+		DirectX::XMFLOAT3 endPos = getPos(actualRangeEnd);
 		DirectX::XMFLOAT3 newPos = getPos(newTime);
 
 		delta.x = (endPos.x - oldPos.x) + (newPos.x - beginPos.x);
@@ -500,7 +521,6 @@ DirectX::XMFLOAT3 AnimationSystem::CalcRootMotionDelta(
 	}
 	else
 	{
-		// 通常時：前フレームと今フレームの差分がそのまま移動量
 		DirectX::XMFLOAT3 oldPos = getPos(oldTime);
 		DirectX::XMFLOAT3 newPos = getPos(newTime);
 

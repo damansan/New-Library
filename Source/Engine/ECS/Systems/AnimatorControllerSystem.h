@@ -3,6 +3,8 @@
 #include "Engine/Data/AnimatorGraphData.h"
 #include "Engine/ECS/Components/AnimatorComponent.h"
 #include "Engine/Core/JsonFileCache.h"
+#include "Engine/Data/SequencerData.h"
+#include "Engine/ECS/Components/SequencerComponent.h"
 
 #include <unordered_map>
 #include <string>
@@ -14,6 +16,8 @@ public:
 
 private:
 	JsonFileCache<AnimatorGraphData> graphCache;
+	JsonFileCache<SequencerData> trimDataCache;
+
 
 	// ‘JˆÚæ‚ÌƒuƒŒƒ“ƒhŠÔ‚ğ•Ô‚·
 	int FindTransition(const std::vector<AnimLink>& links, int fromId, entt::registry& registry, entt::entity entity, float& outBlendDuration);
@@ -35,5 +39,8 @@ private:
 	// ‰‰ñ‚Ì‰Šúó‘Ô‚ğŒˆ‚ß‚é
 	void InitializeState(AnimatorComponent& animator, AnimatorGraphData& data, entt::registry& registry, entt::entity entity);
 	// ChildState‚Ì“à—e‚ğAnimatorComponent‚Ö”½‰f‚·‚é
-	void ApplyChildState(AnimatorComponent& animator, const ChildState& child, float blendDuration);
+	void ApplyChildState(AnimatorComponent& animator, const ChildState& child, float blendDuration, SequencerComponent* sequencer);
+
+	static bool FindTrimmingRange(SequencerData& data, const std::string& clipName, float& outStart, float& outEnd);
+
 };

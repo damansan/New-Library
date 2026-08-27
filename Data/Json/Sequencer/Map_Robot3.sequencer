@@ -46,13 +46,19 @@
         },
         {
             "clipName": "AS_Dodge_Forward",
-            "nextId": 2,
+            "nextId": 3,
             "ranges": [
                 {
                     "id": 1,
-                    "start": 0.34484848380088806,
-                    "end": 1.0,
+                    "start": 0.2209356427192688,
+                    "end": 0.3700000047683716,
                     "flag": "AnimExit"
+                },
+                {
+                    "id": 2,
+                    "start": 0.0,
+                    "end": 0.3700000047683716,
+                    "flag": "Trimming"
                 }
             ],
             "points": []

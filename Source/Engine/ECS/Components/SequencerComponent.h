@@ -8,6 +8,8 @@ enum class SequencerFlag
 	SuperArmor, // 発生保障フラグ
 	Attack,     // 攻撃フラグ
 
+	Trimming,   // アニメーション再生範囲
+
 	// 種類が増えたらここに追加していく
 
 	Count

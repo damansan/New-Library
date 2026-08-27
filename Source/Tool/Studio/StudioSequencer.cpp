@@ -476,11 +476,12 @@ const char* StudioSequencer::GetSequencerFlagName(SequencerFlag flag)
 
 {
 	// 種類が増えたらここにも追加する
-	static const char* names[] = 
-	{ 
-		"AnimExit", 
-		"Attack", 
-		"SuperArmor" 
+	static const char* names[] =
+	{
+		"AnimExit",
+		"SuperArmor",
+		"Attack",
+		"Trimming"
 	};
 
 	// namesの要素数と、SequencerFlagの個数が食い違っていたら、ビルド時にエラーにする

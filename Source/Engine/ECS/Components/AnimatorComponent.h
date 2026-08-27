@@ -15,6 +15,9 @@ struct AnimatorComponent
     std::string blendAnimation;              // 旧クリップ名
     float       blendAnimationTime{ 0.0f };  // 旧クリップの、ブレンド中の再生時間
     bool        blendUseRootMotion{ false }; // 旧クリップがルートモーションを使っていたか
+    bool        blendUseRootMotionY{ false };// 旧クリップがY軸ルートモーションを使っていたか
+    float       blendTrimEnd{ -1.0f };       // 旧クリップのトリミング終端
+
     float       blendTime{ 0.0f };   // ブレンドの合計時間
     float       blendRate{ 0.0f };   // ブレンドの進捗
     bool        isBlending{ false }; // ブレンド中フラグ
@@ -25,9 +28,13 @@ struct AnimatorComponent
     std::string rootMotionNodeName;      // ルートノード名
     DirectX::XMFLOAT3 rootMotionDelta{ 0.0f, 0.0f, 0.0f }; // ルートモーション移動量
 
-
     // State遷移用
 	std::string animatorGraphPath; // .animatorファイルのパス
 	int         currentParentStateId{ -1 }; // 現在の親ステートID
 	int         currentChildStateId{ -1 };  // 現在の子ステートID
+
+    // トリミング範囲
+    float trimStart{ 0.0f };
+    float trimEnd{ -1.0f };
+    bool  trimResolved{ false };
 };

@@ -6,14 +6,18 @@ namespace
 	{
 		switch (flag)
 		{
-		case SequencerFlag::AnimExit: return "AnimExit";
-		case SequencerFlag::Attack:   return "Attack";
+		case SequencerFlag::AnimExit:   return "AnimExit";
+		case SequencerFlag::SuperArmor: return "SuperArmor";
+		case SequencerFlag::Attack:     return "Attack";
+		case SequencerFlag::Trimming:   return "Trimming";
 		}
 		return "AnimExit";
 	}
 	SequencerFlag ToSequencerFlag(const std::string& s)
 	{
-		if (s == "Attack") return SequencerFlag::Attack;
+		if (s == "SuperArmor") return SequencerFlag::SuperArmor;
+		if (s == "Attack")     return SequencerFlag::Attack;
+		if (s == "Trimming")   return SequencerFlag::Trimming;
 		return SequencerFlag::AnimExit;
 	}
 }

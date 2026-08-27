@@ -2688,14 +2688,18 @@ namespace
 	{
 		switch (flag)
 		{
-		case SequencerFlag::AnimExit: return "AnimExit";
-		case SequencerFlag::Attack:   return "Attack";
+		case SequencerFlag::AnimExit:   return "AnimExit";
+		case SequencerFlag::SuperArmor: return "SuperArmor";
+		case SequencerFlag::Attack:     return "Attack";
+		case SequencerFlag::Trimming:   return "Trimming";
 		}
 		return "AnimExit";
 	}
 	SequencerFlag ToSequencerFlag(const std::string& s)
 	{
-		if (s == "Attack") return SequencerFlag::Attack;
+		if (s == "SuperArmor") return SequencerFlag::SuperArmor;
+		if (s == "Attack")     return SequencerFlag::Attack;
+		if (s == "Trimming")   return SequencerFlag::Trimming;
 		return SequencerFlag::AnimExit;
 	}
 }
@@ -2813,9 +2817,14 @@ struct AnimatorComponent
     bool        isEnd{ false };        // å†ç”Ÿçµ‚äº†ãƒ•ãƒ©ã‚°
 
     // ãƒ–ãƒ¬ãƒ³ãƒ‰ç”¨
-    std::string blendAnimation;      // ãƒ–ãƒ¬ãƒ³ãƒ‰å…ˆã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³å
-    float       blendTime{ 0.0f };   // ãƒ–ãƒ¬ãƒ³ãƒ‰æ™‚é–“
-    float       blendRate{ 0.0f };   // ãƒ–ãƒ¬ãƒ³ãƒ‰ç‡ï¼ˆ0.0ï½1.0ï¼‰
+    std::string blendAnimation;              // æ—§ã‚¯ãƒªãƒƒãƒ—å
+    float       blendAnimationTime{ 0.0f };  // æ—§ã‚¯ãƒªãƒƒãƒ—ã®ã€ãƒ–ãƒ¬ãƒ³ãƒ‰ä¸­ã®å†ç”Ÿæ™‚é–“
+    bool        blendUseRootMotion{ false }; // æ—§ã‚¯ãƒªãƒƒãƒ—ãŒãƒ«ãƒ¼ãƒˆãƒ¢ãƒ¼ã‚·ãƒ§ãƒ³ã‚’ä½¿ã£ã¦ã„ãŸã‹
+    bool        blendUseRootMotionY{ false };// æ—§ã‚¯ãƒªãƒƒãƒ—ãŒYè»¸ãƒ«ãƒ¼ãƒˆãƒ¢ãƒ¼ã‚·ãƒ§ãƒ³ã‚’ä½¿ã£ã¦ã„ãŸã‹
+    float       blendTrimEnd{ -1.0f };       // æ—§ã‚¯ãƒªãƒƒãƒ—ã®ãƒˆãƒªãƒŸãƒ³ã‚°çµ‚ç«¯
+
+    float       blendTime{ 0.0f };   // ãƒ–ãƒ¬ãƒ³ãƒ‰ã®åˆè¨ˆæ™‚é–“
+    float       blendRate{ 0.0f };   // ãƒ–ãƒ¬ãƒ³ãƒ‰ã®é€²æ—
     bool        isBlending{ false }; // ãƒ–ãƒ¬ãƒ³ãƒ‰ä¸­ãƒ•ãƒ©ã‚°
 
     // ãƒ«ãƒ¼ãƒˆãƒ¢ãƒ¼ã‚·ãƒ§ãƒ³ç”¨
@@ -3093,6 +3102,8 @@ enum class SequencerFlag
 	SuperArmor, // ”­¶•Ûáƒtƒ‰ƒO
 	Attack,     // UŒ‚ƒtƒ‰ƒO
 
+	Trimming,   // ƒAƒjƒ[ƒVƒ‡ƒ“Ä¶”ÍˆÍ
+
 	// í—Ş‚ª‘‚¦‚½‚ç‚±‚±‚É’Ç‰Á‚µ‚Ä‚¢‚­
 
 	Count
@@ -3191,6 +3202,7 @@ struct TransformComponent
 Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\AnimationSystem.h 
 #pragma once
 #include <d3d11.h>
+#include <algorithm>
 #include "entt.hpp"
 #include "Engine/Resource/Model.h" 
 #include "Engine/ECS/Components/AnimatorComponent.h"
@@ -3228,8 +3240,19 @@ private:
 		Model& model,
 		const Model::Animation& animation,
 		float time,
-		SkinnedMeshComponent& skinned,
+		std::vector<DirectX::XMFLOAT3>& outPositions,
+		std::vector<DirectX::XMFLOAT4>& outRotations,
+		std::vector<DirectX::XMFLOAT3>& outScales,
 		int rootMotionNodeIndex = -1);
+
+	// 2‚Â‚Ìƒ|[ƒY‚ğrate‚Å•âŠÔ‚·‚é
+	static void BlendPoses(
+		const std::vector<DirectX::XMFLOAT3>& posA, const std::vector<DirectX::XMFLOAT4>& rotA, const std::vector<DirectX::XMFLOAT3>& scaleA,
+		const std::vector<DirectX::XMFLOAT3>& posB, const std::vector<DirectX::XMFLOAT4>& rotB, const std::vector<DirectX::XMFLOAT3>& scaleB,
+		float rate,
+		std::vector<DirectX::XMFLOAT3>& outPositions,
+		std::vector<DirectX::XMFLOAT4>& outRotations,
+		std::vector<DirectX::XMFLOAT3>& outScales);
 
 	// –¼‘O‚©‚çƒ‹[ƒgƒm[ƒhƒCƒ“ƒfƒbƒNƒX‚ğ’T‚·
 	static int FindNodeIndex(const Model& model, const std::string& name);
@@ -3247,8 +3270,9 @@ private:
 		const Model::Animation& animation,
 		int rootMotionNodeIndex,
 		float oldTime,
-		float newTime);
-
+		float newTime,
+		float rangeStart = 0.0f,
+		float rangeEnd = -1.0f);
 }; 
  
 ===== AnimatorControllerSystem.h ===== 
@@ -3258,6 +3282,8 @@ Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\AnimatorContr
 #include "Engine/Data/AnimatorGraphData.h"
 #include "Engine/ECS/Components/AnimatorComponent.h"
 #include "Engine/Core/JsonFileCache.h"
+#include "Engine/Data/SequencerData.h"
+#include "Engine/ECS/Components/SequencerComponent.h"
 
 #include <unordered_map>
 #include <string>
@@ -3269,9 +3295,11 @@ public:
 
 private:
 	JsonFileCache<AnimatorGraphData> graphCache;
+	JsonFileCache<SequencerData> trimDataCache;
 
-	// ‘JˆÚğŒ‚ª¬—§‚µ‚Ä‚¢‚é•¨‚ğ’T‚·A•¡”‚ ‚éê‡‚ÍÅ‰‚ÉŒ©‚Â‚©‚Á‚½‚à‚Ì‚ğ’Ê‚µAŒx‚ğo‚·
-	static int FindTransition(const std::vector<AnimLink>& links, int fromId, entt::registry& registry, entt::entity entity);
+
+	// ‘JˆÚæ‚ÌƒuƒŒƒ“ƒhŠÔ‚ğ•Ô‚·
+	int FindTransition(const std::vector<AnimLink>& links, int fromId, entt::registry& registry, entt::entity entity, float& outBlendDuration);
 
 	// ParentStateGraph‚Ì’†‚©‚çAEntry‚Ìid‚ğ’T‚·
 	static int FindEntryParentState(const ParentStateGraph& parentGraph);
@@ -3290,7 +3318,10 @@ private:
 	// ‰‰ñ‚Ì‰Šúó‘Ô‚ğŒˆ‚ß‚é
 	void InitializeState(AnimatorComponent& animator, AnimatorGraphData& data, entt::registry& registry, entt::entity entity);
 	// ChildState‚Ì“à—e‚ğAnimatorComponent‚Ö”½‰f‚·‚é
-	void ApplyChildState(AnimatorComponent& animator, const ChildState& child);
+	void ApplyChildState(AnimatorComponent& animator, const ChildState& child, float blendDuration, SequencerComponent* sequencer);
+
+	static bool FindTrimmingRange(SequencerData& data, const std::string& clipName, float& outStart, float& outEnd);
+
 }; 
  
 ===== ConditionGraphEvaluator.h ===== 
@@ -3810,18 +3841,12 @@ void AnimationSystem::Update(
 			const auto& animations = skinned.model->GetAnimations();
 			if (animations.empty()) return;
 
-			// ƒAƒjƒ[ƒVƒ‡ƒ“–¼‚©‚çƒCƒ“ƒfƒbƒNƒX‚ğ’T‚·
+			// VƒNƒŠƒbƒv‚ÌŠÔ‚ği‚ß‚é
 			int animIndex = -1;
 			for (int i = 0; i < (int)animations.size(); i++)
 			{
-				if (animations[i].name == animator.currentAnimation)
-				{
-					animIndex = i;
-					break;
-				}
+				if (animations[i].name == animator.currentAnimation) { animIndex = i; break; }
 			}
-
-			// Œ©‚Â‚©‚ç‚È‚¯‚ê‚Î0”Ô–Ú‚ğg‚¤
 			if (animIndex < 0)
 			{
 				animIndex = 0;
@@ -3829,6 +3854,22 @@ void AnimationSystem::Update(
 			}
 
 			const auto& animation = animations[animIndex];
+			
+			// ƒgƒŠƒ~ƒ“ƒO‚ğ•b”‚É•ÏŠ·
+			if (!animator.trimResolved)
+			{
+				if (animator.trimEnd >= 0.0f)
+				{
+					animator.trimStart *= animation.secondsLength;
+					animator.trimEnd *= animation.secondsLength;
+					animator.animationTime = animator.trimStart;
+				}
+				animator.trimResolved = true;
+			}
+
+			const float effectiveEnd = (animator.trimEnd >= 0.0f) ? animator.trimEnd : animation.secondsLength;
+			const float effectiveStart = (animator.trimEnd >= 0.0f) ? animator.trimStart : 0.0f;
+			
 			const float oldTime = animator.animationTime;
 
 			animator.animationTime += elapsedTime * animator.playSpeed;
@@ -3836,23 +3877,23 @@ void AnimationSystem::Update(
 			// ƒ‹[ƒvˆ—
 			if (animator.loop)
 			{
-				if (animator.animationTime > animation.secondsLength)
+				if (animator.animationTime > effectiveEnd)
 				{
-					animator.animationTime -= animation.secondsLength;
+					animator.animationTime = effectiveStart + (animator.animationTime - effectiveEnd);
 					animator.isEnd = false;
 				}
 			}
 			else
 			{
-				if (animator.animationTime >= animation.secondsLength)
+				if (animator.animationTime >= effectiveEnd)
 				{
-					animator.animationTime = animation.secondsLength;
+					animator.animationTime = effectiveEnd;
 					animator.isPlaying = false;
 					animator.isEnd = true;
 				}
 			}
 
-			// ƒ‹[ƒgƒ{[ƒ“‚ÌŒÅ’è‚Ég‚¤ƒm[ƒh‚ğ’T‚·
+			// VƒNƒŠƒbƒv‚Ìƒ‹[ƒgƒ‚[ƒVƒ‡ƒ“—Ê‚Æƒ|[ƒY‚ğŒvZ
 			animator.rootMotionDelta = { 0.0f, 0.0f, 0.0f };
 			int rootMotionNodeIndex = -1;
 			if (!animator.rootMotionNodeName.empty())
@@ -3861,47 +3902,153 @@ void AnimationSystem::Update(
 				if (rootMotionNodeIndex >= 0)
 				{
 					animator.rootMotionDelta = CalcRootMotionDelta(
-						*skinned.model, animation, rootMotionNodeIndex,
-						oldTime, animator.animationTime);
+						*skinned.model, animation, rootMotionNodeIndex, oldTime, animator.animationTime,
+						effectiveStart, effectiveEnd);
 				}
 			}
 
 			// ƒ{[ƒ“s—ñ‚ğŒvZ
 			CalcBoneTransforms(
-				*skinned.model,
-				animation,
-				animator.animationTime,
-				skinned,
+				*skinned.model, animation, animator.animationTime,
+				skinned.localPositions, skinned.localRotations, skinned.localScales,
 				rootMotionNodeIndex);
 
-			// ÀÛ‚ÌˆÚ“®‚Ö”½‰f‚·‚é‚Ì‚ÍAuseRootMotion‚ªtrue‚Ì‚Æ‚«‚¾‚¯
-			if (animator.useRootMotion && rootMotionNodeIndex >= 0 && elapsedTime > 0.0f)
+			// VƒNƒŠƒbƒv—R—ˆ‚Ìƒ[ƒ‹ƒh‘¬“x
+			auto* transform = registry.try_get<TransformComponent>(entity);
+			auto* movement = registry.try_get<MovementComponent>(entity);
+
+			DirectX::XMFLOAT3 newVelocity = { 0.0f, 0.0f, 0.0f };
+			bool newHasVelocity = false;
+
+			if (animator.useRootMotion && rootMotionNodeIndex >= 0 && elapsedTime > 0.0f && transform && movement)
 			{
-				auto* transform = registry.try_get<TransformComponent>(entity);
-				auto* movement = registry.try_get<MovementComponent>(entity);
+				DirectX::XMMATRIX rotationMatrix = DirectX::XMMatrixRotationRollPitchYaw(
+					transform->rotation.x, transform->rotation.y, transform->rotation.z);
+				DirectX::XMVECTOR localDelta = DirectX::XMLoadFloat3(&animator.rootMotionDelta);
+				DirectX::XMVECTOR worldDelta = DirectX::XMVector3TransformNormal(localDelta, rotationMatrix);
+				DirectX::XMFLOAT3 worldDeltaF;
+				DirectX::XMStoreFloat3(&worldDeltaF, worldDelta);
 
-				if (transform && movement)
+				newVelocity.x = worldDeltaF.x / elapsedTime;
+				newVelocity.z = worldDeltaF.z / elapsedTime;
+				if (animator.useRootMotionY)
 				{
-					// ƒ[ƒJƒ‹‚ÌˆÚ“®—Ê‚ğAƒLƒƒƒ‰ƒNƒ^[‚ÌŒü‚«‚É‰‚¶‚Äƒ[ƒ‹ƒh‹óŠÔ‚É•ÏŠ·‚·‚é
-					DirectX::XMMATRIX rotationMatrix = DirectX::XMMatrixRotationRollPitchYaw(
-						transform->rotation.x, transform->rotation.y, transform->rotation.z);
+					newVelocity.y = worldDeltaF.y / elapsedTime;
+				}
+				newHasVelocity = true;
+			}
 
-					DirectX::XMVECTOR localDelta = DirectX::XMLoadFloat3(&animator.rootMotionDelta);
-					DirectX::XMVECTOR worldDelta = DirectX::XMVector3TransformNormal(localDelta, rotationMatrix);
+			// ƒuƒŒƒ“ƒh’†‚È‚ç‹ŒƒNƒŠƒbƒv‚àŒvZ‚µ‚Ä¬‚º‚é
+			if (animator.isBlending)
+			{
+				int oldAnimIndex = -1;
+				for (int i = 0; i < (int)animations.size(); i++)
+				{
+					if (animations[i].name == animator.blendAnimation) { oldAnimIndex = i; break; }
+				}
 
-					DirectX::XMFLOAT3 worldDeltaF;
-					DirectX::XMStoreFloat3(&worldDeltaF, worldDelta);
+				if (oldAnimIndex >= 0)
+				{
+					const auto& oldAnimation = animations[oldAnimIndex];
+					const float oldOldTime = animator.blendAnimationTime;
 
-					// ˆÚ“®—Ê(ˆÊ’u‚Ì·•ª)‚ğ‘¬“x‚É•ÏŠ·‚µ‚Äã‘‚«‚·‚é
-					movement->velocity.x = worldDeltaF.x / elapsedTime;
-					movement->velocity.z = worldDeltaF.z / elapsedTime;
+					// ƒgƒŠƒ~ƒ“ƒO‚³‚ê‚Ä‚¢‚½ê‡A‚»‚±‚ğ’´‚¦‚Äi‚ß‚È‚¢
+					float oldEffectiveEnd = (animator.blendTrimEnd >= 0.0f) ? animator.blendTrimEnd : oldAnimation.secondsLength;
 
-					if (animator.useRootMotionY)
+					animator.blendAnimationTime += elapsedTime * animator.playSpeed;
+					if (animator.blendAnimationTime > oldEffectiveEnd)
 					{
-						movement->velocity.y = worldDeltaF.y / elapsedTime;
+						animator.blendAnimationTime = oldEffectiveEnd;
+					}
+
+					int oldRootMotionNodeIndex = -1;
+					DirectX::XMFLOAT3 oldRootMotionDelta = { 0.0f, 0.0f, 0.0f };
+					if (!animator.rootMotionNodeName.empty())
+					{
+						oldRootMotionNodeIndex = FindNodeIndex(*skinned.model, animator.rootMotionNodeName);
+						if (oldRootMotionNodeIndex >= 0)
+						{
+							oldRootMotionDelta = CalcRootMotionDelta(
+								*skinned.model, oldAnimation, oldRootMotionNodeIndex, oldOldTime, animator.blendAnimationTime);
+						}
+					}
+
+					std::vector<DirectX::XMFLOAT3> blendPositions;
+					std::vector<DirectX::XMFLOAT4> blendRotations;
+					std::vector<DirectX::XMFLOAT3> blendScales;
+					CalcBoneTransforms(
+						*skinned.model, oldAnimation, animator.blendAnimationTime,
+						blendPositions, blendRotations, blendScales,
+						oldRootMotionNodeIndex);
+
+					// i’»‚ği‚ß‚é
+					animator.blendRate += (animator.blendTime > 0.0f) ? (elapsedTime / animator.blendTime) : 1.0f;
+					float rate = std::clamp(animator.blendRate, 0.0f, 1.0f);
+
+					// ƒ{[ƒ“s—ñ‚ğ¬‚º‚é
+					BlendPoses(
+						blendPositions, blendRotations, blendScales,
+						skinned.localPositions, skinned.localRotations, skinned.localScales,
+						rate,
+						skinned.localPositions, skinned.localRotations, skinned.localScales);
+
+					// ƒ‹[ƒgƒ‚[ƒVƒ‡ƒ“ƒuƒŒƒ“ƒh(‹ŒV‚Åƒ‹[ƒgƒ‚[ƒVƒ‡ƒ“g—p)
+					if (animator.blendUseRootMotion && newHasVelocity && transform && movement)
+					{
+						DirectX::XMMATRIX rotationMatrix = DirectX::XMMatrixRotationRollPitchYaw(
+							transform->rotation.x, transform->rotation.y, transform->rotation.z);
+						DirectX::XMVECTOR localDelta = DirectX::XMLoadFloat3(&oldRootMotionDelta);
+						DirectX::XMVECTOR worldDelta = DirectX::XMVector3TransformNormal(localDelta, rotationMatrix);
+						DirectX::XMFLOAT3 worldDeltaF;
+						DirectX::XMStoreFloat3(&worldDeltaF, worldDelta);
+
+						DirectX::XMFLOAT3 oldVelocity = { worldDeltaF.x / elapsedTime, 0.0f, worldDeltaF.z / elapsedTime };
+						if (animator.blendUseRootMotionY) oldVelocity.y = worldDeltaF.y / elapsedTime;
+
+						movement->velocity.x = oldVelocity.x * (1.0f - rate) + newVelocity.x * rate;
+						movement->velocity.z = oldVelocity.z * (1.0f - rate) + newVelocity.z * rate;
+						if (animator.blendUseRootMotionY || animator.useRootMotionY)
+							movement->velocity.y = oldVelocity.y * (1.0f - rate) + newVelocity.y * rate;
+					}
+					else if (newHasVelocity && movement)
+					{
+						// •Ğ‘¤‚¾‚¯ƒ‹[ƒgƒ‚[ƒVƒ‡ƒ“g—p‚Ìê‡‚Í
+						// VƒNƒŠƒbƒv‚Ì‘¬“x‚ğg—p
+						movement->velocity.x = newVelocity.x;
+						movement->velocity.z = newVelocity.z;
+						if (animator.useRootMotionY) movement->velocity.y = newVelocity.y;
+					}
+
+					if (animator.blendRate >= 1.0f)
+					{
+						animator.isBlending = false;
+					}
+				}
+				else
+				{
+					// ‹ŒƒNƒŠƒbƒv‚ªŒ©‚Â‚©‚ç‚È‚¢ê‡‚ÍƒuƒŒƒ“ƒh‚ğ’ú‚ß‚é
+					animator.isBlending = false;
+					if (newHasVelocity && movement)
+					{
+						movement->velocity.x = newVelocity.x;
+						movement->velocity.z = newVelocity.z;
+						if (animator.useRootMotionY) movement->velocity.y = newVelocity.y;
 					}
 				}
 			}
+			else if (newHasVelocity && movement)
+			{
+				movement->velocity.x = newVelocity.x;
+				movement->velocity.z = newVelocity.z;
+				if (animator.useRootMotionY) movement->velocity.y = newVelocity.y;
+			}
+
+			SkeletonUtils::CalcGlobalTransforms(
+				skinned.model->GetNodes(), skinned.localPositions, skinned.localRotations, skinned.localScales,
+				skinned.nodeGlobalTransforms);
+
+			SkeletonUtils::CalcSkinningMatrices(
+				*skinned.model, skinned.nodeGlobalTransforms, skinned.boneTransforms);
 		});
 
 
@@ -3914,9 +4061,7 @@ void AnimationSystem::EvaluatePose(entt::registry& registry)
 
 	auto view = registry.view<AnimatorComponent, SkinnedMeshComponent>();
 	view.each(
-		[&](auto entity,
-			AnimatorComponent& animator,
-			SkinnedMeshComponent& skinned)
+		[&](auto entity, AnimatorComponent& animator, SkinnedMeshComponent& skinned)
 		{
 			if (!skinned.model) return;
 
@@ -3926,22 +4071,22 @@ void AnimationSystem::EvaluatePose(entt::registry& registry)
 			int animIndex = -1;
 			for (int i = 0; i < (int)animations.size(); i++)
 			{
-				if (animations[i].name == animator.currentAnimation)
-				{
-					animIndex = i;
-					break;
-				}
+				if (animations[i].name == animator.currentAnimation) { animIndex = i; break; }
 			}
 			if (animIndex < 0) return;
 
 			const auto& animation = animations[animIndex];
 
-			// ƒ{[ƒ“s—ñ‚¾‚¯ŒvZiŠÔ‚Íi‚ß‚È‚¢j
 			CalcBoneTransforms(
-				*skinned.model,
-				animation,
-				animator.animationTime,
-				skinned);
+				*skinned.model, animation, animator.animationTime,
+				skinned.localPositions, skinned.localRotations, skinned.localScales);
+
+			SkeletonUtils::CalcGlobalTransforms(
+				skinned.model->GetNodes(), skinned.localPositions, skinned.localRotations, skinned.localScales,
+				skinned.nodeGlobalTransforms);
+
+			SkeletonUtils::CalcSkinningMatrices(
+				*skinned.model, skinned.nodeGlobalTransforms, skinned.boneTransforms);
 		});
 }
 
@@ -4042,24 +4187,25 @@ DirectX::XMFLOAT3 AnimationSystem::InterpolateScale(
 
 // ƒm[ƒh‚ÌƒOƒ[ƒoƒ‹s—ñ‚ğÄ‹AŒvZ‚µ‚Äƒ{[ƒ“s—ñ‚É‘‚«‚Ş
 void AnimationSystem::CalcBoneTransforms(
-	Model& model, 
+	Model& model,
 	const Model::Animation& animation,
 	float time,
-	SkinnedMeshComponent& skinned,
-	int rootMotionNodeIndex)
+	std::vector<DirectX::XMFLOAT3>& outPositions,
+	std::vector<DirectX::XMFLOAT4>& outRotations,
+	std::vector<DirectX::XMFLOAT3>& outScales,
+	int rootMotionNodeIndex) 
 {
 	auto& nodes = model.GetNodes();
 
-	// ƒ[ƒJƒ‹pose”z—ñ‚ğƒm[ƒh”‚É‡‚í‚¹‚ÄƒŠƒTƒCƒY
-	skinned.localPositions.resize(nodes.size());
-	skinned.localRotations.resize(nodes.size());
-	skinned.localScales.resize(nodes.size());
+	outPositions.resize(nodes.size());
+	outRotations.resize(nodes.size());
+	outScales.resize(nodes.size());
 
 	for (int i = 0; i < (int)nodes.size(); i++)
 	{
-		skinned.localPositions[i] = nodes[i].position;
-		skinned.localRotations[i] = nodes[i].rotation;
-		skinned.localScales[i] = nodes[i].scale;
+		outPositions[i] = nodes[i].position;
+		outRotations[i] = nodes[i].rotation;
+		outScales[i] = nodes[i].scale;
 
 		// ƒL[ƒtƒŒ[ƒ€‚ª‚ ‚ê‚Î•âŠÔ‚µ‚Äã‘‚«
 		if (i < (int)animation.nodeAnims.size())
@@ -4068,37 +4214,59 @@ void AnimationSystem::CalcBoneTransforms(
 
 			if (!nodeAnim.positionKeyframes.empty())
 			{
-				skinned.localPositions[i] = InterpolatePosition(
-					nodeAnim.positionKeyframes, time);
+				outPositions[i] = InterpolatePosition(nodeAnim.positionKeyframes, time);
 			}
-
 			if (!nodeAnim.rotationKeyframes.empty())
 			{
-				skinned.localRotations[i] = InterpolateRotation(
-					nodeAnim.rotationKeyframes, time);
+				outRotations[i] = InterpolateRotation(nodeAnim.rotationKeyframes, time);
 			}
-
 			if (!nodeAnim.scaleKeyframes.empty())
 			{
-				skinned.localScales[i] = InterpolateScale(
-					nodeAnim.scaleKeyframes, time);
+				outScales[i] = InterpolateScale(nodeAnim.scaleKeyframes, time);
 			}
 		}
-		
+
 		if (i == rootMotionNodeIndex)
 		{
-			skinned.localPositions[i] = CalcNodeLocalPosition(
-				animation, i, nodes[i], 0.0f);
+			outPositions[i] = CalcNodeLocalPosition(animation, i, nodes[i], 0.0f);
 		}
 	}
+}
 
-	// ŠK‘wŒvZ‚ÆƒXƒLƒjƒ“ƒOs—ñ‰»‚Í‹¤’ÊƒƒWƒbƒN(SkeletonUtils)‚É”C‚¹‚é
-	SkeletonUtils::CalcGlobalTransforms(
-		nodes, skinned.localPositions, skinned.localRotations, skinned.localScales,
-		skinned.nodeGlobalTransforms);
+// 2‚Â‚Ìƒ|[ƒY‚ğrate‚Å•âŠÔ‚·‚é
+void AnimationSystem::BlendPoses(
+	const std::vector<DirectX::XMFLOAT3>& posA,
+	const std::vector<DirectX::XMFLOAT4>& rotA,
+	const std::vector<DirectX::XMFLOAT3>& scaleA,
+	const std::vector<DirectX::XMFLOAT3>& posB,
+	const std::vector<DirectX::XMFLOAT4>& rotB,
+	const std::vector<DirectX::XMFLOAT3>& scaleB,
+	float rate,
+	std::vector<DirectX::XMFLOAT3>& outPositions,
+	std::vector<DirectX::XMFLOAT4>& outRotations,
+	std::vector<DirectX::XMFLOAT3>& outScales)
+{
+	size_t count = posA.size();
 
-	SkeletonUtils::CalcSkinningMatrices(
-		model, skinned.nodeGlobalTransforms, skinned.boneTransforms);
+	std::vector<DirectX::XMFLOAT3> tempPos(count);
+	std::vector<DirectX::XMFLOAT4> tempRot(count);
+	std::vector<DirectX::XMFLOAT3> tempScale(count);
+
+	for (size_t i = 0; i < count; i++)
+	{
+		DirectX::XMStoreFloat3(&tempPos[i],
+			DirectX::XMVectorLerp(DirectX::XMLoadFloat3(&posA[i]), DirectX::XMLoadFloat3(&posB[i]), rate));
+
+		DirectX::XMStoreFloat4(&tempRot[i],
+			DirectX::XMQuaternionSlerp(DirectX::XMLoadFloat4(&rotA[i]), DirectX::XMLoadFloat4(&rotB[i]), rate));
+
+		DirectX::XMStoreFloat3(&tempScale[i],
+			DirectX::XMVectorLerp(DirectX::XMLoadFloat3(&scaleA[i]), DirectX::XMLoadFloat3(&scaleB[i]), rate));
+	}
+
+	outPositions = std::move(tempPos);
+	outRotations = std::move(tempRot);
+	outScales = std::move(tempScale);
 }
 
 // –¼‘O‚©‚çƒ‹[ƒgƒm[ƒhƒCƒ“ƒfƒbƒNƒX‚ğ’T‚·
@@ -4136,29 +4304,30 @@ DirectX::XMFLOAT3 AnimationSystem::CalcNodeLocalPosition(
 
 // ƒ‹[ƒgƒ‚[ƒVƒ‡ƒ“‚ÌˆÚ“®—Ê‚ğŒvZ‚·‚é
 DirectX::XMFLOAT3 AnimationSystem::CalcRootMotionDelta(
-	const Model& model, 
+	const Model& model,
 	const Model::Animation& animation,
-	int rootMotionNodeIndex, 
-	float oldTime, 
-	float newTime)
+	int rootMotionNodeIndex,
+	float oldTime,
+	float newTime,
+	float rangeStart,
+	float rangeEnd) 
 {
 	const auto& node = model.GetNodes()[rootMotionNodeIndex];
 
-	// ƒ|[ƒYæ“¾—p‚Ìƒ‰ƒ€ƒ_i–ˆ‰ñ“¯‚¶ˆø”‚ğ‘‚©‚¸‚ÉÏ‚Ş‚æ‚¤‚Éj
+	// ƒ|[ƒYæ“¾—p‚Ìƒ‰ƒ€ƒ_
 	auto getPos = [&](float t)
 		{
 			return CalcNodeLocalPosition(animation, rootMotionNodeIndex, node, t);
 		};
 
 	DirectX::XMFLOAT3 delta{ 0.0f, 0.0f, 0.0f };
+	float actualRangeEnd = (rangeEnd >= 0.0f) ? rangeEnd : animation.secondsLength;
 
 	if (oldTime > newTime)
 	{
-		// ƒ‹[ƒv‚ÅI’[¨ŠJn‚ÉŠª‚«–ß‚Á‚½ê‡
-		// uold¨I’[v‚ÌˆÚ“®‚ÆuŠJn¨newv‚ÌˆÚ“®‚ğ‡¬‚·‚é
-		DirectX::XMFLOAT3 beginPos = getPos(0.0f);
+		DirectX::XMFLOAT3 beginPos = getPos(rangeStart);
 		DirectX::XMFLOAT3 oldPos = getPos(oldTime);
-		DirectX::XMFLOAT3 endPos = getPos(animation.secondsLength);
+		DirectX::XMFLOAT3 endPos = getPos(actualRangeEnd);
 		DirectX::XMFLOAT3 newPos = getPos(newTime);
 
 		delta.x = (endPos.x - oldPos.x) + (newPos.x - beginPos.x);
@@ -4167,7 +4336,6 @@ DirectX::XMFLOAT3 AnimationSystem::CalcRootMotionDelta(
 	}
 	else
 	{
-		// ’ÊíF‘OƒtƒŒ[ƒ€‚Æ¡ƒtƒŒ[ƒ€‚Ì·•ª‚ª‚»‚Ì‚Ü‚ÜˆÚ“®—Ê
 		DirectX::XMFLOAT3 oldPos = getPos(oldTime);
 		DirectX::XMFLOAT3 newPos = getPos(newTime);
 
@@ -4211,7 +4379,8 @@ void AnimatorControllerSystem::Update(entt::registry& registry)
 
 
 		// eŠK‘w: –ˆƒtƒŒ[ƒ€Aq‚Ìó‘Ô‚ÉŠÖ‚í‚ç‚¸Å—Dæ‚Åƒ`ƒFƒbƒN‚·‚é
-		int newParentId = FindTransition(data.parentGraph.stateLinks, animator.currentParentStateId, registry, entity);
+		float parentBlendDuration = 0.0f;
+		int newParentId = FindTransition(data.parentGraph.stateLinks, animator.currentParentStateId, registry, entity, parentBlendDuration);
 		if (newParentId != -1)
 		{
 			EnterParentState(animator, data, newParentId, registry, entity);
@@ -4226,7 +4395,8 @@ void AnimatorControllerSystem::Update(entt::registry& registry)
 			continue;
 		}
 
-		int newChildId = FindTransition(parent->childGraph.childLinks, animator.currentChildStateId, registry, entity);
+		float childBlendDuration = 0.0f;
+		int newChildId = FindTransition(parent->childGraph.childLinks, animator.currentChildStateId, registry, entity, childBlendDuration);
 		if (newChildId == -1) continue;
 
 		ChildState* newChild = FindChildStateById(parent->childGraph, newChildId);
@@ -4239,16 +4409,20 @@ void AnimatorControllerSystem::Update(entt::registry& registry)
 		}
 		else
 		{
+			SequencerComponent* sequencer = registry.try_get<SequencerComponent>(entity);
+
 			animator.currentChildStateId = newChildId;
-			ApplyChildState(animator, *newChild);
+			ApplyChildState(animator, *newChild, childBlendDuration, sequencer);
 		}
 	}
 }
 
-// ‘JˆÚğŒ‚ª¬—§‚µ‚Ä‚¢‚é•¨‚ğ’T‚·A•¡”‚ ‚éê‡‚ÍÅ‰‚ÉŒ©‚Â‚©‚Á‚½‚à‚Ì‚ğ’Ê‚µAŒx‚ğo‚·
-int AnimatorControllerSystem::FindTransition(const std::vector<AnimLink>& links, int fromId, entt::registry& registry, entt::entity entity)
+// ‘JˆÚæ‚ÌƒuƒŒƒ“ƒhŠÔ‚ğ•Ô‚·
+int AnimatorControllerSystem::FindTransition(const std::vector<AnimLink>& links, int fromId, entt::registry& registry, entt::entity entity, float& outBlendDuration)
 {
 	int result = -1;
+	outBlendDuration = 0.0f;
+
 	for (const auto& link : links)
 	{
 		if (link.fromId != fromId) continue;
@@ -4257,10 +4431,11 @@ int AnimatorControllerSystem::FindTransition(const std::vector<AnimLink>& links,
 		if (result == -1)
 		{
 			result = link.toId;
+			outBlendDuration = link.blend ? link.blendDuration : 0.0f;
 		}
 		else
 		{
-			// ‚±‚±‚ÉŒxo‚·
+			// Šù‚ÉŒó•â‚ª‚ ‚ê‚ÎŒx
 		}
 	}
 	return result;
@@ -4311,14 +4486,17 @@ void AnimatorControllerSystem::EnterChildGraphFromStart(AnimatorComponent& anima
 	int startId = FindChildStateByType(parent.childGraph, ChildStateType::Start);
 	if (startId == -1) return;
 
-	int childId = FindTransition(parent.childGraph.childLinks, startId, registry, entity);
+	float blendDuration = 0.0f;
+	int childId = FindTransition(parent.childGraph.childLinks, startId, registry, entity, blendDuration);
 	if (childId == -1) return;
 
 	ChildState* child = FindChildStateById(parent.childGraph, childId);
 	if (!child) return;
 
+	SequencerComponent* sequencer = registry.try_get<SequencerComponent>(entity);
+
 	animator.currentChildStateId = childId;
-	ApplyChildState(animator, *child);
+	ApplyChildState(animator, *child, blendDuration, sequencer);
 }
 // ‰‰ñ‚Ì‰Šúó‘Ô‚ğŒˆ‚ß‚é
 void AnimatorControllerSystem::InitializeState(AnimatorComponent& animator, AnimatorGraphData& data, entt::registry& registry, entt::entity entity)
@@ -4326,15 +4504,79 @@ void AnimatorControllerSystem::InitializeState(AnimatorComponent& animator, Anim
 	int entryId = FindEntryParentState(data.parentGraph);
 	if (entryId == -1) return;
 
-	int parentId = FindTransition(data.parentGraph.stateLinks, entryId, registry, entity);
+	float blendDuration = 0.0f; // Entry‚©‚ç‚ÌÅ‰‚Ì‘JˆÚ‚ÍƒuƒŒƒ“ƒh•s—v‚Ì‚½‚ßg‚í‚È‚¢
+	int parentId = FindTransition(data.parentGraph.stateLinks, entryId, registry, entity, blendDuration);
 	if (parentId == -1) return;
 
 	EnterParentState(animator, data, parentId, registry, entity);
 }
-// ChildState‚Ì“à—e‚ğAnimatorComponent‚Ö”½‰f‚·‚é
-void AnimatorControllerSystem::ApplyChildState(AnimatorComponent& animator, const ChildState& child)
+bool AnimatorControllerSystem::FindTrimmingRange(SequencerData& data, const std::string& clipName, float& outStart, float& outEnd)
 {
+	for (auto& clip : data.clips)
+	{
+		if (clip.clipName != clipName) continue;
+
+		for (auto& range : clip.ranges)
+		{
+			if (range.flag == SequencerFlag::Trimming)
+			{
+				outStart = range.start;
+				outEnd = range.end;
+				return true;
+			}
+		}
+		break;
+	}
+	return false;
+}
+// ChildState‚Ì“à—e‚ğAnimatorComponent‚Ö”½‰f‚·‚é
+void AnimatorControllerSystem::ApplyChildState(AnimatorComponent& animator, const ChildState& child, float blendDuration, SequencerComponent* sequencer)
+{
+	// ƒgƒŠƒ~ƒ“ƒO”ÍˆÍ‚ğ’²‚×‚é
+	float trimStart = 0.0f;
+	float trimEnd = -1.0f;
+	if (sequencer && !sequencer->sequencerPath.empty())
+	{
+		SequencerData& data = trimDataCache.GetOrLoad(sequencer->sequencerPath,
+			[](SequencerData& data, const nlohmann::json& j) { data.FromJson(j); });
+
+		float normStart = 0.0f, normEnd = 1.0f;
+		if (FindTrimmingRange(data, child.clipName, normStart, normEnd))
+		{
+			trimStart = normStart;
+			trimEnd = normEnd;
+		}
+	}
+
+	if (animator.currentAnimation.empty() || blendDuration <= 0.0f)
+	{
+		animator.currentAnimation = child.clipName;
+		animator.trimStart = trimStart;
+		animator.trimEnd = trimEnd;
+		animator.trimResolved = false;
+		animator.animationTime = 0.0f;
+		animator.isPlaying = true;
+		animator.isEnd = false;
+		animator.useRootMotion = child.useRootMotion;
+		animator.loop = child.loop;
+		animator.isBlending = false;
+		return;
+	}
+
+	// ‹ŒƒNƒŠƒbƒv‚Ìî•ñ‚ğ‘Ş”ğ‚µ‚Ä‚©‚çƒuƒŒƒ“ƒhŠJn
+	animator.blendAnimation = animator.currentAnimation;
+	animator.blendAnimationTime = animator.animationTime;
+	animator.blendUseRootMotion = animator.useRootMotion;
+	animator.blendUseRootMotionY = animator.useRootMotionY;
+	animator.blendTrimEnd = animator.trimEnd; 
+	animator.blendTime = blendDuration;
+	animator.blendRate = 0.0f;
+	animator.isBlending = true;
+
 	animator.currentAnimation = child.clipName;
+	animator.trimStart = trimStart;
+	animator.trimEnd = trimEnd;
+	animator.trimResolved = false;
 	animator.animationTime = 0.0f;
 	animator.isPlaying = true;
 	animator.isEnd = false;
@@ -11025,6 +11267,7 @@ struct PlayerMoveComponent
 	// “à•”À‘•—p
 	float inputLossGraceTime = 0.1f; // “ü—Í‚ªˆêu–³‚­‚È‚Á‚Ä‚àA—P—\‚Æ‚µ‚ÄˆÛ‚·‚éŠÔ
 	float inputLossTimer = 0.0f;     // “à•”À‘•—pA“ü—Í‚ª–³‚­‚È‚Á‚Ä‚©‚ç‚ÌŒo‰ßŠÔ
+	bool wasControlLocked = false;   // ‘OƒtƒŒ[ƒ€AxzControlLocked‚ªtrue‚¾‚Á‚½‚©
 }; 
  
 ===== PlayerSprintComponent.h ===== 
@@ -11660,6 +11903,9 @@ void PlayerMoveSystem::Update(entt::registry& registry, float elapsedTime, const
 				transform.rotation.y = PlayerMovementUtils::RotateTowards(transform.rotation.y, targetYaw, playerMove.turnSpeed, elapsedTime);
 			}
 
+			// §ŒäŒ ‚ğæ‚è–ß‚µ‚½’¼Œã‚Ì1ƒtƒŒ[ƒ€‚©‚Ç‚¤‚©
+			bool justRegainedControl = playerMove.wasControlLocked && !movement.xzControlLocked;
+
 			// ˆÚ“®‚Ì§ŒäŒ ‚ğ‚Á‚Ä‚¢‚é‚Æ‚«‚Ì‚İXV‚·‚é
 			if (!movement.xzControlLocked)
 			{
@@ -11680,6 +11926,14 @@ void PlayerMoveSystem::Update(entt::registry& registry, float elapsedTime, const
 					movement.velocity.x = vel.velocity.x;
 					movement.velocity.z = vel.velocity.z;
 				}
+				else if (justRegainedControl)
+				{
+					// §Œä‚ğæ‚è–ß‚µ‚½uŠÔA“ü—Í‚ª–³‚¢‚È‚ç—P—\‚ğ‹²‚Ü‚¸‘¦À‚ÉŠm’è‚³‚¹‚é
+					playerMove.state = PlayerMovementState::None;
+					playerMove.inputLossTimer = 0.0f;
+					movement.velocity.x = 0.0f;
+					movement.velocity.z = 0.0f;
+				}
 				else
 				{
 					// “ü—Í‚ª‚È‚¢
@@ -11692,21 +11946,9 @@ void PlayerMoveSystem::Update(entt::registry& registry, float elapsedTime, const
 						movement.velocity.z = 0.0f;
 					}
 				}
-				//// ƒXƒeƒBƒbƒN‚Ì“|‚µ‹ï‡‚É‰‚¶‚ÄANone/Walking/Jogging‚ğ”»’è‚·‚é
-				//if (dir.inputLength > playerMove.jogThreshold)
-				//	playerMove.state = PlayerMovementState::Jogging;
-				//else if (dir.inputLength > 0.0f)
-				//	playerMove.state = PlayerMovementState::Walking;
-				//else
-				//	playerMove.state = PlayerMovementState::None;
-
-				//float speed = (playerMove.state == PlayerMovementState::Jogging) ? playerMove.jogSpeed : playerMove.walkSpeed;
-
-				//// ‰ü‚ß‚ÄÀÛ‚Ì‘¬“x‚ÅŒvZ‚µ’¼‚·
-				//auto vel = PlayerMovementUtils::StickToWorldVelocity(input.moveX, input.moveZ, front, right, speed);
-				//movement.velocity.x = vel.velocity.x;
-				//movement.velocity.z = vel.velocity.z;
 			}
+
+			playerMove.wasControlLocked = movement.xzControlLocked;
 
 			// ƒtƒ‰ƒOXV
 			playerMove.isWalking = (playerMove.state == PlayerMovementState::Walking);
@@ -13665,13 +13907,17 @@ void MetaRegistry::Initialize()
 		.custom<FieldInfo>(FieldInfo{ "Jog Speed", 0.0f, 10.0f })
 		.data<&PlayerMoveComponent::jogThreshold>("jogThreshold"_hs)
 		.custom<FieldInfo>(FieldInfo{ "Jog Threshold", 0.0f, 1.0f })
+		.data<&PlayerMoveComponent::turnSpeed>("turnSpeed"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Turn Speed", 0.0f, 30.0f })
+		.data<&PlayerMoveComponent::inputLossGraceTime>("inputLossGraceTime"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Input Loss Grace Time", 0.0f, 1.0f })
 		.data<&PlayerMoveComponent::isWalking>("isWalking"_hs)
 		.custom<FieldInfo>(FieldInfo{ "Is Walking" })
 		.data<&PlayerMoveComponent::isJogging>("isJogging"_hs)
 		.custom<FieldInfo>(FieldInfo{ "Is Jogging" })
 		.data<&PlayerMoveComponent::isMoving>("isMoving"_hs)
 		.custom<FieldInfo>(FieldInfo{ "Is Moving" });
-	
+
 	entt::meta_factory<PlayerDodgeComponent>{}
 	.type("PlayerDodgeComponent")
 		.custom<TypeInfo>(TypeInfo{ "Player Dodge" })
@@ -13728,7 +13974,13 @@ void MetaRegistry::Initialize()
 		.data<&AnimatorComponent::useRootMotionY>("useRootMotionY"_hs)
 		.custom<FieldInfo>(FieldInfo{ "Use Root Motion Y" })
 		.data<&AnimatorComponent::rootMotionNodeName>("rootMotionNodeName"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Root Motion Node" });
+		.custom<FieldInfo>(FieldInfo{ "Root Motion Node" })
+		.data<&AnimatorComponent::isBlending>("isBlending"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Is Blending", 0.0f, 0.0f, 0.1f, "", true })
+		.data<&AnimatorComponent::blendRate>("blendRate"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Blend Rate", 0.0f, 1.0f, 0.1f, "", true })
+		.data<&AnimatorComponent::blendAnimation>("blendAnimation"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Blend From (Old Clip)", 0.0f, 0.0f, 0.1f, "", true });
 
 	entt::meta_factory<SequencerComponent>{}
 	.type("SequencerComponent")
@@ -18639,11 +18891,12 @@ const char* StudioSequencer::GetSequencerFlagName(SequencerFlag flag)
 
 {
 	// í—Ş‚ª‘‚¦‚½‚ç‚±‚±‚É‚à’Ç‰Á‚·‚é
-	static const char* names[] = 
-	{ 
-		"AnimExit", 
-		"Attack", 
-		"SuperArmor" 
+	static const char* names[] =
+	{
+		"AnimExit",
+		"SuperArmor",
+		"Attack",
+		"Trimming"
 	};
 
 	// names‚Ì—v‘f”‚ÆASequencerFlag‚ÌŒÂ”‚ªH‚¢ˆá‚Á‚Ä‚¢‚½‚çAƒrƒ‹ƒh‚ÉƒGƒ‰[‚É‚·‚é

@@ -84,7 +84,7 @@
                     "id": 8,
                     "fromId": 3,
                     "toId": 7,
-                    "blend": true,
+                    "blend": false,
                     "blendDuration": 0.20000000298023224,
                     "condition": {
                         "returnNode": {
@@ -828,7 +828,7 @@
                     "id": 198,
                     "fromId": 170,
                     "toId": 197,
-                    "blend": true,
+                    "blend": false,
                     "blendDuration": 0.20000000298023224,
                     "condition": {
                         "returnNode": {
