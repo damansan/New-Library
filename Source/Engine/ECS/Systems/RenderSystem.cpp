@@ -316,7 +316,7 @@ void RenderSystem::GeometryPass(
 					mesh.material->alphaMode == Model::Material::AlphaMode::Mask;
 				cbObjectData.alphaCutoff = isMask ? mesh.material->alphaCutoff : 0.0f;
 				dc->UpdateSubresource(cbObject.Get(), 0, nullptr, &cbObjectData, 0, 0);
-				dc->PSSetConstantBuffers(1, 1, cbObject.GetAddressOf());
+				dc->PSSetConstantBuffers(2, 1, cbObject.GetAddressOf());
 
 				UINT stride = sizeof(Model::Vertex), offset = 0;
 				dc->IASetVertexBuffers(0, 1, mesh.vertexBuffer.GetAddressOf(), &stride, &offset);
@@ -372,7 +372,7 @@ void RenderSystem::GeometryPass(
 					mesh.material->alphaMode == Model::Material::AlphaMode::Mask;
 				cbObjectData.alphaCutoff = isMask ? mesh.material->alphaCutoff : 0.0f;
 				dc->UpdateSubresource(cbObject.Get(), 0, nullptr, &cbObjectData, 0, 0);
-				dc->PSSetConstantBuffers(1, 1, cbObject.GetAddressOf());
+				dc->PSSetConstantBuffers(2, 1, cbObject.GetAddressOf());
 
 				CbSkinning cbSkinningData{};
 

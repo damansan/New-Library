@@ -6,7 +6,7 @@ Texture2D emissiveMap          : register(t4); // Emissive
 
 SamplerState samplerState      : register(s0);
 
-cbuffer CbObject : register(b1)
+cbuffer CbObject : register(b2)
 {
     row_major float4x4 world;
     float alphaCutoff;
