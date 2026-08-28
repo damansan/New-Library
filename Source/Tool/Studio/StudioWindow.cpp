@@ -94,6 +94,14 @@ void StudioWindow::Render()
 	// フラスタム更新
 	renderSystem.SetFrustum(camera.GetView(), camera.GetProjection());
 
+	// スカイボックス描画
+	shared->skyBox.Render(
+		dc,
+		camera.GetView(),
+		camera.GetProjection(),
+		camera.GetEye()
+	);
+
 	// モデルがある時だけRenderSystemを走らせる
 	if (!studioRegistry.storage<TransformComponent>().empty())
 	{
@@ -108,13 +116,6 @@ void StudioWindow::Render()
 			renderHeight
 		);
 	}
-	// スカイボックス描画
-	shared->skyBox.Render(
-		dc,
-		camera.GetView(),
-		camera.GetProjection(),
-		camera.GetEye()
-	);
 
 	// アタッチメントの3D描画
 	for (auto& attachment : attachments)
