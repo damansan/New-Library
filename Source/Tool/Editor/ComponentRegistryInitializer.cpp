@@ -29,6 +29,7 @@
 #include "Engine/ECS/Components/IKComponent.h"
 
 #include "Engine/ECS/Components/SequencerComponent.h"
+#include "Engine/ECS/Components/AnimationSpeedComponent.h"
 
 #include "MetaRegistry.h"
 
@@ -490,4 +491,17 @@ void ComponentRegistryInitializer::Initialize()
 					MetaRegistry::DrawMetaFields(entt::resolve<SequencerComponent>(), entt::forward_as_meta(*seq));
 				}
 			}); 
+
+		// アニメーション速度コンポーネントの登録
+		REGISTER_COMPONENT(AnimationSpeedComponent, "Animation Speed",
+			[](auto& reg, auto e)
+			{
+				auto* animSpeed = reg.try_get<AnimationSpeedComponent>(e);
+				if (!animSpeed) return;
+
+				if (ImGui::CollapsingHeader("Animation Speed", ImGuiTreeNodeFlags_DefaultOpen))
+				{
+					MetaRegistry::DrawMetaFields(entt::resolve<AnimationSpeedComponent>(), entt::forward_as_meta(*animSpeed));
+				}
+			});
 }

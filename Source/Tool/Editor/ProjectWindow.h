@@ -51,7 +51,8 @@ private:
     bool IsAnimGraphFile(const std::filesystem::path& path);
 	// ファイルがシーケンサーファイルか判定
     static bool IsSequencerFile(const std::filesystem::path& path);
-
+    // ファイルがアニメーション速度ファイルか判定
+    static bool IsAnimSpeedFile(const std::filesystem::path& path);
 
     // 削除確認ポップ
     void DrawDeleteConfirmPopup();

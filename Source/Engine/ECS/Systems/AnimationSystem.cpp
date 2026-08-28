@@ -57,8 +57,7 @@ void AnimationSystem::Update(
 			
 			const float oldTime = animator.animationTime;
 
-			animator.animationTime += elapsedTime * animator.playSpeed;
-
+			animator.animationTime += elapsedTime * animator.playSpeed * animator.speedCurveMultiplier;
 			// ƒ‹[ƒvˆ—
 			if (animator.loop)
 			{

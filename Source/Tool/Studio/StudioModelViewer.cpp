@@ -6,6 +6,7 @@
 
 #include "Engine/ECS/Components/AnimatorComponent.h"
 #include "Engine/ECS/Components/MaterialComponent.h"
+#include "Engine/ECS/Components/AnimationSpeedComponent.h"
 
 // 初期化
 void StudioModelViewer::Initialize(
@@ -139,6 +140,8 @@ void StudioModelViewer::LoadModel(
         animator.currentAnimation = model->GetAnimations()[0].name;
         animator.isPlaying = false;
         animator.loop = false;
+
+        registry.emplace<AnimationSpeedComponent>(modelEntity);
     }
 
     // ロード済みフラグ

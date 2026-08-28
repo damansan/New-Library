@@ -303,7 +303,8 @@ void ProjectWindow::DrawFileGrid(entt::registry& registry, EditorContext& contex
 		bool isModel = IsModelFile(entry.path());
 		bool isAnimGraph = IsAnimGraphFile(entry.path());
 		bool isSequencer = IsSequencerFile(entry.path());
-		if (!isModel && !isAnimGraph && !isSequencer) continue;
+		bool isAnimSpeed = IsAnimSpeedFile(entry.path());
+		if (!isModel && !isAnimGraph && !isSequencer && !isAnimSpeed) continue;
 
 		std::string filename = entry.path().stem().string();
 		std::string modelPath = entry.path().string();
@@ -332,6 +333,7 @@ void ProjectWindow::DrawFileGrid(entt::registry& registry, EditorContext& contex
 		{
 			ImU32 color = isAnimGraph ? IM_COL32(200, 130, 60, 255)
 				: isSequencer ? IM_COL32(120, 200, 130, 255)
+				: isAnimSpeed ? IM_COL32(200, 90, 160, 255)
 				: IM_COL32(80, 120, 200, 255);
 			ImGui::GetWindowDrawList()->AddRectFilled(
 				pos,
@@ -358,8 +360,8 @@ void ProjectWindow::DrawFileGrid(entt::registry& registry, EditorContext& contex
 			}
 		}
 
-		// ドラッグ開始（モデル／アニメーショングラフ/シーケンサー）
-		if ((isModel || isAnimGraph || isSequencer) && ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID)) 
+		// ドラッグ開始（モデル／アニメーショングラフ/シーケンサー/アニメーション速度）
+		if ((isModel || isAnimGraph || isSequencer || isAnimSpeed) && ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
 		{
 			if (isModel)
 			{
@@ -377,10 +379,18 @@ void ProjectWindow::DrawFileGrid(entt::registry& registry, EditorContext& contex
 					modelPath.size() + 1
 				);
 			}
-			else // isSequencer
+			else if (isSequencer)
 			{
 				ImGui::SetDragDropPayload(
 					"SEQUENCER_PATH",
+					modelPath.c_str(),
+					modelPath.size() + 1
+				);
+			}
+			else // isAnimSpeed
+			{
+				ImGui::SetDragDropPayload(
+					"ANIMSPEED_PATH",
 					modelPath.c_str(),
 					modelPath.size() + 1
 				);
@@ -491,6 +501,15 @@ bool ProjectWindow::IsSequencerFile(const std::filesystem::path& path)
 	std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
 
 	return ext == ".sequencer";
+}
+
+// ファイルがアニメーション速度ファイルか判定
+bool ProjectWindow::IsAnimSpeedFile(const std::filesystem::path& path)
+{
+	std::string ext = path.extension().string();
+	std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+
+	return ext == ".animspeed";
 }
 
 

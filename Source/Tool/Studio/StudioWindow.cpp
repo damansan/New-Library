@@ -35,6 +35,9 @@ void StudioWindow::Update(float elapsedTime)
 	// モデルビュワー更新
 	stadoiModelViewer.Update(elapsedTime, context);
 
+	// アニメーション速度更新
+	animationSpeedSystem.Update(studioRegistry);
+
 	if (context.requestPoseUpdate)
 	{
 		// スクラブ操作時は時間を進めずポーズだけ更新
@@ -148,6 +151,7 @@ void StudioWindow::DrawWindow(const char* windowName)
 			ImGui::MenuItem("Timeline", nullptr, &context.showTimeline);
 			ImGui::MenuItem("Sequencer", nullptr, &context.showSequencer);
 			ImGui::MenuItem("AnimatorGraph", nullptr, &context.showAnimatorGraph);
+			ImGui::MenuItem("AnimationSpeed", nullptr, &context.showAnimationSpeed);
 
 			ImGui::EndMenu();
 		}
@@ -258,6 +262,12 @@ void StudioWindow::DrawWindow(const char* windowName)
 	if (context.showAnimatorGraph)
 	{
 		animatorGraph.DrawGUI(studioRegistry, context);
+	}
+
+	// AnimationSpeedパネル
+	if (context.showAnimationSpeed)
+	{
+		studioAnimationSpeed.DrawGUI(studioRegistry, context);
 	}
 
 	stadoiModelViewer.DrawGUI(studioRegistry, context);

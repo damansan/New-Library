@@ -7,6 +7,8 @@
 #include "Engine/ECS/Systems/MovementSystem.h" 
 #include "Engine/ECS/Systems/AnimationSystem.h"
 #include "Engine/ECS/Systems/AnimatorControllerSystem.h"
+#include "Engine/ECS/Systems/AnimationSpeedSystem.h"
+
 #include "Project/ECS/Systems/PlayerMoveSystem.h"
 
 
@@ -46,6 +48,8 @@ private:
 	MovementSystem   movementSystem;
 	AnimationSystem  animationSystem;
 	AnimatorControllerSystem animatorControllerSystem;
+	AnimationSpeedSystem animationSpeedSystem;
+
 	PlayerMoveSystem playerMoveSystem;
 
 	MeshLoaderSystem meshLoaderSystem;

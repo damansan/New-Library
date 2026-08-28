@@ -11,6 +11,7 @@
 #include "entt.hpp"
 #include "Engine/ECS/Systems/RenderSystem.h"
 #include "Engine/ECS/Systems/AnimationSystem.h"
+#include "Engine/ECS/Systems/AnimationSpeedSystem.h"
 
 #include "Engine/Rendering/LightManager.h"
 #include "Engine/Resource/ResourceManager.h"
@@ -21,6 +22,7 @@
 #include "StudioTimeline.h"
 #include "StudioSequencer.h"
 #include "StudioAnimatorGraph.h"
+#include "StudioAnimationSpeed.h"
 
 class StudioWindow
 {
@@ -54,6 +56,7 @@ public:
         studioTimeline.SetWindowId(id);
         studioSequencer.SetWindowId(id);
         animatorGraph.SetWindowId(id);
+        studioAnimationSpeed.SetWindowId(id);
 
     }
     int  GetWindowId()  const { return windowId; }
@@ -82,6 +85,7 @@ private:
     entt::registry    studioRegistry;
     RenderSystem      renderSystem;
     AnimationSystem   animationSystem;
+    AnimationSpeedSystem  animationSpeedSystem;
     LightManager      lightManager;
     ResourceManager   resourceManager;
     
@@ -93,7 +97,7 @@ private:
     StudioTimeline    studioTimeline;
     StudioSequencer   studioSequencer;
     StudioAnimatorGraph animatorGraph;
-
+    StudioAnimationSpeed studioAnimationSpeed;
 
     // ウィンドウ状態
     int   windowId = 0;

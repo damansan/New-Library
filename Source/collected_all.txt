@@ -1730,6 +1730,48 @@ void SceneManager::ClearScene()
 }
  
  
+===== AnimationSpeedData.h ===== 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Data\AnimationSpeedData.h 
+#pragma once
+#include <string>
+#include <vector>
+#include <json.hpp>
+
+// ‘¬“xƒ|ƒCƒ“ƒg
+struct AnimationSpeedPoint
+{
+	int id = -1;
+	float time = 0.0f;
+	float speed = 1.0f;
+};
+
+// 1ƒNƒŠƒbƒv•ª‚Ì‘¬“xƒ|ƒCƒ“ƒgŒQ
+struct AnimationSpeedClipData
+{
+	std::string clipName;
+	std::vector<AnimationSpeedPoint> points;
+
+	int nextId = 1;
+	int GenerateId() { return nextId++; }
+
+	// ³‹K‰»ŠÔ‚É‚¨‚¯‚é‘¬“x‚ğüŒ`•âŠ®‚Å‹‚ß‚é
+	float EvaluateSpeed(float normalizedTime) const;
+};
+
+// ƒ‚ƒfƒ‹1‘Ì•ªA‘SƒNƒŠƒbƒv‚Ì‘¬“xƒf[ƒ^‚ğ‚Ü‚Æ‚ß‚½‚à‚Ì
+class AnimationSpeedData
+{
+public:
+	std::vector<AnimationSpeedClipData> clips;
+
+	// w’è‚µ‚½ƒNƒŠƒbƒv–¼‚Ìƒf[ƒ^‚ğ’T‚·
+	AnimationSpeedClipData* FindOrCreateClip(const std::string& clipName);
+
+	// •Û‘¶/“Ç‚İ‚İ
+	nlohmann::ordered_json ToJson() const;
+	void FromJson(const nlohmann::json& j);
+}; 
+ 
 ===== AnimatorGraphData.h ===== 
 Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Data\AnimatorGraphData.h 
 #pragma once
@@ -2014,6 +2056,114 @@ public:
 	nlohmann::ordered_json ToJson() const;
 	void FromJson(const nlohmann::json& j);
 }; 
+ 
+===== AnimationSpeedData.cpp ===== 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Data\AnimationSpeedData.cpp 
+#include "AnimationSpeedData.h"
+#include <algorithm>
+
+// w’è‚µ‚½ƒNƒŠƒbƒv–¼‚Ìƒf[ƒ^‚ğ’T‚·
+AnimationSpeedClipData* AnimationSpeedData::FindOrCreateClip(const std::string& clipName)
+{
+	for (auto& clip : clips)
+	{
+		if (clip.clipName == clipName) return &clip;
+	}
+
+	AnimationSpeedClipData newClip;
+	newClip.clipName = clipName;
+	clips.push_back(newClip);
+	return &clips.back();
+}
+
+// ³‹K‰»ŠÔ‚É‚¨‚¯‚é‘¬“x‚ğüŒ`•âŠ®‚Å‹‚ß‚é
+float AnimationSpeedClipData::EvaluateSpeed(float normalizedTime) const
+{
+	if (points.empty()) return 1.0f;
+
+	// ƒ\[ƒg—pˆê”z—ñ
+	std::vector<const AnimationSpeedPoint*> sorted;
+	sorted.reserve(points.size());
+	for (const auto& p : points) sorted.push_back(&p);
+	std::sort(sorted.begin(), sorted.end(),
+		[](const AnimationSpeedPoint* a, const AnimationSpeedPoint* b) { return a->time < b->time; });
+
+	// —¼’[
+	if (normalizedTime <= sorted.front()->time) return sorted.front()->speed;
+	if (normalizedTime >= sorted.back()->time)  return sorted.back()->speed;
+
+	// ‹²‚ñ‚Å‚¢‚é2“_‚ğ’T‚µ‚ÄüŒ`•âŠÔ
+	for (size_t i = 0; i + 1 < sorted.size(); ++i)
+	{
+		const AnimationSpeedPoint* a = sorted[i];
+		const AnimationSpeedPoint* b = sorted[i + 1];
+		if (normalizedTime >= a->time && normalizedTime <= b->time)
+		{
+			float range = b->time - a->time;
+			float t = (range > 0.0f) ? (normalizedTime - a->time) / range : 0.0f;
+			return a->speed + (b->speed - a->speed) * t;
+		}
+	}
+
+	return 1.0f;
+}
+
+// •Û‘¶
+nlohmann::ordered_json AnimationSpeedData::ToJson() const
+{
+	nlohmann::ordered_json j;
+	j["clips"] = nlohmann::json::array();
+
+	for (const auto& clip : clips)
+	{
+		nlohmann::ordered_json jc;
+		jc["clipName"] = clip.clipName;
+		jc["nextId"] = clip.nextId;
+
+		jc["points"] = nlohmann::json::array();
+		for (const auto& p : clip.points)
+		{
+			nlohmann::ordered_json jp;
+			jp["id"] = p.id;
+			jp["time"] = p.time;
+			jp["speed"] = p.speed;
+			jc["points"].push_back(jp);
+		}
+
+		j["clips"].push_back(jc);
+	}
+
+	return j;
+}
+
+// “Ç‚İ‚İ
+void AnimationSpeedData::FromJson(const nlohmann::json& j)
+{
+	clips.clear();
+
+	if (!j.contains("clips")) return;
+
+	for (const auto& jc : j["clips"])
+	{
+		AnimationSpeedClipData clip;
+		clip.clipName = jc.value("clipName", "");
+		clip.nextId = jc.value("nextId", 1);
+
+		if (jc.contains("points"))
+		{
+			for (const auto& jp : jc["points"])
+			{
+				AnimationSpeedPoint p;
+				p.id = jp.value("id", -1);
+				p.time = jp.value("time", 0.0f);
+				p.speed = jp.value("speed", 1.0f);
+				clip.points.push_back(p);
+			}
+		}
+
+		clips.push_back(clip);
+	}
+} 
  
 ===== AnimatorGraphData.cpp ===== 
 Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Data\AnimatorGraphData.cpp 
@@ -2801,6 +2951,16 @@ void SequencerData::FromJson(const nlohmann::json& j)
 	}
 } 
  
+===== AnimationSpeedComponent.h ===== 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Components\AnimationSpeedComponent.h 
+#pragma once
+#include <string>
+
+struct AnimationSpeedComponent
+{
+	std::string animationSpeedPath; // .animspeedƒtƒ@ƒCƒ‹‚ÌƒpƒX
+}; 
+ 
 ===== AnimatorComponent.h ===== 
 Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Components\AnimatorComponent.h 
 ï»¿#pragma once
@@ -2833,11 +2993,18 @@ struct AnimatorComponent
     std::string rootMotionNodeName;      // ãƒ«ãƒ¼ãƒˆãƒãƒ¼ãƒ‰å
     DirectX::XMFLOAT3 rootMotionDelta{ 0.0f, 0.0f, 0.0f }; // ãƒ«ãƒ¼ãƒˆãƒ¢ãƒ¼ã‚·ãƒ§ãƒ³ç§»å‹•é‡
 
-
     // Stateé·ç§»ç”¨
 	std::string animatorGraphPath; // .animatorãƒ•ã‚¡ã‚¤ãƒ«ã®ãƒ‘ã‚¹
 	int         currentParentStateId{ -1 }; // ç¾åœ¨ã®è¦ªã‚¹ãƒ†ãƒ¼ãƒˆID
 	int         currentChildStateId{ -1 };  // ç¾åœ¨ã®å­ã‚¹ãƒ†ãƒ¼ãƒˆID
+
+    // ãƒˆãƒªãƒŸãƒ³ã‚°ç¯„å›²
+    float trimStart{ 0.0f };
+    float trimEnd{ -1.0f };
+    bool  trimResolved{ false };
+
+    // é€Ÿåº¦ã‚«ãƒ¼ãƒ–
+    float speedCurveMultiplier{ 1.0f };
 }; 
  
 ===== BaseCameraComponent.h ===== 
@@ -3196,6 +3363,23 @@ struct TransformComponent
 		DirectX::XMMATRIX T = DirectX::XMMatrixTranslation(position.x, position.y, position.z);
 		return S * R * T;
 	}
+}; 
+ 
+===== AnimationSpeedSystem.h ===== 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\AnimationSpeedSystem.h 
+#pragma once
+#include "entt.hpp"
+#include "Engine/Data/AnimationSpeedData.h"
+#include "Engine/Core/JsonFileCache.h"
+#include <string>
+
+class AnimationSpeedSystem
+{
+public:
+	void Update(entt::registry& registry);
+
+private:
+	JsonFileCache<AnimationSpeedData> dataCache;
 }; 
  
 ===== AnimationSystem.h ===== 
@@ -3811,6 +3995,68 @@ namespace TwoBoneIKSolver
     DirectX::XMVECTOR RotationFromToRotation(DirectX::FXMVECTOR from, DirectX::FXMVECTOR to);
 } 
  
+===== AnimationSpeedSystem.cpp ===== 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\AnimationSpeedSystem.cpp 
+#include "AnimationSpeedSystem.h"
+#include "Engine/ECS/Components/SkinnedMeshComponent.h"
+#include "Engine/ECS/Components/AnimatorComponent.h"
+#include "Engine/ECS/Components/AnimationSpeedComponent.h"
+
+
+void AnimationSpeedSystem::Update(entt::registry& registry)
+{
+	auto view = registry.view<SkinnedMeshComponent, AnimatorComponent, AnimationSpeedComponent>();
+
+	for (auto entity : view)
+	{
+		auto& skinned = view.get<SkinnedMeshComponent>(entity);
+		auto& animator = view.get<AnimatorComponent>(entity);
+		auto& animSpeed = view.get<AnimationSpeedComponent>(entity);
+
+		// ƒpƒX‚ª–¢İ’è‚È‚çA‚±‚ÌƒGƒ“ƒeƒBƒeƒB‚Í‘¬“xƒJ[ƒu‚ğg‚í‚È‚¢
+		if (animSpeed.animationSpeedPath.empty())
+		{
+			animator.speedCurveMultiplier = 1.0f;
+			continue;
+		}
+
+		if (!skinned.model)
+		{
+			continue;
+		}
+
+		AnimationSpeedData& data = dataCache.GetOrLoad(animSpeed.animationSpeedPath,
+			[](AnimationSpeedData& data, const nlohmann::json& j) { data.FromJson(j); });
+
+		const AnimationSpeedClipData* clip = nullptr;
+		for (const auto& c : data.clips)
+		{
+			if (c.clipName == animator.currentAnimation) { clip = &c; break; }
+		}
+
+		// ƒNƒŠƒbƒv‚Ì’·‚³‚ğæ“¾‚·‚é
+		float clipLength = 0.0f;
+		for (const auto& anim : skinned.model->GetAnimations())
+		{
+			if (anim.name == animator.currentAnimation)
+			{
+				clipLength = anim.secondsLength;
+				break;
+			}
+		}
+
+		if (clipLength <= 0.0001f)
+		{
+			animator.speedCurveMultiplier = 1.0f;
+			continue;
+		}
+
+		float normalizedTime = animator.animationTime / clipLength;
+
+		animator.speedCurveMultiplier = clip ? clip->EvaluateSpeed(normalizedTime) : 1.0f;
+	}
+} 
+ 
 ===== AnimationSystem.cpp ===== 
 Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\AnimationSystem.cpp 
 #include "AnimationSystem.h"
@@ -3872,8 +4118,7 @@ void AnimationSystem::Update(
 			
 			const float oldTime = animator.animationTime;
 
-			animator.animationTime += elapsedTime * animator.playSpeed;
-
+			animator.animationTime += elapsedTime * animator.playSpeed * animator.speedCurveMultiplier;
 			// ƒ‹[ƒvˆ—
 			if (animator.loop)
 			{
@@ -11968,6 +12213,8 @@ Path: C:\Users\offri\Desktop\New-Library\Source\Project\Scene\SceneGame.h
 #include "Engine/ECS/Systems/MovementSystem.h" 
 #include "Engine/ECS/Systems/AnimationSystem.h"
 #include "Engine/ECS/Systems/AnimatorControllerSystem.h"
+#include "Engine/ECS/Systems/AnimationSpeedSystem.h"
+
 #include "Project/ECS/Systems/PlayerMoveSystem.h"
 
 
@@ -12007,6 +12254,8 @@ private:
 	MovementSystem   movementSystem;
 	AnimationSystem  animationSystem;
 	AnimatorControllerSystem animatorControllerSystem;
+	AnimationSpeedSystem animationSpeedSystem;
+
 	PlayerMoveSystem playerMoveSystem;
 
 	MeshLoaderSystem meshLoaderSystem;
@@ -12149,6 +12398,11 @@ void SceneGame::Update(float elapsedTime, const SceneContext& context)
 		// Stateé·ç§»åˆ¤å®š
 		ZoneScopedN("AnimatorControllerSystem");
 		animatorControllerSystem.Update(registry);
+	}
+	{
+		// é€Ÿåº¦ã‚«ãƒ¼ãƒ–ã®è©•ä¾¡(speedCurveMultiplierã‚’æ›´æ–°)
+		ZoneScopedN("AnimationSpeedSystem");
+		animationSpeedSystem.Update(registry);
 	}
 	{
 		// ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³æ›´æ–°
@@ -13011,7 +13265,8 @@ private:
     bool IsAnimGraphFile(const std::filesystem::path& path);
 	// ƒtƒ@ƒCƒ‹‚ªƒV[ƒPƒ“ƒT[ƒtƒ@ƒCƒ‹‚©”»’è
     static bool IsSequencerFile(const std::filesystem::path& path);
-
+    // ƒtƒ@ƒCƒ‹‚ªƒAƒjƒ[ƒVƒ‡ƒ“‘¬“xƒtƒ@ƒCƒ‹‚©”»’è
+    static bool IsAnimSpeedFile(const std::filesystem::path& path);
 
     // íœŠm”Fƒ|ƒbƒv
     void DrawDeleteConfirmPopup();
@@ -13106,6 +13361,7 @@ Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Editor\ComponentRegistryIni
 #include "Engine/ECS/Components/IKComponent.h"
 
 #include "Engine/ECS/Components/SequencerComponent.h"
+#include "Engine/ECS/Components/AnimationSpeedComponent.h"
 
 #include "MetaRegistry.h"
 
@@ -13567,6 +13823,19 @@ void ComponentRegistryInitializer::Initialize()
 					MetaRegistry::DrawMetaFields(entt::resolve<SequencerComponent>(), entt::forward_as_meta(*seq));
 				}
 			}); 
+
+		// ƒAƒjƒ[ƒVƒ‡ƒ“‘¬“xƒRƒ“ƒ|[ƒlƒ“ƒg‚Ì“o˜^
+		REGISTER_COMPONENT(AnimationSpeedComponent, "Animation Speed",
+			[](auto& reg, auto e)
+			{
+				auto* animSpeed = reg.try_get<AnimationSpeedComponent>(e);
+				if (!animSpeed) return;
+
+				if (ImGui::CollapsingHeader("Animation Speed", ImGuiTreeNodeFlags_DefaultOpen))
+				{
+					MetaRegistry::DrawMetaFields(entt::resolve<AnimationSpeedComponent>(), entt::forward_as_meta(*animSpeed));
+				}
+			});
 }
  
  
@@ -13867,6 +14136,7 @@ using namespace entt::literals;
 #include "Project/ECS/Components/GameInputComponent.h"
 #include "Engine/ECS/Components/AnimatorComponent.h"
 #include "Engine/ECS/Components/SequencerComponent.h"
+#include "Engine/ECS/Components/AnimationSpeedComponent.h"
 
 void MetaRegistry::Initialize()
 {
@@ -13993,6 +14263,12 @@ void MetaRegistry::Initialize()
 		.custom<FieldInfo>(FieldInfo{ "Attack", 0.0f, 0.0f, 0.1f, "", true })
 		.data<&SequencerComponent::superArmor>("superArmor"_hs)
 		.custom<FieldInfo>(FieldInfo{ "SuperArmor", 0.0f, 0.0f, 0.1f, "", true });
+
+	entt::meta_factory<AnimationSpeedComponent>{}
+	.type("AnimationSpeedComponent")
+		.custom<TypeInfo>(TypeInfo{ "Animation Speed" })
+		.data<&AnimationSpeedComponent::animationSpeedPath>("animationSpeedPath"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Speed Curve File", 0.0f, 0.0f, 0.1f, "ANIMSPEED_PATH" });
 }
 
 // “o˜^Ï‚İƒƒ^î•ñ‚©‚çInspectorUI‚ğ©“®•`‰æ
@@ -14448,7 +14724,8 @@ void ProjectWindow::DrawFileGrid(entt::registry& registry, EditorContext& contex
 		bool isModel = IsModelFile(entry.path());
 		bool isAnimGraph = IsAnimGraphFile(entry.path());
 		bool isSequencer = IsSequencerFile(entry.path());
-		if (!isModel && !isAnimGraph && !isSequencer) continue;
+		bool isAnimSpeed = IsAnimSpeedFile(entry.path());
+		if (!isModel && !isAnimGraph && !isSequencer && !isAnimSpeed) continue;
 
 		std::string filename = entry.path().stem().string();
 		std::string modelPath = entry.path().string();
@@ -14477,6 +14754,7 @@ void ProjectWindow::DrawFileGrid(entt::registry& registry, EditorContext& contex
 		{
 			ImU32 color = isAnimGraph ? IM_COL32(200, 130, 60, 255)
 				: isSequencer ? IM_COL32(120, 200, 130, 255)
+				: isAnimSpeed ? IM_COL32(200, 90, 160, 255)
 				: IM_COL32(80, 120, 200, 255);
 			ImGui::GetWindowDrawList()->AddRectFilled(
 				pos,
@@ -14503,8 +14781,8 @@ void ProjectWindow::DrawFileGrid(entt::registry& registry, EditorContext& contex
 			}
 		}
 
-		// ƒhƒ‰ƒbƒOŠJniƒ‚ƒfƒ‹^ƒAƒjƒ[ƒVƒ‡ƒ“ƒOƒ‰ƒt/ƒV[ƒPƒ“ƒT[j
-		if ((isModel || isAnimGraph || isSequencer) && ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID)) 
+		// ƒhƒ‰ƒbƒOŠJniƒ‚ƒfƒ‹^ƒAƒjƒ[ƒVƒ‡ƒ“ƒOƒ‰ƒt/ƒV[ƒPƒ“ƒT[/ƒAƒjƒ[ƒVƒ‡ƒ“‘¬“xj
+		if ((isModel || isAnimGraph || isSequencer || isAnimSpeed) && ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
 		{
 			if (isModel)
 			{
@@ -14522,10 +14800,18 @@ void ProjectWindow::DrawFileGrid(entt::registry& registry, EditorContext& contex
 					modelPath.size() + 1
 				);
 			}
-			else // isSequencer
+			else if (isSequencer)
 			{
 				ImGui::SetDragDropPayload(
 					"SEQUENCER_PATH",
+					modelPath.c_str(),
+					modelPath.size() + 1
+				);
+			}
+			else // isAnimSpeed
+			{
+				ImGui::SetDragDropPayload(
+					"ANIMSPEED_PATH",
 					modelPath.c_str(),
 					modelPath.size() + 1
 				);
@@ -14636,6 +14922,15 @@ bool ProjectWindow::IsSequencerFile(const std::filesystem::path& path)
 	std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
 
 	return ext == ".sequencer";
+}
+
+// ƒtƒ@ƒCƒ‹‚ªƒAƒjƒ[ƒVƒ‡ƒ“‘¬“xƒtƒ@ƒCƒ‹‚©”»’è
+bool ProjectWindow::IsAnimSpeedFile(const std::filesystem::path& path)
+{
+	std::string ext = path.extension().string();
+	std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+
+	return ext == ".animspeed";
 }
 
 
@@ -15457,6 +15752,7 @@ Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioWindow.h
 #include "entt.hpp"
 #include "Engine/ECS/Systems/RenderSystem.h"
 #include "Engine/ECS/Systems/AnimationSystem.h"
+#include "Engine/ECS/Systems/AnimationSpeedSystem.h"
 
 #include "Engine/Rendering/LightManager.h"
 #include "Engine/Resource/ResourceManager.h"
@@ -15528,6 +15824,7 @@ private:
     entt::registry    studioRegistry;
     RenderSystem      renderSystem;
     AnimationSystem   animationSystem;
+    AnimationSpeedSystem  animationSpeedSystem;
     LightManager      lightManager;
     ResourceManager   resourceManager;
     
@@ -17738,6 +18035,7 @@ Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioModelViewer.cp
 
 #include "Engine/ECS/Components/AnimatorComponent.h"
 #include "Engine/ECS/Components/MaterialComponent.h"
+#include "Engine/ECS/Components/AnimationSpeedComponent.h"
 
 // ‰Šú‰»
 void StudioModelViewer::Initialize(
@@ -17871,6 +18169,8 @@ void StudioModelViewer::LoadModel(
         animator.currentAnimation = model->GetAnimations()[0].name;
         animator.isPlaying = false;
         animator.loop = false;
+
+        registry.emplace<AnimationSpeedComponent>(modelEntity);
     }
 
     // ƒ[ƒhÏ‚İƒtƒ‰ƒO
@@ -19048,6 +19348,9 @@ void StudioWindow::Update(float elapsedTime)
 
 	// ƒ‚ƒfƒ‹ƒrƒ…ƒ[XV
 	stadoiModelViewer.Update(elapsedTime, context);
+
+	// ƒAƒjƒ[ƒVƒ‡ƒ“‘¬“xXV
+	animationSpeedSystem.Update(studioRegistry);
 
 	if (context.requestPoseUpdate)
 	{

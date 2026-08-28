@@ -37,4 +37,7 @@ struct AnimatorComponent
     float trimStart{ 0.0f };
     float trimEnd{ -1.0f };
     bool  trimResolved{ false };
+
+    // 速度カーブ
+    float speedCurveMultiplier{ 1.0f };
 };

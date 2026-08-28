@@ -326,6 +326,15 @@
     <Filter Include="Sources\Project\ECS\Systems\Player\PlayerDodgeSystem">
       <UniqueIdentifier>{ecfdec2d-98cc-4fd3-9551-945365d16ee0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\Engine\Data\AnimationSpeedData">
+      <UniqueIdentifier>{9271f0cf-f548-4631-a56b-125081008057}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Engine\ECS\Systems\AnimationSpeedSystem">
+      <UniqueIdentifier>{492596de-2a02-4d6e-ab22-ca35ee300dba}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Tool\Studio\StudioAnimationSpeed">
+      <UniqueIdentifier>{6d7b498f-3a65-40c8-8a30-2954e3c4d1b0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="External\imgui-docking\imgui.cpp">
@@ -543,6 +552,15 @@
     </ClCompile>
     <ClCompile Include="Source\Project\ECS\Systems\PlayerDodgeSystem.cpp">
       <Filter>Sources\Project\ECS\Systems\Player\PlayerDodgeSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Engine\Data\AnimationSpeedData.cpp">
+      <Filter>Sources\Engine\Data\AnimationSpeedData</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Engine\ECS\Systems\AnimationSpeedSystem.cpp">
+      <Filter>Sources\Engine\ECS\Systems\AnimationSpeedSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Tool\Studio\StudioAnimationSpeed.cpp">
+      <Filter>Sources\Tool\Studio\StudioAnimationSpeed</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -845,6 +863,18 @@
     </ClInclude>
     <ClInclude Include="Source\Project\ECS\Systems\PlayerDodgeSystem.h">
       <Filter>Sources\Project\ECS\Systems\Player\PlayerDodgeSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Engine\Data\AnimationSpeedData.h">
+      <Filter>Sources\Engine\Data\AnimationSpeedData</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Engine\ECS\Components\AnimationSpeedComponent.h">
+      <Filter>Sources\Engine\ECS\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Engine\ECS\Systems\AnimationSpeedSystem.h">
+      <Filter>Sources\Engine\ECS\Systems\AnimationSpeedSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Tool\Studio\StudioAnimationSpeed.h">
+      <Filter>Sources\Tool\Studio\StudioAnimationSpeed</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

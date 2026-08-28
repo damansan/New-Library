@@ -37,8 +37,10 @@
     <ClCompile Include="Source\Engine\Core\PhysX.cpp" />
     <ClCompile Include="Source\Engine\Core\Scene.cpp" />
     <ClCompile Include="Source\Engine\Core\SceneManager.cpp" />
+    <ClCompile Include="Source\Engine\Data\AnimationSpeedData.cpp" />
     <ClCompile Include="Source\Engine\Data\AnimatorGraphData.cpp" />
     <ClCompile Include="Source\Engine\Data\SequencerData.cpp" />
+    <ClCompile Include="Source\Engine\ECS\Systems\AnimationSpeedSystem.cpp" />
     <ClCompile Include="Source\Engine\ECS\Systems\AnimationSystem.cpp" />
     <ClCompile Include="Source\Engine\ECS\Systems\AnimatorControllerSystem.cpp" />
     <ClCompile Include="Source\Engine\ECS\Systems\ConditionGraphEvaluator.cpp" />
@@ -80,6 +82,7 @@
     <ClCompile Include="Source\Tool\Editor\MetaRegistry.cpp" />
     <ClCompile Include="Source\Tool\Editor\ProjectWindow.cpp" />
     <ClCompile Include="Source\Tool\NodeEditor\NodeEditorCanvas.cpp" />
+    <ClCompile Include="Source\Tool\Studio\StudioAnimationSpeed.cpp" />
     <ClCompile Include="Source\Tool\Studio\StudioAnimator.cpp" />
     <ClCompile Include="Source\Tool\Studio\StudioAnimatorGraph.cpp" />
     <ClCompile Include="Source\Tool\Studio\StudioCamera.cpp" />
@@ -111,8 +114,10 @@
     <ClInclude Include="Source\Engine\Core\Scene.h" />
     <ClInclude Include="Source\Engine\Core\SceneContext.h" />
     <ClInclude Include="Source\Engine\Core\SceneManager.h" />
+    <ClInclude Include="Source\Engine\Data\AnimationSpeedData.h" />
     <ClInclude Include="Source\Engine\Data\AnimatorGraphData.h" />
     <ClInclude Include="Source\Engine\Data\SequencerData.h" />
+    <ClInclude Include="Source\Engine\ECS\Components\AnimationSpeedComponent.h" />
     <ClInclude Include="Source\Engine\ECS\Components\AnimatorComponent.h" />
     <ClInclude Include="Source\Engine\ECS\Components\BaseCameraComponent.h" />
     <ClInclude Include="Source\Engine\ECS\Components\ControllerComponent.h" />
@@ -128,6 +133,7 @@
     <ClInclude Include="Source\Engine\ECS\Components\StaticMeshComponent.h" />
     <ClInclude Include="Source\Engine\ECS\Components\Tags.h" />
     <ClInclude Include="Source\Engine\ECS\Components\TransformComponent.h" />
+    <ClInclude Include="Source\Engine\ECS\Systems\AnimationSpeedSystem.h" />
     <ClInclude Include="Source\Engine\ECS\Systems\AnimationSystem.h" />
     <ClInclude Include="Source\Engine\ECS\Systems\AnimatorControllerSystem.h" />
     <ClInclude Include="Source\Engine\ECS\Systems\ConditionGraphEvaluator.h" />
@@ -179,6 +185,7 @@
     <ClInclude Include="Source\Tool\NodeEditor\NodeEditorCanvas.h" />
     <ClInclude Include="Source\Tool\Studio\AnimatorGraphNavigation.h" />
     <ClInclude Include="Source\Tool\Studio\IStudioAttachment.h" />
+    <ClInclude Include="Source\Tool\Studio\StudioAnimationSpeed.h" />
     <ClInclude Include="Source\Tool\Studio\StudioAnimator.h" />
     <ClInclude Include="Source\Tool\Studio\StudioAnimatorGraph.h" />
     <ClInclude Include="Source\Tool\Studio\StudioCamera.h" />

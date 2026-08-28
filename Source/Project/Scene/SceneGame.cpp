@@ -114,6 +114,11 @@ void SceneGame::Update(float elapsedTime, const SceneContext& context)
 		animatorControllerSystem.Update(registry);
 	}
 	{
+		// 速度カーブの評価(speedCurveMultiplierを更新)
+		ZoneScopedN("AnimationSpeedSystem");
+		animationSpeedSystem.Update(registry);
+	}
+	{
 		// アニメーション更新
 		ZoneScopedN("AnimationSystem");
 		animationSystem.Update(registry, elapsedTime);

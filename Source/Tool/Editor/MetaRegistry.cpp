@@ -16,6 +16,7 @@ using namespace entt::literals;
 #include "Project/ECS/Components/GameInputComponent.h"
 #include "Engine/ECS/Components/AnimatorComponent.h"
 #include "Engine/ECS/Components/SequencerComponent.h"
+#include "Engine/ECS/Components/AnimationSpeedComponent.h"
 
 void MetaRegistry::Initialize()
 {
@@ -142,6 +143,12 @@ void MetaRegistry::Initialize()
 		.custom<FieldInfo>(FieldInfo{ "Attack", 0.0f, 0.0f, 0.1f, "", true })
 		.data<&SequencerComponent::superArmor>("superArmor"_hs)
 		.custom<FieldInfo>(FieldInfo{ "SuperArmor", 0.0f, 0.0f, 0.1f, "", true });
+
+	entt::meta_factory<AnimationSpeedComponent>{}
+	.type("AnimationSpeedComponent")
+		.custom<TypeInfo>(TypeInfo{ "Animation Speed" })
+		.data<&AnimationSpeedComponent::animationSpeedPath>("animationSpeedPath"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Speed Curve File", 0.0f, 0.0f, 0.1f, "ANIMSPEED_PATH" });
 }
 
 // ìoò^çœÇ›ÉÅÉ^èÓïÒÇ©ÇÁInspectorUIÇé©ìÆï`âÊ
