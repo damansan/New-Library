@@ -6,6 +6,13 @@ Texture2D emissiveMap          : register(t4); // Emissive
 
 SamplerState samplerState      : register(s0);
 
+cbuffer CbObject : register(b1)
+{
+    row_major float4x4 world;
+    float alphaCutoff;
+    float3 padding;
+};
+
 struct VS_OUT
 {
     float4 position : SV_POSITION;
@@ -32,9 +39,13 @@ PS_OUT main(VS_OUT pin)
 
     // Albedo
     float4 baseColor = baseMap.Sample(samplerState, pin.texcoord);
+
+    // Maskクリップ
+    clip(baseColor.a - alphaCutoff);
+
     baseColor.rgb = pow(max(baseColor.rgb, 0.0001f), 2.2f);
     pout.albedo = baseColor;
-
+    
     // 法線マッピング
     float3 N = normalize(pin.normal);
     float3 T = normalize(pin.tangent.xyz);

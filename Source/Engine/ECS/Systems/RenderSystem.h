@@ -23,7 +23,9 @@ struct CbScene
 
 struct CbObject
 {
-	DirectX::XMFLOAT4X4 world;      // ワールド行列
+	DirectX::XMFLOAT4X4 world;       // ワールド行列
+	float               alphaCutoff; // Mask素材のクリップしきい値
+	DirectX::XMFLOAT3   padding;     // 16バイトアライメント用
 };
 
 #define MAX_BONES 256

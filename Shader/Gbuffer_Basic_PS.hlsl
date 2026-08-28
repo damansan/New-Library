@@ -3,6 +3,13 @@ Texture2D normalMap : register(t1);
 
 SamplerState samplerState : register(s0);
 
+cbuffer CbObject : register(b1)
+{
+    row_major float4x4 world;
+    float alphaCutoff;
+    float3 padding;
+};
+
 struct VS_OUT
 {
     float4 position : SV_POSITION;
@@ -28,6 +35,10 @@ PS_OUT main(VS_OUT pin)
 
     // Albedo（ガンマ補正でリニア空間へ）
     float4 baseColor = baseMap.Sample(samplerState, pin.texcoord);
+
+    // Maskクリップ
+    clip(baseColor.a - alphaCutoff);
+
     baseColor.rgb = pow(max(baseColor.rgb, 0.0001f), 2.2f);
     pout.albedo = baseColor;
     

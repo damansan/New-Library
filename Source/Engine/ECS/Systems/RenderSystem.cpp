@@ -305,13 +305,17 @@ void RenderSystem::GeometryPass(
 
 			for (auto& mesh : staticMesh.model->GetMeshes())
 			{
-				if (mesh.material)
-				{
-					bool isTransparent =
-						mesh.material->alphaMode == Model::Material::AlphaMode::Blend ||
-						mesh.material->alphaMode == Model::Material::AlphaMode::Mask;
-					if (isTransparent) continue;
-				}
+				// 不透明パスで描くのは Opaque・Mask
+				bool isBlend = mesh.material &&
+					mesh.material->alphaMode == Model::Material::AlphaMode::Blend;
+				if (isBlend) continue;
+
+				// Maskならクリップしきい値をセット、それ以外は破棄しない
+				bool isMask = mesh.material &&
+					mesh.material->alphaMode == Model::Material::AlphaMode::Mask;
+				cbObjectData.alphaCutoff = isMask ? mesh.material->alphaCutoff : 0.0f;
+				dc->UpdateSubresource(cbObject.Get(), 0, nullptr, &cbObjectData, 0, 0);
+				dc->PSSetConstantBuffers(1, 1, cbObject.GetAddressOf());
 
 				UINT stride = sizeof(Model::Vertex), offset = 0;
 				dc->IASetVertexBuffers(0, 1, mesh.vertexBuffer.GetAddressOf(), &stride, &offset);
@@ -356,15 +360,21 @@ void RenderSystem::GeometryPass(
 			for (int m = 0; m < (int)meshes.size(); m++)
 			{
 				const auto& mesh = meshes[m];
-				if (mesh.material)
-				{
-					bool isTransparent =
-						mesh.material->alphaMode == Model::Material::AlphaMode::Blend ||
-						mesh.material->alphaMode == Model::Material::AlphaMode::Mask;
-					if (isTransparent) continue;
-				}
+
+				// 不透明パスで描くのは Opaque・Mask
+				bool isBlend = mesh.material &&
+					mesh.material->alphaMode == Model::Material::AlphaMode::Blend;
+				if (isBlend) continue;
+
+				// Maskならクリップしきい値をセット、それ以外は破棄しない
+				bool isMask = mesh.material &&
+					mesh.material->alphaMode == Model::Material::AlphaMode::Mask;
+				cbObjectData.alphaCutoff = isMask ? mesh.material->alphaCutoff : 0.0f;
+				dc->UpdateSubresource(cbObject.Get(), 0, nullptr, &cbObjectData, 0, 0);
+				dc->PSSetConstantBuffers(1, 1, cbObject.GetAddressOf());
 
 				CbSkinning cbSkinningData{};
+
 				if (m < (int)skinnedMesh.boneTransforms.size() && !skinnedMesh.boneTransforms[m].empty())
 				{
 					const auto& bt = skinnedMesh.boneTransforms[m];
@@ -508,10 +518,10 @@ void RenderSystem::ForwardTransparentPass(
 
 			for (auto& mesh : staticMesh.model->GetMeshes())
 			{
-				bool isTransparent = mesh.material &&
-					(mesh.material->alphaMode == Model::Material::AlphaMode::Blend ||
-						mesh.material->alphaMode == Model::Material::AlphaMode::Mask);
-				if (!isTransparent) continue;
+				// フォワードで描くのは Blend のみ
+				bool isBlend = mesh.material &&
+					mesh.material->alphaMode == Model::Material::AlphaMode::Blend;
+				if (!isBlend) continue;
 
 				UINT stride = sizeof(Model::Vertex), offset = 0;
 				dc->IASetVertexBuffers(0, 1, mesh.vertexBuffer.GetAddressOf(), &stride, &offset);
@@ -551,10 +561,11 @@ void RenderSystem::ForwardTransparentPass(
 			for (int m = 0; m < (int)meshes.size(); m++)
 			{
 				const auto& mesh = meshes[m];
-				bool isTransparent = mesh.material &&
-					(mesh.material->alphaMode == Model::Material::AlphaMode::Blend ||
-						mesh.material->alphaMode == Model::Material::AlphaMode::Mask);
-				if (!isTransparent) continue;
+
+				// フォワードで描くのは Blend のみ
+				bool isBlend = mesh.material &&
+					mesh.material->alphaMode == Model::Material::AlphaMode::Blend;
+				if (!isBlend) continue;
 
 				CbSkinning cbSkinningData{};
 				if (m < (int)skinnedMesh.boneTransforms.size() && !skinnedMesh.boneTransforms[m].empty())
