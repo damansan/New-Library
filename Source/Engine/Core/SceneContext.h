@@ -28,4 +28,7 @@ struct SceneContext
 
 	CameraMode cameraMode = CameraMode::Debug;
 	EditorContext* editorContext = nullptr;
+
+	// Game‚Ö‚Ì“ü—Í‚ðŽó‚¯•t‚¯‚Ä‚æ‚¢‚©
+	bool gameInputActive = false;
 };

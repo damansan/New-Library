@@ -335,6 +335,12 @@
     <Filter Include="Sources\Tool\Studio\StudioAnimationSpeed">
       <UniqueIdentifier>{6d7b498f-3a65-40c8-8a30-2954e3c4d1b0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\Engine\Core\GameWindow">
+      <UniqueIdentifier>{878c514a-9db6-4b05-9081-878a3d939709}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shader\Present">
+      <UniqueIdentifier>{48b067dc-78af-4d04-8c89-105810d04ba8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="External\imgui-docking\imgui.cpp">
@@ -561,6 +567,9 @@
     </ClCompile>
     <ClCompile Include="Source\Tool\Studio\StudioAnimationSpeed.cpp">
       <Filter>Sources\Tool\Studio\StudioAnimationSpeed</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Engine\Core\GameWindow.cpp">
+      <Filter>Sources\Engine\Core\GameWindow</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -876,6 +885,9 @@
     <ClInclude Include="Source\Tool\Studio\StudioAnimationSpeed.h">
       <Filter>Sources\Tool\Studio\StudioAnimationSpeed</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Engine\Core\GameWindow.h">
+      <Filter>Sources\Engine\Core\GameWindow</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shader\Static_VS.hlsl">
@@ -931,6 +943,9 @@
     </FxCompile>
     <FxCompile Include="Shader\SolidShapeDepth_VS.hlsl">
       <Filter>Shader\SolidShape</Filter>
+    </FxCompile>
+    <FxCompile Include="Shader\Present_PS.hlsl">
+      <Filter>Shader\Present</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>

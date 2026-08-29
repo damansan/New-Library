@@ -7,12 +7,12 @@ class DebugCameraSystem
 {
 public:
     // フリーカメラの更新
-    void Update(entt::registry& registry, float elapsedTime);
+    void Update(entt::registry& registry, float elapsedTime, bool viewportHovered);
 
     // Camera クラスに結果を反映
     void ApplyToCamera(entt::registry& registry, Camera& camera);
 
 private:
     // フリーカメラ更新処理
-    void UpdateFreeCamera(FreeCameraComponent& free, float elapsedTime);
+    void UpdateFreeCamera(FreeCameraComponent& free, float elapsedTime, bool viewportHovered);
 };

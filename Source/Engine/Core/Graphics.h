@@ -20,6 +20,8 @@ public:
 	void Clear(float r, float g, float b, float a);
 	// レンダーターゲット設定
 	void SetRenderTargets();
+	// 指定テクスチャをフルスクリーンでバックバッファへ描画
+	void PresentTexture(ID3D11ShaderResourceView* srv);
 	// 画面プレゼント
 	void Present(bool vsync = false);
 	// フルスクリーン切り替え
@@ -75,4 +77,11 @@ private:
 	// ウィンドウモード時の位置とサイズ保存
 	RECT windowedRect{};
 
+	// PresentTexture用リソースの初期化
+	void InitializePresentResources();
+
+	Microsoft::WRL::ComPtr<ID3D11VertexShader>    presentVS;
+	Microsoft::WRL::ComPtr<ID3D11PixelShader>     presentPS;
+	Microsoft::WRL::ComPtr<ID3D11SamplerState>    presentSampler;
+	Microsoft::WRL::ComPtr<ID3D11RasterizerState> presentRasterizer;
 };

@@ -1,5 +1,6 @@
 #include "Graphics.h"
 #include "Engine/Utility/misc.h"
+#include "Engine/Resource/GpuResourceUtils.h"
 
 // 初期化
 void Graphics::Initialize(HWND hWnd)
@@ -177,6 +178,10 @@ void Graphics::Initialize(HWND hWnd)
 	viewport.Height = screenHeight;
 	viewport.MinDepth = 0.0f;       // 深度範囲
 	viewport.MaxDepth = 1.0f;
+
+
+	// PresentTexture用リソース初期化
+	InitializePresentResources();
 }
 
 // 画面クリア
@@ -204,6 +209,40 @@ void Graphics::SetRenderTargets()
 	immediateContext->RSSetViewports(1, &viewport);
 	// レンダーターゲットと深度ステンシルをOMステージに設定
 	immediateContext->OMSetRenderTargets(1, renderTargetView.GetAddressOf(), depthStencilView.Get());
+}
+
+// 指定テクスチャをフルスクリーンでバックバッファへ描画
+void Graphics::PresentTexture(ID3D11ShaderResourceView* srv)
+{
+	if (!srv) return;
+
+	// バックバッファへ描画
+	immediateContext->RSSetViewports(1, &viewport);
+	immediateContext->OMSetRenderTargets(1, renderTargetView.GetAddressOf(), nullptr);
+
+	// ブレンド・深度ステートを既定に戻す
+	immediateContext->OMSetBlendState(nullptr, nullptr, 0xffffffff);
+	immediateContext->OMSetDepthStencilState(nullptr, 1);
+
+	// シェーダー設定
+	immediateContext->VSSetShader(presentVS.Get(), nullptr, 0);
+	immediateContext->PSSetShader(presentPS.Get(), nullptr, 0);
+
+	// 入力レイアウトなし・フルスクリーン三角形ストリップ
+	immediateContext->IASetInputLayout(nullptr);
+	immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+	immediateContext->RSSetState(presentRasterizer.Get());
+
+	// テクスチャ・サンプラー設定
+	immediateContext->PSSetShaderResources(0, 1, &srv);
+	immediateContext->PSSetSamplers(0, 1, presentSampler.GetAddressOf());
+
+	// フルスクリーン描画
+	immediateContext->Draw(4, 0);
+
+	// SRVの束縛解除
+	ID3D11ShaderResourceView* nullSrv = nullptr;
+	immediateContext->PSSetShaderResources(0, 1, &nullSrv);
 }
 
 // 画面プレゼント
@@ -372,4 +411,38 @@ void Graphics::Cleanup()
 
 	renderTargetView.Reset();
 	depthStencilView.Reset();
+}
+
+// PresentTexture用リソースの初期化
+void Graphics::InitializePresentResources()
+{
+	// 頂点シェーダー
+	Microsoft::WRL::ComPtr<ID3D11InputLayout> dummyLayout;
+	GpuResourceUtils::LoadVertexShader(
+		device.Get(), "Data/Shader/Lighting_VS.cso",
+		nullptr, 0, dummyLayout, presentVS
+	);
+
+	// ピクセルシェーダー
+	GpuResourceUtils::LoadPixelShader(
+		device.Get(), "Data/Shader/Present_PS.cso", presentPS
+	);
+
+	// サンプラーステート
+	D3D11_SAMPLER_DESC samplerDesc{};
+	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+	samplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+	samplerDesc.MinLOD = 0;
+	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+	device->CreateSamplerState(&samplerDesc, presentSampler.GetAddressOf());
+
+	// ラスタライザーステート
+	D3D11_RASTERIZER_DESC rasterizerDesc{};
+	rasterizerDesc.FillMode = D3D11_FILL_SOLID;
+	rasterizerDesc.CullMode = D3D11_CULL_NONE;
+	rasterizerDesc.FrontCounterClockwise = FALSE;
+	device->CreateRasterizerState(&rasterizerDesc, presentRasterizer.GetAddressOf());
 }

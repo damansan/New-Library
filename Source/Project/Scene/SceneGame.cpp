@@ -152,7 +152,7 @@ void SceneGame::Update(float elapsedTime, const SceneContext& context)
 		ZoneScopedN("CameraSystem");
 		if (context.cameraMode == CameraMode::Debug)
 		{
-			debugCameraSystem.Update(registry, elapsedTime);
+			debugCameraSystem.Update(registry, elapsedTime, context.gameInputActive);
 			debugCameraSystem.ApplyToCamera(registry, *context.camera);
 
 			// スティック入力があればGameモードに戻す

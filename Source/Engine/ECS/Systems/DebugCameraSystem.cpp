@@ -3,12 +3,12 @@
 #include <algorithm>
 #include <cmath>
 
-void DebugCameraSystem::Update(entt::registry& registry, float elapsedTime)
+void DebugCameraSystem::Update(entt::registry& registry, float elapsedTime, bool viewportHovered)
 {
     auto view = registry.view<FreeCameraComponent>();
     view.each([&](auto entity, FreeCameraComponent& free)
         {
-            UpdateFreeCamera(free, elapsedTime);
+            UpdateFreeCamera(free, elapsedTime, viewportHovered);
         });
 }
 
@@ -28,10 +28,10 @@ void DebugCameraSystem::ApplyToCamera(entt::registry& registry, Camera& camera)
     }
 }
 
-void DebugCameraSystem::UpdateFreeCamera(FreeCameraComponent& free, float elapsedTime)
+void DebugCameraSystem::UpdateFreeCamera(FreeCameraComponent& free, float elapsedTime, bool viewportHovered)
 {
-    // ImGuiウィンドウ操作中は処理しない
-    if (ImGui::IsWindowFocused(ImGuiFocusedFlags_AnyWindow)) return;
+    // Gameビューポート上にマウスが無い時は処理しない
+    if (!viewportHovered) return;
 
     // 右クリック中だけ操作を受け付ける
     if (!(GetAsyncKeyState(VK_RBUTTON) & 0x8000))

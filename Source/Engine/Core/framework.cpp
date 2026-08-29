@@ -17,9 +17,9 @@ framework::framework(HWND hwnd) : hwnd(hwnd)
 	// ImGuiManager初期化
 	imguiManager.Initialize(hwnd, graphics.GetDevice(), graphics.GetDeviceContext());
 
-	// カメラ初期化
-	camera.Initialize(graphics.GetScreenWidth(), graphics.GetScreenHeight());
-
+	// Gameウィンドウ初期化
+	gameWindow.Initialize(graphics.GetDevice());
+	
 	// 最初のシーンセット
 	sceneManager.ChangeScene(std::make_unique<SceneGame>());
 
@@ -32,10 +32,10 @@ framework::framework(HWND hwnd) : hwnd(hwnd)
 	// Studio共有リソース初期化
 	studioShared.Initialize(graphics.GetDevice());
 
-//#ifndef _DEBUG
-//	// リリース時はボーダーレスフルスクリーンで起動
-//	graphics.ToggleFullscreen();
-//#endif
+#ifndef _DEBUG
+	// リリース時はボーダーレスフルスクリーンで起動
+	graphics.ToggleFullscreen();
+#endif
 }
 
 framework::~framework()
@@ -53,10 +53,21 @@ void framework::update(float elapsedTime)
 {
 	ZoneScoped;
 
-	// 右クリックを押した瞬間Debugモードに切り替え
+#ifdef _DEBUG
+	// F1でReleaseと同じ見た目（ImGui無し）をプレビュー切り替え
+	static bool prevF1 = false;
+	bool currF1 = (GetAsyncKeyState(VK_F1) & 0x8000) != 0;
+	if (currF1 && !prevF1)
+	{
+		previewRelease = !previewRelease;
+	}
+	prevF1 = currF1;
+#endif
+
+	// 右クリックを押した瞬間、Gameへの入力が有効であればDebugモードに切り替え
 	static bool prevRButton = false;
 	bool currRButton = (GetAsyncKeyState(VK_RBUTTON) & 0x8000) != 0;
-	if (currRButton && !prevRButton)
+	if (currRButton && !prevRButton && IsGameInputActive())
 	{
 		editorContext.cameraMode = CameraMode::Debug;
 	}
@@ -76,14 +87,16 @@ void framework::update(float elapsedTime)
 	}
 
 	// ゲームカメラの結果をcontextに反映
-	sceneContext.view = camera.GetView();
-	sceneContext.projection = camera.GetProjection();
-
+	sceneContext.view = gameWindow.GetCamera().GetView();
+	sceneContext.projection = gameWindow.GetCamera().GetProjection();
 }
 
 void framework::updateImGui()
 {
 	ZoneScoped;
+
+	// Editor無効時はImGui自体を一切使わない
+	if (!IsEditorActive()) return;
 
 	// ImGuiフレーム開始
 	imguiManager.BeginFrame();
@@ -96,7 +109,10 @@ void framework::updateImGui()
 	// シーンImGui描画
 	sceneManager.RenderImGui();
 
-//#ifdef _DEBUG
+	// Gameウィンドウ（ドッキング/タブ化対象）
+	gameWindow.DrawWindow("Game");
+
+#ifdef _DEBUG
 	if (auto* scene = sceneManager.GetCurrentScene())
 	{
 		projectWindow.Draw(scene->GetRegistry(), editorContext);
@@ -126,7 +142,7 @@ void framework::updateImGui()
 			}),
 		studioWindows.end()
 	);
-//#endif
+#endif
 }
 
 void framework::render(float elapsedTime)
@@ -135,23 +151,34 @@ void framework::render(float elapsedTime)
 
 	// 画面クリア
 	graphics.Clear(0.2f, 0.2f, 0.5f, 1.0f);
-	// レンダーターゲット設定
 	graphics.SetRenderTargets();
 
-	// シーン描画
+	// Game描画先をGameWindow用テクスチャに切り替えて描画
+	gameWindow.Begin(graphics.GetDeviceContext());
 	sceneManager.Render(sceneContext);
+	gameWindow.End(graphics.GetDeviceContext());
 
-	// Studio描画
-	for (auto& win : studioWindows)
+
+	if (IsEditorActive())
 	{
-		win->Render();
+		// Studio描画
+		for (auto& win : studioWindows)
+		{
+			win->Render();
+		}
+
+		// メインRTVを再セット
+		graphics.SetRenderTargets();
+
+		// ImGui描画（GameウィンドウもここでImGui::Image経由で表示される）
+		imguiManager.EndFrame();
 	}
-
-	// メインRTVを再セット
-	graphics.SetRenderTargets();
-
-	// ImGui描画
-	imguiManager.EndFrame();
+	else
+	{
+		// Editor無効時：Gameのテクスチャをフルスクリーンでバックバッファへ
+		graphics.SetRenderTargets();
+		graphics.PresentTexture(gameWindow.GetSRV());
+	}
 
 	// 画面反映
 	graphics.Present(vsync);
@@ -292,28 +319,24 @@ LRESULT framework::handle_message(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpa
 // SceneContext を最新状態に更新する
 void framework::updateSceneContext()
 {
-	// ウィンドウサイズに合わせてカメラのアスペクト比を更新
-	camera.SetPerspectiveFov(
-		DirectX::XMConvertToRadians(camera.GetViewingAngle()),
-		graphics.GetScreenWidth() / graphics.GetScreenHeight(),
-		0.1f,
-		1000.0f
-	);
-
 	sceneContext.device = graphics.GetDevice();
 	sceneContext.deviceContext = graphics.GetDeviceContext();
 	sceneContext.resourceManager = &resourceManager;
 	sceneContext.physX = &physX;
 
-	sceneContext.renderTargetView = graphics.GetRenderTargetView();
-	sceneContext.depthStencilView = graphics.GetDepthStencilView();
-	sceneContext.camera = &camera;
-	sceneContext.view = camera.GetView();
-	sceneContext.projection = camera.GetProjection();
-	sceneContext.screenWidth = static_cast<UINT>(graphics.GetScreenWidth());
-	sceneContext.screenHeight = static_cast<UINT>(graphics.GetScreenHeight());
+	// GameWindowが持つ専用テクスチャを描画先として渡す
+	sceneContext.renderTargetView = gameWindow.GetRTV();
+	sceneContext.depthStencilView = gameWindow.GetDSV();
+	sceneContext.camera = &gameWindow.GetCamera();
+	sceneContext.view = gameWindow.GetCamera().GetView();
+	sceneContext.projection = gameWindow.GetCamera().GetProjection();
+	sceneContext.screenWidth = gameWindow.GetRenderWidth();
+	sceneContext.screenHeight = gameWindow.GetRenderHeight();
 	sceneContext.cameraMode = editorContext.cameraMode;
 	sceneContext.editorContext = &editorContext;
+	sceneContext.cameraMode = editorContext.cameraMode;
+	sceneContext.editorContext = &editorContext;
+	sceneContext.gameInputActive = IsGameInputActive();
 }
 
 // Studioを開く
@@ -337,4 +360,18 @@ void framework::openStudioWindow(const std::string& assetPath, const std::string
 	}
 
 	studioWindows.push_back(std::move(win));
+}
+
+bool framework::IsEditorActive() const
+{
+#ifdef _DEBUG
+	return !previewRelease;
+#else
+	return false;
+#endif
+}
+
+bool framework::IsGameInputActive() const
+{
+	return IsEditorActive() ? gameWindow.IsViewportHovered() : true;
 }

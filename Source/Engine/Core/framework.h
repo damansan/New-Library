@@ -10,7 +10,7 @@
 #include "Engine/Core/Graphics.h"
 #include "Engine/Core/ImGuiManager.h"
 #include "Engine/Core/SceneManager.h"
-#include "Engine/Core/Camera.h"
+#include "Engine/Core/GameWindow.h"
 #include "Engine/Core/PhysX.h"
 
 #include "Engine/Resource/ResourceManager.h"
@@ -73,8 +73,8 @@ private:
 	SceneManager sceneManager;
 	// ResourceManagerクラス
 	ResourceManager resourceManager;
-	// Cameraクラス
-	Camera camera;
+	// Gameウィンドウ（描画先テクスチャ＋カメラ）
+	GameWindow gameWindow;
 	// PhysXクラス
 	PhysX physX;
 
@@ -98,4 +98,12 @@ private:
 	// Update計測
 	int updateCount = 0;
 	int updateCountBuf = 0;
+
+
+#ifdef _DEBUG
+	bool previewRelease = false;
+#endif
+	bool IsEditorActive() const;
+	bool IsGameInputActive() const;
+
 };

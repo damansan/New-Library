@@ -120,7 +120,7 @@ Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Core\framework.h
 #include "Engine/Core/Graphics.h"
 #include "Engine/Core/ImGuiManager.h"
 #include "Engine/Core/SceneManager.h"
-#include "Engine/Core/Camera.h"
+#include "Engine/Core/GameWindow.h"
 #include "Engine/Core/PhysX.h"
 
 #include "Engine/Resource/ResourceManager.h"
@@ -183,8 +183,8 @@ private:
 	SceneManager sceneManager;
 	// ResourceManagerƒNƒ‰ƒX
 	ResourceManager resourceManager;
-	// CameraƒNƒ‰ƒX
-	Camera camera;
+	// GameƒEƒBƒ“ƒhƒEi•`‰ææƒeƒNƒXƒ`ƒƒ{ƒJƒƒ‰j
+	GameWindow gameWindow;
 	// PhysXƒNƒ‰ƒX
 	PhysX physX;
 
@@ -208,6 +208,72 @@ private:
 	// UpdateŒv‘ª
 	int updateCount = 0;
 	int updateCountBuf = 0;
+}; 
+ 
+===== GameWindow.h ===== 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Core\GameWindow.h 
+#pragma once
+#include <d3d11.h>
+#include <wrl.h>
+
+#include "Camera.h"
+
+class GameWindow
+{
+public:
+    GameWindow() = default;
+    ~GameWindow() = default;
+
+    GameWindow(const GameWindow&) = delete;                // ƒRƒs[ƒRƒ“ƒXƒgƒ‰ƒNƒ^‹Ö~
+    GameWindow& operator=(const GameWindow&) = delete;     // ƒRƒs[‘ã“ü‹Ö~
+    GameWindow(GameWindow&&) noexcept = delete;            // ƒ€[ƒuƒRƒ“ƒXƒgƒ‰ƒNƒ^‹Ö~
+    GameWindow& operator=(GameWindow&&) noexcept = delete; // ƒ€[ƒu‘ã“ü‹Ö~
+
+    // ‰Šú‰»
+    void Initialize(ID3D11Device* device, UINT width = 1920, UINT height = 1080);
+
+    // •`‰ææ‚ÌØ‚è‘Ö‚¦
+    void Begin(ID3D11DeviceContext* dc);
+    void End(ID3D11DeviceContext* dc);
+
+    // ImGui•`‰æ
+    void DrawWindow(const char* windowName = "Game");
+
+    // ƒeƒNƒXƒ`ƒƒ‚ÌÄ¶¬
+    void ResizeRenderTarget(UINT width, UINT height);
+
+    // ƒJƒƒ‰æ“¾
+    Camera& GetCamera() { return camera; }
+
+    // SRVæ“¾
+    ID3D11ShaderResourceView* GetSRV() { return srv.Get(); }
+
+    // SceneContext‚Ö“n‚·‚½‚ß‚Ì•`‰æææ“¾
+    ID3D11RenderTargetView* GetRTV() { return rtv.Get(); }
+    ID3D11DepthStencilView* GetDSV() { return dsv.Get(); }
+    UINT GetRenderWidth()  const { return renderWidth; }
+    UINT GetRenderHeight() const { return renderHeight; }
+
+    // ƒrƒ…[ƒ|[ƒg‚ªƒzƒo[‚³‚ê‚Ä‚¢‚é‚©
+    bool IsViewportHovered() const { return viewportHovered; }
+
+private:
+    Microsoft::WRL::ComPtr<ID3D11Device>             device;
+    Microsoft::WRL::ComPtr<ID3D11Texture2D>          renderTexture;
+    Microsoft::WRL::ComPtr<ID3D11RenderTargetView>   rtv;
+    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv;
+    Microsoft::WRL::ComPtr<ID3D11Texture2D>          depthTexture;
+    Microsoft::WRL::ComPtr<ID3D11DepthStencilView>   dsv;
+
+    Camera camera;
+
+    UINT renderWidth = 1920;
+    UINT renderHeight = 1080;
+
+    bool viewportHovered = false;
+
+    // Begin/EndŠÔ‚Å‚Ìƒrƒ…[ƒ|[ƒg‘Ş”ğ—p
+    D3D11_VIEWPORT savedViewport = {};
 }; 
  
 ===== Graphics.h ===== 
@@ -619,6 +685,9 @@ struct SceneContext
 
 	CameraMode cameraMode = CameraMode::Debug;
 	EditorContext* editorContext = nullptr;
+
+	// Gameƒrƒ…[ƒ|[ƒg‚ªƒzƒo[‚³‚ê‚Ä‚¢‚é‚©
+	bool viewportHovered = false;
 }; 
  
 ===== SceneManager.h ===== 
@@ -741,9 +810,9 @@ framework::framework(HWND hwnd) : hwnd(hwnd)
 	// ImGuiManager‰Šú‰»
 	imguiManager.Initialize(hwnd, graphics.GetDevice(), graphics.GetDeviceContext());
 
-	// ƒJƒƒ‰‰Šú‰»
-	camera.Initialize(graphics.GetScreenWidth(), graphics.GetScreenHeight());
-
+	// GameƒEƒBƒ“ƒhƒE‰Šú‰»
+	gameWindow.Initialize(graphics.GetDevice());
+	
 	// Å‰‚ÌƒV[ƒ“ƒZƒbƒg
 	sceneManager.ChangeScene(std::make_unique<SceneGame>());
 
@@ -756,10 +825,10 @@ framework::framework(HWND hwnd) : hwnd(hwnd)
 	// Studio‹¤—LƒŠƒ\[ƒX‰Šú‰»
 	studioShared.Initialize(graphics.GetDevice());
 
-//#ifndef _DEBUG
-//	// ƒŠƒŠ[ƒX‚Íƒ{[ƒ_[ƒŒƒXƒtƒ‹ƒXƒNƒŠ[ƒ“‚Å‹N“®
-//	graphics.ToggleFullscreen();
-//#endif
+#ifndef _DEBUG
+	// ƒŠƒŠ[ƒX‚Íƒ{[ƒ_[ƒŒƒXƒtƒ‹ƒXƒNƒŠ[ƒ“‚Å‹N“®
+	graphics.ToggleFullscreen();
+#endif
 }
 
 framework::~framework()
@@ -777,15 +846,14 @@ void framework::update(float elapsedTime)
 {
 	ZoneScoped;
 
-	// ‰EƒNƒŠƒbƒN‚ğ‰Ÿ‚µ‚½uŠÔDebugƒ‚[ƒh‚ÉØ‚è‘Ö‚¦
+	// ‰EƒNƒŠƒbƒN‚ğ‰Ÿ‚µ‚½uŠÔAGameƒrƒ…[ƒ|[ƒgã‚Å‚ ‚ê‚ÎDebugƒ‚[ƒh‚ÉØ‚è‘Ö‚¦
 	static bool prevRButton = false;
 	bool currRButton = (GetAsyncKeyState(VK_RBUTTON) & 0x8000) != 0;
-	if (currRButton && !prevRButton)
+	if (currRButton && !prevRButton && gameWindow.IsViewportHovered())
 	{
 		editorContext.cameraMode = CameraMode::Debug;
 	}
 	prevRButton = currRButton;
-
 
 	// SceneContext XV
 	updateSceneContext();
@@ -800,9 +868,8 @@ void framework::update(float elapsedTime)
 	}
 
 	// ƒQ[ƒ€ƒJƒƒ‰‚ÌŒ‹‰Ê‚ğcontext‚É”½‰f
-	sceneContext.view = camera.GetView();
-	sceneContext.projection = camera.GetProjection();
-
+	sceneContext.view = gameWindow.GetCamera().GetView();
+	sceneContext.projection = gameWindow.GetCamera().GetProjection();
 }
 
 void framework::updateImGui()
@@ -820,7 +887,10 @@ void framework::updateImGui()
 	// ƒV[ƒ“ImGui•`‰æ
 	sceneManager.RenderImGui();
 
-//#ifdef _DEBUG
+	// GameƒEƒBƒ“ƒhƒEiƒhƒbƒLƒ“ƒO/ƒ^ƒu‰»‘ÎÛj
+	gameWindow.DrawWindow("Game");
+
+#ifdef _DEBUG
 	if (auto* scene = sceneManager.GetCurrentScene())
 	{
 		projectWindow.Draw(scene->GetRegistry(), editorContext);
@@ -850,7 +920,7 @@ void framework::updateImGui()
 			}),
 		studioWindows.end()
 	);
-//#endif
+#endif
 }
 
 void framework::render(float elapsedTime)
@@ -859,11 +929,12 @@ void framework::render(float elapsedTime)
 
 	// ‰æ–ÊƒNƒŠƒA
 	graphics.Clear(0.2f, 0.2f, 0.5f, 1.0f);
-	// ƒŒƒ“ƒ_[ƒ^[ƒQƒbƒgİ’è
 	graphics.SetRenderTargets();
 
-	// ƒV[ƒ“•`‰æ
+	// Game•`‰ææ‚ğGameWindow—pƒeƒNƒXƒ`ƒƒ‚ÉØ‚è‘Ö‚¦‚Ä•`‰æ
+	gameWindow.Begin(graphics.GetDeviceContext());
 	sceneManager.Render(sceneContext);
+	gameWindow.End(graphics.GetDeviceContext());
 
 	// Studio•`‰æ
 	for (auto& win : studioWindows)
@@ -1016,28 +1087,24 @@ LRESULT framework::handle_message(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpa
 // SceneContext ‚ğÅVó‘Ô‚ÉXV‚·‚é
 void framework::updateSceneContext()
 {
-	// ƒEƒBƒ“ƒhƒEƒTƒCƒY‚É‡‚í‚¹‚ÄƒJƒƒ‰‚ÌƒAƒXƒyƒNƒg”ä‚ğXV
-	camera.SetPerspectiveFov(
-		DirectX::XMConvertToRadians(camera.GetViewingAngle()),
-		graphics.GetScreenWidth() / graphics.GetScreenHeight(),
-		0.1f,
-		1000.0f
-	);
-
 	sceneContext.device = graphics.GetDevice();
 	sceneContext.deviceContext = graphics.GetDeviceContext();
 	sceneContext.resourceManager = &resourceManager;
 	sceneContext.physX = &physX;
 
-	sceneContext.renderTargetView = graphics.GetRenderTargetView();
-	sceneContext.depthStencilView = graphics.GetDepthStencilView();
-	sceneContext.camera = &camera;
-	sceneContext.view = camera.GetView();
-	sceneContext.projection = camera.GetProjection();
-	sceneContext.screenWidth = static_cast<UINT>(graphics.GetScreenWidth());
-	sceneContext.screenHeight = static_cast<UINT>(graphics.GetScreenHeight());
+	// GameWindow‚ª‚Âê—pƒeƒNƒXƒ`ƒƒ‚ğ•`‰ææ‚Æ‚µ‚Ä“n‚·
+	sceneContext.renderTargetView = gameWindow.GetRTV();
+	sceneContext.depthStencilView = gameWindow.GetDSV();
+	sceneContext.camera = &gameWindow.GetCamera();
+	sceneContext.view = gameWindow.GetCamera().GetView();
+	sceneContext.projection = gameWindow.GetCamera().GetProjection();
+	sceneContext.screenWidth = gameWindow.GetRenderWidth();
+	sceneContext.screenHeight = gameWindow.GetRenderHeight();
 	sceneContext.cameraMode = editorContext.cameraMode;
 	sceneContext.editorContext = &editorContext;
+	sceneContext.cameraMode = editorContext.cameraMode;
+	sceneContext.editorContext = &editorContext;
+	sceneContext.viewportHovered = gameWindow.IsViewportHovered();
 }
 
 // Studio‚ğŠJ‚­
@@ -1061,6 +1128,141 @@ void framework::openStudioWindow(const std::string& assetPath, const std::string
 	}
 
 	studioWindows.push_back(std::move(win));
+} 
+ 
+===== GameWindow.cpp ===== 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Core\GameWindow.cpp 
+#include "GameWindow.h"
+#include <imgui.h>
+#include <cassert>
+
+// ‰Šú‰»
+void GameWindow::Initialize(ID3D11Device* dev, UINT width, UINT height)
+{
+    device = dev;
+
+    // ƒJƒƒ‰‰Šú‰»
+    camera.Initialize(static_cast<float>(width), static_cast<float>(height));
+
+    ResizeRenderTarget(width, height);
+}
+
+// •`‰ææ‚ÌØ‚è‘Ö‚¦
+void GameWindow::Begin(ID3D11DeviceContext* dc)
+{
+    if (!dc) return;
+
+    // Œ»İ‚Ìƒrƒ…[ƒ|[ƒg‚ğ•Û‘¶
+    UINT numVP = 1;
+    dc->RSGetViewports(&numVP, &savedViewport);
+
+    // ©‘O‚Ìƒrƒ…[ƒ|[ƒg‚ğƒZƒbƒg
+    D3D11_VIEWPORT vp{};
+    vp.Width = static_cast<float>(renderWidth);
+    vp.Height = static_cast<float>(renderHeight);
+    vp.MinDepth = 0.0f;
+    vp.MaxDepth = 1.0f;
+    dc->RSSetViewports(1, &vp);
+
+    // •`‰ææ‚ğ©‘ORTV‚ÉØ‚è‘Ö‚¦
+    dc->OMSetRenderTargets(1, rtv.GetAddressOf(), dsv.Get());
+
+    // ƒNƒŠƒA
+    float clear[4] = { 0.2f, 0.2f, 0.5f, 1.0f };
+    dc->ClearRenderTargetView(rtv.Get(), clear);
+    dc->ClearDepthStencilView(dsv.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+}
+void GameWindow::End(ID3D11DeviceContext* dc)
+{
+    if (!dc) return;
+
+    // ƒrƒ…[ƒ|[ƒg‚ğŒ³‚É–ß‚·
+    dc->RSSetViewports(1, &savedViewport);
+
+    // •`‰ææ‚ğƒƒCƒ“‚É–ß‚·
+    ID3D11RenderTargetView* nullRTV = nullptr;
+    dc->OMSetRenderTargets(1, &nullRTV, nullptr);
+}
+
+// ImGui•`‰æ
+void GameWindow::DrawWindow(const char* windowName)
+{
+    ImGui::Begin(windowName);
+
+    ImVec2 region = ImGui::GetContentRegionAvail();
+    if (region.x > 1 && region.y > 1)
+    {
+        camera.SetPerspectiveFov(
+            DirectX::XMConvertToRadians(camera.GetViewingAngle()),
+            region.x / region.y,
+            0.1f,
+            1000.0f
+        );
+    }
+
+    ImGui::Image(reinterpret_cast<ImTextureID>(srv.Get()), region);
+
+    // ƒJƒƒ‰‘€ì‚ÌŠJn”»’è‚ÍViewport’P‘Ì‚Ìƒzƒo[‚¾‚¯‚ğŒ©‚é
+    viewportHovered = ImGui::IsWindowHovered();
+
+    ImGui::End();
+}
+
+// ƒeƒNƒXƒ`ƒƒ‚ÌÄ¶¬
+void GameWindow::ResizeRenderTarget(UINT width, UINT height)
+{
+    if (!device) return;
+    if (width == 0 || height == 0) return;
+
+    renderWidth = width;
+    renderHeight = height;
+
+    // ŒÃ‚¢ƒŠƒ\[ƒX‚ğ‰ğ•ú
+    srv.Reset();
+    rtv.Reset();
+    renderTexture.Reset();
+    dsv.Reset();
+    depthTexture.Reset();
+
+    HRESULT hr;
+
+    // ƒJƒ‰[ƒeƒNƒXƒ`ƒƒÄ¶¬
+    {
+        D3D11_TEXTURE2D_DESC desc{};
+        desc.Width = renderWidth;
+        desc.Height = renderHeight;
+        desc.MipLevels = 1;
+        desc.ArraySize = 1;
+        desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+        desc.SampleDesc.Count = 1;
+        desc.Usage = D3D11_USAGE_DEFAULT;
+        desc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+
+        hr = device->CreateTexture2D(&desc, nullptr, renderTexture.GetAddressOf());
+        assert(SUCCEEDED(hr));
+        hr = device->CreateRenderTargetView(renderTexture.Get(), nullptr, rtv.GetAddressOf());
+        assert(SUCCEEDED(hr));
+        hr = device->CreateShaderResourceView(renderTexture.Get(), nullptr, srv.GetAddressOf());
+        assert(SUCCEEDED(hr));
+    }
+
+    // [“xƒeƒNƒXƒ`ƒƒÄ¶¬
+    {
+        D3D11_TEXTURE2D_DESC desc{};
+        desc.Width = renderWidth;
+        desc.Height = renderHeight;
+        desc.MipLevels = 1;
+        desc.ArraySize = 1;
+        desc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+        desc.SampleDesc.Count = 1;
+        desc.Usage = D3D11_USAGE_DEFAULT;
+        desc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+
+        hr = device->CreateTexture2D(&desc, nullptr, depthTexture.GetAddressOf());
+        assert(SUCCEEDED(hr));
+        hr = device->CreateDepthStencilView(depthTexture.Get(), nullptr, dsv.GetAddressOf());
+        assert(SUCCEEDED(hr));
+    }
 } 
  
 ===== Graphics.cpp ===== 
@@ -1743,6 +1945,7 @@ struct AnimationSpeedPoint
 	int id = -1;
 	float time = 0.0f;
 	float speed = 1.0f;
+	bool  isEndpoint = false;
 };
 
 // 1ƒNƒŠƒbƒv•ª‚Ì‘¬“xƒ|ƒCƒ“ƒgŒQ
@@ -2072,6 +2275,22 @@ AnimationSpeedClipData* AnimationSpeedData::FindOrCreateClip(const std::string& 
 
 	AnimationSpeedClipData newClip;
 	newClip.clipName = clipName;
+
+	// n’[/I’[‚ÌŒÅ’èƒ|ƒCƒ“ƒg‚ğ1.0”{‚Å”z’u‚µ‚Ä‚¨‚­
+	AnimationSpeedPoint startPoint;
+	startPoint.id = newClip.GenerateId();
+	startPoint.time = 0.0f;
+	startPoint.speed = 1.0f;
+	startPoint.isEndpoint = true;
+	newClip.points.push_back(startPoint);
+
+	AnimationSpeedPoint endPoint;
+	endPoint.id = newClip.GenerateId();
+	endPoint.time = 1.0f;
+	endPoint.speed = 1.0f;
+	endPoint.isEndpoint = true;
+	newClip.points.push_back(endPoint);
+
 	clips.push_back(newClip);
 	return &clips.back();
 }
@@ -2127,6 +2346,7 @@ nlohmann::ordered_json AnimationSpeedData::ToJson() const
 			jp["id"] = p.id;
 			jp["time"] = p.time;
 			jp["speed"] = p.speed;
+			jp["isEndpoint"] = p.isEndpoint;
 			jc["points"].push_back(jp);
 		}
 
@@ -2157,6 +2377,7 @@ void AnimationSpeedData::FromJson(const nlohmann::json& j)
 				p.id = jp.value("id", -1);
 				p.time = jp.value("time", 0.0f);
 				p.speed = jp.value("speed", 1.0f);
+				p.isEndpoint = jp.value("isEndpoint", false);
 				clip.points.push_back(p);
 			}
 		}
@@ -3613,14 +3834,14 @@ class DebugCameraSystem
 {
 public:
     // ƒtƒŠ[ƒJƒƒ‰‚ÌXV
-    void Update(entt::registry& registry, float elapsedTime);
+    void Update(entt::registry& registry, float elapsedTime, bool viewportHovered);
 
     // Camera ƒNƒ‰ƒX‚ÉŒ‹‰Ê‚ğ”½‰f
     void ApplyToCamera(entt::registry& registry, Camera& camera);
 
 private:
     // ƒtƒŠ[ƒJƒƒ‰XVˆ—
-    void UpdateFreeCamera(FreeCameraComponent& free, float elapsedTime);
+    void UpdateFreeCamera(FreeCameraComponent& free, float elapsedTime, bool viewportHovered);
 }; 
  
 ===== IKSystem.h ===== 
@@ -3772,7 +3993,9 @@ struct CbScene
 
 struct CbObject
 {
-	DirectX::XMFLOAT4X4 world;      // ƒ[ƒ‹ƒhs—ñ
+	DirectX::XMFLOAT4X4 world;       // ƒ[ƒ‹ƒhs—ñ
+	float               alphaCutoff; // Mask‘fŞ‚ÌƒNƒŠƒbƒv‚µ‚«‚¢’l
+	DirectX::XMFLOAT3   padding;     // 16ƒoƒCƒgƒAƒ‰ƒCƒƒ“ƒg—p
 };
 
 #define MAX_BONES 256
@@ -5238,12 +5461,12 @@ Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\DebugCameraSy
 #include <algorithm>
 #include <cmath>
 
-void DebugCameraSystem::Update(entt::registry& registry, float elapsedTime)
+void DebugCameraSystem::Update(entt::registry& registry, float elapsedTime, bool viewportHovered)
 {
     auto view = registry.view<FreeCameraComponent>();
     view.each([&](auto entity, FreeCameraComponent& free)
         {
-            UpdateFreeCamera(free, elapsedTime);
+            UpdateFreeCamera(free, elapsedTime, viewportHovered);
         });
 }
 
@@ -5263,10 +5486,10 @@ void DebugCameraSystem::ApplyToCamera(entt::registry& registry, Camera& camera)
     }
 }
 
-void DebugCameraSystem::UpdateFreeCamera(FreeCameraComponent& free, float elapsedTime)
+void DebugCameraSystem::UpdateFreeCamera(FreeCameraComponent& free, float elapsedTime, bool viewportHovered)
 {
-    // ImGuiƒEƒBƒ“ƒhƒE‘€ì’†‚Íˆ—‚µ‚È‚¢
-    if (ImGui::IsWindowFocused(ImGuiFocusedFlags_AnyWindow)) return;
+    // Gameƒrƒ…[ƒ|[ƒgã‚Éƒ}ƒEƒX‚ª–³‚¢‚Íˆ—‚µ‚È‚¢
+    if (!viewportHovered) return;
 
     // ‰EƒNƒŠƒbƒN’†‚¾‚¯‘€ì‚ğó‚¯•t‚¯‚é
     if (!(GetAsyncKeyState(VK_RBUTTON) & 0x8000))
@@ -6104,7 +6327,8 @@ void RenderSystem::Initialize(ID3D11Device* device)
 	blendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
 	blendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
 	blendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
-	blendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+	blendDesc.RenderTarget[0].RenderTargetWriteMask =
+		D3D11_COLOR_WRITE_ENABLE_RED | D3D11_COLOR_WRITE_ENABLE_GREEN | D3D11_COLOR_WRITE_ENABLE_BLUE;
 	device->CreateBlendState(&blendDesc, blendState.GetAddressOf());
 
 	// ãƒ–ãƒ¬ãƒ³ãƒ‰ã‚¹ãƒ†ãƒ¼ãƒˆ(ãƒ–ãƒ¬ãƒ³ãƒ‰ãªã—ãƒ»GBufferç”¨ï¼‰
@@ -6281,13 +6505,17 @@ void RenderSystem::GeometryPass(
 
 			for (auto& mesh : staticMesh.model->GetMeshes())
 			{
-				if (mesh.material)
-				{
-					bool isTransparent =
-						mesh.material->alphaMode == Model::Material::AlphaMode::Blend ||
-						mesh.material->alphaMode == Model::Material::AlphaMode::Mask;
-					if (isTransparent) continue;
-				}
+				// ä¸é€æ˜ãƒ‘ã‚¹ã§æãã®ã¯ Opaqueãƒ»Mask
+				bool isBlend = mesh.material &&
+					mesh.material->alphaMode == Model::Material::AlphaMode::Blend;
+				if (isBlend) continue;
+
+				// Maskãªã‚‰ã‚¯ãƒªãƒƒãƒ—ã—ãã„å€¤ã‚’ã‚»ãƒƒãƒˆã€ãã‚Œä»¥å¤–ã¯ç ´æ£„ã—ãªã„
+				bool isMask = mesh.material &&
+					mesh.material->alphaMode == Model::Material::AlphaMode::Mask;
+				cbObjectData.alphaCutoff = isMask ? mesh.material->alphaCutoff : 0.0f;
+				dc->UpdateSubresource(cbObject.Get(), 0, nullptr, &cbObjectData, 0, 0);
+				dc->PSSetConstantBuffers(2, 1, cbObject.GetAddressOf());
 
 				UINT stride = sizeof(Model::Vertex), offset = 0;
 				dc->IASetVertexBuffers(0, 1, mesh.vertexBuffer.GetAddressOf(), &stride, &offset);
@@ -6332,15 +6560,21 @@ void RenderSystem::GeometryPass(
 			for (int m = 0; m < (int)meshes.size(); m++)
 			{
 				const auto& mesh = meshes[m];
-				if (mesh.material)
-				{
-					bool isTransparent =
-						mesh.material->alphaMode == Model::Material::AlphaMode::Blend ||
-						mesh.material->alphaMode == Model::Material::AlphaMode::Mask;
-					if (isTransparent) continue;
-				}
+
+				// ä¸é€æ˜ãƒ‘ã‚¹ã§æãã®ã¯ Opaqueãƒ»Mask
+				bool isBlend = mesh.material &&
+					mesh.material->alphaMode == Model::Material::AlphaMode::Blend;
+				if (isBlend) continue;
+
+				// Maskãªã‚‰ã‚¯ãƒªãƒƒãƒ—ã—ãã„å€¤ã‚’ã‚»ãƒƒãƒˆã€ãã‚Œä»¥å¤–ã¯ç ´æ£„ã—ãªã„
+				bool isMask = mesh.material &&
+					mesh.material->alphaMode == Model::Material::AlphaMode::Mask;
+				cbObjectData.alphaCutoff = isMask ? mesh.material->alphaCutoff : 0.0f;
+				dc->UpdateSubresource(cbObject.Get(), 0, nullptr, &cbObjectData, 0, 0);
+				dc->PSSetConstantBuffers(2, 1, cbObject.GetAddressOf());
 
 				CbSkinning cbSkinningData{};
+
 				if (m < (int)skinnedMesh.boneTransforms.size() && !skinnedMesh.boneTransforms[m].empty())
 				{
 					const auto& bt = skinnedMesh.boneTransforms[m];
@@ -6484,10 +6718,10 @@ void RenderSystem::ForwardTransparentPass(
 
 			for (auto& mesh : staticMesh.model->GetMeshes())
 			{
-				bool isTransparent = mesh.material &&
-					(mesh.material->alphaMode == Model::Material::AlphaMode::Blend ||
-						mesh.material->alphaMode == Model::Material::AlphaMode::Mask);
-				if (!isTransparent) continue;
+				// ãƒ•ã‚©ãƒ¯ãƒ¼ãƒ‰ã§æãã®ã¯ Blend ã®ã¿
+				bool isBlend = mesh.material &&
+					mesh.material->alphaMode == Model::Material::AlphaMode::Blend;
+				if (!isBlend) continue;
 
 				UINT stride = sizeof(Model::Vertex), offset = 0;
 				dc->IASetVertexBuffers(0, 1, mesh.vertexBuffer.GetAddressOf(), &stride, &offset);
@@ -6527,10 +6761,11 @@ void RenderSystem::ForwardTransparentPass(
 			for (int m = 0; m < (int)meshes.size(); m++)
 			{
 				const auto& mesh = meshes[m];
-				bool isTransparent = mesh.material &&
-					(mesh.material->alphaMode == Model::Material::AlphaMode::Blend ||
-						mesh.material->alphaMode == Model::Material::AlphaMode::Mask);
-				if (!isTransparent) continue;
+
+				// ãƒ•ã‚©ãƒ¯ãƒ¼ãƒ‰ã§æãã®ã¯ Blend ã®ã¿
+				bool isBlend = mesh.material &&
+					mesh.material->alphaMode == Model::Material::AlphaMode::Blend;
+				if (!isBlend) continue;
 
 				CbSkinning cbSkinningData{};
 				if (m < (int)skinnedMesh.boneTransforms.size() && !skinnedMesh.boneTransforms[m].empty())
@@ -12438,7 +12673,7 @@ void SceneGame::Update(float elapsedTime, const SceneContext& context)
 		ZoneScopedN("CameraSystem");
 		if (context.cameraMode == CameraMode::Debug)
 		{
-			debugCameraSystem.Update(registry, elapsedTime);
+			debugCameraSystem.Update(registry, elapsedTime, context.viewportHovered);
 			debugCameraSystem.ApplyToCamera(registry, *context.camera);
 
 			// ã‚¹ãƒ†ã‚£ãƒƒã‚¯å…¥åŠ›ãŒã‚ã‚Œã°Gameãƒ¢ãƒ¼ãƒ‰ã«æˆ»ã™
@@ -15121,6 +15356,59 @@ public:
     {}
 }; 
  
+===== StudioAnimationSpeed.h ===== 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioAnimationSpeed.h 
+#pragma once
+#include "IStudioAttachment.h"
+#include "Engine/Data/AnimationSpeedData.h"
+#include <imgui.h>
+#include <functional>
+#include <string>
+#include <vector>
+
+class StudioAnimationSpeed : public IStudioAttachment
+{
+public:
+	StudioAnimationSpeed() = default;
+	~StudioAnimationSpeed() = default;
+
+	void SetWindowId(int id) { windowId = id; }
+
+	// ImGui•`‰æ
+	void DrawGUI(entt::registry& registry, StudioContext& context) override;
+
+private:
+	// == “à•”ó‘Ô == //
+	int windowId = 0;
+
+	AnimationSpeedData animationSpeedData;        // •ÒW’†‚Ì‘¬“xƒJ[ƒuƒf[ƒ^
+	std::string selectedClipName;                 // ¡•ÒW‚µ‚Ä‚¢‚éƒNƒŠƒbƒv–¼
+	std::vector<std::string> availableAnimations; // ƒ‚ƒfƒ‹‚ª‚ÂƒAƒjƒ[ƒVƒ‡ƒ“–¼ˆê——
+
+	int selectedPointId = -1;     // ‘I‘ğ’†‚ÌPoint‚ÌID
+	std::string loadedModelPath;  // ÅŒã‚É“Ç‚İ‚ñ‚¾ƒ‚ƒfƒ‹ƒpƒX
+
+	// == ƒOƒ‰ƒt•`‰æ == //
+	void DrawToolbar(AnimationSpeedClipData& clip);                                       // ƒc[ƒ‹ƒo[
+	void DrawSpeedGraph(AnimationSpeedClipData& clip, float previewTime, float clipLength); // ‘¬“xƒJ[ƒu‚ÌƒOƒ‰ƒt•`‰æ
+	void DrawDetailPanel(AnimationSpeedClipData& clip, const std::string& modelPath);       // Ú×ƒpƒlƒ‹
+
+	// == íœ == //
+	void DeletePoint(AnimationSpeedClipData& clip, int id); // Pointíœ(isEndpoint‚Ííœ•s‰Â)
+	void DrawDeleteButton(const char* label, const std::function<void()>& onDelete); // íœƒ{ƒ^ƒ“
+
+	// == À•W•ÏŠ·ƒwƒ‹ƒp[ == //
+	static float TimeToNormalized(float time, float clipLength);       // •b”‚ğ0.0`1.0‚É
+	static float NormalizedToTime(float normalized, float clipLength); // 0.0`1.0‚ğ•b”‚É
+
+	// == •Û‘¶ == //
+	void Save(const std::string& modelPath); // •Û‘¶
+	static std::string GetAnimationSpeedFilePath(const std::string& modelPath); // ƒ‚ƒfƒ‹ƒpƒX‚©‚ç•Û‘¶æ‚ÌƒpƒX‚ğ‘g‚İ—§‚Ä‚é
+
+	// == ‚»‚Ì‘¼ == //
+	void RefreshAvailableAnimations(entt::registry& registry); // ƒAƒjƒ[ƒVƒ‡ƒ“ˆê——‚ğXV‚·‚é
+}; 
+ 
 ===== StudioAnimator.h ===== 
 Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioAnimator.h 
 #pragma once
@@ -15488,6 +15776,7 @@ struct StudioContext
     bool showTimeline      = false;
     bool showAnimatorGraph = false;
     bool showSequencer = false;
+    bool showAnimationSpeed = false;
 
     std::string attachedGraphPath;
     std::string currentModelPath;
@@ -15763,11 +16052,12 @@ Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioWindow.h
 #include "StudioTimeline.h"
 #include "StudioSequencer.h"
 #include "StudioAnimatorGraph.h"
+#include "StudioAnimationSpeed.h"
 
 class StudioWindow
 {
 public:
-    void Initialize(ID3D11Device* device, StudioSharedContext* shared, UINT width = 1280, UINT height = 720);
+    void Initialize(ID3D11Device* device, StudioSharedContext* shared, UINT width = 1920, UINT height = 1080);
 
     // XV
     void Update(float elapsedTime);
@@ -15796,6 +16086,7 @@ public:
         studioTimeline.SetWindowId(id);
         studioSequencer.SetWindowId(id);
         animatorGraph.SetWindowId(id);
+        studioAnimationSpeed.SetWindowId(id);
 
     }
     int  GetWindowId()  const { return windowId; }
@@ -15836,29 +16127,398 @@ private:
     StudioTimeline    studioTimeline;
     StudioSequencer   studioSequencer;
     StudioAnimatorGraph animatorGraph;
-
+    StudioAnimationSpeed studioAnimationSpeed;
 
     // ƒEƒBƒ“ƒhƒEó‘Ô
     int   windowId = 0;
-    UINT  renderWidth = 1280;
-    UINT  renderHeight = 720;
+    UINT  renderWidth = 1920;
+    UINT  renderHeight = 1080;
     bool  isHovered = false;
     bool  viewportHovered = false;
     bool  closeRequested = false;
     bool  isFirstFrame = true;
     bool  firstDockSetup = true;
 
-
-    // ƒŠƒTƒCƒY—pƒfƒoƒEƒ“ƒX
-    float resizeTimer = 0.0f;
-    bool  needsResize = false;
-    UINT  pendingWidth = 0;
-    UINT  pendingHeight = 0;
-
     // ƒrƒ…[ƒ|[ƒg•Û‘¶
     D3D11_VIEWPORT savedViewport = {};
     int            renderSkipCount = 0;
 }; 
+ 
+===== StudioAnimationSpeed.cpp ===== 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioAnimationSpeed.cpp 
+#include "StudioAnimationSpeed.h"
+#include "Engine/ECS/Components/SkinnedMeshComponent.h"
+#include "Engine/ECS/Components/AnimatorComponent.h"
+#include "Engine/ECS/Components/AnimationSpeedComponent.h"
+
+#include <algorithm>
+#include <fstream>
+#include <filesystem>
+
+// ImGui•`‰æ
+void StudioAnimationSpeed::DrawGUI(entt::registry& registry, StudioContext& context)
+{
+	if (!context.showAnimationSpeed) return;
+
+	std::string panelName = "Animation Speed##" + std::to_string(windowId);
+	ImGui::Begin(panelName.c_str());
+
+	RefreshAvailableAnimations(registry);
+
+	auto view = registry.view<SkinnedMeshComponent, AnimatorComponent, AnimationSpeedComponent>();
+	if (view.begin() == view.end())
+	{
+		ImGui::Text("No skinned model.");
+		ImGui::End();
+		return;
+	}
+
+	auto entity = *view.begin();
+	auto& skinned = view.get<SkinnedMeshComponent>(entity);
+	auto& animator = view.get<AnimatorComponent>(entity);
+	auto& animSpeed = view.get<AnimationSpeedComponent>(entity);
+
+	if (!skinned.model)
+	{
+		ImGui::End();
+		return;
+	}
+
+	// ƒ‚ƒfƒ‹‚ªØ‚è‘Ö‚í‚Á‚½‚çA‚»‚Ìƒ‚ƒfƒ‹—p‚Ì‘¬“xƒJ[ƒuƒf[ƒ^‚ğ“Ç‚İ‚İ’¼‚·
+	if (loadedModelPath != context.currentModelPath)
+	{
+		animationSpeedData = AnimationSpeedData();
+
+		std::string loadPath = GetAnimationSpeedFilePath(context.currentModelPath);
+		std::ifstream ifs(loadPath);
+		if (ifs.is_open())
+		{
+			try
+			{
+				nlohmann::json j;
+				ifs >> j;
+				animationSpeedData.FromJson(j);
+			}
+			catch (const std::exception&) {}
+		}
+
+		// AnimationSpeedSystem‚ªÀÛ‚É‚±‚Ìƒf[ƒ^‚ğŒ©‚Â‚¯‚ç‚ê‚é‚æ‚¤A
+		// ‚±‚Ìƒ‚ƒfƒ‹—p‚ÌƒpƒX‚ğƒRƒ“ƒ|[ƒlƒ“ƒg‚Ö”½‰f‚·‚é(Sequencer‚É‚Í–³‚¢è‡)
+		animSpeed.animationSpeedPath = loadPath;
+
+		loadedModelPath = context.currentModelPath;
+		selectedPointId = -1;
+	}
+
+	if (animator.currentAnimation.empty())
+	{
+		ImGui::TextDisabled("Select an animation from the Animator panel.");
+		ImGui::End();
+		return;
+	}
+
+	// ‘I‚ñ‚Å‚¢‚éƒNƒŠƒbƒv‚ªØ‚è‘Ö‚í‚Á‚½‚çA‘I‘ğó‘Ô‚ğƒŠƒZƒbƒg‚·‚é
+	if (selectedClipName != animator.currentAnimation)
+	{
+		selectedClipName = animator.currentAnimation;
+		selectedPointId = -1;
+	}
+
+	// ‚±‚ÌƒNƒŠƒbƒv‚Ì’·‚³‚ğæ“¾‚·‚é
+	float clipLength = 0.0f;
+	for (const auto& anim : skinned.model->GetAnimations())
+	{
+		if (anim.name == selectedClipName)
+		{
+			clipLength = anim.secondsLength;
+			break;
+		}
+	}
+
+	// ‚±‚ÌƒNƒŠƒbƒv‚ª¡Ä¶’†‚È‚çAƒvƒŒƒrƒ…[‚Æ‚µ‚Äg‚¤
+	float previewTime = (animator.currentAnimation == selectedClipName) ? animator.animationTime : 0.0f;
+
+	AnimationSpeedClipData* clip = animationSpeedData.FindOrCreateClip(selectedClipName);
+
+	const float detailPanelWidth = 220.0f;
+
+	ImGui::BeginChild("AnimationSpeedGraphArea", ImVec2(-detailPanelWidth, 0.0f));
+	DrawToolbar(*clip);
+	DrawSpeedGraph(*clip, previewTime, clipLength);
+	ImGui::EndChild();
+
+	ImGui::SameLine();
+
+	ImGui::BeginChild("AnimationSpeedDetail", ImVec2(detailPanelWidth, 0.0f), true);
+	DrawDetailPanel(*clip, context.currentModelPath);
+	ImGui::EndChild();
+
+	ImGui::End();
+}
+
+// ƒc[ƒ‹ƒo[
+void StudioAnimationSpeed::DrawToolbar(AnimationSpeedClipData& clip)
+{
+	ImGui::TextDisabled("Clip: %s", clip.clipName.c_str());
+	ImGui::TextDisabled("Points: %d", (int)clip.points.size());
+	ImGui::Separator();
+}
+// ƒOƒ‰ƒt•`‰æ
+void StudioAnimationSpeed::DrawSpeedGraph(AnimationSpeedClipData& clip, float previewTime, float clipLength)
+{
+	const float speedMin = 0.0f;
+	const float speedMax = 3.0f;
+
+	ImGui::Text("Speed Curve");
+	ImGui::SameLine(ImGui::GetContentRegionAvail().x - 60.0f);
+	if (ImGui::Button("+ Add"))
+	{
+		AnimationSpeedPoint p;
+		p.id = clip.GenerateId();
+		p.time = TimeToNormalized(previewTime, clipLength);
+		p.speed = 1.0f;
+		p.isEndpoint = false;
+		clip.points.push_back(p);
+
+		selectedPointId = p.id;
+	}
+
+	ImVec2 graphMin = ImGui::GetCursorScreenPos();
+	float graphWidth = ImGui::GetContentRegionAvail().x;
+	const float graphHeight = 260.0f;
+	ImVec2 graphMax(graphMin.x + graphWidth, graphMin.y + graphHeight);
+
+	ImDrawList* dl = ImGui::GetWindowDrawList();
+	dl->AddRectFilled(graphMin, graphMax, IM_COL32(30, 30, 30, 255));
+
+	auto timeToX = [&](float normalized) { return graphMin.x + normalized * graphWidth; };
+	auto speedToY = [&](float speed)
+		{
+			float t = (std::clamp(speed, speedMin, speedMax) - speedMin) / (speedMax - speedMin);
+			return graphMax.y - t * graphHeight; // ã‚És‚­‚Ù‚Ç‘¬‚¢
+		};
+	auto xToTime = [&](float screenX) { return std::clamp((screenX - graphMin.x) / graphWidth, 0.0f, 1.0f); };
+	auto yToSpeed = [&](float screenY)
+		{
+			float t = std::clamp((graphMax.y - screenY) / graphHeight, 0.0f, 1.0f);
+			return speedMin + t * (speedMax - speedMin);
+		};
+
+	// ‰¡•ûŒü‚Ì–Ú·‚èü(0.5‚İB1.0”{‚¾‚¯‹­’²)
+	for (float s = speedMin; s <= speedMax + 0.001f; s += 0.5f)
+	{
+		float y = speedToY(s);
+		bool isNormal = (std::abs(s - 1.0f) < 0.001f);
+		ImU32 lineColor = isNormal ? IM_COL32(120, 120, 60, 180) : IM_COL32(60, 60, 60, 150);
+		dl->AddLine(ImVec2(graphMin.x, y), ImVec2(graphMax.x, y), lineColor, isNormal ? 1.5f : 1.0f);
+
+		char label[16];
+		snprintf(label, sizeof(label), "%.1fx", s);
+		dl->AddText(ImVec2(graphMin.x + 4.0f, y - 14.0f), IM_COL32(160, 160, 160, 255), label);
+	}
+
+	// ƒvƒŒƒCƒwƒbƒh(Œ»İ‚ÌÄ¶ˆÊ’u)
+	float phX = timeToX(TimeToNormalized(previewTime, clipLength));
+	dl->AddLine(ImVec2(phX, graphMin.y), ImVec2(phX, graphMax.y), IM_COL32(220, 60, 60, 220), 1.5f);
+
+	// ƒ|ƒCƒ“ƒg‚ğtime‡‚É•À‚×‘Ö‚¦‚ÄA‹Èü‚Æ‚µ‚ÄŒq‚¢‚Å•`‰æ‚·‚é
+	std::vector<AnimationSpeedPoint*> sorted;
+	sorted.reserve(clip.points.size());
+	for (auto& p : clip.points) sorted.push_back(&p);
+	std::sort(sorted.begin(), sorted.end(),
+		[](const AnimationSpeedPoint* a, const AnimationSpeedPoint* b) { return a->time < b->time; });
+
+	for (size_t i = 0; i + 1 < sorted.size(); ++i)
+	{
+		ImVec2 a(timeToX(sorted[i]->time), speedToY(sorted[i]->speed));
+		ImVec2 b(timeToX(sorted[i + 1]->time), speedToY(sorted[i + 1]->speed));
+		dl->AddLine(a, b, IM_COL32(120, 170, 255, 255), 2.0f);
+	}
+
+	// ƒ|ƒCƒ“ƒg–{‘Ì(ƒhƒ‰ƒbƒO‘€ì)
+	ImGui::PushID("SpeedPointGraph");
+	for (auto& p : clip.points)
+	{
+		ImVec2 center(timeToX(p.time), speedToY(p.speed));
+
+		bool isSelected = (selectedPointId == p.id);
+		ImU32 color = isSelected ? IM_COL32(255, 200, 80, 255)
+			: p.isEndpoint ? IM_COL32(200, 120, 255, 255)
+			: IM_COL32(120, 170, 255, 255);
+
+		dl->AddCircleFilled(center, 5.0f, color);
+
+		ImGui::SetCursorScreenPos(ImVec2(center.x - 6.0f, center.y - 6.0f));
+		ImGui::PushID(p.id);
+		ImGui::InvisibleButton("point", ImVec2(12.0f, 12.0f));
+
+		if (ImGui::IsItemActive() && ImGui::IsMouseDragging(ImGuiMouseButton_Left))
+		{
+			ImVec2 mousePos = ImGui::GetMousePos();
+
+			// n’[EI’[‚ÍX(ŠÔ)‚ğŒÅ’è‚µAY‚Ì‚İ“®‚©‚¹‚é
+			if (!p.isEndpoint)
+			{
+				p.time = xToTime(mousePos.x);
+			}
+			p.speed = yToSpeed(mousePos.y);
+		}
+
+		if (ImGui::IsItemClicked())
+		{
+			selectedPointId = p.id;
+		}
+
+		ImGui::PopID();
+	}
+	ImGui::PopID();
+
+	ImGui::SetCursorScreenPos(ImVec2(graphMin.x, graphMax.y + 4.0f));
+	ImGui::Dummy(ImVec2(0.0f, 0.0f));
+}
+
+// Ú×ƒpƒlƒ‹
+void StudioAnimationSpeed::DrawDetailPanel(AnimationSpeedClipData& clip, const std::string& modelPath)
+{
+	if (ImGui::Button("Save", ImVec2(-1.0f, 0.0f)))
+	{
+		Save(modelPath);
+	}
+
+	ImGui::Separator();
+
+	if (selectedPointId < 0)
+	{
+		ImGui::TextDisabled("No selection.");
+		return;
+	}
+
+	AnimationSpeedPoint* point = nullptr;
+	for (auto& p : clip.points)
+	{
+		if (p.id == selectedPointId) { point = &p; break; }
+	}
+
+	if (!point)
+	{
+		selectedPointId = -1;
+		ImGui::TextDisabled("No selection.");
+		return;
+	}
+
+	ImGui::Text(point->isEndpoint ? "Point (Fixed)" : "Point");
+	ImGui::Separator();
+
+	float timePct = point->time * 100.0f;
+
+	// n’[EI’[‚ÍŠÔ(X)‚ğŒÅ’è‚·‚é‚½‚ß•ÒW•s‰Â‚É‚·‚é
+	ImGui::BeginDisabled(point->isEndpoint);
+	if (ImGui::DragFloat("Time %", &timePct, 0.1f, 0.0f, 100.0f))
+	{
+		point->time = timePct * 0.01f;
+	}
+	ImGui::EndDisabled();
+
+	ImGui::DragFloat("Speed", &point->speed, 0.01f, 0.0f, 3.0f, "%.2fx");
+
+	// n’[EI’[‚Ííœ•s‰Â
+	if (!point->isEndpoint)
+	{
+		int pointId = point->id;
+		DrawDeleteButton("Delete Point", [this, &clip, pointId]() { DeletePoint(clip, pointId); });
+	}
+}
+
+// ƒ|ƒCƒ“ƒgíœ
+void StudioAnimationSpeed::DeletePoint(AnimationSpeedClipData& clip, int id)
+{
+	clip.points.erase(
+		std::remove_if(clip.points.begin(), clip.points.end(),
+			[id](const AnimationSpeedPoint& p) { return p.id == id && !p.isEndpoint; }),
+		clip.points.end());
+
+	if (selectedPointId == id)
+	{
+		selectedPointId = -1;
+	}
+}
+// íœƒ{ƒ^ƒ“
+void StudioAnimationSpeed::DrawDeleteButton(const char* label, const std::function<void()>& onDelete)
+{
+	ImGui::Spacing();
+	ImGui::Spacing();
+
+	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.15f, 0.15f, 1.0f));
+	ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.85f, 0.2f, 0.2f, 1.0f));
+	ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.6f, 0.1f, 0.1f, 1.0f));
+
+	bool pressed = ImGui::Button(label, ImVec2(-1.0f, 0.0f));
+
+	ImGui::PopStyleColor(3);
+
+	if (pressed)
+	{
+		onDelete();
+	}
+}
+
+// •b”‚ğ0.0`1.0‚É
+float StudioAnimationSpeed::TimeToNormalized(float time, float clipLength)
+{
+	if (clipLength <= 0.0001f) return 0.0f;
+	return std::clamp(time / clipLength, 0.0f, 1.0f);
+}
+
+// 0.0`1.0‚ğ•b”‚É
+float StudioAnimationSpeed::NormalizedToTime(float normalized, float clipLength)
+{
+	return normalized * clipLength;
+}
+
+// •Û‘¶
+void StudioAnimationSpeed::Save(const std::string& modelPath)
+{
+	if (modelPath.empty()) return;
+
+	std::string savePath = GetAnimationSpeedFilePath(modelPath);
+
+	// ƒtƒHƒ‹ƒ_‚ª–³‚¯‚ê‚Îì¬‚·‚é
+	std::filesystem::create_directories("Data/Json/AnimSpeed");
+
+	std::ofstream ofs(savePath);
+	if (ofs.is_open())
+	{
+		ofs << animationSpeedData.ToJson().dump(4);
+	}
+}
+
+// ƒ‚ƒfƒ‹ƒpƒX‚©‚ç•Û‘¶æ‚ÌƒpƒX‚ğ‘g‚İ—§‚Ä‚é
+std::string StudioAnimationSpeed::GetAnimationSpeedFilePath(const std::string& modelPath)
+{
+	std::filesystem::path p(modelPath);
+	std::string modelName = p.stem().string();
+
+	return "Data/Json/AnimSpeed/" + modelName + ".animspeed";
+}
+
+// ƒAƒjƒ[ƒVƒ‡ƒ“ˆê——‚ğXV‚·‚é
+void StudioAnimationSpeed::RefreshAvailableAnimations(entt::registry& registry)
+{
+	availableAnimations.clear();
+
+	auto view = registry.view<SkinnedMeshComponent>();
+	if (view.begin() == view.end()) return;
+
+	auto entity = *view.begin();
+	auto& skinned = view.get<SkinnedMeshComponent>(entity);
+
+	if (!skinned.model) return;
+
+	for (const auto& anim : skinned.model->GetAnimations())
+	{
+		availableAnimations.push_back(anim.name);
+	}
+} 
  
 ===== StudioAnimator.cpp ===== 
 Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioAnimator.cpp 
@@ -19408,6 +20068,14 @@ void StudioWindow::Render()
 	// ƒtƒ‰ƒXƒ^ƒ€XV
 	renderSystem.SetFrustum(camera.GetView(), camera.GetProjection());
 
+	// ƒXƒJƒCƒ{ƒbƒNƒX•`‰æ
+	shared->skyBox.Render(
+		dc,
+		camera.GetView(),
+		camera.GetProjection(),
+		camera.GetEye()
+	);
+
 	// ƒ‚ƒfƒ‹‚ª‚ ‚é‚¾‚¯RenderSystem‚ğ‘–‚ç‚¹‚é
 	if (!studioRegistry.storage<TransformComponent>().empty())
 	{
@@ -19422,13 +20090,6 @@ void StudioWindow::Render()
 			renderHeight
 		);
 	}
-	// ƒXƒJƒCƒ{ƒbƒNƒX•`‰æ
-	shared->skyBox.Render(
-		dc,
-		camera.GetView(),
-		camera.GetProjection(),
-		camera.GetEye()
-	);
 
 	// ƒAƒ^ƒbƒ`ƒƒ“ƒg‚Ì3D•`‰æ
 	for (auto& attachment : attachments)
@@ -19465,6 +20126,7 @@ void StudioWindow::DrawWindow(const char* windowName)
 			ImGui::MenuItem("Timeline", nullptr, &context.showTimeline);
 			ImGui::MenuItem("Sequencer", nullptr, &context.showSequencer);
 			ImGui::MenuItem("AnimatorGraph", nullptr, &context.showAnimatorGraph);
+			ImGui::MenuItem("AnimationSpeed", nullptr, &context.showAnimationSpeed);
 
 			ImGui::EndMenu();
 		}
@@ -19514,25 +20176,12 @@ void StudioWindow::DrawWindow(const char* windowName)
 	std::string viewportName = "Viewport##" + std::to_string(windowId);
 	ImGui::Begin(viewportName.c_str());
 
+	 ImGui::Text("Render Resolution: %ux%u", renderWidth, renderHeight);
+
 	ImVec2 region = ImGui::GetContentRegionAvail();
 	if (region.x > 1 && region.y > 1)
 	{
 		camera.UpdateAspect(region.x, region.y);
-
-		UINT w = static_cast<UINT>(region.x);
-		UINT h = static_cast<UINT>(region.y);
-
-		if (isFirstFrame)
-		{
-			isFirstFrame = false;
-		}
-		else if (w != renderWidth || h != renderHeight)
-		{
-			pendingWidth = w;
-			pendingHeight = h;
-			needsResize = true;
-			resizeTimer = 0.0f;
-		}
 	}
 
 	ImGui::Image(reinterpret_cast<ImTextureID>(srv.Get()), region);
@@ -19575,6 +20224,12 @@ void StudioWindow::DrawWindow(const char* windowName)
 	if (context.showAnimatorGraph)
 	{
 		animatorGraph.DrawGUI(studioRegistry, context);
+	}
+
+	// AnimationSpeedƒpƒlƒ‹
+	if (context.showAnimationSpeed)
+	{
+		studioAnimationSpeed.DrawGUI(studioRegistry, context);
 	}
 
 	stadoiModelViewer.DrawGUI(studioRegistry, context);
