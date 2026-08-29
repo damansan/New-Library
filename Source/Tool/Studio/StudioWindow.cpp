@@ -202,25 +202,12 @@ void StudioWindow::DrawWindow(const char* windowName)
 	std::string viewportName = "Viewport##" + std::to_string(windowId);
 	ImGui::Begin(viewportName.c_str());
 
+	 ImGui::Text("Render Resolution: %ux%u", renderWidth, renderHeight);
+
 	ImVec2 region = ImGui::GetContentRegionAvail();
 	if (region.x > 1 && region.y > 1)
 	{
 		camera.UpdateAspect(region.x, region.y);
-
-		UINT w = static_cast<UINT>(region.x);
-		UINT h = static_cast<UINT>(region.y);
-
-		if (isFirstFrame)
-		{
-			isFirstFrame = false;
-		}
-		else if (w != renderWidth || h != renderHeight)
-		{
-			pendingWidth = w;
-			pendingHeight = h;
-			needsResize = true;
-			resizeTimer = 0.0f;
-		}
 	}
 
 	ImGui::Image(reinterpret_cast<ImTextureID>(srv.Get()), region);

@@ -27,7 +27,7 @@
 class StudioWindow
 {
 public:
-    void Initialize(ID3D11Device* device, StudioSharedContext* shared, UINT width = 1280, UINT height = 720);
+    void Initialize(ID3D11Device* device, StudioSharedContext* shared, UINT width = 1920, UINT height = 1080);
 
     // 更新
     void Update(float elapsedTime);
@@ -101,20 +101,13 @@ private:
 
     // ウィンドウ状態
     int   windowId = 0;
-    UINT  renderWidth = 1280;
-    UINT  renderHeight = 720;
+    UINT  renderWidth = 1920;
+    UINT  renderHeight = 1080;
     bool  isHovered = false;
     bool  viewportHovered = false;
     bool  closeRequested = false;
     bool  isFirstFrame = true;
     bool  firstDockSetup = true;
-
-
-    // リサイズ用デバウンス
-    float resizeTimer = 0.0f;
-    bool  needsResize = false;
-    UINT  pendingWidth = 0;
-    UINT  pendingHeight = 0;
 
     // ビューポート保存
     D3D11_VIEWPORT savedViewport = {};
