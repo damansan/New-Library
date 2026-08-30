@@ -72,6 +72,15 @@ void SceneGame::Update(float elapsedTime, const SceneContext& context)
 {
 	ZoneScoped;
 
+	// F2で物理デバッグ描画の表示切り替え
+	static bool prevF2 = false;
+	bool currF2 = (GetAsyncKeyState(VK_F2) & 0x8000) != 0;
+	if (currF2 && !prevF2)
+	{
+		DrawDebug = !DrawDebug;
+	}
+	prevF2 = currF2;
+
 	// デモ更新
 	waveDemo.Update(elapsedTime);
 
@@ -265,7 +274,7 @@ void SceneGame::Render(const SceneContext& context)
 	}
 #endif
 
-
+	if (DrawDebug)
 	{
 		physicsDebugRenderer.Render(
 			context.deviceContext,

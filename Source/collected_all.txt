@@ -208,6 +208,14 @@ private:
 	// UpdateŒv‘ª
 	int updateCount = 0;
 	int updateCountBuf = 0;
+
+
+#ifdef _DEBUG
+	bool previewRelease = false;
+#endif
+	bool IsEditorActive() const;
+	bool IsGameInputActive() const;
+
 }; 
  
 ===== GameWindow.h ===== 
@@ -300,6 +308,8 @@ public:
 	void Clear(float r, float g, float b, float a);
 	// ƒŒƒ“ƒ_[ƒ^[ƒQƒbƒgİ’è
 	void SetRenderTargets();
+	// w’èƒeƒNƒXƒ`ƒƒ‚ğƒtƒ‹ƒXƒNƒŠ[ƒ“‚ÅƒoƒbƒNƒoƒbƒtƒ@‚Ö•`‰æ
+	void PresentTexture(ID3D11ShaderResourceView* srv);
 	// ‰æ–ÊƒvƒŒƒ[ƒ“ƒg
 	void Present(bool vsync = false);
 	// ƒtƒ‹ƒXƒNƒŠ[ƒ“Ø‚è‘Ö‚¦
@@ -355,6 +365,13 @@ private:
 	// ƒEƒBƒ“ƒhƒEƒ‚[ƒh‚ÌˆÊ’u‚ÆƒTƒCƒY•Û‘¶
 	RECT windowedRect{};
 
+	// PresentTexture—pƒŠƒ\[ƒX‚Ì‰Šú‰»
+	void InitializePresentResources();
+
+	Microsoft::WRL::ComPtr<ID3D11VertexShader>    presentVS;
+	Microsoft::WRL::ComPtr<ID3D11PixelShader>     presentPS;
+	Microsoft::WRL::ComPtr<ID3D11SamplerState>    presentSampler;
+	Microsoft::WRL::ComPtr<ID3D11RasterizerState> presentRasterizer;
 }; 
  
 ===== ImGuiManager.h ===== 
@@ -686,8 +703,8 @@ struct SceneContext
 	CameraMode cameraMode = CameraMode::Debug;
 	EditorContext* editorContext = nullptr;
 
-	// Gameƒrƒ…[ƒ|[ƒg‚ªƒzƒo[‚³‚ê‚Ä‚¢‚é‚©
-	bool viewportHovered = false;
+	// Game‚Ö‚Ì“ü—Í‚ğó‚¯•t‚¯‚Ä‚æ‚¢‚©
+	bool gameInputActive = false;
 }; 
  
 ===== SceneManager.h ===== 
@@ -846,14 +863,26 @@ void framework::update(float elapsedTime)
 {
 	ZoneScoped;
 
-	// ‰EƒNƒŠƒbƒN‚ğ‰Ÿ‚µ‚½uŠÔAGameƒrƒ…[ƒ|[ƒgã‚Å‚ ‚ê‚ÎDebugƒ‚[ƒh‚ÉØ‚è‘Ö‚¦
+#ifdef _DEBUG
+	// F1‚ÅRelease‚Æ“¯‚¶Œ©‚½–ÚiImGui–³‚µj‚ğƒvƒŒƒrƒ…[Ø‚è‘Ö‚¦
+	static bool prevF1 = false;
+	bool currF1 = (GetAsyncKeyState(VK_F1) & 0x8000) != 0;
+	if (currF1 && !prevF1)
+	{
+		previewRelease = !previewRelease;
+	}
+	prevF1 = currF1;
+#endif
+
+	// ‰EƒNƒŠƒbƒN‚ğ‰Ÿ‚µ‚½uŠÔAGame‚Ö‚Ì“ü—Í‚ª—LŒø‚Å‚ ‚ê‚ÎDebugƒ‚[ƒh‚ÉØ‚è‘Ö‚¦
 	static bool prevRButton = false;
 	bool currRButton = (GetAsyncKeyState(VK_RBUTTON) & 0x8000) != 0;
-	if (currRButton && !prevRButton && gameWindow.IsViewportHovered())
+	if (currRButton && !prevRButton && IsGameInputActive())
 	{
 		editorContext.cameraMode = CameraMode::Debug;
 	}
 	prevRButton = currRButton;
+
 
 	// SceneContext XV
 	updateSceneContext();
@@ -875,6 +904,9 @@ void framework::update(float elapsedTime)
 void framework::updateImGui()
 {
 	ZoneScoped;
+
+	// Editor–³Œø‚ÍImGui©‘Ì‚ğˆêØg‚í‚È‚¢
+	if (!IsEditorActive()) return;
 
 	// ImGuiƒtƒŒ[ƒ€ŠJn
 	imguiManager.BeginFrame();
@@ -936,17 +968,27 @@ void framework::render(float elapsedTime)
 	sceneManager.Render(sceneContext);
 	gameWindow.End(graphics.GetDeviceContext());
 
-	// Studio•`‰æ
-	for (auto& win : studioWindows)
+
+	if (IsEditorActive())
 	{
-		win->Render();
+		// Studio•`‰æ
+		for (auto& win : studioWindows)
+		{
+			win->Render();
+		}
+
+		// ƒƒCƒ“RTV‚ğÄƒZƒbƒg
+		graphics.SetRenderTargets();
+
+		// ImGui•`‰æiGameƒEƒBƒ“ƒhƒE‚à‚±‚±‚ÅImGui::ImageŒo—R‚Å•\¦‚³‚ê‚éj
+		imguiManager.EndFrame();
 	}
-
-	// ƒƒCƒ“RTV‚ğÄƒZƒbƒg
-	graphics.SetRenderTargets();
-
-	// ImGui•`‰æ
-	imguiManager.EndFrame();
+	else
+	{
+		// Editor–³ŒøFGame‚ÌƒeƒNƒXƒ`ƒƒ‚ğƒtƒ‹ƒXƒNƒŠ[ƒ“‚ÅƒoƒbƒNƒoƒbƒtƒ@‚Ö
+		graphics.SetRenderTargets();
+		graphics.PresentTexture(gameWindow.GetSRV());
+	}
 
 	// ‰æ–Ê”½‰f
 	graphics.Present(vsync);
@@ -1104,7 +1146,7 @@ void framework::updateSceneContext()
 	sceneContext.editorContext = &editorContext;
 	sceneContext.cameraMode = editorContext.cameraMode;
 	sceneContext.editorContext = &editorContext;
-	sceneContext.viewportHovered = gameWindow.IsViewportHovered();
+	sceneContext.gameInputActive = IsGameInputActive();
 }
 
 // Studio‚ğŠJ‚­
@@ -1128,7 +1170,22 @@ void framework::openStudioWindow(const std::string& assetPath, const std::string
 	}
 
 	studioWindows.push_back(std::move(win));
-} 
+}
+
+bool framework::IsEditorActive() const
+{
+#ifdef _DEBUG
+	return !previewRelease;
+#else
+	return false;
+#endif
+}
+
+bool framework::IsGameInputActive() const
+{
+	return IsEditorActive() ? gameWindow.IsViewportHovered() : true;
+}
+ 
  
 ===== GameWindow.cpp ===== 
 Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Core\GameWindow.cpp 
@@ -1269,6 +1326,7 @@ void GameWindow::ResizeRenderTarget(UINT width, UINT height)
 Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Core\Graphics.cpp 
 #include "Graphics.h"
 #include "Engine/Utility/misc.h"
+#include "Engine/Resource/GpuResourceUtils.h"
 
 // ‰Šú‰»
 void Graphics::Initialize(HWND hWnd)
@@ -1446,6 +1504,10 @@ void Graphics::Initialize(HWND hWnd)
 	viewport.Height = screenHeight;
 	viewport.MinDepth = 0.0f;       // [“x”ÍˆÍ
 	viewport.MaxDepth = 1.0f;
+
+
+	// PresentTexture—pƒŠƒ\[ƒX‰Šú‰»
+	InitializePresentResources();
 }
 
 // ‰æ–ÊƒNƒŠƒA
@@ -1473,6 +1535,40 @@ void Graphics::SetRenderTargets()
 	immediateContext->RSSetViewports(1, &viewport);
 	// ƒŒƒ“ƒ_[ƒ^[ƒQƒbƒg‚Æ[“xƒXƒeƒ“ƒVƒ‹‚ğOMƒXƒe[ƒW‚Éİ’è
 	immediateContext->OMSetRenderTargets(1, renderTargetView.GetAddressOf(), depthStencilView.Get());
+}
+
+// w’èƒeƒNƒXƒ`ƒƒ‚ğƒtƒ‹ƒXƒNƒŠ[ƒ“‚ÅƒoƒbƒNƒoƒbƒtƒ@‚Ö•`‰æ
+void Graphics::PresentTexture(ID3D11ShaderResourceView* srv)
+{
+	if (!srv) return;
+
+	// ƒoƒbƒNƒoƒbƒtƒ@‚Ö•`‰æ
+	immediateContext->RSSetViewports(1, &viewport);
+	immediateContext->OMSetRenderTargets(1, renderTargetView.GetAddressOf(), nullptr);
+
+	// ƒuƒŒƒ“ƒhE[“xƒXƒe[ƒg‚ğŠù’è‚É–ß‚·
+	immediateContext->OMSetBlendState(nullptr, nullptr, 0xffffffff);
+	immediateContext->OMSetDepthStencilState(nullptr, 1);
+
+	// ƒVƒF[ƒ_[İ’è
+	immediateContext->VSSetShader(presentVS.Get(), nullptr, 0);
+	immediateContext->PSSetShader(presentPS.Get(), nullptr, 0);
+
+	// “ü—ÍƒŒƒCƒAƒEƒg‚È‚µEƒtƒ‹ƒXƒNƒŠ[ƒ“OŠpŒ`ƒXƒgƒŠƒbƒv
+	immediateContext->IASetInputLayout(nullptr);
+	immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+	immediateContext->RSSetState(presentRasterizer.Get());
+
+	// ƒeƒNƒXƒ`ƒƒEƒTƒ“ƒvƒ‰[İ’è
+	immediateContext->PSSetShaderResources(0, 1, &srv);
+	immediateContext->PSSetSamplers(0, 1, presentSampler.GetAddressOf());
+
+	// ƒtƒ‹ƒXƒNƒŠ[ƒ“•`‰æ
+	immediateContext->Draw(4, 0);
+
+	// SRV‚Ì‘©”›‰ğœ
+	ID3D11ShaderResourceView* nullSrv = nullptr;
+	immediateContext->PSSetShaderResources(0, 1, &nullSrv);
 }
 
 // ‰æ–ÊƒvƒŒƒ[ƒ“ƒg
@@ -1641,6 +1737,40 @@ void Graphics::Cleanup()
 
 	renderTargetView.Reset();
 	depthStencilView.Reset();
+}
+
+// PresentTexture—pƒŠƒ\[ƒX‚Ì‰Šú‰»
+void Graphics::InitializePresentResources()
+{
+	// ’¸“_ƒVƒF[ƒ_[
+	Microsoft::WRL::ComPtr<ID3D11InputLayout> dummyLayout;
+	GpuResourceUtils::LoadVertexShader(
+		device.Get(), "Data/Shader/Lighting_VS.cso",
+		nullptr, 0, dummyLayout, presentVS
+	);
+
+	// ƒsƒNƒZƒ‹ƒVƒF[ƒ_[
+	GpuResourceUtils::LoadPixelShader(
+		device.Get(), "Data/Shader/Present_PS.cso", presentPS
+	);
+
+	// ƒTƒ“ƒvƒ‰[ƒXƒe[ƒg
+	D3D11_SAMPLER_DESC samplerDesc{};
+	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+	samplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+	samplerDesc.MinLOD = 0;
+	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+	device->CreateSamplerState(&samplerDesc, presentSampler.GetAddressOf());
+
+	// ƒ‰ƒXƒ^ƒ‰ƒCƒU[ƒXƒe[ƒg
+	D3D11_RASTERIZER_DESC rasterizerDesc{};
+	rasterizerDesc.FillMode = D3D11_FILL_SOLID;
+	rasterizerDesc.CullMode = D3D11_CULL_NONE;
+	rasterizerDesc.FrontCounterClockwise = FALSE;
+	device->CreateRasterizerState(&rasterizerDesc, presentRasterizer.GetAddressOf());
 } 
  
 ===== ImGuiManager.cpp ===== 
@@ -12673,7 +12803,7 @@ void SceneGame::Update(float elapsedTime, const SceneContext& context)
 		ZoneScopedN("CameraSystem");
 		if (context.cameraMode == CameraMode::Debug)
 		{
-			debugCameraSystem.Update(registry, elapsedTime, context.viewportHovered);
+			debugCameraSystem.Update(registry, elapsedTime, context.gameInputActive);
 			debugCameraSystem.ApplyToCamera(registry, *context.camera);
 
 			// ã‚¹ãƒ†ã‚£ãƒƒã‚¯å…¥åŠ›ãŒã‚ã‚Œã°Gameãƒ¢ãƒ¼ãƒ‰ã«æˆ»ã™

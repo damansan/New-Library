@@ -23,19 +23,19 @@ void ProjectWindow::LoadIcons(ID3D11Device* device)
 	// Data/Sprite/System/folder.png Çì«Ç›çûÇﬁ
 	DirectX::CreateWICTextureFromFile(
 		device,
-		L"Data/Sprite/System/folder.png",
+		L"SystemData/Sprite/folder.png",
 		nullptr,
 		modelIconSRV.GetAddressOf()
 	);
 }
 
-void ProjectWindow::Draw(entt::registry& registry, EditorContext& context)
+void ProjectWindow::Draw(entt::registry& registry, EditorContext& context, bool asDrawer)
 {
 	ZoneScoped;
 
 	ImGui::Begin("Project");
 
-	if (ImGui::BeginTable("ProjectLayout", 2,
+	if (ImGui::BeginTable("ProjectLayout", 2, 
 		ImGuiTableFlags_Resizable |
 		ImGuiTableFlags_BordersInnerV))
 	{

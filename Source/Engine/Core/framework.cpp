@@ -101,16 +101,11 @@ void framework::updateImGui()
 	// ImGuiフレーム開始
 	imguiManager.BeginFrame();
 
-	ImGui::Begin("System");
-	ImGui::Checkbox("VSync", &vsync);
-
-	ImGui::End();
-
 	// シーンImGui描画
 	sceneManager.RenderImGui();
 
 	// Gameウィンドウ（ドッキング/タブ化対象）
-	gameWindow.DrawWindow("Game");
+	gameWindow.DrawWindow("Game", vsync);
 
 #ifdef _DEBUG
 	if (auto* scene = sceneManager.GetCurrentScene())

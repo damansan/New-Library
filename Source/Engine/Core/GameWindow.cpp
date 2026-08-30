@@ -1,5 +1,6 @@
 #include "GameWindow.h"
 #include <imgui.h>
+#include <imgui_internal.h>
 #include <cassert>
 
 // 初期化
@@ -51,9 +52,49 @@ void GameWindow::End(ID3D11DeviceContext* dc)
 }
 
 // ImGui描画
-void GameWindow::DrawWindow(const char* windowName)
+void GameWindow::DrawWindow(const char* windowName, bool& vsync)
 {
-    ImGui::Begin(windowName);
+    ImGui::Begin(windowName, nullptr, ImGuiWindowFlags_MenuBar);
+
+    // メニューバー
+    if (ImGui::BeginMenuBar())
+    {
+        ImGui::Checkbox("VSync", &vsync);
+
+        ImGui::EndMenuBar();
+    }
+
+    // Game専用のDockSpace
+    ImGuiID dockSpaceId = ImGui::GetID("GameDockSpace");
+    ImGui::DockSpace(dockSpaceId, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
+
+    // 初回フレームだけデフォルトレイアウトを組む
+    if (firstDockSetup)
+    {
+        firstDockSetup = false;
+
+        ImGui::DockBuilderRemoveNode(dockSpaceId);
+        ImGui::DockBuilderAddNode(dockSpaceId, ImGuiDockNodeFlags_None);
+        ImGui::DockBuilderSetNodeSize(dockSpaceId, ImVec2(1280, 720));
+
+        ImGuiID dockMain = dockSpaceId;
+        ImGuiID dockBottom = ImGui::DockBuilderSplitNode(
+            dockMain, ImGuiDir_Down, dockRatioBottom, nullptr, &dockMain);
+        ImGuiID dockLeft = ImGui::DockBuilderSplitNode(
+            dockMain, ImGuiDir_Left, dockRatioLeft, nullptr, &dockMain);
+        ImGuiID dockRight = ImGui::DockBuilderSplitNode(
+            dockMain, ImGuiDir_Right, dockRatioRight, nullptr, &dockMain);
+
+        ImGui::DockBuilderDockWindow("Viewport", dockMain);
+        ImGui::DockBuilderDockWindow("Hierarchy", dockLeft);
+        ImGui::DockBuilderDockWindow("Inspector", dockRight);
+        ImGui::DockBuilderDockWindow("Project", dockBottom);
+
+        ImGui::DockBuilderFinish(dockSpaceId);
+    }
+
+    // Viewportパネル
+    ImGui::Begin("Viewport");
 
     ImVec2 region = ImGui::GetContentRegionAvail();
     if (region.x > 1 && region.y > 1)
@@ -71,7 +112,9 @@ void GameWindow::DrawWindow(const char* windowName)
     // カメラ操作の開始判定はViewport単体のホバーだけを見る
     viewportHovered = ImGui::IsWindowHovered();
 
-    ImGui::End();
+    ImGui::End(); // Viewport
+
+    ImGui::End(); // Game
 }
 
 // テクスチャの再生成

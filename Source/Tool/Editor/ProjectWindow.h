@@ -34,7 +34,7 @@ public:
     // アイコン読み込み
     void LoadIcons(ID3D11Device* device);
     // 描画
-    void Draw(entt::registry& registry, EditorContext& context);
+    void Draw(entt::registry& registry, EditorContext& context, bool asDrawer = false);
 
     // 重複しない名前で作成
     static std::string GenerateUniqueName(const std::filesystem::path& parentDir, const std::string& baseName);
@@ -70,6 +70,4 @@ private:
 
     // モデルアイコン用SRV
     Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> modelIconSRV;
-
-
 };

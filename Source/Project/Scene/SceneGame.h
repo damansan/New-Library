@@ -73,4 +73,7 @@ private:
 private:
 	// デモ用
 	WaveDemo waveDemo;
+
+	// デバッグ描画切り替えフラグ
+	bool DrawDebug = true;
 };

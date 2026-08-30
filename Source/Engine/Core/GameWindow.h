@@ -23,7 +23,7 @@ public:
     void End(ID3D11DeviceContext* dc);
 
     // ImGui描画
-    void DrawWindow(const char* windowName = "Game");
+    void DrawWindow(const char* windowName, bool& vsync);
 
     // テクスチャの再生成
     void ResizeRenderTarget(UINT width, UINT height);
@@ -60,4 +60,12 @@ private:
 
     // Begin/End間でのビューポート退避用
     D3D11_VIEWPORT savedViewport = {};
+
+    // trueの間、次のDrawWindow()でDockSpaceのレイアウトを（再）構築する
+    bool firstDockSetup = true;
+
+    // ドッキング比率（実行中にメニューのスライダーで調整可能）
+    float dockRatioBottom = 0.2f;  // Project
+    float dockRatioLeft = 0.1f;  // Hierarchy
+    float dockRatioRight = 0.15f; // Inspector
 };
