@@ -289,12 +289,12 @@ void SceneGame::Render(const SceneContext& context)
 void SceneGame::RenderImGui()
 {
 #ifdef _DEBUG
-	auto view = registry.view<ControllerComponent>();
-	for (auto entity : view)
-	{
-		auto& ctrl = view.get<ControllerComponent>(entity);
-		adaptiveTriggerToolWindow.Draw(ctrl);
-		break;
-	}
+	//auto view = registry.view<ControllerComponent>();
+	//for (auto entity : view)
+	//{
+	//	auto& ctrl = view.get<ControllerComponent>(entity);
+	//	adaptiveTriggerToolWindow.Draw(ctrl);
+	//	break;
+	//}
 #endif
 }

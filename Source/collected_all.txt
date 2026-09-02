@@ -245,7 +245,7 @@ public:
     void End(ID3D11DeviceContext* dc);
 
     // ImGui•`‰æ
-    void DrawWindow(const char* windowName = "Game");
+    void DrawWindow(const char* windowName, bool& vsync);
 
     // ƒeƒNƒXƒ`ƒƒ‚ÌÄ¶¬
     void ResizeRenderTarget(UINT width, UINT height);
@@ -282,6 +282,14 @@ private:
 
     // Begin/EndŠÔ‚Å‚Ìƒrƒ…[ƒ|[ƒg‘Ş”ğ—p
     D3D11_VIEWPORT savedViewport = {};
+
+    // true‚ÌŠÔAŸ‚ÌDrawWindow()‚ÅDockSpace‚ÌƒŒƒCƒAƒEƒg‚ğiÄj\’z‚·‚é
+    bool firstDockSetup = true;
+
+    // ƒhƒbƒLƒ“ƒO”ä—¦iÀs’†‚Éƒƒjƒ…[‚ÌƒXƒ‰ƒCƒ_[‚Å’²®‰Â”\j
+    float dockRatioBottom = 0.2f;  // Project
+    float dockRatioLeft = 0.1f;  // Hierarchy
+    float dockRatioRight = 0.15f; // Inspector
 }; 
  
 ===== Graphics.h ===== 
@@ -911,16 +919,11 @@ void framework::updateImGui()
 	// ImGuiƒtƒŒ[ƒ€ŠJn
 	imguiManager.BeginFrame();
 
-	ImGui::Begin("System");
-	ImGui::Checkbox("VSync", &vsync);
-
-	ImGui::End();
-
 	// ƒV[ƒ“ImGui•`‰æ
 	sceneManager.RenderImGui();
 
 	// GameƒEƒBƒ“ƒhƒEiƒhƒbƒLƒ“ƒO/ƒ^ƒu‰»‘ÎÛj
-	gameWindow.DrawWindow("Game");
+	gameWindow.DrawWindow("Game", vsync);
 
 #ifdef _DEBUG
 	if (auto* scene = sceneManager.GetCurrentScene())
@@ -1191,6 +1194,7 @@ bool framework::IsGameInputActive() const
 Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Core\GameWindow.cpp 
 #include "GameWindow.h"
 #include <imgui.h>
+#include <imgui_internal.h>
 #include <cassert>
 
 // ‰Šú‰»
@@ -1242,9 +1246,49 @@ void GameWindow::End(ID3D11DeviceContext* dc)
 }
 
 // ImGui•`‰æ
-void GameWindow::DrawWindow(const char* windowName)
+void GameWindow::DrawWindow(const char* windowName, bool& vsync)
 {
-    ImGui::Begin(windowName);
+    ImGui::Begin(windowName, nullptr, ImGuiWindowFlags_MenuBar);
+
+    // ƒƒjƒ…[ƒo[
+    if (ImGui::BeginMenuBar())
+    {
+        ImGui::Checkbox("VSync", &vsync);
+
+        ImGui::EndMenuBar();
+    }
+
+    // Gameê—p‚ÌDockSpace
+    ImGuiID dockSpaceId = ImGui::GetID("GameDockSpace");
+    ImGui::DockSpace(dockSpaceId, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
+
+    // ‰‰ñƒtƒŒ[ƒ€‚¾‚¯ƒfƒtƒHƒ‹ƒgƒŒƒCƒAƒEƒg‚ğ‘g‚Ş
+    if (firstDockSetup)
+    {
+        firstDockSetup = false;
+
+        ImGui::DockBuilderRemoveNode(dockSpaceId);
+        ImGui::DockBuilderAddNode(dockSpaceId, ImGuiDockNodeFlags_None);
+        ImGui::DockBuilderSetNodeSize(dockSpaceId, ImVec2(1280, 720));
+
+        ImGuiID dockMain = dockSpaceId;
+        ImGuiID dockBottom = ImGui::DockBuilderSplitNode(
+            dockMain, ImGuiDir_Down, dockRatioBottom, nullptr, &dockMain);
+        ImGuiID dockLeft = ImGui::DockBuilderSplitNode(
+            dockMain, ImGuiDir_Left, dockRatioLeft, nullptr, &dockMain);
+        ImGuiID dockRight = ImGui::DockBuilderSplitNode(
+            dockMain, ImGuiDir_Right, dockRatioRight, nullptr, &dockMain);
+
+        ImGui::DockBuilderDockWindow("Viewport", dockMain);
+        ImGui::DockBuilderDockWindow("Hierarchy", dockLeft);
+        ImGui::DockBuilderDockWindow("Inspector", dockRight);
+        ImGui::DockBuilderDockWindow("Project", dockBottom);
+
+        ImGui::DockBuilderFinish(dockSpaceId);
+    }
+
+    // Viewportƒpƒlƒ‹
+    ImGui::Begin("Viewport");
 
     ImVec2 region = ImGui::GetContentRegionAvail();
     if (region.x > 1 && region.y > 1)
@@ -1262,7 +1306,9 @@ void GameWindow::DrawWindow(const char* windowName)
     // ƒJƒƒ‰‘€ì‚ÌŠJn”»’è‚ÍViewport’P‘Ì‚Ìƒzƒo[‚¾‚¯‚ğŒ©‚é
     viewportHovered = ImGui::IsWindowHovered();
 
-    ImGui::End();
+    ImGui::End(); // Viewport
+
+    ImGui::End(); // Game
 }
 
 // ƒeƒNƒXƒ`ƒƒ‚ÌÄ¶¬
@@ -12644,6 +12690,9 @@ private:
 private:
 	// ƒfƒ‚—p
 	WaveDemo waveDemo;
+
+	// ƒfƒoƒbƒO•`‰æØ‚è‘Ö‚¦ƒtƒ‰ƒO
+	bool DrawDebug = true;
 };
  
  
@@ -12722,6 +12771,15 @@ void SceneGame::Finalize()
 void SceneGame::Update(float elapsedTime, const SceneContext& context)
 {
 	ZoneScoped;
+
+	// F2ã§ç‰©ç†ãƒ‡ãƒãƒƒã‚°æç”»ã®è¡¨ç¤ºåˆ‡ã‚Šæ›¿ãˆ
+	static bool prevF2 = false;
+	bool currF2 = (GetAsyncKeyState(VK_F2) & 0x8000) != 0;
+	if (currF2 && !prevF2)
+	{
+		DrawDebug = !DrawDebug;
+	}
+	prevF2 = currF2;
 
 	// ãƒ‡ãƒ¢æ›´æ–°
 	waveDemo.Update(elapsedTime);
@@ -12916,7 +12974,7 @@ void SceneGame::Render(const SceneContext& context)
 	}
 #endif
 
-
+	if (DrawDebug)
 	{
 		physicsDebugRenderer.Render(
 			context.deviceContext,
@@ -12931,13 +12989,13 @@ void SceneGame::Render(const SceneContext& context)
 void SceneGame::RenderImGui()
 {
 #ifdef _DEBUG
-	auto view = registry.view<ControllerComponent>();
-	for (auto entity : view)
-	{
-		auto& ctrl = view.get<ControllerComponent>(entity);
-		adaptiveTriggerToolWindow.Draw(ctrl);
-		break;
-	}
+	//auto view = registry.view<ControllerComponent>();
+	//for (auto entity : view)
+	//{
+	//	auto& ctrl = view.get<ControllerComponent>(entity);
+	//	adaptiveTriggerToolWindow.Draw(ctrl);
+	//	break;
+	//}
 #endif
 } 
  
@@ -13613,7 +13671,7 @@ public:
     // ƒAƒCƒRƒ““Ç‚İ‚İ
     void LoadIcons(ID3D11Device* device);
     // •`‰æ
-    void Draw(entt::registry& registry, EditorContext& context);
+    void Draw(entt::registry& registry, EditorContext& context, bool asDrawer = false);
 
     // d•¡‚µ‚È‚¢–¼‘O‚Åì¬
     static std::string GenerateUniqueName(const std::filesystem::path& parentDir, const std::string& baseName);
@@ -13649,8 +13707,6 @@ private:
 
     // ƒ‚ƒfƒ‹ƒAƒCƒRƒ“—pSRV
     Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> modelIconSRV;
-
-
 }; 
  
 ===== ComponentRegistry.cpp ===== 
@@ -14809,19 +14865,19 @@ void ProjectWindow::LoadIcons(ID3D11Device* device)
 	// Data/Sprite/System/folder.png ‚ğ“Ç‚İ‚Ş
 	DirectX::CreateWICTextureFromFile(
 		device,
-		L"Data/Sprite/System/folder.png",
+		L"SystemData/Sprite/folder.png",
 		nullptr,
 		modelIconSRV.GetAddressOf()
 	);
 }
 
-void ProjectWindow::Draw(entt::registry& registry, EditorContext& context)
+void ProjectWindow::Draw(entt::registry& registry, EditorContext& context, bool asDrawer)
 {
 	ZoneScoped;
 
 	ImGui::Begin("Project");
 
-	if (ImGui::BeginTable("ProjectLayout", 2,
+	if (ImGui::BeginTable("ProjectLayout", 2, 
 		ImGuiTableFlags_Resizable |
 		ImGuiTableFlags_BordersInnerV))
 	{
@@ -20292,12 +20348,14 @@ void StudioWindow::DrawWindow(const char* windowName)
 		std::string timelineName = "Timeline##" + std::to_string(windowId);
 		std::string sequencerName = "Sequencer##" + std::to_string(windowId);
 		std::string animatorGraphName = "AnimatorGraph##" + std::to_string(windowId);
+		std::string animationSpeedName = "Animation Speed##" + std::to_string(windowId);
 
 		ImGui::DockBuilderDockWindow(viewportName.c_str(), dockMain);
 		ImGui::DockBuilderDockWindow(animatorName.c_str(), dockLeft);
 		ImGui::DockBuilderDockWindow(timelineName.c_str(), dockBottom);
 		ImGui::DockBuilderDockWindow(sequencerName.c_str(), dockSequencer);
 		ImGui::DockBuilderDockWindow(animatorGraphName.c_str(), dockRight);
+		ImGui::DockBuilderDockWindow(animationSpeedName.c_str(), dockSequencer);
 
 		ImGui::DockBuilderFinish(dockSpaceId);
 	}
@@ -20306,7 +20364,8 @@ void StudioWindow::DrawWindow(const char* windowName)
 	std::string viewportName = "Viewport##" + std::to_string(windowId);
 	ImGui::Begin(viewportName.c_str());
 
-	 ImGui::Text("Render Resolution: %ux%u", renderWidth, renderHeight);
+	// ‰æ¿Šm”F
+	// ImGui::Text("Render Resolution: %ux%u", renderWidth, renderHeight);
 
 	ImVec2 region = ImGui::GetContentRegionAvail();
 	if (region.x > 1 && region.y > 1)

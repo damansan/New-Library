@@ -1,0 +1,52 @@
+{
+    "clips": [
+        {
+            "clipName": "AS_Dodge_Forward",
+            "nextId": 7,
+            "points": [
+                {
+                    "id": 1,
+                    "time": 0.0,
+                    "speed": 1.0,
+                    "isEndpoint": true
+                },
+                {
+                    "id": 2,
+                    "time": 1.0,
+                    "speed": 1.0,
+                    "isEndpoint": true
+                },
+                {
+                    "id": 5,
+                    "time": 0.18045563995838165,
+                    "speed": 2.480769157409668,
+                    "isEndpoint": false
+                },
+                {
+                    "id": 6,
+                    "time": 0.3285371661186218,
+                    "speed": 0.5307692289352417,
+                    "isEndpoint": false
+                }
+            ]
+        },
+        {
+            "clipName": "AS_Walk_End",
+            "nextId": 3,
+            "points": [
+                {
+                    "id": 1,
+                    "time": 0.0,
+                    "speed": 1.0,
+                    "isEndpoint": true
+                },
+                {
+                    "id": 2,
+                    "time": 1.0,
+                    "speed": 1.0,
+                    "isEndpoint": true
+                }
+            ]
+        }
+    ]
+}

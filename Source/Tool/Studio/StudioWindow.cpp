@@ -188,12 +188,14 @@ void StudioWindow::DrawWindow(const char* windowName)
 		std::string timelineName = "Timeline##" + std::to_string(windowId);
 		std::string sequencerName = "Sequencer##" + std::to_string(windowId);
 		std::string animatorGraphName = "AnimatorGraph##" + std::to_string(windowId);
+		std::string animationSpeedName = "Animation Speed##" + std::to_string(windowId);
 
 		ImGui::DockBuilderDockWindow(viewportName.c_str(), dockMain);
 		ImGui::DockBuilderDockWindow(animatorName.c_str(), dockLeft);
 		ImGui::DockBuilderDockWindow(timelineName.c_str(), dockBottom);
 		ImGui::DockBuilderDockWindow(sequencerName.c_str(), dockSequencer);
 		ImGui::DockBuilderDockWindow(animatorGraphName.c_str(), dockRight);
+		ImGui::DockBuilderDockWindow(animationSpeedName.c_str(), dockSequencer);
 
 		ImGui::DockBuilderFinish(dockSpaceId);
 	}
@@ -202,7 +204,8 @@ void StudioWindow::DrawWindow(const char* windowName)
 	std::string viewportName = "Viewport##" + std::to_string(windowId);
 	ImGui::Begin(viewportName.c_str());
 
-	 ImGui::Text("Render Resolution: %ux%u", renderWidth, renderHeight);
+	// ‰æŽ¿Šm”F
+	// ImGui::Text("Render Resolution: %ux%u", renderWidth, renderHeight);
 
 	ImVec2 region = ImGui::GetContentRegionAvail();
 	if (region.x > 1 && region.y > 1)
