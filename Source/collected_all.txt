@@ -2343,6 +2343,31 @@ struct ParentStateGraph // eŠK‘wƒOƒ‰ƒt
 	void EnsureEntryExists();
 };
 
+
+struct TransitionLink // ‘JˆÚ—pƒŠƒ“ƒN1–{•ª
+{
+	int id = -1;
+	int fromId = -1;
+	int toId = -1;  
+
+	ConditionGraph condition;
+};
+struct TransitionGraphData // ‘JˆÚ—pƒOƒ‰ƒt–{‘Ì
+{
+	std::vector<TransitionLink> links;
+
+	// IDÌ”ÔƒJƒEƒ“ƒ^[
+	int* idCounter = nullptr;
+	int GenerateId() { return (*idCounter)++; }
+
+	// Linkì¬
+	int CreateLink(int fromId, int toId);
+	// Linkíœ
+	void DeleteLink(int linkId);
+};
+
+
+
 class AnimatorGraphData
 {
 public:
@@ -2356,12 +2381,16 @@ public:
 	AnimatorGraphData& operator=(AnimatorGraphData&&) = delete;
 
 	ParentStateGraph parentGraph; // eŠK‘wƒOƒ‰ƒt–{‘Ì
+	TransitionGraphData transitionGraph; // ‘JˆÚ—pƒOƒ‰ƒt–{‘Ì
 
 	// ƒOƒ‰ƒt“à—e‚ğJson‚É•ÏŠ·‚·‚é
 	nlohmann::ordered_json ToJson() const;
 	// Json‚©‚ç’†g‚ğ•ÏŠ·‚·‚é
 	void FromJson(const nlohmann::json& j);
 
+	// ParentState‚ğíœ‚·‚é
+	void DeleteParentState(int stateId);
+	void SyncTransitionLinks();
 private:
 	// States‚ğ•Û‘¶“à—e‚Ö•ÏŠ·
 	nlohmann::ordered_json StatesToJson() const;
@@ -2372,6 +2401,11 @@ private:
 	nlohmann::ordered_json StateLinksToJson() const;
 	// StateLinks‚ğ•Û‘¶“à—e‚©‚ç•œŒ³‚·‚é
 	void StateLinksFromJson(const nlohmann::json& j);
+
+	// TransitionLinks‚Ì•Û‘¶“à—e‚Ö•ÏŠ·
+	nlohmann::ordered_json TransitionLinksToJson() const;
+	// TransitionLinks‚Ì•Û‘¶“à—e‚©‚ç•œŒ³
+	void TransitionLinksFromJson(const nlohmann::json& j);
 
 	// AnimLink1–{•ª‚ğJson‚É•ÏŠ·‚·‚é(eLinkEqLink‹¤’Ê)
 	nlohmann::ordered_json AnimLinkToJson(const AnimLink& link) const;
@@ -2885,8 +2919,10 @@ void ChildStateGraph::EnsureStartAndEndExist()
 // ƒRƒ“ƒXƒgƒ‰ƒNƒ^
 AnimatorGraphData::AnimatorGraphData()
 {
-	// idCounter‚ÌÀ‘Ì(this©g‚ª‚Â)‚ğAparentGraph‚ÌˆÄ“à”Â‚É”zü‚·‚é
+	// idCounter‚ÌÀ‘Ì‚ğAparentGraph‚ÌˆÄ“à”Â‚É”zü‚·‚é
 	parentGraph.idCounter = &idCounter;
+	// “¯‚¶idCounter‚ğAtransitionGraph‘¤‚É‚à”z•z
+	transitionGraph.idCounter = &idCounter;
 
 	// ”zü‚ªI‚í‚Á‚Ä‚©‚çAEntry‚Ì•ÛØ‚ğs‚¤
 	parentGraph.EnsureEntryExists();
@@ -2899,6 +2935,7 @@ nlohmann::ordered_json AnimatorGraphData::ToJson() const
 	nlohmann::ordered_json j;
 	j["states"] = StatesToJson();
 	j["stateLinks"] = StateLinksToJson();
+	j["transitionLinks"] = TransitionLinksToJson();
 	return j;
 }
 // Json‚©‚ç’†g‚ğ•ÏŠ·‚·‚é
@@ -2906,14 +2943,55 @@ void AnimatorGraphData::FromJson(const nlohmann::json& j)
 {
 	parentGraph.states.clear();
 	parentGraph.stateLinks.clear();
+	transitionGraph.links.clear();
 
 	if (j.contains("states")) StatesFromJson(j["states"]);
 	if (j.contains("stateLinks")) StateLinksFromJson(j["stateLinks"]);
+	if (j.contains("transitionLinks")) TransitionLinksFromJson(j["transitionLinks"]);
 
 	// “Ç‚İ‚ñ‚¾Œ‹‰ÊEntry‚ª–³‚©‚Á‚½ê‡‚Ì•ÛŒ¯
 	parentGraph.EnsureEntryExists();
+	SyncTransitionLinks();
+
 }
 
+// ParentState‚ğíœ‚·‚é
+void AnimatorGraphData::DeleteParentState(int stateId)
+{
+	// eŠK‘w‚ÌState‚ğíœ‚·‚é
+	parentGraph.DeleteParentState(stateId);
+
+	// ‘JˆÚ—pƒOƒ‰ƒt‚ÌLink‚àíœ‚·‚é
+	transitionGraph.links.erase(
+		std::remove_if(transitionGraph.links.begin(), transitionGraph.links.end(),
+			[stateId](const TransitionLink& l)
+			{
+				return l.fromId == stateId || l.toId == stateId;
+			}),
+		transitionGraph.links.end()
+	);
+}
+
+void AnimatorGraphData::SyncTransitionLinks()
+{
+	for (const auto& link : parentGraph.stateLinks)
+	{
+		bool exists = false;
+		for (const auto& tLink : transitionGraph.links)
+		{
+			if (tLink.fromId == link.fromId && tLink.toId == link.toId)
+			{
+				exists = true;
+				break;
+			}
+		}
+
+		if (!exists)
+		{
+			transitionGraph.CreateLink(link.fromId, link.toId);
+		}
+	}
+}
 
 // States‚ğ•Û‘¶“à—e‚Ö•ÏŠ·
 nlohmann::ordered_json AnimatorGraphData::StatesToJson() const
@@ -3040,6 +3118,185 @@ void AnimatorGraphData::StateLinksFromJson(const nlohmann::json& j)
 		AnimLink link;
 		AnimLinkFromJson(link, jl);
 		parentGraph.stateLinks.push_back(link);
+	}
+}
+
+// TransitionLinks‚Ì•Û‘¶“à—e‚Ö•ÏŠ·
+nlohmann::ordered_json AnimatorGraphData::TransitionLinksToJson() const
+{
+	nlohmann::ordered_json jLinks = nlohmann::json::array();
+
+	for (const auto& link : transitionGraph.links)
+	{
+		nlohmann::ordered_json jl;
+		jl["id"] = link.id;
+		jl["fromId"] = link.fromId;
+		jl["toId"] = link.toId;
+
+		nlohmann::ordered_json jc;
+		jc["returnNode"]["id"] = link.condition.returnNode.id;
+		jc["returnNode"]["posX"] = link.condition.returnNode.posX;
+		jc["returnNode"]["posY"] = link.condition.returnNode.posY;
+
+		jc["variableNodes"] = nlohmann::json::array();
+		for (const auto& v : link.condition.variableNodes)
+		{
+			nlohmann::ordered_json jv;
+			jv["id"] = v.id;
+			jv["posX"] = v.posX;
+			jv["posY"] = v.posY;
+			jv["name"] = v.name;
+			jv["type"] = ToString(v.type);
+			jv["intValue"] = v.intValue;
+			jv["floatValue"] = v.floatValue;
+			jv["boolValue"] = v.boolValue;
+			jc["variableNodes"].push_back(jv);
+		}
+
+		jc["operatorNodes"] = nlohmann::json::array();
+		for (const auto& o : link.condition.operatorNodes)
+		{
+			nlohmann::ordered_json jo;
+			jo["id"] = o.id;
+			jo["posX"] = o.posX;
+			jo["posY"] = o.posY;
+			jo["op"] = ToString(o.op);
+			jc["operatorNodes"].push_back(jo);
+		}
+
+		jc["getterNodes"] = nlohmann::json::array();
+		for (const auto& g : link.condition.getterNodes)
+		{
+			nlohmann::ordered_json jg;
+			jg["id"] = g.id;
+			jg["posX"] = g.posX;
+			jg["posY"] = g.posY;
+			jg["componentName"] = g.componentName;
+			jg["fieldName"] = g.fieldName;
+			jg["type"] = ToString(g.type);
+			jg["selectedComponent"] = ToString(g.selectedComponent);
+			jc["getterNodes"].push_back(jg);
+		}
+
+		jc["links"] = nlohmann::json::array();
+		for (const auto& cl : link.condition.links)
+		{
+			nlohmann::ordered_json jcl;
+			jcl["id"] = cl.id;
+			jcl["fromId"] = cl.fromId;
+			jcl["toId"] = cl.toId;
+			jcl["toPinB"] = cl.toPinB;
+			jc["links"].push_back(jcl);
+		}
+
+		jl["condition"] = jc;
+		jLinks.push_back(jl);
+	}
+
+	return jLinks;
+}
+// TransitionLinks‚Ì•Û‘¶“à—e‚©‚ç•œŒ³
+void AnimatorGraphData::TransitionLinksFromJson(const nlohmann::json& j)
+{
+	for (const auto& jl : j)
+	{
+		TransitionLink link;
+		link.id = jl.value("id", -1);
+		link.fromId = jl.value("fromId", -1);
+		link.toId = jl.value("toId", -1);
+
+		link.condition.idCounter = &idCounter;
+
+		if (jl.contains("condition"))
+		{
+			const auto& jc = jl["condition"];
+
+			if (jc.contains("returnNode"))
+			{
+				link.condition.returnNode.id = jc["returnNode"].value("id", -1);
+				link.condition.returnNode.posX = jc["returnNode"].value("posX", 500.0f);
+				link.condition.returnNode.posY = jc["returnNode"].value("posY", 200.0f);
+			}
+
+			if (jc.contains("variableNodes"))
+			{
+				for (const auto& jv : jc["variableNodes"])
+				{
+					ConditionVariableNode v;
+					v.id = jv.value("id", -1);
+					v.posX = jv.value("posX", 0.0f);
+					v.posY = jv.value("posY", 0.0f);
+					v.name = jv.value("name", "");
+					v.type = ToValueType(jv.value("type", "Float"));
+					v.intValue = jv.value("intValue", 0);
+					v.floatValue = jv.value("floatValue", 0.0f);
+					v.boolValue = jv.value("boolValue", false);
+					link.condition.variableNodes.push_back(v);
+
+					SyncIdCounter(v.id);
+				}
+			}
+
+			if (jc.contains("operatorNodes"))
+			{
+				for (const auto& jo : jc["operatorNodes"])
+				{
+					ConditionOperatorNode o;
+					o.id = jo.value("id", -1);
+					o.posX = jo.value("posX", 0.0f);
+					o.posY = jo.value("posY", 0.0f);
+					o.op = ToCompareOp(jo.value("op", "Greater"));
+					link.condition.operatorNodes.push_back(o);
+
+					SyncIdCounter(o.id);
+				}
+			}
+
+			if (jc.contains("getterNodes"))
+			{
+				for (const auto& jg : jc["getterNodes"])
+				{
+					ConditionGetterNode g;
+					g.id = jg.value("id", -1);
+					g.posX = jg.value("posX", 0.0f);
+					g.posY = jg.value("posY", 0.0f);
+					g.componentName = jg.value("componentName", "");
+					g.fieldName = jg.value("fieldName", "");
+					g.type = ToValueType(jg.value("type", "Float"));
+					g.selectedComponent = ToFloatComponent(jg.value("selectedComponent", "None"));
+					link.condition.getterNodes.push_back(g);
+
+					SyncIdCounter(g.id);
+				}
+			}
+
+			if (jc.contains("links"))
+			{
+				for (const auto& jcl : jc["links"])
+				{
+					ConditionLink cl;
+					cl.id = jcl.value("id", -1);
+					cl.fromId = jcl.value("fromId", -1);
+					cl.toId = jcl.value("toId", -1);
+					cl.toPinB = jcl.value("toPinB", false);
+					link.condition.links.push_back(cl);
+
+					SyncIdCounter(cl.id);
+				}
+			}
+		}
+
+		if (link.condition.returnNode.id < 0)
+		{
+			link.condition.returnNode.id = link.condition.GenerateId();
+			link.condition.returnNode.posX = 500.0f;
+			link.condition.returnNode.posY = 200.0f;
+		}
+		SyncIdCounter(link.condition.returnNode.id);
+
+		SyncIdCounter(link.id);
+
+		transitionGraph.links.push_back(link);
 	}
 }
 
@@ -3223,7 +3480,35 @@ void AnimatorGraphData::SyncIdCounter(int id)
 {
 	if (id >= idCounter) idCounter = id + 1;
 }
- 
+
+
+// ‘JˆÚ—pLinkì¬
+int TransitionGraphData::CreateLink(int fromId, int toId)
+{
+	TransitionLink link;
+	link.id = GenerateId();
+	link.fromId = fromId;
+	link.toId = toId;
+
+	// ğŒƒOƒ‰ƒt‚É‚àˆÄ“à”Â‚ğ”zü‚µ‚Ä‚©‚çg‚¤
+	link.condition.idCounter = this->idCounter;
+	// ‚±‚ÌLinkê—p‚ÌğŒƒOƒ‰ƒt‚ÉAŒÅ’è‚ÌReturnƒm[ƒh‚ğ1‚Â”z’u‚µ‚Ä‚¨‚­
+	link.condition.returnNode.id = link.condition.GenerateId();
+	link.condition.returnNode.posX = 500.0f;
+	link.condition.returnNode.posY = 200.0f;
+
+	links.push_back(link);
+	return link.id;
+}
+// ‘JˆÚ—pLinkíœ
+void TransitionGraphData::DeleteLink(int linkId)
+{
+	links.erase(
+		std::remove_if(links.begin(), links.end(),
+			[linkId](const TransitionLink& l) { return l.id == linkId; }),
+		links.end()
+	);
+} 
  
 ===== SequencerData.cpp ===== 
 Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Data\SequencerData.cpp 
@@ -15627,6 +15912,7 @@ Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioAnimatorGraph.
 #include "StudioParentStateGraph.h"
 #include "StudioChildStateGraph.h"
 #include "StudioConditionGraph.h"
+#include "StudioTransitionGraph.h"
 
 #include <vector>
 #include <string>
@@ -15640,6 +15926,7 @@ enum class AnimatorGraphView
 	ParentGraph,
 	ChildGraph,
 	ConditionGraph,
+	TransitionGraph,
 };
 
 class StudioAnimatorGraph : public IStudioAttachment
@@ -15658,9 +15945,10 @@ private:
 	// == “à•”ó‘Ô == //
 	AnimatorGraphData graphData;
 
-	StudioParentStateGraph parentStateGraph; // eŠK‘wƒLƒƒƒ“ƒoƒX
-	StudioChildStateGraph childStateGraph;   // qŠK‘wƒLƒƒƒ“ƒoƒX
-	StudioConditionGraph conditionGraph;     // ğŒ•ÒWƒLƒƒƒ“ƒoƒX
+	StudioParentStateGraph parentStateGraph;     // eŠK‘wƒLƒƒƒ“ƒoƒX
+	StudioChildStateGraph childStateGraph;       // qŠK‘wƒLƒƒƒ“ƒoƒX
+	StudioConditionGraph conditionGraph;         // ğŒ•ÒWƒLƒƒƒ“ƒoƒX
+	StudioTransitionGraph transitionStateGraph;  // ‘JˆÚ—pƒLƒƒƒ“ƒoƒX
 
 	AnimatorGraphView currentView = AnimatorGraphView::ParentGraph;  // Œ»İ•\¦’†‚ÌƒLƒƒƒ“ƒoƒX
 	AnimatorGraphView previousView = AnimatorGraphView::ParentGraph; // ğŒƒOƒ‰ƒt‚©‚ç–ß‚éæ
@@ -15676,7 +15964,8 @@ private:
 	// == ŠeƒLƒƒƒ“ƒoƒX•`‰æ == //
 	void DrawParentCanvas(StudioContext& context); // eŠK‘wƒLƒƒƒ“ƒoƒX
 	void DrawChildCanvas();                        // qŠK‘wƒLƒƒƒ“ƒoƒX
-	void DrawConditionCanvas();                    // ‘JˆÚğŒƒLƒƒƒ“ƒoƒX
+	void DrawConditionCanvas();                    // ğŒ‘JˆÚƒLƒƒƒ“ƒoƒX
+	void DrawTransitionCanvas();                   // ‘JˆÚ—pƒLƒƒƒ“ƒoƒX
 
 	// == ‰æ–Ê‘JˆÚ == //
 	void GoToCondition();                    // ğŒƒOƒ‰ƒt‚ÖˆÚ“®‚·‚é(–ß‚èæ‚ğ‹L˜^‚·‚é)
@@ -15844,8 +16133,8 @@ public:
 
 	void Initialize();
 
-	// •ÒW‘ÎÛ‚ÌLink‚ğİ’è‚·‚é
-	void SetTarget(AnimLink* link);
+	// •ÒW‘ÎÛ‚ÌğŒƒOƒ‰ƒt‚ğİ’è‚·‚é
+	void SetTarget(ConditionGraph* condition);
 
 	// ImGui•`‰æ
 	void DrawGUI();
@@ -15855,7 +16144,7 @@ public:
 private:
 	// == “à•”ó‘Ô == //
 	NodeEditorCanvas canvas;        // ‚±‚ÌƒNƒ‰ƒXê—p‚Ìƒm[ƒhƒGƒfƒBƒ^ƒRƒ“ƒeƒLƒXƒg
-	AnimLink* targetLink = nullptr; // Œ»İ•ÒW’†‚ÌLink
+	ConditionGraph* targetCondition = nullptr; // Œ»İ•ÒW’†‚ÌğŒƒOƒ‰ƒt
 	ImVec2 pendingCreatePos{};
 	bool needsApplyPositions = false;
 
@@ -16210,6 +16499,79 @@ public:
 
 private:
     int windowId = 0;
+}; 
+ 
+===== StudioTransitionGraph.h ===== 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioTransitionGraph.h 
+#pragma once
+#include "Engine/Data/AnimatorGraphData.h"
+#include "Tool/NodeEditor/NodeEditorCanvas.h"
+#include <unordered_map>
+#include <functional>
+#include <imgui.h>
+#include <imgui_node_editor.h>
+
+namespace ed = ax::NodeEditor;
+
+class StudioTransitionGraph
+{
+public:
+	StudioTransitionGraph() = default;
+	~StudioTransitionGraph() = default;
+
+	void Initialize();
+
+	// ImGui•`‰æ
+	void DrawGUI(AnimatorGraphData& graph);
+	void DrawInspector();
+
+	// ğŒ®•ÒW‰æ–Ê‚Ö‚Ì‘JˆÚ—v‹
+	bool ConsumeConditionEditRequest(TransitionLink*& outLink);
+
+	// •Û‘¶/“Ç‚İ‚İ’¼Œã‚È‚ÇAÀ•W‚ğ‹­§”½‰f‚µ‚½‚¢‚ÉŒÄ‚Ô
+	void RequestApplyPositions() { needsApplyPositions = true; }
+
+private:
+	// == ó‘Ô == //
+	NodeEditorCanvas canvas;
+	AnimatorGraphData* graph = nullptr;
+
+	int pendingLinkFromId = -1;
+	bool needsApplyPositions = false;
+
+	std::unordered_map<int, std::pair<ImVec2, ImVec2>> stateScreenRects; // State‚Ì‹éŒ`‚ğ•Û‘¶(parentGraph.states—R—ˆ)
+
+	ParentState* selectedState = nullptr;     // ‘I‘ğ’†‚ÌState
+	TransitionLink* selectedLink = nullptr;   // ‘I‘ğ’†‚ÌLink
+
+	bool pendingConditionEdit = false; // ğŒ®•ÒW‰æ–Ê‚Ö‚Ì‘JˆÚ—v‹ƒtƒ‰ƒO
+
+	// == State•`‰æ == //
+	void DrawStates();
+
+	// == Link•`‰æ == //
+	void DrawLinks();
+	void CalcLinkPoints(const TransitionLink& link, ImVec2& outStart, ImVec2& outEnd);
+	void DrawLinkPins(const TransitionLink& link, const ImVec2& start, const ImVec2& end);
+	ImVec2 GetEdgePoint(const ImVec2& rectMin, const ImVec2& rectMax, const ImVec2& target);
+	bool HasReverseLink(int fromId, int toId) const;
+	void DrawArrowHead(ImDrawList* drawList, const ImVec2& start, const ImVec2& end, ImU32 color);
+
+	// == ì¬ == //
+	void DrawStateContextMenu(); // Linkì¬‚Ì‹N“_‘I‘ğ
+	void UpdateLinkCreation();   // Linkì¬ƒ‚[ƒh‚Ì“ü—Íˆ—
+	void DrawPendingLink();      // Linkì¬’†‚ÌƒvƒŒƒrƒ…[•`‰æ
+
+	// == ‘I‘ğ‚ÆƒCƒ“ƒXƒyƒNƒ^[ == //
+	void UpdateSelection();
+	void DrawLinkInspector(TransitionLink* link);
+
+	// == •\¦—pƒwƒ‹ƒp[ == //
+	static void CenterNextItem(float totalWidth, float itemWidth);
+	void DrawDeleteButton(const char* label, const std::function<void()>& onDelete);
+
+	// == PinID == //
+	static ed::PinId GetPinId(int linkId, bool isOutput) { return ed::PinId((int64_t)30000000 + (int64_t)linkId * 2 + (isOutput ? 0 : 1)); }
 }; 
  
 ===== StudioWindow.h ===== 
@@ -16793,6 +17155,7 @@ void StudioAnimatorGraph::Initialize()
 	parentStateGraph.Initialize();
 	childStateGraph.Initialize();
 	conditionGraph.Initialize();
+	transitionStateGraph.Initialize();
 }
 
 // ImGui•`‰æ
@@ -16835,6 +17198,9 @@ void StudioAnimatorGraph::DrawGUI(entt::registry& registry, StudioContext& conte
 	case AnimatorGraphView::ConditionGraph:
 		DrawConditionCanvas();
 		break;
+	case AnimatorGraphView::TransitionGraph:
+		DrawTransitionCanvas();
+		break;
 	case AnimatorGraphView::ParentGraph:
 	default:
 		DrawParentCanvas(context);
@@ -16857,6 +17223,7 @@ void StudioAnimatorGraph::DrawParentCanvas(StudioContext& context)
 	ImGui::NextColumn();
 
 	parentStateGraph.DrawInspector();
+	transitionStateGraph.RequestApplyPositions();
 
 	// ‰æ–Ê‘JˆÚ‚Ì—v‹‚ğŠm”F‚·‚é
 	AnimLink* navLink = nullptr;
@@ -16865,7 +17232,7 @@ void StudioAnimatorGraph::DrawParentCanvas(StudioContext& context)
 
 	if (request == NavigationRequest::EditCondition && navLink)
 	{
-		conditionGraph.SetTarget(navLink);
+		conditionGraph.SetTarget(&navLink->condition);
 		GoToCondition();
 	}
 	else if (request == NavigationRequest::EditChildGraph && navState)
@@ -16904,11 +17271,11 @@ void StudioAnimatorGraph::DrawChildCanvas()
 
 	if (request == NavigationRequest::EditCondition && navLink)
 	{
-		conditionGraph.SetTarget(navLink);
+		conditionGraph.SetTarget(&navLink->condition);
 		GoToCondition();
 	}
 }
-// ‘JˆÚğŒƒLƒƒƒ“ƒoƒX
+// ğŒ‘JˆÚƒLƒƒƒ“ƒoƒX
 void StudioAnimatorGraph::DrawConditionCanvas()
 {
 	if (ImGui::Button("< Back"))
@@ -16921,6 +17288,25 @@ void StudioAnimatorGraph::DrawConditionCanvas()
 	ImGui::NextColumn();
 
 	conditionGraph.DrawInspector();
+}
+// ‘JˆÚ—pƒLƒƒƒ“ƒoƒX
+void StudioAnimatorGraph::DrawTransitionCanvas()
+{
+	transitionStateGraph.DrawGUI(graphData);
+
+	ImGui::NextColumn();
+
+	transitionStateGraph.DrawInspector();
+
+	// ğŒ®•ÒW‰æ–Ê‚Ö‚Ì‘JˆÚ—v‹‚ğŠm”F
+	TransitionLink* navLink = nullptr;
+	if (transitionStateGraph.ConsumeConditionEditRequest(navLink) && navLink)
+	{
+		conditionGraph.SetTarget(&navLink->condition);
+		GoToCondition();
+	}
+
+	parentStateGraph.RequestApplyPositions();
 }
 
 // ğŒƒOƒ‰ƒt‚ÖˆÚ“®‚·‚é
@@ -16960,6 +17346,24 @@ void StudioAnimatorGraph::DrawToolbar(StudioContext& context)
 	else
 	{
 		ImGui::TextDisabled("Not saved yet.");
+	}
+
+	// eŠK‘w‚Æ‘JˆÚƒOƒ‰ƒt‚ÌØ‚è‘Ö‚¦ƒ{ƒ^ƒ“
+	if (currentView == AnimatorGraphView::ParentGraph)
+	{
+		ImGui::SameLine();
+		if (ImGui::Button("Transition Graph >"))
+		{
+			currentView = AnimatorGraphView::TransitionGraph;
+		}
+	}
+	else if (currentView == AnimatorGraphView::TransitionGraph)
+	{
+		ImGui::SameLine();
+		if (ImGui::Button("< Animator Graph"))
+		{
+			currentView = AnimatorGraphView::ParentGraph;
+		}
 	}
 	ImGui::Separator();
 }
@@ -17794,16 +18198,16 @@ void StudioConditionGraph::Initialize()
 	canvas.Initialize();
 }
 
-void StudioConditionGraph::SetTarget(AnimLink* link)
+void StudioConditionGraph::SetTarget(ConditionGraph* condition)
 {
-	targetLink = link;
+	targetCondition = condition;
 	needsApplyPositions = true;
 }
 
 // ImGuiæç”»
 void StudioConditionGraph::DrawGUI()
 {
-	if (!targetLink)
+	if (!targetCondition)
 	{
 		ImGui::TextDisabled("No link selected.");
 		return;
@@ -17987,7 +18391,7 @@ void StudioConditionGraph::DrawInspector()
 // ãƒªã‚¿ãƒ¼ãƒ³ãƒãƒ¼ãƒ‰æç”»
 void StudioConditionGraph::DrawReturnNode()
 {
-	ConditionReturnNode& returnNode = targetLink->condition.returnNode;
+	ConditionReturnNode& returnNode = targetCondition->returnNode;
 	ed::NodeId nodeId(returnNode.id);
 
 	if (needsApplyPositions)
@@ -18044,7 +18448,7 @@ void StudioConditionGraph::DrawVariableNodes()
 	const float nodeWidth = 140.0f;
 	const float valueWidth = 80.0f;
 
-	for (auto& v : targetLink->condition.variableNodes)
+	for (auto& v : targetCondition->variableNodes) 
 	{
 		ed::NodeId nodeId(v.id);
 		if (needsApplyPositions)
@@ -18119,7 +18523,7 @@ void StudioConditionGraph::DrawOperatorNodes()
 	const float nodeWidth = 100.0f;
 	const ImColor operatorBorderColor(90, 140, 220, 255);
 
-	for (auto& o : targetLink->condition.operatorNodes)
+	for (auto& o : targetCondition->operatorNodes)
 	{
 		ed::NodeId nodeId(o.id);
 		if (needsApplyPositions)
@@ -18172,7 +18576,7 @@ void StudioConditionGraph::DrawOperatorNodes()
 // ã‚²ãƒƒã‚¿ãƒ¼ãƒãƒ¼ãƒ‰æç”»
 void StudioConditionGraph::DrawGetterNodes()
 {
-	for (auto& g : targetLink->condition.getterNodes)
+	for (auto& g : targetCondition->getterNodes)
 	{
 		ed::NodeId nodeId(g.id);
 		if (needsApplyPositions)
@@ -18346,12 +18750,12 @@ void StudioConditionGraph::CreateVariableNode(ValueType type)
 	ImVec2 canvasPos = ed::ScreenToCanvas(pendingCreatePos);
 
 	ConditionVariableNode v;
-	v.id = targetLink->condition.GenerateId();
+	v.id = targetCondition->GenerateId();
 	v.posX = canvasPos.x;
 	v.posY = canvasPos.y;
 	v.type = type;
 
-	targetLink->condition.variableNodes.push_back(v);
+	targetCondition->variableNodes.push_back(v);
 
 	ed::SetNodePosition(ed::NodeId(v.id), canvasPos);
 }
@@ -18361,12 +18765,12 @@ void StudioConditionGraph::CreateOperatorNode(CompareOp op)
 	ImVec2 canvasPos = ed::ScreenToCanvas(pendingCreatePos);
 
 	ConditionOperatorNode o;
-	o.id = targetLink->condition.GenerateId();
+	o.id = targetCondition->GenerateId();
 	o.posX = canvasPos.x;
 	o.posY = canvasPos.y;
 	o.op = op;
 
-	targetLink->condition.operatorNodes.push_back(o);
+	targetCondition->operatorNodes.push_back(o);
 
 	ed::SetNodePosition(ed::NodeId(o.id), canvasPos);
 }
@@ -18376,11 +18780,11 @@ void StudioConditionGraph::CreateGetterNode()
 	ImVec2 canvasPos = ed::ScreenToCanvas(pendingCreatePos);
 
 	ConditionGetterNode g;
-	g.id = targetLink->condition.GenerateId();
+	g.id = targetCondition->GenerateId();
 	g.posX = canvasPos.x;
 	g.posY = canvasPos.y;
 
-	targetLink->condition.getterNodes.push_back(g);
+	targetCondition->getterNodes.push_back(g);
 
 	ed::SetNodePosition(ed::NodeId(g.id), canvasPos);
 }
@@ -18412,14 +18816,14 @@ void StudioConditionGraph::DrawDeleteButton(const char* label, int targetId, con
 // å¤‰æ•°ãƒãƒ¼ãƒ‰å‰Šé™¤
 void StudioConditionGraph::DeleteVariableNode(int id)
 {
-	auto& vars = targetLink->condition.variableNodes;
+	auto& vars = targetCondition->variableNodes;
 	vars.erase(
 		std::remove_if(vars.begin(), vars.end(),
 			[id](const ConditionVariableNode& v) { return v.id == id; }),
 		vars.end()
 	);
 
-	auto& links = targetLink->condition.links;
+	auto& links = targetCondition->links;
 	links.erase(
 		std::remove_if(links.begin(), links.end(),
 			[id](const ConditionLink& l) { return l.fromId == id || l.toId == id; }),
@@ -18429,14 +18833,14 @@ void StudioConditionGraph::DeleteVariableNode(int id)
 // ã‚²ãƒƒã‚¿ãƒ¼ãƒãƒ¼ãƒ‰å‰Šé™¤
 void StudioConditionGraph::DeleteGetterNode(int id)
 {
-	auto& getters = targetLink->condition.getterNodes;
+	auto& getters = targetCondition->getterNodes;
 	getters.erase(
 		std::remove_if(getters.begin(), getters.end(),
 			[id](const ConditionGetterNode& g) { return g.id == id; }),
 		getters.end()
 	);
 
-	auto& links = targetLink->condition.links;
+	auto& links = targetCondition->links;
 	links.erase(
 		std::remove_if(links.begin(), links.end(),
 			[id](const ConditionLink& l) { return l.fromId == id || l.toId == id; }),
@@ -18446,14 +18850,14 @@ void StudioConditionGraph::DeleteGetterNode(int id)
 // æ¯”è¼ƒæ¼”ç®—ãƒãƒ¼ãƒ‰å‰Šé™¤
 void StudioConditionGraph::DeleteOperatorNode(int id)
 {
-	auto& ops = targetLink->condition.operatorNodes;
+	auto& ops = targetCondition->operatorNodes;
 	ops.erase(
 		std::remove_if(ops.begin(), ops.end(),
 			[id](const ConditionOperatorNode& o) { return o.id == id; }),
 		ops.end()
 	);
 
-	auto& links = targetLink->condition.links;
+	auto& links = targetCondition->links;
 	links.erase(
 		std::remove_if(links.begin(), links.end(),
 			[id](const ConditionLink& l) { return l.fromId == id || l.toId == id; }),
@@ -18463,7 +18867,7 @@ void StudioConditionGraph::DeleteOperatorNode(int id)
 // ConditionLinkå‰Šé™¤
 void StudioConditionGraph::DeleteConditionLink(int id)
 {
-	auto& links = targetLink->condition.links;
+	auto& links = targetCondition->links;
 	links.erase(
 		std::remove_if(links.begin(), links.end(),
 			[id](const ConditionLink& l) { return l.id == id; }),
@@ -18486,15 +18890,15 @@ void StudioConditionGraph::UpdateSelection()
 	ed::GetSelectedNodes(&selectedId, 1);
 	int id = (int)selectedId.Get();
 
-	for (auto& v : targetLink->condition.variableNodes)
+	for (auto& v : targetCondition->variableNodes)
 	{
 		if (v.id == id) { selectedVariable = &v; return; }
 	}
-	for (auto& g : targetLink->condition.getterNodes)
+	for (auto& g : targetCondition->getterNodes)
 	{
 		if (g.id == id) { selectedGetter = &g; return; }
 	}
-	for (auto& o : targetLink->condition.operatorNodes)
+	for (auto& o : targetCondition->operatorNodes)
 	{
 		if (o.id == id) { selectedOperator = &o; return; }
 	}
@@ -18508,7 +18912,7 @@ ConditionLink* StudioConditionGraph::GetSelectedConditionLink()
 	ed::LinkId selectedId;
 	if (ed::GetSelectedLinks(&selectedId, 1) == 0) return nullptr;
 
-	for (auto& cl : targetLink->condition.links)
+	for (auto& cl : targetCondition->links)
 	{
 		if (cl.id == (int)selectedId.Get()) return &cl;
 	}
@@ -18622,15 +19026,15 @@ void StudioConditionGraph::ResolvePinRole(int64_t rawPinId, PinRole& outRole, in
 // ç”Ÿã®ãƒãƒ¼ãƒ‰ID(int)ã‹ã‚‰ã€ã“ã®Linkå†…ã§ã©ã®ç¨®é¡ã®ãƒãƒ¼ãƒ‰ã‹ã‚’èª¿ã¹ã‚‹
 StudioConditionGraph::NodeKind StudioConditionGraph::GetNodeKind(int id) const
 {
-	if (targetLink->condition.returnNode.id == id) return NodeKind::Return;
+	if (targetCondition->returnNode.id == id) return NodeKind::Return;
 
-	for (const auto& v : targetLink->condition.variableNodes)
+	for (const auto& v : targetCondition->variableNodes)
 		if (v.id == id) return NodeKind::Variable;
 
-	for (const auto& g : targetLink->condition.getterNodes)
+	for (const auto& g : targetCondition->getterNodes)
 		if (g.id == id) return NodeKind::Getter;
 
-	for (const auto& o : targetLink->condition.operatorNodes)
+	for (const auto& o : targetCondition->operatorNodes)
 		if (o.id == id) return NodeKind::Operator;
 
 	return NodeKind::Unknown;
@@ -18709,7 +19113,7 @@ void StudioConditionGraph::DrawLinkCreation()
 				ValueType srcType = GetOutputValueType(outRole, outNodeId);
 
 				CompareOp op = CompareOp::Greater;
-				for (const auto& o : targetLink->condition.operatorNodes)
+				for (const auto& o : targetCondition->operatorNodes)
 				{
 					if (o.id == inNodeId) { op = o.op; break; }
 				}
@@ -18723,7 +19127,7 @@ void StudioConditionGraph::DrawLinkCreation()
 				int otherPinNodeId = -1;
 				PinRole otherOutRole = PinRole::Unknown;
 				bool wantPinB = (inRole == PinRole::OperatorB);
-				for (const auto& cl : targetLink->condition.links)
+				for (const auto& cl : targetCondition->links)
 				{
 					if (cl.toId == inNodeId && cl.toPinB != wantPinB)
 					{
@@ -18760,7 +19164,7 @@ void StudioConditionGraph::DrawLinkCreation()
 					bool toPinB = (inRole == PinRole::OperatorB);
 
 					// å…¥åŠ›ãƒ”ãƒ³ã¯1æœ¬ã¾ã§:æ—¢ã«åŒã˜å…¥åŠ›ã«ç¹‹ãŒã£ã¦ã„ã‚‹LinkãŒã‚ã‚Œã°ç½®ãæ›ãˆã‚‹
-					auto& links = targetLink->condition.links;
+					auto& links = targetCondition->links;
 					links.erase(
 						std::remove_if(links.begin(), links.end(),
 							[&](const ConditionLink& l)
@@ -18771,7 +19175,7 @@ void StudioConditionGraph::DrawLinkCreation()
 					);
 
 					ConditionLink newLink;
-					newLink.id = targetLink->condition.GenerateId();
+					newLink.id = targetCondition->GenerateId();
 					newLink.fromId = outNodeId;
 					newLink.toId = inNodeId;
 					newLink.toPinB = toPinB;
@@ -18792,7 +19196,7 @@ void StudioConditionGraph::DrawConditionLinks()
 	const ImColor linkColor(210, 210, 210, 255);
 	const float linkThickness = 2.0f;
 
-	for (const auto& cl : targetLink->condition.links)
+	for (const auto& cl : targetCondition->links)
 	{
 		NodeKind fromKind = GetNodeKind(cl.fromId);
 		NodeKind toKind = GetNodeKind(cl.toId);
@@ -18829,12 +19233,12 @@ ValueType StudioConditionGraph::GetNodeValueType(NodeKind kind, int nodeId) cons
 {
 	if (kind == NodeKind::Variable)
 	{
-		for (const auto& v : targetLink->condition.variableNodes)
+		for (const auto& v : targetCondition->variableNodes)
 			if (v.id == nodeId) return v.type;
 	}
 	else if (kind == NodeKind::Getter)
 	{
-		for (const auto& g : targetLink->condition.getterNodes)
+		for (const auto& g : targetCondition->getterNodes)
 		{
 			if (g.id == nodeId)
 			{
@@ -19029,6 +19433,7 @@ void StudioModelViewer::LoadModel(
 ===== StudioParentStateGraph.cpp ===== 
 Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioParentStateGraph.cpp 
 #include "StudioParentStateGraph.h"
+#include <algorithm>
 
 void StudioParentStateGraph::Initialize()
 {
@@ -19408,6 +19813,7 @@ void StudioParentStateGraph::UpdateLinkCreation()
 			if (!targetIsEntry)
 			{
 				graph->parentGraph.CreateParentLink(pendingLinkFromId, targetId);
+				graph->transitionGraph.CreateLink(pendingLinkFromId, targetId);
 			}
 		}
 
@@ -19494,7 +19900,7 @@ void StudioParentStateGraph::DrawStateInspector(ParentState* state)
 	}
 
 	int stateId = state->id;
-	DrawDeleteButton("Delete State", [this, stateId]() { graph->parentGraph.DeleteParentState(stateId); });
+	DrawDeleteButton("Delete State", [this, stateId]() { graph->DeleteParentState(stateId); });
 }
 // Link‘I‘ğ‚ÌInspector
 void StudioParentStateGraph::DrawLinkInspector(AnimLink* link)
@@ -19524,7 +19930,23 @@ void StudioParentStateGraph::DrawLinkInspector(AnimLink* link)
 	}
 
 	int linkId = link->id;
-	DrawDeleteButton("Delete Link", [this, linkId]() { graph->parentGraph.DeleteParentLink(linkId); });
+	int fromId = link->fromId;
+	int toId = link->toId;
+	DrawDeleteButton("Delete Link", [this, linkId, fromId, toId]()
+		{
+			graph->parentGraph.DeleteParentLink(linkId);
+
+			// “¯‚¶fromId/toId‚Ì‘g‚Åì‚ç‚ê‚½‘JˆÚ—pƒŠƒ“ƒN‚àˆê‚ÉÁ‚·
+			auto& tLinks = graph->transitionGraph.links;
+			tLinks.erase(
+				std::remove_if(tLinks.begin(), tLinks.end(),
+					[fromId, toId](const TransitionLink& l)
+					{
+						return l.fromId == fromId && l.toId == toId;
+					}),
+				tLinks.end()
+			);
+		});
 }
 
 // ƒm[ƒh“à‚Å’†‰›Šñ‚¹‚É‚·‚é
@@ -20155,6 +20577,447 @@ void StudioTimeline::DrawGUI(entt::registry& registry, StudioContext& context)
     ImGui::End();
 }
  
+ 
+===== StudioTransitionGraph.cpp ===== 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioTransitionGraph.cpp 
+#include "StudioTransitionGraph.h"
+
+void StudioTransitionGraph::Initialize()
+{
+	canvas.Initialize();
+}
+
+// ImGui•`‰æ(State+Link‚Ì•`‰æ–{‘Ì)
+void StudioTransitionGraph::DrawGUI(AnimatorGraphData& g)
+{
+	graph = &g;
+
+	canvas.Begin("TransitionCanvas");
+
+	DrawStates();
+	DrawLinks();
+
+	DrawStateContextMenu();
+	UpdateLinkCreation();
+	DrawPendingLink();
+
+	UpdateSelection();
+
+	canvas.End();
+}
+
+// ‰E‘¤ƒƒjƒ…[
+void StudioTransitionGraph::DrawInspector()
+{
+	if (selectedState)
+	{
+		// State‚Í“Ç‚İæ‚èê—p(–¼‘OEF‚Ì•ÒWAíœƒ{ƒ^ƒ“‚Í‚½‚È‚¢)
+		ImGui::Text("%s", selectedState->name.c_str());
+		ImGui::TextDisabled("State name/color can only be edited from the Animator Graph.");
+		return;
+	}
+
+	if (selectedLink)
+	{
+		DrawLinkInspector(selectedLink);
+		return;
+	}
+
+	ImGui::TextDisabled("No link selected.");
+}
+
+// ğŒ®•ÒW‰æ–Ê‚Ö‚Ì‘JˆÚ—v‹
+bool StudioTransitionGraph::ConsumeConditionEditRequest(TransitionLink*& outLink)
+{
+	if (!pendingConditionEdit)
+	{
+		outLink = nullptr;
+		return false;
+	}
+
+	outLink = selectedLink;
+	pendingConditionEdit = false;
+	return true;
+}
+
+// State•`‰æ
+void StudioTransitionGraph::DrawStates()
+{
+	stateScreenRects.clear();
+
+	// ‡Šî’²‚ÌƒXƒ^ƒCƒ‹
+	const ImColor bgColor(90, 60, 110, 255);
+	const ImColor borderColor(140, 90, 170, 255);
+
+	for (auto& state : graph->parentGraph.states)
+	{
+		ed::NodeId nodeId(state.id);
+
+		if (needsApplyPositions)
+		{
+			ed::SetNodePosition(nodeId, ImVec2(state.posX, state.posY));
+		}
+
+		ed::PushStyleColor(ed::StyleColor_NodeBg, bgColor);
+		ed::PushStyleColor(ed::StyleColor_NodeBorder, borderColor);
+		ed::PushStyleVar(ed::StyleVar_NodeRounding, 4.0f);
+
+		ed::BeginNode(nodeId);
+
+		float nodeWidth = (state.type == ParentStateType::Entry) ? 100.0f : ImGui::CalcTextSize("New State").x;
+		float textWidth = ImGui::CalcTextSize(state.name.c_str()).x;
+
+		CenterNextItem(nodeWidth, textWidth);
+		ImGui::Text("%s", state.name.c_str());
+
+		ImGui::SameLine(nodeWidth);
+		ImGui::Dummy(ImVec2(0.0f, 0.0f));
+
+		ed::EndNode();
+
+		stateScreenRects[state.id] = { ImGui::GetItemRectMin(), ImGui::GetItemRectMax() };
+
+		ed::PopStyleVar(1);
+		ed::PopStyleColor(2);
+
+		ImVec2 currentPos = ed::GetNodePosition(nodeId);
+		state.posX = currentPos.x;
+		state.posY = currentPos.y;
+	}
+	needsApplyPositions = false;
+}
+
+// Link•`‰æ
+void StudioTransitionGraph::DrawLinks()
+{
+	const float arrowTrim = 10.0f;
+
+	for (const auto& link : graph->transitionGraph.links)
+	{
+		ImVec2 startPoint, endPoint;
+		CalcLinkPoints(link, startPoint, endPoint);
+
+		if (startPoint.x == 0.0f && startPoint.y == 0.0f &&
+			endPoint.x == 0.0f && endPoint.y == 0.0f)
+		{
+			continue;
+		}
+
+		ImVec2 dir(endPoint.x - startPoint.x, endPoint.y - startPoint.y);
+		float len = sqrtf(dir.x * dir.x + dir.y * dir.y);
+		ImVec2 trimmedEnd = endPoint;
+		if (len > arrowTrim)
+		{
+			trimmedEnd.x = endPoint.x - dir.x / len * arrowTrim;
+			trimmedEnd.y = endPoint.y - dir.y / len * arrowTrim;
+		}
+
+		DrawLinkPins(link, startPoint, trimmedEnd);
+
+		ImDrawList* drawList = ed::GetNodeBackgroundDrawList(ed::NodeId(link.fromId));
+		if (drawList)
+		{
+			// ‘JˆÚ—pƒŠƒ“ƒN‚Í‡F‚Å•`‰æ‚·‚é
+			const ImU32 linkColor = IM_COL32(180, 130, 220, 255);
+			DrawArrowHead(drawList, startPoint, endPoint, linkColor);
+		}
+	}
+}
+// ƒŠƒ“ƒN1–{‚ÌÚ‘±“_‚ğŒvZ
+void StudioTransitionGraph::CalcLinkPoints(const TransitionLink& link, ImVec2& outStart, ImVec2& outEnd)
+{
+	auto fromIt = stateScreenRects.find(link.fromId);
+	auto toIt = stateScreenRects.find(link.toId);
+	if (fromIt == stateScreenRects.end() || toIt == stateScreenRects.end())
+	{
+		outStart = ImVec2();
+		outEnd = ImVec2();
+		return;
+	}
+
+	const ImVec2& fromMin = fromIt->second.first;
+	const ImVec2& fromMax = fromIt->second.second;
+	const ImVec2& toMin = toIt->second.first;
+	const ImVec2& toMax = toIt->second.second;
+
+	ImVec2 fromCenter((fromMin.x + fromMax.x) * 0.5f, (fromMin.y + fromMax.y) * 0.5f);
+	ImVec2 toCenter((toMin.x + toMax.x) * 0.5f, (toMin.y + toMax.y) * 0.5f);
+
+	ImVec2 startPoint = GetEdgePoint(fromMin, fromMax, toCenter);
+	ImVec2 endPoint = GetEdgePoint(toMin, toMax, fromCenter);
+
+	if (HasReverseLink(link.fromId, link.toId))
+	{
+		bool fromIsSmaller = link.fromId < link.toId;
+		const ImVec2& baseCenter = fromIsSmaller ? fromCenter : toCenter;
+		const ImVec2& otherCenter = fromIsSmaller ? toCenter : fromCenter;
+
+		ImVec2 dir(otherCenter.x - baseCenter.x, otherCenter.y - baseCenter.y);
+		float len = sqrtf(dir.x * dir.x + dir.y * dir.y);
+		if (len > 0.0001f)
+		{
+			ImVec2 perp(-dir.y / len, dir.x / len);
+
+			const float offsetAmount = 8.0f;
+			float sign = fromIsSmaller ? 1.0f : -1.0f;
+
+			ImVec2 offset(perp.x * offsetAmount * sign, perp.y * offsetAmount * sign);
+
+			startPoint.x += offset.x;
+			startPoint.y += offset.y;
+			endPoint.x += offset.x;
+			endPoint.y += offset.y;
+		}
+	}
+
+	outStart = startPoint;
+	outEnd = endPoint;
+}
+// ŒvZÏ‚İ‚ÌÀ•W‚Éƒsƒ“‚ğ”z’u
+void StudioTransitionGraph::DrawLinkPins(const TransitionLink& link, const ImVec2& start, const ImVec2& end)
+{
+	const int64_t idOffset = 10000000;
+	ed::NodeId outNodeId(idOffset + (int64_t)link.id * 2);
+	ed::NodeId inNodeId(idOffset + (int64_t)link.id * 2 + 1);
+
+	ed::PinId outPinId = GetPinId(link.id, true);
+	ed::PinId inPinId = GetPinId(link.id, false);
+
+	ed::PushStyleVar(ed::StyleVar_NodePadding, ImVec4(0, 0, 0, 0));
+	ed::PushStyleColor(ed::StyleColor_NodeBg, ImColor(0, 0, 0, 0));
+	ed::PushStyleColor(ed::StyleColor_NodeBorder, ImColor(0, 0, 0, 0));
+
+	ed::PushStyleVar(ed::StyleVar_LinkStrength, 0.0f);
+
+	ed::SetNodePosition(outNodeId, start);
+	ed::BeginNode(outNodeId);
+	ed::BeginPin(outPinId, ed::PinKind::Output);
+	ImGui::Dummy(ImVec2(1, 1));
+	ed::EndPin();
+	ed::EndNode();
+
+	ed::SetNodePosition(inNodeId, end);
+	ed::BeginNode(inNodeId);
+	ed::BeginPin(inPinId, ed::PinKind::Input);
+	ImGui::Dummy(ImVec2(1, 1));
+	ed::EndPin();
+	ed::EndNode();
+
+	ed::PopStyleVar(2);
+	ed::PopStyleColor(2);
+
+	ed::Link(ed::LinkId(link.id), outPinId, inPinId);
+}
+// •Ó‚©‚çƒŠƒ“ƒN‚ğˆø‚«o‚·“_‚ğ‹‚ß‚é
+ImVec2 StudioTransitionGraph::GetEdgePoint(const ImVec2& rectMin, const ImVec2& rectMax, const ImVec2& target)
+{
+	ImVec2 center((rectMin.x + rectMax.x) * 0.5f, (rectMin.y + rectMax.y) * 0.5f);
+	float halfW = (rectMax.x - rectMin.x) * 0.5f;
+	float halfH = (rectMax.y - rectMin.y) * 0.5f;
+
+	ImVec2 dir(target.x - center.x, target.y - center.y);
+	if (dir.x == 0.0f && dir.y == 0.0f) return center;
+
+	float scaleX = (dir.x != 0.0f) ? halfW / fabsf(dir.x) : FLT_MAX;
+	float scaleY = (dir.y != 0.0f) ? halfH / fabsf(dir.y) : FLT_MAX;
+	float scale = (scaleX < scaleY) ? scaleX : scaleY;
+
+	return ImVec2(center.x + dir.x * scale, center.y + dir.y * scale);
+}
+// ‹tŒü‚«‚ÌLink‚ª‚ ‚é‚©Šm”F
+bool StudioTransitionGraph::HasReverseLink(int fromId, int toId) const
+{
+	for (const auto& link : graph->transitionGraph.links)
+	{
+		if (link.fromId == toId && link.toId == fromId)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+// –îˆó•`‰æ
+void StudioTransitionGraph::DrawArrowHead(ImDrawList* drawList, const ImVec2& start, const ImVec2& end, ImU32 color)
+{
+	ImVec2 dir(end.x - start.x, end.y - start.y);
+	float len = sqrtf(dir.x * dir.x + dir.y * dir.y);
+	if (len < 0.0001f) return;
+
+	dir.x /= len;
+	dir.y /= len;
+
+	ImVec2 perp(-dir.y, dir.x);
+
+	const float arrowLength = 18.0f;
+	const float arrowWidth = 13.0f;
+
+	ImVec2 tip = end;
+	ImVec2 baseCenter(end.x - dir.x * arrowLength, end.y - dir.y * arrowLength);
+	ImVec2 baseLeft(baseCenter.x + perp.x * arrowWidth * 0.5f, baseCenter.y + perp.y * arrowWidth * 0.5f);
+	ImVec2 baseRight(baseCenter.x - perp.x * arrowWidth * 0.5f, baseCenter.y - perp.y * arrowWidth * 0.5f);
+
+	drawList->AddTriangleFilled(tip, baseLeft, baseRight, color);
+}
+
+// Linkì¬‚Ì‹N“_‘I‘ğ
+void StudioTransitionGraph::DrawStateContextMenu()
+{
+	static ed::NodeId contextNodeId;
+
+	ed::Suspend();
+	if (ed::ShowNodeContextMenu(&contextNodeId))
+	{
+		ImGui::OpenPopup("TransitionNodeContextMenu");
+	}
+	if (ImGui::BeginPopup("TransitionNodeContextMenu"))
+	{
+		if (ImGui::MenuItem(u8"Link"))
+		{
+			pendingLinkFromId = (int)contextNodeId.Get();
+		}
+		ImGui::EndPopup();
+	}
+	ed::Resume();
+}
+// Linkì¬ƒ‚[ƒh‚Ì“ü—Íˆ—
+void StudioTransitionGraph::UpdateLinkCreation()
+{
+	if (pendingLinkFromId == -1) return;
+
+	if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+	{
+		ed::NodeId hovered = ed::GetHoveredNode();
+
+		if (hovered && (int)hovered.Get() != pendingLinkFromId)
+		{
+			int targetId = (int)hovered.Get();
+
+			bool targetIsEntry = false;
+			for (const auto& state : graph->parentGraph.states)
+			{
+				if (state.id == targetId && state.type == ParentStateType::Entry)
+				{
+					targetIsEntry = true;
+					break;
+				}
+			}
+
+			if (!targetIsEntry)
+			{
+				graph->transitionGraph.CreateLink(pendingLinkFromId, targetId);
+			}
+		}
+
+		pendingLinkFromId = -1;
+	}
+}
+// Linkì¬’†‚ÌƒvƒŒƒrƒ…[•`‰æ
+void StudioTransitionGraph::DrawPendingLink()
+{
+	if (pendingLinkFromId == -1) return;
+
+	auto it = stateScreenRects.find(pendingLinkFromId);
+	if (it == stateScreenRects.end()) return;
+
+	ImVec2 mousePos = ImGui::GetMousePos();
+	ImVec2 startPoint = GetEdgePoint(it->second.first, it->second.second, mousePos);
+
+	ImDrawList* drawList = ed::GetNodeBackgroundDrawList(ed::NodeId(pendingLinkFromId));
+	if (!drawList) return;
+
+	const ImU32 previewColor = IM_COL32(200, 150, 255, 255);
+
+	drawList->AddLine(startPoint, mousePos, previewColor, 2.0f);
+}
+
+// ‘I‘ğó‘Ô‚ğXV
+void StudioTransitionGraph::UpdateSelection()
+{
+	selectedState = nullptr;
+	selectedLink = nullptr;
+
+	if (ed::GetSelectedObjectCount() == 0) return;
+
+	ed::NodeId selectedNodeId;
+	if (ed::GetSelectedNodes(&selectedNodeId, 1) > 0)
+	{
+		for (auto& state : graph->parentGraph.states)
+		{
+			if (state.id == (int)selectedNodeId.Get())
+			{
+				selectedState = &state;
+				return;
+			}
+		}
+	}
+
+	ed::LinkId selectedLinkId;
+	if (ed::GetSelectedLinks(&selectedLinkId, 1) > 0)
+	{
+		for (auto& link : graph->transitionGraph.links)
+		{
+			if (link.id == (int)selectedLinkId.Get())
+			{
+				selectedLink = &link;
+				return;
+			}
+		}
+	}
+}
+// Link‚ÌInspector
+void StudioTransitionGraph::DrawLinkInspector(TransitionLink* link)
+{
+	const ParentState* fromState = nullptr;
+	const ParentState* toState = nullptr;
+	for (const auto& state : graph->parentGraph.states)
+	{
+		if (state.id == link->fromId) fromState = &state;
+		if (state.id == link->toId)   toState = &state;
+	}
+
+	std::string fromName = fromState ? fromState->name : "?";
+	std::string toName = toState ? toState->name : "?";
+
+	ImGui::TextWrapped("%s -> %s", fromName.c_str(), toName.c_str());
+
+	if (ImGui::Button("Edit Condition", ImVec2(-1.0f, 0.0f)))
+	{
+		pendingConditionEdit = true;
+	}
+
+	int linkId = link->id;
+	DrawDeleteButton("Delete Link", [this, linkId]() { graph->transitionGraph.DeleteLink(linkId); });
+}
+
+// ƒm[ƒh“à‚Å’†‰›Šñ‚¹‚É‚·‚é
+void StudioTransitionGraph::CenterNextItem(float totalWidth, float itemWidth)
+{
+	float pad = (totalWidth - itemWidth) * 0.5f;
+	if (pad > 0.0f)
+	{
+		ImGui::Dummy(ImVec2(pad, 0.0f));
+		ImGui::SameLine(0.0f, 0.0f);
+	}
+}
+// ‹¤’Ê‚Ìíœƒ{ƒ^ƒ“
+void StudioTransitionGraph::DrawDeleteButton(const char* label, const std::function<void()>& onDelete)
+{
+	ImGui::Spacing();
+	ImGui::Spacing();
+
+	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.15f, 0.15f, 1.0f));
+	ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.85f, 0.2f, 0.2f, 1.0f));
+	ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.6f, 0.1f, 0.1f, 1.0f));
+
+	bool pressed = ImGui::Button(label, ImVec2(-1.0f, 0.0f));
+
+	ImGui::PopStyleColor(3);
+
+	if (pressed)
+	{
+		onDelete();
+	}
+} 
  
 ===== StudioWindow.cpp ===== 
 Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioWindow.cpp 

@@ -188,6 +188,31 @@ struct ParentStateGraph // 親階層グラフ
 	void EnsureEntryExists();
 };
 
+
+struct TransitionLink // 遷移用リンク1本分
+{
+	int id = -1;
+	int fromId = -1;
+	int toId = -1;  
+
+	ConditionGraph condition;
+};
+struct TransitionGraphData // 遷移用グラフ本体
+{
+	std::vector<TransitionLink> links;
+
+	// ID採番カウンター
+	int* idCounter = nullptr;
+	int GenerateId() { return (*idCounter)++; }
+
+	// Link作成
+	int CreateLink(int fromId, int toId);
+	// Link削除
+	void DeleteLink(int linkId);
+};
+
+
+
 class AnimatorGraphData
 {
 public:
@@ -201,12 +226,16 @@ public:
 	AnimatorGraphData& operator=(AnimatorGraphData&&) = delete;
 
 	ParentStateGraph parentGraph; // 親階層グラフ本体
+	TransitionGraphData transitionGraph; // 遷移用グラフ本体
 
 	// グラフ内容をJsonに変換する
 	nlohmann::ordered_json ToJson() const;
 	// Jsonから中身を変換する
 	void FromJson(const nlohmann::json& j);
 
+	// ParentStateを削除する
+	void DeleteParentState(int stateId);
+	void SyncTransitionLinks();
 private:
 	// Statesを保存内容へ変換
 	nlohmann::ordered_json StatesToJson() const;
@@ -217,6 +246,11 @@ private:
 	nlohmann::ordered_json StateLinksToJson() const;
 	// StateLinksを保存内容から復元する
 	void StateLinksFromJson(const nlohmann::json& j);
+
+	// TransitionLinksの保存内容へ変換
+	nlohmann::ordered_json TransitionLinksToJson() const;
+	// TransitionLinksの保存内容から復元
+	void TransitionLinksFromJson(const nlohmann::json& j);
 
 	// AnimLink1本分をJsonに変換する(親Link・子Link共通)
 	nlohmann::ordered_json AnimLinkToJson(const AnimLink& link) const;

@@ -341,6 +341,9 @@
     <Filter Include="Shader\Present">
       <UniqueIdentifier>{48b067dc-78af-4d04-8c89-105810d04ba8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\Tool\Studio\StudioAnimatorGraph\StudioTransitionGraph">
+      <UniqueIdentifier>{9e117e4a-a6fc-4c6b-b55f-deeda6a4595f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="External\imgui-docking\imgui.cpp">
@@ -570,6 +573,9 @@
     </ClCompile>
     <ClCompile Include="Source\Engine\Core\GameWindow.cpp">
       <Filter>Sources\Engine\Core\GameWindow</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Tool\Studio\StudioTransitionGraph.cpp">
+      <Filter>Sources\Tool\Studio\StudioAnimatorGraph\StudioTransitionGraph</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -887,6 +893,9 @@
     </ClInclude>
     <ClInclude Include="Source\Engine\Core\GameWindow.h">
       <Filter>Sources\Engine\Core\GameWindow</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Tool\Studio\StudioTransitionGraph.h">
+      <Filter>Sources\Tool\Studio\StudioAnimatorGraph\StudioTransitionGraph</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

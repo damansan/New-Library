@@ -93,6 +93,7 @@
     <ClCompile Include="Source\Tool\Studio\StudioParentStateGraph.cpp" />
     <ClCompile Include="Source\Tool\Studio\StudioSequencer.cpp" />
     <ClCompile Include="Source\Tool\Studio\StudioTimeline.cpp" />
+    <ClCompile Include="Source\Tool\Studio\StudioTransitionGraph.cpp" />
     <ClCompile Include="Source\Tool\Studio\StudioWindow.cpp" />
     <ClCompile Include="Source\Unsorted\Demo\WaveDemo.cpp" />
   </ItemGroup>
@@ -199,6 +200,7 @@
     <ClInclude Include="Source\Tool\Studio\StudioSequencer.h" />
     <ClInclude Include="Source\Tool\Studio\StudioSharedContext.h" />
     <ClInclude Include="Source\Tool\Studio\StudioTimeline.h" />
+    <ClInclude Include="Source\Tool\Studio\StudioTransitionGraph.h" />
     <ClInclude Include="Source\Tool\Studio\StudioWindow.h" />
     <ClInclude Include="Source\Unsorted\Controller\AdaptiveTrigger.h" />
     <ClInclude Include="Source\Unsorted\Demo\WaveDemo.h" />

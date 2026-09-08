@@ -319,8 +319,10 @@ void ChildStateGraph::EnsureStartAndEndExist()
 // コンストラクタ
 AnimatorGraphData::AnimatorGraphData()
 {
-	// idCounterの実体(this自身が持つ)を、parentGraphの案内板に配線する
+	// idCounterの実体を、parentGraphの案内板に配線する
 	parentGraph.idCounter = &idCounter;
+	// 同じidCounterを、transitionGraph側にも配布
+	transitionGraph.idCounter = &idCounter;
 
 	// 配線が終わってから、Entryの保証を行う
 	parentGraph.EnsureEntryExists();
@@ -333,6 +335,7 @@ nlohmann::ordered_json AnimatorGraphData::ToJson() const
 	nlohmann::ordered_json j;
 	j["states"] = StatesToJson();
 	j["stateLinks"] = StateLinksToJson();
+	j["transitionLinks"] = TransitionLinksToJson();
 	return j;
 }
 // Jsonから中身を変換する
@@ -340,14 +343,55 @@ void AnimatorGraphData::FromJson(const nlohmann::json& j)
 {
 	parentGraph.states.clear();
 	parentGraph.stateLinks.clear();
+	transitionGraph.links.clear();
 
 	if (j.contains("states")) StatesFromJson(j["states"]);
 	if (j.contains("stateLinks")) StateLinksFromJson(j["stateLinks"]);
+	if (j.contains("transitionLinks")) TransitionLinksFromJson(j["transitionLinks"]);
 
 	// 読み込んだ結果Entryが無かった場合の保険
 	parentGraph.EnsureEntryExists();
+	SyncTransitionLinks();
+
 }
 
+// ParentStateを削除する
+void AnimatorGraphData::DeleteParentState(int stateId)
+{
+	// 親階層のStateを削除する
+	parentGraph.DeleteParentState(stateId);
+
+	// 遷移用グラフのLinkも削除する
+	transitionGraph.links.erase(
+		std::remove_if(transitionGraph.links.begin(), transitionGraph.links.end(),
+			[stateId](const TransitionLink& l)
+			{
+				return l.fromId == stateId || l.toId == stateId;
+			}),
+		transitionGraph.links.end()
+	);
+}
+
+void AnimatorGraphData::SyncTransitionLinks()
+{
+	for (const auto& link : parentGraph.stateLinks)
+	{
+		bool exists = false;
+		for (const auto& tLink : transitionGraph.links)
+		{
+			if (tLink.fromId == link.fromId && tLink.toId == link.toId)
+			{
+				exists = true;
+				break;
+			}
+		}
+
+		if (!exists)
+		{
+			transitionGraph.CreateLink(link.fromId, link.toId);
+		}
+	}
+}
 
 // Statesを保存内容へ変換
 nlohmann::ordered_json AnimatorGraphData::StatesToJson() const
@@ -474,6 +518,185 @@ void AnimatorGraphData::StateLinksFromJson(const nlohmann::json& j)
 		AnimLink link;
 		AnimLinkFromJson(link, jl);
 		parentGraph.stateLinks.push_back(link);
+	}
+}
+
+// TransitionLinksの保存内容へ変換
+nlohmann::ordered_json AnimatorGraphData::TransitionLinksToJson() const
+{
+	nlohmann::ordered_json jLinks = nlohmann::json::array();
+
+	for (const auto& link : transitionGraph.links)
+	{
+		nlohmann::ordered_json jl;
+		jl["id"] = link.id;
+		jl["fromId"] = link.fromId;
+		jl["toId"] = link.toId;
+
+		nlohmann::ordered_json jc;
+		jc["returnNode"]["id"] = link.condition.returnNode.id;
+		jc["returnNode"]["posX"] = link.condition.returnNode.posX;
+		jc["returnNode"]["posY"] = link.condition.returnNode.posY;
+
+		jc["variableNodes"] = nlohmann::json::array();
+		for (const auto& v : link.condition.variableNodes)
+		{
+			nlohmann::ordered_json jv;
+			jv["id"] = v.id;
+			jv["posX"] = v.posX;
+			jv["posY"] = v.posY;
+			jv["name"] = v.name;
+			jv["type"] = ToString(v.type);
+			jv["intValue"] = v.intValue;
+			jv["floatValue"] = v.floatValue;
+			jv["boolValue"] = v.boolValue;
+			jc["variableNodes"].push_back(jv);
+		}
+
+		jc["operatorNodes"] = nlohmann::json::array();
+		for (const auto& o : link.condition.operatorNodes)
+		{
+			nlohmann::ordered_json jo;
+			jo["id"] = o.id;
+			jo["posX"] = o.posX;
+			jo["posY"] = o.posY;
+			jo["op"] = ToString(o.op);
+			jc["operatorNodes"].push_back(jo);
+		}
+
+		jc["getterNodes"] = nlohmann::json::array();
+		for (const auto& g : link.condition.getterNodes)
+		{
+			nlohmann::ordered_json jg;
+			jg["id"] = g.id;
+			jg["posX"] = g.posX;
+			jg["posY"] = g.posY;
+			jg["componentName"] = g.componentName;
+			jg["fieldName"] = g.fieldName;
+			jg["type"] = ToString(g.type);
+			jg["selectedComponent"] = ToString(g.selectedComponent);
+			jc["getterNodes"].push_back(jg);
+		}
+
+		jc["links"] = nlohmann::json::array();
+		for (const auto& cl : link.condition.links)
+		{
+			nlohmann::ordered_json jcl;
+			jcl["id"] = cl.id;
+			jcl["fromId"] = cl.fromId;
+			jcl["toId"] = cl.toId;
+			jcl["toPinB"] = cl.toPinB;
+			jc["links"].push_back(jcl);
+		}
+
+		jl["condition"] = jc;
+		jLinks.push_back(jl);
+	}
+
+	return jLinks;
+}
+// TransitionLinksの保存内容から復元
+void AnimatorGraphData::TransitionLinksFromJson(const nlohmann::json& j)
+{
+	for (const auto& jl : j)
+	{
+		TransitionLink link;
+		link.id = jl.value("id", -1);
+		link.fromId = jl.value("fromId", -1);
+		link.toId = jl.value("toId", -1);
+
+		link.condition.idCounter = &idCounter;
+
+		if (jl.contains("condition"))
+		{
+			const auto& jc = jl["condition"];
+
+			if (jc.contains("returnNode"))
+			{
+				link.condition.returnNode.id = jc["returnNode"].value("id", -1);
+				link.condition.returnNode.posX = jc["returnNode"].value("posX", 500.0f);
+				link.condition.returnNode.posY = jc["returnNode"].value("posY", 200.0f);
+			}
+
+			if (jc.contains("variableNodes"))
+			{
+				for (const auto& jv : jc["variableNodes"])
+				{
+					ConditionVariableNode v;
+					v.id = jv.value("id", -1);
+					v.posX = jv.value("posX", 0.0f);
+					v.posY = jv.value("posY", 0.0f);
+					v.name = jv.value("name", "");
+					v.type = ToValueType(jv.value("type", "Float"));
+					v.intValue = jv.value("intValue", 0);
+					v.floatValue = jv.value("floatValue", 0.0f);
+					v.boolValue = jv.value("boolValue", false);
+					link.condition.variableNodes.push_back(v);
+
+					SyncIdCounter(v.id);
+				}
+			}
+
+			if (jc.contains("operatorNodes"))
+			{
+				for (const auto& jo : jc["operatorNodes"])
+				{
+					ConditionOperatorNode o;
+					o.id = jo.value("id", -1);
+					o.posX = jo.value("posX", 0.0f);
+					o.posY = jo.value("posY", 0.0f);
+					o.op = ToCompareOp(jo.value("op", "Greater"));
+					link.condition.operatorNodes.push_back(o);
+
+					SyncIdCounter(o.id);
+				}
+			}
+
+			if (jc.contains("getterNodes"))
+			{
+				for (const auto& jg : jc["getterNodes"])
+				{
+					ConditionGetterNode g;
+					g.id = jg.value("id", -1);
+					g.posX = jg.value("posX", 0.0f);
+					g.posY = jg.value("posY", 0.0f);
+					g.componentName = jg.value("componentName", "");
+					g.fieldName = jg.value("fieldName", "");
+					g.type = ToValueType(jg.value("type", "Float"));
+					g.selectedComponent = ToFloatComponent(jg.value("selectedComponent", "None"));
+					link.condition.getterNodes.push_back(g);
+
+					SyncIdCounter(g.id);
+				}
+			}
+
+			if (jc.contains("links"))
+			{
+				for (const auto& jcl : jc["links"])
+				{
+					ConditionLink cl;
+					cl.id = jcl.value("id", -1);
+					cl.fromId = jcl.value("fromId", -1);
+					cl.toId = jcl.value("toId", -1);
+					cl.toPinB = jcl.value("toPinB", false);
+					link.condition.links.push_back(cl);
+
+					SyncIdCounter(cl.id);
+				}
+			}
+		}
+
+		if (link.condition.returnNode.id < 0)
+		{
+			link.condition.returnNode.id = link.condition.GenerateId();
+			link.condition.returnNode.posX = 500.0f;
+			link.condition.returnNode.posY = 200.0f;
+		}
+		SyncIdCounter(link.condition.returnNode.id);
+
+		SyncIdCounter(link.id);
+
+		transitionGraph.links.push_back(link);
 	}
 }
 
@@ -656,4 +879,33 @@ void AnimatorGraphData::AnimLinkFromJson(AnimLink& link, const nlohmann::json& j
 void AnimatorGraphData::SyncIdCounter(int id)
 {
 	if (id >= idCounter) idCounter = id + 1;
+}
+
+
+// 遷移用Link作成
+int TransitionGraphData::CreateLink(int fromId, int toId)
+{
+	TransitionLink link;
+	link.id = GenerateId();
+	link.fromId = fromId;
+	link.toId = toId;
+
+	// 条件グラフにも案内板を配線してから使う
+	link.condition.idCounter = this->idCounter;
+	// このLink専用の条件グラフに、固定のReturnノードを1つ配置しておく
+	link.condition.returnNode.id = link.condition.GenerateId();
+	link.condition.returnNode.posX = 500.0f;
+	link.condition.returnNode.posY = 200.0f;
+
+	links.push_back(link);
+	return link.id;
+}
+// 遷移用Link削除
+void TransitionGraphData::DeleteLink(int linkId)
+{
+	links.erase(
+		std::remove_if(links.begin(), links.end(),
+			[linkId](const TransitionLink& l) { return l.id == linkId; }),
+		links.end()
+	);
 }

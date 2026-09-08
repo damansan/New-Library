@@ -11,6 +11,7 @@ void StudioAnimatorGraph::Initialize()
 	parentStateGraph.Initialize();
 	childStateGraph.Initialize();
 	conditionGraph.Initialize();
+	transitionStateGraph.Initialize();
 }
 
 // ImGui描画
@@ -53,6 +54,9 @@ void StudioAnimatorGraph::DrawGUI(entt::registry& registry, StudioContext& conte
 	case AnimatorGraphView::ConditionGraph:
 		DrawConditionCanvas();
 		break;
+	case AnimatorGraphView::TransitionGraph:
+		DrawTransitionCanvas();
+		break;
 	case AnimatorGraphView::ParentGraph:
 	default:
 		DrawParentCanvas(context);
@@ -75,6 +79,7 @@ void StudioAnimatorGraph::DrawParentCanvas(StudioContext& context)
 	ImGui::NextColumn();
 
 	parentStateGraph.DrawInspector();
+	transitionStateGraph.RequestApplyPositions();
 
 	// 画面遷移の要求を確認する
 	AnimLink* navLink = nullptr;
@@ -83,7 +88,7 @@ void StudioAnimatorGraph::DrawParentCanvas(StudioContext& context)
 
 	if (request == NavigationRequest::EditCondition && navLink)
 	{
-		conditionGraph.SetTarget(navLink);
+		conditionGraph.SetTarget(&navLink->condition);
 		GoToCondition();
 	}
 	else if (request == NavigationRequest::EditChildGraph && navState)
@@ -122,11 +127,11 @@ void StudioAnimatorGraph::DrawChildCanvas()
 
 	if (request == NavigationRequest::EditCondition && navLink)
 	{
-		conditionGraph.SetTarget(navLink);
+		conditionGraph.SetTarget(&navLink->condition);
 		GoToCondition();
 	}
 }
-// 遷移条件キャンバス
+// 条件遷移キャンバス
 void StudioAnimatorGraph::DrawConditionCanvas()
 {
 	if (ImGui::Button("< Back"))
@@ -139,6 +144,25 @@ void StudioAnimatorGraph::DrawConditionCanvas()
 	ImGui::NextColumn();
 
 	conditionGraph.DrawInspector();
+}
+// 遷移用キャンバス
+void StudioAnimatorGraph::DrawTransitionCanvas()
+{
+	transitionStateGraph.DrawGUI(graphData);
+
+	ImGui::NextColumn();
+
+	transitionStateGraph.DrawInspector();
+
+	// 条件式編集画面への遷移要求を確認
+	TransitionLink* navLink = nullptr;
+	if (transitionStateGraph.ConsumeConditionEditRequest(navLink) && navLink)
+	{
+		conditionGraph.SetTarget(&navLink->condition);
+		GoToCondition();
+	}
+
+	parentStateGraph.RequestApplyPositions();
 }
 
 // 条件グラフへ移動する
@@ -178,6 +202,24 @@ void StudioAnimatorGraph::DrawToolbar(StudioContext& context)
 	else
 	{
 		ImGui::TextDisabled("Not saved yet.");
+	}
+
+	// 親階層と遷移グラフの切り替えボタン
+	if (currentView == AnimatorGraphView::ParentGraph)
+	{
+		ImGui::SameLine();
+		if (ImGui::Button("Transition Graph >"))
+		{
+			currentView = AnimatorGraphView::TransitionGraph;
+		}
+	}
+	else if (currentView == AnimatorGraphView::TransitionGraph)
+	{
+		ImGui::SameLine();
+		if (ImGui::Button("< Animator Graph"))
+		{
+			currentView = AnimatorGraphView::ParentGraph;
+		}
 	}
 	ImGui::Separator();
 }

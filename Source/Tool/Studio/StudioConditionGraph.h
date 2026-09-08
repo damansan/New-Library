@@ -15,8 +15,8 @@ public:
 
 	void Initialize();
 
-	// 編集対象のLinkを設定する
-	void SetTarget(AnimLink* link);
+	// 編集対象の条件グラフを設定する
+	void SetTarget(ConditionGraph* condition);
 
 	// ImGui描画
 	void DrawGUI();
@@ -26,7 +26,7 @@ public:
 private:
 	// == 内部状態 == //
 	NodeEditorCanvas canvas;        // このクラス専用のノードエディタコンテキスト
-	AnimLink* targetLink = nullptr; // 現在編集中のLink
+	ConditionGraph* targetCondition = nullptr; // 現在編集中の条件グラフ
 	ImVec2 pendingCreatePos{};
 	bool needsApplyPositions = false;
 

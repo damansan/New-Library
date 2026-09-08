@@ -4,6 +4,7 @@
 #include "StudioParentStateGraph.h"
 #include "StudioChildStateGraph.h"
 #include "StudioConditionGraph.h"
+#include "StudioTransitionGraph.h"
 
 #include <vector>
 #include <string>
@@ -17,6 +18,7 @@ enum class AnimatorGraphView
 	ParentGraph,
 	ChildGraph,
 	ConditionGraph,
+	TransitionGraph,
 };
 
 class StudioAnimatorGraph : public IStudioAttachment
@@ -35,9 +37,10 @@ private:
 	// == 内部状態 == //
 	AnimatorGraphData graphData;
 
-	StudioParentStateGraph parentStateGraph; // 親階層キャンバス
-	StudioChildStateGraph childStateGraph;   // 子階層キャンバス
-	StudioConditionGraph conditionGraph;     // 条件編集キャンバス
+	StudioParentStateGraph parentStateGraph;     // 親階層キャンバス
+	StudioChildStateGraph childStateGraph;       // 子階層キャンバス
+	StudioConditionGraph conditionGraph;         // 条件編集キャンバス
+	StudioTransitionGraph transitionStateGraph;  // 遷移用キャンバス
 
 	AnimatorGraphView currentView = AnimatorGraphView::ParentGraph;  // 現在表示中のキャンバス
 	AnimatorGraphView previousView = AnimatorGraphView::ParentGraph; // 条件グラフから戻る先
@@ -53,7 +56,8 @@ private:
 	// == 各キャンバス描画 == //
 	void DrawParentCanvas(StudioContext& context); // 親階層キャンバス
 	void DrawChildCanvas();                        // 子階層キャンバス
-	void DrawConditionCanvas();                    // 遷移条件キャンバス
+	void DrawConditionCanvas();                    // 条件遷移キャンバス
+	void DrawTransitionCanvas();                   // 遷移用キャンバス
 
 	// == 画面遷移 == //
 	void GoToCondition();                    // 条件グラフへ移動する(戻り先を記録する)

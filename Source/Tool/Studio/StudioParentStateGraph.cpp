@@ -1,4 +1,5 @@
 #include "StudioParentStateGraph.h"
+#include <algorithm>
 
 void StudioParentStateGraph::Initialize()
 {
@@ -378,6 +379,7 @@ void StudioParentStateGraph::UpdateLinkCreation()
 			if (!targetIsEntry)
 			{
 				graph->parentGraph.CreateParentLink(pendingLinkFromId, targetId);
+				graph->transitionGraph.CreateLink(pendingLinkFromId, targetId);
 			}
 		}
 
@@ -464,7 +466,7 @@ void StudioParentStateGraph::DrawStateInspector(ParentState* state)
 	}
 
 	int stateId = state->id;
-	DrawDeleteButton("Delete State", [this, stateId]() { graph->parentGraph.DeleteParentState(stateId); });
+	DrawDeleteButton("Delete State", [this, stateId]() { graph->DeleteParentState(stateId); });
 }
 // Link選択時のInspector
 void StudioParentStateGraph::DrawLinkInspector(AnimLink* link)
@@ -494,7 +496,23 @@ void StudioParentStateGraph::DrawLinkInspector(AnimLink* link)
 	}
 
 	int linkId = link->id;
-	DrawDeleteButton("Delete Link", [this, linkId]() { graph->parentGraph.DeleteParentLink(linkId); });
+	int fromId = link->fromId;
+	int toId = link->toId;
+	DrawDeleteButton("Delete Link", [this, linkId, fromId, toId]()
+		{
+			graph->parentGraph.DeleteParentLink(linkId);
+
+			// 同じfromId/toIdの組で作られた遷移用リンクも一緒に消す
+			auto& tLinks = graph->transitionGraph.links;
+			tLinks.erase(
+				std::remove_if(tLinks.begin(), tLinks.end(),
+					[fromId, toId](const TransitionLink& l)
+					{
+						return l.fromId == fromId && l.toId == toId;
+					}),
+				tLinks.end()
+			);
+		});
 }
 
 // ノード内で中央寄せにする

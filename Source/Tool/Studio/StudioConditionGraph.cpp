@@ -9,16 +9,16 @@ void StudioConditionGraph::Initialize()
 	canvas.Initialize();
 }
 
-void StudioConditionGraph::SetTarget(AnimLink* link)
+void StudioConditionGraph::SetTarget(ConditionGraph* condition)
 {
-	targetLink = link;
+	targetCondition = condition;
 	needsApplyPositions = true;
 }
 
 // ImGui描画
 void StudioConditionGraph::DrawGUI()
 {
-	if (!targetLink)
+	if (!targetCondition)
 	{
 		ImGui::TextDisabled("No link selected.");
 		return;
@@ -202,7 +202,7 @@ void StudioConditionGraph::DrawInspector()
 // リターンノード描画
 void StudioConditionGraph::DrawReturnNode()
 {
-	ConditionReturnNode& returnNode = targetLink->condition.returnNode;
+	ConditionReturnNode& returnNode = targetCondition->returnNode;
 	ed::NodeId nodeId(returnNode.id);
 
 	if (needsApplyPositions)
@@ -259,7 +259,7 @@ void StudioConditionGraph::DrawVariableNodes()
 	const float nodeWidth = 140.0f;
 	const float valueWidth = 80.0f;
 
-	for (auto& v : targetLink->condition.variableNodes)
+	for (auto& v : targetCondition->variableNodes) 
 	{
 		ed::NodeId nodeId(v.id);
 		if (needsApplyPositions)
@@ -334,7 +334,7 @@ void StudioConditionGraph::DrawOperatorNodes()
 	const float nodeWidth = 100.0f;
 	const ImColor operatorBorderColor(90, 140, 220, 255);
 
-	for (auto& o : targetLink->condition.operatorNodes)
+	for (auto& o : targetCondition->operatorNodes)
 	{
 		ed::NodeId nodeId(o.id);
 		if (needsApplyPositions)
@@ -387,7 +387,7 @@ void StudioConditionGraph::DrawOperatorNodes()
 // ゲッターノード描画
 void StudioConditionGraph::DrawGetterNodes()
 {
-	for (auto& g : targetLink->condition.getterNodes)
+	for (auto& g : targetCondition->getterNodes)
 	{
 		ed::NodeId nodeId(g.id);
 		if (needsApplyPositions)
@@ -561,12 +561,12 @@ void StudioConditionGraph::CreateVariableNode(ValueType type)
 	ImVec2 canvasPos = ed::ScreenToCanvas(pendingCreatePos);
 
 	ConditionVariableNode v;
-	v.id = targetLink->condition.GenerateId();
+	v.id = targetCondition->GenerateId();
 	v.posX = canvasPos.x;
 	v.posY = canvasPos.y;
 	v.type = type;
 
-	targetLink->condition.variableNodes.push_back(v);
+	targetCondition->variableNodes.push_back(v);
 
 	ed::SetNodePosition(ed::NodeId(v.id), canvasPos);
 }
@@ -576,12 +576,12 @@ void StudioConditionGraph::CreateOperatorNode(CompareOp op)
 	ImVec2 canvasPos = ed::ScreenToCanvas(pendingCreatePos);
 
 	ConditionOperatorNode o;
-	o.id = targetLink->condition.GenerateId();
+	o.id = targetCondition->GenerateId();
 	o.posX = canvasPos.x;
 	o.posY = canvasPos.y;
 	o.op = op;
 
-	targetLink->condition.operatorNodes.push_back(o);
+	targetCondition->operatorNodes.push_back(o);
 
 	ed::SetNodePosition(ed::NodeId(o.id), canvasPos);
 }
@@ -591,11 +591,11 @@ void StudioConditionGraph::CreateGetterNode()
 	ImVec2 canvasPos = ed::ScreenToCanvas(pendingCreatePos);
 
 	ConditionGetterNode g;
-	g.id = targetLink->condition.GenerateId();
+	g.id = targetCondition->GenerateId();
 	g.posX = canvasPos.x;
 	g.posY = canvasPos.y;
 
-	targetLink->condition.getterNodes.push_back(g);
+	targetCondition->getterNodes.push_back(g);
 
 	ed::SetNodePosition(ed::NodeId(g.id), canvasPos);
 }
@@ -627,14 +627,14 @@ void StudioConditionGraph::DrawDeleteButton(const char* label, int targetId, con
 // 変数ノード削除
 void StudioConditionGraph::DeleteVariableNode(int id)
 {
-	auto& vars = targetLink->condition.variableNodes;
+	auto& vars = targetCondition->variableNodes;
 	vars.erase(
 		std::remove_if(vars.begin(), vars.end(),
 			[id](const ConditionVariableNode& v) { return v.id == id; }),
 		vars.end()
 	);
 
-	auto& links = targetLink->condition.links;
+	auto& links = targetCondition->links;
 	links.erase(
 		std::remove_if(links.begin(), links.end(),
 			[id](const ConditionLink& l) { return l.fromId == id || l.toId == id; }),
@@ -644,14 +644,14 @@ void StudioConditionGraph::DeleteVariableNode(int id)
 // ゲッターノード削除
 void StudioConditionGraph::DeleteGetterNode(int id)
 {
-	auto& getters = targetLink->condition.getterNodes;
+	auto& getters = targetCondition->getterNodes;
 	getters.erase(
 		std::remove_if(getters.begin(), getters.end(),
 			[id](const ConditionGetterNode& g) { return g.id == id; }),
 		getters.end()
 	);
 
-	auto& links = targetLink->condition.links;
+	auto& links = targetCondition->links;
 	links.erase(
 		std::remove_if(links.begin(), links.end(),
 			[id](const ConditionLink& l) { return l.fromId == id || l.toId == id; }),
@@ -661,14 +661,14 @@ void StudioConditionGraph::DeleteGetterNode(int id)
 // 比較演算ノード削除
 void StudioConditionGraph::DeleteOperatorNode(int id)
 {
-	auto& ops = targetLink->condition.operatorNodes;
+	auto& ops = targetCondition->operatorNodes;
 	ops.erase(
 		std::remove_if(ops.begin(), ops.end(),
 			[id](const ConditionOperatorNode& o) { return o.id == id; }),
 		ops.end()
 	);
 
-	auto& links = targetLink->condition.links;
+	auto& links = targetCondition->links;
 	links.erase(
 		std::remove_if(links.begin(), links.end(),
 			[id](const ConditionLink& l) { return l.fromId == id || l.toId == id; }),
@@ -678,7 +678,7 @@ void StudioConditionGraph::DeleteOperatorNode(int id)
 // ConditionLink削除
 void StudioConditionGraph::DeleteConditionLink(int id)
 {
-	auto& links = targetLink->condition.links;
+	auto& links = targetCondition->links;
 	links.erase(
 		std::remove_if(links.begin(), links.end(),
 			[id](const ConditionLink& l) { return l.id == id; }),
@@ -701,15 +701,15 @@ void StudioConditionGraph::UpdateSelection()
 	ed::GetSelectedNodes(&selectedId, 1);
 	int id = (int)selectedId.Get();
 
-	for (auto& v : targetLink->condition.variableNodes)
+	for (auto& v : targetCondition->variableNodes)
 	{
 		if (v.id == id) { selectedVariable = &v; return; }
 	}
-	for (auto& g : targetLink->condition.getterNodes)
+	for (auto& g : targetCondition->getterNodes)
 	{
 		if (g.id == id) { selectedGetter = &g; return; }
 	}
-	for (auto& o : targetLink->condition.operatorNodes)
+	for (auto& o : targetCondition->operatorNodes)
 	{
 		if (o.id == id) { selectedOperator = &o; return; }
 	}
@@ -723,7 +723,7 @@ ConditionLink* StudioConditionGraph::GetSelectedConditionLink()
 	ed::LinkId selectedId;
 	if (ed::GetSelectedLinks(&selectedId, 1) == 0) return nullptr;
 
-	for (auto& cl : targetLink->condition.links)
+	for (auto& cl : targetCondition->links)
 	{
 		if (cl.id == (int)selectedId.Get()) return &cl;
 	}
@@ -837,15 +837,15 @@ void StudioConditionGraph::ResolvePinRole(int64_t rawPinId, PinRole& outRole, in
 // 生のノードID(int)から、このLink内でどの種類のノードかを調べる
 StudioConditionGraph::NodeKind StudioConditionGraph::GetNodeKind(int id) const
 {
-	if (targetLink->condition.returnNode.id == id) return NodeKind::Return;
+	if (targetCondition->returnNode.id == id) return NodeKind::Return;
 
-	for (const auto& v : targetLink->condition.variableNodes)
+	for (const auto& v : targetCondition->variableNodes)
 		if (v.id == id) return NodeKind::Variable;
 
-	for (const auto& g : targetLink->condition.getterNodes)
+	for (const auto& g : targetCondition->getterNodes)
 		if (g.id == id) return NodeKind::Getter;
 
-	for (const auto& o : targetLink->condition.operatorNodes)
+	for (const auto& o : targetCondition->operatorNodes)
 		if (o.id == id) return NodeKind::Operator;
 
 	return NodeKind::Unknown;
@@ -924,7 +924,7 @@ void StudioConditionGraph::DrawLinkCreation()
 				ValueType srcType = GetOutputValueType(outRole, outNodeId);
 
 				CompareOp op = CompareOp::Greater;
-				for (const auto& o : targetLink->condition.operatorNodes)
+				for (const auto& o : targetCondition->operatorNodes)
 				{
 					if (o.id == inNodeId) { op = o.op; break; }
 				}
@@ -938,7 +938,7 @@ void StudioConditionGraph::DrawLinkCreation()
 				int otherPinNodeId = -1;
 				PinRole otherOutRole = PinRole::Unknown;
 				bool wantPinB = (inRole == PinRole::OperatorB);
-				for (const auto& cl : targetLink->condition.links)
+				for (const auto& cl : targetCondition->links)
 				{
 					if (cl.toId == inNodeId && cl.toPinB != wantPinB)
 					{
@@ -975,7 +975,7 @@ void StudioConditionGraph::DrawLinkCreation()
 					bool toPinB = (inRole == PinRole::OperatorB);
 
 					// 入力ピンは1本まで:既に同じ入力に繋がっているLinkがあれば置き換える
-					auto& links = targetLink->condition.links;
+					auto& links = targetCondition->links;
 					links.erase(
 						std::remove_if(links.begin(), links.end(),
 							[&](const ConditionLink& l)
@@ -986,7 +986,7 @@ void StudioConditionGraph::DrawLinkCreation()
 					);
 
 					ConditionLink newLink;
-					newLink.id = targetLink->condition.GenerateId();
+					newLink.id = targetCondition->GenerateId();
 					newLink.fromId = outNodeId;
 					newLink.toId = inNodeId;
 					newLink.toPinB = toPinB;
@@ -1007,7 +1007,7 @@ void StudioConditionGraph::DrawConditionLinks()
 	const ImColor linkColor(210, 210, 210, 255);
 	const float linkThickness = 2.0f;
 
-	for (const auto& cl : targetLink->condition.links)
+	for (const auto& cl : targetCondition->links)
 	{
 		NodeKind fromKind = GetNodeKind(cl.fromId);
 		NodeKind toKind = GetNodeKind(cl.toId);
@@ -1044,12 +1044,12 @@ ValueType StudioConditionGraph::GetNodeValueType(NodeKind kind, int nodeId) cons
 {
 	if (kind == NodeKind::Variable)
 	{
-		for (const auto& v : targetLink->condition.variableNodes)
+		for (const auto& v : targetCondition->variableNodes)
 			if (v.id == nodeId) return v.type;
 	}
 	else if (kind == NodeKind::Getter)
 	{
-		for (const auto& g : targetLink->condition.getterNodes)
+		for (const auto& g : targetCondition->getterNodes)
 		{
 			if (g.id == nodeId)
 			{
