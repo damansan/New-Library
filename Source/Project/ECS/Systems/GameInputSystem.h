@@ -25,4 +25,7 @@ private:
 
     // デッドゾーン適用（トリガー用）
     float ApplyTriggerDeadzone(float value, float deadzone);
+
+	// ボタン状態の更新
+    void UpdateButtonState(TriggerState& state, bool isHeldNow);
 };

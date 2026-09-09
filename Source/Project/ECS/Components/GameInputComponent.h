@@ -25,7 +25,13 @@ struct ButtonState
 struct TriggerState
 {
     float value = 0.0f; // 入力値(0.0～1.0)
-    ButtonState button; // ボタンの状態
+
+    bool pressed = false;  // 今フレーム新しく押された
+    bool held = false;     // 押しっぱなし中
+    bool released = false; // 今フレーム離された
+
+    // 内部用：前フレームの押下状態
+    bool wasHeld = false;  
 };
 
 struct GameInputComponent

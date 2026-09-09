@@ -21,6 +21,10 @@ struct FieldEntry
 {
 	entt::meta_type componentType; // 属するコンポーネントの型
 	entt::id_type fieldId = 0;     // entt::meta上のフィールドID(取得・比較に使う)
+
+	entt::meta_type nestedType;    // ネストしている場合の型
+	entt::id_type subFieldId = 0;  // ネストしているばいいのフィールドID
+
 	std::string componentName;     // 表示用:コンポーネント名
 	std::string category;          // 表示用:カテゴリ
 	std::string fieldLabel;        // 表示用:フィールド名
@@ -49,5 +53,24 @@ public:
 	static int GetComponentCount(ValueType type);
 
 private:
-
+	// トランスフォームコンポーネントを登録
+	static void RegisterTransformComponent();
+	// メッシュコンポーネントを登録
+	static void RegisterMeshComponent();
+	// 移動コンポーネントを登録
+	static void RegisterMovementComponent();
+	// プレイヤー移動コンポーネントを登録
+	static void RegisterPlayerMoveComponent();
+	// プレイヤー回避コンポーネントを登録
+	static void RegisterPlayerDodgeComponent();
+	// プレイヤー全力疾走コンポーネントを登録
+	static void RegisterPlayerSprintComponent();
+	// ゲーム入力コンポーネントを登録
+	static void RegisterGameInputComponent();
+	// アニメーターコンポーネントを登録
+	static void RegisterAnimatorComponent();
+	// シーケンサーコンポーネントを登録
+	static void RegisterSequencerComponent();
+	// アニメーション速度コンポーネントを登録
+	static void RegisterAnimationSpeedComponent();
 };

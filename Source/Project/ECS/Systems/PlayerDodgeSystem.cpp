@@ -26,8 +26,8 @@ void PlayerDodgeSystem::Update(entt::registry& registry, float elapsedTime, cons
 		{
 			// 既に押している間は 離した判定ライン を下回るまで押している扱いにする
 			bool triggerHeld = dodge.wasTriggerHeld
-				? (input.dodge > dodge.triggerReleaseThreshold)
-				: (input.dodge >= dodge.triggerThreshold);
+				? (input.dodgeTrigger.value > dodge.triggerReleaseThreshold)
+				: (input.dodgeTrigger.value >= dodge.triggerThreshold);
 			bool triggerPressed = (triggerHeld && !dodge.wasTriggerHeld);
 
 			// スプリント中
@@ -46,7 +46,7 @@ void PlayerDodgeSystem::Update(entt::registry& registry, float elapsedTime, cons
 					DirectX::XMFLOAT3 right = context.camera->GetRight();
 
 					// スプリント中は、sprintSpeedを使う
-					auto dir = PlayerMovementUtils::StickToWorldVelocity(input.moveX, input.moveZ, front, right, sprint.sprintSpeed);
+					auto dir = PlayerMovementUtils::StickToWorldVelocity(input.moveStick.x, input.moveStick.y, front, right, sprint.sprintSpeed);
 					
 					// スティックを離したらIdleに戻す
 					if (dir.inputLength <= 0.0f)
@@ -78,7 +78,7 @@ void PlayerDodgeSystem::Update(entt::registry& registry, float elapsedTime, cons
 					DirectX::XMFLOAT3 right = context.camera->GetRight();
 
 					// 入力方向と倒し具合を算出
-					auto dir = PlayerMovementUtils::StickToWorldVelocity(input.moveX, input.moveZ, front, right, 1.0f);
+					auto dir = PlayerMovementUtils::StickToWorldVelocity(input.moveStick.x, input.moveStick.y, front, right, 1.0f);
 
 					// 方向あり回避
 					if (dir.inputLength > 0.0f)
@@ -133,7 +133,7 @@ void PlayerDodgeSystem::Update(entt::registry& registry, float elapsedTime, cons
 						// 回避終了時スティック入力の有無でスプリントへ引き継ぐか判断する
 						DirectX::XMFLOAT3 front = context.camera->GetFront();
 						DirectX::XMFLOAT3 right = context.camera->GetRight();
-						auto dir = PlayerMovementUtils::StickToWorldVelocity(input.moveX, input.moveZ, front, right, 1.0f);
+						auto dir = PlayerMovementUtils::StickToWorldVelocity(input.moveStick.x, input.moveStick.y, front, right, 1.0f);
 
 						// スティック入力があればスプリント状態に遷移する
 						if (dir.inputLength > 0.0f)

@@ -5576,6 +5576,13 @@ float ConditionGraphEvaluator::GetGetterValue(const ConditionGetterNode& node, e
 	entt::meta_data data = found->componentType.data(found->fieldId);
 	entt::meta_any value = data.get(instance);
 
+	// ƒlƒXƒg‚µ‚½ƒtƒB[ƒ‹ƒh‚Ìê‡A‚à‚¤1’iŠK‚¾‚¯Œ@‚è‰º‚°‚é
+	if (found->subFieldId != 0 && found->nestedType)
+	{
+		entt::meta_data subData = found->nestedType.data(found->subFieldId);
+		value = subData.get(value);
+	}
+
 	// ŠeŒ^‚ğfloat‚É•ÏŠ·‚·‚é
 	if (float* f = value.try_cast<float>()) return *f;
 	if (int* i = value.try_cast<int>())     return static_cast<float>(*i);
@@ -12118,21 +12125,54 @@ struct GameCameraComponent
 Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Components\GameInputComponent.h 
 #pragma once
 
+// ƒXƒeƒBƒbƒN‚Ìó‘Ô
+struct StickState
+{
+    float x = 0.0f;
+    float y = 0.0f;
+
+	// “ü—Í‚ª‚ ‚Á‚½‚©‚Ç‚¤‚©
+    bool hasInput = false;
+};
+
+// ƒ{ƒ^ƒ“‚Ìó‘Ô
+struct ButtonState
+{
+    bool pressed = false;  // ¡ƒtƒŒ[ƒ€V‚µ‚­‰Ÿ‚³‚ê‚½
+    bool held = false;     // ‰Ÿ‚µ‚Á‚Ï‚È‚µ’†
+    bool released = false; // ¡ƒtƒŒ[ƒ€—£‚³‚ê‚½
+
+    // “à•”—pF‘OƒtƒŒ[ƒ€‚Ì‰Ÿ‰ºó‘Ô
+    bool wasHeld = false;
+};
+
+// ƒgƒŠƒK[‚Ìó‘Ô
+struct TriggerState
+{
+    float value = 0.0f; // “ü—Í’l(0.0`1.0)
+
+    bool pressed = false;  // ¡ƒtƒŒ[ƒ€V‚µ‚­‰Ÿ‚³‚ê‚½
+    bool held = false;     // ‰Ÿ‚µ‚Á‚Ï‚È‚µ’†
+    bool released = false; // ¡ƒtƒŒ[ƒ€—£‚³‚ê‚½
+
+    // “à•”—pF‘OƒtƒŒ[ƒ€‚Ì‰Ÿ‰ºó‘Ô
+    bool wasHeld = false;  
+};
+
 struct GameInputComponent
 {
     // ƒXƒeƒBƒbƒN
-    float moveX = 0.0f;   // ˆÚ“®
-    float moveZ = 0.0f;
-    float cameraX = 0.0f; // ƒJƒƒ‰‘€ì
-    float cameraY = 0.0f;
+    StickState moveStick;
+    StickState cameraStick;
 
     // ƒgƒŠƒK[
-	float dodge = 0.0f; // ‰ñ”ğ
+    TriggerState dodgeTrigger;
 
-    // ƒAƒNƒVƒ‡ƒ“
+    // ƒ{ƒ^ƒ“
     bool jump = false;
     bool attack = false;
-}; 
+};
+ 
  
 ===== PlayerDodgeComponent.h ===== 
 Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Components\PlayerDodgeComponent.h 
@@ -12289,6 +12329,9 @@ private:
 
     // ƒfƒbƒhƒ][ƒ““K—piƒgƒŠƒK[—pj
     float ApplyTriggerDeadzone(float value, float deadzone);
+
+	// ƒ{ƒ^ƒ“ó‘Ô‚ÌXV
+    void UpdateButtonState(TriggerState& state, bool isHeldNow);
 }; 
  
 ===== PlayerDodgeSystem.h ===== 
@@ -12499,18 +12542,26 @@ void GameInputSystem::Update(entt::registry& registry, const ControllerSettings&
     inputView.each([&](GameInputComponent& input)
         {
             // ãƒªã‚»ãƒƒãƒˆ
-            input.moveX = 0.0f;
-            input.moveZ = 0.0f;
-            input.cameraX = 0.0f;
-            input.cameraY = 0.0f;
+            input.moveStick.x = 0.0f;
+            input.moveStick.y = 0.0f;
+            input.moveStick.hasInput = false;
 
-            input.dodge = 0.0f;
+            input.cameraStick.x = 0.0f;
+            input.cameraStick.y = 0.0f;
+            input.cameraStick.hasInput = false;
+
+            input.dodgeTrigger.value = 0.0f;
 
             input.jump = false;
             input.attack = false;
 
             // ControllerComponent ãŒãªã‘ã‚Œã°ã‚¹ã‚­ãƒƒãƒ—
-            if (!ctrl || !ctrl->connected) return;
+            if (!ctrl || !ctrl->connected)
+            {
+				// æ¥ç¶šãŒåˆ‡ã‚ŒãŸå ´åˆã‚‚ã€ãƒœã‚¿ãƒ³ã¯æŠ¼ã•ã‚Œã¦ã„ãªã„çŠ¶æ…‹ã«ã™ã‚‹
+                UpdateButtonState(input.dodgeTrigger, false);
+                return;
+            }
 
             // ã‚¹ãƒ†ã‚£ãƒƒã‚¯ï¼ˆãƒ‡ãƒƒãƒ‰ã‚¾ãƒ¼ãƒ³é©ç”¨ï¼‰
             float lx = ApplyStickDeadzone(ctrl->leftStickX, settings.leftStickDeadzone);
@@ -12519,29 +12570,29 @@ void GameInputSystem::Update(entt::registry& registry, const ControllerSettings&
             float ry = ApplyStickDeadzone(ctrl->rightStickY, settings.rightStickDeadzone);
 
             // ç§»å‹•ï¼ˆå·¦ã‚¹ãƒ†ã‚£ãƒƒã‚¯ï¼‰
-            input.moveX = lx;
-            input.moveZ = ly;
+            input.moveStick.x = std::clamp(lx, -1.0f, 1.0f);
+            input.moveStick.y = std::clamp(ly, -1.0f, 1.0f);
+            input.moveStick.hasInput = (input.moveStick.x != 0.0f || input.moveStick.y != 0.0f);
 
             // ã‚«ãƒ¡ãƒ©ï¼ˆå³ã‚¹ãƒ†ã‚£ãƒƒã‚¯ï¼‰
-            input.cameraX = rx;
-            input.cameraY = -ry;
+            input.cameraStick.x = rx;
+            input.cameraStick.y = -ry;
+            input.cameraStick.hasInput = (input.cameraStick.x != 0.0f || input.cameraStick.y != 0.0f);
 
             // ãƒˆãƒªã‚¬ãƒ¼ï¼ˆãƒ‡ãƒƒãƒ‰ã‚¾ãƒ¼ãƒ³é©ç”¨å¾Œã®å€¤ã§åˆ¤å®šï¼‰
             float lt = ApplyTriggerDeadzone(ctrl->leftTrigger, settings.leftTriggerDeadzone);
             float rt = ApplyTriggerDeadzone(ctrl->rightTrigger, settings.rightTriggerDeadzone);
+            (void)lt;
+
+            input.dodgeTrigger.value = rt;
+
+            // R2ã®æŠ¼ä¸‹åˆ¤å®š(ãƒ’ã‚¹ãƒ†ãƒªã‚·ã‚¹è¾¼ã¿)
+            bool r2Held = ctrl->IsPressed(ControllerButtons::R2);
+            UpdateButtonState(input.dodgeTrigger, r2Held);
 
             // ãƒœã‚¿ãƒ³åˆ¤å®š
             input.jump = ctrl->IsPressed(ControllerButtons::Cross);
             input.attack = ctrl->IsPressed(ControllerButtons::Square);
-
-            // R2ã®ç”Ÿå€¤ã‚’ãã®ã¾ã¾æ¸¡ã™
-            input.dodge = rt;
-
-            (void)lt;
-
-            // ç§»å‹•å…¥åŠ›ã‚’ -1.0ï½1.0 ã«ã‚¯ãƒ©ãƒ³ãƒ—
-            input.moveX = std::clamp(input.moveX, -1.0f, 1.0f);
-            input.moveZ = std::clamp(input.moveZ, -1.0f, 1.0f);
         });
 }
 
@@ -12558,6 +12609,15 @@ float GameInputSystem::ApplyTriggerDeadzone(float value, float deadzone)
 {
     if (value < deadzone) return 0.0f;
     return (value - deadzone) / (1.0f - deadzone);
+}
+
+// ãƒœã‚¿ãƒ³çŠ¶æ…‹ã®æ›´æ–°
+void GameInputSystem::UpdateButtonState(TriggerState& state, bool isHeldNow)
+{
+    state.pressed = isHeldNow && !state.wasHeld;
+    state.released = !isHeldNow && state.wasHeld;
+    state.held = isHeldNow;
+    state.wasHeld = isHeldNow;
 }
  
  
@@ -12591,8 +12651,8 @@ void PlayerDodgeSystem::Update(entt::registry& registry, float elapsedTime, cons
 		{
 			// Šù‚É‰Ÿ‚µ‚Ä‚¢‚éŠÔ‚Í —£‚µ‚½”»’èƒ‰ƒCƒ“ ‚ğ‰º‰ñ‚é‚Ü‚Å‰Ÿ‚µ‚Ä‚¢‚éˆµ‚¢‚É‚·‚é
 			bool triggerHeld = dodge.wasTriggerHeld
-				? (input.dodge > dodge.triggerReleaseThreshold)
-				: (input.dodge >= dodge.triggerThreshold);
+				? (input.dodgeTrigger.value > dodge.triggerReleaseThreshold)
+				: (input.dodgeTrigger.value >= dodge.triggerThreshold);
 			bool triggerPressed = (triggerHeld && !dodge.wasTriggerHeld);
 
 			// ƒXƒvƒŠƒ“ƒg’†
@@ -12611,7 +12671,7 @@ void PlayerDodgeSystem::Update(entt::registry& registry, float elapsedTime, cons
 					DirectX::XMFLOAT3 right = context.camera->GetRight();
 
 					// ƒXƒvƒŠƒ“ƒg’†‚ÍAsprintSpeed‚ğg‚¤
-					auto dir = PlayerMovementUtils::StickToWorldVelocity(input.moveX, input.moveZ, front, right, sprint.sprintSpeed);
+					auto dir = PlayerMovementUtils::StickToWorldVelocity(input.moveStick.x, input.moveStick.y, front, right, sprint.sprintSpeed);
 					
 					// ƒXƒeƒBƒbƒN‚ğ—£‚µ‚½‚çIdle‚É–ß‚·
 					if (dir.inputLength <= 0.0f)
@@ -12643,7 +12703,7 @@ void PlayerDodgeSystem::Update(entt::registry& registry, float elapsedTime, cons
 					DirectX::XMFLOAT3 right = context.camera->GetRight();
 
 					// “ü—Í•ûŒü‚Æ“|‚µ‹ï‡‚ğZo
-					auto dir = PlayerMovementUtils::StickToWorldVelocity(input.moveX, input.moveZ, front, right, 1.0f);
+					auto dir = PlayerMovementUtils::StickToWorldVelocity(input.moveStick.x, input.moveStick.y, front, right, 1.0f);
 
 					// •ûŒü‚ ‚è‰ñ”ğ
 					if (dir.inputLength > 0.0f)
@@ -12698,7 +12758,7 @@ void PlayerDodgeSystem::Update(entt::registry& registry, float elapsedTime, cons
 						// ‰ñ”ğI—¹ƒXƒeƒBƒbƒN“ü—Í‚Ì—L–³‚ÅƒXƒvƒŠƒ“ƒg‚Öˆø‚«Œp‚®‚©”»’f‚·‚é
 						DirectX::XMFLOAT3 front = context.camera->GetFront();
 						DirectX::XMFLOAT3 right = context.camera->GetRight();
-						auto dir = PlayerMovementUtils::StickToWorldVelocity(input.moveX, input.moveZ, front, right, 1.0f);
+						auto dir = PlayerMovementUtils::StickToWorldVelocity(input.moveStick.x, input.moveStick.y, front, right, 1.0f);
 
 						// ƒXƒeƒBƒbƒN“ü—Í‚ª‚ ‚ê‚ÎƒXƒvƒŠƒ“ƒgó‘Ô‚É‘JˆÚ‚·‚é
 						if (dir.inputLength > 0.0f)
@@ -12821,7 +12881,7 @@ void PlayerMoveSystem::Update(entt::registry& registry, float elapsedTime, const
 			DirectX::XMFLOAT3 right = context.camera->GetRight();
 
 			// ƒXƒeƒBƒbƒN“ü—Í‚©‚çƒ[ƒ‹ƒh•ûŒüE“|‚µ‹ï‡‚ğZo
-			auto dir = PlayerMovementUtils::StickToWorldVelocity(input.moveX, input.moveZ, front, right, 1.0f);
+			auto dir = PlayerMovementUtils::StickToWorldVelocity(input.moveStick.x, input.moveStick.y, front, right, 1.0f);
 
 			// XZ•½–Ê‚Å³‹K‰»
 			float frontLen = sqrtf(front.x * front.x + front.z * front.z);
@@ -12833,8 +12893,8 @@ void PlayerMoveSystem::Update(entt::registry& registry, float elapsedTime, const
 			float rightZ = (rightLen > 0.0f) ? right.z / rightLen : 0.0f;
 
 			// ˆÚ“®•ûŒüƒxƒNƒgƒ‹
-			float vecX = frontX * input.moveZ + rightX * input.moveX;
-			float vecZ = frontZ * input.moveZ + rightZ * input.moveX;
+			float vecX = frontX * input.moveStick.y + rightX * input.moveStick.x;
+			float vecZ = frontZ * input.moveStick.y + rightZ * input.moveStick.x;
 			float vecLen = sqrtf(vecX * vecX + vecZ * vecZ); // ƒXƒeƒBƒbƒN‚Ì“|‚µ‹ï‡
 
 			// Œü‚«‚Ì§ŒäŒ ‚ğ‚Á‚Ä‚¢‚é‚Æ‚«‚Ì‚İXV‚·‚é
@@ -12863,7 +12923,7 @@ void PlayerMoveSystem::Update(entt::registry& registry, float elapsedTime, const
 					float speed = (playerMove.state == PlayerMovementState::Jogging) ? playerMove.jogSpeed : playerMove.walkSpeed;
 
 					// ‰ü‚ß‚ÄÀÛ‚Ì‘¬“x‚ÅŒvZ‚µ’¼‚·
-					auto vel = PlayerMovementUtils::StickToWorldVelocity(input.moveX, input.moveZ, front, right, speed);
+					auto vel = PlayerMovementUtils::StickToWorldVelocity(input.moveStick.x, input.moveStick.y, front, right, speed);
 					movement.velocity.x = vel.velocity.x;
 					movement.velocity.z = vel.velocity.z;
 				}
@@ -13157,10 +13217,10 @@ void SceneGame::Update(float elapsedTime, const SceneContext& context)
 				{
 					auto& input = inputView.get<GameInputComponent>(entity);
 					const float threshold = 0.2f;
-					if (fabsf(input.moveX) > threshold ||
-						fabsf(input.moveZ) > threshold ||
-						fabsf(input.cameraX) > threshold ||
-						fabsf(input.cameraY) > threshold)
+					if (fabsf(input.moveStick.x) > threshold ||
+						fabsf(input.moveStick.y) > threshold ||
+						fabsf(input.cameraStick.x) > threshold ||
+						fabsf(input.cameraStick.y) > threshold)
 					{
 						context.editorContext->cameraMode = CameraMode::Game;
 						break;
@@ -13887,6 +13947,10 @@ struct FieldEntry
 {
 	entt::meta_type componentType; // ‘®‚·‚éƒRƒ“ƒ|[ƒlƒ“ƒg‚ÌŒ^
 	entt::id_type fieldId = 0;     // entt::metaã‚ÌƒtƒB[ƒ‹ƒhID(æ“¾E”äŠr‚Ég‚¤)
+
+	entt::meta_type nestedType;    // ƒlƒXƒg‚µ‚Ä‚¢‚éê‡‚ÌŒ^
+	entt::id_type subFieldId = 0;  // ƒlƒXƒg‚µ‚Ä‚¢‚é‚Î‚¢‚¢‚ÌƒtƒB[ƒ‹ƒhID
+
 	std::string componentName;     // •\¦—p:ƒRƒ“ƒ|[ƒlƒ“ƒg–¼
 	std::string category;          // •\¦—p:ƒJƒeƒSƒŠ
 	std::string fieldLabel;        // •\¦—p:ƒtƒB[ƒ‹ƒh–¼
@@ -13915,7 +13979,26 @@ public:
 	static int GetComponentCount(ValueType type);
 
 private:
-
+	// ƒgƒ‰ƒ“ƒXƒtƒH[ƒ€ƒRƒ“ƒ|[ƒlƒ“ƒg‚ğ“o˜^
+	static void RegisterTransformComponent();
+	// ƒƒbƒVƒ…ƒRƒ“ƒ|[ƒlƒ“ƒg‚ğ“o˜^
+	static void RegisterMeshComponent();
+	// ˆÚ“®ƒRƒ“ƒ|[ƒlƒ“ƒg‚ğ“o˜^
+	static void RegisterMovementComponent();
+	// ƒvƒŒƒCƒ„[ˆÚ“®ƒRƒ“ƒ|[ƒlƒ“ƒg‚ğ“o˜^
+	static void RegisterPlayerMoveComponent();
+	// ƒvƒŒƒCƒ„[‰ñ”ğƒRƒ“ƒ|[ƒlƒ“ƒg‚ğ“o˜^
+	static void RegisterPlayerDodgeComponent();
+	// ƒvƒŒƒCƒ„[‘S—Í¾‘–ƒRƒ“ƒ|[ƒlƒ“ƒg‚ğ“o˜^
+	static void RegisterPlayerSprintComponent();
+	// ƒQ[ƒ€“ü—ÍƒRƒ“ƒ|[ƒlƒ“ƒg‚ğ“o˜^
+	static void RegisterGameInputComponent();
+	// ƒAƒjƒ[ƒ^[ƒRƒ“ƒ|[ƒlƒ“ƒg‚ğ“o˜^
+	static void RegisterAnimatorComponent();
+	// ƒV[ƒPƒ“ƒT[ƒRƒ“ƒ|[ƒlƒ“ƒg‚ğ“o˜^
+	static void RegisterSequencerComponent();
+	// ƒAƒjƒ[ƒVƒ‡ƒ“‘¬“xƒRƒ“ƒ|[ƒlƒ“ƒg‚ğ“o˜^
+	static void RegisterAnimationSpeedComponent();
 }; 
  
 ===== ProjectWindow.h ===== 
@@ -14846,135 +14929,26 @@ using namespace entt::literals;
 
 void MetaRegistry::Initialize()
 {
-	entt::meta_factory<TransformComponent>{}
-	.type("TransformComponent")
-		.custom<TypeInfo>(TypeInfo{ "Transform" })
-		.data<&TransformComponent::position>("position"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Position", 0.0f, 0.0f, 0.1f })
-		.data<&TransformComponent::rotation>("rotation"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Rotation", 0.0f, 0.0f, 0.01f })
-		.data<&TransformComponent::scale>("scale"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Scale", 0.0f, 0.0f, 0.01f });
-
-	entt::meta_factory<MeshComponent>{}
-	.type("MeshComponent")
-		.custom<TypeInfo>(TypeInfo{ "Mesh" })
-		.data<&MeshComponent::modelPath>("modelPath"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Model", 0.0f, 0.0f, 0.1f, "MODEL_PATH" });
-
-	entt::meta_factory<MovementComponent>{}
-	.type("MovementComponent")
-		.custom<TypeInfo>(TypeInfo{ "Movement" })
-		.data<&MovementComponent::jumpPower>("jumpPower"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Jump Power", 0.0f, 50.0f })
-		.data<&MovementComponent::gravity>("gravity"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Gravity", -100.0f, 0.0f })
-		.data<&MovementComponent::velocity>("velocity"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Velocity", 0.0f, 0.0f, 0.01f })
-		.data<&MovementComponent::isGrounded>("isGrounded"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Is Grounded" });
-
-	entt::meta_factory<PlayerMoveComponent>{}
-	.type("PlayerMoveComponent")
-		.custom<TypeInfo>(TypeInfo{ "Player Move" })
-		.data<&PlayerMoveComponent::walkSpeed>("walkSpeed"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Walk Speed", 0.0f, 10.0f })
-		.data<&PlayerMoveComponent::jogSpeed>("jogSpeed"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Jog Speed", 0.0f, 10.0f })
-		.data<&PlayerMoveComponent::jogThreshold>("jogThreshold"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Jog Threshold", 0.0f, 1.0f })
-		.data<&PlayerMoveComponent::turnSpeed>("turnSpeed"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Turn Speed", 0.0f, 30.0f })
-		.data<&PlayerMoveComponent::inputLossGraceTime>("inputLossGraceTime"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Input Loss Grace Time", 0.0f, 1.0f })
-		.data<&PlayerMoveComponent::isWalking>("isWalking"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Is Walking" })
-		.data<&PlayerMoveComponent::isJogging>("isJogging"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Is Jogging" })
-		.data<&PlayerMoveComponent::isMoving>("isMoving"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Is Moving" });
-
-	entt::meta_factory<PlayerDodgeComponent>{}
-	.type("PlayerDodgeComponent")
-		.custom<TypeInfo>(TypeInfo{ "Player Dodge" })
-		.data<&PlayerDodgeComponent::triggerThreshold>("triggerThreshold"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Trigger Threshold", 0.0f, 1.0f })
-		.data<&PlayerDodgeComponent::triggerReleaseThreshold>("triggerReleaseThreshold"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Trigger Release Threshold", 0.0f, 1.0f })
-		.data<&PlayerDodgeComponent::directionBufferTime>("directionBufferTime"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Direction Buffer Time", 0.0f, 1.0f })
-		.data<&PlayerDodgeComponent::isDodging>("isDodging"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Is Dodging" })
-		.data<&PlayerDodgeComponent::isNoneInput>("isNoneInput"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Is None Input" })
-		.data<&PlayerDodgeComponent::isFrontInput>("isFrontInput"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Is Front Input" })
-		.data<&PlayerDodgeComponent::isBackInput>("isBackInput"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Is Back Input" })
-		.data<&PlayerDodgeComponent::isLeftInput>("isLeftInput"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Is Left Input" })
-		.data<&PlayerDodgeComponent::isRightInput>("isRightInput"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Is Right Input" });
-
-	entt::meta_factory<PlayerSprintComponent>{}
-	.type("PlayerSprintComponent")
-		.custom<TypeInfo>(TypeInfo{ "Player Sprint" })
-		.data<&PlayerSprintComponent::sprintSpeed>("sprintSpeed"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Sprint Speed", 0.0f, 20.0f })
-		.data<&PlayerSprintComponent::isSprinting>("isSprinting"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Is Sprinting" });
-
-	entt::meta_factory<GameInputComponent>{}
-	.type("GameInputComponent")
-		.custom<TypeInfo>(TypeInfo{ "Input" })
-		.data<&GameInputComponent::moveX>("moveX"_hs)
-		.custom<FieldInfo>(FieldInfo{ "MoveX", 0.0f, 0.0f, 0.1f, "", true })
-		.data<&GameInputComponent::moveZ>("moveZ"_hs)
-		.custom<FieldInfo>(FieldInfo{ "MoveZ", 0.0f, 0.0f, 0.1f, "", true })
-		.data<&GameInputComponent::jump>("jump"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Jump", 0.0f, 0.0f, 0.1f, "", true })
-		.data<&GameInputComponent::attack>("attack"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Attack", 0.0f, 0.0f, 0.1f, "", true });
-
-	entt::meta_factory<AnimatorComponent>{}
-	.type("AnimatorComponent")
-		.custom<TypeInfo>(TypeInfo{ "Animator" })
-		.data<&AnimatorComponent::animatorGraphPath>("animatorGraphPath"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Animator Graph", 0.0f, 0.0f, 0.1f, "ANIMGRAPH_PATH" })
-		.data<&AnimatorComponent::playSpeed>("playSpeed"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Play Speed", 0.0f, 3.0f })
-		.data<&AnimatorComponent::loop>("loop"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Loop" })
-		.data<&AnimatorComponent::useRootMotion>("useRootMotion"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Use Root Motion" })
-		.data<&AnimatorComponent::useRootMotionY>("useRootMotionY"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Use Root Motion Y" })
-		.data<&AnimatorComponent::rootMotionNodeName>("rootMotionNodeName"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Root Motion Node" })
-		.data<&AnimatorComponent::isBlending>("isBlending"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Is Blending", 0.0f, 0.0f, 0.1f, "", true })
-		.data<&AnimatorComponent::blendRate>("blendRate"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Blend Rate", 0.0f, 1.0f, 0.1f, "", true })
-		.data<&AnimatorComponent::blendAnimation>("blendAnimation"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Blend From (Old Clip)", 0.0f, 0.0f, 0.1f, "", true });
-
-	entt::meta_factory<SequencerComponent>{}
-	.type("SequencerComponent")
-		.custom<TypeInfo>(TypeInfo{ "Sequencer" })
-		.data<&SequencerComponent::sequencerPath>("sequencerPath"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Sequencer File", 0.0f, 0.0f, 0.1f, "SEQUENCER_PATH" })
-		.data<&SequencerComponent::animExit>("animExit"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Anim Exit", 0.0f, 0.0f, 0.1f, "", true })
-		.data<&SequencerComponent::attack>("attack"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Attack", 0.0f, 0.0f, 0.1f, "", true })
-		.data<&SequencerComponent::superArmor>("superArmor"_hs)
-		.custom<FieldInfo>(FieldInfo{ "SuperArmor", 0.0f, 0.0f, 0.1f, "", true });
-
-	entt::meta_factory<AnimationSpeedComponent>{}
-	.type("AnimationSpeedComponent")
-		.custom<TypeInfo>(TypeInfo{ "Animation Speed" })
-		.data<&AnimationSpeedComponent::animationSpeedPath>("animationSpeedPath"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Speed Curve File", 0.0f, 0.0f, 0.1f, "ANIMSPEED_PATH" });
+	// ƒgƒ‰ƒ“ƒXƒtƒH[ƒ€ƒRƒ“ƒ|[ƒlƒ“ƒg‚ğ“o˜^
+	RegisterTransformComponent();
+	// ƒƒbƒVƒ…ƒRƒ“ƒ|[ƒlƒ“ƒg‚ğ“o˜^
+	RegisterMeshComponent();
+	// ˆÚ“®ƒRƒ“ƒ|[ƒlƒ“ƒg‚ğ“o˜^
+	RegisterMovementComponent();
+	// ƒvƒŒƒCƒ„[ˆÚ“®ƒRƒ“ƒ|[ƒlƒ“ƒg‚ğ“o˜^
+	RegisterPlayerMoveComponent();
+	// ƒvƒŒƒCƒ„[‰ñ”ğƒRƒ“ƒ|[ƒlƒ“ƒg‚ğ“o˜^
+	RegisterPlayerDodgeComponent();
+	// ƒvƒŒƒCƒ„[‘S—Í¾‘–ƒRƒ“ƒ|[ƒlƒ“ƒg‚ğ“o˜^
+	RegisterPlayerSprintComponent();
+	// ƒQ[ƒ€“ü—ÍƒRƒ“ƒ|[ƒlƒ“ƒg‚ğ“o˜^
+	RegisterGameInputComponent();
+	// ƒAƒjƒ[ƒ^[ƒRƒ“ƒ|[ƒlƒ“ƒg‚ğ“o˜^
+	RegisterAnimatorComponent();
+	// ƒV[ƒPƒ“ƒT[ƒRƒ“ƒ|[ƒlƒ“ƒg‚ğ“o˜^
+	RegisterSequencerComponent();
+	// ƒAƒjƒ[ƒVƒ‡ƒ“‘¬“xƒRƒ“ƒ|[ƒlƒ“ƒg‚ğ“o˜^
+	RegisterAnimationSpeedComponent();
 }
 
 // “o˜^Ï‚İƒƒ^î•ñ‚©‚çInspectorUI‚ğ©“®•`‰æ
@@ -15072,6 +15046,32 @@ void MetaRegistry::DrawMetaFields(entt::meta_type metaType, entt::meta_any insta
 	}
 }
 
+// ’l‚ÌŒ^‚ğ”»•Ê‚·‚éƒwƒ‹ƒp[
+namespace
+{
+	ValueType ResolveValueType(entt::meta_type type)
+	{
+		if (type == entt::resolve<bool>())              return ValueType::Bool;
+		if (type == entt::resolve<int>())               return ValueType::Int;
+		if (type == entt::resolve<DirectX::XMFLOAT2>()) return ValueType::Float2;
+		if (type == entt::resolve<DirectX::XMFLOAT3>()) return ValueType::Float3;
+		if (type == entt::resolve<DirectX::XMFLOAT4>()) return ValueType::Float4;
+		return ValueType::Float;
+	}
+
+	// leafŒ^‚©‚Ç‚¤‚©
+	bool IsLeafType(entt::meta_type type)
+	{
+		return type == entt::resolve<bool>()
+			|| type == entt::resolve<int>()
+			|| type == entt::resolve<float>()
+			|| type == entt::resolve<std::string>()
+			|| type == entt::resolve<DirectX::XMFLOAT2>()
+			|| type == entt::resolve<DirectX::XMFLOAT3>()
+			|| type == entt::resolve<DirectX::XMFLOAT4>();
+	}
+}
+
 // “o˜^Ï‚İ‚ÌƒtƒB[ƒhˆê——‚ğæ“¾‚·‚é
 const std::vector<FieldEntry>& MetaRegistry::GetAllFields()
 {
@@ -15082,7 +15082,10 @@ const std::vector<FieldEntry>& MetaRegistry::GetAllFields()
 		for (auto&& [id, metaType] : entt::resolve())
 		{
 			TypeInfo* typeInfo = metaType.custom();
-			std::string category = typeInfo ? typeInfo->category : "";
+
+			if (!typeInfo) continue;
+
+			std::string category = typeInfo->category;
 			std::string componentName = std::string(metaType.name());
 
 			if (componentName.empty()) continue;
@@ -15093,15 +15096,29 @@ const std::vector<FieldEntry>& MetaRegistry::GetAllFields()
 				std::string label = fieldInfo ? fieldInfo->label : std::string(metaData.name());
 
 				entt::meta_type fieldType = metaData.type();
-				ValueType valueType = ValueType::Float;
-				if (fieldType == entt::resolve<bool>())                   valueType = ValueType::Bool;
-				else if (fieldType == entt::resolve<int>())               valueType = ValueType::Int;
-				else if (fieldType == entt::resolve<DirectX::XMFLOAT2>()) valueType = ValueType::Float2;
-				else if (fieldType == entt::resolve<DirectX::XMFLOAT3>()) valueType = ValueType::Float3;
-				else if (fieldType == entt::resolve<DirectX::XMFLOAT4>()) valueType = ValueType::Float4;
+
+				if (!IsLeafType(fieldType) && fieldType && fieldType.data().begin() != fieldType.data().end())
+				{
+					// ƒlƒXƒg‚µ‚½ƒtƒB[ƒ‹ƒhF“à‘¤‚ÌŒ^‚ª‚ÂƒtƒB[ƒ‹ƒh‚ğA1’iŠK‚¾‚¯Œ@‚è‰º‚°‚Ä’Ç‰Á‚·‚é
+					for (auto&& [subFieldId, subMetaData] : fieldType.data())
+					{
+						FieldInfo* subFieldInfo = subMetaData.custom();
+						std::string subLabel = subFieldInfo ? subFieldInfo->label : std::string(subMetaData.name());
+
+						ValueType valueType = ResolveValueType(subMetaData.type());
+						std::string combinedLabel = label + "." + subLabel;
+
+						fieldEntries.push_back(FieldEntry{
+							metaType, fieldId, fieldType, subFieldId, componentName, category, combinedLabel, valueType
+							});
+					}
+					continue;
+				}
+
+				ValueType valueType = ResolveValueType(fieldType);
 
 				fieldEntries.push_back(FieldEntry{
-					metaType, fieldId, componentName, category, label, valueType
+					metaType, fieldId, entt::meta_type{}, 0, componentName, category, label, valueType
 					});
 			}
 		}
@@ -15121,7 +15138,198 @@ int MetaRegistry::GetComponentCount(ValueType type)
 	default: return 0;
 	}
 }
- 
+
+// ƒgƒ‰ƒ“ƒXƒtƒH[ƒ€ƒRƒ“ƒ|[ƒlƒ“ƒg‚ğ“o˜^
+void MetaRegistry::RegisterTransformComponent()
+{
+	entt::meta_factory<TransformComponent>{}
+	.type("TransformComponent")
+		.custom<TypeInfo>(TypeInfo{ "Transform" })
+		.data<&TransformComponent::position>("position"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Position", 0.0f, 0.0f, 0.1f })
+		.data<&TransformComponent::rotation>("rotation"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Rotation", 0.0f, 0.0f, 0.01f })
+		.data<&TransformComponent::scale>("scale"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Scale", 0.0f, 0.0f, 0.01f });
+}
+// ƒƒbƒVƒ…ƒRƒ“ƒ|[ƒlƒ“ƒg‚ğ“o˜^
+void MetaRegistry::RegisterMeshComponent()
+{
+	entt::meta_factory<MeshComponent>{}
+	.type("MeshComponent")
+		.custom<TypeInfo>(TypeInfo{ "Mesh" })
+		.data<&MeshComponent::modelPath>("modelPath"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Model", 0.0f, 0.0f, 0.1f, "MODEL_PATH" });
+}
+// ˆÚ“®ƒRƒ“ƒ|[ƒlƒ“ƒg‚ğ“o˜^
+void MetaRegistry::RegisterMovementComponent()
+{
+	entt::meta_factory<MovementComponent>{}
+	.type("MovementComponent")
+		.custom<TypeInfo>(TypeInfo{ "Movement" })
+		.data<&MovementComponent::jumpPower>("jumpPower"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Jump Power", 0.0f, 50.0f })
+		.data<&MovementComponent::gravity>("gravity"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Gravity", -100.0f, 0.0f })
+		.data<&MovementComponent::velocity>("velocity"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Velocity", 0.0f, 0.0f, 0.01f })
+		.data<&MovementComponent::isGrounded>("isGrounded"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Is Grounded" });
+}
+// ƒvƒŒƒCƒ„[ˆÚ“®ƒRƒ“ƒ|[ƒlƒ“ƒg‚ğ“o˜^
+void MetaRegistry::RegisterPlayerMoveComponent()
+{
+	entt::meta_factory<PlayerMoveComponent>{}
+	.type("PlayerMoveComponent")
+		.custom<TypeInfo>(TypeInfo{ "Player Move" })
+		.data<&PlayerMoveComponent::walkSpeed>("walkSpeed"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Walk Speed", 0.0f, 10.0f })
+		.data<&PlayerMoveComponent::jogSpeed>("jogSpeed"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Jog Speed", 0.0f, 10.0f })
+		.data<&PlayerMoveComponent::jogThreshold>("jogThreshold"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Jog Threshold", 0.0f, 1.0f })
+		.data<&PlayerMoveComponent::turnSpeed>("turnSpeed"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Turn Speed", 0.0f, 30.0f })
+		.data<&PlayerMoveComponent::inputLossGraceTime>("inputLossGraceTime"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Input Loss Grace Time", 0.0f, 1.0f })
+		.data<&PlayerMoveComponent::isWalking>("isWalking"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Is Walking" })
+		.data<&PlayerMoveComponent::isJogging>("isJogging"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Is Jogging" })
+		.data<&PlayerMoveComponent::isMoving>("isMoving"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Is Moving" });
+}
+// ƒvƒŒƒCƒ„[‰ñ”ğƒRƒ“ƒ|[ƒlƒ“ƒg‚ğ“o˜^
+void MetaRegistry::RegisterPlayerDodgeComponent()
+{
+	entt::meta_factory<PlayerDodgeComponent>{}
+	.type("PlayerDodgeComponent")
+		.custom<TypeInfo>(TypeInfo{ "Player Dodge" })
+		.data<&PlayerDodgeComponent::triggerThreshold>("triggerThreshold"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Trigger Threshold", 0.0f, 1.0f })
+		.data<&PlayerDodgeComponent::triggerReleaseThreshold>("triggerReleaseThreshold"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Trigger Release Threshold", 0.0f, 1.0f })
+		.data<&PlayerDodgeComponent::directionBufferTime>("directionBufferTime"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Direction Buffer Time", 0.0f, 1.0f })
+		.data<&PlayerDodgeComponent::isDodging>("isDodging"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Is Dodging" })
+		.data<&PlayerDodgeComponent::isNoneInput>("isNoneInput"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Is None Input" })
+		.data<&PlayerDodgeComponent::isFrontInput>("isFrontInput"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Is Front Input" })
+		.data<&PlayerDodgeComponent::isBackInput>("isBackInput"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Is Back Input" })
+		.data<&PlayerDodgeComponent::isLeftInput>("isLeftInput"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Is Left Input" })
+		.data<&PlayerDodgeComponent::isRightInput>("isRightInput"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Is Right Input" });
+}
+// ƒvƒŒƒCƒ„[‘S—Í¾‘–ƒRƒ“ƒ|[ƒlƒ“ƒg‚ğ“o˜^
+void MetaRegistry::RegisterPlayerSprintComponent()
+{
+	entt::meta_factory<PlayerSprintComponent>{}
+	.type("PlayerSprintComponent")
+		.custom<TypeInfo>(TypeInfo{ "Player Sprint" })
+		.data<&PlayerSprintComponent::sprintSpeed>("sprintSpeed"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Sprint Speed", 0.0f, 20.0f })
+		.data<&PlayerSprintComponent::isSprinting>("isSprinting"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Is Sprinting" });
+}
+// ƒQ[ƒ€“ü—ÍƒRƒ“ƒ|[ƒlƒ“ƒg‚ğ“o˜^
+void MetaRegistry::RegisterGameInputComponent()
+{
+	entt::meta_factory<StickState>{}
+	.type("StickState")
+		.data<&StickState::x>("x"_hs)
+		.custom<FieldInfo>(FieldInfo{ "X", 0.0f, 0.0f, 0.1f, "", true })
+		.data<&StickState::y>("y"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Y", 0.0f, 0.0f, 0.1f, "", true })
+		.data<&StickState::hasInput>("hasInput"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Has Input", 0.0f, 0.0f, 0.1f, "", true });
+
+	entt::meta_factory<ButtonState>{}
+	.type("ButtonState")
+		.data<&ButtonState::pressed>("pressed"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Pressed", 0.0f, 0.0f, 0.1f, "", true })
+		.data<&ButtonState::held>("held"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Held", 0.0f, 0.0f, 0.1f, "", true })
+		.data<&ButtonState::released>("released"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Released", 0.0f, 0.0f, 0.1f, "", true });
+
+	entt::meta_factory<TriggerState>{}
+	.type("TriggerState")
+		.data<&TriggerState::value>("value"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Value", 0.0f, 0.0f, 0.1f, "", true })
+		.data<&TriggerState::pressed>("pressed"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Pressed", 0.0f, 0.0f, 0.1f, "", true })
+		.data<&TriggerState::held>("held"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Held", 0.0f, 0.0f, 0.1f, "", true })
+		.data<&TriggerState::released>("released"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Released", 0.0f, 0.0f, 0.1f, "", true });
+
+	entt::meta_factory<GameInputComponent>{}
+	.type("GameInputComponent")
+		.custom<TypeInfo>(TypeInfo{ "Input" })
+		.data<&GameInputComponent::moveStick>("moveStick"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Move Stick" })
+		.data<&GameInputComponent::cameraStick>("cameraStick"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Camera Stick" })
+		.data<&GameInputComponent::dodgeTrigger>("dodgeTrigger"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Dodge Trigger" })
+		.data<&GameInputComponent::jump>("jump"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Jump", 0.0f, 0.0f, 0.1f, "", true })
+		.data<&GameInputComponent::attack>("attack"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Attack", 0.0f, 0.0f, 0.1f, "", true });
+}
+// ƒAƒjƒ[ƒ^[ƒRƒ“ƒ|[ƒlƒ“ƒg‚ğ“o˜^
+void MetaRegistry::RegisterAnimatorComponent()
+{
+	entt::meta_factory<AnimatorComponent>{}
+	.type("AnimatorComponent")
+		.custom<TypeInfo>(TypeInfo{ "Animator" })
+		.data<&AnimatorComponent::animatorGraphPath>("animatorGraphPath"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Animator Graph", 0.0f, 0.0f, 0.1f, "ANIMGRAPH_PATH" })
+		.data<&AnimatorComponent::playSpeed>("playSpeed"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Play Speed", 0.0f, 3.0f })
+		.data<&AnimatorComponent::loop>("loop"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Loop" })
+		.data<&AnimatorComponent::useRootMotion>("useRootMotion"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Use Root Motion" })
+		.data<&AnimatorComponent::useRootMotionY>("useRootMotionY"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Use Root Motion Y" })
+		.data<&AnimatorComponent::rootMotionNodeName>("rootMotionNodeName"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Root Motion Node" })
+		.data<&AnimatorComponent::isBlending>("isBlending"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Is Blending", 0.0f, 0.0f, 0.1f, "", true })
+		.data<&AnimatorComponent::blendRate>("blendRate"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Blend Rate", 0.0f, 1.0f, 0.1f, "", true })
+		.data<&AnimatorComponent::blendAnimation>("blendAnimation"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Blend From (Old Clip)", 0.0f, 0.0f, 0.1f, "", true });
+}
+// ƒV[ƒPƒ“ƒT[ƒRƒ“ƒ|[ƒlƒ“ƒg‚ğ“o˜^
+void MetaRegistry::RegisterSequencerComponent()
+{
+	entt::meta_factory<SequencerComponent>{}
+	.type("SequencerComponent")
+		.custom<TypeInfo>(TypeInfo{ "Sequencer" })
+		.data<&SequencerComponent::sequencerPath>("sequencerPath"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Sequencer File", 0.0f, 0.0f, 0.1f, "SEQUENCER_PATH" })
+		.data<&SequencerComponent::animExit>("animExit"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Anim Exit", 0.0f, 0.0f, 0.1f, "", true })
+		.data<&SequencerComponent::attack>("attack"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Attack", 0.0f, 0.0f, 0.1f, "", true })
+		.data<&SequencerComponent::superArmor>("superArmor"_hs)
+		.custom<FieldInfo>(FieldInfo{ "SuperArmor", 0.0f, 0.0f, 0.1f, "", true });
+}
+// ƒAƒjƒ[ƒVƒ‡ƒ“‘¬“xƒRƒ“ƒ|[ƒlƒ“ƒg‚ğ“o˜^
+void MetaRegistry::RegisterAnimationSpeedComponent()
+{
+	entt::meta_factory<AnimationSpeedComponent>{}
+	.type("AnimationSpeedComponent")
+		.custom<TypeInfo>(TypeInfo{ "Animation Speed" })
+		.data<&AnimationSpeedComponent::animationSpeedPath>("animationSpeedPath"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Speed Curve File", 0.0f, 0.0f, 0.1f, "ANIMSPEED_PATH" });
+} 
  
 ===== ProjectWindow.cpp ===== 
 Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Editor\ProjectWindow.cpp 

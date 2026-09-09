@@ -18,18 +18,26 @@ void GameInputSystem::Update(entt::registry& registry, const ControllerSettings&
     inputView.each([&](GameInputComponent& input)
         {
             // リセット
-            input.moveX = 0.0f;
-            input.moveZ = 0.0f;
-            input.cameraX = 0.0f;
-            input.cameraY = 0.0f;
+            input.moveStick.x = 0.0f;
+            input.moveStick.y = 0.0f;
+            input.moveStick.hasInput = false;
 
-            input.dodge = 0.0f;
+            input.cameraStick.x = 0.0f;
+            input.cameraStick.y = 0.0f;
+            input.cameraStick.hasInput = false;
+
+            input.dodgeTrigger.value = 0.0f;
 
             input.jump = false;
             input.attack = false;
 
             // ControllerComponent がなければスキップ
-            if (!ctrl || !ctrl->connected) return;
+            if (!ctrl || !ctrl->connected)
+            {
+				// 接続が切れた場合も、ボタンは押されていない状態にする
+                UpdateButtonState(input.dodgeTrigger, false);
+                return;
+            }
 
             // スティック（デッドゾーン適用）
             float lx = ApplyStickDeadzone(ctrl->leftStickX, settings.leftStickDeadzone);
@@ -38,29 +46,29 @@ void GameInputSystem::Update(entt::registry& registry, const ControllerSettings&
             float ry = ApplyStickDeadzone(ctrl->rightStickY, settings.rightStickDeadzone);
 
             // 移動（左スティック）
-            input.moveX = lx;
-            input.moveZ = ly;
+            input.moveStick.x = std::clamp(lx, -1.0f, 1.0f);
+            input.moveStick.y = std::clamp(ly, -1.0f, 1.0f);
+            input.moveStick.hasInput = (input.moveStick.x != 0.0f || input.moveStick.y != 0.0f);
 
             // カメラ（右スティック）
-            input.cameraX = rx;
-            input.cameraY = -ry;
+            input.cameraStick.x = rx;
+            input.cameraStick.y = -ry;
+            input.cameraStick.hasInput = (input.cameraStick.x != 0.0f || input.cameraStick.y != 0.0f);
 
             // トリガー（デッドゾーン適用後の値で判定）
             float lt = ApplyTriggerDeadzone(ctrl->leftTrigger, settings.leftTriggerDeadzone);
             float rt = ApplyTriggerDeadzone(ctrl->rightTrigger, settings.rightTriggerDeadzone);
+            (void)lt;
+
+            input.dodgeTrigger.value = rt;
+
+            // R2の押下判定(ヒステリシス込み)
+            bool r2Held = ctrl->IsPressed(ControllerButtons::R2);
+            UpdateButtonState(input.dodgeTrigger, r2Held);
 
             // ボタン判定
             input.jump = ctrl->IsPressed(ControllerButtons::Cross);
             input.attack = ctrl->IsPressed(ControllerButtons::Square);
-
-            // R2の生値をそのまま渡す
-            input.dodge = rt;
-
-            (void)lt;
-
-            // 移動入力を -1.0～1.0 にクランプ
-            input.moveX = std::clamp(input.moveX, -1.0f, 1.0f);
-            input.moveZ = std::clamp(input.moveZ, -1.0f, 1.0f);
         });
 }
 
@@ -77,4 +85,13 @@ float GameInputSystem::ApplyTriggerDeadzone(float value, float deadzone)
 {
     if (value < deadzone) return 0.0f;
     return (value - deadzone) / (1.0f - deadzone);
+}
+
+// ボタン状態の更新
+void GameInputSystem::UpdateButtonState(TriggerState& state, bool isHeldNow)
+{
+    state.pressed = isHeldNow && !state.wasHeld;
+    state.released = !isHeldNow && state.wasHeld;
+    state.held = isHeldNow;
+    state.wasHeld = isHeldNow;
 }

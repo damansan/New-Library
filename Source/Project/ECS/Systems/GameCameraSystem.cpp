@@ -32,8 +32,8 @@ void GameCameraSystem::Update(entt::registry& registry, float elapsedTime)
             if (input)
             {
                 const float rotSpeed = 2.0f;
-                cam.yaw += input->cameraX * rotSpeed * elapsedTime;
-                cam.pitch += input->cameraY * rotSpeed * elapsedTime;
+                cam.yaw += input->cameraStick.x * rotSpeed * elapsedTime;
+                cam.pitch += input->cameraStick.y * rotSpeed * elapsedTime;
                 cam.pitch = std::clamp(cam.pitch, -0.8f, 1.0f);
             }
 

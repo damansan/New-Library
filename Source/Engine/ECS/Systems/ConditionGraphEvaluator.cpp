@@ -58,6 +58,13 @@ float ConditionGraphEvaluator::GetGetterValue(const ConditionGetterNode& node, e
 	entt::meta_data data = found->componentType.data(found->fieldId);
 	entt::meta_any value = data.get(instance);
 
+	// ネストしたフィールドの場合、もう1段階だけ掘り下げる
+	if (found->subFieldId != 0 && found->nestedType)
+	{
+		entt::meta_data subData = found->nestedType.data(found->subFieldId);
+		value = subData.get(value);
+	}
+
 	// 各型をfloatに変換する
 	if (float* f = value.try_cast<float>()) return *f;
 	if (int* i = value.try_cast<int>())     return static_cast<float>(*i);

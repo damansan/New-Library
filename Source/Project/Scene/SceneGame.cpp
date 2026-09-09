@@ -172,10 +172,10 @@ void SceneGame::Update(float elapsedTime, const SceneContext& context)
 				{
 					auto& input = inputView.get<GameInputComponent>(entity);
 					const float threshold = 0.2f;
-					if (fabsf(input.moveX) > threshold ||
-						fabsf(input.moveZ) > threshold ||
-						fabsf(input.cameraX) > threshold ||
-						fabsf(input.cameraY) > threshold)
+					if (fabsf(input.moveStick.x) > threshold ||
+						fabsf(input.moveStick.y) > threshold ||
+						fabsf(input.cameraStick.x) > threshold ||
+						fabsf(input.cameraStick.y) > threshold)
 					{
 						context.editorContext->cameraMode = CameraMode::Game;
 						break;

@@ -25,7 +25,7 @@ void PlayerMoveSystem::Update(entt::registry& registry, float elapsedTime, const
 			DirectX::XMFLOAT3 right = context.camera->GetRight();
 
 			// スティック入力からワールド方向・倒し具合を算出
-			auto dir = PlayerMovementUtils::StickToWorldVelocity(input.moveX, input.moveZ, front, right, 1.0f);
+			auto dir = PlayerMovementUtils::StickToWorldVelocity(input.moveStick.x, input.moveStick.y, front, right, 1.0f);
 
 			// XZ平面で正規化
 			float frontLen = sqrtf(front.x * front.x + front.z * front.z);
@@ -37,8 +37,8 @@ void PlayerMoveSystem::Update(entt::registry& registry, float elapsedTime, const
 			float rightZ = (rightLen > 0.0f) ? right.z / rightLen : 0.0f;
 
 			// 移動方向ベクトル
-			float vecX = frontX * input.moveZ + rightX * input.moveX;
-			float vecZ = frontZ * input.moveZ + rightZ * input.moveX;
+			float vecX = frontX * input.moveStick.y + rightX * input.moveStick.x;
+			float vecZ = frontZ * input.moveStick.y + rightZ * input.moveStick.x;
 			float vecLen = sqrtf(vecX * vecX + vecZ * vecZ); // スティックの倒し具合
 
 			// 向きの制御権を持っているときのみ更新する
@@ -67,7 +67,7 @@ void PlayerMoveSystem::Update(entt::registry& registry, float elapsedTime, const
 					float speed = (playerMove.state == PlayerMovementState::Jogging) ? playerMove.jogSpeed : playerMove.walkSpeed;
 
 					// 改めて実際の速度で計算し直す
-					auto vel = PlayerMovementUtils::StickToWorldVelocity(input.moveX, input.moveZ, front, right, speed);
+					auto vel = PlayerMovementUtils::StickToWorldVelocity(input.moveStick.x, input.moveStick.y, front, right, speed);
 					movement.velocity.x = vel.velocity.x;
 					movement.velocity.z = vel.velocity.z;
 				}
