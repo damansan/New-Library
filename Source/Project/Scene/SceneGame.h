@@ -1,35 +1,34 @@
 #pragma once
 #include "Engine/Core/Scene.h"
 
-#include "Engine/ECS/Systems/ControllerSystem.h" 
-#include "Project/ECS/Systems/GameInputSystem.h"   
-#include "Project/ECS/Systems/PlayerDodgeSystem.h"
-#include "Engine/ECS/Systems/MovementSystem.h" 
-#include "Engine/ECS/Systems/AnimationSystem.h"
-#include "Engine/ECS/Systems/AnimatorControllerSystem.h"
-#include "Engine/ECS/Systems/AnimationSpeedSystem.h"
+// ÉQÅ[ÉÄÉvÉåÉCån
+#include "Engine/ECS/Systems/ControllerSystem.h"
+#include "Project/ECS/Systems/GameInputSystem.h"
+#include "Engine/ECS/Systems/TransitionControllerSystem.h"
 
+#include "Project/ECS/Systems/PlayerIdleSystem.h"
+#include "Project/ECS/Systems/PlayerDodgeSystem.h"
 #include "Project/ECS/Systems/PlayerMoveSystem.h"
 
-
+#include "Engine/ECS/Systems/MovementSystem.h"
+#include "Engine/ECS/Systems/AnimatorControllerSystem.h"
+#include "Engine/ECS/Systems/AnimationSpeedSystem.h"
+#include "Engine/ECS/Systems/AnimationSystem.h"
+#include "Engine/ECS/Systems/SequencerSystem.h"
+#include "Engine/ECS/Systems/IKSystem.h"
 #include "Engine/ECS/Systems/MeshLoaderSystem.h"
-#include "Engine/ECS/Systems/RenderSystem.h"
-
+#include "Engine/ECS/Systems/PhysicsSystem.h"
 #include "Engine/ECS/Systems/DebugCameraSystem.h"
-#include "Project/ECS/Systems/GameCameraSystem.h" 
+#include "Project/ECS/Systems/GameCameraSystem.h"
 
+// ï`âÊån
+#include "Engine/ECS/Systems/RenderSystem.h"
 #include "Engine/Rendering/SkyBox.h"
 #include "Engine/Rendering/LightManager.h"
 #include "Engine/Rendering/PhysicsDebugRenderer.h"
-
-#include "Engine/ECS/Systems/PhysicsSystem.h"
-#include "Engine/ECS/Systems/IKSystem.h"
-
-#include "Engine/ECS/Systems/SequencerSystem.h"
-
 #include "Tool/AdaptiveTriggerToolWindow.h"
 
-
+// ÉfÉÇ
 #include "Unsorted/Demo/WaveDemo.h"
 
 class SceneGame : public Scene
@@ -42,33 +41,37 @@ public:
 	void RenderImGui() override;
 
 private:
-	ControllerSystem controllerSystem;
-	GameInputSystem  gameInputSystem;
+	void UpdateGameplay(float elapsedTime, const SceneContext& context);  // ÉQÅ[ÉÄÉvÉåÉCån
+	void UpdateAnimation(float elapsedTime, const SceneContext& context); // ÉAÉjÉÅÅ[ÉVÉáÉìån
+	void UpdateResources(float elapsedTime, const SceneContext& context); // ÉäÉ\Å[ÉXån
+	void UpdateCamera(float elapsedTime, const SceneContext& context);    // ÉJÉÅÉâ
+
+	// ÉQÅ[ÉÄÉvÉåÉCån
+	ControllerSystem  controllerSystem;
+	GameInputSystem   gameInputSystem;
+	TransitionControllerSystem transitionControllerSystem;
+
+	PlayerIdleSystem  playerIdleSystem;
 	PlayerDodgeSystem playerDodgeSystem;
-	MovementSystem   movementSystem;
-	AnimationSystem  animationSystem;
+	PlayerMoveSystem  playerMoveSystem;
+	
+	MovementSystem    movementSystem;
 	AnimatorControllerSystem animatorControllerSystem;
-	AnimationSpeedSystem animationSpeedSystem;
-
-	PlayerMoveSystem playerMoveSystem;
-
-	MeshLoaderSystem meshLoaderSystem;
-	RenderSystem     renderSystem;
-
+	AnimationSpeedSystem     animationSpeedSystem;
+	AnimationSystem   animationSystem;
+	SequencerSystem   sequencerSystem;
+	IKSystem          ikSystem;
+	MeshLoaderSystem  meshLoaderSystem;
+	PhysicsSystem     physicsSystem;
 	DebugCameraSystem debugCameraSystem;
 	GameCameraSystem  gameCameraSystem;
 
+	// ï`âÊån
+	RenderSystem         renderSystem;
+	SkyBox                skyBox;
+	LightManager          lightManager;
+	PhysicsDebugRenderer  physicsDebugRenderer;
 	AdaptiveTriggerToolWindow adaptiveTriggerToolWindow;
-
-	SkyBox       skyBox;
-	LightManager lightManager;
-	PhysicsDebugRenderer physicsDebugRenderer;
-
-	PhysicsSystem    physicsSystem;
-
-	IKSystem         ikSystem;
-
-	SequencerSystem sequencerSystem;
 
 private:
 	// ÉfÉÇóp

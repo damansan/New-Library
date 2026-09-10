@@ -301,12 +301,8 @@ void StudioAnimatorGraph::Save(StudioContext& context)
 		loaded = true;
 	}
 
-	nlohmann::ordered_json j;
+	nlohmann::ordered_json j = graphData.ToJson();
 	j["sourceModelPath"] = context.currentModelPath;
-
-	nlohmann::ordered_json graphJson = graphData.ToJson();
-	j["states"] = graphJson["states"];
-	j["stateLinks"] = graphJson["stateLinks"];
 
 	std::ofstream ofs(context.attachedGraphPath);
 	if (ofs.is_open())

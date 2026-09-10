@@ -9,6 +9,7 @@ using namespace entt::literals;
 #include "Engine/ECS/Components/MeshComponent.h"
 #include "Engine/ECS/Components/MovementComponent.h"
 
+#include "Project/ECS/Components/PlayerIdleComponent.h"
 #include "Project/ECS/Components/PlayerMoveComponent.h"
 #include "Project/ECS/Components/PlayerDodgeComponent.h"
 #include "Project/ECS/Components/PlayerSprintComponent.h"
@@ -26,6 +27,8 @@ void MetaRegistry::Initialize()
 	RegisterMeshComponent();
 	// 移動コンポーネントを登録
 	RegisterMovementComponent();
+	// プレイヤー待機コンポーネントを登録
+	RegisterPlayerIdleComponent();
 	// プレイヤー移動コンポーネントを登録
 	RegisterPlayerMoveComponent();
 	// プレイヤー回避コンポーネントを登録
@@ -267,6 +270,16 @@ void MetaRegistry::RegisterMovementComponent()
 		.data<&MovementComponent::isGrounded>("isGrounded"_hs)
 		.custom<FieldInfo>(FieldInfo{ "Is Grounded" });
 }
+
+// プレイヤー待機コンポーネントを登録
+void MetaRegistry::RegisterPlayerIdleComponent()
+{
+	entt::meta_factory<PlayerIdleComponent>{}
+	.type("PlayerIdleComponent")
+		.custom<TypeInfo>(TypeInfo{ "Player Idle" })
+		.data<&PlayerIdleComponent::isIdling>("isIdling"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Is Idling", 0.0f, 0.0f, 0.1f, "", true });
+}
 // プレイヤー移動コンポーネントを登録
 void MetaRegistry::RegisterPlayerMoveComponent()
 {
@@ -296,24 +309,20 @@ void MetaRegistry::RegisterPlayerDodgeComponent()
 	entt::meta_factory<PlayerDodgeComponent>{}
 	.type("PlayerDodgeComponent")
 		.custom<TypeInfo>(TypeInfo{ "Player Dodge" })
-		.data<&PlayerDodgeComponent::triggerThreshold>("triggerThreshold"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Trigger Threshold", 0.0f, 1.0f })
-		.data<&PlayerDodgeComponent::triggerReleaseThreshold>("triggerReleaseThreshold"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Trigger Release Threshold", 0.0f, 1.0f })
 		.data<&PlayerDodgeComponent::directionBufferTime>("directionBufferTime"_hs)
 		.custom<FieldInfo>(FieldInfo{ "Direction Buffer Time", 0.0f, 1.0f })
 		.data<&PlayerDodgeComponent::isDodging>("isDodging"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Is Dodging" })
+		.custom<FieldInfo>(FieldInfo{ "Is Dodging", 0.0f, 0.0f, 0.1f, "", true })
 		.data<&PlayerDodgeComponent::isNoneInput>("isNoneInput"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Is None Input" })
+		.custom<FieldInfo>(FieldInfo{ "Is None Input", 0.0f, 0.0f, 0.1f, "", true })
 		.data<&PlayerDodgeComponent::isFrontInput>("isFrontInput"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Is Front Input" })
+		.custom<FieldInfo>(FieldInfo{ "Is Front Input", 0.0f, 0.0f, 0.1f, "", true })
 		.data<&PlayerDodgeComponent::isBackInput>("isBackInput"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Is Back Input" })
+		.custom<FieldInfo>(FieldInfo{ "Is Back Input", 0.0f, 0.0f, 0.1f, "", true })
 		.data<&PlayerDodgeComponent::isLeftInput>("isLeftInput"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Is Left Input" })
+		.custom<FieldInfo>(FieldInfo{ "Is Left Input", 0.0f, 0.0f, 0.1f, "", true })
 		.data<&PlayerDodgeComponent::isRightInput>("isRightInput"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Is Right Input" });
+		.custom<FieldInfo>(FieldInfo{ "Is Right Input", 0.0f, 0.0f, 0.1f, "", true });
 }
 // プレイヤー全力疾走コンポーネントを登録
 void MetaRegistry::RegisterPlayerSprintComponent()
@@ -394,6 +403,8 @@ void MetaRegistry::RegisterAnimatorComponent()
 		.custom<FieldInfo>(FieldInfo{ "Is Blending", 0.0f, 0.0f, 0.1f, "", true })
 		.data<&AnimatorComponent::blendRate>("blendRate"_hs)
 		.custom<FieldInfo>(FieldInfo{ "Blend Rate", 0.0f, 1.0f, 0.1f, "", true })
+		.data<&AnimatorComponent::isEnd>("isEnd"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Is End", 0.0f, 0.0f, 0.1f, "", true })
 		.data<&AnimatorComponent::blendAnimation>("blendAnimation"_hs)
 		.custom<FieldInfo>(FieldInfo{ "Blend From (Old Clip)", 0.0f, 0.0f, 0.1f, "", true });
 }

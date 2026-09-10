@@ -53,6 +53,8 @@
     <ClCompile Include="Source\Engine\ECS\Systems\PhysicsSystem.cpp" />
     <ClCompile Include="Source\Engine\ECS\Systems\RenderSystem.cpp" />
     <ClCompile Include="Source\Engine\ECS\Systems\SequencerSystem.cpp" />
+    <ClCompile Include="Source\Engine\ECS\Systems\StateGraphUtils.cpp" />
+    <ClCompile Include="Source\Engine\ECS\Systems\TransitionControllerSystem.cpp" />
     <ClCompile Include="Source\Engine\ECS\Systems\TwoBoneIKSolver.cpp" />
     <ClCompile Include="Source\Engine\Rendering\GBuffer.cpp" />
     <ClCompile Include="Source\Engine\Rendering\LightManager.cpp" />
@@ -72,6 +74,7 @@
     <ClCompile Include="Source\Project\ECS\Systems\GameCameraSystem.cpp" />
     <ClCompile Include="Source\Project\ECS\Systems\GameInputSystem.cpp" />
     <ClCompile Include="Source\Project\ECS\Systems\PlayerDodgeSystem.cpp" />
+    <ClCompile Include="Source\Project\ECS\Systems\PlayerIdleSystem.cpp" />
     <ClCompile Include="Source\Project\ECS\Systems\PlayerMovementUtils.cpp" />
     <ClCompile Include="Source\Project\ECS\Systems\PlayerMoveSystem.cpp" />
     <ClCompile Include="Source\Project\Scene\SceneGame.cpp" />
@@ -127,6 +130,7 @@
     <ClInclude Include="Source\Engine\ECS\Components\ControllerSettings.h" />
     <ClInclude Include="Source\Engine\ECS\Components\FreeCameraComponent.h" />
     <ClInclude Include="Source\Engine\ECS\Components\IKComponent.h" />
+    <ClInclude Include="Source\Engine\ECS\Components\StateComponent.h" />
     <ClInclude Include="Source\Engine\ECS\Components\MaterialComponent.h" />
     <ClInclude Include="Source\Engine\ECS\Components\MeshComponent.h" />
     <ClInclude Include="Source\Engine\ECS\Components\MovementComponent.h" />
@@ -148,6 +152,8 @@
     <ClInclude Include="Source\Engine\ECS\Systems\PhysicsSystem.h" />
     <ClInclude Include="Source\Engine\ECS\Systems\RenderSystem.h" />
     <ClInclude Include="Source\Engine\ECS\Systems\SequencerSystem.h" />
+    <ClInclude Include="Source\Engine\ECS\Systems\StateGraphUtils.h" />
+    <ClInclude Include="Source\Engine\ECS\Systems\TransitionControllerSystem.h" />
     <ClInclude Include="Source\Engine\ECS\Systems\TwoBoneIKSolver.h" />
     <ClInclude Include="Source\Engine\Rendering\GBuffer.h" />
     <ClInclude Include="Source\Engine\Rendering\LightManager.h" />
@@ -169,11 +175,13 @@
     <ClInclude Include="Source\Project\ECS\Components\PlayerDodgeComponent.h" />
     <ClInclude Include="Source\Project\ECS\Components\GameCameraComponent.h" />
     <ClInclude Include="Source\Project\ECS\Components\GameInputComponent.h" />
+    <ClInclude Include="Source\Project\ECS\Components\PlayerIdleComponent.h" />
     <ClInclude Include="Source\Project\ECS\Components\PlayerMoveComponent.h" />
     <ClInclude Include="Source\Project\ECS\Components\PlayerSprintComponent.h" />
     <ClInclude Include="Source\Project\ECS\Systems\GameCameraSystem.h" />
     <ClInclude Include="Source\Project\ECS\Systems\GameInputSystem.h" />
     <ClInclude Include="Source\Project\ECS\Systems\PlayerDodgeSystem.h" />
+    <ClInclude Include="Source\Project\ECS\Systems\PlayerIdleSystem.h" />
     <ClInclude Include="Source\Project\ECS\Systems\PlayerMovementUtils.h" />
     <ClInclude Include="Source\Project\ECS\Systems\PlayerMoveSystem.h" />
     <ClInclude Include="Source\Project\Scene\SceneGame.h" />

@@ -344,6 +344,15 @@
     <Filter Include="Sources\Tool\Studio\StudioAnimatorGraph\StudioTransitionGraph">
       <UniqueIdentifier>{9e117e4a-a6fc-4c6b-b55f-deeda6a4595f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\Engine\ECS\Systems\TransitionControllerSystem">
+      <UniqueIdentifier>{e4f93651-bde9-482a-bace-2fe8d851a9b1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Engine\ECS\Systems\StateGraphUtils">
+      <UniqueIdentifier>{4b1ffcb6-7472-4d5e-ac48-bf52f33a009d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Project\ECS\Systems\Player\PlayerIdleSystem">
+      <UniqueIdentifier>{434056a7-fdc5-42ac-a5cf-5c55a1510fed}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="External\imgui-docking\imgui.cpp">
@@ -576,6 +585,15 @@
     </ClCompile>
     <ClCompile Include="Source\Tool\Studio\StudioTransitionGraph.cpp">
       <Filter>Sources\Tool\Studio\StudioAnimatorGraph\StudioTransitionGraph</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Engine\ECS\Systems\TransitionControllerSystem.cpp">
+      <Filter>Sources\Engine\ECS\Systems\TransitionControllerSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Engine\ECS\Systems\StateGraphUtils.cpp">
+      <Filter>Sources\Engine\ECS\Systems\StateGraphUtils</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Project\ECS\Systems\PlayerIdleSystem.cpp">
+      <Filter>Sources\Project\ECS\Systems\Player\PlayerIdleSystem</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -896,6 +914,21 @@
     </ClInclude>
     <ClInclude Include="Source\Tool\Studio\StudioTransitionGraph.h">
       <Filter>Sources\Tool\Studio\StudioAnimatorGraph\StudioTransitionGraph</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Engine\ECS\Components\StateComponent.h">
+      <Filter>Sources\Engine\ECS\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Engine\ECS\Systems\TransitionControllerSystem.h">
+      <Filter>Sources\Engine\ECS\Systems\TransitionControllerSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Engine\ECS\Systems\StateGraphUtils.h">
+      <Filter>Sources\Engine\ECS\Systems\StateGraphUtils</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Project\ECS\Components\PlayerIdleComponent.h">
+      <Filter>Sources\Project\ECS\Components\Player</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Project\ECS\Systems\PlayerIdleSystem.h">
+      <Filter>Sources\Project\ECS\Systems\Player\PlayerIdleSystem</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -84,111 +84,16 @@ void SceneGame::Update(float elapsedTime, const SceneContext& context)
 	// デモ更新
 	waveDemo.Update(elapsedTime);
 
+	// PhysX更新
 	{
-		// PhysX更新
 		ZoneScopedN("UpdatePhysX");
 		UpdatePhysicsScene(elapsedTime);
 	}
 
-
-	{
-		// コントローラー入力
-		ZoneScopedN("ControllerSystem");
-		controllerSystem.Update(registry, elapsedTime);
-	}
-
-	{
-		// 入力変換
-		ZoneScopedN("InputSystem");
-		gameInputSystem.Update(registry, controllerSystem.GetSettings());
-	}
-	{
-		// Dodge/Sprintの状態遷移
-		ZoneScopedN("PlayerDodgeSystem");
-		playerDodgeSystem.Update(registry, elapsedTime, context);
-	}
-	{
-		// Player移動(XZ平面、歩き/小走り判定)
-		ZoneScopedN("PlayerMoveSystem");
-		playerMoveSystem.Update(registry, elapsedTime, context);
-	}
-	{
-		// 移動
-		ZoneScopedN("MovementSystem");
-		movementSystem.Update(registry, elapsedTime, context);
-	}
-	{
-		// State遷移判定
-		ZoneScopedN("AnimatorControllerSystem");
-		animatorControllerSystem.Update(registry);
-	}
-	{
-		// 速度カーブの評価(speedCurveMultiplierを更新)
-		ZoneScopedN("AnimationSpeedSystem");
-		animationSpeedSystem.Update(registry);
-	}
-	{
-		// アニメーション更新
-		ZoneScopedN("AnimationSystem");
-		animationSystem.Update(registry, elapsedTime);
-	}
-	{
-		// Sequencerのフラグ更新
-		ZoneScopedN("SequencerSystem");
-		sequencerSystem.Update(registry);
-	}
-	{
-
-		// IK更新(アニメーションの後に上書きする)
-		ZoneScopedN("IKSystem");
-		ikSystem.Update(registry, GetPhysicsScene());
-	}
-
-	{
-		// モデルロード
-		ZoneScopedN("MeshLoaderSystem");
-		meshLoaderSystem.Update(registry, context.device, *context.resourceManager);
-	}
-
-	{
-		// 物理Body生成・削除処理
-		ZoneScopedN("PhysicsSystem");
-		physicsSystem.Update(registry, *context.physX, GetPhysicsScene(), GetControllerManager(), elapsedTime);
-	}
-
-	{
-		// カメラ
-		ZoneScopedN("CameraSystem");
-		if (context.cameraMode == CameraMode::Debug)
-		{
-			debugCameraSystem.Update(registry, elapsedTime, context.gameInputActive);
-			debugCameraSystem.ApplyToCamera(registry, *context.camera);
-
-			// スティック入力があればGameモードに戻す
-			if (context.editorContext)
-			{
-				auto inputView = registry.view<GameInputComponent>();
-				for (auto entity : inputView)
-				{
-					auto& input = inputView.get<GameInputComponent>(entity);
-					const float threshold = 0.2f;
-					if (fabsf(input.moveStick.x) > threshold ||
-						fabsf(input.moveStick.y) > threshold ||
-						fabsf(input.cameraStick.x) > threshold ||
-						fabsf(input.cameraStick.y) > threshold)
-					{
-						context.editorContext->cameraMode = CameraMode::Game;
-						break;
-					}
-				}
-			}
-		}
-		else
-		{
-			gameCameraSystem.Update(registry, elapsedTime);
-			gameCameraSystem.ApplyToCamera(registry, *context.camera);
-		}
-	}
+	UpdateGameplay(elapsedTime, context);
+	UpdateAnimation(elapsedTime, context);
+	UpdateResources(elapsedTime, context);
+	UpdateCamera(elapsedTime, context);
 }
 
 void SceneGame::Render(const SceneContext& context)
@@ -297,4 +202,127 @@ void SceneGame::RenderImGui()
 	//	break;
 	//}
 #endif
+}
+
+// ゲームプレイ系
+void SceneGame::UpdateGameplay(float elapsedTime, const SceneContext& context)
+{
+	// コントローラー入力
+	{
+		ZoneScopedN("ControllerSystem");
+		controllerSystem.Update(registry, elapsedTime);
+	}
+	// 入力変換
+	{
+		ZoneScopedN("InputSystem");
+		gameInputSystem.Update(registry, controllerSystem.GetSettings());
+	}
+	// 遷移グラフの評価
+	{
+		ZoneScopedN("TransitionControllerSystem");
+		transitionControllerSystem.Update(registry, elapsedTime, context);
+	}
+
+	// プレイヤー待機処理
+	{
+		ZoneScopedN("PlayerIdleSystem");
+		playerIdleSystem.Update(registry, elapsedTime, context);
+	}
+	// プレイヤー回避処理
+	{
+		ZoneScopedN("PlayerDodgeSystem");
+		playerDodgeSystem.Update(registry, elapsedTime, context);
+	}
+	// プレイヤー移動処理
+	{
+		ZoneScopedN("PlayerMoveSystem");
+		playerMoveSystem.Update(registry, elapsedTime, context);
+	}
+
+	// 移動処理
+	{
+		ZoneScopedN("MovementSystem");
+		movementSystem.Update(registry, elapsedTime, context);
+	}
+}
+
+// アニメーション系
+void SceneGame::UpdateAnimation(float elapsedTime, const SceneContext& context)
+{
+	// State遷移判定
+	{
+		ZoneScopedN("AnimatorControllerSystem");
+		animatorControllerSystem.Update(registry);
+	}
+	// アニメーション速度更新
+	{
+		ZoneScopedN("AnimationSpeedSystem");
+		animationSpeedSystem.Update(registry);
+	}
+	// アニメーション更新
+	{
+		ZoneScopedN("AnimationSystem");
+		animationSystem.Update(registry, elapsedTime);
+	}
+	// シーケンサー更新
+	{
+		ZoneScopedN("SequencerSystem");
+		sequencerSystem.Update(registry);
+	}
+	// IK更新
+	{
+		ZoneScopedN("IKSystem");
+		ikSystem.Update(registry, GetPhysicsScene());
+	}
+}
+
+// リソース系
+void SceneGame::UpdateResources(float elapsedTime, const SceneContext& context)
+{
+	// モデルロード
+	{
+		ZoneScopedN("MeshLoaderSystem");
+		meshLoaderSystem.Update(registry, context.device, *context.resourceManager);
+	}
+	// 物理シーン更新
+	{
+		// 物理Body生成・削除処理
+		ZoneScopedN("PhysicsSystem");
+		physicsSystem.Update(registry, *context.physX, GetPhysicsScene(), GetControllerManager(), elapsedTime);
+	}
+}
+
+// カメラ
+void SceneGame::UpdateCamera(float elapsedTime, const SceneContext& context)
+{
+	ZoneScopedN("CameraSystem");
+	if (context.cameraMode == CameraMode::Debug)
+	{
+		debugCameraSystem.Update(registry, elapsedTime, context.gameInputActive);
+		debugCameraSystem.ApplyToCamera(registry, *context.camera);
+
+		// スティック入力があればGameモードに戻す
+		if (context.editorContext)
+		{
+			auto inputView = registry.view<GameInputComponent>();
+			for (auto entity : inputView)
+			{
+				auto& input = inputView.get<GameInputComponent>(entity);
+				const float threshold = 0.2f;
+				if (fabsf(input.moveStick.x) > threshold ||
+					fabsf(input.moveStick.y) > threshold ||
+					fabsf(input.cameraStick.x) > threshold ||
+					fabsf(input.cameraStick.y) > threshold)
+				{
+					context.editorContext->cameraMode = CameraMode::Game;
+					break;
+				}
+			}
+		}
+	}
+	else
+	{
+		gameCameraSystem.Update(registry, elapsedTime);
+		gameCameraSystem.ApplyToCamera(registry, *context.camera);
+	}
 }

@@ -18,6 +18,15 @@ namespace PlayerMovementUtils
 		const DirectX::XMFLOAT3& cameraRight,
 		float speed);
 
+	WorldVelocityResult ResolvePlanarVelocity(
+		float inputX, float inputZ,
+		const DirectX::XMFLOAT3& cameraFront,
+		const DirectX::XMFLOAT3& cameraRight,
+		float targetSpeed,
+		const DirectX::XMFLOAT3& currentVelocity,
+		float elapsedTime);
+
+
 	// ƒ[ƒ‹ƒhÀ•WŒn‚ÌˆÚ“®•ûŒü‚©‚çAY²‰ñ“]Šp‚ğ‹‚ß‚é
 	float CalcFacingYaw(float worldDirX, float worldDirZ);
 

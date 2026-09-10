@@ -34,6 +34,9 @@ private:
     // PS5 入力をControllerComponentに書く
     void UpdatePS5Input(ControllerComponent& ctrl);
 
+	// トリガーのヒステリシス判定
+    bool UpdateTriggerDigital(float triggerValue, float pressThreshold, float releaseThreshold, TriggerHysteresisState& state);
+
     // PS5 出力送信
     void SendPS5Output(ControllerComponent& ctrl);
 

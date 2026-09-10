@@ -59,6 +59,8 @@ private:
 	static void RegisterMeshComponent();
 	// 移動コンポーネントを登録
 	static void RegisterMovementComponent();
+	// プレイヤー待機コンポーネントを登録
+	static void RegisterPlayerIdleComponent();
 	// プレイヤー移動コンポーネントを登録
 	static void RegisterPlayerMoveComponent();
 	// プレイヤー回避コンポーネントを登録

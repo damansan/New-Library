@@ -10,6 +10,12 @@ enum class ControllerType
     PS5,
 };
 
+// トリガーのヒステリシス状態
+struct TriggerHysteresisState
+{
+    bool wasHeld = false;
+};
+
 // コントローラーの生の入力値を保持するコンポーネント
 struct ControllerComponent
 {
@@ -33,6 +39,10 @@ struct ControllerComponent
     // アダプティブトリガー出力
     AdaptiveTrigger::TriggerEffect leftTriggerEffect = {};
     AdaptiveTrigger::TriggerEffect rightTriggerEffect = {};
+
+	// トリガーのヒステリシス状態
+    TriggerHysteresisState leftTriggerHysteresis;
+    TriggerHysteresisState rightTriggerHysteresis;
 
     // ボタン判定ヘルパー
     bool IsPressed(uint32_t mask) const { return (buttons & mask) != 0; }

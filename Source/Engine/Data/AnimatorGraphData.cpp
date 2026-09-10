@@ -351,7 +351,7 @@ void AnimatorGraphData::FromJson(const nlohmann::json& j)
 
 	// “Ç‚İ‚ñ‚¾Œ‹‰ÊEntry‚ª–³‚©‚Á‚½ê‡‚Ì•ÛŒ¯
 	parentGraph.EnsureEntryExists();
-	SyncTransitionLinks();
+	//SyncTransitionLinks();
 
 }
 

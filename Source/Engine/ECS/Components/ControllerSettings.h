@@ -13,6 +13,8 @@ struct ControllerSettings
 	float rightTriggerDeadzone = 0.05f;
 
 	// L2/R2 デジタル判定閾値 
-	float leftTriggerThreshold = 0.5f;
-	float rightTriggerThreshold = 0.5f;
+	float leftTriggerPressThreshold = 0.5f;
+	float leftTriggerReleaseThreshold = 0.3f;
+	float rightTriggerPressThreshold = 0.5f;
+	float rightTriggerReleaseThreshold = 0.3f;
 };

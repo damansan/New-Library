@@ -34,6 +34,20 @@ namespace PlayerMovementUtils
 		return result;
 	}
 
+	WorldVelocityResult ResolvePlanarVelocity(
+		float inputX, float inputZ, 
+		const DirectX::XMFLOAT3& cameraFront, 
+		const DirectX::XMFLOAT3& cameraRight,
+		float targetSpeed, 
+		const DirectX::XMFLOAT3& currentVelocity, 
+		float elapsedTime)
+	{
+		(void)currentVelocity;
+		(void)elapsedTime;
+
+		return StickToWorldVelocity(inputX, inputZ, cameraFront, cameraRight, targetSpeed);
+	}
+
 	float CalcFacingYaw(float worldDirX, float worldDirZ)
 	{
 		return atan2f(-worldDirX, -worldDirZ);

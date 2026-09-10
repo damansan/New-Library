@@ -104,9 +104,11 @@ void ControllerSystem::UpdateXboxInput(ControllerComponent& ctrl)
     if (btn & XINPUT_GAMEPAD_START)          ctrl.buttons |= ControllerButtons::Options;
     if (btn & XINPUT_GAMEPAD_BACK)           ctrl.buttons |= ControllerButtons::Share;
 
-    // L2/R2 デジタル判定（settings の閾値を使う）
-    if (ctrl.leftTrigger >= settings.leftTriggerThreshold)  ctrl.buttons |= ControllerButtons::L2;
-    if (ctrl.rightTrigger >= settings.rightTriggerThreshold) ctrl.buttons |= ControllerButtons::R2;
+    // L2/R2 デジタル判定（ヒステリシス込み）
+    if (UpdateTriggerDigital(ctrl.leftTrigger, settings.leftTriggerPressThreshold, settings.leftTriggerReleaseThreshold, ctrl.leftTriggerHysteresis))
+        ctrl.buttons |= ControllerButtons::L2;
+    if (UpdateTriggerDigital(ctrl.rightTrigger, settings.rightTriggerPressThreshold, settings.rightTriggerReleaseThreshold, ctrl.rightTriggerHysteresis))
+        ctrl.buttons |= ControllerButtons::R2;
 }
 
 // PS5 入力
@@ -138,9 +140,23 @@ void ControllerSystem::UpdatePS5Input(ControllerComponent& ctrl)
     if (btnA & DS5W_ISTATE_BTN_A_SELECT)       ctrl.buttons |= ControllerButtons::Share;
     if (btnA & DS5W_ISTATE_BTN_A_MENU)         ctrl.buttons |= ControllerButtons::Options;
 
-    // L2/R2 デジタル判定
-    if (ctrl.leftTrigger >= settings.leftTriggerThreshold)  ctrl.buttons |= ControllerButtons::L2;
-    if (ctrl.rightTrigger >= settings.rightTriggerThreshold) ctrl.buttons |= ControllerButtons::R2;
+    // L2/R2 デジタル判定（ヒステリシス込み）
+    if (UpdateTriggerDigital(ctrl.leftTrigger, settings.leftTriggerPressThreshold, settings.leftTriggerReleaseThreshold, ctrl.leftTriggerHysteresis))
+        ctrl.buttons |= ControllerButtons::L2;
+    if (UpdateTriggerDigital(ctrl.rightTrigger, settings.rightTriggerPressThreshold, settings.rightTriggerReleaseThreshold, ctrl.rightTriggerHysteresis))
+        ctrl.buttons |= ControllerButtons::R2;
+}
+
+// トリガーのヒステリシス判定
+bool ControllerSystem::UpdateTriggerDigital(float triggerValue, float pressThreshold, float releaseThreshold, TriggerHysteresisState& state)
+{
+    bool nowHeld = state.wasHeld
+        ? (triggerValue > releaseThreshold)
+        : (triggerValue >= pressThreshold);
+
+    state.wasHeld = nowHeld;
+
+    return nowHeld;
 }
 
 // PS5 出力送信

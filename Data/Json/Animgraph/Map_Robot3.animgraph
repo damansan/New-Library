@@ -1,5 +1,4 @@
 {
-    "sourceModelPath": "Data/Model/PlayerRobot/Map_Robot3.gltf",
     "states": [
         {
             "id": 1,
@@ -102,7 +101,7 @@
         },
         {
             "id": 10,
-            "name": "Walk",
+            "name": "Move",
             "posX": 176.0,
             "posY": -128.0,
             "type": "State",
@@ -950,7 +949,7 @@
                         "type": "Bool",
                         "intValue": 0,
                         "floatValue": 0.0,
-                        "boolValue": false
+                        "boolValue": true
                     }
                 ],
                 "operatorNodes": [
@@ -966,8 +965,8 @@
                         "id": 49,
                         "posX": 176.0,
                         "posY": 204.0,
-                        "componentName": "PlayerMoveComponent",
-                        "fieldName": "Is Moving",
+                        "componentName": "PlayerIdleComponent",
+                        "fieldName": "Is Idling",
                         "type": "Bool",
                         "selectedComponent": "None"
                     }
@@ -1073,79 +1072,36 @@
                 },
                 "variableNodes": [
                     {
-                        "id": 109,
-                        "posX": 278.0,
-                        "posY": 368.0,
-                        "name": "",
-                        "type": "Bool",
-                        "intValue": 0,
-                        "floatValue": 0.0,
-                        "boolValue": false
-                    },
-                    {
                         "id": 201,
-                        "posX": 278.0,
-                        "posY": 624.0,
+                        "posX": 458.0,
+                        "posY": 528.0,
                         "name": "",
                         "type": "Bool",
                         "intValue": 0,
                         "floatValue": 0.0,
-                        "boolValue": false
+                        "boolValue": true
                     }
                 ],
                 "operatorNodes": [
                     {
-                        "id": 111,
-                        "posX": 514.0,
-                        "posY": 296.0,
-                        "op": "Equal"
-                    },
-                    {
                         "id": 200,
-                        "posX": 510.0,
-                        "posY": 552.0,
-                        "op": "Equal"
-                    },
-                    {
-                        "id": 205,
-                        "posX": 702.0,
+                        "posX": 690.0,
                         "posY": 456.0,
                         "op": "Equal"
                     }
                 ],
                 "getterNodes": [
                     {
-                        "id": 110,
-                        "posX": 282.0,
-                        "posY": 252.0,
-                        "componentName": "PlayerDodgeComponent",
-                        "fieldName": "Is Dodging",
-                        "type": "Bool",
-                        "selectedComponent": "None"
-                    },
-                    {
                         "id": 202,
-                        "posX": 284.0,
-                        "posY": 508.0,
-                        "componentName": "PlayerSprintComponent",
-                        "fieldName": "Is Sprinting",
+                        "posX": 460.0,
+                        "posY": 412.0,
+                        "componentName": "PlayerIdleComponent",
+                        "fieldName": "Is Idling",
                         "type": "Bool",
                         "selectedComponent": "None"
                     }
                 ],
                 "links": [
-                    {
-                        "id": 113,
-                        "fromId": 109,
-                        "toId": 111,
-                        "toPinB": true
-                    },
-                    {
-                        "id": 114,
-                        "fromId": 110,
-                        "toId": 111,
-                        "toPinB": false
-                    },
                     {
                         "id": 203,
                         "fromId": 202,
@@ -1159,20 +1115,8 @@
                         "toPinB": true
                     },
                     {
-                        "id": 206,
-                        "fromId": 111,
-                        "toId": 205,
-                        "toPinB": false
-                    },
-                    {
-                        "id": 207,
+                        "id": 283,
                         "fromId": 200,
-                        "toId": 205,
-                        "toPinB": true
-                    },
-                    {
-                        "id": 208,
-                        "fromId": 205,
                         "toId": 93,
                         "toPinB": false
                     }
@@ -1439,5 +1383,292 @@
                 ]
             }
         }
-    ]
+    ],
+    "transitionLinks": [
+        {
+            "id": 235,
+            "fromId": 1,
+            "toId": 2,
+            "condition": {
+                "returnNode": {
+                    "id": 236,
+                    "posX": 500.0,
+                    "posY": 200.0
+                },
+                "variableNodes": [],
+                "operatorNodes": [],
+                "getterNodes": [],
+                "links": []
+            }
+        },
+        {
+            "id": 237,
+            "fromId": 2,
+            "toId": 10,
+            "condition": {
+                "returnNode": {
+                    "id": 238,
+                    "posX": 610.0,
+                    "posY": 272.0
+                },
+                "variableNodes": [
+                    {
+                        "id": 254,
+                        "posX": 226.0,
+                        "posY": 288.0,
+                        "name": "",
+                        "type": "Bool",
+                        "intValue": 0,
+                        "floatValue": 0.0,
+                        "boolValue": true
+                    }
+                ],
+                "operatorNodes": [
+                    {
+                        "id": 255,
+                        "posX": 450.0,
+                        "posY": 216.0,
+                        "op": "Equal"
+                    }
+                ],
+                "getterNodes": [
+                    {
+                        "id": 253,
+                        "posX": 242.0,
+                        "posY": 172.0,
+                        "componentName": "GameInputComponent",
+                        "fieldName": "Move Stick.Has Input",
+                        "type": "Bool",
+                        "selectedComponent": "None"
+                    }
+                ],
+                "links": [
+                    {
+                        "id": 256,
+                        "fromId": 253,
+                        "toId": 255,
+                        "toPinB": false
+                    },
+                    {
+                        "id": 257,
+                        "fromId": 254,
+                        "toId": 255,
+                        "toPinB": true
+                    },
+                    {
+                        "id": 258,
+                        "fromId": 255,
+                        "toId": 238,
+                        "toPinB": false
+                    }
+                ]
+            }
+        },
+        {
+            "id": 239,
+            "fromId": 10,
+            "toId": 2,
+            "condition": {
+                "returnNode": {
+                    "id": 240,
+                    "posX": 674.0,
+                    "posY": 304.0
+                },
+                "variableNodes": [
+                    {
+                        "id": 259,
+                        "posX": 278.0,
+                        "posY": 320.0,
+                        "name": "",
+                        "type": "Bool",
+                        "intValue": 0,
+                        "floatValue": 0.0,
+                        "boolValue": false
+                    }
+                ],
+                "operatorNodes": [
+                    {
+                        "id": 261,
+                        "posX": 498.0,
+                        "posY": 240.0,
+                        "op": "Equal"
+                    }
+                ],
+                "getterNodes": [
+                    {
+                        "id": 260,
+                        "posX": 290.0,
+                        "posY": 188.0,
+                        "componentName": "GameInputComponent",
+                        "fieldName": "Move Stick.Has Input",
+                        "type": "Bool",
+                        "selectedComponent": "None"
+                    }
+                ],
+                "links": [
+                    {
+                        "id": 262,
+                        "fromId": 259,
+                        "toId": 261,
+                        "toPinB": true
+                    },
+                    {
+                        "id": 263,
+                        "fromId": 260,
+                        "toId": 261,
+                        "toPinB": false
+                    },
+                    {
+                        "id": 264,
+                        "fromId": 261,
+                        "toId": 240,
+                        "toPinB": false
+                    }
+                ]
+            }
+        },
+        {
+            "id": 265,
+            "fromId": 10,
+            "toId": 84,
+            "condition": {
+                "returnNode": {
+                    "id": 266,
+                    "posX": 594.0,
+                    "posY": 288.0
+                },
+                "variableNodes": [
+                    {
+                        "id": 272,
+                        "posX": 198.0,
+                        "posY": 304.0,
+                        "name": "",
+                        "type": "Bool",
+                        "intValue": 0,
+                        "floatValue": 0.0,
+                        "boolValue": true
+                    }
+                ],
+                "operatorNodes": [
+                    {
+                        "id": 273,
+                        "posX": 418.0,
+                        "posY": 232.0,
+                        "op": "Equal"
+                    }
+                ],
+                "getterNodes": [
+                    {
+                        "id": 271,
+                        "posX": 207.0,
+                        "posY": 188.0,
+                        "componentName": "GameInputComponent",
+                        "fieldName": "Dodge Trigger.Released",
+                        "type": "Bool",
+                        "selectedComponent": "None"
+                    }
+                ],
+                "links": [
+                    {
+                        "id": 274,
+                        "fromId": 273,
+                        "toId": 266,
+                        "toPinB": false
+                    },
+                    {
+                        "id": 275,
+                        "fromId": 271,
+                        "toId": 273,
+                        "toPinB": false
+                    },
+                    {
+                        "id": 276,
+                        "fromId": 272,
+                        "toId": 273,
+                        "toPinB": true
+                    }
+                ]
+            }
+        },
+        {
+            "id": 267,
+            "fromId": 84,
+            "toId": 2,
+            "condition": {
+                "returnNode": {
+                    "id": 268,
+                    "posX": 500.0,
+                    "posY": 200.0
+                },
+                "variableNodes": [],
+                "operatorNodes": [],
+                "getterNodes": [],
+                "links": []
+            }
+        },
+        {
+            "id": 269,
+            "fromId": 2,
+            "toId": 84,
+            "condition": {
+                "returnNode": {
+                    "id": 270,
+                    "posX": 466.0,
+                    "posY": 288.0
+                },
+                "variableNodes": [
+                    {
+                        "id": 277,
+                        "posX": 66.0,
+                        "posY": 304.0,
+                        "name": "",
+                        "type": "Bool",
+                        "intValue": 0,
+                        "floatValue": 0.0,
+                        "boolValue": true
+                    }
+                ],
+                "operatorNodes": [
+                    {
+                        "id": 278,
+                        "posX": 302.0,
+                        "posY": 224.0,
+                        "op": "Equal"
+                    }
+                ],
+                "getterNodes": [
+                    {
+                        "id": 279,
+                        "posX": 66.0,
+                        "posY": 172.0,
+                        "componentName": "GameInputComponent",
+                        "fieldName": "Dodge Trigger.Pressed",
+                        "type": "Bool",
+                        "selectedComponent": "None"
+                    }
+                ],
+                "links": [
+                    {
+                        "id": 280,
+                        "fromId": 278,
+                        "toId": 270,
+                        "toPinB": false
+                    },
+                    {
+                        "id": 281,
+                        "fromId": 279,
+                        "toId": 278,
+                        "toPinB": false
+                    },
+                    {
+                        "id": 282,
+                        "fromId": 277,
+                        "toId": 278,
+                        "toPinB": true
+                    }
+                ]
+            }
+        }
+    ],
+    "sourceModelPath": "Data/Model/PlayerRobot/Map_Robot3.gltf"
 }

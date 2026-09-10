@@ -1,167 +1,124 @@
 #include "PlayerDodgeSystem.h"
-
 #include "Project/ECS/Components/GameInputComponent.h"
 #include "Project/ECS/Components/PlayerDodgeComponent.h"
-#include "Project/ECS/Components/PlayerSprintComponent.h"
 #include "Project/ECS/Systems/PlayerMovementUtils.h"
 
-#include "Engine/ECS/Components/MovementComponent.h"
 #include "Engine/ECS/Components/AnimatorComponent.h"
-#include "Engine/ECS/Components/SequencerComponent.h"
+#include "Engine/ECS/Components/StateComponent.h"
+#include "Engine/ECS/Components/MovementComponent.h"
 #include "Engine/ECS/Components/TransformComponent.h"
+#include "Engine/ECS/Systems/StateGraphUtils.h"
 #include <DirectXMath.h>
 
 void PlayerDodgeSystem::Update(entt::registry& registry, float elapsedTime, const SceneContext& context)
 {
-	auto view = registry.view<GameInputComponent, PlayerDodgeComponent, PlayerSprintComponent, MovementComponent, AnimatorComponent, SequencerComponent, TransformComponent>();
+	auto view = registry.view<GameInputComponent, PlayerDodgeComponent, AnimatorComponent, StateComponent, MovementComponent, TransformComponent>();
 
-	view.each([&](auto entity,
-		GameInputComponent& input,
-		PlayerDodgeComponent& dodge,
-		PlayerSprintComponent& sprint,
-		MovementComponent& movement,
-		AnimatorComponent& animator,
-		SequencerComponent& sequencer,
-		TransformComponent& transform)
+	view.each(
+		[&](auto entity,
+			GameInputComponent& input,
+			PlayerDodgeComponent& dodge,
+			AnimatorComponent& animator,
+			StateComponent& state,
+			MovementComponent& movement,
+			TransformComponent& transform)
 		{
-			// 既に押している間は 離した判定ライン を下回るまで押している扱いにする
-			bool triggerHeld = dodge.wasTriggerHeld
-				? (input.dodgeTrigger.value > dodge.triggerReleaseThreshold)
-				: (input.dodgeTrigger.value >= dodge.triggerThreshold);
-			bool triggerPressed = (triggerHeld && !dodge.wasTriggerHeld);
-
-			// スプリント中
-			if (sprint.state == PlayerSprintState::Sprinting)
+			if (animator.animatorGraphPath.empty())
 			{
-				// スプリント中にR2を押したらスプリントを終了、猶予時間内に移行
-				if (triggerPressed)
+				dodge.isDodging = false;
+				return;
+			}
+
+			AnimatorGraphData& data = graphCache.GetOrLoad(animator.animatorGraphPath,
+				[](AnimatorGraphData& data, const nlohmann::json& j) { data.FromJson(j); });
+
+			// "Dodge"のIDをまだ持っていなければ、ここで検索してキャッシュする
+			if (dodgeStateId == -1)
+			{
+				dodgeStateId = StateGraphUtils::FindStateIdByName(data.parentGraph, "Dodge");
+			}
+
+			// 毎フレーム必ず同期する(ガード句の前に置くのがポイント)
+			bool isMyState = (state.currentStateId == dodgeStateId);
+			dodge.isDodging = isMyState;
+
+			if (!isMyState)
+			{
+				// Dodgeの担当を離れる時は、サブ状態と制御権を必ず手放す
+				dodge.dodgeSub = PlayerDodgeSubState::None;
+				dodge.bufferTimer = 0.0f;
+				dodge.isNoneInput = false;
+				dodge.isFrontInput = false;
+				dodge.isBackInput = false;
+				dodge.isLeftInput = false;
+				dodge.isRightInput = false;
+				movement.facingLocked = false;
+				movement.xzControlLocked = false;
+				return;
+			}
+
+			DirectX::XMFLOAT3 front = context.camera->GetFront();
+			DirectX::XMFLOAT3 right = context.camera->GetRight();
+
+			// Dodgeに入った直後、まだ方向が決まっていない場合
+			if (dodge.dodgeSub == PlayerDodgeSubState::None)
+			{
+				dodge.dodgeSub = PlayerDodgeSubState::Deciding;
+				dodge.bufferTimer = 0.0f;
+			}
+
+			// 方向決定の猶予中
+			if (dodge.dodgeSub == PlayerDodgeSubState::Deciding)
+			{
+				// 入力方向と倒し具合を算出
+				auto dir = PlayerMovementUtils::StickToWorldVelocity(input.moveStick.x, input.moveStick.y, front, right, 1.0f);
+
+				// 方向あり回避
+				if (dir.inputLength > 0.0f)
 				{
-					sprint.state = PlayerSprintState::None;
-					dodge.state = PlayerDodgeState::Deciding;
-					dodge.bufferTimer = 0.0f;
+					// 入力方向とキャラクターの向きの差を求める
+					float inputYaw = PlayerMovementUtils::CalcFacingYaw(dir.velocity.x, dir.velocity.z);
+					float diff = inputYaw - transform.rotation.y;
+
+					// 角度差を-180～180の範囲に正規化
+					while (diff > DirectX::XM_PI)  diff -= DirectX::XM_2PI;
+					while (diff < -DirectX::XM_PI) diff += DirectX::XM_2PI;
+
+					const float quarter = DirectX::XM_PIDIV4; // 45度
+
+					if (diff > -quarter && diff <= quarter)
+						dodge.dodgeSub = PlayerDodgeSubState::Front;
+					else if (diff > quarter && diff <= quarter * 3.0f)
+						dodge.dodgeSub = PlayerDodgeSubState::Right;
+					else if (diff > -quarter * 3.0f && diff <= -quarter)
+						dodge.dodgeSub = PlayerDodgeSubState::Left;
+					else
+						dodge.dodgeSub = PlayerDodgeSubState::Back;
+
+					// 向きとXZ方向の制御権を取得
+					movement.facingLocked = true;
+					movement.xzControlLocked = true;
 				}
 				else
 				{
-					DirectX::XMFLOAT3 front = context.camera->GetFront();
-					DirectX::XMFLOAT3 right = context.camera->GetRight();
-
-					// スプリント中は、sprintSpeedを使う
-					auto dir = PlayerMovementUtils::StickToWorldVelocity(input.moveStick.x, input.moveStick.y, front, right, sprint.sprintSpeed);
-					
-					// スティックを離したらIdleに戻す
-					if (dir.inputLength <= 0.0f)
+					// 猶予時間の消化
+					dodge.bufferTimer += elapsedTime;
+					if (dodge.bufferTimer >= dodge.directionBufferTime)
 					{
-						sprint.state = PlayerSprintState::None;
-						movement.xzControlLocked = false;
-					}
-					// スティック入力があれば、スプリント速度で移動する
-					else
-					{
-						movement.velocity.x = dir.velocity.x;
-						movement.velocity.z = dir.velocity.z;
-					}
-				}
-			}
-			else
-			{
-				// R2入力が来たら、Deciding状態に遷移する
-				if (dodge.state == PlayerDodgeState::None && triggerPressed)
-				{
-					dodge.state = PlayerDodgeState::Deciding;
-					dodge.bufferTimer = 0.0f;
-				}
-
-				// スティック入力が来たら、４方向のいずれかに遷移する
-				if (dodge.state == PlayerDodgeState::Deciding)
-				{
-					DirectX::XMFLOAT3 front = context.camera->GetFront();
-					DirectX::XMFLOAT3 right = context.camera->GetRight();
-
-					// 入力方向と倒し具合を算出
-					auto dir = PlayerMovementUtils::StickToWorldVelocity(input.moveStick.x, input.moveStick.y, front, right, 1.0f);
-
-					// 方向あり回避
-					if (dir.inputLength > 0.0f)
-					{
-						// 入力方向とキャラクターの向きの差を求める
-						float inputYaw = PlayerMovementUtils::CalcFacingYaw(dir.velocity.x, dir.velocity.z);
-						float diff = inputYaw - transform.rotation.y;
-
-						// 角度差を-180～180の範囲に正規化
-						while (diff > DirectX::XM_PI)  diff -= DirectX::XM_2PI;
-						while (diff < -DirectX::XM_PI) diff += DirectX::XM_2PI;
-
-						const float quarter = DirectX::XM_PIDIV4; // 45度
-
-						if (diff > -quarter && diff <= quarter)
-							dodge.state = PlayerDodgeState::FrontDodge;
-						else if (diff > quarter && diff <= quarter * 3.0f)
-							dodge.state = PlayerDodgeState::RightDodge;
-						else if (diff > -quarter * 3.0f && diff <= -quarter)
-							dodge.state = PlayerDodgeState::LeftDodge;
-						else
-							dodge.state = PlayerDodgeState::BackDodge;
-
-						// 向きの制御権を取得
+						// スティック入力が来なかったので、その場回避に確定する
+						dodge.dodgeSub = PlayerDodgeSubState::InPlace;
 						movement.facingLocked = true;
-						// XZ方向の制御権を取得
 						movement.xzControlLocked = true;
 					}
-					else
-					{
-						// 猶予時間の消化
-						dodge.bufferTimer += elapsedTime;
-						if (dodge.bufferTimer >= dodge.directionBufferTime)
-						{
-							// スティック入力が来なかったので、単回避に遷移する
-							dodge.state = PlayerDodgeState::Dodge;
-							movement.facingLocked = true;
-							movement.xzControlLocked = true;
-						}
-					}
-				}
-				// ４方向回避の終了判定
-				else if (dodge.state != PlayerDodgeState::None)
-				{
-					// アニメーション終了範囲かつR2が離されたら、回避終了
-					bool exitRequested = sequencer.animExit && !triggerHeld;
-
-					if (animator.isEnd || exitRequested)
-					{
-						dodge.state = PlayerDodgeState::None;
-
-						// 回避終了時スティック入力の有無でスプリントへ引き継ぐか判断する
-						DirectX::XMFLOAT3 front = context.camera->GetFront();
-						DirectX::XMFLOAT3 right = context.camera->GetRight();
-						auto dir = PlayerMovementUtils::StickToWorldVelocity(input.moveStick.x, input.moveStick.y, front, right, 1.0f);
-
-						// スティック入力があればスプリント状態に遷移する
-						if (dir.inputLength > 0.0f)
-						{
-							sprint.state = PlayerSprintState::Sprinting;
-							movement.facingLocked = false;
-						}
-						// スティック入力がなければ通常状態に戻す
-						else
-						{
-							movement.xzControlLocked = false;
-							movement.facingLocked = false;
-						}
-					}
 				}
 			}
 
-			// 前フレームのR2押下状態を保存
-			dodge.wasTriggerHeld = triggerHeld;
 
-			bool activeDodge = (dodge.state != PlayerDodgeState::None && dodge.state != PlayerDodgeState::Deciding);
-			dodge.isDodging = activeDodge;
-			dodge.isNoneInput = (dodge.state == PlayerDodgeState::Dodge);
-			dodge.isFrontInput = (dodge.state == PlayerDodgeState::FrontDodge);
-			dodge.isBackInput = (dodge.state == PlayerDodgeState::BackDodge);
-			dodge.isLeftInput = (dodge.state == PlayerDodgeState::LeftDodge);
-			dodge.isRightInput = (dodge.state == PlayerDodgeState::RightDodge);
-
-			sprint.isSprinting = (sprint.state == PlayerSprintState::Sprinting);
+			// フラグ更新
+			dodge.isNoneInput = (dodge.dodgeSub == PlayerDodgeSubState::InPlace);
+			dodge.isFrontInput = (dodge.dodgeSub == PlayerDodgeSubState::Front);
+			dodge.isBackInput = (dodge.dodgeSub == PlayerDodgeSubState::Back);
+			dodge.isLeftInput = (dodge.dodgeSub == PlayerDodgeSubState::Left);
+			dodge.isRightInput = (dodge.dodgeSub == PlayerDodgeSubState::Right);
 		});
 }

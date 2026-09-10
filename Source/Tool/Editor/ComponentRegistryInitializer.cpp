@@ -13,6 +13,8 @@
 #include "Project/ECS/Components/GameInputComponent.h"
 #include "Engine/ECS/Components/ControllerComponent.h"
 #include "Engine/ECS/Components/MovementComponent.h"
+
+#include "Project/ECS/Components/PlayerIdleComponent.h"
 #include "Project/ECS/Components/PlayerMoveComponent.h"
 #include "Project/ECS/Components/PlayerDodgeComponent.h"
 #include "Project/ECS/Components/PlayerSprintComponent.h"
@@ -106,6 +108,19 @@ void ComponentRegistryInitializer::Initialize()
 				{
 					mat->shadingModel = (ShadingModel)current;
 				}
+			}
+		});
+
+	// Player待機コンポーネントの登録
+	REGISTER_COMPONENT(PlayerIdleComponent, "Player Idle",
+		[](auto& reg, auto e)
+		{
+			auto* _c = reg.try_get<PlayerIdleComponent>(e);
+			if (!_c) return;
+
+			if (ImGui::CollapsingHeader("Player Idle", ImGuiTreeNodeFlags_DefaultOpen))
+			{
+				MetaRegistry::DrawMetaFields(entt::resolve<PlayerIdleComponent>(), entt::forward_as_meta(*_c));
 			}
 		});
 

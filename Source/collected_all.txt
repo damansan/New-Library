@@ -2951,7 +2951,7 @@ void AnimatorGraphData::FromJson(const nlohmann::json& j)
 
 	// “Ç‚İ‚ñ‚¾Œ‹‰ÊEntry‚ª–³‚©‚Á‚½ê‡‚Ì•ÛŒ¯
 	parentGraph.EnsureEntryExists();
-	SyncTransitionLinks();
+	//SyncTransitionLinks();
 
 }
 
@@ -3716,6 +3716,12 @@ enum class ControllerType
     PS5,
 };
 
+// ãƒˆãƒªã‚¬ãƒ¼ã®ãƒ’ã‚¹ãƒ†ãƒªã‚·ã‚¹çŠ¶æ…‹
+struct TriggerHysteresisState
+{
+    bool wasHeld = false;
+};
+
 // ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ©ãƒ¼ã®ç”Ÿã®å…¥åŠ›å€¤ã‚’ä¿æŒã™ã‚‹ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆ
 struct ControllerComponent
 {
@@ -3739,6 +3745,10 @@ struct ControllerComponent
     // ã‚¢ãƒ€ãƒ—ãƒ†ã‚£ãƒ–ãƒˆãƒªã‚¬ãƒ¼å‡ºåŠ›
     AdaptiveTrigger::TriggerEffect leftTriggerEffect = {};
     AdaptiveTrigger::TriggerEffect rightTriggerEffect = {};
+
+	// ãƒˆãƒªã‚¬ãƒ¼ã®ãƒ’ã‚¹ãƒ†ãƒªã‚·ã‚¹çŠ¶æ…‹
+    TriggerHysteresisState leftTriggerHysteresis;
+    TriggerHysteresisState rightTriggerHysteresis;
 
     // ãƒœã‚¿ãƒ³åˆ¤å®šãƒ˜ãƒ«ãƒ‘ãƒ¼
     bool IsPressed(uint32_t mask) const { return (buttons & mask) != 0; }
@@ -3778,8 +3788,10 @@ struct ControllerSettings
 	float rightTriggerDeadzone = 0.05f;
 
 	// L2/R2 ƒfƒWƒ^ƒ‹”»’èè‡’l 
-	float leftTriggerThreshold = 0.5f;
-	float rightTriggerThreshold = 0.5f;
+	float leftTriggerPressThreshold = 0.5f;
+	float leftTriggerReleaseThreshold = 0.3f;
+	float rightTriggerPressThreshold = 0.5f;
+	float rightTriggerReleaseThreshold = 0.3f;
 }; 
  
 ===== FreeCameraComponent.h ===== 
@@ -3997,6 +4009,17 @@ struct SkinnedMeshComponent
     std::vector<DirectX::XMFLOAT3> localPositions;
     std::vector<DirectX::XMFLOAT4> localRotations;
     std::vector<DirectX::XMFLOAT3> localScales;
+}; 
+ 
+===== StateComponent.h ===== 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Components\StateComponent.h 
+#pragma once
+
+// ‘JˆÚƒRƒ“ƒ|[ƒlƒ“ƒg
+struct StateComponent
+{
+	// Œ»İ‚ÌStateID
+	int currentStateId = -1;
 }; 
  
 ===== StaticMeshComponent.h ===== 
@@ -4251,6 +4274,9 @@ private:
 
     // PS5 “ü—Í‚ğControllerComponent‚É‘‚­
     void UpdatePS5Input(ControllerComponent& ctrl);
+
+	// ƒgƒŠƒK[‚ÌƒqƒXƒeƒŠƒVƒX”»’è
+    bool UpdateTriggerDigital(float triggerValue, float pressThreshold, float releaseThreshold, TriggerHysteresisState& state);
 
     // PS5 o—Í‘—M
     void SendPS5Output(ControllerComponent& ctrl);
@@ -4643,6 +4669,38 @@ private:
 	JsonFileCache<SequencerData> dataCache;
 	// 1‘Ì‚ÌƒGƒ“ƒeƒBƒeƒB‚É‚Â‚¢‚ÄAƒtƒ‰ƒO‚ğXV‚·‚é
 	void UpdateFlags(SequencerComponent& seq, const SequencerClipData* clip, float normalizedTime);
+}; 
+ 
+===== StateGraphUtils.h ===== 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\StateGraphUtils.h 
+#pragma once
+#include <string>
+#include "Engine/Data/AnimatorGraphData.h"
+
+namespace StateGraphUtils
+{
+	// State–¼‚©‚çid‚ğ’T‚·
+	int FindStateIdByName(const ParentStateGraph& parentGraph, const std::string& name);
+} 
+ 
+===== TransitionControllerSystem.h ===== 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\TransitionControllerSystem.h 
+#pragma once
+#include "entt.hpp"
+#include "Engine/Core/SceneContext.h"
+#include "Engine/Core/JsonFileCache.h"
+#include "Engine/Data/AnimatorGraphData.h"
+
+class TransitionControllerSystem
+{
+public:
+	void Update(entt::registry& registry, float elapsedTime, const SceneContext& context);
+
+private:
+	JsonFileCache<AnimatorGraphData> graphCache;
+
+	// Œ»İState‚©‚ç‘JˆÚ‰Â”\‚ÈLink‚ğ’T‚·
+	int FindTransition(const std::vector<TransitionLink>& links, int fromId, entt::registry& registry, entt::entity entity);
 }; 
  
 ===== TwoBoneIKSolver.h ===== 
@@ -5788,9 +5846,11 @@ void ControllerSystem::UpdateXboxInput(ControllerComponent& ctrl)
     if (btn & XINPUT_GAMEPAD_START)          ctrl.buttons |= ControllerButtons::Options;
     if (btn & XINPUT_GAMEPAD_BACK)           ctrl.buttons |= ControllerButtons::Share;
 
-    // L2/R2 ãƒ‡ã‚¸ã‚¿ãƒ«åˆ¤å®šï¼ˆsettings ã®é–¾å€¤ã‚’ä½¿ã†ï¼‰
-    if (ctrl.leftTrigger >= settings.leftTriggerThreshold)  ctrl.buttons |= ControllerButtons::L2;
-    if (ctrl.rightTrigger >= settings.rightTriggerThreshold) ctrl.buttons |= ControllerButtons::R2;
+    // L2/R2 ãƒ‡ã‚¸ã‚¿ãƒ«åˆ¤å®šï¼ˆãƒ’ã‚¹ãƒ†ãƒªã‚·ã‚¹è¾¼ã¿ï¼‰
+    if (UpdateTriggerDigital(ctrl.leftTrigger, settings.leftTriggerPressThreshold, settings.leftTriggerReleaseThreshold, ctrl.leftTriggerHysteresis))
+        ctrl.buttons |= ControllerButtons::L2;
+    if (UpdateTriggerDigital(ctrl.rightTrigger, settings.rightTriggerPressThreshold, settings.rightTriggerReleaseThreshold, ctrl.rightTriggerHysteresis))
+        ctrl.buttons |= ControllerButtons::R2;
 }
 
 // PS5 å…¥åŠ›
@@ -5822,9 +5882,23 @@ void ControllerSystem::UpdatePS5Input(ControllerComponent& ctrl)
     if (btnA & DS5W_ISTATE_BTN_A_SELECT)       ctrl.buttons |= ControllerButtons::Share;
     if (btnA & DS5W_ISTATE_BTN_A_MENU)         ctrl.buttons |= ControllerButtons::Options;
 
-    // L2/R2 ãƒ‡ã‚¸ã‚¿ãƒ«åˆ¤å®š
-    if (ctrl.leftTrigger >= settings.leftTriggerThreshold)  ctrl.buttons |= ControllerButtons::L2;
-    if (ctrl.rightTrigger >= settings.rightTriggerThreshold) ctrl.buttons |= ControllerButtons::R2;
+    // L2/R2 ãƒ‡ã‚¸ã‚¿ãƒ«åˆ¤å®šï¼ˆãƒ’ã‚¹ãƒ†ãƒªã‚·ã‚¹è¾¼ã¿ï¼‰
+    if (UpdateTriggerDigital(ctrl.leftTrigger, settings.leftTriggerPressThreshold, settings.leftTriggerReleaseThreshold, ctrl.leftTriggerHysteresis))
+        ctrl.buttons |= ControllerButtons::L2;
+    if (UpdateTriggerDigital(ctrl.rightTrigger, settings.rightTriggerPressThreshold, settings.rightTriggerReleaseThreshold, ctrl.rightTriggerHysteresis))
+        ctrl.buttons |= ControllerButtons::R2;
+}
+
+// ãƒˆãƒªã‚¬ãƒ¼ã®ãƒ’ã‚¹ãƒ†ãƒªã‚·ã‚¹åˆ¤å®š
+bool ControllerSystem::UpdateTriggerDigital(float triggerValue, float pressThreshold, float releaseThreshold, TriggerHysteresisState& state)
+{
+    bool nowHeld = state.wasHeld
+        ? (triggerValue > releaseThreshold)
+        : (triggerValue >= pressThreshold);
+
+    state.wasHeld = nowHeld;
+
+    return nowHeld;
 }
 
 // PS5 å‡ºåŠ›é€ä¿¡
@@ -7372,6 +7446,86 @@ void SequencerSystem::Update(entt::registry& registry)
 		UpdateFlags(seq, clip, normalizedTime);
 	}
 } 
+ 
+===== StateGraphUtils.cpp ===== 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\StateGraphUtils.cpp 
+#include "StateGraphUtils.h"
+
+namespace StateGraphUtils
+{
+	int FindStateIdByName(const ParentStateGraph& parentGraph, const std::string& name)
+	{
+		for (const auto& s : parentGraph.states)
+		{
+			if (s.name == name) return s.id;
+		}
+		return -1;
+	}
+} 
+ 
+===== TransitionControllerSystem.cpp ===== 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\TransitionControllerSystem.cpp 
+#include "TransitionControllerSystem.h"
+#include "Engine/ECS/Components/AnimatorComponent.h"
+#include "Engine/ECS/Components/StateComponent.h"
+#include "ConditionGraphEvaluator.h"
+#include "StateGraphUtils.h"
+
+void TransitionControllerSystem::Update(entt::registry& registry, float elapsedTime, const SceneContext& context)
+{
+	auto view = registry.view<AnimatorComponent>();
+
+	for (auto entity : view)
+	{
+		auto& animator = view.get<AnimatorComponent>(entity);
+
+		if (animator.animatorGraphPath.empty())
+		{
+			continue;
+		}
+
+		auto& state = registry.get_or_emplace<StateComponent>(entity);
+
+		AnimatorGraphData& data = graphCache.GetOrLoad(animator.animatorGraphPath,
+			[](AnimatorGraphData& data, const nlohmann::json& j) { data.FromJson(j); });
+
+		// –¢‰Šú‰»‚Ìê‡AEntry‚©‚ço‚Ä‚¢‚éƒŠƒ“ƒN‚Ì‘JˆÚæ‚ğ‰Šúó‘Ô‚Æ‚·‚é
+		if (state.currentStateId == -1)
+		{
+			int entryId = StateGraphUtils::FindStateIdByName(data.parentGraph, "Entry");
+			if (entryId == -1) continue;
+
+			int initialId = FindTransition(data.transitionGraph.links, entryId, registry, entity);
+			if (initialId == -1) continue;
+
+			state.currentStateId = initialId;
+			continue; // ‘JˆÚ‚µ‚½Å‰‚ÌƒtƒŒ[ƒ€‚ÍA‚»‚êˆÈã‚Ì”»’è‚ğs‚í‚È‚¢
+		}
+
+		// Œ»İ’n‚©‚ço‚Ä‚¢‚éƒŠƒ“ƒN‚ğ‡”Ô‚Éƒ`ƒFƒbƒN
+		int newStateId = FindTransition(data.transitionGraph.links, state.currentStateId, registry, entity);
+		if (newStateId != -1)
+		{
+			OutputDebugStringA(("Transition: " + std::to_string(state.currentStateId) + " -> " + std::to_string(newStateId) + "\n").c_str());
+			state.currentStateId = newStateId;
+		}
+
+	}
+}
+
+// Œ»İState‚©‚ç‘JˆÚ‰Â”\‚ÈLink‚ğ’T‚·
+int TransitionControllerSystem::FindTransition(const std::vector<TransitionLink>& links, int fromId, entt::registry& registry, entt::entity entity)
+{
+	for (const auto& link : links)
+	{
+		if (link.fromId != fromId) continue;
+		if (!ConditionGraphEvaluator::Evaluate(link.condition, registry, entity)) continue;
+
+		return link.toId; // Å‰‚ÉğŒ‚ª¬—§‚µ‚½‚à‚Ì‚ğÌ—p‚·‚é(•¡”ŠY“–‚ÍæŸ‚¿)
+	}
+	return -1;
+}
+ 
  
 ===== TwoBoneIKSolver.cpp ===== 
 Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\TwoBoneIKSolver.cpp 
@@ -12215,15 +12369,37 @@ struct PlayerDodgeComponent
 	float bufferTimer = 0.0f;    // —P—\Œo‰ßŠÔ
 }; 
  
+===== PlayerIdleComponent.h ===== 
+Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Components\PlayerIdleComponent.h 
+#pragma once
+
+enum class IdleSubState
+{
+	None,   
+	Idle,   // ‘Ò‹@’†
+};
+
+struct PlayerIdleComponent
+{
+	// İ’è’l
+
+
+	// ó‘Ô
+	IdleSubState state = IdleSubState::None;
+
+	// ó‘Ôƒtƒ‰ƒO
+	bool isIdling = false;
+}; 
+ 
 ===== PlayerMoveComponent.h ===== 
 Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Components\PlayerMoveComponent.h 
 #pragma once
 
-enum class PlayerMovementState
+enum class PlayerMoveSubState
 {
-	None, 
-	Walking,   // •à‚«
-	Jogging,   // ¬‘–‚è
+	None,
+	Walking, // •à‚«
+	Jogging, // ¬‘–‚è
 };
 
 struct PlayerMoveComponent
@@ -12231,13 +12407,12 @@ struct PlayerMoveComponent
 	// İ’è’l
 	float walkSpeed    = 2.0f; // •à‚«‘¬“x
 	float jogSpeed     = 4.0f; // ¬‘–‚è‘¬“x
-	float sprintSpeed  = 6.0f; // ƒ_ƒbƒVƒ…‘¬“x
 	float jogThreshold = 0.9f; // ƒXƒeƒBƒbƒN‚Ì“|‚µ‹ï‡‚ªA‚±‚Ì’l‚ğ’´‚¦‚½‚ç¬‘–‚è‚Æ‚İ‚È‚·
 	
 	float turnSpeed = 10.0f; // ‚P•b“–‚½‚è‚ÌÅ‘åù‰ñ‘¬“x
 
 	// ó‘Ô
-	PlayerMovementState state = PlayerMovementState::None;
+	PlayerMoveSubState moveSub = PlayerMoveSubState::None;
 
 	// ó‘Ôƒtƒ‰ƒO
 	bool isMoving = false;  // Œ»İAˆÚ“®’†‚©‚Ç‚¤‚©
@@ -12248,7 +12423,6 @@ struct PlayerMoveComponent
 	// “à•”À‘•—p
 	float inputLossGraceTime = 0.1f; // “ü—Í‚ªˆêu–³‚­‚È‚Á‚Ä‚àA—P—\‚Æ‚µ‚ÄˆÛ‚·‚éŠÔ
 	float inputLossTimer = 0.0f;     // “à•”À‘•—pA“ü—Í‚ª–³‚­‚È‚Á‚Ä‚©‚ç‚ÌŒo‰ßŠÔ
-	bool wasControlLocked = false;   // ‘OƒtƒŒ[ƒ€AxzControlLocked‚ªtrue‚¾‚Á‚½‚©
 }; 
  
 ===== PlayerSprintComponent.h ===== 
@@ -12346,6 +12520,25 @@ public:
 	void Update(entt::registry& registry, float elapsedTime, const SceneContext& context);
 }; 
  
+===== PlayerIdleSystem.h ===== 
+Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Systems\PlayerIdleSystem.h 
+#pragma once
+#include "entt.hpp"
+#include "Engine/Core/SceneContext.h"
+#include "Engine/Core/JsonFileCache.h"
+#include "Engine/Data/AnimatorGraphData.h"
+
+class PlayerIdleSystem
+{
+public:
+	void Update(entt::registry& registry, float elapsedTime, const SceneContext& context);
+
+private:
+	// "Idle"‚Æ‚¢‚¤State‚Ì–¼‘O‚ğƒLƒƒƒbƒVƒ…‚·‚é
+	JsonFileCache<AnimatorGraphData> graphCache;
+	int idleStateId = -1;
+}; 
+ 
 ===== PlayerMovementUtils.h ===== 
 Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Systems\PlayerMovementUtils.h 
 #pragma once
@@ -12368,6 +12561,15 @@ namespace PlayerMovementUtils
 		const DirectX::XMFLOAT3& cameraRight,
 		float speed);
 
+	WorldVelocityResult ResolvePlanarVelocity(
+		float inputX, float inputZ,
+		const DirectX::XMFLOAT3& cameraFront,
+		const DirectX::XMFLOAT3& cameraRight,
+		float targetSpeed,
+		const DirectX::XMFLOAT3& currentVelocity,
+		float elapsedTime);
+
+
 	// ƒ[ƒ‹ƒhÀ•WŒn‚ÌˆÚ“®•ûŒü‚©‚çAY²‰ñ“]Šp‚ğ‹‚ß‚é
 	float CalcFacingYaw(float worldDirX, float worldDirZ);
 
@@ -12380,11 +12582,18 @@ Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Systems\PlayerMoveSy
 #pragma once
 #include "entt.hpp"
 #include "Engine/Core/SceneContext.h"
+#include "Engine/Core/JsonFileCache.h"
+#include "Engine/Data/AnimatorGraphData.h"
 
 class PlayerMoveSystem
 {
 public:
 	void Update(entt::registry& registry, float elapsedTime, const SceneContext& context);
+
+private:
+	// "Move"‚Æ‚¢‚¤State‚Ì–¼‘O‚ğƒLƒƒƒbƒVƒ…‚·‚é
+	JsonFileCache<AnimatorGraphData> graphCache;
+	int moveStateId = -1;
 }; 
  
 ===== GameCameraSystem.cpp ===== 
@@ -12423,8 +12632,8 @@ void GameCameraSystem::Update(entt::registry& registry, float elapsedTime)
             if (input)
             {
                 const float rotSpeed = 2.0f;
-                cam.yaw += input->cameraX * rotSpeed * elapsedTime;
-                cam.pitch += input->cameraY * rotSpeed * elapsedTime;
+                cam.yaw += input->cameraStick.x * rotSpeed * elapsedTime;
+                cam.pitch += input->cameraStick.y * rotSpeed * elapsedTime;
                 cam.pitch = std::clamp(cam.pitch, -0.8f, 1.0f);
             }
 
@@ -12791,6 +13000,51 @@ void PlayerDodgeSystem::Update(entt::registry& registry, float elapsedTime, cons
 		});
 } 
  
+===== PlayerIdleSystem.cpp ===== 
+Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Systems\PlayerIdleSystem.cpp 
+#include "PlayerIdleSystem.h"
+#include "Project/ECS/Components/PlayerIdleComponent.h"
+
+#include "Engine/ECS/Components/AnimatorComponent.h"
+#include "Engine/ECS/Components/StateComponent.h"
+#include "Engine/ECS/Systems/StateGraphUtils.h"
+
+void PlayerIdleSystem::Update(entt::registry& registry, float elapsedTime, const SceneContext& context)
+{
+	auto view = registry.view<AnimatorComponent, StateComponent, PlayerIdleComponent>();
+
+	view.each(
+		[&](auto entity,
+			AnimatorComponent& animator,
+			StateComponent& state,
+			PlayerIdleComponent& idle)
+		{
+			// AnimatorGraphPath‚ª‹ó‚È‚çIdle”»’è‚ğfalse‚É‚·‚é
+			if (animator.animatorGraphPath.empty())
+			{
+				idle.isIdling = false;
+				return;
+			}
+
+			AnimatorGraphData& data = graphCache.GetOrLoad(animator.animatorGraphPath,
+				[](AnimatorGraphData& data, const nlohmann::json& j) { data.FromJson(j); });
+
+			// "Idle"‚ÌID‚ğƒLƒƒƒbƒVƒ…‚·‚é‚Ü‚ÅŒŸõ‚·‚é
+			if (idleStateId == -1)
+			{
+				idleStateId = StateGraphUtils::FindStateIdByName(data.parentGraph, "Idle");
+			}
+
+			// Œ»İ‚ªIdle‚©‚Ç‚¤‚©‚ğ”»’è‚·‚é
+			bool isMyState = (state.currentStateId == idleStateId);
+			idle.isIdling = isMyState;
+
+			// Idle‚Å‚È‚¯‚ê‚ÎAˆÈ~‚Ìˆ—‚Ís‚í‚È‚¢
+			if (!isMyState) return;
+
+		});
+} 
+ 
 ===== PlayerMovementUtils.cpp ===== 
 Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Systems\PlayerMovementUtils.cpp 
 #include "PlayerMovementUtils.h"
@@ -12829,6 +13083,20 @@ namespace PlayerMovementUtils
 		return result;
 	}
 
+	WorldVelocityResult ResolvePlanarVelocity(
+		float inputX, float inputZ, 
+		const DirectX::XMFLOAT3& cameraFront, 
+		const DirectX::XMFLOAT3& cameraRight,
+		float targetSpeed, 
+		const DirectX::XMFLOAT3& currentVelocity, 
+		float elapsedTime)
+	{
+		(void)currentVelocity;
+		(void)elapsedTime;
+
+		return StickToWorldVelocity(inputX, inputZ, cameraFront, cameraRight, targetSpeed);
+	}
+
 	float CalcFacingYaw(float worldDirX, float worldDirZ)
 	{
 		return atan2f(-worldDirX, -worldDirZ);
@@ -12855,24 +13123,57 @@ namespace PlayerMovementUtils
 ===== PlayerMoveSystem.cpp ===== 
 Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Systems\PlayerMoveSystem.cpp 
 #include "PlayerMoveSystem.h"
-
 #include "Project/ECS/Components/GameInputComponent.h"
 #include "Project/ECS/Components/PlayerMoveComponent.h"
 #include "Project/ECS/Systems/PlayerMovementUtils.h"
+
+#include "Engine/ECS/Components/AnimatorComponent.h"
+#include "Engine/ECS/Components/StateComponent.h"
 #include "Engine/ECS/Components/MovementComponent.h"
 #include "Engine/ECS/Components/TransformComponent.h"
+#include "Engine/ECS/Systems/StateGraphUtils.h"
 
 void PlayerMoveSystem::Update(entt::registry& registry, float elapsedTime, const SceneContext& context)
 {
-	auto view = registry.view<GameInputComponent, PlayerMoveComponent, MovementComponent, TransformComponent>();
+	auto view = registry.view<GameInputComponent, PlayerMoveComponent, AnimatorComponent, StateComponent, MovementComponent, TransformComponent>();
 
 	view.each(
 		[&](auto entity,
-		GameInputComponent& input,
-		PlayerMoveComponent& playerMove,
-		MovementComponent& movement,
-		TransformComponent& transform)
+			GameInputComponent& input,
+			PlayerMoveComponent& playerMove,
+			AnimatorComponent& animator,
+			StateComponent& state,
+			MovementComponent& movement,
+			TransformComponent& transform)
 		{
+			if (animator.animatorGraphPath.empty())
+			{
+				playerMove.isMoving = false;
+				playerMove.isWalking = false;
+				playerMove.isJogging = false;
+				return;
+			}
+
+			AnimatorGraphData& data = graphCache.GetOrLoad(animator.animatorGraphPath,
+				[](AnimatorGraphData& data, const nlohmann::json& j) { data.FromJson(j); });
+
+			// "Move"‚ÌID‚ğ‚Ü‚¾‚Á‚Ä‚¢‚È‚¯‚ê‚ÎA‚±‚±‚ÅŒŸõ‚µ‚ÄƒLƒƒƒbƒVƒ…‚·‚é
+			if (moveStateId == -1)
+			{
+				moveStateId = StateGraphUtils::FindStateIdByName(data.parentGraph, "Move");
+			}
+
+			// –ˆƒtƒŒ[ƒ€•K‚¸“¯Šú‚·‚é(ƒK[ƒh‹å‚Ì‘O‚É’u‚­‚Ì‚ªƒ|ƒCƒ“ƒg)
+			bool isMyState = (state.currentStateId == moveStateId);
+
+			if (!isMyState)
+			{
+				playerMove.isMoving = false;
+				playerMove.isWalking = false;
+				playerMove.isJogging = false;
+				return;
+			}
+
 			// ˆÚ“®‚ªƒƒbƒN‚³‚ê‚Ä‚¢‚éŠÔ‚ÍA‰½‚à‚µ‚È‚¢
 			if (movement.movementLocked) return;
 
@@ -12880,81 +13181,54 @@ void PlayerMoveSystem::Update(entt::registry& registry, float elapsedTime, const
 			DirectX::XMFLOAT3 front = context.camera->GetFront();
 			DirectX::XMFLOAT3 right = context.camera->GetRight();
 
-			// ƒXƒeƒBƒbƒN“ü—Í‚©‚çƒ[ƒ‹ƒh•ûŒüE“|‚µ‹ï‡‚ğZo
+			// ƒXƒeƒBƒbƒN“ü—Í‚©‚çƒ[ƒ‹ƒh•ûŒü‚ğZo
 			auto dir = PlayerMovementUtils::StickToWorldVelocity(input.moveStick.x, input.moveStick.y, front, right, 1.0f);
 
-			// XZ•½–Ê‚Å³‹K‰»
-			float frontLen = sqrtf(front.x * front.x + front.z * front.z);
-			float rightLen = sqrtf(right.x * right.x + right.z * right.z);
-
-			float frontX = (frontLen > 0.0f) ? front.x / frontLen : 0.0f;
-			float frontZ = (frontLen > 0.0f) ? front.z / frontLen : 0.0f;
-			float rightX = (rightLen > 0.0f) ? right.x / rightLen : 0.0f;
-			float rightZ = (rightLen > 0.0f) ? right.z / rightLen : 0.0f;
-
-			// ˆÚ“®•ûŒüƒxƒNƒgƒ‹
-			float vecX = frontX * input.moveStick.y + rightX * input.moveStick.x;
-			float vecZ = frontZ * input.moveStick.y + rightZ * input.moveStick.x;
-			float vecLen = sqrtf(vecX * vecX + vecZ * vecZ); // ƒXƒeƒBƒbƒN‚Ì“|‚µ‹ï‡
-
-			// Œü‚«‚Ì§ŒäŒ ‚ğ‚Á‚Ä‚¢‚é‚Æ‚«‚Ì‚İXV‚·‚é
+			// Œü‚«‚Ì§ŒäŒ ‚ª‚ ‚é‚Æ‚«‚Ì‚İXV
 			if (!movement.facingLocked && dir.inputLength > 0.0f)
 			{
 				float targetYaw = PlayerMovementUtils::CalcFacingYaw(dir.velocity.x, dir.velocity.z);
 				transform.rotation.y = PlayerMovementUtils::RotateTowards(transform.rotation.y, targetYaw, playerMove.turnSpeed, elapsedTime);
 			}
 
-			// §ŒäŒ ‚ğæ‚è–ß‚µ‚½’¼Œã‚Ì1ƒtƒŒ[ƒ€‚©‚Ç‚¤‚©
-			bool justRegainedControl = playerMove.wasControlLocked && !movement.xzControlLocked;
-
-			// ˆÚ“®‚Ì§ŒäŒ ‚ğ‚Á‚Ä‚¢‚é‚Æ‚«‚Ì‚İXV‚·‚é
+			// ˆÚ“®‚Ì§ŒäŒ ‚ª‚ ‚é‚Æ‚«‚Ì‚İXV
 			if (!movement.xzControlLocked)
 			{
 				if (dir.inputLength > 0.0f)
 				{
-					// “ü—Í’†‚Í—P—\ƒ^ƒCƒ}[‚ğƒŠƒZƒbƒg
+					// “ü—ÍƒƒX—P—\ƒ^ƒCƒ}[‚ğƒŠƒZƒbƒg
 					playerMove.inputLossTimer = 0.0f;
 
-					// “|‚µ‹ï‡‚É‰‚¶‚ÄAWalking/Jogging‚ğ”»’è‚·‚é
-					playerMove.state = (dir.inputLength > playerMove.jogThreshold)
-						? PlayerMovementState::Jogging
-						: PlayerMovementState::Walking;
+					// “|‚µ‚İ—Ê‚É‰‚¶‚ÄAWalking/Jogging‚ğ”»’è
+					playerMove.moveSub = (dir.inputLength > playerMove.jogThreshold)
+						? PlayerMoveSubState::Jogging
+						: PlayerMoveSubState::Walking;
 
-					float speed = (playerMove.state == PlayerMovementState::Jogging) ? playerMove.jogSpeed : playerMove.walkSpeed;
+					float speed = (playerMove.moveSub == PlayerMoveSubState::Jogging) ? playerMove.jogSpeed : playerMove.walkSpeed;
 
 					// ‰ü‚ß‚ÄÀÛ‚Ì‘¬“x‚ÅŒvZ‚µ’¼‚·
-					auto vel = PlayerMovementUtils::StickToWorldVelocity(input.moveStick.x, input.moveStick.y, front, right, speed);
+					auto vel = PlayerMovementUtils::ResolvePlanarVelocity(input.moveStick.x, input.moveStick.y, front, right, speed, movement.velocity, elapsedTime);
 					movement.velocity.x = vel.velocity.x;
 					movement.velocity.z = vel.velocity.z;
 				}
-				else if (justRegainedControl)
-				{
-					// §Œä‚ğæ‚è–ß‚µ‚½uŠÔA“ü—Í‚ª–³‚¢‚È‚ç—P—\‚ğ‹²‚Ü‚¸‘¦À‚ÉŠm’è‚³‚¹‚é
-					playerMove.state = PlayerMovementState::None;
-					playerMove.inputLossTimer = 0.0f;
-					movement.velocity.x = 0.0f;
-					movement.velocity.z = 0.0f;
-				}
 				else
 				{
-					// “ü—Í‚ª‚È‚¢
+					// “ü—Í‚È‚µ—P—\’†
 					playerMove.inputLossTimer += elapsedTime;
 					if (playerMove.inputLossTimer >= playerMove.inputLossGraceTime)
 					{
-						// —P—\Ø‚êB‚±‚±‚Å‰‚ß‚Ä’â~‚³‚¹‚é
-						playerMove.state = PlayerMovementState::None;
+						// “ü—ÍƒƒXŠm’èB“®‚«‚ğ~‚ß‚é
+						playerMove.moveSub = PlayerMoveSubState::None;
 						movement.velocity.x = 0.0f;
 						movement.velocity.z = 0.0f;
 					}
 				}
 			}
 
-			playerMove.wasControlLocked = movement.xzControlLocked;
-
 			// ƒtƒ‰ƒOXV
-			playerMove.isWalking = (playerMove.state == PlayerMovementState::Walking);
-			playerMove.isJogging = (playerMove.state == PlayerMovementState::Jogging);
-			playerMove.isMoving = (playerMove.isWalking || playerMove.isJogging);
+			playerMove.isWalking = (playerMove.moveSub == PlayerMoveSubState::Walking);
+			playerMove.isJogging = (playerMove.moveSub == PlayerMoveSubState::Jogging);
+			playerMove.isMoving = true; // category‚ªMove‚Å‚ ‚é“_‚Åtrue
 		});
 } 
  
@@ -12963,35 +13237,31 @@ Path: C:\Users\offri\Desktop\New-Library\Source\Project\Scene\SceneGame.h
 #pragma once
 #include "Engine/Core/Scene.h"
 
-#include "Engine/ECS/Systems/ControllerSystem.h" 
-#include "Project/ECS/Systems/GameInputSystem.h"   
+// ƒQ[ƒ€ƒvƒŒƒCŒn
+#include "Engine/ECS/Systems/ControllerSystem.h"
+#include "Project/ECS/Systems/GameInputSystem.h"
+#include "Engine/ECS/Systems/TransitionControllerSystem.h"
 #include "Project/ECS/Systems/PlayerDodgeSystem.h"
-#include "Engine/ECS/Systems/MovementSystem.h" 
-#include "Engine/ECS/Systems/AnimationSystem.h"
+#include "Project/ECS/Systems/PlayerMoveSystem.h"
+#include "Engine/ECS/Systems/MovementSystem.h"
 #include "Engine/ECS/Systems/AnimatorControllerSystem.h"
 #include "Engine/ECS/Systems/AnimationSpeedSystem.h"
-
-#include "Project/ECS/Systems/PlayerMoveSystem.h"
-
-
+#include "Engine/ECS/Systems/AnimationSystem.h"
+#include "Engine/ECS/Systems/SequencerSystem.h"
+#include "Engine/ECS/Systems/IKSystem.h"
 #include "Engine/ECS/Systems/MeshLoaderSystem.h"
-#include "Engine/ECS/Systems/RenderSystem.h"
-
+#include "Engine/ECS/Systems/PhysicsSystem.h"
 #include "Engine/ECS/Systems/DebugCameraSystem.h"
-#include "Project/ECS/Systems/GameCameraSystem.h" 
+#include "Project/ECS/Systems/GameCameraSystem.h"
 
+// •`‰æŒn
+#include "Engine/ECS/Systems/RenderSystem.h"
 #include "Engine/Rendering/SkyBox.h"
 #include "Engine/Rendering/LightManager.h"
 #include "Engine/Rendering/PhysicsDebugRenderer.h"
-
-#include "Engine/ECS/Systems/PhysicsSystem.h"
-#include "Engine/ECS/Systems/IKSystem.h"
-
-#include "Engine/ECS/Systems/SequencerSystem.h"
-
 #include "Tool/AdaptiveTriggerToolWindow.h"
 
-
+// ƒfƒ‚
 #include "Unsorted/Demo/WaveDemo.h"
 
 class SceneGame : public Scene
@@ -13004,33 +13274,34 @@ public:
 	void RenderImGui() override;
 
 private:
-	ControllerSystem controllerSystem;
-	GameInputSystem  gameInputSystem;
+	void UpdateGameplay(float elapsedTime, const SceneContext& context);  // ƒQ[ƒ€ƒvƒŒƒCŒn
+	void UpdateAnimation(float elapsedTime, const SceneContext& context); // ƒAƒjƒ[ƒVƒ‡ƒ“Œn
+	void UpdateResources(float elapsedTime, const SceneContext& context); // ƒŠƒ\[ƒXŒn
+	void UpdateCamera(float elapsedTime, const SceneContext& context);    // ƒJƒƒ‰
+
+	// ƒQ[ƒ€ƒvƒŒƒCŒn
+	ControllerSystem  controllerSystem;
+	GameInputSystem   gameInputSystem;
+	TransitionControllerSystem transitionControllerSystem;
 	PlayerDodgeSystem playerDodgeSystem;
-	MovementSystem   movementSystem;
-	AnimationSystem  animationSystem;
+	PlayerMoveSystem  playerMoveSystem;
+	MovementSystem    movementSystem;
 	AnimatorControllerSystem animatorControllerSystem;
-	AnimationSpeedSystem animationSpeedSystem;
-
-	PlayerMoveSystem playerMoveSystem;
-
-	MeshLoaderSystem meshLoaderSystem;
-	RenderSystem     renderSystem;
-
+	AnimationSpeedSystem     animationSpeedSystem;
+	AnimationSystem   animationSystem;
+	SequencerSystem   sequencerSystem;
+	IKSystem          ikSystem;
+	MeshLoaderSystem  meshLoaderSystem;
+	PhysicsSystem     physicsSystem;
 	DebugCameraSystem debugCameraSystem;
 	GameCameraSystem  gameCameraSystem;
 
+	// •`‰æŒn
+	RenderSystem         renderSystem;
+	SkyBox                skyBox;
+	LightManager          lightManager;
+	PhysicsDebugRenderer  physicsDebugRenderer;
 	AdaptiveTriggerToolWindow adaptiveTriggerToolWindow;
-
-	SkyBox       skyBox;
-	LightManager lightManager;
-	PhysicsDebugRenderer physicsDebugRenderer;
-
-	PhysicsSystem    physicsSystem;
-
-	IKSystem         ikSystem;
-
-	SequencerSystem sequencerSystem;
 
 private:
 	// ƒfƒ‚—p
@@ -13129,111 +13400,16 @@ void SceneGame::Update(float elapsedTime, const SceneContext& context)
 	// ãƒ‡ãƒ¢æ›´æ–°
 	waveDemo.Update(elapsedTime);
 
+	// PhysXæ›´æ–°
 	{
-		// PhysXæ›´æ–°
 		ZoneScopedN("UpdatePhysX");
 		UpdatePhysicsScene(elapsedTime);
 	}
 
-
-	{
-		// ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ©ãƒ¼å…¥åŠ›
-		ZoneScopedN("ControllerSystem");
-		controllerSystem.Update(registry, elapsedTime);
-	}
-
-	{
-		// å…¥åŠ›å¤‰æ›
-		ZoneScopedN("InputSystem");
-		gameInputSystem.Update(registry, controllerSystem.GetSettings());
-	}
-	{
-		// Dodge/Sprintã®çŠ¶æ…‹é·ç§»
-		ZoneScopedN("PlayerDodgeSystem");
-		playerDodgeSystem.Update(registry, elapsedTime, context);
-	}
-	{
-		// Playerç§»å‹•(XZå¹³é¢ã€æ­©ã/å°èµ°ã‚Šåˆ¤å®š)
-		ZoneScopedN("PlayerMoveSystem");
-		playerMoveSystem.Update(registry, elapsedTime, context);
-	}
-	{
-		// ç§»å‹•
-		ZoneScopedN("MovementSystem");
-		movementSystem.Update(registry, elapsedTime, context);
-	}
-	{
-		// Stateé·ç§»åˆ¤å®š
-		ZoneScopedN("AnimatorControllerSystem");
-		animatorControllerSystem.Update(registry);
-	}
-	{
-		// é€Ÿåº¦ã‚«ãƒ¼ãƒ–ã®è©•ä¾¡(speedCurveMultiplierã‚’æ›´æ–°)
-		ZoneScopedN("AnimationSpeedSystem");
-		animationSpeedSystem.Update(registry);
-	}
-	{
-		// ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³æ›´æ–°
-		ZoneScopedN("AnimationSystem");
-		animationSystem.Update(registry, elapsedTime);
-	}
-	{
-		// Sequencerã®ãƒ•ãƒ©ã‚°æ›´æ–°
-		ZoneScopedN("SequencerSystem");
-		sequencerSystem.Update(registry);
-	}
-	{
-
-		// IKæ›´æ–°(ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã®å¾Œã«ä¸Šæ›¸ãã™ã‚‹)
-		ZoneScopedN("IKSystem");
-		ikSystem.Update(registry, GetPhysicsScene());
-	}
-
-	{
-		// ãƒ¢ãƒ‡ãƒ«ãƒ­ãƒ¼ãƒ‰
-		ZoneScopedN("MeshLoaderSystem");
-		meshLoaderSystem.Update(registry, context.device, *context.resourceManager);
-	}
-
-	{
-		// ç‰©ç†Bodyç”Ÿæˆãƒ»å‰Šé™¤å‡¦ç†
-		ZoneScopedN("PhysicsSystem");
-		physicsSystem.Update(registry, *context.physX, GetPhysicsScene(), GetControllerManager(), elapsedTime);
-	}
-
-	{
-		// ã‚«ãƒ¡ãƒ©
-		ZoneScopedN("CameraSystem");
-		if (context.cameraMode == CameraMode::Debug)
-		{
-			debugCameraSystem.Update(registry, elapsedTime, context.gameInputActive);
-			debugCameraSystem.ApplyToCamera(registry, *context.camera);
-
-			// ã‚¹ãƒ†ã‚£ãƒƒã‚¯å…¥åŠ›ãŒã‚ã‚Œã°Gameãƒ¢ãƒ¼ãƒ‰ã«æˆ»ã™
-			if (context.editorContext)
-			{
-				auto inputView = registry.view<GameInputComponent>();
-				for (auto entity : inputView)
-				{
-					auto& input = inputView.get<GameInputComponent>(entity);
-					const float threshold = 0.2f;
-					if (fabsf(input.moveStick.x) > threshold ||
-						fabsf(input.moveStick.y) > threshold ||
-						fabsf(input.cameraStick.x) > threshold ||
-						fabsf(input.cameraStick.y) > threshold)
-					{
-						context.editorContext->cameraMode = CameraMode::Game;
-						break;
-					}
-				}
-			}
-		}
-		else
-		{
-			gameCameraSystem.Update(registry, elapsedTime);
-			gameCameraSystem.ApplyToCamera(registry, *context.camera);
-		}
-	}
+	UpdateGameplay(elapsedTime, context);
+	UpdateAnimation(elapsedTime, context);
+	UpdateResources(elapsedTime, context);
+	UpdateCamera(elapsedTime, context);
 }
 
 void SceneGame::Render(const SceneContext& context)
@@ -13342,7 +13518,126 @@ void SceneGame::RenderImGui()
 	//	break;
 	//}
 #endif
-} 
+}
+
+// ã‚²ãƒ¼ãƒ ãƒ—ãƒ¬ã‚¤ç³»
+void SceneGame::UpdateGameplay(float elapsedTime, const SceneContext& context)
+{
+	// ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ©ãƒ¼å…¥åŠ›
+	{
+		ZoneScopedN("ControllerSystem");
+		controllerSystem.Update(registry, elapsedTime);
+	}
+	// å…¥åŠ›å¤‰æ›
+	{
+		ZoneScopedN("InputSystem");
+		gameInputSystem.Update(registry, controllerSystem.GetSettings());
+	}
+	// é·ç§»ã‚°ãƒ©ãƒ•ã®è©•ä¾¡
+	{
+		ZoneScopedN("TransitionControllerSystem");
+		transitionControllerSystem.Update(registry, elapsedTime, context);
+	}
+
+	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼å›é¿å‡¦ç†
+	{
+		ZoneScopedN("PlayerDodgeSystem");
+		playerDodgeSystem.Update(registry, elapsedTime, context);
+	}
+	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ç§»å‹•å‡¦ç†
+	{
+		ZoneScopedN("PlayerMoveSystem");
+		playerMoveSystem.Update(registry, elapsedTime, context);
+	}
+
+	// ç§»å‹•å‡¦ç†
+	{
+		ZoneScopedN("MovementSystem");
+		movementSystem.Update(registry, elapsedTime, context);
+	}
+}
+
+// ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ç³»
+void SceneGame::UpdateAnimation(float elapsedTime, const SceneContext& context)
+{
+	// Stateé·ç§»åˆ¤å®š
+	{
+		ZoneScopedN("AnimatorControllerSystem");
+		animatorControllerSystem.Update(registry);
+	}
+	// ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³é€Ÿåº¦æ›´æ–°
+	{
+		ZoneScopedN("AnimationSpeedSystem");
+		animationSpeedSystem.Update(registry);
+	}
+	// ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³æ›´æ–°
+	{
+		ZoneScopedN("AnimationSystem");
+		animationSystem.Update(registry, elapsedTime);
+	}
+	// ã‚·ãƒ¼ã‚±ãƒ³ã‚µãƒ¼æ›´æ–°
+	{
+		ZoneScopedN("SequencerSystem");
+		sequencerSystem.Update(registry);
+	}
+	// IKæ›´æ–°
+	{
+		ZoneScopedN("IKSystem");
+		ikSystem.Update(registry, GetPhysicsScene());
+	}
+}
+
+// ãƒªã‚½ãƒ¼ã‚¹ç³»
+void SceneGame::UpdateResources(float elapsedTime, const SceneContext& context)
+{
+	// ãƒ¢ãƒ‡ãƒ«ãƒ­ãƒ¼ãƒ‰
+	{
+		ZoneScopedN("MeshLoaderSystem");
+		meshLoaderSystem.Update(registry, context.device, *context.resourceManager);
+	}
+	// ç‰©ç†ã‚·ãƒ¼ãƒ³æ›´æ–°
+	{
+		// ç‰©ç†Bodyç”Ÿæˆãƒ»å‰Šé™¤å‡¦ç†
+		ZoneScopedN("PhysicsSystem");
+		physicsSystem.Update(registry, *context.physX, GetPhysicsScene(), GetControllerManager(), elapsedTime);
+	}
+}
+
+// ã‚«ãƒ¡ãƒ©
+void SceneGame::UpdateCamera(float elapsedTime, const SceneContext& context)
+{
+	ZoneScopedN("CameraSystem");
+	if (context.cameraMode == CameraMode::Debug)
+	{
+		debugCameraSystem.Update(registry, elapsedTime, context.gameInputActive);
+		debugCameraSystem.ApplyToCamera(registry, *context.camera);
+
+		// ã‚¹ãƒ†ã‚£ãƒƒã‚¯å…¥åŠ›ãŒã‚ã‚Œã°Gameãƒ¢ãƒ¼ãƒ‰ã«æˆ»ã™
+		if (context.editorContext)
+		{
+			auto inputView = registry.view<GameInputComponent>();
+			for (auto entity : inputView)
+			{
+				auto& input = inputView.get<GameInputComponent>(entity);
+				const float threshold = 0.2f;
+				if (fabsf(input.moveStick.x) > threshold ||
+					fabsf(input.moveStick.y) > threshold ||
+					fabsf(input.cameraStick.x) > threshold ||
+					fabsf(input.cameraStick.y) > threshold)
+				{
+					context.editorContext->cameraMode = CameraMode::Game;
+					break;
+				}
+			}
+		}
+	}
+	else
+	{
+		gameCameraSystem.Update(registry, elapsedTime);
+		gameCameraSystem.ApplyToCamera(registry, *context.camera);
+	}
+}
+ 
  
 ===== AdaptiveTriggerToolWindow.h ===== 
 Path: C:\Users\offri\Desktop\New-Library\Source\Tool\AdaptiveTriggerToolWindow.h 
@@ -13985,6 +14280,8 @@ private:
 	static void RegisterMeshComponent();
 	// ˆÚ“®ƒRƒ“ƒ|[ƒlƒ“ƒg‚ğ“o˜^
 	static void RegisterMovementComponent();
+	// ƒvƒŒƒCƒ„[‘Ò‹@ƒRƒ“ƒ|[ƒlƒ“ƒg‚ğ“o˜^
+	static void RegisterPlayerIdleComponent();
 	// ƒvƒŒƒCƒ„[ˆÚ“®ƒRƒ“ƒ|[ƒlƒ“ƒg‚ğ“o˜^
 	static void RegisterPlayerMoveComponent();
 	// ƒvƒŒƒCƒ„[‰ñ”ğƒRƒ“ƒ|[ƒlƒ“ƒg‚ğ“o˜^
@@ -14134,6 +14431,8 @@ Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Editor\ComponentRegistryIni
 #include "Project/ECS/Components/GameInputComponent.h"
 #include "Engine/ECS/Components/ControllerComponent.h"
 #include "Engine/ECS/Components/MovementComponent.h"
+
+#include "Project/ECS/Components/PlayerIdleComponent.h"
 #include "Project/ECS/Components/PlayerMoveComponent.h"
 #include "Project/ECS/Components/PlayerDodgeComponent.h"
 #include "Project/ECS/Components/PlayerSprintComponent.h"
@@ -14227,6 +14526,19 @@ void ComponentRegistryInitializer::Initialize()
 				{
 					mat->shadingModel = (ShadingModel)current;
 				}
+			}
+		});
+
+	// Player‘Ò‹@ƒRƒ“ƒ|[ƒlƒ“ƒg‚Ì“o˜^
+	REGISTER_COMPONENT(PlayerIdleComponent, "Player Idle",
+		[](auto& reg, auto e)
+		{
+			auto* _c = reg.try_get<PlayerIdleComponent>(e);
+			if (!_c) return;
+
+			if (ImGui::CollapsingHeader("Player Idle", ImGuiTreeNodeFlags_DefaultOpen))
+			{
+				MetaRegistry::DrawMetaFields(entt::resolve<PlayerIdleComponent>(), entt::forward_as_meta(*_c));
 			}
 		});
 
@@ -14918,6 +15230,7 @@ using namespace entt::literals;
 #include "Engine/ECS/Components/MeshComponent.h"
 #include "Engine/ECS/Components/MovementComponent.h"
 
+#include "Project/ECS/Components/PlayerIdleComponent.h"
 #include "Project/ECS/Components/PlayerMoveComponent.h"
 #include "Project/ECS/Components/PlayerDodgeComponent.h"
 #include "Project/ECS/Components/PlayerSprintComponent.h"
@@ -14935,6 +15248,8 @@ void MetaRegistry::Initialize()
 	RegisterMeshComponent();
 	// ˆÚ“®ƒRƒ“ƒ|[ƒlƒ“ƒg‚ğ“o˜^
 	RegisterMovementComponent();
+	// ƒvƒŒƒCƒ„[‘Ò‹@ƒRƒ“ƒ|[ƒlƒ“ƒg‚ğ“o˜^
+	RegisterPlayerIdleComponent();
 	// ƒvƒŒƒCƒ„[ˆÚ“®ƒRƒ“ƒ|[ƒlƒ“ƒg‚ğ“o˜^
 	RegisterPlayerMoveComponent();
 	// ƒvƒŒƒCƒ„[‰ñ”ğƒRƒ“ƒ|[ƒlƒ“ƒg‚ğ“o˜^
@@ -15175,6 +15490,16 @@ void MetaRegistry::RegisterMovementComponent()
 		.custom<FieldInfo>(FieldInfo{ "Velocity", 0.0f, 0.0f, 0.01f })
 		.data<&MovementComponent::isGrounded>("isGrounded"_hs)
 		.custom<FieldInfo>(FieldInfo{ "Is Grounded" });
+}
+
+// ƒvƒŒƒCƒ„[‘Ò‹@ƒRƒ“ƒ|[ƒlƒ“ƒg‚ğ“o˜^
+void MetaRegistry::RegisterPlayerIdleComponent()
+{
+	entt::meta_factory<PlayerIdleComponent>{}
+	.type("PlayerIdleComponent")
+		.custom<TypeInfo>(TypeInfo{ "Player Idle" })
+		.data<&PlayerIdleComponent::isIdling>("isIdling"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Is Idling", 0.0f, 0.0f, 0.1f, "", true });
 }
 // ƒvƒŒƒCƒ„[ˆÚ“®ƒRƒ“ƒ|[ƒlƒ“ƒg‚ğ“o˜^
 void MetaRegistry::RegisterPlayerMoveComponent()
@@ -17653,12 +17978,8 @@ void StudioAnimatorGraph::Save(StudioContext& context)
 		loaded = true;
 	}
 
-	nlohmann::ordered_json j;
+	nlohmann::ordered_json j = graphData.ToJson();
 	j["sourceModelPath"] = context.currentModelPath;
-
-	nlohmann::ordered_json graphJson = graphData.ToJson();
-	j["states"] = graphJson["states"];
-	j["stateLinks"] = graphJson["stateLinks"];
 
 	std::ofstream ofs(context.attachedGraphPath);
 	if (ofs.is_open())
