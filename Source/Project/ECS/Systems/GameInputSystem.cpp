@@ -1,7 +1,6 @@
 ﻿#include "GameInputSystem.h"
 #include <cmath>
 #include <algorithm>
-#include <Windows.h>
 
 // 更新
 void GameInputSystem::Update(entt::registry& registry, const ControllerSettings& settings)
@@ -66,12 +65,6 @@ void GameInputSystem::Update(entt::registry& registry, const ControllerSettings&
             // R2の押下判定(ヒステリシス込み)
             bool r2Held = ctrl->IsPressed(ControllerButtons::R2);
             UpdateButtonState(input.dodgeTrigger, r2Held);
-
-            // 仮デバッグ
-            if (input.dodgeTrigger.pressed)
-            {
-                OutputDebugStringA("Dodge Trigger Pressed = true\n");
-            }
 
             // ボタン判定
             input.jump = ctrl->IsPressed(ControllerButtons::Cross);

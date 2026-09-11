@@ -7,8 +7,9 @@
 #include "Engine/ECS/Systems/TransitionControllerSystem.h"
 
 #include "Project/ECS/Systems/PlayerIdleSystem.h"
-#include "Project/ECS/Systems/PlayerDodgeSystem.h"
 #include "Project/ECS/Systems/PlayerMoveSystem.h"
+#include "Project/ECS/Systems/PlayerDodgeSystem.h"
+#include "Project/ECS/Systems/PlayerSprintSystem.h"
 
 #include "Engine/ECS/Systems/MovementSystem.h"
 #include "Engine/ECS/Systems/AnimatorControllerSystem.h"
@@ -52,9 +53,10 @@ private:
 	TransitionControllerSystem transitionControllerSystem;
 
 	PlayerIdleSystem  playerIdleSystem;
-	PlayerDodgeSystem playerDodgeSystem;
 	PlayerMoveSystem  playerMoveSystem;
-	
+	PlayerDodgeSystem playerDodgeSystem;
+	PlayerSprintSystem playerSprintSystem;
+
 	MovementSystem    movementSystem;
 	AnimatorControllerSystem animatorControllerSystem;
 	AnimationSpeedSystem     animationSpeedSystem;

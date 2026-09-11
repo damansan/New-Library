@@ -77,6 +77,7 @@
     <ClCompile Include="Source\Project\ECS\Systems\PlayerIdleSystem.cpp" />
     <ClCompile Include="Source\Project\ECS\Systems\PlayerMovementUtils.cpp" />
     <ClCompile Include="Source\Project\ECS\Systems\PlayerMoveSystem.cpp" />
+    <ClCompile Include="Source\Project\ECS\Systems\PlayerSprintSystem.cpp" />
     <ClCompile Include="Source\Project\Scene\SceneGame.cpp" />
     <ClCompile Include="Source\Tool\AdaptiveTriggerToolWindow.cpp" />
     <ClCompile Include="Source\Tool\Editor\ComponentRegistry.cpp" />
@@ -184,6 +185,7 @@
     <ClInclude Include="Source\Project\ECS\Systems\PlayerIdleSystem.h" />
     <ClInclude Include="Source\Project\ECS\Systems\PlayerMovementUtils.h" />
     <ClInclude Include="Source\Project\ECS\Systems\PlayerMoveSystem.h" />
+    <ClInclude Include="Source\Project\ECS\Systems\PlayerSprintSystem.h" />
     <ClInclude Include="Source\Project\Scene\SceneGame.h" />
     <ClInclude Include="Source\Tool\AdaptiveTriggerToolWindow.h" />
     <ClInclude Include="Source\Tool\Editor\ComponentRegistry.h" />

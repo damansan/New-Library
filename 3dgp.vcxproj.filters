@@ -353,6 +353,9 @@
     <Filter Include="Sources\Project\ECS\Systems\Player\PlayerIdleSystem">
       <UniqueIdentifier>{434056a7-fdc5-42ac-a5cf-5c55a1510fed}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\Project\ECS\Systems\Player\PlayerSprintSystem">
+      <UniqueIdentifier>{3842680e-5e2f-44d3-b351-c518b08af1c4}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="External\imgui-docking\imgui.cpp">
@@ -594,6 +597,9 @@
     </ClCompile>
     <ClCompile Include="Source\Project\ECS\Systems\PlayerIdleSystem.cpp">
       <Filter>Sources\Project\ECS\Systems\Player\PlayerIdleSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Project\ECS\Systems\PlayerSprintSystem.cpp">
+      <Filter>Sources\Project\ECS\Systems\Player\PlayerSprintSystem</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -929,6 +935,9 @@
     </ClInclude>
     <ClInclude Include="Source\Project\ECS\Systems\PlayerIdleSystem.h">
       <Filter>Sources\Project\ECS\Systems\Player\PlayerIdleSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Project\ECS\Systems\PlayerSprintSystem.h">
+      <Filter>Sources\Project\ECS\Systems\Player\PlayerSprintSystem</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -228,15 +228,20 @@ void SceneGame::UpdateGameplay(float elapsedTime, const SceneContext& context)
 		ZoneScopedN("PlayerIdleSystem");
 		playerIdleSystem.Update(registry, elapsedTime, context);
 	}
+	// プレイヤー移動処理
+	{
+		ZoneScopedN("PlayerMoveSystem");
+		playerMoveSystem.Update(registry, elapsedTime, context);
+	}
 	// プレイヤー回避処理
 	{
 		ZoneScopedN("PlayerDodgeSystem");
 		playerDodgeSystem.Update(registry, elapsedTime, context);
 	}
-	// プレイヤー移動処理
+	// プレイヤースプリント処理
 	{
-		ZoneScopedN("PlayerMoveSystem");
-		playerMoveSystem.Update(registry, elapsedTime, context);
+		ZoneScopedN("PlayerSprintSystem");
+		playerSprintSystem.Update(registry, elapsedTime, context);
 	}
 
 	// 移動処理

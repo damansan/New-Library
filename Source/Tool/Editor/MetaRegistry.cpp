@@ -332,8 +332,10 @@ void MetaRegistry::RegisterPlayerSprintComponent()
 		.custom<TypeInfo>(TypeInfo{ "Player Sprint" })
 		.data<&PlayerSprintComponent::sprintSpeed>("sprintSpeed"_hs)
 		.custom<FieldInfo>(FieldInfo{ "Sprint Speed", 0.0f, 20.0f })
+		.data<&PlayerSprintComponent::turnSpeed>("turnSpeed"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Turn Speed", 0.0f, 30.0f })
 		.data<&PlayerSprintComponent::isSprinting>("isSprinting"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Is Sprinting" });
+		.custom<FieldInfo>(FieldInfo{ "Is Sprinting", 0.0f, 0.0f, 0.1f, "", true });
 }
 // ゲーム入力コンポーネントを登録
 void MetaRegistry::RegisterGameInputComponent()
