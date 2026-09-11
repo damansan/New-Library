@@ -6852,6 +6852,8 @@ void PhysicsSystem::ProcessCharacterControllers(entt::registry& registry, PhysX&
 				movement->velocity.y = -kGroundStickSpeed;
 			}
 		}
+
+		OutputDebugStringA(("PhysX Y: " + std::to_string(foot.y) + " Transform Y: " + std::to_string(transform.position.y) + "\n").c_str());
 	}
 }
  
@@ -8440,6 +8442,7 @@ void LightManager::Bind(ID3D11DeviceContext* dc)
 Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Rendering\PhysicsDebugRenderer.cpp 
 #include "PhysicsDebugRenderer.h"
 #include "Engine/ECS/Systems/PhysicsSystem.h"
+#include <string>
 
 void PhysicsDebugRenderer::Initialize(ID3D11Device* device)
 {
@@ -8619,6 +8622,14 @@ void PhysicsDebugRenderer::Render(
 		{
 			physx::PxController* ctrl = pxControllerManager->getController(i);
 			physx::PxRigidActor* actor = ctrl->getActor();
+
+			// ‰¼ƒfƒoƒbƒO
+			if (actor)
+			{
+				physx::PxTransform pose = actor->getGlobalPose();
+				OutputDebugStringA(("DebugRender Actor Y: " + std::to_string(pose.p.y) + "\n").c_str());
+			}
+
 			drawActor(actor, 0.0f);
 			drawActor(actor, ctrl->getContactOffset());
 		}
@@ -12543,19 +12554,20 @@ struct PlayerMoveComponent
 Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Components\PlayerSprintComponent.h 
 #pragma once
 
-enum class PlayerSprintState
+enum class PlayerSprintSubState
 {
 	None,
-	Sprinting, // ƒ_ƒbƒVƒ…
+	Sprint, // ƒ_ƒbƒVƒ…
 };
 
 struct PlayerSprintComponent
 {
 	// Ý’è’l
 	float sprintSpeed = 15.0f; // ƒ_ƒbƒVƒ…‘¬“x
+	float turnSpeed = 15.0f;   // 1•b‚ ‚½‚è‚ÌÅ‘åù‰ñ‘¬“x
 
 	// ó‘Ô
-	PlayerSprintState state = PlayerSprintState::None;
+	PlayerSprintSubState state = PlayerSprintSubState::None;
 
 	// ó‘Ôƒtƒ‰ƒO
 	bool isSprinting = false;
@@ -12715,6 +12727,25 @@ private:
 	// "Move"‚Æ‚¢‚¤State‚Ì–¼‘O‚ðƒLƒƒƒbƒVƒ…‚·‚é
 	JsonFileCache<AnimatorGraphData> graphCache;
 	int moveStateId = -1;
+}; 
+ 
+===== PlayerSprintSystem.h ===== 
+Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Systems\PlayerSprintSystem.h 
+#pragma once
+#include "entt.hpp"
+#include "Engine/Core/SceneContext.h"
+#include "Engine/Core/JsonFileCache.h"
+#include "Engine/Data/AnimatorGraphData.h"
+
+class PlayerSprintSystem
+{
+public:
+	void Update(entt::registry& registry, float elapsedTime, const SceneContext& context);
+
+private:
+	// "Sprint"‚Æ‚¢‚¤State‚Ì–¼‘O‚ðƒLƒƒƒbƒVƒ…‚·‚é
+	JsonFileCache<AnimatorGraphData> graphCache;
+	int sprintStateId = -1;
 }; 
  
 ===== GameCameraSystem.cpp ===== 
@@ -13068,7 +13099,6 @@ void PlayerDodgeSystem::Update(entt::registry& registry, float elapsedTime, cons
 				}
 			}
 
-
 			// ƒtƒ‰ƒOXV
 			dodge.isNoneInput = (dodge.dodgeSub == PlayerDodgeSubState::InPlace);
 			dodge.isFrontInput = (dodge.dodgeSub == PlayerDodgeSubState::Front);
@@ -13316,6 +13346,80 @@ void PlayerMoveSystem::Update(entt::registry& registry, float elapsedTime, const
 		});
 } 
  
+===== PlayerSprintSystem.cpp ===== 
+Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Systems\PlayerSprintSystem.cpp 
+#include "PlayerSprintSystem.h"
+#include "Project/ECS/Components/GameInputComponent.h"
+#include "Project/ECS/Components/PlayerSprintComponent.h"
+#include "Project/ECS/Systems/PlayerMovementUtils.h"
+
+#include "Engine/ECS/Components/AnimatorComponent.h"
+#include "Engine/ECS/Components/StateComponent.h"
+#include "Engine/ECS/Components/MovementComponent.h"
+#include "Engine/ECS/Components/TransformComponent.h"
+#include "Engine/ECS/Systems/StateGraphUtils.h"
+#include <DirectXMath.h>
+
+void PlayerSprintSystem::Update(entt::registry& registry, float elapsedTime, const SceneContext& context)
+{
+	auto view = registry.view<GameInputComponent, PlayerSprintComponent, AnimatorComponent, StateComponent, MovementComponent, TransformComponent>();
+
+	view.each(
+		[&](auto entity,
+			GameInputComponent& input,
+			PlayerSprintComponent& sprint,
+			AnimatorComponent& animator,
+			StateComponent& state,
+			MovementComponent& movement,
+			TransformComponent& transform)
+		{
+			if (animator.animatorGraphPath.empty())
+			{
+				sprint.isSprinting = false;
+				return;
+			}
+
+			AnimatorGraphData& data = graphCache.GetOrLoad(animator.animatorGraphPath,
+				[](AnimatorGraphData& data, const nlohmann::json& j) { data.FromJson(j); });
+
+			// "Sprint"‚ÌID‚ð‚Ü‚¾Ž‚Á‚Ä‚¢‚È‚¯‚ê‚ÎA‚±‚±‚ÅŒŸõ‚µ‚ÄƒLƒƒƒbƒVƒ…‚·‚é
+			if (sprintStateId == -1)
+			{
+				sprintStateId = StateGraphUtils::FindStateIdByName(data.parentGraph, "Sprint");
+			}
+
+			// –ˆƒtƒŒ[ƒ€•K‚¸“¯Šú‚·‚é(ƒK[ƒh‹å‚Ì‘O‚É’u‚­‚Ì‚ªƒ|ƒCƒ“ƒg)
+			bool isMyState = (state.currentStateId == sprintStateId);
+			sprint.isSprinting = isMyState;
+
+			if (!isMyState)
+			{
+				// Sprint‚Ì’S“–‚ð—£‚ê‚éŽž‚ÍAXZ‘¬“x‚ðŠmŽÀ‚ÉŽ~‚ß‚é
+				movement.velocity.x = 0.0f;
+				movement.velocity.z = 0.0f;
+				return;
+			}
+
+			// ‚±‚±‚©‚çæ‚ÍA•K‚¸category == Sprint
+			DirectX::XMFLOAT3 front = context.camera->GetFront();
+			DirectX::XMFLOAT3 right = context.camera->GetRight();
+
+			// ƒXƒeƒBƒbƒN“ü—Í‚©‚çƒ[ƒ‹ƒh•ûŒü‚ðŽZo
+			auto dir = PlayerMovementUtils::StickToWorldVelocity(input.moveStick.x, input.moveStick.y, front, right, 1.0f);
+
+			// Œü‚«‚Ì§ŒäŒ ‚ª‚ ‚é‚Æ‚«‚Ì‚ÝXV
+			if (!movement.facingLocked && dir.inputLength > 0.0f)
+			{
+				float targetYaw = PlayerMovementUtils::CalcFacingYaw(dir.velocity.x, dir.velocity.z);
+				transform.rotation.y = PlayerMovementUtils::RotateTowards(transform.rotation.y, targetYaw, sprint.turnSpeed, elapsedTime);
+			}
+
+			auto vel = PlayerMovementUtils::ResolvePlanarVelocity(input.moveStick.x, input.moveStick.y, front, right, sprint.sprintSpeed, movement.velocity, elapsedTime);
+			movement.velocity.x = vel.velocity.x;
+			movement.velocity.z = vel.velocity.z;
+		});
+} 
+ 
 ===== SceneGame.h ===== 
 Path: C:\Users\offri\Desktop\New-Library\Source\Project\Scene\SceneGame.h 
 #pragma once
@@ -13327,8 +13431,9 @@ Path: C:\Users\offri\Desktop\New-Library\Source\Project\Scene\SceneGame.h
 #include "Engine/ECS/Systems/TransitionControllerSystem.h"
 
 #include "Project/ECS/Systems/PlayerIdleSystem.h"
-#include "Project/ECS/Systems/PlayerDodgeSystem.h"
 #include "Project/ECS/Systems/PlayerMoveSystem.h"
+#include "Project/ECS/Systems/PlayerDodgeSystem.h"
+#include "Project/ECS/Systems/PlayerSprintSystem.h"
 
 #include "Engine/ECS/Systems/MovementSystem.h"
 #include "Engine/ECS/Systems/AnimatorControllerSystem.h"
@@ -13372,9 +13477,10 @@ private:
 	TransitionControllerSystem transitionControllerSystem;
 
 	PlayerIdleSystem  playerIdleSystem;
-	PlayerDodgeSystem playerDodgeSystem;
 	PlayerMoveSystem  playerMoveSystem;
-	
+	PlayerDodgeSystem playerDodgeSystem;
+	PlayerSprintSystem playerSprintSystem;
+
 	MovementSystem    movementSystem;
 	AnimatorControllerSystem animatorControllerSystem;
 	AnimationSpeedSystem     animationSpeedSystem;
@@ -13634,15 +13740,20 @@ void SceneGame::UpdateGameplay(float elapsedTime, const SceneContext& context)
 		ZoneScopedN("PlayerIdleSystem");
 		playerIdleSystem.Update(registry, elapsedTime, context);
 	}
+	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ç§»å‹•å‡¦ç†
+	{
+		ZoneScopedN("PlayerMoveSystem");
+		playerMoveSystem.Update(registry, elapsedTime, context);
+	}
 	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼å›žé¿å‡¦ç†
 	{
 		ZoneScopedN("PlayerDodgeSystem");
 		playerDodgeSystem.Update(registry, elapsedTime, context);
 	}
-	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ç§»å‹•å‡¦ç†
+	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã‚¹ãƒ—ãƒªãƒ³ãƒˆå‡¦ç†
 	{
-		ZoneScopedN("PlayerMoveSystem");
-		playerMoveSystem.Update(registry, elapsedTime, context);
+		ZoneScopedN("PlayerSprintSystem");
+		playerSprintSystem.Update(registry, elapsedTime, context);
 	}
 
 	// ç§»å‹•å‡¦ç†
@@ -15648,8 +15759,10 @@ void MetaRegistry::RegisterPlayerSprintComponent()
 		.custom<TypeInfo>(TypeInfo{ "Player Sprint" })
 		.data<&PlayerSprintComponent::sprintSpeed>("sprintSpeed"_hs)
 		.custom<FieldInfo>(FieldInfo{ "Sprint Speed", 0.0f, 20.0f })
+		.data<&PlayerSprintComponent::turnSpeed>("turnSpeed"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Turn Speed", 0.0f, 30.0f })
 		.data<&PlayerSprintComponent::isSprinting>("isSprinting"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Is Sprinting" });
+		.custom<FieldInfo>(FieldInfo{ "Is Sprinting", 0.0f, 0.0f, 0.1f, "", true });
 }
 // ƒQ[ƒ€“ü—ÍƒRƒ“ƒ|[ƒlƒ“ƒg‚ð“o˜^
 void MetaRegistry::RegisterGameInputComponent()

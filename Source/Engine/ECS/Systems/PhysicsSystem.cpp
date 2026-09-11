@@ -280,5 +280,7 @@ void PhysicsSystem::ProcessCharacterControllers(entt::registry& registry, PhysX&
 				movement->velocity.y = -kGroundStickSpeed;
 			}
 		}
+
+		OutputDebugStringA(("PhysX Y: " + std::to_string(foot.y) + " Transform Y: " + std::to_string(transform.position.y) + "\n").c_str());
 	}
 }

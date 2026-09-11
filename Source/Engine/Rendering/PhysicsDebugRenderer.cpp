@@ -1,5 +1,7 @@
 #include "PhysicsDebugRenderer.h"
 #include "Engine/ECS/Systems/PhysicsSystem.h"
+#include <string>
+#include <algorithm>
 
 void PhysicsDebugRenderer::Initialize(ID3D11Device* device)
 {
@@ -155,7 +157,22 @@ void PhysicsDebugRenderer::Render(
 			}
 		};
 
-	// Static / Dynamic Actor
+	// Controllerが内部で持つActorを、あらかじめ集めておく(Static/Dynamicループで二重描画しないため)
+	std::vector<physx::PxRigidActor*> controllerActors;
+	if (pxControllerManager)
+	{
+		physx::PxU32 numControllers = pxControllerManager->getNbControllers();
+		for (physx::PxU32 i = 0; i < numControllers; ++i)
+		{
+			physx::PxController* ctrl = pxControllerManager->getController(i);
+			if (physx::PxRigidActor* a = ctrl->getActor())
+			{
+				controllerActors.push_back(a);
+			}
+		}
+	}
+
+	// Static / Dynamic Actor(Controllerのactorは除外する)
 	{
 		physx::PxActorTypeFlags flags =
 			physx::PxActorTypeFlag::eRIGID_STATIC |
@@ -167,9 +184,15 @@ void PhysicsDebugRenderer::Render(
 			pxScene->getActors(flags,
 				reinterpret_cast<physx::PxActor**>(actors.data()), numActors);
 			for (auto* actor : actors)
+			{
+				bool isControllerActor = std::find(controllerActors.begin(), controllerActors.end(), actor) != controllerActors.end();
+				if (isControllerActor) continue;
+
 				drawActor(actor, 0.0f);
+			}
 		}
 	}
+
 
 	// Controller
 	if (pxControllerManager)
@@ -179,8 +202,33 @@ void PhysicsDebugRenderer::Render(
 		{
 			physx::PxController* ctrl = pxControllerManager->getController(i);
 			physx::PxRigidActor* actor = ctrl->getActor();
-			drawActor(actor, 0.0f);
-			drawActor(actor, ctrl->getContactOffset());
+			if (!actor) continue;
+
+			physx::PxExtendedVec3 footPos = ctrl->getFootPosition();
+			float halfHeight = ctrl->getPosition().y - footPos.y; // 参考: 現状のgetPosition()との差を見るための仮計算
+
+			// カプセルコントローラーとして、半径+半分の高さを中心へのオフセットとして使う
+			physx::PxCapsuleController* capsuleCtrl = static_cast<physx::PxCapsuleController*>(ctrl);
+			float centerOffsetY = capsuleCtrl->getHeight() * 0.5f + capsuleCtrl->getRadius();
+
+			physx::PxTransform correctedActorPose(
+				physx::PxVec3((float)footPos.x, (float)footPos.y + centerOffsetY, (float)footPos.z),
+				actor->getGlobalPose().q
+			);
+
+			physx::PxRigidDynamic* dynamic = actor->is<physx::PxRigidDynamic>();
+			bool sleeping = dynamic ? dynamic->isSleeping() : false;
+
+			const physx::PxU32 numShapes = actor->getNbShapes();
+			actor->getShapes(pxShapes, numShapes);
+
+			for (physx::PxU32 s = 0; s < numShapes; ++s)
+			{
+				// シェイプ自身のローカル姿勢を、補正済みのアクター姿勢に合成する
+				physx::PxTransform shapeWorldPose = correctedActorPose * pxShapes[s]->getLocalPose();
+				drawShape(pxShapes[s], shapeWorldPose, 0.0f, sleeping);
+				drawShape(pxShapes[s], shapeWorldPose, ctrl->getContactOffset(), sleeping);
+			}
 		}
 	}
 

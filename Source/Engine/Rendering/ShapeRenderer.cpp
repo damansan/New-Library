@@ -1,5 +1,6 @@
 #include "ShapeRenderer.h"
 #include "Engine/Resource/GpuResourceUtils.h"
+#include <algorithm>
 
 static const float PI = DirectX::XM_PI;
 static const int   SUBDIVISIONS = 16;
@@ -154,6 +155,12 @@ void ShapeRenderer::Render(
 		UINT instanceOffset;
 		UINT instanceCount;
 	};
+
+	std::sort(instances.begin(), instances.end(),
+		[](const Instance& a, const Instance& b)
+		{
+			return a.wiredMesh < b.wiredMesh;
+		});
 
 	std::vector<InstanceGroup> groups;
 	std::vector<InstanceData> instanceData;
