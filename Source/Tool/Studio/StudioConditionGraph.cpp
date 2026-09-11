@@ -31,6 +31,7 @@ void StudioConditionGraph::DrawGUI()
 	DrawReturnNode();
 	DrawVariableNodes();
 	DrawOperatorNodes();
+	DrawLogicNodes();
 	DrawGetterNodes();
 
 	ed::PopStyleVar(1);
@@ -49,6 +50,7 @@ void StudioConditionGraph::DrawGUI()
 // 右側メニュー
 void StudioConditionGraph::DrawInspector()
 {
+	// 変数ノード選択
 	if (selectedVariable)
 	{
 		ImGui::Text("Variable");
@@ -80,6 +82,7 @@ void StudioConditionGraph::DrawInspector()
 		return;
 	}
 
+	// ゲッターノード選択
 	if (selectedGetter)
 	{
 		ImGui::Text("Getter");
@@ -169,6 +172,7 @@ void StudioConditionGraph::DrawInspector()
 		return;
 	}
 
+	// 比較演算ノード選択
 	if (selectedOperator)
 	{
 		ImGui::Text("Operator");
@@ -185,6 +189,24 @@ void StudioConditionGraph::DrawInspector()
 		return;
 	}
 
+	// 論理演算ノード選択
+	if (selectedLogic)
+	{
+		ImGui::Text("Logic");
+		ImGui::Separator();
+
+		ImGui::Text("Op: %s", GetLogicOpSymbol(selectedLogic->op));
+
+		if (ImGui::Button("Toggle AND/OR", ImVec2(-1.0f, 0.0f)))
+		{
+			selectedLogic->op = (selectedLogic->op == LogicOp::And) ? LogicOp::Or : LogicOp::And;
+		}
+
+		DrawDeleteButton("Delete Logic", selectedLogic->id, [this](int id) { DeleteLogicNode(id); });
+		return;
+	}
+
+	// リンク選択
 	if (selectedConditionLink)
 	{
 		ImGui::Text("Link");
@@ -384,6 +406,62 @@ void StudioConditionGraph::DrawOperatorNodes()
 		o.posY = currentPos.y;
 	}
 }
+// 論理演算ノード描画
+void StudioConditionGraph::DrawLogicNodes()
+{
+	const float nodeWidth = 100.0f;
+	const ImColor logicBorderColor(200, 130, 60, 255); // オレンジ
+
+	for (auto& l : targetCondition->logicNodes)
+	{
+		ed::NodeId nodeId(l.id);
+		if (needsApplyPositions)
+		{
+			ed::SetNodePosition(nodeId, ImVec2(l.posX, l.posY));
+		}
+
+		ed::PushStyleColor(ed::StyleColor_NodeBorder, logicBorderColor);
+		ed::PushStyleVar(ed::StyleVar_NodeBorderWidth, 2.0f);
+
+		ed::BeginNode(nodeId);
+		ImGui::PushID(l.id);
+
+		// A側入力ピン
+		ed::BeginPin(GetLogicPinA(l.id), ed::PinKind::Input);
+		ImGui::Text(u8"▶");
+		ed::EndPin();
+
+		// 演算子記号(中央寄せ、少し大きめに表示)
+		const char* symbol = GetLogicOpSymbol(l.op);
+		const float symbolScale = 1.5f;
+
+		ImGui::SetWindowFontScale(symbolScale);
+		float symbolWidth = ImGui::CalcTextSize(symbol).x;
+		CenterNextItem(nodeWidth, symbolWidth);
+		ImGui::Text("%s", symbol);
+		ImGui::SetWindowFontScale(1.0f);
+
+		// B側入力ピンと、出力ピン(同じ行)
+		ed::BeginPin(GetLogicPinB(l.id), ed::PinKind::Input);
+		ImGui::Text(u8"▶");
+		ed::EndPin();
+
+		ImGui::SameLine(nodeWidth);
+		ed::BeginPin(GetLogicOutPinId(l.id), ed::PinKind::Output);
+		ImGui::Text(u8"▶");
+		ed::EndPin();
+
+		ImGui::PopID();
+		ed::EndNode();
+
+		ed::PopStyleColor(1);
+		ed::PopStyleVar(1);
+
+		ImVec2 currentPos = ed::GetNodePosition(nodeId);
+		l.posX = currentPos.x;
+		l.posY = currentPos.y;
+	}
+}
 // ゲッターノード描画
 void StudioConditionGraph::DrawGetterNodes()
 {
@@ -517,6 +595,7 @@ void StudioConditionGraph::DrawCreateNodeMenu()
 	}
 	if (ImGui::BeginPopup("CreateConditionNode"))
 	{
+		// 変数
 		if (ImGui::BeginMenu("Add Variable"))
 		{
 			if (ImGui::MenuItem("int"))
@@ -534,6 +613,7 @@ void StudioConditionGraph::DrawCreateNodeMenu()
 			ImGui::EndMenu();
 		}
 
+		// 比較演算子
 		if (ImGui::BeginMenu("Add Operator"))
 		{
 			if (ImGui::MenuItem(">"))  CreateOperatorNode(CompareOp::Greater);
@@ -545,6 +625,15 @@ void StudioConditionGraph::DrawCreateNodeMenu()
 			ImGui::EndMenu();
 		}
 
+		// 論理演算子
+		if (ImGui::BeginMenu("Add Logic"))
+		{
+			if (ImGui::MenuItem("AND")) CreateLogicNode(LogicOp::And);
+			if (ImGui::MenuItem("OR"))  CreateLogicNode(LogicOp::Or);
+			ImGui::EndMenu();
+		}
+
+		// コンポーネントのゲッター
 		if (ImGui::MenuItem("Add Getter"))
 		{
 			CreateGetterNode();
@@ -585,6 +674,21 @@ void StudioConditionGraph::CreateOperatorNode(CompareOp op)
 
 	ed::SetNodePosition(ed::NodeId(o.id), canvasPos);
 }
+// 論理演算ノード作成
+void StudioConditionGraph::CreateLogicNode(LogicOp op)
+{
+	ImVec2 canvasPos = ed::ScreenToCanvas(pendingCreatePos);
+
+	ConditionLogicNode l;
+	l.id = targetCondition->GenerateId();
+	l.posX = canvasPos.x;
+	l.posY = canvasPos.y;
+	l.op = op;
+
+	targetCondition->logicNodes.push_back(l);
+
+	ed::SetNodePosition(ed::NodeId(l.id), canvasPos);
+}
 // ゲッターノード作成
 void StudioConditionGraph::CreateGetterNode()
 {
@@ -621,6 +725,7 @@ void StudioConditionGraph::DrawDeleteButton(const char* label, int targetId, con
 		selectedVariable = nullptr;
 		selectedGetter = nullptr;
 		selectedOperator = nullptr;
+		selectedLogic = nullptr;
 		selectedConditionLink = nullptr;
 	}
 }
@@ -675,6 +780,23 @@ void StudioConditionGraph::DeleteOperatorNode(int id)
 		links.end()
 	);
 }
+// 論理演算ノード削除
+void StudioConditionGraph::DeleteLogicNode(int id)
+{
+	auto& logics = targetCondition->logicNodes;
+	logics.erase(
+		std::remove_if(logics.begin(), logics.end(),
+			[id](const ConditionLogicNode& l) { return l.id == id; }),
+		logics.end()
+	);
+
+	auto& links = targetCondition->links;
+	links.erase(
+		std::remove_if(links.begin(), links.end(),
+			[id](const ConditionLink& cl) { return cl.fromId == id || cl.toId == id; }),
+		links.end()
+	);
+}
 // ConditionLink削除
 void StudioConditionGraph::DeleteConditionLink(int id)
 {
@@ -693,6 +815,7 @@ void StudioConditionGraph::UpdateSelection()
 	selectedVariable = nullptr;
 	selectedGetter = nullptr;
 	selectedOperator = nullptr;
+	selectedLogic = nullptr;
 	selectedConditionLink = nullptr;
 
 	if (ed::GetSelectedObjectCount() == 0) return;
@@ -712,6 +835,10 @@ void StudioConditionGraph::UpdateSelection()
 	for (auto& o : targetCondition->operatorNodes)
 	{
 		if (o.id == id) { selectedOperator = &o; return; }
+	}
+	for (auto& l : targetCondition->logicNodes)
+	{
+		if (l.id == id) { selectedLogic = &l; return; }
 	}
 
 	// Linkの選択
@@ -796,6 +923,17 @@ CompareOp StudioConditionGraph::InvertCompareOp(CompareOp op)
 	}
 }
 
+// 論理演算子の表示用記号
+const char* StudioConditionGraph::GetLogicOpSymbol(LogicOp op)
+{
+	switch (op)
+	{
+	case LogicOp::And: return "AND";
+	case LogicOp::Or:  return "OR";
+	}
+	return "?";
+}
+
 
 // 生のピンID(int64_t)から、役割とノードIDを逆算する
 void StudioConditionGraph::ResolvePinRole(int64_t rawPinId, PinRole& outRole, int& outNodeId)
@@ -810,6 +948,15 @@ void StudioConditionGraph::ResolvePinRole(int64_t rawPinId, PinRole& outRole, in
 	{
 		outRole = PinRole::GetterOut;
 		outNodeId = (int)(rawPinId - GetterOffset);
+		return;
+	}
+	if (rawPinId >= LogicOffset && rawPinId < LogicOffset + 1000000)
+	{
+		int64_t offset = rawPinId - LogicOffset;
+		int64_t nodeId = offset / 3;
+		int64_t rem = offset % 3;
+		outNodeId = (int)nodeId;
+		outRole = (rem == 0) ? PinRole::LogicA : (rem == 1) ? PinRole::LogicB : PinRole::LogicOut;
 		return;
 	}
 	if (rawPinId >= OperatorOffset && rawPinId < OperatorOffset + 1000000)
@@ -848,6 +995,9 @@ StudioConditionGraph::NodeKind StudioConditionGraph::GetNodeKind(int id) const
 	for (const auto& o : targetCondition->operatorNodes)
 		if (o.id == id) return NodeKind::Operator;
 
+	for (const auto& l : targetCondition->logicNodes)
+		if (l.id == id) return NodeKind::Logic;
+
 	return NodeKind::Unknown;
 }
 // ピン接続(ドラッグ)の処理
@@ -866,11 +1016,12 @@ void StudioConditionGraph::DrawLinkCreation()
 			// 出力側/入力側を判定する(ドラッグの向きに関わらず正規化する)
 			auto isOutputRole = [](PinRole r)
 				{
-					return r == PinRole::VariableOut || r == PinRole::GetterOut || r == PinRole::OperatorOut;
+					return r == PinRole::VariableOut || r == PinRole::GetterOut || r == PinRole::OperatorOut || r == PinRole::LogicOut;
 				};
 			auto isInputRole = [](PinRole r)
 				{
-					return r == PinRole::VariableIn || r == PinRole::OperatorA || r == PinRole::OperatorB || r == PinRole::ReturnIn;
+					return r == PinRole::VariableIn || r == PinRole::OperatorA || r == PinRole::OperatorB
+						|| r == PinRole::LogicA || r == PinRole::LogicB || r == PinRole::ReturnIn;
 				};
 
 			PinRole outRole, inRole;
@@ -890,36 +1041,29 @@ void StudioConditionGraph::DrawLinkCreation()
 				orderOk = true;
 			}
 
-			//// 許可する組み合わせ:Getter→Variable、Variable/Operator→OperatorA/B、Operator→Return、Getter/Variable(bool)→Return
-			//bool isValid = orderOk && (
-			//	(outRole == PinRole::GetterOut && inRole == PinRole::VariableIn) ||
-			//	((outRole == PinRole::VariableOut || outRole == PinRole::OperatorOut) && (inRole == PinRole::OperatorA || inRole == PinRole::OperatorB)) ||
-			//	(outRole == PinRole::OperatorOut && inRole == PinRole::ReturnIn) ||
-			//	((outRole == PinRole::GetterOut || outRole == PinRole::VariableOut) && inRole == PinRole::ReturnIn)
-			//	);
-			// 許可する組み合わせ:Getter/Variable/Operator→OperatorA/B、Operator→Return、Getter/Variable(bool)→Return
+			// 出力側が「常にBoolな出力(Operator/Logic)」かどうか
+			auto isBoolOutRole = [](PinRole r)
+				{
+					return r == PinRole::OperatorOut || r == PinRole::LogicOut;
+				};
+
+			// 許可する組み合わせ:
+			// Getter/Variable/Operator/Logic → OperatorA/B
+			// Getter/Variable(bool)/Operator/Logic → LogicA/B
+			// Operator/Logic → Return
+			// Getter/Variable(bool) → Return
 			bool isValid = orderOk && (
-				((outRole == PinRole::GetterOut || outRole == PinRole::VariableOut || outRole == PinRole::OperatorOut) && (inRole == PinRole::OperatorA || inRole == PinRole::OperatorB)) ||
-				(outRole == PinRole::OperatorOut && inRole == PinRole::ReturnIn) ||
+				((outRole == PinRole::GetterOut || outRole == PinRole::VariableOut || isBoolOutRole(outRole)) && (inRole == PinRole::OperatorA || inRole == PinRole::OperatorB)) ||
+				((outRole == PinRole::GetterOut || outRole == PinRole::VariableOut || isBoolOutRole(outRole)) && (inRole == PinRole::LogicA || inRole == PinRole::LogicB)) ||
+				(isBoolOutRole(outRole) && inRole == PinRole::ReturnIn) ||
 				((outRole == PinRole::GetterOut || outRole == PinRole::VariableOut) && inRole == PinRole::ReturnIn)
 				);
 
 			// 同じノード同士は禁止
 			if (isValid && outNodeId == inNodeId) isValid = false;
 
-			//// Getter→Variableは、型が完全一致している必要がある
-			//if (isValid && outRole == PinRole::GetterOut && inRole == PinRole::VariableIn)
-			//{
-			//	ValueType outType = GetNodeValueType(NodeKind::Getter, outNodeId);
-			//	ValueType inType = GetNodeValueType(NodeKind::Variable, inNodeId);
-			//	if (outType != inType) isValid = false;
-			//}
-
-			//// Variable/Operator→OperatorのA/Bは、大小系演算子ならBoolを禁止する。==/!=なら型一致のみ見る
-			//if (isValid && (outRole == PinRole::VariableOut || outRole == PinRole::OperatorOut) && (inRole == PinRole::OperatorA || inRole == PinRole::OperatorB))
-			//{
-			// Getter/Variable/Operator→OperatorのA/Bは、大小系演算子ならBoolを禁止する。==/!=なら型一致のみ見る
-			if (isValid && (outRole == PinRole::GetterOut || outRole == PinRole::VariableOut || outRole == PinRole::OperatorOut) && (inRole == PinRole::OperatorA || inRole == PinRole::OperatorB))
+			// Getter/Variable/Operator/Logic→OperatorのA/Bは、大小系演算子ならBoolを禁止する。==/!=なら型一致のみ見る
+			if (isValid && (outRole == PinRole::GetterOut || outRole == PinRole::VariableOut || isBoolOutRole(outRole)) && (inRole == PinRole::OperatorA || inRole == PinRole::OperatorB))
 			{
 				ValueType srcType = GetOutputValueType(outRole, outNodeId);
 
@@ -942,12 +1086,10 @@ void StudioConditionGraph::DrawLinkCreation()
 				{
 					if (cl.toId == inNodeId && cl.toPinB != wantPinB)
 					{
-						//otherPinNodeId = cl.fromId;
-						//otherOutRole = (GetNodeKind(cl.fromId) == NodeKind::Operator) ? PinRole::OperatorOut : PinRole::VariableOut;
-						//break;
 						otherPinNodeId = cl.fromId;
 						NodeKind otherKind = GetNodeKind(cl.fromId);
 						otherOutRole = (otherKind == NodeKind::Operator) ? PinRole::OperatorOut
+							: (otherKind == NodeKind::Logic) ? PinRole::LogicOut
 							: (otherKind == NodeKind::Getter) ? PinRole::GetterOut
 							: PinRole::VariableOut;
 						break;
@@ -958,6 +1100,13 @@ void StudioConditionGraph::DrawLinkCreation()
 					ValueType otherType = GetOutputValueType(otherOutRole, otherPinNodeId);
 					if (otherType != srcType) isValid = false;
 				}
+			}
+
+			// Getter/Variable(bool)/Operator/Logic → LogicのA/Bは、Bool型のみ許可
+			if (isValid && (outRole == PinRole::GetterOut || outRole == PinRole::VariableOut || isBoolOutRole(outRole)) && (inRole == PinRole::LogicA || inRole == PinRole::LogicB))
+			{
+				ValueType srcType = GetOutputValueType(outRole, outNodeId);
+				if (srcType != ValueType::Bool) isValid = false;
 			}
 
 			// Getter/Variable(bool)→Returnは、bool型のみ許可
@@ -972,7 +1121,7 @@ void StudioConditionGraph::DrawLinkCreation()
 			{
 				if (ed::AcceptNewItem())
 				{
-					bool toPinB = (inRole == PinRole::OperatorB);
+					bool toPinB = (inRole == PinRole::OperatorB || inRole == PinRole::LogicB);
 
 					// 入力ピンは1本まで:既に同じ入力に繋がっているLinkがあれば置き換える
 					auto& links = targetCondition->links;
@@ -1026,6 +1175,7 @@ ed::PinId StudioConditionGraph::GetOutputPinIdOf(int nodeId, NodeKind kind) cons
 	case NodeKind::Variable: return GetVariableOutPinId(nodeId);
 	case NodeKind::Getter:   return GetGetterOutPinId(nodeId);
 	case NodeKind::Operator: return GetOperatorOutPinId(nodeId);
+	case NodeKind::Logic:    return GetLogicOutPinId(nodeId);
 	default:                 return ed::PinId();
 	}
 }
@@ -1035,6 +1185,7 @@ ed::PinId StudioConditionGraph::GetInputPinIdOf(int nodeId, NodeKind kind, bool 
 	{
 	case NodeKind::Variable: return GetVariableInPinId(nodeId);
 	case NodeKind::Operator: return toPinB ? GetOperatorPinB(nodeId) : GetOperatorPinA(nodeId);
+	case NodeKind::Logic:    return toPinB ? GetLogicPinB(nodeId) : GetLogicPinA(nodeId);
 	case NodeKind::Return:   return GetReturnInPinId(nodeId);
 	default:                 return ed::PinId();
 	}
@@ -1082,6 +1233,7 @@ bool StudioConditionGraph::IsOrderCompareOp(CompareOp op)
 ValueType StudioConditionGraph::GetOutputValueType(PinRole outRole, int outNodeId) const
 {
 	if (outRole == PinRole::OperatorOut) return ValueType::Bool; // Operatorの出力は常にBool
+	if (outRole == PinRole::LogicOut)    return ValueType::Bool; // Logicの出力も常にBool
 	if (outRole == PinRole::GetterOut)   return GetNodeValueType(NodeKind::Getter, outNodeId);
 	return GetNodeValueType(NodeKind::Variable, outNodeId); // VariableOut
 }

@@ -16,15 +16,18 @@ bool ConditionGraphEvaluator::Evaluate(const ConditionGraph& graph, entt::regist
 			break;
 		}
 	}
-	if (fromId == -1) return true; // Return‚É‰½‚àŒq‚ª‚Á‚Ä‚¢‚È‚¢ê‡‚ÍA–³ğŒ‘JˆÚ‚Æ‚µ‚Äˆµ‚¤
+	if (fromId == -1) return true; // Return‚É‰½‚àŒq‚ª‚Á‚Ä‚¢‚È‚¢ê‡‚ÍA‘JˆÚ‚Æ‚µ‚Äˆµ‚¤
 
 	// Œq‚ª‚Á‚Ä‚¢‚é‚Ì‚ªOperator‚È‚çA‚»‚Ì”äŠrŒ‹‰Ê‚ğ‚»‚Ì‚Ü‚Ü•Ô‚·
 	for (const auto& o : graph.operatorNodes)
 		if (o.id == fromId) return EvaluateOperator(graph, o, registry, entity);
-	// Œq‚ª‚Á‚Ä‚¢‚é‚Ì‚ªGetter(BoolŒ^)‚È‚çA0.5f’´‚¦‚ğtrue‚Æ‚İ‚È‚·
+	// Œq‚ª‚Á‚Ä‚¢‚é‚Ì‚ªLogic(AND/OR)‚È‚çA‚»‚ÌŒ‹‰Ê‚ğ‚»‚Ì‚Ü‚Ü•Ô‚·
+	for (const auto& l : graph.logicNodes)
+		if (l.id == fromId) return EvaluateLogic(graph, l, registry, entity);
+	// Œq‚ª‚Á‚Ä‚¢‚é‚Ì‚ªGetter(BoolŒ^)‚È‚çA0.5‚æ‚èã‚Åtrue‚Æ‚İ‚È‚·
 	for (const auto& g : graph.getterNodes)
 		if (g.id == fromId) return GetGetterValue(g, registry, entity) > 0.5f;
-	// Œq‚ª‚Á‚Ä‚¢‚é‚Ì‚ªVariable(BoolŒ^)‚È‚çA0.5f’´‚¦‚ğtrue‚Æ‚İ‚È‚·
+	// Œq‚ª‚Á‚Ä‚¢‚é‚Ì‚ªVariable(BoolŒ^)‚È‚çA0.5‚æ‚èã‚Åtrue‚Æ‚İ‚È‚·
 	for (const auto& v : graph.variableNodes)
 		if (v.id == fromId) return GetVariableValue(v) > 0.5f;
 
@@ -146,6 +149,32 @@ bool ConditionGraphEvaluator::EvaluateOperator(const ConditionGraph& graph, cons
 	}
 	return false;
 }
+
+bool ConditionGraphEvaluator::EvaluateLogic(const ConditionGraph& graph, const ConditionLogicNode& logic, entt::registry& registry, entt::entity entity)
+{
+	// A/B‚»‚ê‚¼‚ê‚ÉŒq‚ª‚Á‚Ä‚¢‚éƒm[ƒhID‚ğ’T‚·
+	int fromIdA = -1;
+	int fromIdB = -1;
+	for (const auto& link : graph.links)
+	{
+		if (link.toId != logic.id) continue;
+		if (link.toPinB) fromIdB = link.fromId;
+		else             fromIdA = link.fromId;
+	}
+
+	if (fromIdA == -1 || fromIdB == -1) return false; // •Ğ•û‚Å‚à–¢Ú‘±‚È‚çA•s¬—§
+
+	bool a = ResolveInputValue(graph, fromIdA, registry, entity) > 0.5f;
+	bool b = ResolveInputValue(graph, fromIdB, registry, entity) > 0.5f;
+
+	switch (logic.op)
+	{
+	case LogicOp::And: return a && b;
+	case LogicOp::Or:  return a || b;
+	}
+	return false;
+}
+
 // ƒm[ƒhID‚©‚ç“ü—Í’l‚ğfloat‚Æ‚µ‚Ä‰ğŒˆ‚·‚é
 float ConditionGraphEvaluator::ResolveInputValue(const ConditionGraph& graph, int nodeId, entt::registry& registry, entt::entity entity)
 {
@@ -158,5 +187,8 @@ float ConditionGraphEvaluator::ResolveInputValue(const ConditionGraph& graph, in
 	for (const auto& o : graph.operatorNodes)
 		if (o.id == nodeId) return EvaluateOperator(graph, o, registry, entity) ? 1.0f : 0.0f;
 
-	return 0.0f; // ‚Ç‚Ìƒm[ƒh‚É‚àŒ©‚Â‚©‚ç‚È‚©‚Á‚½ê‡
+	for (const auto& l : graph.logicNodes)
+		if (l.id == nodeId) return EvaluateLogic(graph, l, registry, entity) ? 1.0f : 0.0f;
+
+	return 0.0f; // ‚Ç‚Ìƒm[ƒh‚É‚àŠY“–‚µ‚È‚¢ê‡
 }

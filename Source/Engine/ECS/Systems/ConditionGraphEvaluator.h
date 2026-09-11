@@ -16,6 +16,10 @@ private:
 
 	// ”äŠrƒm[ƒh‚ğ‰‰Z‚µŒ‹‰Ê‚ğ•Ô‚·
 	static bool EvaluateOperator(const ConditionGraph& graph, const ConditionOperatorNode& op, entt::registry& registry, entt::entity entity);
+
+	// ˜_—ƒm[ƒh‚ğ‰‰Z‚µŒ‹‰Ê‚ğ•Ô‚·
+	static bool EvaluateLogic(const ConditionGraph& graph, const ConditionLogicNode& logic, entt::registry& registry, entt::entity entity);
+
 	// ƒm[ƒhID‚©‚ç“ü—Í’l‚ğfloat‚Æ‚µ‚Ä‰ğŒˆ‚·‚é
 	static float ResolveInputValue(const ConditionGraph& graph, int nodeId, entt::registry& registry, entt::entity entity);
 };

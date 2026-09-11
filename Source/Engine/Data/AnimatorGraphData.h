@@ -42,6 +42,11 @@ enum class CompareOp // 比較演算子の種類
 	GreaterEqual, // >=
 	LessEqual,    // <=
 };
+enum class LogicOp // 論理演算子の種類
+{
+	And, // かつ
+	Or,  // または
+};
 struct ConditionGetterNode // コンポーネントの値を取得するノード
 {
 	int id = -1;
@@ -73,6 +78,14 @@ struct ConditionOperatorNode // 比較ノード
 
 	CompareOp op = CompareOp::Greater;
 };
+struct ConditionLogicNode // 論理演算ノード
+{
+	int id = -1;
+	float posX = 0.0f;
+	float posY = 0.0f;
+
+	LogicOp op = LogicOp::And;
+};
 struct ConditionReturnNode // 条件グラフの終着点
 {
 	int id = -1;
@@ -93,6 +106,8 @@ struct ConditionGraph // Link1本分の条件グラフ
 	std::vector<ConditionVariableNode> variableNodes;
 	std::vector<ConditionGetterNode>   getterNodes;
 	std::vector<ConditionOperatorNode> operatorNodes;
+	std::vector<ConditionLogicNode>    logicNodes;
+
 	std::vector<ConditionLink> links;   // Getter/Variable/Operator/Return同士を繋ぐリンク
 
 	// ID採番カウンター

@@ -93,6 +93,7 @@
                         },
                         "variableNodes": [],
                         "operatorNodes": [],
+                        "logicNodes": [],
                         "getterNodes": [],
                         "links": []
                     }
@@ -185,6 +186,7 @@
                                 "op": "Equal"
                             }
                         ],
+                        "logicNodes": [],
                         "getterNodes": [
                             {
                                 "id": 57,
@@ -250,6 +252,7 @@
                                 "op": "Equal"
                             }
                         ],
+                        "logicNodes": [],
                         "getterNodes": [
                             {
                                 "id": 61,
@@ -315,6 +318,7 @@
                                 "op": "Equal"
                             }
                         ],
+                        "logicNodes": [],
                         "getterNodes": [
                             {
                                 "id": 211,
@@ -380,6 +384,7 @@
                                 "op": "Equal"
                             }
                         ],
+                        "logicNodes": [],
                         "getterNodes": [
                             {
                                 "id": 219,
@@ -531,6 +536,7 @@
                                 "op": "Equal"
                             }
                         ],
+                        "logicNodes": [],
                         "getterNodes": [
                             {
                                 "id": 133,
@@ -596,6 +602,7 @@
                                 "op": "Equal"
                             }
                         ],
+                        "logicNodes": [],
                         "getterNodes": [
                             {
                                 "id": 143,
@@ -661,6 +668,7 @@
                                 "op": "Equal"
                             }
                         ],
+                        "logicNodes": [],
                         "getterNodes": [
                             {
                                 "id": 152,
@@ -726,6 +734,7 @@
                                 "op": "Equal"
                             }
                         ],
+                        "logicNodes": [],
                         "getterNodes": [
                             {
                                 "id": 161,
@@ -773,6 +782,7 @@
                         },
                         "variableNodes": [],
                         "operatorNodes": [],
+                        "logicNodes": [],
                         "getterNodes": [],
                         "links": []
                     }
@@ -837,6 +847,7 @@
                         },
                         "variableNodes": [],
                         "operatorNodes": [],
+                        "logicNodes": [],
                         "getterNodes": [],
                         "links": []
                     }
@@ -859,6 +870,7 @@
                 },
                 "variableNodes": [],
                 "operatorNodes": [],
+                "logicNodes": [],
                 "getterNodes": [],
                 "links": []
             }
@@ -895,6 +907,7 @@
                         "op": "Equal"
                     }
                 ],
+                "logicNodes": [],
                 "getterNodes": [
                     {
                         "id": 45,
@@ -960,6 +973,7 @@
                         "op": "Equal"
                     }
                 ],
+                "logicNodes": [],
                 "getterNodes": [
                     {
                         "id": 49,
@@ -1025,6 +1039,7 @@
                         "op": "Equal"
                     }
                 ],
+                "logicNodes": [],
                 "getterNodes": [
                     {
                         "id": 103,
@@ -1090,6 +1105,7 @@
                         "op": "Equal"
                     }
                 ],
+                "logicNodes": [],
                 "getterNodes": [
                     {
                         "id": 202,
@@ -1155,6 +1171,7 @@
                         "op": "Equal"
                     }
                 ],
+                "logicNodes": [],
                 "getterNodes": [
                     {
                         "id": 126,
@@ -1220,6 +1237,7 @@
                         "op": "Equal"
                     }
                 ],
+                "logicNodes": [],
                 "getterNodes": [
                     {
                         "id": 175,
@@ -1285,6 +1303,7 @@
                         "op": "Equal"
                     }
                 ],
+                "logicNodes": [],
                 "getterNodes": [
                     {
                         "id": 183,
@@ -1350,6 +1369,7 @@
                         "op": "Equal"
                     }
                 ],
+                "logicNodes": [],
                 "getterNodes": [
                     {
                         "id": 191,
@@ -1397,6 +1417,7 @@
                 },
                 "variableNodes": [],
                 "operatorNodes": [],
+                "logicNodes": [],
                 "getterNodes": [],
                 "links": []
             }
@@ -1431,6 +1452,7 @@
                         "op": "Equal"
                     }
                 ],
+                "logicNodes": [],
                 "getterNodes": [
                     {
                         "id": 253,
@@ -1494,6 +1516,7 @@
                         "op": "Equal"
                     }
                 ],
+                "logicNodes": [],
                 "getterNodes": [
                     {
                         "id": 260,
@@ -1557,13 +1580,14 @@
                         "op": "Equal"
                     }
                 ],
+                "logicNodes": [],
                 "getterNodes": [
                     {
                         "id": 271,
                         "posX": 207.0,
                         "posY": 188.0,
                         "componentName": "GameInputComponent",
-                        "fieldName": "Dodge Trigger.Released",
+                        "fieldName": "Dodge Trigger.Pressed",
                         "type": "Bool",
                         "selectedComponent": "None"
                     }
@@ -1597,13 +1621,171 @@
             "condition": {
                 "returnNode": {
                     "id": 268,
-                    "posX": 500.0,
-                    "posY": 200.0
+                    "posX": 466.0,
+                    "posY": 272.0
                 },
-                "variableNodes": [],
-                "operatorNodes": [],
-                "getterNodes": [],
-                "links": []
+                "variableNodes": [
+                    {
+                        "id": 295,
+                        "posX": -126.0,
+                        "posY": 144.0,
+                        "name": "",
+                        "type": "Bool",
+                        "intValue": 0,
+                        "floatValue": 0.0,
+                        "boolValue": false
+                    },
+                    {
+                        "id": 296,
+                        "posX": -506.0,
+                        "posY": 272.0,
+                        "name": "",
+                        "type": "Bool",
+                        "intValue": 0,
+                        "floatValue": 0.0,
+                        "boolValue": false
+                    }
+                ],
+                "operatorNodes": [
+                    {
+                        "id": 297,
+                        "posX": -290.0,
+                        "posY": 192.0,
+                        "op": "Equal"
+                    },
+                    {
+                        "id": 298,
+                        "posX": 94.0,
+                        "posY": 72.0,
+                        "op": "Equal"
+                    }
+                ],
+                "logicNodes": [
+                    {
+                        "id": 289,
+                        "posX": -114.0,
+                        "posY": 272.0,
+                        "op": "And"
+                    },
+                    {
+                        "id": 291,
+                        "posX": 286.0,
+                        "posY": 224.0,
+                        "op": "And"
+                    },
+                    {
+                        "id": 304,
+                        "posX": 98.0,
+                        "posY": 352.0,
+                        "op": "Or"
+                    }
+                ],
+                "getterNodes": [
+                    {
+                        "id": 286,
+                        "posX": -100.0,
+                        "posY": 444.0,
+                        "componentName": "AnimatorComponent",
+                        "fieldName": "Is End",
+                        "type": "Bool",
+                        "selectedComponent": "None"
+                    },
+                    {
+                        "id": 288,
+                        "posX": -299.0,
+                        "posY": 348.0,
+                        "componentName": "SequencerComponent",
+                        "fieldName": "Anim Exit",
+                        "type": "Bool",
+                        "selectedComponent": "None"
+                    },
+                    {
+                        "id": 293,
+                        "posX": -494.0,
+                        "posY": 156.0,
+                        "componentName": "GameInputComponent",
+                        "fieldName": "Dodge Trigger.Pressed",
+                        "type": "Bool",
+                        "selectedComponent": "None"
+                    },
+                    {
+                        "id": 294,
+                        "posX": -114.0,
+                        "posY": 44.0,
+                        "componentName": "GameInputComponent",
+                        "fieldName": "Move Stick.Has Input",
+                        "type": "Bool",
+                        "selectedComponent": "None"
+                    }
+                ],
+                "links": [
+                    {
+                        "id": 292,
+                        "fromId": 291,
+                        "toId": 268,
+                        "toPinB": false
+                    },
+                    {
+                        "id": 299,
+                        "fromId": 296,
+                        "toId": 297,
+                        "toPinB": true
+                    },
+                    {
+                        "id": 300,
+                        "fromId": 293,
+                        "toId": 297,
+                        "toPinB": false
+                    },
+                    {
+                        "id": 301,
+                        "fromId": 294,
+                        "toId": 298,
+                        "toPinB": false
+                    },
+                    {
+                        "id": 302,
+                        "fromId": 295,
+                        "toId": 298,
+                        "toPinB": true
+                    },
+                    {
+                        "id": 305,
+                        "fromId": 286,
+                        "toId": 304,
+                        "toPinB": true
+                    },
+                    {
+                        "id": 306,
+                        "fromId": 288,
+                        "toId": 289,
+                        "toPinB": true
+                    },
+                    {
+                        "id": 307,
+                        "fromId": 297,
+                        "toId": 289,
+                        "toPinB": false
+                    },
+                    {
+                        "id": 308,
+                        "fromId": 289,
+                        "toId": 304,
+                        "toPinB": false
+                    },
+                    {
+                        "id": 309,
+                        "fromId": 298,
+                        "toId": 291,
+                        "toPinB": false
+                    },
+                    {
+                        "id": 310,
+                        "fromId": 304,
+                        "toId": 291,
+                        "toPinB": true
+                    }
+                ]
             }
         },
         {
@@ -1636,6 +1818,7 @@
                         "op": "Equal"
                     }
                 ],
+                "logicNodes": [],
                 "getterNodes": [
                     {
                         "id": 279,

@@ -113,6 +113,7 @@ void PlayerDodgeSystem::Update(entt::registry& registry, float elapsedTime, cons
 				}
 			}
 
+			OutputDebugStringA(("dodgeSub=" + std::to_string((int)dodge.dodgeSub) + " bufferTimer=" + std::to_string(dodge.bufferTimer) + "\n").c_str());
 
 			// フラグ更新
 			dodge.isNoneInput = (dodge.dodgeSub == PlayerDodgeSubState::InPlace);
@@ -120,5 +121,11 @@ void PlayerDodgeSystem::Update(entt::registry& registry, float elapsedTime, cons
 			dodge.isBackInput = (dodge.dodgeSub == PlayerDodgeSubState::Back);
 			dodge.isLeftInput = (dodge.dodgeSub == PlayerDodgeSubState::Left);
 			dodge.isRightInput = (dodge.dodgeSub == PlayerDodgeSubState::Right);
+
+			// 仮デバッグ：ロック状態を出力
+			if (movement.xzControlLocked || movement.facingLocked)
+			{
+				OutputDebugStringA(("Locked: xz=" + std::to_string(movement.xzControlLocked) + " facing=" + std::to_string(movement.facingLocked) + " isDodging=" + std::to_string(dodge.isDodging) + "\n").c_str());
+			}
 		});
 }

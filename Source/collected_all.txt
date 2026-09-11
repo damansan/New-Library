@@ -2197,6 +2197,11 @@ enum class CompareOp // ”äŠr‰‰Zq‚Ìí—Ş
 	GreaterEqual, // >=
 	LessEqual,    // <=
 };
+enum class LogicOp // ˜_—‰‰Zq‚Ìí—Ş
+{
+	And, // ‚©‚Â
+	Or,  // ‚Ü‚½‚Í
+};
 struct ConditionGetterNode // ƒRƒ“ƒ|[ƒlƒ“ƒg‚Ì’l‚ğæ“¾‚·‚éƒm[ƒh
 {
 	int id = -1;
@@ -2228,6 +2233,14 @@ struct ConditionOperatorNode // ”äŠrƒm[ƒh
 
 	CompareOp op = CompareOp::Greater;
 };
+struct ConditionLogicNode // ˜_—‰‰Zƒm[ƒh
+{
+	int id = -1;
+	float posX = 0.0f;
+	float posY = 0.0f;
+
+	LogicOp op = LogicOp::And;
+};
 struct ConditionReturnNode // ğŒƒOƒ‰ƒt‚ÌI’…“_
 {
 	int id = -1;
@@ -2248,6 +2261,8 @@ struct ConditionGraph // Link1–{•ª‚ÌğŒƒOƒ‰ƒt
 	std::vector<ConditionVariableNode> variableNodes;
 	std::vector<ConditionGetterNode>   getterNodes;
 	std::vector<ConditionOperatorNode> operatorNodes;
+	std::vector<ConditionLogicNode>    logicNodes;
+
 	std::vector<ConditionLink> links;   // Getter/Variable/Operator/Return“¯m‚ğŒq‚®ƒŠƒ“ƒN
 
 	// IDÌ”ÔƒJƒEƒ“ƒ^[
@@ -2717,6 +2732,22 @@ namespace
 		if (s == "LessEqual")    return CompareOp::LessEqual;
 		return CompareOp::Greater;
 	}
+
+	// LogicOp(˜_—‰‰Zq‚Ìí—Ş)
+	std::string ToString(LogicOp op)
+	{
+		switch (op)
+		{
+		case LogicOp::And: return "And";
+		case LogicOp::Or:  return "Or";
+		default:           return "And";
+		}
+	}
+	LogicOp ToLogicOp(const std::string& s)
+	{
+		if (s == "Or") return LogicOp::Or;
+		return LogicOp::And;
+	}
 }
 
 
@@ -3164,6 +3195,17 @@ nlohmann::ordered_json AnimatorGraphData::TransitionLinksToJson() const
 			jc["operatorNodes"].push_back(jo);
 		}
 
+		jc["logicNodes"] = nlohmann::json::array();
+		for (const auto& l : link.condition.logicNodes)
+		{
+			nlohmann::ordered_json jln;
+			jln["id"] = l.id;
+			jln["posX"] = l.posX;
+			jln["posY"] = l.posY;
+			jln["op"] = ToString(l.op);
+			jc["logicNodes"].push_back(jln);
+		}
+
 		jc["getterNodes"] = nlohmann::json::array();
 		for (const auto& g : link.condition.getterNodes)
 		{
@@ -3249,6 +3291,21 @@ void AnimatorGraphData::TransitionLinksFromJson(const nlohmann::json& j)
 					link.condition.operatorNodes.push_back(o);
 
 					SyncIdCounter(o.id);
+				}
+			}
+
+			if (jc.contains("logicNodes"))
+			{
+				for (const auto& jln : jc["logicNodes"])
+				{
+					ConditionLogicNode l;
+					l.id = jln.value("id", -1);
+					l.posX = jln.value("posX", 0.0f);
+					l.posY = jln.value("posY", 0.0f);
+					l.op = ToLogicOp(jln.value("op", "And"));
+					link.condition.logicNodes.push_back(l);
+
+					SyncIdCounter(l.id);
 				}
 			}
 
@@ -3343,6 +3400,17 @@ nlohmann::ordered_json AnimatorGraphData::AnimLinkToJson(const AnimLink& link) c
 		jc["operatorNodes"].push_back(jo);
 	}
 
+	jc["logicNodes"] = nlohmann::json::array();
+	for (const auto& l : link.condition.logicNodes)
+	{
+		nlohmann::ordered_json jln;
+		jln["id"] = l.id;
+		jln["posX"] = l.posX;
+		jln["posY"] = l.posY;
+		jln["op"] = ToString(l.op);
+		jc["logicNodes"].push_back(jln);
+	}
+
 	jc["getterNodes"] = nlohmann::json::array();
 	for (const auto& g : link.condition.getterNodes)
 	{
@@ -3426,6 +3494,21 @@ void AnimatorGraphData::AnimLinkFromJson(AnimLink& link, const nlohmann::json& j
 				link.condition.operatorNodes.push_back(o);
 
 				SyncIdCounter(o.id);
+			}
+		}
+
+		if (jc.contains("logicNodes"))
+		{
+			for (const auto& jln : jc["logicNodes"])
+			{
+				ConditionLogicNode l;
+				l.id = jln.value("id", -1);
+				l.posX = jln.value("posX", 0.0f);
+				l.posY = jln.value("posY", 0.0f);
+				l.op = ToLogicOp(jln.value("op", "And"));
+				link.condition.logicNodes.push_back(l);
+
+				SyncIdCounter(l.id);
 			}
 		}
 
@@ -4233,6 +4316,10 @@ private:
 
 	// ”äŠrƒm[ƒh‚ğ‰‰Z‚µŒ‹‰Ê‚ğ•Ô‚·
 	static bool EvaluateOperator(const ConditionGraph& graph, const ConditionOperatorNode& op, entt::registry& registry, entt::entity entity);
+
+	// ˜_—ƒm[ƒh‚ğ‰‰Z‚µŒ‹‰Ê‚ğ•Ô‚·
+	static bool EvaluateLogic(const ConditionGraph& graph, const ConditionLogicNode& logic, entt::registry& registry, entt::entity entity);
+
 	// ƒm[ƒhID‚©‚ç“ü—Í’l‚ğfloat‚Æ‚µ‚Ä‰ğŒˆ‚·‚é
 	static float ResolveInputValue(const ConditionGraph& graph, int nodeId, entt::registry& registry, entt::entity entity);
 }; 
@@ -5592,15 +5679,18 @@ bool ConditionGraphEvaluator::Evaluate(const ConditionGraph& graph, entt::regist
 			break;
 		}
 	}
-	if (fromId == -1) return true; // Return‚É‰½‚àŒq‚ª‚Á‚Ä‚¢‚È‚¢ê‡‚ÍA–³ğŒ‘JˆÚ‚Æ‚µ‚Äˆµ‚¤
+	if (fromId == -1) return true; // Return‚É‰½‚àŒq‚ª‚Á‚Ä‚¢‚È‚¢ê‡‚ÍA‘JˆÚ‚Æ‚µ‚Äˆµ‚¤
 
 	// Œq‚ª‚Á‚Ä‚¢‚é‚Ì‚ªOperator‚È‚çA‚»‚Ì”äŠrŒ‹‰Ê‚ğ‚»‚Ì‚Ü‚Ü•Ô‚·
 	for (const auto& o : graph.operatorNodes)
 		if (o.id == fromId) return EvaluateOperator(graph, o, registry, entity);
-	// Œq‚ª‚Á‚Ä‚¢‚é‚Ì‚ªGetter(BoolŒ^)‚È‚çA0.5f’´‚¦‚ğtrue‚Æ‚İ‚È‚·
+	// Œq‚ª‚Á‚Ä‚¢‚é‚Ì‚ªLogic(AND/OR)‚È‚çA‚»‚ÌŒ‹‰Ê‚ğ‚»‚Ì‚Ü‚Ü•Ô‚·
+	for (const auto& l : graph.logicNodes)
+		if (l.id == fromId) return EvaluateLogic(graph, l, registry, entity);
+	// Œq‚ª‚Á‚Ä‚¢‚é‚Ì‚ªGetter(BoolŒ^)‚È‚çA0.5‚æ‚èã‚Åtrue‚Æ‚İ‚È‚·
 	for (const auto& g : graph.getterNodes)
 		if (g.id == fromId) return GetGetterValue(g, registry, entity) > 0.5f;
-	// Œq‚ª‚Á‚Ä‚¢‚é‚Ì‚ªVariable(BoolŒ^)‚È‚çA0.5f’´‚¦‚ğtrue‚Æ‚İ‚È‚·
+	// Œq‚ª‚Á‚Ä‚¢‚é‚Ì‚ªVariable(BoolŒ^)‚È‚çA0.5‚æ‚èã‚Åtrue‚Æ‚İ‚È‚·
 	for (const auto& v : graph.variableNodes)
 		if (v.id == fromId) return GetVariableValue(v) > 0.5f;
 
@@ -5722,6 +5812,32 @@ bool ConditionGraphEvaluator::EvaluateOperator(const ConditionGraph& graph, cons
 	}
 	return false;
 }
+
+bool ConditionGraphEvaluator::EvaluateLogic(const ConditionGraph& graph, const ConditionLogicNode& logic, entt::registry& registry, entt::entity entity)
+{
+	// A/B‚»‚ê‚¼‚ê‚ÉŒq‚ª‚Á‚Ä‚¢‚éƒm[ƒhID‚ğ’T‚·
+	int fromIdA = -1;
+	int fromIdB = -1;
+	for (const auto& link : graph.links)
+	{
+		if (link.toId != logic.id) continue;
+		if (link.toPinB) fromIdB = link.fromId;
+		else             fromIdA = link.fromId;
+	}
+
+	if (fromIdA == -1 || fromIdB == -1) return false; // •Ğ•û‚Å‚à–¢Ú‘±‚È‚çA•s¬—§
+
+	bool a = ResolveInputValue(graph, fromIdA, registry, entity) > 0.5f;
+	bool b = ResolveInputValue(graph, fromIdB, registry, entity) > 0.5f;
+
+	switch (logic.op)
+	{
+	case LogicOp::And: return a && b;
+	case LogicOp::Or:  return a || b;
+	}
+	return false;
+}
+
 // ƒm[ƒhID‚©‚ç“ü—Í’l‚ğfloat‚Æ‚µ‚Ä‰ğŒˆ‚·‚é
 float ConditionGraphEvaluator::ResolveInputValue(const ConditionGraph& graph, int nodeId, entt::registry& registry, entt::entity entity)
 {
@@ -5734,7 +5850,10 @@ float ConditionGraphEvaluator::ResolveInputValue(const ConditionGraph& graph, in
 	for (const auto& o : graph.operatorNodes)
 		if (o.id == nodeId) return EvaluateOperator(graph, o, registry, entity) ? 1.0f : 0.0f;
 
-	return 0.0f; // ‚Ç‚Ìƒm[ƒh‚É‚àŒ©‚Â‚©‚ç‚È‚©‚Á‚½ê‡
+	for (const auto& l : graph.logicNodes)
+		if (l.id == nodeId) return EvaluateLogic(graph, l, registry, entity) ? 1.0f : 0.0f;
+
+	return 0.0f; // ‚Ç‚Ìƒm[ƒh‚É‚àŠY“–‚µ‚È‚¢ê‡
 }
  
  
@@ -12332,27 +12451,24 @@ struct GameInputComponent
 Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Components\PlayerDodgeComponent.h 
 #pragma once
 
-enum class PlayerDodgeState
+enum class PlayerDodgeSubState
 {
-	None,      
-	Deciding,   // —P—\’†
-	Dodge,      // ‰ñ”ğ
-
-	FrontDodge, // ‘O‰ñ”ğ
-	BackDodge,  // Œã‰ñ”ğ
-	LeftDodge,  // ¶‰ñ”ğ
-	RightDodge, // ‰E‰ñ”ğ
+	None,
+	Deciding, // •ûŒüŒˆ’è‚Ì—P—\’†
+	InPlace,  // ‚»‚Ìê‰ñ”ğ
+	Front,    // ‘O•û‰ñ”ğ
+	Back,     // Œã•û‰ñ”ğ
+	Left,     // ¶‰ñ”ğ
+	Right,    // ‰E‰ñ”ğ
 };
 
 struct PlayerDodgeComponent
 {
 	// İ’è’l
-	float triggerThreshold = 0.3f;        // ‚±‚êˆÈã‚Åu‰Ÿ‚µ‚½v‚Æ‚İ‚È‚·
-	float triggerReleaseThreshold = 0.1f; // ‚±‚êˆÈ‰º‚Åu—£‚µ‚½v‚Æ‚İ‚È‚·
-	float directionBufferTime = 0.12f;    // ƒXƒeƒBƒbƒN“ü—Í‚ğ‘Ò‚Â—P—\ŠÔ
+	float directionBufferTime = 0.12f; // ƒXƒeƒBƒbƒN“ü—Í‚ğ‘Ò‚Â—P—\ŠÔ
 
 	// ó‘Ô
-	PlayerDodgeState state = PlayerDodgeState::None;
+	PlayerDodgeSubState dodgeSub = PlayerDodgeSubState::None;
 
 	// ó‘Ôƒtƒ‰ƒO
 	bool isDodging = false; // ‰ñ”ğ’†‚©‚Ç‚¤‚©
@@ -12363,17 +12479,15 @@ struct PlayerDodgeComponent
 	bool isLeftInput = false;  // ¶“ü—Í’†‚©‚Ç‚¤‚©
 	bool isRightInput = false; // ‰E“ü—Í’†‚©‚Ç‚¤‚©
 
-
 	// “à•”À‘•—p
-	bool wasTriggerHeld = false; // ‘OƒtƒŒ[ƒ€‚ÅƒgƒŠƒK[‚ª‰Ÿ‚³‚ê‚Ä‚¢‚½‚©‚Ç‚¤‚©
-	float bufferTimer = 0.0f;    // —P—\Œo‰ßŠÔ
+	float bufferTimer = 0.0f; // —P—\Œo‰ßŠÔ
 }; 
  
 ===== PlayerIdleComponent.h ===== 
 Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Components\PlayerIdleComponent.h 
 #pragma once
 
-enum class IdleSubState
+enum class PlayerIdleSubState
 {
 	None,   
 	Idle,   // ‘Ò‹@’†
@@ -12385,7 +12499,7 @@ struct PlayerIdleComponent
 
 
 	// ó‘Ô
-	IdleSubState state = IdleSubState::None;
+	PlayerIdleSubState idleSub = PlayerIdleSubState::None;
 
 	// ó‘Ôƒtƒ‰ƒO
 	bool isIdling = false;
@@ -12513,11 +12627,18 @@ Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Systems\PlayerDodgeS
 #pragma once
 #include "entt.hpp"
 #include "Engine/Core/SceneContext.h"
+#include "Engine/Core/JsonFileCache.h"
+#include "Engine/Data/AnimatorGraphData.h"
 
 class PlayerDodgeSystem
 {
 public:
 	void Update(entt::registry& registry, float elapsedTime, const SceneContext& context);
+
+private:
+	// "Dodge"‚Æ‚¢‚¤State‚Ì–¼‘O‚ğƒLƒƒƒbƒVƒ…‚·‚é
+	JsonFileCache<AnimatorGraphData> graphCache;
+	int dodgeStateId = -1; 
 }; 
  
 ===== PlayerIdleSystem.h ===== 
@@ -12833,170 +12954,127 @@ void GameInputSystem::UpdateButtonState(TriggerState& state, bool isHeldNow)
 ===== PlayerDodgeSystem.cpp ===== 
 Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Systems\PlayerDodgeSystem.cpp 
 #include "PlayerDodgeSystem.h"
-
 #include "Project/ECS/Components/GameInputComponent.h"
 #include "Project/ECS/Components/PlayerDodgeComponent.h"
-#include "Project/ECS/Components/PlayerSprintComponent.h"
 #include "Project/ECS/Systems/PlayerMovementUtils.h"
 
-#include "Engine/ECS/Components/MovementComponent.h"
 #include "Engine/ECS/Components/AnimatorComponent.h"
-#include "Engine/ECS/Components/SequencerComponent.h"
+#include "Engine/ECS/Components/StateComponent.h"
+#include "Engine/ECS/Components/MovementComponent.h"
 #include "Engine/ECS/Components/TransformComponent.h"
+#include "Engine/ECS/Systems/StateGraphUtils.h"
 #include <DirectXMath.h>
 
 void PlayerDodgeSystem::Update(entt::registry& registry, float elapsedTime, const SceneContext& context)
 {
-	auto view = registry.view<GameInputComponent, PlayerDodgeComponent, PlayerSprintComponent, MovementComponent, AnimatorComponent, SequencerComponent, TransformComponent>();
+	auto view = registry.view<GameInputComponent, PlayerDodgeComponent, AnimatorComponent, StateComponent, MovementComponent, TransformComponent>();
 
-	view.each([&](auto entity,
-		GameInputComponent& input,
-		PlayerDodgeComponent& dodge,
-		PlayerSprintComponent& sprint,
-		MovementComponent& movement,
-		AnimatorComponent& animator,
-		SequencerComponent& sequencer,
-		TransformComponent& transform)
+	view.each(
+		[&](auto entity,
+			GameInputComponent& input,
+			PlayerDodgeComponent& dodge,
+			AnimatorComponent& animator,
+			StateComponent& state,
+			MovementComponent& movement,
+			TransformComponent& transform)
 		{
-			// Šù‚É‰Ÿ‚µ‚Ä‚¢‚éŠÔ‚Í —£‚µ‚½”»’èƒ‰ƒCƒ“ ‚ğ‰º‰ñ‚é‚Ü‚Å‰Ÿ‚µ‚Ä‚¢‚éˆµ‚¢‚É‚·‚é
-			bool triggerHeld = dodge.wasTriggerHeld
-				? (input.dodgeTrigger.value > dodge.triggerReleaseThreshold)
-				: (input.dodgeTrigger.value >= dodge.triggerThreshold);
-			bool triggerPressed = (triggerHeld && !dodge.wasTriggerHeld);
-
-			// ƒXƒvƒŠƒ“ƒg’†
-			if (sprint.state == PlayerSprintState::Sprinting)
+			if (animator.animatorGraphPath.empty())
 			{
-				// ƒXƒvƒŠƒ“ƒg’†‚ÉR2‚ğ‰Ÿ‚µ‚½‚çƒXƒvƒŠƒ“ƒg‚ğI—¹A—P—\ŠÔ“à‚ÉˆÚs
-				if (triggerPressed)
+				dodge.isDodging = false;
+				return;
+			}
+
+			AnimatorGraphData& data = graphCache.GetOrLoad(animator.animatorGraphPath,
+				[](AnimatorGraphData& data, const nlohmann::json& j) { data.FromJson(j); });
+
+			// "Dodge"‚ÌID‚ğ‚Ü‚¾‚Á‚Ä‚¢‚È‚¯‚ê‚ÎA‚±‚±‚ÅŒŸõ‚µ‚ÄƒLƒƒƒbƒVƒ…‚·‚é
+			if (dodgeStateId == -1)
+			{
+				dodgeStateId = StateGraphUtils::FindStateIdByName(data.parentGraph, "Dodge");
+			}
+
+			// –ˆƒtƒŒ[ƒ€•K‚¸“¯Šú‚·‚é(ƒK[ƒh‹å‚Ì‘O‚É’u‚­‚Ì‚ªƒ|ƒCƒ“ƒg)
+			bool isMyState = (state.currentStateId == dodgeStateId);
+			dodge.isDodging = isMyState;
+
+			if (!isMyState)
+			{
+				// Dodge‚Ì’S“–‚ğ—£‚ê‚é‚ÍAƒTƒuó‘Ô‚Æ§ŒäŒ ‚ğ•K‚¸è•ú‚·
+				dodge.dodgeSub = PlayerDodgeSubState::None;
+				dodge.bufferTimer = 0.0f;
+				dodge.isNoneInput = false;
+				dodge.isFrontInput = false;
+				dodge.isBackInput = false;
+				dodge.isLeftInput = false;
+				dodge.isRightInput = false;
+				movement.facingLocked = false;
+				movement.xzControlLocked = false;
+				return;
+			}
+
+			DirectX::XMFLOAT3 front = context.camera->GetFront();
+			DirectX::XMFLOAT3 right = context.camera->GetRight();
+
+			// Dodge‚É“ü‚Á‚½’¼ŒãA‚Ü‚¾•ûŒü‚ªŒˆ‚Ü‚Á‚Ä‚¢‚È‚¢ê‡
+			if (dodge.dodgeSub == PlayerDodgeSubState::None)
+			{
+				dodge.dodgeSub = PlayerDodgeSubState::Deciding;
+				dodge.bufferTimer = 0.0f;
+			}
+
+			// •ûŒüŒˆ’è‚Ì—P—\’†
+			if (dodge.dodgeSub == PlayerDodgeSubState::Deciding)
+			{
+				// “ü—Í•ûŒü‚Æ“|‚µ‹ï‡‚ğZo
+				auto dir = PlayerMovementUtils::StickToWorldVelocity(input.moveStick.x, input.moveStick.y, front, right, 1.0f);
+
+				// •ûŒü‚ ‚è‰ñ”ğ
+				if (dir.inputLength > 0.0f)
 				{
-					sprint.state = PlayerSprintState::None;
-					dodge.state = PlayerDodgeState::Deciding;
-					dodge.bufferTimer = 0.0f;
+					// “ü—Í•ûŒü‚ÆƒLƒƒƒ‰ƒNƒ^[‚ÌŒü‚«‚Ì·‚ğ‹‚ß‚é
+					float inputYaw = PlayerMovementUtils::CalcFacingYaw(dir.velocity.x, dir.velocity.z);
+					float diff = inputYaw - transform.rotation.y;
+
+					// Šp“x·‚ğ-180`180‚Ì”ÍˆÍ‚É³‹K‰»
+					while (diff > DirectX::XM_PI)  diff -= DirectX::XM_2PI;
+					while (diff < -DirectX::XM_PI) diff += DirectX::XM_2PI;
+
+					const float quarter = DirectX::XM_PIDIV4; // 45“x
+
+					if (diff > -quarter && diff <= quarter)
+						dodge.dodgeSub = PlayerDodgeSubState::Front;
+					else if (diff > quarter && diff <= quarter * 3.0f)
+						dodge.dodgeSub = PlayerDodgeSubState::Right;
+					else if (diff > -quarter * 3.0f && diff <= -quarter)
+						dodge.dodgeSub = PlayerDodgeSubState::Left;
+					else
+						dodge.dodgeSub = PlayerDodgeSubState::Back;
+
+					// Œü‚«‚ÆXZ•ûŒü‚Ì§ŒäŒ ‚ğæ“¾
+					movement.facingLocked = true;
+					movement.xzControlLocked = true;
 				}
 				else
 				{
-					DirectX::XMFLOAT3 front = context.camera->GetFront();
-					DirectX::XMFLOAT3 right = context.camera->GetRight();
-
-					// ƒXƒvƒŠƒ“ƒg’†‚ÍAsprintSpeed‚ğg‚¤
-					auto dir = PlayerMovementUtils::StickToWorldVelocity(input.moveStick.x, input.moveStick.y, front, right, sprint.sprintSpeed);
-					
-					// ƒXƒeƒBƒbƒN‚ğ—£‚µ‚½‚çIdle‚É–ß‚·
-					if (dir.inputLength <= 0.0f)
+					// —P—\ŠÔ‚ÌÁ‰»
+					dodge.bufferTimer += elapsedTime;
+					if (dodge.bufferTimer >= dodge.directionBufferTime)
 					{
-						sprint.state = PlayerSprintState::None;
-						movement.xzControlLocked = false;
-					}
-					// ƒXƒeƒBƒbƒN“ü—Í‚ª‚ ‚ê‚ÎAƒXƒvƒŠƒ“ƒg‘¬“x‚ÅˆÚ“®‚·‚é
-					else
-					{
-						movement.velocity.x = dir.velocity.x;
-						movement.velocity.z = dir.velocity.z;
-					}
-				}
-			}
-			else
-			{
-				// R2“ü—Í‚ª—ˆ‚½‚çADecidingó‘Ô‚É‘JˆÚ‚·‚é
-				if (dodge.state == PlayerDodgeState::None && triggerPressed)
-				{
-					dodge.state = PlayerDodgeState::Deciding;
-					dodge.bufferTimer = 0.0f;
-				}
-
-				// ƒXƒeƒBƒbƒN“ü—Í‚ª—ˆ‚½‚çA‚S•ûŒü‚Ì‚¢‚¸‚ê‚©‚É‘JˆÚ‚·‚é
-				if (dodge.state == PlayerDodgeState::Deciding)
-				{
-					DirectX::XMFLOAT3 front = context.camera->GetFront();
-					DirectX::XMFLOAT3 right = context.camera->GetRight();
-
-					// “ü—Í•ûŒü‚Æ“|‚µ‹ï‡‚ğZo
-					auto dir = PlayerMovementUtils::StickToWorldVelocity(input.moveStick.x, input.moveStick.y, front, right, 1.0f);
-
-					// •ûŒü‚ ‚è‰ñ”ğ
-					if (dir.inputLength > 0.0f)
-					{
-						// “ü—Í•ûŒü‚ÆƒLƒƒƒ‰ƒNƒ^[‚ÌŒü‚«‚Ì·‚ğ‹‚ß‚é
-						float inputYaw = PlayerMovementUtils::CalcFacingYaw(dir.velocity.x, dir.velocity.z);
-						float diff = inputYaw - transform.rotation.y;
-
-						// Šp“x·‚ğ-180`180‚Ì”ÍˆÍ‚É³‹K‰»
-						while (diff > DirectX::XM_PI)  diff -= DirectX::XM_2PI;
-						while (diff < -DirectX::XM_PI) diff += DirectX::XM_2PI;
-
-						const float quarter = DirectX::XM_PIDIV4; // 45“x
-
-						if (diff > -quarter && diff <= quarter)
-							dodge.state = PlayerDodgeState::FrontDodge;
-						else if (diff > quarter && diff <= quarter * 3.0f)
-							dodge.state = PlayerDodgeState::RightDodge;
-						else if (diff > -quarter * 3.0f && diff <= -quarter)
-							dodge.state = PlayerDodgeState::LeftDodge;
-						else
-							dodge.state = PlayerDodgeState::BackDodge;
-
-						// Œü‚«‚Ì§ŒäŒ ‚ğæ“¾
+						// ƒXƒeƒBƒbƒN“ü—Í‚ª—ˆ‚È‚©‚Á‚½‚Ì‚ÅA‚»‚Ìê‰ñ”ğ‚ÉŠm’è‚·‚é
+						dodge.dodgeSub = PlayerDodgeSubState::InPlace;
 						movement.facingLocked = true;
-						// XZ•ûŒü‚Ì§ŒäŒ ‚ğæ“¾
 						movement.xzControlLocked = true;
 					}
-					else
-					{
-						// —P—\ŠÔ‚ÌÁ‰»
-						dodge.bufferTimer += elapsedTime;
-						if (dodge.bufferTimer >= dodge.directionBufferTime)
-						{
-							// ƒXƒeƒBƒbƒN“ü—Í‚ª—ˆ‚È‚©‚Á‚½‚Ì‚ÅA’P‰ñ”ğ‚É‘JˆÚ‚·‚é
-							dodge.state = PlayerDodgeState::Dodge;
-							movement.facingLocked = true;
-							movement.xzControlLocked = true;
-						}
-					}
-				}
-				// ‚S•ûŒü‰ñ”ğ‚ÌI—¹”»’è
-				else if (dodge.state != PlayerDodgeState::None)
-				{
-					// ƒAƒjƒ[ƒVƒ‡ƒ“I—¹”ÍˆÍ‚©‚ÂR2‚ª—£‚³‚ê‚½‚çA‰ñ”ğI—¹
-					bool exitRequested = sequencer.animExit && !triggerHeld;
-
-					if (animator.isEnd || exitRequested)
-					{
-						dodge.state = PlayerDodgeState::None;
-
-						// ‰ñ”ğI—¹ƒXƒeƒBƒbƒN“ü—Í‚Ì—L–³‚ÅƒXƒvƒŠƒ“ƒg‚Öˆø‚«Œp‚®‚©”»’f‚·‚é
-						DirectX::XMFLOAT3 front = context.camera->GetFront();
-						DirectX::XMFLOAT3 right = context.camera->GetRight();
-						auto dir = PlayerMovementUtils::StickToWorldVelocity(input.moveStick.x, input.moveStick.y, front, right, 1.0f);
-
-						// ƒXƒeƒBƒbƒN“ü—Í‚ª‚ ‚ê‚ÎƒXƒvƒŠƒ“ƒgó‘Ô‚É‘JˆÚ‚·‚é
-						if (dir.inputLength > 0.0f)
-						{
-							sprint.state = PlayerSprintState::Sprinting;
-							movement.facingLocked = false;
-						}
-						// ƒXƒeƒBƒbƒN“ü—Í‚ª‚È‚¯‚ê‚Î’Êíó‘Ô‚É–ß‚·
-						else
-						{
-							movement.xzControlLocked = false;
-							movement.facingLocked = false;
-						}
-					}
 				}
 			}
 
-			// ‘OƒtƒŒ[ƒ€‚ÌR2‰Ÿ‰ºó‘Ô‚ğ•Û‘¶
-			dodge.wasTriggerHeld = triggerHeld;
 
-			bool activeDodge = (dodge.state != PlayerDodgeState::None && dodge.state != PlayerDodgeState::Deciding);
-			dodge.isDodging = activeDodge;
-			dodge.isNoneInput = (dodge.state == PlayerDodgeState::Dodge);
-			dodge.isFrontInput = (dodge.state == PlayerDodgeState::FrontDodge);
-			dodge.isBackInput = (dodge.state == PlayerDodgeState::BackDodge);
-			dodge.isLeftInput = (dodge.state == PlayerDodgeState::LeftDodge);
-			dodge.isRightInput = (dodge.state == PlayerDodgeState::RightDodge);
-
-			sprint.isSprinting = (sprint.state == PlayerSprintState::Sprinting);
+			// ƒtƒ‰ƒOXV
+			dodge.isNoneInput = (dodge.dodgeSub == PlayerDodgeSubState::InPlace);
+			dodge.isFrontInput = (dodge.dodgeSub == PlayerDodgeSubState::Front);
+			dodge.isBackInput = (dodge.dodgeSub == PlayerDodgeSubState::Back);
+			dodge.isLeftInput = (dodge.dodgeSub == PlayerDodgeSubState::Left);
+			dodge.isRightInput = (dodge.dodgeSub == PlayerDodgeSubState::Right);
 		});
 } 
  
@@ -13146,6 +13224,7 @@ void PlayerMoveSystem::Update(entt::registry& registry, float elapsedTime, const
 			MovementComponent& movement,
 			TransformComponent& transform)
 		{
+			// AnimatorGraphPath‚ª‹ó‚È‚çMove”»’è‚ğfalse‚É‚·‚é
 			if (animator.animatorGraphPath.empty())
 			{
 				playerMove.isMoving = false;
@@ -13157,20 +13236,25 @@ void PlayerMoveSystem::Update(entt::registry& registry, float elapsedTime, const
 			AnimatorGraphData& data = graphCache.GetOrLoad(animator.animatorGraphPath,
 				[](AnimatorGraphData& data, const nlohmann::json& j) { data.FromJson(j); });
 
-			// "Move"‚ÌID‚ğ‚Ü‚¾‚Á‚Ä‚¢‚È‚¯‚ê‚ÎA‚±‚±‚ÅŒŸõ‚µ‚ÄƒLƒƒƒbƒVƒ…‚·‚é
+			// "Move"‚ÌID‚ğƒLƒƒƒbƒVƒ…‚·‚é‚Ü‚ÅŒŸõ‚·‚é
 			if (moveStateId == -1)
 			{
 				moveStateId = StateGraphUtils::FindStateIdByName(data.parentGraph, "Move");
 			}
 
-			// –ˆƒtƒŒ[ƒ€•K‚¸“¯Šú‚·‚é(ƒK[ƒh‹å‚Ì‘O‚É’u‚­‚Ì‚ªƒ|ƒCƒ“ƒg)
+			// Œ»İ‚ªMove‚©‚Ç‚¤‚©‚ğ”»’è‚·‚é
 			bool isMyState = (state.currentStateId == moveStateId);
 
+			// Move‚Å‚È‚¯‚ê‚ÎAˆÈ~‚Ìˆ—‚Ís‚í‚È‚¢
 			if (!isMyState)
 			{
 				playerMove.isMoving = false;
 				playerMove.isWalking = false;
 				playerMove.isJogging = false;
+
+				playerMove.moveSub = PlayerMoveSubState::None;
+				movement.velocity.x = 0.0f;
+				movement.velocity.z = 0.0f;
 				return;
 			}
 
@@ -13206,7 +13290,7 @@ void PlayerMoveSystem::Update(entt::registry& registry, float elapsedTime, const
 
 					float speed = (playerMove.moveSub == PlayerMoveSubState::Jogging) ? playerMove.jogSpeed : playerMove.walkSpeed;
 
-					// ‰ü‚ß‚ÄÀÛ‚Ì‘¬“x‚ÅŒvZ‚µ’¼‚·
+					// Œ»İ‚É‡‚í‚¹‚½‘¬“x‚ÅŒvZ‚µ’¼‚·
 					auto vel = PlayerMovementUtils::ResolvePlanarVelocity(input.moveStick.x, input.moveStick.y, front, right, speed, movement.velocity, elapsedTime);
 					movement.velocity.x = vel.velocity.x;
 					movement.velocity.z = vel.velocity.z;
@@ -13241,8 +13325,11 @@ Path: C:\Users\offri\Desktop\New-Library\Source\Project\Scene\SceneGame.h
 #include "Engine/ECS/Systems/ControllerSystem.h"
 #include "Project/ECS/Systems/GameInputSystem.h"
 #include "Engine/ECS/Systems/TransitionControllerSystem.h"
+
+#include "Project/ECS/Systems/PlayerIdleSystem.h"
 #include "Project/ECS/Systems/PlayerDodgeSystem.h"
 #include "Project/ECS/Systems/PlayerMoveSystem.h"
+
 #include "Engine/ECS/Systems/MovementSystem.h"
 #include "Engine/ECS/Systems/AnimatorControllerSystem.h"
 #include "Engine/ECS/Systems/AnimationSpeedSystem.h"
@@ -13283,8 +13370,11 @@ private:
 	ControllerSystem  controllerSystem;
 	GameInputSystem   gameInputSystem;
 	TransitionControllerSystem transitionControllerSystem;
+
+	PlayerIdleSystem  playerIdleSystem;
 	PlayerDodgeSystem playerDodgeSystem;
 	PlayerMoveSystem  playerMoveSystem;
+	
 	MovementSystem    movementSystem;
 	AnimatorControllerSystem animatorControllerSystem;
 	AnimationSpeedSystem     animationSpeedSystem;
@@ -13539,6 +13629,11 @@ void SceneGame::UpdateGameplay(float elapsedTime, const SceneContext& context)
 		transitionControllerSystem.Update(registry, elapsedTime, context);
 	}
 
+	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼å¾…æ©Ÿå‡¦ç†
+	{
+		ZoneScopedN("PlayerIdleSystem");
+		playerIdleSystem.Update(registry, elapsedTime, context);
+	}
 	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼å›é¿å‡¦ç†
 	{
 		ZoneScopedN("PlayerDodgeSystem");
@@ -15530,24 +15625,20 @@ void MetaRegistry::RegisterPlayerDodgeComponent()
 	entt::meta_factory<PlayerDodgeComponent>{}
 	.type("PlayerDodgeComponent")
 		.custom<TypeInfo>(TypeInfo{ "Player Dodge" })
-		.data<&PlayerDodgeComponent::triggerThreshold>("triggerThreshold"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Trigger Threshold", 0.0f, 1.0f })
-		.data<&PlayerDodgeComponent::triggerReleaseThreshold>("triggerReleaseThreshold"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Trigger Release Threshold", 0.0f, 1.0f })
 		.data<&PlayerDodgeComponent::directionBufferTime>("directionBufferTime"_hs)
 		.custom<FieldInfo>(FieldInfo{ "Direction Buffer Time", 0.0f, 1.0f })
 		.data<&PlayerDodgeComponent::isDodging>("isDodging"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Is Dodging" })
+		.custom<FieldInfo>(FieldInfo{ "Is Dodging", 0.0f, 0.0f, 0.1f, "", true })
 		.data<&PlayerDodgeComponent::isNoneInput>("isNoneInput"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Is None Input" })
+		.custom<FieldInfo>(FieldInfo{ "Is None Input", 0.0f, 0.0f, 0.1f, "", true })
 		.data<&PlayerDodgeComponent::isFrontInput>("isFrontInput"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Is Front Input" })
+		.custom<FieldInfo>(FieldInfo{ "Is Front Input", 0.0f, 0.0f, 0.1f, "", true })
 		.data<&PlayerDodgeComponent::isBackInput>("isBackInput"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Is Back Input" })
+		.custom<FieldInfo>(FieldInfo{ "Is Back Input", 0.0f, 0.0f, 0.1f, "", true })
 		.data<&PlayerDodgeComponent::isLeftInput>("isLeftInput"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Is Left Input" })
+		.custom<FieldInfo>(FieldInfo{ "Is Left Input", 0.0f, 0.0f, 0.1f, "", true })
 		.data<&PlayerDodgeComponent::isRightInput>("isRightInput"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Is Right Input" });
+		.custom<FieldInfo>(FieldInfo{ "Is Right Input", 0.0f, 0.0f, 0.1f, "", true });
 }
 // ƒvƒŒƒCƒ„[‘S—Í¾‘–ƒRƒ“ƒ|[ƒlƒ“ƒg‚ğ“o˜^
 void MetaRegistry::RegisterPlayerSprintComponent()
@@ -15628,6 +15719,8 @@ void MetaRegistry::RegisterAnimatorComponent()
 		.custom<FieldInfo>(FieldInfo{ "Is Blending", 0.0f, 0.0f, 0.1f, "", true })
 		.data<&AnimatorComponent::blendRate>("blendRate"_hs)
 		.custom<FieldInfo>(FieldInfo{ "Blend Rate", 0.0f, 1.0f, 0.1f, "", true })
+		.data<&AnimatorComponent::isEnd>("isEnd"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Is End", 0.0f, 0.0f, 0.1f, "", true })
 		.data<&AnimatorComponent::blendAnimation>("blendAnimation"_hs)
 		.custom<FieldInfo>(FieldInfo{ "Blend From (Old Clip)", 0.0f, 0.0f, 0.1f, "", true });
 }
@@ -16684,12 +16777,14 @@ private:
 	ConditionVariableNode* selectedVariable = nullptr;
 	ConditionGetterNode* selectedGetter = nullptr;
 	ConditionOperatorNode* selectedOperator = nullptr;
+	ConditionLogicNode* selectedLogic = nullptr;
 	ConditionLink* selectedConditionLink = nullptr;
 
 	// == Šeƒm[ƒh•`‰æ == //
 	void DrawReturnNode();    // ƒŠƒ^[ƒ“ƒm[ƒh•`‰æ
 	void DrawVariableNodes(); // •Ï”ƒm[ƒh•`‰æ
 	void DrawOperatorNodes(); // ”äŠr‰‰Zƒm[ƒh•`‰æ
+	void DrawLogicNodes();    // ˜_—‰‰Zƒm[ƒh•`‰æ
 	void DrawGetterNodes();	  // ƒQƒbƒ^[ƒm[ƒh•`‰æ
 
 	void DrawUnassignedGetterNode(ConditionGetterNode& g); // –¢İ’èƒQƒbƒ^[ƒm[ƒh
@@ -16700,17 +16795,19 @@ private:
 	{
 		VariableIn, VariableOut,
 		OperatorA, OperatorB, OperatorOut,
+		LogicA, LogicB, LogicOut,
 		GetterOut,
 		ReturnIn,
 		Unknown
 	};
-	enum class NodeKind { Variable, Getter, Operator, Return, Unknown }; // ƒm[ƒh‚Ìí—Ş
+	enum class NodeKind { Variable, Getter, Operator, Logic, Return, Unknown }; // ƒm[ƒh‚Ìí—Ş
 
 	// ƒsƒ“IDŒvZ—p‚Ìƒx[ƒXƒIƒtƒZƒbƒg
 	static constexpr int64_t VariableOffset = 1000000;
 	static constexpr int64_t OperatorOffset = 2000000;
-	static constexpr int64_t GetterOffset = 3000000;  
-	static constexpr int64_t ReturnOffset = 4000000;  
+	static constexpr int64_t GetterOffset = 3000000;
+	static constexpr int64_t ReturnOffset = 4000000;
+	static constexpr int64_t LogicOffset = 5000000;
 
 	static void ResolvePinRole(int64_t rawPinId, PinRole& outRole, int& outNodeId); // ¶‚Ìƒsƒ“ID(int64_t)‚©‚çA–ğŠ„‚Æƒm[ƒhID‚ğ‹tZ‚·‚é
 	NodeKind GetNodeKind(int id) const; // ¶‚Ìƒm[ƒhID(int)‚©‚çA‚±‚ÌLink“à‚Å‚Ç‚Ìí—Ş‚Ìƒm[ƒh‚©‚ğ’²‚×‚é
@@ -16730,6 +16827,7 @@ private:
 	void DrawCreateNodeMenu();               // ‰EƒNƒŠƒbƒNƒƒjƒ…[
 	void CreateVariableNode(ValueType type); // •Ï”ƒm[ƒhì¬
 	void CreateOperatorNode(CompareOp op);   // ”äŠr‰‰Zƒm[ƒhì¬
+	void CreateLogicNode(LogicOp op);        // ˜_—‰‰Zƒm[ƒhì¬
 	void CreateGetterNode();                 // ƒQƒbƒ^[ƒm[ƒhì¬
 
 	// == ƒm[ƒh‚Ìíœ == //
@@ -16737,6 +16835,7 @@ private:
 	void DeleteVariableNode(int id);  // •Ï”ƒm[ƒhíœ
 	void DeleteGetterNode(int id);    // ƒQƒbƒ^[ƒm[ƒhíœ
 	void DeleteOperatorNode(int id);  // ”äŠr‰‰Zƒm[ƒhíœ
+	void DeleteLogicNode(int id);     // ˜_—‰‰Zƒm[ƒhíœ
 	void DeleteConditionLink(int id); // ConditionLinkíœ
 
 	// == ‘I‘ğó‘Ô == //
@@ -16749,6 +16848,7 @@ private:
 	static const char* GetValueTypeName(ValueType type);           // ’l‚ÌŒ^–¼‚ğ•¶š‚É‚µ‚Ä•Ô‚·
 	static const char* GetCompareOpSymbol(CompareOp op);	       // ”äŠr‰‰Zq‚Ì•\¦—p‹L†
 	static CompareOp InvertCompareOp(CompareOp op);                // ”äŠr‰‰Zq‚ÌŒü‚«‚ğ”½“]‚·‚é
+	static const char* GetLogicOpSymbol(LogicOp op);               // ˜_—‰‰Zq‚Ì•\¦—p‹L†
 
 	// == ƒsƒ“ID == //
 	static ed::PinId GetVariableInPinId(int nodeId) { return ed::PinId(VariableOffset + (int64_t)nodeId * 2); }
@@ -16758,6 +16858,9 @@ private:
 	static ed::PinId GetOperatorOutPinId(int nodeId) { return ed::PinId(OperatorOffset + (int64_t)nodeId * 3 + 2); }
 	static ed::PinId GetGetterOutPinId(int nodeId) { return ed::PinId(GetterOffset + (int64_t)nodeId); }
 	static ed::PinId GetReturnInPinId(int nodeId) { return ed::PinId(ReturnOffset + (int64_t)nodeId); }
+	static ed::PinId GetLogicPinA(int nodeId) { return ed::PinId(LogicOffset + (int64_t)nodeId * 3); }
+	static ed::PinId GetLogicPinB(int nodeId) { return ed::PinId(LogicOffset + (int64_t)nodeId * 3 + 1); }
+	static ed::PinId GetLogicOutPinId(int nodeId) { return ed::PinId(LogicOffset + (int64_t)nodeId * 3 + 2); }
 }; 
  
 ===== StudioContext.h ===== 
@@ -18749,6 +18852,7 @@ void StudioConditionGraph::DrawGUI()
 	DrawReturnNode();
 	DrawVariableNodes();
 	DrawOperatorNodes();
+	DrawLogicNodes();
 	DrawGetterNodes();
 
 	ed::PopStyleVar(1);
@@ -18767,6 +18871,7 @@ void StudioConditionGraph::DrawGUI()
 // å³å´ãƒ¡ãƒ‹ãƒ¥ãƒ¼
 void StudioConditionGraph::DrawInspector()
 {
+	// å¤‰æ•°ãƒãƒ¼ãƒ‰é¸æŠ
 	if (selectedVariable)
 	{
 		ImGui::Text("Variable");
@@ -18798,6 +18903,7 @@ void StudioConditionGraph::DrawInspector()
 		return;
 	}
 
+	// ã‚²ãƒƒã‚¿ãƒ¼ãƒãƒ¼ãƒ‰é¸æŠ
 	if (selectedGetter)
 	{
 		ImGui::Text("Getter");
@@ -18887,6 +18993,7 @@ void StudioConditionGraph::DrawInspector()
 		return;
 	}
 
+	// æ¯”è¼ƒæ¼”ç®—ãƒãƒ¼ãƒ‰é¸æŠ
 	if (selectedOperator)
 	{
 		ImGui::Text("Operator");
@@ -18903,6 +19010,24 @@ void StudioConditionGraph::DrawInspector()
 		return;
 	}
 
+	// è«–ç†æ¼”ç®—ãƒãƒ¼ãƒ‰é¸æŠ
+	if (selectedLogic)
+	{
+		ImGui::Text("Logic");
+		ImGui::Separator();
+
+		ImGui::Text("Op: %s", GetLogicOpSymbol(selectedLogic->op));
+
+		if (ImGui::Button("Toggle AND/OR", ImVec2(-1.0f, 0.0f)))
+		{
+			selectedLogic->op = (selectedLogic->op == LogicOp::And) ? LogicOp::Or : LogicOp::And;
+		}
+
+		DrawDeleteButton("Delete Logic", selectedLogic->id, [this](int id) { DeleteLogicNode(id); });
+		return;
+	}
+
+	// ãƒªãƒ³ã‚¯é¸æŠ
 	if (selectedConditionLink)
 	{
 		ImGui::Text("Link");
@@ -19102,6 +19227,62 @@ void StudioConditionGraph::DrawOperatorNodes()
 		o.posY = currentPos.y;
 	}
 }
+// è«–ç†æ¼”ç®—ãƒãƒ¼ãƒ‰æç”»
+void StudioConditionGraph::DrawLogicNodes()
+{
+	const float nodeWidth = 100.0f;
+	const ImColor logicBorderColor(200, 130, 60, 255); // ã‚ªãƒ¬ãƒ³ã‚¸
+
+	for (auto& l : targetCondition->logicNodes)
+	{
+		ed::NodeId nodeId(l.id);
+		if (needsApplyPositions)
+		{
+			ed::SetNodePosition(nodeId, ImVec2(l.posX, l.posY));
+		}
+
+		ed::PushStyleColor(ed::StyleColor_NodeBorder, logicBorderColor);
+		ed::PushStyleVar(ed::StyleVar_NodeBorderWidth, 2.0f);
+
+		ed::BeginNode(nodeId);
+		ImGui::PushID(l.id);
+
+		// Aå´å…¥åŠ›ãƒ”ãƒ³
+		ed::BeginPin(GetLogicPinA(l.id), ed::PinKind::Input);
+		ImGui::Text(u8"â–¶");
+		ed::EndPin();
+
+		// æ¼”ç®—å­è¨˜å·(ä¸­å¤®å¯„ã›ã€å°‘ã—å¤§ãã‚ã«è¡¨ç¤º)
+		const char* symbol = GetLogicOpSymbol(l.op);
+		const float symbolScale = 1.5f;
+
+		ImGui::SetWindowFontScale(symbolScale);
+		float symbolWidth = ImGui::CalcTextSize(symbol).x;
+		CenterNextItem(nodeWidth, symbolWidth);
+		ImGui::Text("%s", symbol);
+		ImGui::SetWindowFontScale(1.0f);
+
+		// Bå´å…¥åŠ›ãƒ”ãƒ³ã¨ã€å‡ºåŠ›ãƒ”ãƒ³(åŒã˜è¡Œ)
+		ed::BeginPin(GetLogicPinB(l.id), ed::PinKind::Input);
+		ImGui::Text(u8"â–¶");
+		ed::EndPin();
+
+		ImGui::SameLine(nodeWidth);
+		ed::BeginPin(GetLogicOutPinId(l.id), ed::PinKind::Output);
+		ImGui::Text(u8"â–¶");
+		ed::EndPin();
+
+		ImGui::PopID();
+		ed::EndNode();
+
+		ed::PopStyleColor(1);
+		ed::PopStyleVar(1);
+
+		ImVec2 currentPos = ed::GetNodePosition(nodeId);
+		l.posX = currentPos.x;
+		l.posY = currentPos.y;
+	}
+}
 // ã‚²ãƒƒã‚¿ãƒ¼ãƒãƒ¼ãƒ‰æç”»
 void StudioConditionGraph::DrawGetterNodes()
 {
@@ -19235,6 +19416,7 @@ void StudioConditionGraph::DrawCreateNodeMenu()
 	}
 	if (ImGui::BeginPopup("CreateConditionNode"))
 	{
+		// å¤‰æ•°
 		if (ImGui::BeginMenu("Add Variable"))
 		{
 			if (ImGui::MenuItem("int"))
@@ -19252,6 +19434,7 @@ void StudioConditionGraph::DrawCreateNodeMenu()
 			ImGui::EndMenu();
 		}
 
+		// æ¯”è¼ƒæ¼”ç®—å­
 		if (ImGui::BeginMenu("Add Operator"))
 		{
 			if (ImGui::MenuItem(">"))  CreateOperatorNode(CompareOp::Greater);
@@ -19263,6 +19446,15 @@ void StudioConditionGraph::DrawCreateNodeMenu()
 			ImGui::EndMenu();
 		}
 
+		// è«–ç†æ¼”ç®—å­
+		if (ImGui::BeginMenu("Add Logic"))
+		{
+			if (ImGui::MenuItem("AND")) CreateLogicNode(LogicOp::And);
+			if (ImGui::MenuItem("OR"))  CreateLogicNode(LogicOp::Or);
+			ImGui::EndMenu();
+		}
+
+		// ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆã®ã‚²ãƒƒã‚¿ãƒ¼
 		if (ImGui::MenuItem("Add Getter"))
 		{
 			CreateGetterNode();
@@ -19303,6 +19495,21 @@ void StudioConditionGraph::CreateOperatorNode(CompareOp op)
 
 	ed::SetNodePosition(ed::NodeId(o.id), canvasPos);
 }
+// è«–ç†æ¼”ç®—ãƒãƒ¼ãƒ‰ä½œæˆ
+void StudioConditionGraph::CreateLogicNode(LogicOp op)
+{
+	ImVec2 canvasPos = ed::ScreenToCanvas(pendingCreatePos);
+
+	ConditionLogicNode l;
+	l.id = targetCondition->GenerateId();
+	l.posX = canvasPos.x;
+	l.posY = canvasPos.y;
+	l.op = op;
+
+	targetCondition->logicNodes.push_back(l);
+
+	ed::SetNodePosition(ed::NodeId(l.id), canvasPos);
+}
 // ã‚²ãƒƒã‚¿ãƒ¼ãƒãƒ¼ãƒ‰ä½œæˆ
 void StudioConditionGraph::CreateGetterNode()
 {
@@ -19339,6 +19546,7 @@ void StudioConditionGraph::DrawDeleteButton(const char* label, int targetId, con
 		selectedVariable = nullptr;
 		selectedGetter = nullptr;
 		selectedOperator = nullptr;
+		selectedLogic = nullptr;
 		selectedConditionLink = nullptr;
 	}
 }
@@ -19393,6 +19601,23 @@ void StudioConditionGraph::DeleteOperatorNode(int id)
 		links.end()
 	);
 }
+// è«–ç†æ¼”ç®—ãƒãƒ¼ãƒ‰å‰Šé™¤
+void StudioConditionGraph::DeleteLogicNode(int id)
+{
+	auto& logics = targetCondition->logicNodes;
+	logics.erase(
+		std::remove_if(logics.begin(), logics.end(),
+			[id](const ConditionLogicNode& l) { return l.id == id; }),
+		logics.end()
+	);
+
+	auto& links = targetCondition->links;
+	links.erase(
+		std::remove_if(links.begin(), links.end(),
+			[id](const ConditionLink& cl) { return cl.fromId == id || cl.toId == id; }),
+		links.end()
+	);
+}
 // ConditionLinkå‰Šé™¤
 void StudioConditionGraph::DeleteConditionLink(int id)
 {
@@ -19411,6 +19636,7 @@ void StudioConditionGraph::UpdateSelection()
 	selectedVariable = nullptr;
 	selectedGetter = nullptr;
 	selectedOperator = nullptr;
+	selectedLogic = nullptr;
 	selectedConditionLink = nullptr;
 
 	if (ed::GetSelectedObjectCount() == 0) return;
@@ -19430,6 +19656,10 @@ void StudioConditionGraph::UpdateSelection()
 	for (auto& o : targetCondition->operatorNodes)
 	{
 		if (o.id == id) { selectedOperator = &o; return; }
+	}
+	for (auto& l : targetCondition->logicNodes)
+	{
+		if (l.id == id) { selectedLogic = &l; return; }
 	}
 
 	// Linkã®é¸æŠ
@@ -19514,6 +19744,17 @@ CompareOp StudioConditionGraph::InvertCompareOp(CompareOp op)
 	}
 }
 
+// è«–ç†æ¼”ç®—å­ã®è¡¨ç¤ºç”¨è¨˜å·
+const char* StudioConditionGraph::GetLogicOpSymbol(LogicOp op)
+{
+	switch (op)
+	{
+	case LogicOp::And: return "AND";
+	case LogicOp::Or:  return "OR";
+	}
+	return "?";
+}
+
 
 // ç”Ÿã®ãƒ”ãƒ³ID(int64_t)ã‹ã‚‰ã€å½¹å‰²ã¨ãƒãƒ¼ãƒ‰IDã‚’é€†ç®—ã™ã‚‹
 void StudioConditionGraph::ResolvePinRole(int64_t rawPinId, PinRole& outRole, int& outNodeId)
@@ -19528,6 +19769,15 @@ void StudioConditionGraph::ResolvePinRole(int64_t rawPinId, PinRole& outRole, in
 	{
 		outRole = PinRole::GetterOut;
 		outNodeId = (int)(rawPinId - GetterOffset);
+		return;
+	}
+	if (rawPinId >= LogicOffset && rawPinId < LogicOffset + 1000000)
+	{
+		int64_t offset = rawPinId - LogicOffset;
+		int64_t nodeId = offset / 3;
+		int64_t rem = offset % 3;
+		outNodeId = (int)nodeId;
+		outRole = (rem == 0) ? PinRole::LogicA : (rem == 1) ? PinRole::LogicB : PinRole::LogicOut;
 		return;
 	}
 	if (rawPinId >= OperatorOffset && rawPinId < OperatorOffset + 1000000)
@@ -19566,6 +19816,9 @@ StudioConditionGraph::NodeKind StudioConditionGraph::GetNodeKind(int id) const
 	for (const auto& o : targetCondition->operatorNodes)
 		if (o.id == id) return NodeKind::Operator;
 
+	for (const auto& l : targetCondition->logicNodes)
+		if (l.id == id) return NodeKind::Logic;
+
 	return NodeKind::Unknown;
 }
 // ãƒ”ãƒ³æ¥ç¶š(ãƒ‰ãƒ©ãƒƒã‚°)ã®å‡¦ç†
@@ -19584,11 +19837,12 @@ void StudioConditionGraph::DrawLinkCreation()
 			// å‡ºåŠ›å´/å…¥åŠ›å´ã‚’åˆ¤å®šã™ã‚‹(ãƒ‰ãƒ©ãƒƒã‚°ã®å‘ãã«é–¢ã‚ã‚‰ãšæ­£è¦åŒ–ã™ã‚‹)
 			auto isOutputRole = [](PinRole r)
 				{
-					return r == PinRole::VariableOut || r == PinRole::GetterOut || r == PinRole::OperatorOut;
+					return r == PinRole::VariableOut || r == PinRole::GetterOut || r == PinRole::OperatorOut || r == PinRole::LogicOut;
 				};
 			auto isInputRole = [](PinRole r)
 				{
-					return r == PinRole::VariableIn || r == PinRole::OperatorA || r == PinRole::OperatorB || r == PinRole::ReturnIn;
+					return r == PinRole::VariableIn || r == PinRole::OperatorA || r == PinRole::OperatorB
+						|| r == PinRole::LogicA || r == PinRole::LogicB || r == PinRole::ReturnIn;
 				};
 
 			PinRole outRole, inRole;
@@ -19608,36 +19862,29 @@ void StudioConditionGraph::DrawLinkCreation()
 				orderOk = true;
 			}
 
-			//// è¨±å¯ã™ã‚‹çµ„ã¿åˆã‚ã›:Getterâ†’Variableã€Variable/Operatorâ†’OperatorA/Bã€Operatorâ†’Returnã€Getter/Variable(bool)â†’Return
-			//bool isValid = orderOk && (
-			//	(outRole == PinRole::GetterOut && inRole == PinRole::VariableIn) ||
-			//	((outRole == PinRole::VariableOut || outRole == PinRole::OperatorOut) && (inRole == PinRole::OperatorA || inRole == PinRole::OperatorB)) ||
-			//	(outRole == PinRole::OperatorOut && inRole == PinRole::ReturnIn) ||
-			//	((outRole == PinRole::GetterOut || outRole == PinRole::VariableOut) && inRole == PinRole::ReturnIn)
-			//	);
-			// è¨±å¯ã™ã‚‹çµ„ã¿åˆã‚ã›:Getter/Variable/Operatorâ†’OperatorA/Bã€Operatorâ†’Returnã€Getter/Variable(bool)â†’Return
+			// å‡ºåŠ›å´ãŒã€Œå¸¸ã«Boolãªå‡ºåŠ›(Operator/Logic)ã€ã‹ã©ã†ã‹
+			auto isBoolOutRole = [](PinRole r)
+				{
+					return r == PinRole::OperatorOut || r == PinRole::LogicOut;
+				};
+
+			// è¨±å¯ã™ã‚‹çµ„ã¿åˆã‚ã›:
+			// Getter/Variable/Operator/Logic â†’ OperatorA/B
+			// Getter/Variable(bool)/Operator/Logic â†’ LogicA/B
+			// Operator/Logic â†’ Return
+			// Getter/Variable(bool) â†’ Return
 			bool isValid = orderOk && (
-				((outRole == PinRole::GetterOut || outRole == PinRole::VariableOut || outRole == PinRole::OperatorOut) && (inRole == PinRole::OperatorA || inRole == PinRole::OperatorB)) ||
-				(outRole == PinRole::OperatorOut && inRole == PinRole::ReturnIn) ||
+				((outRole == PinRole::GetterOut || outRole == PinRole::VariableOut || isBoolOutRole(outRole)) && (inRole == PinRole::OperatorA || inRole == PinRole::OperatorB)) ||
+				((outRole == PinRole::GetterOut || outRole == PinRole::VariableOut || isBoolOutRole(outRole)) && (inRole == PinRole::LogicA || inRole == PinRole::LogicB)) ||
+				(isBoolOutRole(outRole) && inRole == PinRole::ReturnIn) ||
 				((outRole == PinRole::GetterOut || outRole == PinRole::VariableOut) && inRole == PinRole::ReturnIn)
 				);
 
 			// åŒã˜ãƒãƒ¼ãƒ‰åŒå£«ã¯ç¦æ­¢
 			if (isValid && outNodeId == inNodeId) isValid = false;
 
-			//// Getterâ†’Variableã¯ã€å‹ãŒå®Œå…¨ä¸€è‡´ã—ã¦ã„ã‚‹å¿…è¦ãŒã‚ã‚‹
-			//if (isValid && outRole == PinRole::GetterOut && inRole == PinRole::VariableIn)
-			//{
-			//	ValueType outType = GetNodeValueType(NodeKind::Getter, outNodeId);
-			//	ValueType inType = GetNodeValueType(NodeKind::Variable, inNodeId);
-			//	if (outType != inType) isValid = false;
-			//}
-
-			//// Variable/Operatorâ†’Operatorã®A/Bã¯ã€å¤§å°ç³»æ¼”ç®—å­ãªã‚‰Boolã‚’ç¦æ­¢ã™ã‚‹ã€‚==/!=ãªã‚‰å‹ä¸€è‡´ã®ã¿è¦‹ã‚‹
-			//if (isValid && (outRole == PinRole::VariableOut || outRole == PinRole::OperatorOut) && (inRole == PinRole::OperatorA || inRole == PinRole::OperatorB))
-			//{
-			// Getter/Variable/Operatorâ†’Operatorã®A/Bã¯ã€å¤§å°ç³»æ¼”ç®—å­ãªã‚‰Boolã‚’ç¦æ­¢ã™ã‚‹ã€‚==/!=ãªã‚‰å‹ä¸€è‡´ã®ã¿è¦‹ã‚‹
-			if (isValid && (outRole == PinRole::GetterOut || outRole == PinRole::VariableOut || outRole == PinRole::OperatorOut) && (inRole == PinRole::OperatorA || inRole == PinRole::OperatorB))
+			// Getter/Variable/Operator/Logicâ†’Operatorã®A/Bã¯ã€å¤§å°ç³»æ¼”ç®—å­ãªã‚‰Boolã‚’ç¦æ­¢ã™ã‚‹ã€‚==/!=ãªã‚‰å‹ä¸€è‡´ã®ã¿è¦‹ã‚‹
+			if (isValid && (outRole == PinRole::GetterOut || outRole == PinRole::VariableOut || isBoolOutRole(outRole)) && (inRole == PinRole::OperatorA || inRole == PinRole::OperatorB))
 			{
 				ValueType srcType = GetOutputValueType(outRole, outNodeId);
 
@@ -19660,12 +19907,10 @@ void StudioConditionGraph::DrawLinkCreation()
 				{
 					if (cl.toId == inNodeId && cl.toPinB != wantPinB)
 					{
-						//otherPinNodeId = cl.fromId;
-						//otherOutRole = (GetNodeKind(cl.fromId) == NodeKind::Operator) ? PinRole::OperatorOut : PinRole::VariableOut;
-						//break;
 						otherPinNodeId = cl.fromId;
 						NodeKind otherKind = GetNodeKind(cl.fromId);
 						otherOutRole = (otherKind == NodeKind::Operator) ? PinRole::OperatorOut
+							: (otherKind == NodeKind::Logic) ? PinRole::LogicOut
 							: (otherKind == NodeKind::Getter) ? PinRole::GetterOut
 							: PinRole::VariableOut;
 						break;
@@ -19676,6 +19921,13 @@ void StudioConditionGraph::DrawLinkCreation()
 					ValueType otherType = GetOutputValueType(otherOutRole, otherPinNodeId);
 					if (otherType != srcType) isValid = false;
 				}
+			}
+
+			// Getter/Variable(bool)/Operator/Logic â†’ Logicã®A/Bã¯ã€Boolå‹ã®ã¿è¨±å¯
+			if (isValid && (outRole == PinRole::GetterOut || outRole == PinRole::VariableOut || isBoolOutRole(outRole)) && (inRole == PinRole::LogicA || inRole == PinRole::LogicB))
+			{
+				ValueType srcType = GetOutputValueType(outRole, outNodeId);
+				if (srcType != ValueType::Bool) isValid = false;
 			}
 
 			// Getter/Variable(bool)â†’Returnã¯ã€boolå‹ã®ã¿è¨±å¯
@@ -19690,7 +19942,7 @@ void StudioConditionGraph::DrawLinkCreation()
 			{
 				if (ed::AcceptNewItem())
 				{
-					bool toPinB = (inRole == PinRole::OperatorB);
+					bool toPinB = (inRole == PinRole::OperatorB || inRole == PinRole::LogicB);
 
 					// å…¥åŠ›ãƒ”ãƒ³ã¯1æœ¬ã¾ã§:æ—¢ã«åŒã˜å…¥åŠ›ã«ç¹‹ãŒã£ã¦ã„ã‚‹LinkãŒã‚ã‚Œã°ç½®ãæ›ãˆã‚‹
 					auto& links = targetCondition->links;
@@ -19744,6 +19996,7 @@ ed::PinId StudioConditionGraph::GetOutputPinIdOf(int nodeId, NodeKind kind) cons
 	case NodeKind::Variable: return GetVariableOutPinId(nodeId);
 	case NodeKind::Getter:   return GetGetterOutPinId(nodeId);
 	case NodeKind::Operator: return GetOperatorOutPinId(nodeId);
+	case NodeKind::Logic:    return GetLogicOutPinId(nodeId);
 	default:                 return ed::PinId();
 	}
 }
@@ -19753,6 +20006,7 @@ ed::PinId StudioConditionGraph::GetInputPinIdOf(int nodeId, NodeKind kind, bool 
 	{
 	case NodeKind::Variable: return GetVariableInPinId(nodeId);
 	case NodeKind::Operator: return toPinB ? GetOperatorPinB(nodeId) : GetOperatorPinA(nodeId);
+	case NodeKind::Logic:    return toPinB ? GetLogicPinB(nodeId) : GetLogicPinA(nodeId);
 	case NodeKind::Return:   return GetReturnInPinId(nodeId);
 	default:                 return ed::PinId();
 	}
@@ -19800,6 +20054,7 @@ bool StudioConditionGraph::IsOrderCompareOp(CompareOp op)
 ValueType StudioConditionGraph::GetOutputValueType(PinRole outRole, int outNodeId) const
 {
 	if (outRole == PinRole::OperatorOut) return ValueType::Bool; // Operatorã®å‡ºåŠ›ã¯å¸¸ã«Bool
+	if (outRole == PinRole::LogicOut)    return ValueType::Bool; // Logicã®å‡ºåŠ›ã‚‚å¸¸ã«Bool
 	if (outRole == PinRole::GetterOut)   return GetNodeValueType(NodeKind::Getter, outNodeId);
 	return GetNodeValueType(NodeKind::Variable, outNodeId); // VariableOut
 } 

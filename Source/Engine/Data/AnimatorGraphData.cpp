@@ -117,6 +117,22 @@ namespace
 		if (s == "LessEqual")    return CompareOp::LessEqual;
 		return CompareOp::Greater;
 	}
+
+	// LogicOp(ò_óùââéZéqÇÃéÌóﬁ)
+	std::string ToString(LogicOp op)
+	{
+		switch (op)
+		{
+		case LogicOp::And: return "And";
+		case LogicOp::Or:  return "Or";
+		default:           return "And";
+		}
+	}
+	LogicOp ToLogicOp(const std::string& s)
+	{
+		if (s == "Or") return LogicOp::Or;
+		return LogicOp::And;
+	}
 }
 
 
@@ -564,6 +580,17 @@ nlohmann::ordered_json AnimatorGraphData::TransitionLinksToJson() const
 			jc["operatorNodes"].push_back(jo);
 		}
 
+		jc["logicNodes"] = nlohmann::json::array();
+		for (const auto& l : link.condition.logicNodes)
+		{
+			nlohmann::ordered_json jln;
+			jln["id"] = l.id;
+			jln["posX"] = l.posX;
+			jln["posY"] = l.posY;
+			jln["op"] = ToString(l.op);
+			jc["logicNodes"].push_back(jln);
+		}
+
 		jc["getterNodes"] = nlohmann::json::array();
 		for (const auto& g : link.condition.getterNodes)
 		{
@@ -649,6 +676,21 @@ void AnimatorGraphData::TransitionLinksFromJson(const nlohmann::json& j)
 					link.condition.operatorNodes.push_back(o);
 
 					SyncIdCounter(o.id);
+				}
+			}
+
+			if (jc.contains("logicNodes"))
+			{
+				for (const auto& jln : jc["logicNodes"])
+				{
+					ConditionLogicNode l;
+					l.id = jln.value("id", -1);
+					l.posX = jln.value("posX", 0.0f);
+					l.posY = jln.value("posY", 0.0f);
+					l.op = ToLogicOp(jln.value("op", "And"));
+					link.condition.logicNodes.push_back(l);
+
+					SyncIdCounter(l.id);
 				}
 			}
 
@@ -743,6 +785,17 @@ nlohmann::ordered_json AnimatorGraphData::AnimLinkToJson(const AnimLink& link) c
 		jc["operatorNodes"].push_back(jo);
 	}
 
+	jc["logicNodes"] = nlohmann::json::array();
+	for (const auto& l : link.condition.logicNodes)
+	{
+		nlohmann::ordered_json jln;
+		jln["id"] = l.id;
+		jln["posX"] = l.posX;
+		jln["posY"] = l.posY;
+		jln["op"] = ToString(l.op);
+		jc["logicNodes"].push_back(jln);
+	}
+
 	jc["getterNodes"] = nlohmann::json::array();
 	for (const auto& g : link.condition.getterNodes)
 	{
@@ -826,6 +879,21 @@ void AnimatorGraphData::AnimLinkFromJson(AnimLink& link, const nlohmann::json& j
 				link.condition.operatorNodes.push_back(o);
 
 				SyncIdCounter(o.id);
+			}
+		}
+
+		if (jc.contains("logicNodes"))
+		{
+			for (const auto& jln : jc["logicNodes"])
+			{
+				ConditionLogicNode l;
+				l.id = jln.value("id", -1);
+				l.posX = jln.value("posX", 0.0f);
+				l.posY = jln.value("posY", 0.0f);
+				l.op = ToLogicOp(jln.value("op", "And"));
+				link.condition.logicNodes.push_back(l);
+
+				SyncIdCounter(l.id);
 			}
 		}
 
