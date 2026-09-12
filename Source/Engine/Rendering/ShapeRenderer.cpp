@@ -99,7 +99,7 @@ void ShapeRenderer::DrawCapsule(
 {
 	DirectX::XMMATRIX base = DirectX::XMLoadFloat4x4(&transform);
 	DirectX::XMMATRIX S = DirectX::XMMatrixScaling(radius, radius, radius);
-	DirectX::XMMATRIX flip = DirectX::XMMatrixScaling(1.0f, -1.0f, 1.0f);
+	DirectX::XMMATRIX flip = DirectX::XMMatrixRotationX(DirectX::XM_PI);
 
 	// è„îºãÖ
 	{

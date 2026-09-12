@@ -594,6 +594,22 @@ float4 main(VS_OUT pin) : SV_TARGET
     return float4(color, baseColor.a);
 } 
  
+===== Present_PS.hlsl ===== 
+Path: Present_PS.hlsl 
+Texture2D sourceTexture : register(t0);
+SamplerState samplerState : register(s0);
+
+struct VS_OUT
+{
+    float4 position : SV_POSITION;
+    float2 texcoord : TEXCOORD;
+};
+
+float4 main(VS_OUT pin) : SV_TARGET
+{
+    return sourceTexture.Sample(samplerState, pin.texcoord);
+} 
+ 
 ===== Skinning_VS.hlsl ===== 
 Path: Skinning_VS.hlsl 
 // 定数バッファ0：シーン情報
@@ -787,6 +803,8 @@ VS_OUT main(
 
     VS_OUT vout;
     vout.position = mul(position, mul(world, viewProjection));
+    //vout.position.z -= 0.0000005f * vout.position.w;
+
     vout.normal = mul(normal, world).xyz;
     vout.color = color; // ピクセルシェーダーへそのまま橋渡し
 

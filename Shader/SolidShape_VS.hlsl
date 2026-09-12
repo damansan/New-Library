@@ -10,6 +10,8 @@ VS_OUT main(
 
     VS_OUT vout;
     vout.position = mul(position, mul(world, viewProjection));
+    vout.position.z -= 0.0000005f * vout.position.w;
+
     vout.normal = mul(normal, world).xyz;
     vout.color = color; // ピクセルシェーダーへそのまま橋渡し
 
