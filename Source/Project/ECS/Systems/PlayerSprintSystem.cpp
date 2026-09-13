@@ -43,12 +43,8 @@ void PlayerSprintSystem::Update(entt::registry& registry, float elapsedTime, con
 			sprint.isSprinting = isMyState;
 
 			if (!isMyState)
-			{
-				// Sprintの担当を離れる時は、XZ速度を確実に止める
-				movement.velocity.x = 0.0f;
-				movement.velocity.z = 0.0f;
 				return;
-			}
+
 
 			// ここから先は、必ずcategory == Sprint
 			DirectX::XMFLOAT3 front = context.camera->GetFront();

@@ -7,7 +7,7 @@ namespace PlayerMovementUtils
 		float inputX, float inputZ,
 		const DirectX::XMFLOAT3& cameraFront,
 		const DirectX::XMFLOAT3& cameraRight,
-		float speed)
+		float maxSpeed)
 	{
 		WorldVelocityResult result;
 
@@ -24,11 +24,11 @@ namespace PlayerMovementUtils
 		float len = sqrtf(dirX * dirX + dirZ * dirZ);
 
 		result.inputLength = len;
-
+		
 		if (len > 0.0f)
 		{
-			result.velocity.x = (dirX / len) * speed;
-			result.velocity.z = (dirZ / len) * speed;
+			result.velocity.x = (dirX / len) * maxSpeed;
+			result.velocity.z = (dirZ / len) * maxSpeed;
 		}
 
 		return result;

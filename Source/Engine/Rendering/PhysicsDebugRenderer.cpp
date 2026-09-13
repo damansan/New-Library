@@ -205,7 +205,6 @@ void PhysicsDebugRenderer::Render(
 			if (!actor) continue;
 
 			physx::PxExtendedVec3 footPos = ctrl->getFootPosition();
-			float halfHeight = ctrl->getPosition().y - footPos.y; // 参考: 現状のgetPosition()との差を見るための仮計算
 
 			// カプセルコントローラーとして、半径+半分の高さを中心へのオフセットとして使う
 			physx::PxCapsuleController* capsuleCtrl = static_cast<physx::PxCapsuleController*>(ctrl);
@@ -224,10 +223,8 @@ void PhysicsDebugRenderer::Render(
 
 			for (physx::PxU32 s = 0; s < numShapes; ++s)
 			{
-				// シェイプ自身のローカル姿勢を、補正済みのアクター姿勢に合成する
 				physx::PxTransform shapeWorldPose = correctedActorPose * pxShapes[s]->getLocalPose();
 				drawShape(pxShapes[s], shapeWorldPose, 0.0f, sleeping);
-				drawShape(pxShapes[s], shapeWorldPose, ctrl->getContactOffset(), sleeping);
 			}
 		}
 	}

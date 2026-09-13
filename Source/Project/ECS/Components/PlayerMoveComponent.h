@@ -10,11 +10,11 @@ enum class PlayerMoveSubState
 struct PlayerMoveComponent
 {
 	// 設定値
-	float walkSpeed    = 2.0f; // 歩き速度
-	float jogSpeed     = 4.0f; // 小走り速度
-	float jogThreshold = 0.9f; // スティックの倒し具合が、この値を超えたら小走りとみなす
-	
-	float turnSpeed = 10.0f; // １秒当たりの最大旋回速度
+	float walkSpeed = 2.0f; // 歩行速度
+	float jogSpeed = 4.0f; // 小走り速度
+	float jogThreshold = 0.9f; // スティックの倒し込み量が、この値を超えたら小走りとみなす
+
+	float turnSpeed = 10.0f;    // 1秒あたりの最大旋回速度
 
 	// 状態
 	PlayerMoveSubState moveSub = PlayerMoveSubState::None;

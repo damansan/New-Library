@@ -6852,8 +6852,6 @@ void PhysicsSystem::ProcessCharacterControllers(entt::registry& registry, PhysX&
 				movement->velocity.y = -kGroundStickSpeed;
 			}
 		}
-
-		OutputDebugStringA(("PhysX Y: " + std::to_string(foot.y) + " Transform Y: " + std::to_string(transform.position.y) + "\n").c_str());
 	}
 }
  
@@ -7627,7 +7625,6 @@ void TransitionControllerSystem::Update(entt::registry& registry, float elapsedT
 		int newStateId = FindTransition(data.transitionGraph.links, state.currentStateId, registry, entity);
 		if (newStateId != -1)
 		{
-			OutputDebugStringA(("Transition: " + std::to_string(state.currentStateId) + " -> " + std::to_string(newStateId) + "\n").c_str());
 			state.currentStateId = newStateId;
 		}
 
@@ -8174,17 +8171,12 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11Buffer> instanceBuffer;
 	UINT instanceBufferCapacity = 0;
 
-	// 不透明描画用ステート
+	// 不透明描画用ステート(Wired用)
 	Microsoft::WRL::ComPtr<ID3D11BlendState>        opaqueBlendState;
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilState> opaqueDepthStencilState;
 
-	// 深度プリパス用ステート
-	Microsoft::WRL::ComPtr<ID3D11BlendState>        depthOnlyBlendState;       // 色を一切書き込まない
-	Microsoft::WRL::ComPtr<ID3D11DepthStencilState> mainPassDepthStencilState; // プリパス後の本パス用
-
-	// 深度プリパス用シェーダー
-	Microsoft::WRL::ComPtr<ID3D11VertexShader> solidDepthVertexShader;
-	Microsoft::WRL::ComPtr<ID3D11InputLayout>  solidDepthInputLayout;
+	// 半透明描画用ステート(Solid用)
+	Microsoft::WRL::ComPtr<ID3D11BlendState>        alphaBlendState;
 
 	// Wiredシェーダー
 	Microsoft::WRL::ComPtr<ID3D11VertexShader> wiredVertexShader;
@@ -8647,7 +8639,6 @@ void PhysicsDebugRenderer::Render(
 			if (!actor) continue;
 
 			physx::PxExtendedVec3 footPos = ctrl->getFootPosition();
-			float halfHeight = ctrl->getPosition().y - footPos.y; // 参考: 現状のgetPosition()との差を見るための仮計算
 
 			// カプセルコントローラーとして、半径+半分の高さを中心へのオフセットとして使う
 			physx::PxCapsuleController* capsuleCtrl = static_cast<physx::PxCapsuleController*>(ctrl);
@@ -8666,10 +8657,8 @@ void PhysicsDebugRenderer::Render(
 
 			for (physx::PxU32 s = 0; s < numShapes; ++s)
 			{
-				// シェイプ自身のローカル姿勢を、補正済みのアクター姿勢に合成する
 				physx::PxTransform shapeWorldPose = correctedActorPose * pxShapes[s]->getLocalPose();
 				drawShape(pxShapes[s], shapeWorldPose, 0.0f, sleeping);
-				drawShape(pxShapes[s], shapeWorldPose, ctrl->getContactOffset(), sleeping);
 			}
 		}
 	}
@@ -8931,9 +8920,6 @@ ShapeRenderer::ShapeRenderer(ID3D11Device* device)
 		GpuResourceUtils::LoadVertexShader(device, "Data/Shader/SolidShape_VS.cso", layout, _countof(layout), solidInputLayout, solidVertexShader);
 		GpuResourceUtils::LoadPixelShader(device, "Data/Shader/SolidShape_PS.cso", solidPixelShader);
 		GpuResourceUtils::CreateConstantBuffer(device, sizeof(CbSolidMesh), solidConstantBuffer);
-
-		// 深度プリパス用
-		GpuResourceUtils::LoadVertexShader(device, "Data/Shader/SolidShapeDepth_VS.cso", layout, _countof(layout), solidDepthInputLayout, solidDepthVertexShader);
 	}
 
 	// 単位メッシュを事前生成
@@ -8991,7 +8977,7 @@ void ShapeRenderer::DrawCapsule(
 {
 	DirectX::XMMATRIX base = DirectX::XMLoadFloat4x4(&transform);
 	DirectX::XMMATRIX S = DirectX::XMMatrixScaling(radius, radius, radius);
-	DirectX::XMMATRIX flip = DirectX::XMMatrixScaling(1.0f, -1.0f, 1.0f);
+	DirectX::XMMATRIX flip = DirectX::XMMatrixRotationX(DirectX::XM_PI);
 
 	// 上半球
 	{
@@ -9130,29 +9116,11 @@ void ShapeRenderer::Render(
 		dc->VSSetConstantBuffers(0, 1, solidConstantBuffer.GetAddressOf());
 		dc->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-		// ① 深度プリパス:色は書かず、深度バッファだけを確定させる
-		dc->VSSetShader(solidDepthVertexShader.Get(), nullptr, 0);
-		dc->PSSetShader(nullptr, nullptr, 0); // ピクセルシェーダーなし
-		dc->IASetInputLayout(solidDepthInputLayout.Get());
-		dc->OMSetBlendState(depthOnlyBlendState.Get(), blendFactor, 0xFFFFFFFF);
-		dc->OMSetDepthStencilState(opaqueDepthStencilState.Get(), 0); // 書き込みON・LESS_EQUAL
-
-		for (auto& g : groups)
-		{
-			ID3D11Buffer* buffers[2] = { g.solidMesh->vertexBuffer.Get(), instanceBuffer.Get() };
-			UINT strides[2] = { sizeof(Vertex), sizeof(InstanceData) };
-			UINT offsets[2] = { 0, g.instanceOffset * sizeof(InstanceData) };
-			dc->IASetVertexBuffers(0, 2, buffers, strides, offsets);
-			dc->IASetIndexBuffer(g.solidMesh->indexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0);
-			dc->DrawIndexedInstanced(g.solidMesh->indexCount, g.instanceCount, 0, 0, 0);
-		}
-
-		// ② 本パス:プリパスで確定した深度と一致するピクセルだけ色を塗る
 		dc->VSSetShader(solidVertexShader.Get(), nullptr, 0);
 		dc->PSSetShader(solidPixelShader.Get(), nullptr, 0);
 		dc->IASetInputLayout(solidInputLayout.Get());
-		dc->OMSetBlendState(opaqueBlendState.Get(), blendFactor, 0xFFFFFFFF);
-		dc->OMSetDepthStencilState(mainPassDepthStencilState.Get(), 0); // 書き込みOFF・EQUAL
+		dc->OMSetBlendState(alphaBlendState.Get(), blendFactor, 0xFFFFFFFF);
+		dc->OMSetDepthStencilState(opaqueDepthStencilState.Get(), 0);
 
 		for (auto& g : groups)
 		{
@@ -9193,13 +9161,28 @@ void ShapeRenderer::EnsureInstanceBuffer(ID3D11Device* device, UINT requiredCoun
 // 不透明描画用のレンダーステート生成
 void ShapeRenderer::CreateRenderStates(ID3D11Device* device)
 {
-	// ブレンドなし(不透明)
+	// ブレンドなし(不透明、Wired用)
 	{
 		D3D11_BLEND_DESC desc = {};
 		desc.RenderTarget[0].BlendEnable = FALSE;
-		desc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+		desc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_RED | D3D11_COLOR_WRITE_ENABLE_GREEN | D3D11_COLOR_WRITE_ENABLE_BLUE;
 		HRESULT hr = device->CreateBlendState(&desc, opaqueBlendState.GetAddressOf());
 		_ASSERT_EXPR(SUCCEEDED(hr), L"ShapeRenderer: BlendState failed");
+	}
+
+	// アルファブレンドあり(半透明、Solid用)
+	{
+		D3D11_BLEND_DESC desc = {};
+		desc.RenderTarget[0].BlendEnable = TRUE;
+		desc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
+		desc.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+		desc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+		desc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+		desc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
+		desc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+		desc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_RED | D3D11_COLOR_WRITE_ENABLE_GREEN | D3D11_COLOR_WRITE_ENABLE_BLUE;
+		HRESULT hr = device->CreateBlendState(&desc, alphaBlendState.GetAddressOf());
+		_ASSERT_EXPR(SUCCEEDED(hr), L"ShapeRenderer: AlphaBlendState failed");
 	}
 
 	// 深度テスト・書き込みあり
@@ -9210,25 +9193,6 @@ void ShapeRenderer::CreateRenderStates(ID3D11Device* device)
 		desc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
 		HRESULT hr = device->CreateDepthStencilState(&desc, opaqueDepthStencilState.GetAddressOf());
 		_ASSERT_EXPR(SUCCEEDED(hr), L"ShapeRenderer: DepthStencilState failed");
-	}
-
-	// 深度プリパス用:色を一切書き込まない
-	{
-		D3D11_BLEND_DESC desc = {};
-		desc.RenderTarget[0].BlendEnable = FALSE;
-		desc.RenderTarget[0].RenderTargetWriteMask = 0;
-		HRESULT hr = device->CreateBlendState(&desc, depthOnlyBlendState.GetAddressOf());
-		_ASSERT_EXPR(SUCCEEDED(hr), L"ShapeRenderer: DepthOnlyBlendState failed");
-	}
-
-	// プリパス後の本パス用:深度は書き込まず、プリパスと完全一致するピクセルだけ描く
-	{
-		D3D11_DEPTH_STENCIL_DESC desc = {};
-		desc.DepthEnable = TRUE;
-		desc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
-		desc.DepthFunc = D3D11_COMPARISON_EQUAL;
-		HRESULT hr = device->CreateDepthStencilState(&desc, mainPassDepthStencilState.GetAddressOf());
-		_ASSERT_EXPR(SUCCEEDED(hr), L"ShapeRenderer: MainPassDepthStencilState failed");
 	}
 }
 
@@ -9478,8 +9442,8 @@ void ShapeRenderer::CreateSolidCylinderMesh(ID3D11Device* device, int subdivisio
 	{
 		uint16_t t0 = (uint16_t)(i * 2);
 		uint16_t b0 = t0 + 1, t1 = t0 + 2, b1 = t0 + 3;
-		idxs.push_back(t0); idxs.push_back(b0); idxs.push_back(t1);
-		idxs.push_back(t1); idxs.push_back(b0); idxs.push_back(b1);
+		idxs.push_back(t0); idxs.push_back(t1); idxs.push_back(b0);
+		idxs.push_back(t1); idxs.push_back(b1); idxs.push_back(b0);
 	}
 	CreateSolidMesh(device, verts, idxs, solidCylinderMesh);
 }
@@ -12576,11 +12540,12 @@ enum class PlayerMoveSubState
 struct PlayerMoveComponent
 {
 	// 設定値
-	float walkSpeed    = 2.0f; // 歩き速度
-	float jogSpeed     = 4.0f; // 小走り速度
-	float jogThreshold = 0.9f; // スティックの倒し具合が、この値を超えたら小走りとみなす
-	
-	float turnSpeed = 10.0f; // １秒当たりの最大旋回速度
+	float walkSpeed = 2.0f; // 歩行速度
+	float jogSpeed = 4.0f; // 小走り速度
+	float jogThreshold = 0.9f; // スティックの倒し込み量が、この値を超えたら小走りとみなす
+
+	float turnSpeed = 10.0f;    // 1秒あたりの最大旋回速度
+	float acceleration = 10.0f; // 1秒あたりの最大加速度(慣性の強さ)
 
 	// 状態
 	PlayerMoveSubState moveSub = PlayerMoveSubState::None;
@@ -12610,7 +12575,9 @@ struct PlayerSprintComponent
 {
 	// 設定値
 	float sprintSpeed = 15.0f; // ダッシュ速度
-	float turnSpeed = 15.0f;   // 1秒あたりの最大旋回速度
+
+	float turnSpeed = 15.0f;    // 1秒あたりの最大旋回速度
+	float acceleration = 10.0f; // 1秒あたりの最大加速度(慣性の強さ)
 
 	// 状態
 	PlayerSprintSubState state = PlayerSprintSubState::None;
@@ -12746,14 +12713,17 @@ namespace PlayerMovementUtils
 		const DirectX::XMFLOAT3& cameraRight,
 		float targetSpeed,
 		const DirectX::XMFLOAT3& currentVelocity,
-		float elapsedTime);
-
+		float elapsedTime,
+		float acceleration);
 
 	// ワールド座標系の移動方向から、Y軸回転角を求める
 	float CalcFacingYaw(float worldDirX, float worldDirZ);
 
 	// 滑らかに回転させる
 	float RotateTowards(float currentYaw, float targetYaw, float turnSpeed, float elapsedTime);
+
+	// 慣性をかける
+	float AccelerateTowards(float current, float target, float maxDelta);
 } 
  
 ===== PlayerMoveSystem.h ===== 
@@ -13210,7 +13180,7 @@ namespace PlayerMovementUtils
 		float inputX, float inputZ,
 		const DirectX::XMFLOAT3& cameraFront,
 		const DirectX::XMFLOAT3& cameraRight,
-		float speed)
+		float maxSpeed)
 	{
 		WorldVelocityResult result;
 
@@ -13227,11 +13197,11 @@ namespace PlayerMovementUtils
 		float len = sqrtf(dirX * dirX + dirZ * dirZ);
 
 		result.inputLength = len;
-
+		
 		if (len > 0.0f)
 		{
-			result.velocity.x = (dirX / len) * speed;
-			result.velocity.z = (dirZ / len) * speed;
+			result.velocity.x = (dirX / len) * maxSpeed;
+			result.velocity.z = (dirZ / len) * maxSpeed;
 		}
 
 		return result;
@@ -13243,12 +13213,20 @@ namespace PlayerMovementUtils
 		const DirectX::XMFLOAT3& cameraRight,
 		float targetSpeed, 
 		const DirectX::XMFLOAT3& currentVelocity, 
-		float elapsedTime)
+		float elapsedTime,
+		float acceleration)
 	{
-		(void)currentVelocity;
-		(void)elapsedTime;
+		// 目標速度を求める
+		auto target = StickToWorldVelocity(inputX, inputZ, cameraFront, cameraRight, targetSpeed);
 
-		return StickToWorldVelocity(inputX, inputZ, cameraFront, cameraRight, targetSpeed);
+		// 現在の速度から目標側へに慣性をかけながら近づける
+		WorldVelocityResult result;
+		float maxDelta = acceleration * elapsedTime;
+		result.velocity.x = AccelerateTowards(currentVelocity.x, target.velocity.x, maxDelta);
+		result.velocity.z = AccelerateTowards(currentVelocity.z, target.velocity.z, maxDelta);
+		result.inputLength = target.inputLength;
+
+		return result;
 	}
 
 	float CalcFacingYaw(float worldDirX, float worldDirZ)
@@ -13271,6 +13249,13 @@ namespace PlayerMovementUtils
 		while (result < -DirectX::XM_PI) result += DirectX::XM_2PI;
 
 		return result;
+	}
+	float AccelerateTowards(float current, float target, float maxDelta)
+	{
+		float diff = target - current;
+		if (diff > maxDelta)       return current + maxDelta;
+		if (diff < -maxDelta)      return current - maxDelta;
+		return target;
 	}
 } 
  
@@ -13359,15 +13344,15 @@ void PlayerMoveSystem::Update(entt::registry& registry, float elapsedTime, const
 					// 入力ロス猶予タイマーをリセット
 					playerMove.inputLossTimer = 0.0f;
 
-					// 倒し込み量に応じて、Walking/Joggingを判定
+					// 入力量に応じて、Walking/Joggingを判定
 					playerMove.moveSub = (dir.inputLength > playerMove.jogThreshold)
 						? PlayerMoveSubState::Jogging
 						: PlayerMoveSubState::Walking;
 
 					float speed = (playerMove.moveSub == PlayerMoveSubState::Jogging) ? playerMove.jogSpeed : playerMove.walkSpeed;
 
-					// 現在に合わせた速度で計算し直す
-					auto vel = PlayerMovementUtils::ResolvePlanarVelocity(input.moveStick.x, input.moveStick.y, front, right, speed, movement.velocity, elapsedTime);
+					// 目標に合わせた速度を計算
+					auto vel = PlayerMovementUtils::ResolvePlanarVelocity(input.moveStick.x, input.moveStick.y, front, right, speed, movement.velocity, elapsedTime, playerMove.acceleration);
 					movement.velocity.x = vel.velocity.x;
 					movement.velocity.z = vel.velocity.z;
 				}
@@ -13439,12 +13424,8 @@ void PlayerSprintSystem::Update(entt::registry& registry, float elapsedTime, con
 			sprint.isSprinting = isMyState;
 
 			if (!isMyState)
-			{
-				// Sprintの担当を離れる時は、XZ速度を確実に止める
-				movement.velocity.x = 0.0f;
-				movement.velocity.z = 0.0f;
 				return;
-			}
+
 
 			// ここから先は、必ずcategory == Sprint
 			DirectX::XMFLOAT3 front = context.camera->GetFront();
@@ -13460,7 +13441,7 @@ void PlayerSprintSystem::Update(entt::registry& registry, float elapsedTime, con
 				transform.rotation.y = PlayerMovementUtils::RotateTowards(transform.rotation.y, targetYaw, sprint.turnSpeed, elapsedTime);
 			}
 
-			auto vel = PlayerMovementUtils::ResolvePlanarVelocity(input.moveStick.x, input.moveStick.y, front, right, sprint.sprintSpeed, movement.velocity, elapsedTime);
+			auto vel = PlayerMovementUtils::ResolvePlanarVelocity(input.moveStick.x, input.moveStick.y, front, right, sprint.sprintSpeed, movement.velocity, elapsedTime, sprint.acceleration);
 			movement.velocity.x = vel.velocity.x;
 			movement.velocity.z = vel.velocity.z;
 		});
@@ -15767,6 +15748,8 @@ void MetaRegistry::RegisterPlayerMoveComponent()
 		.custom<FieldInfo>(FieldInfo{ "Jog Threshold", 0.0f, 1.0f })
 		.data<&PlayerMoveComponent::turnSpeed>("turnSpeed"_hs)
 		.custom<FieldInfo>(FieldInfo{ "Turn Speed", 0.0f, 30.0f })
+		.data<&PlayerMoveComponent::acceleration>("acceleration"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Acceleration", 0.0f, 50.0f })
 		.data<&PlayerMoveComponent::inputLossGraceTime>("inputLossGraceTime"_hs)
 		.custom<FieldInfo>(FieldInfo{ "Input Loss Grace Time", 0.0f, 1.0f })
 		.data<&PlayerMoveComponent::isWalking>("isWalking"_hs)
@@ -15805,6 +15788,8 @@ void MetaRegistry::RegisterPlayerSprintComponent()
 		.custom<TypeInfo>(TypeInfo{ "Player Sprint" })
 		.data<&PlayerSprintComponent::sprintSpeed>("sprintSpeed"_hs)
 		.custom<FieldInfo>(FieldInfo{ "Sprint Speed", 0.0f, 20.0f })
+		.data<&PlayerSprintComponent::acceleration>("acceleration"_hs)
+		.custom<FieldInfo>(FieldInfo{ "Acceleration", 0.0f, 50.0f })
 		.data<&PlayerSprintComponent::turnSpeed>("turnSpeed"_hs)
 		.custom<FieldInfo>(FieldInfo{ "Turn Speed", 0.0f, 30.0f })
 		.data<&PlayerSprintComponent::isSprinting>("isSprinting"_hs)

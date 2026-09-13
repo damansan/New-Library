@@ -39,7 +39,6 @@ void TransitionControllerSystem::Update(entt::registry& registry, float elapsedT
 		int newStateId = FindTransition(data.transitionGraph.links, state.currentStateId, registry, entity);
 		if (newStateId != -1)
 		{
-			OutputDebugStringA(("Transition: " + std::to_string(state.currentStateId) + " -> " + std::to_string(newStateId) + "\n").c_str());
 			state.currentStateId = newStateId;
 		}
 

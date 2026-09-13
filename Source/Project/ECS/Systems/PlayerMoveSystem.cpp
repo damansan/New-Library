@@ -81,14 +81,14 @@ void PlayerMoveSystem::Update(entt::registry& registry, float elapsedTime, const
 					// 入力ロス猶予タイマーをリセット
 					playerMove.inputLossTimer = 0.0f;
 
-					// 倒し込み量に応じて、Walking/Joggingを判定
+					// 入力量に応じて、Walking/Joggingを判定
 					playerMove.moveSub = (dir.inputLength > playerMove.jogThreshold)
 						? PlayerMoveSubState::Jogging
 						: PlayerMoveSubState::Walking;
 
 					float speed = (playerMove.moveSub == PlayerMoveSubState::Jogging) ? playerMove.jogSpeed : playerMove.walkSpeed;
 
-					// 現在に合わせた速度で計算し直す
+					// 目標に合わせた速度を計算
 					auto vel = PlayerMovementUtils::ResolvePlanarVelocity(input.moveStick.x, input.moveStick.y, front, right, speed, movement.velocity, elapsedTime);
 					movement.velocity.x = vel.velocity.x;
 					movement.velocity.z = vel.velocity.z;

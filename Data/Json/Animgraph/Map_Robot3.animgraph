@@ -140,7 +140,7 @@
                     "type": "Normal",
                     "clipName": "AS_Walk_Loop",
                     "loop": true,
-                    "useRootMotion": true
+                    "useRootMotion": false
                 },
                 {
                     "id": 40,
@@ -150,7 +150,7 @@
                     "type": "Normal",
                     "clipName": "AS_Run_Loop",
                     "loop": true,
-                    "useRootMotion": true
+                    "useRootMotion": false
                 }
             ],
             "childLinks": [

@@ -26,7 +26,6 @@ namespace PlayerMovementUtils
 		const DirectX::XMFLOAT3& currentVelocity,
 		float elapsedTime);
 
-
 	// ワールド座標系の移動方向から、Y軸回転角を求める
 	float CalcFacingYaw(float worldDirX, float worldDirZ);
 
