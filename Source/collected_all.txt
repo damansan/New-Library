@@ -12545,7 +12545,6 @@ struct PlayerMoveComponent
 	float jogThreshold = 0.9f; // スティックの倒し込み量が、この値を超えたら小走りとみなす
 
 	float turnSpeed = 10.0f;    // 1秒あたりの最大旋回速度
-	float acceleration = 10.0f; // 1秒あたりの最大加速度(慣性の強さ)
 
 	// 状態
 	PlayerMoveSubState moveSub = PlayerMoveSubState::None;
@@ -12577,7 +12576,6 @@ struct PlayerSprintComponent
 	float sprintSpeed = 15.0f; // ダッシュ速度
 
 	float turnSpeed = 15.0f;    // 1秒あたりの最大旋回速度
-	float acceleration = 10.0f; // 1秒あたりの最大加速度(慣性の強さ)
 
 	// 状態
 	PlayerSprintSubState state = PlayerSprintSubState::None;
@@ -12713,17 +12711,13 @@ namespace PlayerMovementUtils
 		const DirectX::XMFLOAT3& cameraRight,
 		float targetSpeed,
 		const DirectX::XMFLOAT3& currentVelocity,
-		float elapsedTime,
-		float acceleration);
+		float elapsedTime);
 
 	// ワールド座標系の移動方向から、Y軸回転角を求める
 	float CalcFacingYaw(float worldDirX, float worldDirZ);
 
 	// 滑らかに回転させる
 	float RotateTowards(float currentYaw, float targetYaw, float turnSpeed, float elapsedTime);
-
-	// 慣性をかける
-	float AccelerateTowards(float current, float target, float maxDelta);
 } 
  
 ===== PlayerMoveSystem.h ===== 
@@ -13213,20 +13207,12 @@ namespace PlayerMovementUtils
 		const DirectX::XMFLOAT3& cameraRight,
 		float targetSpeed, 
 		const DirectX::XMFLOAT3& currentVelocity, 
-		float elapsedTime,
-		float acceleration)
+		float elapsedTime)
 	{
-		// 目標速度を求める
-		auto target = StickToWorldVelocity(inputX, inputZ, cameraFront, cameraRight, targetSpeed);
+		(void)currentVelocity;
+		(void)elapsedTime;
 
-		// 現在の速度から目標側へに慣性をかけながら近づける
-		WorldVelocityResult result;
-		float maxDelta = acceleration * elapsedTime;
-		result.velocity.x = AccelerateTowards(currentVelocity.x, target.velocity.x, maxDelta);
-		result.velocity.z = AccelerateTowards(currentVelocity.z, target.velocity.z, maxDelta);
-		result.inputLength = target.inputLength;
-
-		return result;
+		return StickToWorldVelocity(inputX, inputZ, cameraFront, cameraRight, targetSpeed);
 	}
 
 	float CalcFacingYaw(float worldDirX, float worldDirZ)
@@ -13249,13 +13235,6 @@ namespace PlayerMovementUtils
 		while (result < -DirectX::XM_PI) result += DirectX::XM_2PI;
 
 		return result;
-	}
-	float AccelerateTowards(float current, float target, float maxDelta)
-	{
-		float diff = target - current;
-		if (diff > maxDelta)       return current + maxDelta;
-		if (diff < -maxDelta)      return current - maxDelta;
-		return target;
 	}
 } 
  
@@ -13352,7 +13331,7 @@ void PlayerMoveSystem::Update(entt::registry& registry, float elapsedTime, const
 					float speed = (playerMove.moveSub == PlayerMoveSubState::Jogging) ? playerMove.jogSpeed : playerMove.walkSpeed;
 
 					// 目標に合わせた速度を計算
-					auto vel = PlayerMovementUtils::ResolvePlanarVelocity(input.moveStick.x, input.moveStick.y, front, right, speed, movement.velocity, elapsedTime, playerMove.acceleration);
+					auto vel = PlayerMovementUtils::ResolvePlanarVelocity(input.moveStick.x, input.moveStick.y, front, right, speed, movement.velocity, elapsedTime);
 					movement.velocity.x = vel.velocity.x;
 					movement.velocity.z = vel.velocity.z;
 				}
@@ -13441,7 +13420,7 @@ void PlayerSprintSystem::Update(entt::registry& registry, float elapsedTime, con
 				transform.rotation.y = PlayerMovementUtils::RotateTowards(transform.rotation.y, targetYaw, sprint.turnSpeed, elapsedTime);
 			}
 
-			auto vel = PlayerMovementUtils::ResolvePlanarVelocity(input.moveStick.x, input.moveStick.y, front, right, sprint.sprintSpeed, movement.velocity, elapsedTime, sprint.acceleration);
+			auto vel = PlayerMovementUtils::ResolvePlanarVelocity(input.moveStick.x, input.moveStick.y, front, right, sprint.sprintSpeed, movement.velocity, elapsedTime);
 			movement.velocity.x = vel.velocity.x;
 			movement.velocity.z = vel.velocity.z;
 		});
@@ -15748,8 +15727,6 @@ void MetaRegistry::RegisterPlayerMoveComponent()
 		.custom<FieldInfo>(FieldInfo{ "Jog Threshold", 0.0f, 1.0f })
 		.data<&PlayerMoveComponent::turnSpeed>("turnSpeed"_hs)
 		.custom<FieldInfo>(FieldInfo{ "Turn Speed", 0.0f, 30.0f })
-		.data<&PlayerMoveComponent::acceleration>("acceleration"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Acceleration", 0.0f, 50.0f })
 		.data<&PlayerMoveComponent::inputLossGraceTime>("inputLossGraceTime"_hs)
 		.custom<FieldInfo>(FieldInfo{ "Input Loss Grace Time", 0.0f, 1.0f })
 		.data<&PlayerMoveComponent::isWalking>("isWalking"_hs)
@@ -15788,8 +15765,6 @@ void MetaRegistry::RegisterPlayerSprintComponent()
 		.custom<TypeInfo>(TypeInfo{ "Player Sprint" })
 		.data<&PlayerSprintComponent::sprintSpeed>("sprintSpeed"_hs)
 		.custom<FieldInfo>(FieldInfo{ "Sprint Speed", 0.0f, 20.0f })
-		.data<&PlayerSprintComponent::acceleration>("acceleration"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Acceleration", 0.0f, 50.0f })
 		.data<&PlayerSprintComponent::turnSpeed>("turnSpeed"_hs)
 		.custom<FieldInfo>(FieldInfo{ "Turn Speed", 0.0f, 30.0f })
 		.data<&PlayerSprintComponent::isSprinting>("isSprinting"_hs)

@@ -23,6 +23,7 @@ void PlayerDodgeSystem::Update(entt::registry& registry, float elapsedTime, cons
 			MovementComponent& movement,
 			TransformComponent& transform)
 		{
+			// AnimatorGraphPathが空ならDodge判定をfalseにする
 			if (animator.animatorGraphPath.empty())
 			{
 				dodge.isDodging = false;
@@ -32,20 +33,19 @@ void PlayerDodgeSystem::Update(entt::registry& registry, float elapsedTime, cons
 			AnimatorGraphData& data = graphCache.GetOrLoad(animator.animatorGraphPath,
 				[](AnimatorGraphData& data, const nlohmann::json& j) { data.FromJson(j); });
 
-			// "Dodge"のIDをまだ持っていなければ、ここで検索してキャッシュする
+			// "Dodge"のIDをキャッシュするまで検索する
 			if (dodgeStateId == -1)
 			{
 				dodgeStateId = StateGraphUtils::FindStateIdByName(data.parentGraph, "Dodge");
 			}
 
-			// 毎フレーム必ず同期する(ガード句の前に置くのがポイント)
+			// 現在がDodgeかどうかを判定する
 			bool isMyState = (state.currentStateId == dodgeStateId);
-			dodge.isDodging = isMyState;
 
+			// Dodgeでなければ、以降の処理は行わない
 			if (!isMyState)
 			{
-				// Dodgeの担当を離れる時は、サブ状態と制御権を必ず手放す
-				dodge.dodgeSub = PlayerDodgeSubState::None;
+				dodge.isDodging = false;
 				dodge.bufferTimer = 0.0f;
 				dodge.isNoneInput = false;
 				dodge.isFrontInput = false;
@@ -54,13 +54,16 @@ void PlayerDodgeSystem::Update(entt::registry& registry, float elapsedTime, cons
 				dodge.isRightInput = false;
 				movement.facingLocked = false;
 				movement.xzControlLocked = false;
+
+				dodge.dodgeSub = PlayerDodgeSubState::None;
 				return;
 			}
 
+			// カメラの前後左右ベクトル取得
 			DirectX::XMFLOAT3 front = context.camera->GetFront();
 			DirectX::XMFLOAT3 right = context.camera->GetRight();
 
-			// Dodgeに入った直後、まだ方向が決まっていない場合
+			// Dodgeに入った直後は、方向決定の猶予状態にする
 			if (dodge.dodgeSub == PlayerDodgeSubState::None)
 			{
 				dodge.dodgeSub = PlayerDodgeSubState::Deciding;
@@ -80,7 +83,7 @@ void PlayerDodgeSystem::Update(entt::registry& registry, float elapsedTime, cons
 					float inputYaw = PlayerMovementUtils::CalcFacingYaw(dir.velocity.x, dir.velocity.z);
 					float diff = inputYaw - transform.rotation.y;
 
-					// 角度差を-180～180の範囲に正規化
+					// 角度差を正規化
 					while (diff > DirectX::XM_PI)  diff -= DirectX::XM_2PI;
 					while (diff < -DirectX::XM_PI) diff += DirectX::XM_2PI;
 
@@ -119,5 +122,6 @@ void PlayerDodgeSystem::Update(entt::registry& registry, float elapsedTime, cons
 			dodge.isBackInput = (dodge.dodgeSub == PlayerDodgeSubState::Back);
 			dodge.isLeftInput = (dodge.dodgeSub == PlayerDodgeSubState::Left);
 			dodge.isRightInput = (dodge.dodgeSub == PlayerDodgeSubState::Right);
+			dodge.isDodging = true;
 		});
 }

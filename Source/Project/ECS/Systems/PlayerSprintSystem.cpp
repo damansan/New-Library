@@ -32,21 +32,28 @@ void PlayerSprintSystem::Update(entt::registry& registry, float elapsedTime, con
 			AnimatorGraphData& data = graphCache.GetOrLoad(animator.animatorGraphPath,
 				[](AnimatorGraphData& data, const nlohmann::json& j) { data.FromJson(j); });
 
-			// "Sprint"のIDをまだ持っていなければ、ここで検索してキャッシュする
+			// "Sprint"のIDをキャッシュするまで検索する
 			if (sprintStateId == -1)
 			{
 				sprintStateId = StateGraphUtils::FindStateIdByName(data.parentGraph, "Sprint");
 			}
 
-			// 毎フレーム必ず同期する(ガード句の前に置くのがポイント)
+			// 現在がSprintかどうかを判定する
 			bool isMyState = (state.currentStateId == sprintStateId);
-			sprint.isSprinting = isMyState;
 
+			// Sprintでなければ、以降の処理は行わない
 			if (!isMyState)
+			{
+				sprint.isSprinting = false;
+
+				sprint.state = PlayerSprintSubState::None;
 				return;
+			}
 
+			// 移動がロックされている間は、何もしない
+			if (movement.movementLocked) return;
 
-			// ここから先は、必ずcategory == Sprint
+			// カメラの前後左右ベクトル取得
 			DirectX::XMFLOAT3 front = context.camera->GetFront();
 			DirectX::XMFLOAT3 right = context.camera->GetRight();
 
@@ -60,8 +67,12 @@ void PlayerSprintSystem::Update(entt::registry& registry, float elapsedTime, con
 				transform.rotation.y = PlayerMovementUtils::RotateTowards(transform.rotation.y, targetYaw, sprint.turnSpeed, elapsedTime);
 			}
 
+			// 目標速度に合わせた速度を計算
 			auto vel = PlayerMovementUtils::ResolvePlanarVelocity(input.moveStick.x, input.moveStick.y, front, right, sprint.sprintSpeed, movement.velocity, elapsedTime);
 			movement.velocity.x = vel.velocity.x;
 			movement.velocity.z = vel.velocity.z;
+
+			// フラグ更新
+			sprint.isSprinting = true;
 		});
 }

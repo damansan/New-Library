@@ -33,10 +33,15 @@ void PlayerIdleSystem::Update(entt::registry& registry, float elapsedTime, const
 
 			// 現在がIdleかどうかを判定する
 			bool isMyState = (state.currentStateId == idleStateId);
-			idle.isIdling = isMyState;
 
 			// Idleでなければ、以降の処理は行わない
-			if (!isMyState) return;
+			if (!isMyState)
+			{
+				idle.isIdling = false;
+				return;
+			}
 
+			// フラグ更新
+			idle.isIdling = true;
 		});
 }

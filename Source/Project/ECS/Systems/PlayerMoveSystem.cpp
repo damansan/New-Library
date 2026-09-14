@@ -88,7 +88,7 @@ void PlayerMoveSystem::Update(entt::registry& registry, float elapsedTime, const
 
 					float speed = (playerMove.moveSub == PlayerMoveSubState::Jogging) ? playerMove.jogSpeed : playerMove.walkSpeed;
 
-					// 目標に合わせた速度を計算
+					// 目標速度に合わせた速度を計算
 					auto vel = PlayerMovementUtils::ResolvePlanarVelocity(input.moveStick.x, input.moveStick.y, front, right, speed, movement.velocity, elapsedTime);
 					movement.velocity.x = vel.velocity.x;
 					movement.velocity.z = vel.velocity.z;
@@ -110,6 +110,6 @@ void PlayerMoveSystem::Update(entt::registry& registry, float elapsedTime, const
 			// フラグ更新
 			playerMove.isWalking = (playerMove.moveSub == PlayerMoveSubState::Walking);
 			playerMove.isJogging = (playerMove.moveSub == PlayerMoveSubState::Jogging);
-			playerMove.isMoving = true; // categoryがMoveである時点でtrue
+			playerMove.isMoving = true;
 		});
 }
