@@ -66,6 +66,10 @@ void GameInputSystem::Update(entt::registry& registry, const ControllerSettings&
             bool r2Held = ctrl->IsPressed(ControllerButtons::R2);
             UpdateButtonState(input.dodgeTrigger, r2Held);
 
+			// L2の押下判定(ヒステリシス込み)
+            bool l2Held = ctrl->IsPressed(ControllerButtons::L2);
+            UpdateButtonState(input.lockOnTrigger, l2Held);
+
             // ボタン判定
             input.jump = ctrl->IsPressed(ControllerButtons::Cross);
             input.attack = ctrl->IsPressed(ControllerButtons::Square);

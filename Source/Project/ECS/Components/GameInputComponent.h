@@ -41,7 +41,8 @@ struct GameInputComponent
     StickState cameraStick;
 
     // トリガー
-    TriggerState dodgeTrigger;
+    TriggerState dodgeTrigger;  // R2
+    TriggerState lockOnTrigger; // L2
 
     // ボタン
     bool jump = false;

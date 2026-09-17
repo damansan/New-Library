@@ -12390,29 +12390,39 @@ Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Components\GameCamer
 #include "entt.hpp"
 #include "Engine/ECS/Components/BaseCameraComponent.h"
 
+// ƒJƒƒ‰‚Ìí—Ş
+enum class Mode
+{
+    Follow, // ’Ç]ƒJƒƒ‰
+    LookAt, // ’‹ƒJƒƒ‰
+};
+
 // ƒQ[ƒ€ƒJƒƒ‰ƒRƒ“ƒ|[ƒlƒ“ƒg
 struct GameCameraComponent
 {
-    BaseCameraComponent base;  // ‹¤’Êƒf[ƒ^ieye, targetj
+    // ƒJƒƒ‰‚Ì‹¤’Êƒf[ƒ^ieye, targetj
+    BaseCameraComponent base;  
 
-    // ƒJƒƒ‰‚Ìí—Ş
-    enum class Mode
-    {
-        Follow, // ’Ç]ƒJƒƒ‰
-        LookAt, // ’‹ƒJƒƒ‰iƒƒbƒNƒIƒ“j
-        Fixed,  // ŒÅ’èƒJƒƒ‰
-    };
+	// ƒJƒƒ‰‚Ìí—Ş
     Mode mode = Mode::Follow;
 
     // ’Ç]‘ÎÛ‚Ì Entity
-    entt::entity target = entt::null;
+    entt::entity followTarget = entt::null;
+	// ’‹‘ÎÛ‚Ì Entity
+	entt::entity lookAtTarget = entt::null;
 
     // ’Ç]ƒpƒ‰ƒ[ƒ^
-    float distance = 5.0f;
-    float height = 2.0f;
-    float yaw = 0.0f;
-    float pitch = 0.3f;
-    float followSpeed = 10.0f;
+	float distance = 5.0f;     // ƒJƒƒ‰‚Æ‘ÎÛ‚Ì‹——£
+	float height = 2.0f;       // ƒJƒƒ‰‚Ì‚‚³
+	float yaw = 0.0f;          // ƒJƒƒ‰‚Ì‰ñ“]Šp“x
+	float pitch = 0.3f;        // ƒJƒƒ‰‚Ìã‰ºŠp“x
+	float followSpeed = 10.0f; // ’Ç]‘¬“x
+
+	// ƒƒbƒNƒIƒ“ƒpƒ‰ƒ[ƒ^
+	float lockOnSide = 1.0f;        // +1.0‚Å‰E/-1.0‚Å¶
+	float sidewaysStrength = 6.0f;  // ‰¡•ûŒü‚Ì‚¸‚ê‚Ì‹­‚³
+	DirectX::XMFLOAT3 lockOnTargetOffset = { 0.0f, 1.0f, 0.0f }; // ’‹‘ÎÛ‚ÌƒIƒtƒZƒbƒg
+	float lockOnTargetRatio = 0.5f;
 }; 
  
 ===== GameInputComponent.h ===== 
@@ -12460,7 +12470,8 @@ struct GameInputComponent
     StickState cameraStick;
 
     // ƒgƒŠƒK[
-    TriggerState dodgeTrigger;
+    TriggerState dodgeTrigger;  // R2
+    TriggerState lockOnTrigger; // L2
 
     // ƒ{ƒ^ƒ“
     bool jump = false;
@@ -12603,12 +12614,15 @@ public:
     void ApplyToCamera(entt::registry& registry, Camera& camera);
 
 private:
-    // ’Ç]ƒJƒƒ‰
-    void UpdateFollow(GameCameraComponent& cam, const TransformComponent& target, float elapsedTime);
-    // ’‹ƒJƒƒ‰
-    void UpdateLookAt(GameCameraComponent& cam, const TransformComponent& target, float elapsedTime);
-    // ŒÅ’èƒJƒƒ‰
-    void UpdateFixed(GameCameraComponent& cam, const TransformComponent& target, float elapsedTime);
+	// Follow—p‚ÌcurrentEyeŒvZ
+    void UpdateFollowEye(GameCameraComponent& cam, const TransformComponent& followTransform, float elapsedTime);
+    // LookAt—p‚ÌcurrentEyeŒvZ
+    void UpdateLockOnEye(GameCameraComponent& cam, entt::registry& registry, float elapsedTime);
+
+	// FollowƒJƒƒ‰‚ÌXV
+    void UpdateFollowTarget(GameCameraComponent& cam, const TransformComponent& followTransform, float elapsedTime);
+    // LookAtƒJƒƒ‰‚ÌXV
+    void UpdateLookAtTarget(GameCameraComponent& cam, entt::registry& registry, float elapsedTime);
 }; 
  
 ===== GameInputSystem.h ===== 
@@ -12765,130 +12779,221 @@ Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Systems\GameCameraSy
 
 void GameCameraSystem::Update(entt::registry& registry, float elapsedTime)
 {
-    auto view = registry.view<GameCameraComponent, TransformComponent>();
-    view.each([&](auto entity, GameCameraComponent& cam, TransformComponent& transform)
-        {
-            // ’Ç]‘ÎÛƒ`ƒFƒbƒN
-            if (cam.target == entt::null) return;
-            if (!registry.valid(cam.target)) return;
+	auto view = registry.view<GameCameraComponent, TransformComponent>();
+	view.each([&](auto entity, GameCameraComponent& cam, TransformComponent& transform)
+		{
+			// ’Ç]‘ÎÛ‚ª–¢İ’è‚È‚ç‰½‚às‚í‚È‚¢
+			if (cam.followTarget == entt::null) return;    
+			if (!registry.valid(cam.followTarget)) return;  
 
-            auto* targetTransform = registry.try_get<TransformComponent>(cam.target);
-            if (!targetTransform) return;
+			// ’Ç]‘ÎÛ‚ÌTransformComponent‚ğæ“¾A‚È‚¯‚ê‚Î‰½‚às‚í‚È‚¢
+			auto* followTransform = registry.try_get<TransformComponent>(cam.followTarget);
+			if (!followTransform) return;
 
-            // ‰‰ñ‚¾‚¯ currentEye / currentTarget ‚ğ‘¦À‚Éİ’è
-            if (cam.base.currentEye.x == 0.0f &&
-                cam.base.currentEye.y == 0.0f &&
-                cam.base.currentEye.z == 0.0f)
-            {
-                cam.base.currentTarget = targetTransform->position;
-                cam.base.currentEye =
-                {
-                    targetTransform->position.x,
-                    targetTransform->position.y + cam.height,
-                    targetTransform->position.z - cam.distance
-                };
-            }
+			// ‰‰ñ‚¾‚¯ currentEye / currentTarget ‚ğ‘¦À‚Éİ’è
+			if (cam.base.currentEye.x == 0.0f &&
+				cam.base.currentEye.y == 0.0f &&
+				cam.base.currentEye.z == 0.0f)
+			{
+				cam.base.currentTarget = followTransform->position;
+				cam.base.currentEye =
+				{
+					followTransform->position.x,
+					followTransform->position.y + cam.height,
+					followTransform->position.z - cam.distance
+				};
+			}
 
-            // InputComponent ‚©‚çƒJƒƒ‰‘€ì“ü—Í‚ğæ“¾
-            auto* input = registry.try_get<GameInputComponent>(cam.target);
-            if (input)
-            {
-                const float rotSpeed = 2.0f;
-                cam.yaw += input->cameraStick.x * rotSpeed * elapsedTime;
-                cam.pitch += input->cameraStick.y * rotSpeed * elapsedTime;
-                cam.pitch = std::clamp(cam.pitch, -0.8f, 1.0f);
-            }
+			// InputComponent ‚©‚çƒJƒƒ‰‘€ì“ü—Í‚ğæ“¾
+			auto* input = registry.try_get<GameInputComponent>(cam.followTarget);
+			if (input)
+			{
+				const float rotSpeed = 2.0f;
+				cam.yaw += input->cameraStick.x * rotSpeed * elapsedTime;   // ¶‰EƒXƒeƒBƒbƒN‚ÅƒJƒƒ‰‰ñ“]
+				cam.pitch += input->cameraStick.y * rotSpeed * elapsedTime; // ã‰ºƒXƒeƒBƒbƒN‚ÅƒJƒƒ‰ã‰ºŠp“x
+				cam.pitch = std::clamp(cam.pitch, -0.8f, 1.0f); // ã‰ºŠp“x‚Ì§ŒÀ
 
-            switch (cam.mode)
-            {
-            case GameCameraComponent::Mode::Follow:
-                UpdateFollow(cam, *targetTransform, elapsedTime);
-                break;
-            case GameCameraComponent::Mode::LookAt:
-                UpdateLookAt(cam, *targetTransform, elapsedTime);
-                break;
-            case GameCameraComponent::Mode::Fixed:
-                UpdateFixed(cam, *targetTransform, elapsedTime);
-                break;
-            }
-        });
+				// L2‚ğ‰Ÿ‚µ‚½uŠÔAFollow<->LookAt‚ğƒgƒOƒ‹Ø‚è‘Ö‚¦
+				if (input->lockOnTrigger.pressed)
+				{
+					if (cam.mode == Mode::Follow && registry.valid(cam.lookAtTarget))
+					{
+						cam.mode = Mode::LookAt;
+					}
+					else if (cam.mode == Mode::LookAt)
+					{
+						cam.mode = Mode::Follow;
+					}
+				}
+			}
+
+			// LookAt’†‚ÉA’‹‘ÎÛ‚ª”jŠü‚³‚ê‚Ä‚¢‚½‚çAFollow‚Ö©“®“I‚É–ß‚·
+			if (cam.mode == Mode::LookAt && !registry.valid(cam.lookAtTarget))
+			{
+				cam.mode = Mode::Follow;
+			}
+
+
+			// ’‹“_‚ğƒJƒƒ‰‚Ìƒ‚[ƒh‚É‰‚¶‚Ä•ÏX
+			switch (cam.mode)
+			{
+			case Mode::Follow: // ’Ç]‘ÎÛ©g‚ğŒ©‚é
+				UpdateFollowEye(cam, *followTransform, elapsedTime);
+				UpdateFollowTarget(cam, *followTransform, elapsedTime);
+				break;
+			case Mode::LookAt: // ƒƒbƒNƒIƒ“æ‚ğŒ©‚é
+				UpdateLockOnEye(cam, registry, elapsedTime);
+				UpdateLookAtTarget(cam, registry, elapsedTime);
+				break;
+			}
+		});
 }
 
+// Camera ƒNƒ‰ƒX‚ÉŒ‹‰Ê‚ğ”½‰f
 void GameCameraSystem::ApplyToCamera(entt::registry& registry, Camera& camera)
 {
-    auto view = registry.view<GameCameraComponent>();
-    for (auto entity : view)
-    {
-        auto& cam = view.get<GameCameraComponent>(entity);
+	auto view = registry.view<GameCameraComponent>();
+	for (auto entity : view)
+	{
+		auto& cam = view.get<GameCameraComponent>(entity);
 
-        // target ‚ª–¢İ’è‚È‚çƒXƒLƒbƒv
-        if (cam.target == entt::null) return;
+		// followTarget ‚ª–¢İ’è‚È‚çƒXƒLƒbƒv
+		if (cam.followTarget == entt::null) continue;
 
-        // eye ‚Æ target ‚ª“¯‚¶ˆÊ’u‚È‚çƒXƒLƒbƒv
-        if (cam.base.currentEye.x == cam.base.currentTarget.x &&
-            cam.base.currentEye.y == cam.base.currentTarget.y &&
-            cam.base.currentEye.z == cam.base.currentTarget.z) return;
+		// eye ‚Æ target ‚ª“¯‚¶ˆÊ’u‚È‚çƒXƒLƒbƒv
+		if (cam.base.currentEye.x == cam.base.currentTarget.x &&
+			cam.base.currentEye.y == cam.base.currentTarget.y &&
+			cam.base.currentEye.z == cam.base.currentTarget.z) continue;
 
-        camera.SetLookAt(
-            cam.base.currentEye,
-            cam.base.currentTarget,
-            { 0.0f, 1.0f, 0.0f }
-        );
-        // Å‰‚Ì1‚Â‚¾‚¯”½‰f
-        break;
-    }
+		camera.SetLookAt(
+			cam.base.currentEye,
+			cam.base.currentTarget,
+			{ 0.0f, 1.0f, 0.0f }
+		);
+		break;
+	}
 }
 
-// ’Ç]ƒJƒƒ‰
-void GameCameraSystem::UpdateFollow(
-    GameCameraComponent& cam,
-    const TransformComponent& target,
-    float elapsedTime)
+// Follow—p‚ÌcurrentEyeŒvZ
+void GameCameraSystem::UpdateFollowEye(
+	GameCameraComponent& cam,
+	const TransformComponent& followTransform,
+	float elapsedTime)
 {
-    DirectX::XMFLOAT3 targetPos = target.position;
+	DirectX::XMFLOAT3 basePos = followTransform.position;
 
-    float sinYaw = sinf(cam.yaw);
-    float cosYaw = cosf(cam.yaw);
-    float cosPitch = cosf(cam.pitch);
-    float sinPitch = sinf(cam.pitch);
+	float sinYaw = sinf(cam.yaw);
+	float cosYaw = cosf(cam.yaw);
+	float cosPitch = cosf(cam.pitch);
+	float sinPitch = sinf(cam.pitch);
 
-    DirectX::XMFLOAT3 idealEye =
-    {
-        targetPos.x - sinYaw * cosPitch * cam.distance,
-        targetPos.y + sinPitch * cam.distance + cam.height,
-        targetPos.z - cosYaw * cosPitch * cam.distance
-    };
+	DirectX::XMFLOAT3 idealEye =
+	{
+		basePos.x - sinYaw * cosPitch * cam.distance,
+		basePos.y + sinPitch * cam.distance + cam.height,
+		basePos.z - cosYaw * cosPitch * cam.distance
+	};
 
-    float t = 1.0f - powf(0.001f, elapsedTime * cam.followSpeed);
+	float t = 1.0f - powf(0.001f, elapsedTime * cam.followSpeed);
 
-    cam.base.currentEye.x += (idealEye.x - cam.base.currentEye.x) * t;
-    cam.base.currentEye.y += (idealEye.y - cam.base.currentEye.y) * t;
-    cam.base.currentEye.z += (idealEye.z - cam.base.currentEye.z) * t;
+	cam.base.currentEye.x += (idealEye.x - cam.base.currentEye.x) * t;
+	cam.base.currentEye.y += (idealEye.y - cam.base.currentEye.y) * t;
+	cam.base.currentEye.z += (idealEye.z - cam.base.currentEye.z) * t;
+}
+// LookAt—p‚ÌcurrentEyeŒvZ
+void GameCameraSystem::UpdateLockOnEye(GameCameraComponent& cam, entt::registry& registry, float elapsedTime)
+{
+	DirectX::XMFLOAT3 playerPos = registry.get<TransformComponent>(cam.followTarget).position;
+	DirectX::XMFLOAT3 enemyPos = registry.get<TransformComponent>(cam.lookAtTarget).position;
 
-    cam.base.currentTarget.x += (targetPos.x - cam.base.currentTarget.x) * t;
-    cam.base.currentTarget.y += ((targetPos.y + cam.height * 0.5f) - cam.base.currentTarget.y) * t;
-    cam.base.currentTarget.z += (targetPos.z - cam.base.currentTarget.z) * t;
+	// “G¨ƒvƒŒƒCƒ„[A‚ÌXZ•½–Êã‚Ì•ûŒüƒxƒNƒgƒ‹(Œã•û•ûŒü)
+	float backX = playerPos.x - enemyPos.x;
+	float backZ = playerPos.z - enemyPos.z;
+	float len = sqrtf(backX * backX + backZ * backZ);
+
+	DirectX::XMFLOAT3 idealEye = cam.base.currentEye; // –œˆêlen‚ª0‚Ìê‡A¡‚ÌˆÊ’u‚ğˆÛ
+	if (len > 0.0001f)
+	{
+		backX /= len;
+		backZ /= len;
+
+		// Œã•ûƒxƒNƒgƒ‹‚ğ90“x‰ñ“]‚³‚¹‚½A‰¡•ûŒü‚ÌƒxƒNƒgƒ‹(Y²‚ğã‚Æ‚µ‚ÄA‰EŒü‚«)
+		float sideX = -backZ;
+		float sideZ = backX;
+
+		// “G¨Œ»İ‚ÌƒJƒƒ‰A‚ÌƒxƒNƒgƒ‹‚Æ‚ÌŠOÏ‚ÅA–ˆƒtƒŒ[ƒ€¶‰E‚ğÄ”»’è‚·‚é
+		float toCamX = cam.base.currentEye.x - enemyPos.x;
+		float toCamZ = cam.base.currentEye.z - enemyPos.z;
+		float cross = backX * toCamZ - backZ * toCamX;
+		cam.lockOnSide = (cross >= 0.0f) ? 1.0f : -1.0f;
+
+		// “G‚Æ‚Ì‹——£‚É‰‚¶‚ÄA‰ñ“]‚³‚¹‚éŠp“x‚ğŒˆ‚ß‚é(‹ß‚¢‚Ù‚ÇA‘å‚«‚­‰ñ‚è‚Ş)
+		// atan2f‚ğg‚¤‚±‚Æ‚ÅAu‰¡‚Ö‚Ì‚¸‚ê—Êv‚ğA’¼ÚuŠp“xv‚É•ÏŠ·‚·‚é
+		float sidewaysAmount = cam.sidewaysStrength / len;
+		float rotateAngle = atan2f(sidewaysAmount, cam.distance) * cam.lockOnSide;
+
+		// Œã•ûƒxƒNƒgƒ‹‚ğArotateAngle‚Ì•ª‚¾‚¯‰ñ“]‚³‚¹‚é(XZ•½–Êã‚Ì‰ñ“])
+		float cosA = cosf(rotateAngle);
+		float sinA = sinf(rotateAngle);
+		float rotatedX = backX * cosA - backZ * sinA;
+		float rotatedZ = backX * sinA + backZ * cosA;
+
+		// ‰ñ“]‚³‚¹‚½•ûŒü‚ÖAí‚Édistance•ª‚¾‚¯i‚ñ‚¾ˆÊ’u(=í‚É‰~üã)
+		idealEye =
+		{
+			playerPos.x + rotatedX * cam.distance,
+			playerPos.y + cam.height,
+			playerPos.z + rotatedZ * cam.distance
+		};
+	}
+
+	float t = 1.0f - powf(0.001f, elapsedTime * cam.followSpeed);
+
+	cam.base.currentEye.x += (idealEye.x - cam.base.currentEye.x) * t;
+	cam.base.currentEye.y += (idealEye.y - cam.base.currentEye.y) * t;
+	cam.base.currentEye.z += (idealEye.z - cam.base.currentEye.z) * t;
 }
 
-// ’‹ƒJƒƒ‰
-void GameCameraSystem::UpdateLookAt(
-    GameCameraComponent& cam,
-    const TransformComponent& target,
-    float elapsedTime)
+// FollowƒJƒƒ‰‚ÌXV
+void GameCameraSystem::UpdateFollowTarget(
+	GameCameraComponent& cam,
+	const TransformComponent& followTransform,
+	float elapsedTime)
 {
-    cam.base.currentTarget = target.position;
-}
+	DirectX::XMFLOAT3 targetPos = followTransform.position;
+	float t = 1.0f - powf(0.001f, elapsedTime * cam.followSpeed);
 
-// ŒÅ’èƒJƒƒ‰
-void GameCameraSystem::UpdateFixed(
-    GameCameraComponent& cam,
-    const TransformComponent& target,
-    float elapsedTime)
+	cam.base.currentTarget.x += (targetPos.x - cam.base.currentTarget.x) * t;
+	cam.base.currentTarget.y += ((targetPos.y + cam.height * 0.5f) - cam.base.currentTarget.y) * t;
+	cam.base.currentTarget.z += (targetPos.z - cam.base.currentTarget.z) * t;
+}
+// LookAtƒJƒƒ‰‚ÌXV
+void GameCameraSystem::UpdateLookAtTarget(
+	GameCameraComponent& cam,
+	entt::registry& registry,
+	float elapsedTime)
 {
-    float t = 1.0f - powf(0.001f, elapsedTime * cam.followSpeed);
-    cam.base.currentTarget.x += (target.position.x - cam.base.currentTarget.x) * t;
-    cam.base.currentTarget.y += (target.position.y - cam.base.currentTarget.y) * t;
-    cam.base.currentTarget.z += (target.position.z - cam.base.currentTarget.z) * t;
+	DirectX::XMFLOAT3 playerPos = registry.get<TransformComponent>(cam.followTarget).position;
+	DirectX::XMFLOAT3 enemyPos = registry.get<TransformComponent>(cam.lookAtTarget).position;
+
+	// ƒvƒŒƒCƒ„[‚Æ“G‚ÌŠÔ‚ğAw’è‚ÌŠ„‡‚Å•âŠÔ‚µ‚½ˆÊ’u‚ğA’‹“_‚ÌŠî€‚É‚·‚é
+	DirectX::XMFLOAT3 targetPos =
+	{
+		playerPos.x + (enemyPos.x - playerPos.x) * cam.lockOnTargetRatio,
+		playerPos.y + (enemyPos.y - playerPos.y) * cam.lockOnTargetRatio,
+		playerPos.z + (enemyPos.z - playerPos.z) * cam.lockOnTargetRatio
+	};
+
+	// ’‹“_‚ÉA”CˆÓ‚ÌƒIƒtƒZƒbƒg‚ğ‰Á‚¦‚é
+	targetPos.x += cam.lockOnTargetOffset.x;
+	targetPos.y += cam.lockOnTargetOffset.y;
+	targetPos.z += cam.lockOnTargetOffset.z;
+
+	float t = 1.0f - powf(0.001f, elapsedTime * cam.followSpeed);
+
+	cam.base.currentTarget.x += (targetPos.x - cam.base.currentTarget.x) * t;
+	cam.base.currentTarget.y += (targetPos.y - cam.base.currentTarget.y) * t;
+	cam.base.currentTarget.z += (targetPos.z - cam.base.currentTarget.z) * t;
 } 
  
 ===== GameInputSystem.cpp ===== 
@@ -12961,6 +13066,10 @@ void GameInputSystem::Update(entt::registry& registry, const ControllerSettings&
             bool r2Held = ctrl->IsPressed(ControllerButtons::R2);
             UpdateButtonState(input.dodgeTrigger, r2Held);
 
+			// L2ã®æŠ¼ä¸‹åˆ¤å®š(ãƒ’ã‚¹ãƒ†ãƒªã‚·ã‚¹è¾¼ã¿)
+            bool l2Held = ctrl->IsPressed(ControllerButtons::L2);
+            UpdateButtonState(input.lockOnTrigger, l2Held);
+
             // ãƒœã‚¿ãƒ³åˆ¤å®š
             input.jump = ctrl->IsPressed(ControllerButtons::Cross);
             input.attack = ctrl->IsPressed(ControllerButtons::Square);
@@ -13019,6 +13128,7 @@ void PlayerDodgeSystem::Update(entt::registry& registry, float elapsedTime, cons
 			MovementComponent& movement,
 			TransformComponent& transform)
 		{
+			// AnimatorGraphPath‚ª‹ó‚È‚çDodge”»’è‚ğfalse‚É‚·‚é
 			if (animator.animatorGraphPath.empty())
 			{
 				dodge.isDodging = false;
@@ -13028,20 +13138,19 @@ void PlayerDodgeSystem::Update(entt::registry& registry, float elapsedTime, cons
 			AnimatorGraphData& data = graphCache.GetOrLoad(animator.animatorGraphPath,
 				[](AnimatorGraphData& data, const nlohmann::json& j) { data.FromJson(j); });
 
-			// "Dodge"‚ÌID‚ğ‚Ü‚¾‚Á‚Ä‚¢‚È‚¯‚ê‚ÎA‚±‚±‚ÅŒŸõ‚µ‚ÄƒLƒƒƒbƒVƒ…‚·‚é
+			// "Dodge"‚ÌID‚ğƒLƒƒƒbƒVƒ…‚·‚é‚Ü‚ÅŒŸõ‚·‚é
 			if (dodgeStateId == -1)
 			{
 				dodgeStateId = StateGraphUtils::FindStateIdByName(data.parentGraph, "Dodge");
 			}
 
-			// –ˆƒtƒŒ[ƒ€•K‚¸“¯Šú‚·‚é(ƒK[ƒh‹å‚Ì‘O‚É’u‚­‚Ì‚ªƒ|ƒCƒ“ƒg)
+			// Œ»İ‚ªDodge‚©‚Ç‚¤‚©‚ğ”»’è‚·‚é
 			bool isMyState = (state.currentStateId == dodgeStateId);
-			dodge.isDodging = isMyState;
 
+			// Dodge‚Å‚È‚¯‚ê‚ÎAˆÈ~‚Ìˆ—‚Ís‚í‚È‚¢
 			if (!isMyState)
 			{
-				// Dodge‚Ì’S“–‚ğ—£‚ê‚é‚ÍAƒTƒuó‘Ô‚Æ§ŒäŒ ‚ğ•K‚¸è•ú‚·
-				dodge.dodgeSub = PlayerDodgeSubState::None;
+				dodge.isDodging = false;
 				dodge.bufferTimer = 0.0f;
 				dodge.isNoneInput = false;
 				dodge.isFrontInput = false;
@@ -13050,13 +13159,16 @@ void PlayerDodgeSystem::Update(entt::registry& registry, float elapsedTime, cons
 				dodge.isRightInput = false;
 				movement.facingLocked = false;
 				movement.xzControlLocked = false;
+
+				dodge.dodgeSub = PlayerDodgeSubState::None;
 				return;
 			}
 
+			// ƒJƒƒ‰‚Ì‘OŒã¶‰EƒxƒNƒgƒ‹æ“¾
 			DirectX::XMFLOAT3 front = context.camera->GetFront();
 			DirectX::XMFLOAT3 right = context.camera->GetRight();
 
-			// Dodge‚É“ü‚Á‚½’¼ŒãA‚Ü‚¾•ûŒü‚ªŒˆ‚Ü‚Á‚Ä‚¢‚È‚¢ê‡
+			// Dodge‚É“ü‚Á‚½’¼Œã‚ÍA•ûŒüŒˆ’è‚Ì—P—\ó‘Ô‚É‚·‚é
 			if (dodge.dodgeSub == PlayerDodgeSubState::None)
 			{
 				dodge.dodgeSub = PlayerDodgeSubState::Deciding;
@@ -13076,7 +13188,7 @@ void PlayerDodgeSystem::Update(entt::registry& registry, float elapsedTime, cons
 					float inputYaw = PlayerMovementUtils::CalcFacingYaw(dir.velocity.x, dir.velocity.z);
 					float diff = inputYaw - transform.rotation.y;
 
-					// Šp“x·‚ğ-180`180‚Ì”ÍˆÍ‚É³‹K‰»
+					// Šp“x·‚ğ³‹K‰»
 					while (diff > DirectX::XM_PI)  diff -= DirectX::XM_2PI;
 					while (diff < -DirectX::XM_PI) diff += DirectX::XM_2PI;
 
@@ -13115,6 +13227,7 @@ void PlayerDodgeSystem::Update(entt::registry& registry, float elapsedTime, cons
 			dodge.isBackInput = (dodge.dodgeSub == PlayerDodgeSubState::Back);
 			dodge.isLeftInput = (dodge.dodgeSub == PlayerDodgeSubState::Left);
 			dodge.isRightInput = (dodge.dodgeSub == PlayerDodgeSubState::Right);
+			dodge.isDodging = true;
 		});
 } 
  
@@ -13155,11 +13268,16 @@ void PlayerIdleSystem::Update(entt::registry& registry, float elapsedTime, const
 
 			// Œ»İ‚ªIdle‚©‚Ç‚¤‚©‚ğ”»’è‚·‚é
 			bool isMyState = (state.currentStateId == idleStateId);
-			idle.isIdling = isMyState;
 
 			// Idle‚Å‚È‚¯‚ê‚ÎAˆÈ~‚Ìˆ—‚Ís‚í‚È‚¢
-			if (!isMyState) return;
+			if (!isMyState)
+			{
+				idle.isIdling = false;
+				return;
+			}
 
+			// ƒtƒ‰ƒOXV
+			idle.isIdling = true;
 		});
 } 
  
@@ -13330,7 +13448,7 @@ void PlayerMoveSystem::Update(entt::registry& registry, float elapsedTime, const
 
 					float speed = (playerMove.moveSub == PlayerMoveSubState::Jogging) ? playerMove.jogSpeed : playerMove.walkSpeed;
 
-					// –Ú•W‚É‡‚í‚¹‚½‘¬“x‚ğŒvZ
+					// –Ú•W‘¬“x‚É‡‚í‚¹‚½‘¬“x‚ğŒvZ
 					auto vel = PlayerMovementUtils::ResolvePlanarVelocity(input.moveStick.x, input.moveStick.y, front, right, speed, movement.velocity, elapsedTime);
 					movement.velocity.x = vel.velocity.x;
 					movement.velocity.z = vel.velocity.z;
@@ -13352,7 +13470,7 @@ void PlayerMoveSystem::Update(entt::registry& registry, float elapsedTime, const
 			// ƒtƒ‰ƒOXV
 			playerMove.isWalking = (playerMove.moveSub == PlayerMoveSubState::Walking);
 			playerMove.isJogging = (playerMove.moveSub == PlayerMoveSubState::Jogging);
-			playerMove.isMoving = true; // category‚ªMove‚Å‚ ‚é“_‚Åtrue
+			playerMove.isMoving = true;
 		});
 } 
  
@@ -13392,21 +13510,28 @@ void PlayerSprintSystem::Update(entt::registry& registry, float elapsedTime, con
 			AnimatorGraphData& data = graphCache.GetOrLoad(animator.animatorGraphPath,
 				[](AnimatorGraphData& data, const nlohmann::json& j) { data.FromJson(j); });
 
-			// "Sprint"‚ÌID‚ğ‚Ü‚¾‚Á‚Ä‚¢‚È‚¯‚ê‚ÎA‚±‚±‚ÅŒŸõ‚µ‚ÄƒLƒƒƒbƒVƒ…‚·‚é
+			// "Sprint"‚ÌID‚ğƒLƒƒƒbƒVƒ…‚·‚é‚Ü‚ÅŒŸõ‚·‚é
 			if (sprintStateId == -1)
 			{
 				sprintStateId = StateGraphUtils::FindStateIdByName(data.parentGraph, "Sprint");
 			}
 
-			// –ˆƒtƒŒ[ƒ€•K‚¸“¯Šú‚·‚é(ƒK[ƒh‹å‚Ì‘O‚É’u‚­‚Ì‚ªƒ|ƒCƒ“ƒg)
+			// Œ»İ‚ªSprint‚©‚Ç‚¤‚©‚ğ”»’è‚·‚é
 			bool isMyState = (state.currentStateId == sprintStateId);
-			sprint.isSprinting = isMyState;
 
+			// Sprint‚Å‚È‚¯‚ê‚ÎAˆÈ~‚Ìˆ—‚Ís‚í‚È‚¢
 			if (!isMyState)
+			{
+				sprint.isSprinting = false;
+
+				sprint.state = PlayerSprintSubState::None;
 				return;
+			}
 
+			// ˆÚ“®‚ªƒƒbƒN‚³‚ê‚Ä‚¢‚éŠÔ‚ÍA‰½‚à‚µ‚È‚¢
+			if (movement.movementLocked) return;
 
-			// ‚±‚±‚©‚çæ‚ÍA•K‚¸category == Sprint
+			// ƒJƒƒ‰‚Ì‘OŒã¶‰EƒxƒNƒgƒ‹æ“¾
 			DirectX::XMFLOAT3 front = context.camera->GetFront();
 			DirectX::XMFLOAT3 right = context.camera->GetRight();
 
@@ -13420,9 +13545,13 @@ void PlayerSprintSystem::Update(entt::registry& registry, float elapsedTime, con
 				transform.rotation.y = PlayerMovementUtils::RotateTowards(transform.rotation.y, targetYaw, sprint.turnSpeed, elapsedTime);
 			}
 
+			// –Ú•W‘¬“x‚É‡‚í‚¹‚½‘¬“x‚ğŒvZ
 			auto vel = PlayerMovementUtils::ResolvePlanarVelocity(input.moveStick.x, input.moveStick.y, front, right, sprint.sprintSpeed, movement.velocity, elapsedTime);
 			movement.velocity.x = vel.velocity.x;
 			movement.velocity.z = vel.velocity.z;
+
+			// ƒtƒ‰ƒOXV
+			sprint.isSprinting = true;
 		});
 } 
  
@@ -14880,35 +15009,61 @@ void ComponentRegistryInitializer::Initialize()
 				if (!_c) return;
 				if (!ImGui::CollapsingHeader("GameCamera", ImGuiTreeNodeFlags_DefaultOpen)) return;
 
-				const char* modeNames[] = { "Follow", "LookAt", "Fixed" };
+				const char* modeNames[] = { "Follow", "LookAt" };
 				int mode = (int)_c->mode;
-				if (ImGui::Combo("Mode", &mode, modeNames, 3))
-					_c->mode = (GameCameraComponent::Mode)mode;
+				if (ImGui::Combo("Mode", &mode, modeNames, 2))
+					_c->mode = (Mode)mode;
 
-				std::string targetName = "None";
-				if (_c->target != entt::null && reg.valid(_c->target))
-					targetName = "Entity " + std::to_string((uint32_t)_c->target);
+				// ’Ç]‘ÎÛ(FollowTarget)
+				std::string followTargetName = "None";
+				if (_c->followTarget != entt::null && reg.valid(_c->followTarget))
+					followTargetName = "Entity " + std::to_string((uint32_t)_c->followTarget);
 
-				ImGui::Text("Target"); ImGui::SameLine();
+				ImGui::Text("Follow Target"); ImGui::SameLine();
 				ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - 60.0f);
-				ImGui::InputText("##target", targetName.data(),
-					targetName.size() + 1, ImGuiInputTextFlags_ReadOnly);
+				ImGui::InputText("##followTarget", followTargetName.data(),
+					followTargetName.size() + 1, ImGuiInputTextFlags_ReadOnly);
 
 				if (ImGui::BeginDragDropTarget())
 				{
 					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ENTITY"))
-						_c->target = *(const entt::entity*)payload->Data;
+						_c->followTarget = *(const entt::entity*)payload->Data;
 					ImGui::EndDragDropTarget();
 				}
 				ImGui::SameLine();
-				if (ImGui::Button("Clear")) _c->target = entt::null;
+				if (ImGui::Button("Clear##followTarget")) _c->followTarget = entt::null;
 
-				ImGui::DragFloat("Distance",     &_c->distance,    0.1f, 0.0f, 50.0f);
-				ImGui::DragFloat("Height",       &_c->height,      0.1f, 0.0f, 20.0f);
+				// ’‹‘ÎÛ(LookAtTarget)
+				std::string lookAtTargetName = "None";
+				if (_c->lookAtTarget != entt::null && reg.valid(_c->lookAtTarget))
+					lookAtTargetName = "Entity " + std::to_string((uint32_t)_c->lookAtTarget);
+
+				ImGui::Text("LookAt Target"); ImGui::SameLine();
+				ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - 60.0f);
+				ImGui::InputText("##lookAtTarget", lookAtTargetName.data(),
+					lookAtTargetName.size() + 1, ImGuiInputTextFlags_ReadOnly);
+
+				if (ImGui::BeginDragDropTarget())
+				{
+					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ENTITY"))
+						_c->lookAtTarget = *(const entt::entity*)payload->Data;
+					ImGui::EndDragDropTarget();
+				}
+				ImGui::SameLine();
+				if (ImGui::Button("Clear##lookAtTarget")) _c->lookAtTarget = entt::null;
+
+				ImGui::DragFloat("Distance", &_c->distance, 0.1f, 0.0f, 50.0f);
+				ImGui::DragFloat("Height", &_c->height, 0.1f, 0.0f, 20.0f);
 				ImGui::DragFloat("Follow Speed", &_c->followSpeed, 0.1f, 0.1f, 30.0f);
-				ImGui::DragFloat("Pitch",        &_c->pitch,       0.01f, -1.5f, 1.5f);
+				ImGui::DragFloat("Pitch", &_c->pitch, 0.01f, -1.5f, 1.5f);
 				ImGui::Separator();
-				ImGui::DragFloat3("Eye",    &_c->base.currentEye.x,    0.1f);
+				ImGui::Text("LockOn");
+				ImGui::DragFloat("Sideways Strength", &_c->sidewaysStrength, 0.1f, 0.0f, 30.0f);
+				ImGui::DragFloat("Target Ratio", &_c->lockOnTargetRatio, 0.01f, 0.0f, 1.0f);
+				ImGui::DragFloat3("Target Offset", &_c->lockOnTargetOffset.x, 0.1f);
+				ImGui::Text("Side: %s", (_c->lockOnSide >= 0.0f) ? "Right" : "Left");
+				ImGui::Separator();
+				ImGui::DragFloat3("Eye", &_c->base.currentEye.x, 0.1f);
 				ImGui::DragFloat3("Target", &_c->base.currentTarget.x, 0.1f);
 			}
 		});

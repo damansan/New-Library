@@ -250,35 +250,61 @@ void ComponentRegistryInitializer::Initialize()
 				if (!_c) return;
 				if (!ImGui::CollapsingHeader("GameCamera", ImGuiTreeNodeFlags_DefaultOpen)) return;
 
-				const char* modeNames[] = { "Follow", "LookAt", "Fixed" };
+				const char* modeNames[] = { "Follow", "LookAt" };
 				int mode = (int)_c->mode;
-				if (ImGui::Combo("Mode", &mode, modeNames, 3))
-					_c->mode = (GameCameraComponent::Mode)mode;
+				if (ImGui::Combo("Mode", &mode, modeNames, 2))
+					_c->mode = (Mode)mode;
 
-				std::string targetName = "None";
-				if (_c->target != entt::null && reg.valid(_c->target))
-					targetName = "Entity " + std::to_string((uint32_t)_c->target);
+				// ’Ç]‘ÎÛ(FollowTarget)
+				std::string followTargetName = "None";
+				if (_c->followTarget != entt::null && reg.valid(_c->followTarget))
+					followTargetName = "Entity " + std::to_string((uint32_t)_c->followTarget);
 
-				ImGui::Text("Target"); ImGui::SameLine();
+				ImGui::Text("Follow Target"); ImGui::SameLine();
 				ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - 60.0f);
-				ImGui::InputText("##target", targetName.data(),
-					targetName.size() + 1, ImGuiInputTextFlags_ReadOnly);
+				ImGui::InputText("##followTarget", followTargetName.data(),
+					followTargetName.size() + 1, ImGuiInputTextFlags_ReadOnly);
 
 				if (ImGui::BeginDragDropTarget())
 				{
 					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ENTITY"))
-						_c->target = *(const entt::entity*)payload->Data;
+						_c->followTarget = *(const entt::entity*)payload->Data;
 					ImGui::EndDragDropTarget();
 				}
 				ImGui::SameLine();
-				if (ImGui::Button("Clear")) _c->target = entt::null;
+				if (ImGui::Button("Clear##followTarget")) _c->followTarget = entt::null;
 
-				ImGui::DragFloat("Distance",     &_c->distance,    0.1f, 0.0f, 50.0f);
-				ImGui::DragFloat("Height",       &_c->height,      0.1f, 0.0f, 20.0f);
+				// ’‹‘ÎÛ(LookAtTarget)
+				std::string lookAtTargetName = "None";
+				if (_c->lookAtTarget != entt::null && reg.valid(_c->lookAtTarget))
+					lookAtTargetName = "Entity " + std::to_string((uint32_t)_c->lookAtTarget);
+
+				ImGui::Text("LookAt Target"); ImGui::SameLine();
+				ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - 60.0f);
+				ImGui::InputText("##lookAtTarget", lookAtTargetName.data(),
+					lookAtTargetName.size() + 1, ImGuiInputTextFlags_ReadOnly);
+
+				if (ImGui::BeginDragDropTarget())
+				{
+					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ENTITY"))
+						_c->lookAtTarget = *(const entt::entity*)payload->Data;
+					ImGui::EndDragDropTarget();
+				}
+				ImGui::SameLine();
+				if (ImGui::Button("Clear##lookAtTarget")) _c->lookAtTarget = entt::null;
+
+				ImGui::DragFloat("Distance", &_c->distance, 0.1f, 0.0f, 50.0f);
+				ImGui::DragFloat("Height", &_c->height, 0.1f, 0.0f, 20.0f);
 				ImGui::DragFloat("Follow Speed", &_c->followSpeed, 0.1f, 0.1f, 30.0f);
-				ImGui::DragFloat("Pitch",        &_c->pitch,       0.01f, -1.5f, 1.5f);
+				ImGui::DragFloat("Pitch", &_c->pitch, 0.01f, -1.5f, 1.5f);
 				ImGui::Separator();
-				ImGui::DragFloat3("Eye",    &_c->base.currentEye.x,    0.1f);
+				ImGui::Text("LockOn");
+				ImGui::DragFloat("Sideways Strength", &_c->sidewaysStrength, 0.1f, 0.0f, 30.0f);
+				ImGui::DragFloat("Target Ratio", &_c->lockOnTargetRatio, 0.01f, 0.0f, 1.0f);
+				ImGui::DragFloat3("Target Offset", &_c->lockOnTargetOffset.x, 0.1f);
+				ImGui::Text("Side: %s", (_c->lockOnSide >= 0.0f) ? "Right" : "Left");
+				ImGui::Separator();
+				ImGui::DragFloat3("Eye", &_c->base.currentEye.x, 0.1f);
 				ImGui::DragFloat3("Target", &_c->base.currentTarget.x, 0.1f);
 			}
 		});
