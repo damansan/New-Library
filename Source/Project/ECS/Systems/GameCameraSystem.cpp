@@ -26,21 +26,6 @@ void GameCameraSystem::Update(entt::registry& registry, float elapsedTime)
 					followTransform->position.y + cam.followCameraHeight,
 					followTransform->position.z - cam.followCameraDistance
 				};
-				cam.prevFollowTargetPos = followTransform->position;
-			}
-
-			// ’Ç]‘ÎÛ‚Ì‘¬“x‚ğŒvZ‚·‚é
-			{
-				DirectX::XMFLOAT3 delta =
-				{
-					followTransform->position.x - cam.prevFollowTargetPos.x,
-					followTransform->position.y - cam.prevFollowTargetPos.y,
-					followTransform->position.z - cam.prevFollowTargetPos.z
-				};
-				float dist = sqrtf(delta.x * delta.x + delta.y * delta.y + delta.z * delta.z);
-
-				cam.followTargetSpeed = (elapsedTime > 0.0f) ? (dist / elapsedTime) : 0.0f;
-				cam.prevFollowTargetPos = followTransform->position;
 			}
 
 			// InputComponent ‚©‚çƒJƒƒ‰‘€ì“ü—Í‚ğæ“¾
@@ -118,7 +103,7 @@ void GameCameraSystem::UpdateFollowTarget(GameCameraComponent& cam, const Transf
 {
 	DirectX::XMFLOAT3 targetPos = followTransform.position;
 
-	float t = std::clamp(cam.followCameraSpeedRatio / 100.0f, 0.0f, 1.0f);
+	float t = std::clamp(cam.followCameraTargetSpeedRatio / 100.0f, 0.0f, 1.0f);
 
 	cam.base.currentTarget.x += (targetPos.x - cam.base.currentTarget.x) * t;
 	cam.base.currentTarget.y += ((targetPos.y + cam.followCameraTargetYUp) - cam.base.currentTarget.y) * t;
@@ -141,7 +126,7 @@ void GameCameraSystem::UpdateFollowEye(GameCameraComponent& cam, const Transform
 		basePos.z - cosYaw * cosPitch * cam.followCameraDistance
 	};
 
-	float t = std::clamp(cam.followCameraSpeedRatio / 100.0f, 0.0f, 1.0f);
+	float t = std::clamp(cam.followCameraEyeSpeedRatio / 100.0f, 0.0f, 1.0f);
 
 	cam.base.currentEye.x += (idealEye.x - cam.base.currentEye.x) * t;
 	cam.base.currentEye.y += (idealEye.y - cam.base.currentEye.y) * t;

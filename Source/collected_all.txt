@@ -1,5 +1,5 @@
 ===== main.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\main.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\main.cpp 
 #include <time.h>
 
 #include "Engine/Core/framework.h"
@@ -58,7 +58,7 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_  HINSTANCE prev_instance, _
  
  
 ===== Camera.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Core\Camera.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Core\Camera.h 
 #pragma once
 #include <DirectXMath.h>
 
@@ -107,7 +107,7 @@ private:
 }; 
  
 ===== framework.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Core\framework.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Core\framework.h 
 #pragma once
 
 #include <windows.h>
@@ -219,7 +219,7 @@ private:
 }; 
  
 ===== GameWindow.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Core\GameWindow.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Core\GameWindow.h 
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
@@ -293,7 +293,7 @@ private:
 }; 
  
 ===== Graphics.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Core\Graphics.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Core\Graphics.h 
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
@@ -383,7 +383,7 @@ private:
 }; 
  
 ===== ImGuiManager.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Core\ImGuiManager.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Core\ImGuiManager.h 
 #pragma once
 #include <windows.h>
 #include <d3d11.h>
@@ -422,7 +422,7 @@ public:
 }; 
  
 ===== JsonFileCache.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Core\JsonFileCache.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Core\JsonFileCache.h 
 #pragma once
 #include <string>
 #include <unordered_map>
@@ -483,7 +483,7 @@ private:
 }; 
  
 ===== PhysicsDestroyQueue.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Core\PhysicsDestroyQueue.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Core\PhysicsDestroyQueue.h 
 #pragma once
 #include <vector>
 #include <PxPhysicsAPI.h>
@@ -525,7 +525,7 @@ namespace PhysicsDestroyQueue
 } 
  
 ===== PhysicsLayer.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Core\PhysicsLayer.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Core\PhysicsLayer.h 
 #pragma once
 #include <PxPhysicsAPI.h>
 
@@ -578,7 +578,7 @@ private:
 }; 
  
 ===== PhysX.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Core\PhysX.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Core\PhysX.h 
 #pragma once
 #include <PxPhysicsAPI.h>
 
@@ -625,7 +625,7 @@ private:
 }; 
  
 ===== Scene.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Core\Scene.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Core\Scene.h 
 #pragma once
 #include "entt.hpp"
 #include "SceneContext.h"
@@ -679,7 +679,7 @@ protected:
 }; 
  
 ===== SceneContext.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Core\SceneContext.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Core\SceneContext.h 
 #pragma once
 #include <d3d11.h>
 #include <DirectXMath.h>
@@ -716,7 +716,7 @@ struct SceneContext
 }; 
  
 ===== SceneManager.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Core\SceneManager.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Core\SceneManager.h 
 #pragma once
 #include "Scene.h"
 #include <memory>
@@ -756,7 +756,7 @@ private:
 }; 
  
 ===== Camera.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Core\Camera.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Core\Camera.cpp 
 #include "Camera.h"
 
 // èâä˙âª
@@ -815,7 +815,7 @@ void Camera::SetPerspectiveFov(
 } 
  
 ===== framework.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Core\framework.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Core\framework.cpp 
 #include "framework.h"
 #include "tracy/Tracy.hpp"
 #include "Project/Scene/SceneGame.h"
@@ -1191,7 +1191,7 @@ bool framework::IsGameInputActive() const
  
  
 ===== GameWindow.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Core\GameWindow.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Core\GameWindow.cpp 
 #include "GameWindow.h"
 #include <imgui.h>
 #include <imgui_internal.h>
@@ -1369,7 +1369,7 @@ void GameWindow::ResizeRenderTarget(UINT width, UINT height)
 } 
  
 ===== Graphics.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Core\Graphics.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Core\Graphics.cpp 
 #include "Graphics.h"
 #include "Engine/Utility/misc.h"
 #include "Engine/Resource/GpuResourceUtils.h"
@@ -1820,7 +1820,7 @@ void Graphics::InitializePresentResources()
 } 
  
 ===== ImGuiManager.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Core\ImGuiManager.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Core\ImGuiManager.cpp 
 #include "ImGuiManager.h"
 
 ImGuiManager::~ImGuiManager()
@@ -1921,7 +1921,7 @@ bool ImGuiManager::HandleMessage(HWND hWnd, UINT msg, WPARAM wparam, LPARAM lpar
  
  
 ===== PhysX.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Core\PhysX.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Core\PhysX.cpp 
 #include "PhysX.h"
 
 using namespace physx;
@@ -1992,7 +1992,7 @@ physx::PxTriangleMesh* PhysX::CreateTriangleMesh(
  
  
 ===== Scene.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Core\Scene.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Core\Scene.cpp 
 #include "Scene.h"
 
 // ï®óùÉVÅ[ÉìÇÃçÏê¨
@@ -2042,7 +2042,7 @@ void Scene::UpdatePhysicsScene(float elapsedTime)
 } 
  
 ===== SceneManager.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Core\SceneManager.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Core\SceneManager.cpp 
 #include "SceneManager.h"
 
 // çXêV
@@ -2109,7 +2109,7 @@ void SceneManager::ClearScene()
  
  
 ===== AnimationSpeedData.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Data\AnimationSpeedData.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Data\AnimationSpeedData.h 
 #pragma once
 #include <string>
 #include <vector>
@@ -2152,7 +2152,7 @@ public:
 }; 
  
 ===== AnimatorGraphData.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Data\AnimatorGraphData.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Data\AnimatorGraphData.h 
 #pragma once
 #include <string>
 #include <vector>
@@ -2435,7 +2435,7 @@ private:
 }; 
  
 ===== SequencerData.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Data\SequencerData.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Data\SequencerData.h 
 #pragma once
 #include <string>
 #include <vector>
@@ -2486,7 +2486,7 @@ public:
 }; 
  
 ===== AnimationSpeedData.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Data\AnimationSpeedData.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Data\AnimationSpeedData.cpp 
 #include "AnimationSpeedData.h"
 #include <algorithm>
 
@@ -2612,7 +2612,7 @@ void AnimationSpeedData::FromJson(const nlohmann::json& j)
 } 
  
 ===== AnimatorGraphData.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Data\AnimatorGraphData.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Data\AnimatorGraphData.cpp 
 #include "AnimatorGraphData.h"
 #include <algorithm>
 
@@ -3594,7 +3594,7 @@ void TransitionGraphData::DeleteLink(int linkId)
 } 
  
 ===== SequencerData.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Data\SequencerData.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Data\SequencerData.cpp 
 #include "SequencerData.h"
 
 namespace
@@ -3717,7 +3717,7 @@ void SequencerData::FromJson(const nlohmann::json& j)
 } 
  
 ===== AnimationSpeedComponent.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Components\AnimationSpeedComponent.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Components\AnimationSpeedComponent.h 
 #pragma once
 #include <string>
 
@@ -3727,7 +3727,7 @@ struct AnimationSpeedComponent
 }; 
  
 ===== AnimatorComponent.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Components\AnimatorComponent.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Components\AnimatorComponent.h 
 Ôªø#pragma once
 #include <string>
 #include <DirectXMath.h>
@@ -3773,7 +3773,7 @@ struct AnimatorComponent
 }; 
  
 ===== BaseCameraComponent.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Components\BaseCameraComponent.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Components\BaseCameraComponent.h 
 #pragma once
 #include <DirectXMath.h>
 
@@ -3786,7 +3786,7 @@ struct BaseCameraComponent
  
  
 ===== ControllerComponent.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Components\ControllerComponent.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Components\ControllerComponent.h 
 Ôªø#pragma once
 #include <cstdint>
 #include "Unsorted/Controller/AdaptiveTrigger.h"
@@ -3855,7 +3855,7 @@ namespace ControllerButtons
 } 
  
 ===== ControllerSettings.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Components\ControllerSettings.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Components\ControllerSettings.h 
 #pragma once
 #include <cstdint>
 
@@ -3878,7 +3878,7 @@ struct ControllerSettings
 }; 
  
 ===== FreeCameraComponent.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Components\FreeCameraComponent.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Components\FreeCameraComponent.h 
 #pragma once
 #include <windows.h>
 #include "BaseCameraComponent.h"
@@ -3896,7 +3896,7 @@ struct FreeCameraComponent
 }; 
  
 ===== IKComponent.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Components\IKComponent.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Components\IKComponent.h 
 #pragma once
 #include <DirectXMath.h>
 #include <vector>
@@ -3933,7 +3933,7 @@ struct IKComponent
 }; 
  
 ===== MaterialComponent.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Components\MaterialComponent.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Components\MaterialComponent.h 
 #pragma once
 #include <cstdint>
 
@@ -3960,7 +3960,7 @@ struct MaterialComponent
 }; 
  
 ===== MeshComponent.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Components\MeshComponent.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Components\MeshComponent.h 
 #pragma once
 #include <string>
 
@@ -3974,7 +3974,7 @@ struct MeshComponent
 }; 
  
 ===== MovementComponent.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Components\MovementComponent.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Components\MovementComponent.h 
 #pragma once
 #include <DirectXMath.h>
 
@@ -3999,7 +3999,7 @@ struct MovementComponent
 }; 
  
 ===== PhysicsComponents.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Components\PhysicsComponents.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Components\PhysicsComponents.h 
 #pragma once
 #include <PxPhysicsAPI.h>
 
@@ -4035,7 +4035,7 @@ struct CharacterControllerComponent
 }; 
  
 ===== SequencerComponent.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Components\SequencerComponent.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Components\SequencerComponent.h 
 #pragma once
 #include <string>
 
@@ -4067,7 +4067,7 @@ struct SequencerComponent
 }; 
  
 ===== SkinnedMeshComponent.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Components\SkinnedMeshComponent.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Components\SkinnedMeshComponent.h 
 #pragma once
 #include <memory>
 #include <vector>
@@ -4095,7 +4095,7 @@ struct SkinnedMeshComponent
 }; 
  
 ===== StateComponent.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Components\StateComponent.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Components\StateComponent.h 
 #pragma once
 
 // ëJà⁄ÉRÉìÉ|Å[ÉlÉìÉg
@@ -4106,7 +4106,7 @@ struct StateComponent
 }; 
  
 ===== StaticMeshComponent.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Components\StaticMeshComponent.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Components\StaticMeshComponent.h 
 #pragma once
 #include <memory>
 #include "Engine/Resource/Model.h"
@@ -4119,7 +4119,7 @@ struct StaticMeshComponent
 }; 
  
 ===== Tags.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Components\Tags.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Components\Tags.h 
 #pragma once
 
 // ÉçÅ[ÉhçœÇ›ÉtÉâÉO
@@ -4132,7 +4132,7 @@ struct InvisibleTag {};
 struct NoShadowTag {}; 
  
 ===== TransformComponent.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Components\TransformComponent.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Components\TransformComponent.h 
 #pragma once
 #include <DirectXMath.h>
 
@@ -4154,7 +4154,7 @@ struct TransformComponent
 }; 
  
 ===== AnimationSpeedSystem.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\AnimationSpeedSystem.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\AnimationSpeedSystem.h 
 #pragma once
 #include "entt.hpp"
 #include "Engine/Data/AnimationSpeedData.h"
@@ -4171,7 +4171,7 @@ private:
 }; 
  
 ===== AnimationSystem.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\AnimationSystem.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\AnimationSystem.h 
 #pragma once
 #include <d3d11.h>
 #include <algorithm>
@@ -4248,7 +4248,7 @@ private:
 }; 
  
 ===== AnimatorControllerSystem.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\AnimatorControllerSystem.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\AnimatorControllerSystem.h 
 #pragma once
 #include "entt.hpp"
 #include "Engine/Data/AnimatorGraphData.h"
@@ -4297,7 +4297,7 @@ private:
 }; 
  
 ===== ConditionGraphEvaluator.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\ConditionGraphEvaluator.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\ConditionGraphEvaluator.h 
 #pragma once
 #include "entt.hpp"
 #include "Engine/Data/AnimatorGraphData.h"
@@ -4325,7 +4325,7 @@ private:
 }; 
  
 ===== ControllerSystem.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\ControllerSystem.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\ControllerSystem.h 
 #pragma once
 #pragma comment(lib, "Xinput.lib")
 
@@ -4398,7 +4398,7 @@ private:
 }; 
  
 ===== DebugCameraSystem.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\DebugCameraSystem.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\DebugCameraSystem.h 
 #pragma once
 #include "entt.hpp"
 #include "Engine/Core/Camera.h"
@@ -4419,7 +4419,7 @@ private:
 }; 
  
 ===== IKSystem.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\IKSystem.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\IKSystem.h 
 #pragma once
 #include <DirectXMath.h>
 #include "entt.hpp"
@@ -4442,7 +4442,7 @@ private:
 }; 
  
 ===== MeshLoaderSystem.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\MeshLoaderSystem.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\MeshLoaderSystem.h 
 #pragma once
 #include <d3d11.h>
 
@@ -4468,7 +4468,7 @@ public:
 }; 
  
 ===== MovementSystem.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\MovementSystem.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\MovementSystem.h 
 #pragma once
 #include "entt.hpp"
 #include "Engine/Core/SceneContext.h"
@@ -4480,7 +4480,7 @@ public:
 }; 
  
 ===== PhysicsSystem.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\PhysicsSystem.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\PhysicsSystem.h 
 #pragma once
 #include "entt.hpp"
 #include "Engine/Core/PhysX.h"
@@ -4541,7 +4541,7 @@ private:
 }; 
  
 ===== RenderSystem.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\RenderSystem.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\RenderSystem.h 
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
@@ -4739,7 +4739,7 @@ private:
 }; 
  
 ===== SequencerSystem.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\SequencerSystem.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\SequencerSystem.h 
 #pragma once
 #include "entt.hpp"
 #include "Engine/Data/SequencerData.h"
@@ -4759,7 +4759,7 @@ private:
 }; 
  
 ===== StateGraphUtils.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\StateGraphUtils.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\StateGraphUtils.h 
 #pragma once
 #include <string>
 #include "Engine/Data/AnimatorGraphData.h"
@@ -4771,7 +4771,7 @@ namespace StateGraphUtils
 } 
  
 ===== TransitionControllerSystem.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\TransitionControllerSystem.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\TransitionControllerSystem.h 
 #pragma once
 #include "entt.hpp"
 #include "Engine/Core/SceneContext.h"
@@ -4791,7 +4791,7 @@ private:
 }; 
  
 ===== TwoBoneIKSolver.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\TwoBoneIKSolver.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\TwoBoneIKSolver.h 
 #pragma once
 #include <DirectXMath.h>
 
@@ -4825,7 +4825,7 @@ namespace TwoBoneIKSolver
 } 
  
 ===== AnimationSpeedSystem.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\AnimationSpeedSystem.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\AnimationSpeedSystem.cpp 
 #include "AnimationSpeedSystem.h"
 #include "Engine/ECS/Components/SkinnedMeshComponent.h"
 #include "Engine/ECS/Components/AnimatorComponent.h"
@@ -4887,7 +4887,7 @@ void AnimationSpeedSystem::Update(entt::registry& registry)
 } 
  
 ===== AnimationSystem.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\AnimationSystem.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\AnimationSystem.cpp 
 #include "AnimationSystem.h"
 #include "tracy/Tracy.hpp"
 #include "Engine/Resource/SkeletonUtils.h"
@@ -5423,7 +5423,7 @@ DirectX::XMFLOAT3 AnimationSystem::CalcRootMotionDelta(
  
  
 ===== AnimatorControllerSystem.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\AnimatorControllerSystem.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\AnimatorControllerSystem.cpp 
 #include "AnimatorControllerSystem.h"
 #include "Engine/ECS/Components/AnimatorComponent.h"
 #include "ConditionGraphEvaluator.h"
@@ -5660,7 +5660,7 @@ void AnimatorControllerSystem::ApplyChildState(AnimatorComponent& animator, cons
  
  
 ===== ConditionGraphEvaluator.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\ConditionGraphEvaluator.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\ConditionGraphEvaluator.cpp 
 #include "ConditionGraphEvaluator.h"
 #include "Tool/Editor/ComponentRegistry.h"
 #include "Tool/Editor/MetaRegistry.h"
@@ -5858,7 +5858,7 @@ float ConditionGraphEvaluator::ResolveInputValue(const ConditionGraph& graph, in
  
  
 ===== ControllerSystem.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\ControllerSystem.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\ControllerSystem.cpp 
 Ôªø#include "ControllerSystem.h"
 #include <cmath>
 #include <algorithm>
@@ -6116,7 +6116,7 @@ void ControllerSystem::TryConnectPS5()
  
  
 ===== DebugCameraSystem.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\DebugCameraSystem.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\DebugCameraSystem.cpp 
 #include "DebugCameraSystem.h"
 #include <imgui.h>
 #include <algorithm>
@@ -6262,7 +6262,7 @@ void DebugCameraSystem::UpdateFreeCamera(FreeCameraComponent& free, float elapse
 } 
  
 ===== IKSystem.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\IKSystem.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\IKSystem.cpp 
 #include "IKSystem.h"
 #include "Engine/ECS/Systems/TwoBoneIKSolver.h"
 #include "Engine/Resource/SkeletonUtils.h"
@@ -6432,7 +6432,7 @@ void IKSystem::SolveFootIK(FootIKSettings& footSettings, SkinnedMeshComponent& s
 } 
  
 ===== MeshLoaderSystem.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\MeshLoaderSystem.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\MeshLoaderSystem.cpp 
 #include "MeshLoaderSystem.h"
 
 void MeshLoaderSystem::Update(
@@ -6516,7 +6516,7 @@ void MeshLoaderSystem::Update(
 } 
  
 ===== MovementSystem.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\MovementSystem.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\MovementSystem.cpp 
 #include "MovementSystem.h"
 
 #include "Project/ECS/Components/GameInputComponent.h"
@@ -6569,7 +6569,7 @@ void MovementSystem::Update(entt::registry& registry, float elapsedTime, const S
  
  
 ===== PhysicsSystem.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\PhysicsSystem.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\PhysicsSystem.cpp 
 #include "PhysicsSystem.h"
 #include "Engine/Core/PhysicsDestroyQueue.h"
 #include "Engine/Core/PhysicsLayer.h"
@@ -6857,7 +6857,7 @@ void PhysicsSystem::ProcessCharacterControllers(entt::registry& registry, PhysX&
  
  
 ===== RenderSystem.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\RenderSystem.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\RenderSystem.cpp 
 Ôªø#include "RenderSystem.h"
 #include "Engine/Resource/GpuResourceUtils.h"
 #include "Engine/Utility/misc.h"
@@ -7471,7 +7471,7 @@ void RenderSystem::ForwardTransparentPass(
  
  
 ===== SequencerSystem.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\SequencerSystem.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\SequencerSystem.cpp 
 #include "SequencerSystem.h"
 #include "Engine/ECS/Components/SkinnedMeshComponent.h"
 #include "Engine/ECS/Components/AnimatorComponent.h"
@@ -7567,7 +7567,7 @@ void SequencerSystem::Update(entt::registry& registry)
 } 
  
 ===== StateGraphUtils.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\StateGraphUtils.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\StateGraphUtils.cpp 
 #include "StateGraphUtils.h"
 
 namespace StateGraphUtils
@@ -7583,7 +7583,7 @@ namespace StateGraphUtils
 } 
  
 ===== TransitionControllerSystem.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\TransitionControllerSystem.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\TransitionControllerSystem.cpp 
 #include "TransitionControllerSystem.h"
 #include "Engine/ECS/Components/AnimatorComponent.h"
 #include "Engine/ECS/Components/StateComponent.h"
@@ -7646,7 +7646,7 @@ int TransitionControllerSystem::FindTransition(const std::vector<TransitionLink>
  
  
 ===== TwoBoneIKSolver.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\TwoBoneIKSolver.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\TwoBoneIKSolver.cpp 
 #include "TwoBoneIKSolver.h"
 #include <algorithm>
 #include <cmath>
@@ -7826,7 +7826,7 @@ namespace TwoBoneIKSolver
 } 
  
 ===== GBuffer.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Rendering\GBuffer.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Rendering\GBuffer.h 
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
@@ -7866,7 +7866,7 @@ private:
 }; 
  
 ===== LightManager.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Rendering\LightManager.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Rendering\LightManager.h 
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
@@ -7934,7 +7934,7 @@ private:
 }; 
  
 ===== PhysicsDebugRenderer.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Rendering\PhysicsDebugRenderer.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Rendering\PhysicsDebugRenderer.h 
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
@@ -7988,7 +7988,7 @@ private:
 }; 
  
 ===== PrimitiveRenderer.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Rendering\PrimitiveRenderer.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Rendering\PrimitiveRenderer.h 
 #pragma once
 #include <vector>
 #include <wrl.h>
@@ -8034,7 +8034,7 @@ private:
 }; 
  
 ===== ShapeRenderer.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Rendering\ShapeRenderer.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Rendering\ShapeRenderer.h 
 #pragma once
 #include <vector>
 #include <wrl.h>
@@ -8192,7 +8192,7 @@ private:
 }; 
  
 ===== SkyBox.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Rendering\SkyBox.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Rendering\SkyBox.h 
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
@@ -8261,7 +8261,7 @@ private:
 }; 
  
 ===== GBuffer.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Rendering\GBuffer.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Rendering\GBuffer.cpp 
 #include "GBuffer.h"
 #include "Engine/Utility/misc.h"
 
@@ -8343,7 +8343,7 @@ void GBuffer::EndGeometryPass(ID3D11DeviceContext* dc)
 } 
  
 ===== LightManager.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Rendering\LightManager.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Rendering\LightManager.cpp 
 #include "LightManager.h"
 #include "Engine/Resource/GpuResourceUtils.h"
 #include "Engine/Utility/misc.h"
@@ -8431,7 +8431,7 @@ void LightManager::Bind(ID3D11DeviceContext* dc)
  
  
 ===== PhysicsDebugRenderer.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Rendering\PhysicsDebugRenderer.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Rendering\PhysicsDebugRenderer.cpp 
 #include "PhysicsDebugRenderer.h"
 #include "Engine/ECS/Systems/PhysicsSystem.h"
 #include <string>
@@ -8786,7 +8786,7 @@ PhysicsDebugRenderer::GetOrCreateTriangleMeshCache(
 } 
  
 ===== PrimitiveRenderer.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Rendering\PrimitiveRenderer.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Rendering\PrimitiveRenderer.cpp 
 #include "PrimitiveRenderer.h"
 #include "Engine/Resource/GpuResourceUtils.h"
 
@@ -8878,7 +8878,7 @@ void PrimitiveRenderer::Render(
 } 
  
 ===== ShapeRenderer.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Rendering\ShapeRenderer.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Rendering\ShapeRenderer.cpp 
 #include "ShapeRenderer.h"
 #include "Engine/Resource/GpuResourceUtils.h"
 #include <algorithm>
@@ -9450,7 +9450,7 @@ void ShapeRenderer::CreateSolidCylinderMesh(ID3D11Device* device, int subdivisio
  
  
 ===== SkyBox.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Rendering\SkyBox.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Rendering\SkyBox.cpp 
 #include "SkyBox.h"
 #include "Engine/Resource/GpuResourceUtils.h"
 #include "Engine/Utility/misc.h"
@@ -9628,7 +9628,7 @@ void SkyBox::Render(
  
  
 ===== GLTFConverter.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Resource\GLTFConverter.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Resource\GLTFConverter.h 
 #pragma once
 #include <memory>
 #include <d3d11.h>
@@ -9677,7 +9677,7 @@ private:
 }; 
  
 ===== GLTFData.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Resource\GLTFData.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Resource\GLTFData.h 
 #pragma once
 #include <string>
 #include <vector>
@@ -9794,7 +9794,7 @@ struct GLTFData
 }; 
  
 ===== GLTFImporter.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Resource\GLTFImporter.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Resource\GLTFImporter.h 
 #pragma once
 #include <memory>
 #include <string>
@@ -9870,7 +9870,7 @@ private:
 }; 
  
 ===== GpuResourceUtils.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Resource\GpuResourceUtils.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Resource\GpuResourceUtils.h 
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
@@ -9948,7 +9948,7 @@ public:
 }; 
  
 ===== Model.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Resource\Model.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Resource\Model.h 
 #pragma once
 
 #include <string>
@@ -10130,7 +10130,7 @@ private:
 }; 
  
 ===== ModelSerializer.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Resource\ModelSerializer.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Resource\ModelSerializer.h 
 #pragma once
 #include <memory>
 #include <string>
@@ -10161,7 +10161,7 @@ public:
 }; 
  
 ===== ResourceManager.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Resource\ResourceManager.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Resource\ResourceManager.h 
 #pragma once
 #include <string>
 #include <memory>
@@ -10200,7 +10200,7 @@ private:
 }; 
  
 ===== SkeletonUtils.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Resource\SkeletonUtils.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Resource\SkeletonUtils.h 
 #pragma once
 #include <vector>
 #include <DirectXMath.h>
@@ -10225,7 +10225,7 @@ namespace SkeletonUtils
 } 
  
 ===== GLTFConverter.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Resource\GLTFConverter.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Resource\GLTFConverter.cpp 
 #include "GLTFConverter.h"
 #include "GpuResourceUtils.h"
 #include "Engine/Utility/misc.h"
@@ -10598,7 +10598,7 @@ void GLTFConverter::ConvertAnimations(
  
  
 ===== GLTFImporter.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Resource\GLTFImporter.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Resource\GLTFImporter.cpp 
 #include "GLTFImporter.h"
 #include "Engine/Utility/misc.h"
 #include <filesystem>
@@ -11413,7 +11413,7 @@ void GLTFImporter::CalcGlobalTransform(
  
  
 ===== GpuResourceUtils.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Resource\GpuResourceUtils.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Resource\GpuResourceUtils.cpp 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 #include "GpuResourceUtils.h"
@@ -11735,7 +11735,7 @@ HRESULT GpuResourceUtils::CreateConstantBuffer(
  
  
 ===== Model.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Resource\Model.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Resource\Model.cpp 
 #include "Model.h"
 
 // ì¸óÕÉåÉCÉAÉEÉgíËã`
@@ -11750,7 +11750,7 @@ const std::vector<D3D11_INPUT_ELEMENT_DESC> Model::InputElementDescs =
 }; 
  
 ===== ModelSerializer.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Resource\ModelSerializer.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Resource\ModelSerializer.cpp 
 #include "ModelSerializer.h"
 #include "Model.h"
 #include "Engine/Utility/CerealHelper.h"
@@ -11910,7 +11910,7 @@ std::string ModelSerializer::ToCerealPath(const std::string& gltfPath)
 } 
  
 ===== ResourceManager.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Resource\ResourceManager.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Resource\ResourceManager.cpp 
 #include "ResourceManager.h"
 #include "GLTFImporter.h"
 #include "GLTFConverter.h" 
@@ -11971,7 +11971,7 @@ void ResourceManager::ReleaseAll()
  
  
 ===== SkeletonUtils.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Resource\SkeletonUtils.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Resource\SkeletonUtils.cpp 
 #include "SkeletonUtils.h"
 #include <functional>
 
@@ -12066,7 +12066,7 @@ namespace SkeletonUtils
 } 
  
 ===== CerealHelper.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Utility\CerealHelper.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Utility\CerealHelper.h 
 #pragma once
 #include <DirectXMath.h>
 
@@ -12100,7 +12100,7 @@ namespace DirectX
 } 
  
 ===== high_resolution_timer.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Utility\high_resolution_timer.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Utility\high_resolution_timer.h 
 #pragma once
 
 #include <windows.h>
@@ -12239,7 +12239,7 @@ private:
  
  
 ===== misc.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Utility\misc.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Utility\misc.h 
 #pragma once
 
 #include <windows.h>
@@ -12303,7 +12303,7 @@ public:
  
  
 ===== CerealHelper.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Utility\CerealHelper.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Utility\CerealHelper.cpp 
 #include "CerealHelper.h"
 #include <cereal/archives/binary.hpp>
 
@@ -12384,7 +12384,7 @@ namespace DirectX
 } 
  
 ===== GameCameraComponent.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Components\GameCameraComponent.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Project\ECS\Components\GameCameraComponent.h 
 #pragma once
 #include <DirectXMath.h>
 #include "entt.hpp"
@@ -12411,22 +12411,23 @@ struct GameCameraComponent
 	// íçéãëŒè€ÇÃ Entity
 	entt::entity lookAtTarget = entt::null;
 
-    // í«è]ÉpÉâÉÅÅ[É^
-	float distance = 5.0f;     // ÉJÉÅÉâÇ∆ëŒè€ÇÃãóó£
-	float height = 2.0f;       // ÉJÉÅÉâÇÃçÇÇ≥
+    // ÉpÉâÉÅÅ[É^
 	float yaw = 0.0f;          // ÉJÉÅÉâÇÃâÒì]äpìx
 	float pitch = 0.3f;        // ÉJÉÅÉâÇÃè„â∫äpìx
-	float followSpeed = 10.0f; // í«è]ë¨ìx
 
-	// ÉçÉbÉNÉIÉìÉpÉâÉÅÅ[É^
-	float lockOnSide = 1.0f;        // +1.0Ç≈âE/-1.0Ç≈ç∂
-	float sidewaysStrength = 6.0f;  // â°ï˚å¸ÇÃÇ∏ÇÍÇÃã≠Ç≥
-	DirectX::XMFLOAT3 lockOnTargetOffset = { 0.0f, 1.0f, 0.0f }; // íçéãëŒè€ÇÃÉIÉtÉZÉbÉg
-	float lockOnTargetRatio = 0.5f;
+	// í«è]ÉJÉÅÉâÇÃÉpÉâÉÅÅ[É^Å[
+	float followCameraDistance   = 4.4f;  // í«è]ÉJÉÅÉâÇÃãóó£
+	float followCameraHeight     = 1.7f;  // í«è]ÉJÉÅÉâÇÃçÇÇ≥
+	float followCameraTargetYUp  = 1.6f;  // íçéãì_ÇÃÉIÉtÉZÉbÉg(Y)
+	float followCameraSpeedRatio = 10.0f; // í«è]ë¨ìxÇÃî‰ó¶
+
+	// í«è]ëŒè€ÇÃë¨ìxåvéZóp
+	DirectX::XMFLOAT3 prevFollowTargetPos = {}; // ëOÉtÉåÅ[ÉÄÇÃÅAí«è]ëŒè€ÇÃà íu
+	float followTargetSpeed = 0.0f;             // í«è]ëŒè€ÇÃë¨ìx
 }; 
  
 ===== GameInputComponent.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Components\GameInputComponent.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Project\ECS\Components\GameInputComponent.h 
 #pragma once
 
 // ÉXÉeÉBÉbÉNÇÃèÛë‘
@@ -12480,7 +12481,7 @@ struct GameInputComponent
  
  
 ===== PlayerDodgeComponent.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Components\PlayerDodgeComponent.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Project\ECS\Components\PlayerDodgeComponent.h 
 #pragma once
 
 enum class PlayerDodgeSubState
@@ -12516,7 +12517,7 @@ struct PlayerDodgeComponent
 }; 
  
 ===== PlayerIdleComponent.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Components\PlayerIdleComponent.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Project\ECS\Components\PlayerIdleComponent.h 
 #pragma once
 
 enum class PlayerIdleSubState
@@ -12538,7 +12539,7 @@ struct PlayerIdleComponent
 }; 
  
 ===== PlayerMoveComponent.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Components\PlayerMoveComponent.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Project\ECS\Components\PlayerMoveComponent.h 
 #pragma once
 
 enum class PlayerMoveSubState
@@ -12572,7 +12573,7 @@ struct PlayerMoveComponent
 }; 
  
 ===== PlayerSprintComponent.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Components\PlayerSprintComponent.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Project\ECS\Components\PlayerSprintComponent.h 
 #pragma once
 
 enum class PlayerSprintSubState
@@ -12596,7 +12597,7 @@ struct PlayerSprintComponent
 }; 
  
 ===== GameCameraSystem.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Systems\GameCameraSystem.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Project\ECS\Systems\GameCameraSystem.h 
 #pragma once
 #include "entt.hpp"
 #include "Engine/Core/Camera.h"
@@ -12614,19 +12615,19 @@ public:
     void ApplyToCamera(entt::registry& registry, Camera& camera);
 
 private:
+    // FollowÉJÉÅÉâÇÃçXêV
+    void UpdateFollowTarget(GameCameraComponent& cam, const TransformComponent& followTransform, float elapsedTime);
 	// FollowópÇÃcurrentEyeåvéZ
     void UpdateFollowEye(GameCameraComponent& cam, const TransformComponent& followTransform, float elapsedTime);
-    // LookAtópÇÃcurrentEyeåvéZ
-    void UpdateLockOnEye(GameCameraComponent& cam, entt::registry& registry, float elapsedTime);
 
-	// FollowÉJÉÅÉâÇÃçXêV
-    void UpdateFollowTarget(GameCameraComponent& cam, const TransformComponent& followTransform, float elapsedTime);
     // LookAtÉJÉÅÉâÇÃçXêV
     void UpdateLookAtTarget(GameCameraComponent& cam, entt::registry& registry, float elapsedTime);
+    // LookAtópÇÃcurrentEyeåvéZ
+    void UpdateLockOnEye(GameCameraComponent& cam, entt::registry& registry, float elapsedTime);
 }; 
  
 ===== GameInputSystem.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Systems\GameInputSystem.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Project\ECS\Systems\GameInputSystem.h 
 #pragma once
 #include "entt.hpp"
 #include "Project/ECS/Components/GameInputComponent.h"
@@ -12660,7 +12661,7 @@ private:
 }; 
  
 ===== PlayerDodgeSystem.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Systems\PlayerDodgeSystem.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Project\ECS\Systems\PlayerDodgeSystem.h 
 #pragma once
 #include "entt.hpp"
 #include "Engine/Core/SceneContext.h"
@@ -12679,7 +12680,7 @@ private:
 }; 
  
 ===== PlayerIdleSystem.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Systems\PlayerIdleSystem.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Project\ECS\Systems\PlayerIdleSystem.h 
 #pragma once
 #include "entt.hpp"
 #include "Engine/Core/SceneContext.h"
@@ -12698,7 +12699,7 @@ private:
 }; 
  
 ===== PlayerMovementUtils.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Systems\PlayerMovementUtils.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Project\ECS\Systems\PlayerMovementUtils.h 
 #pragma once
 #include <DirectXMath.h>
 
@@ -12735,7 +12736,7 @@ namespace PlayerMovementUtils
 } 
  
 ===== PlayerMoveSystem.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Systems\PlayerMoveSystem.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Project\ECS\Systems\PlayerMoveSystem.h 
 #pragma once
 #include "entt.hpp"
 #include "Engine/Core/SceneContext.h"
@@ -12754,7 +12755,7 @@ private:
 }; 
  
 ===== PlayerSprintSystem.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Systems\PlayerSprintSystem.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Project\ECS\Systems\PlayerSprintSystem.h 
 #pragma once
 #include "entt.hpp"
 #include "Engine/Core/SceneContext.h"
@@ -12773,7 +12774,7 @@ private:
 }; 
  
 ===== GameCameraSystem.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Systems\GameCameraSystem.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Project\ECS\Systems\GameCameraSystem.cpp 
 #include "GameCameraSystem.h"
 #include <algorithm>
 
@@ -12790,7 +12791,7 @@ void GameCameraSystem::Update(entt::registry& registry, float elapsedTime)
 			auto* followTransform = registry.try_get<TransformComponent>(cam.followTarget);
 			if (!followTransform) return;
 
-			// èââÒÇæÇØ currentEye / currentTarget Çë¶ç¿Ç…ê›íË
+			// èââÒÇæÇØ currentEye / currentTarget / prevFollowTargetPos Çë¶ç¿Ç…ê›íË
 			if (cam.base.currentEye.x == 0.0f &&
 				cam.base.currentEye.y == 0.0f &&
 				cam.base.currentEye.z == 0.0f)
@@ -12799,9 +12800,24 @@ void GameCameraSystem::Update(entt::registry& registry, float elapsedTime)
 				cam.base.currentEye =
 				{
 					followTransform->position.x,
-					followTransform->position.y + cam.height,
-					followTransform->position.z - cam.distance
+					followTransform->position.y + cam.followCameraHeight,
+					followTransform->position.z - cam.followCameraDistance
 				};
+				cam.prevFollowTargetPos = followTransform->position;
+			}
+
+			// í«è]ëŒè€ÇÃë¨ìxÇåvéZÇ∑ÇÈ
+			{
+				DirectX::XMFLOAT3 delta =
+				{
+					followTransform->position.x - cam.prevFollowTargetPos.x,
+					followTransform->position.y - cam.prevFollowTargetPos.y,
+					followTransform->position.z - cam.prevFollowTargetPos.z
+				};
+				float dist = sqrtf(delta.x * delta.x + delta.y * delta.y + delta.z * delta.z);
+
+				cam.followTargetSpeed = (elapsedTime > 0.0f) ? (dist / elapsedTime) : 0.0f;
+				cam.prevFollowTargetPos = followTransform->position;
 			}
 
 			// InputComponent Ç©ÇÁÉJÉÅÉâëÄçÏì¸óÕÇéÊìæ
@@ -12874,11 +12890,19 @@ void GameCameraSystem::ApplyToCamera(entt::registry& registry, Camera& camera)
 	}
 }
 
+// FollowÉJÉÅÉâÇÃçXêV
+void GameCameraSystem::UpdateFollowTarget(GameCameraComponent& cam, const TransformComponent& followTransform, float elapsedTime)
+{
+	DirectX::XMFLOAT3 targetPos = followTransform.position;
+
+	float t = std::clamp(cam.followCameraSpeedRatio / 100.0f, 0.0f, 1.0f);
+
+	cam.base.currentTarget.x += (targetPos.x - cam.base.currentTarget.x) * t;
+	cam.base.currentTarget.y += ((targetPos.y + cam.followCameraTargetYUp) - cam.base.currentTarget.y) * t;
+	cam.base.currentTarget.z += (targetPos.z - cam.base.currentTarget.z) * t;
+}
 // FollowópÇÃcurrentEyeåvéZ
-void GameCameraSystem::UpdateFollowEye(
-	GameCameraComponent& cam,
-	const TransformComponent& followTransform,
-	float elapsedTime)
+void GameCameraSystem::UpdateFollowEye(GameCameraComponent& cam, const TransformComponent& followTransform, float elapsedTime)
 {
 	DirectX::XMFLOAT3 basePos = followTransform.position;
 
@@ -12889,115 +12913,30 @@ void GameCameraSystem::UpdateFollowEye(
 
 	DirectX::XMFLOAT3 idealEye =
 	{
-		basePos.x - sinYaw * cosPitch * cam.distance,
-		basePos.y + sinPitch * cam.distance + cam.height,
-		basePos.z - cosYaw * cosPitch * cam.distance
+		basePos.x - sinYaw * cosPitch * cam.followCameraDistance,
+		basePos.y + sinPitch * cam.followCameraDistance + cam.followCameraHeight,
+		basePos.z - cosYaw * cosPitch * cam.followCameraDistance
 	};
 
-	float t = 1.0f - powf(0.001f, elapsedTime * cam.followSpeed);
+	float t = std::clamp(cam.followCameraSpeedRatio / 100.0f, 0.0f, 1.0f);
 
 	cam.base.currentEye.x += (idealEye.x - cam.base.currentEye.x) * t;
 	cam.base.currentEye.y += (idealEye.y - cam.base.currentEye.y) * t;
 	cam.base.currentEye.z += (idealEye.z - cam.base.currentEye.z) * t;
+}
+
+// LookAtÉJÉÅÉâÇÃçXêV
+void GameCameraSystem::UpdateLookAtTarget(GameCameraComponent& cam, entt::registry& registry, float elapsedTime)
+{
 }
 // LookAtópÇÃcurrentEyeåvéZ
 void GameCameraSystem::UpdateLockOnEye(GameCameraComponent& cam, entt::registry& registry, float elapsedTime)
 {
-	DirectX::XMFLOAT3 playerPos = registry.get<TransformComponent>(cam.followTarget).position;
-	DirectX::XMFLOAT3 enemyPos = registry.get<TransformComponent>(cam.lookAtTarget).position;
-
-	// ìGÅ®ÉvÉåÉCÉÑÅ[ÅAÇÃXZïΩñ è„ÇÃï˚å¸ÉxÉNÉgÉã(å„ï˚ï˚å¸)
-	float backX = playerPos.x - enemyPos.x;
-	float backZ = playerPos.z - enemyPos.z;
-	float len = sqrtf(backX * backX + backZ * backZ);
-
-	DirectX::XMFLOAT3 idealEye = cam.base.currentEye; // ñúàÍlenÇ™0ÇÃèÍçáÅAç°ÇÃà íuÇà€éù
-	if (len > 0.0001f)
-	{
-		backX /= len;
-		backZ /= len;
-
-		// å„ï˚ÉxÉNÉgÉãÇ90ìxâÒì]Ç≥ÇπÇΩÅAâ°ï˚å¸ÇÃÉxÉNÉgÉã(Yé≤Çè„Ç∆ÇµÇƒÅAâEå¸Ç´)
-		float sideX = -backZ;
-		float sideZ = backX;
-
-		// ìGÅ®åªç›ÇÃÉJÉÅÉâÅAÇÃÉxÉNÉgÉãÇ∆ÇÃäOêœÇ≈ÅAñàÉtÉåÅ[ÉÄç∂âEÇçƒîªíËÇ∑ÇÈ
-		float toCamX = cam.base.currentEye.x - enemyPos.x;
-		float toCamZ = cam.base.currentEye.z - enemyPos.z;
-		float cross = backX * toCamZ - backZ * toCamX;
-		cam.lockOnSide = (cross >= 0.0f) ? 1.0f : -1.0f;
-
-		// ìGÇ∆ÇÃãóó£Ç…âûÇ∂ÇƒÅAâÒì]Ç≥ÇπÇÈäpìxÇåàÇﬂÇÈ(ãﬂÇ¢ÇŸÇ«ÅAëÂÇ´Ç≠âÒÇËçûÇﬁ)
-		// atan2fÇégÇ§Ç±Ç∆Ç≈ÅAÅuâ°Ç÷ÇÃÇ∏ÇÍó ÅvÇÅAíºê⁄ÅuäpìxÅvÇ…ïœä∑Ç∑ÇÈ
-		float sidewaysAmount = cam.sidewaysStrength / len;
-		float rotateAngle = atan2f(sidewaysAmount, cam.distance) * cam.lockOnSide;
-
-		// å„ï˚ÉxÉNÉgÉãÇÅArotateAngleÇÃï™ÇæÇØâÒì]Ç≥ÇπÇÈ(XZïΩñ è„ÇÃâÒì])
-		float cosA = cosf(rotateAngle);
-		float sinA = sinf(rotateAngle);
-		float rotatedX = backX * cosA - backZ * sinA;
-		float rotatedZ = backX * sinA + backZ * cosA;
-
-		// âÒì]Ç≥ÇπÇΩï˚å¸Ç÷ÅAèÌÇ…distanceï™ÇæÇØêiÇÒÇæà íu(=èÌÇ…â~é¸è„)
-		idealEye =
-		{
-			playerPos.x + rotatedX * cam.distance,
-			playerPos.y + cam.height,
-			playerPos.z + rotatedZ * cam.distance
-		};
-	}
-
-	float t = 1.0f - powf(0.001f, elapsedTime * cam.followSpeed);
-
-	cam.base.currentEye.x += (idealEye.x - cam.base.currentEye.x) * t;
-	cam.base.currentEye.y += (idealEye.y - cam.base.currentEye.y) * t;
-	cam.base.currentEye.z += (idealEye.z - cam.base.currentEye.z) * t;
 }
-
-// FollowÉJÉÅÉâÇÃçXêV
-void GameCameraSystem::UpdateFollowTarget(
-	GameCameraComponent& cam,
-	const TransformComponent& followTransform,
-	float elapsedTime)
-{
-	DirectX::XMFLOAT3 targetPos = followTransform.position;
-	float t = 1.0f - powf(0.001f, elapsedTime * cam.followSpeed);
-
-	cam.base.currentTarget.x += (targetPos.x - cam.base.currentTarget.x) * t;
-	cam.base.currentTarget.y += ((targetPos.y + cam.height * 0.5f) - cam.base.currentTarget.y) * t;
-	cam.base.currentTarget.z += (targetPos.z - cam.base.currentTarget.z) * t;
-}
-// LookAtÉJÉÅÉâÇÃçXêV
-void GameCameraSystem::UpdateLookAtTarget(
-	GameCameraComponent& cam,
-	entt::registry& registry,
-	float elapsedTime)
-{
-	DirectX::XMFLOAT3 playerPos = registry.get<TransformComponent>(cam.followTarget).position;
-	DirectX::XMFLOAT3 enemyPos = registry.get<TransformComponent>(cam.lookAtTarget).position;
-
-	// ÉvÉåÉCÉÑÅ[Ç∆ìGÇÃä‘ÇÅAéwíËÇÃäÑçáÇ≈ï‚ä‘ÇµÇΩà íuÇÅAíçéãì_ÇÃäÓèÄÇ…Ç∑ÇÈ
-	DirectX::XMFLOAT3 targetPos =
-	{
-		playerPos.x + (enemyPos.x - playerPos.x) * cam.lockOnTargetRatio,
-		playerPos.y + (enemyPos.y - playerPos.y) * cam.lockOnTargetRatio,
-		playerPos.z + (enemyPos.z - playerPos.z) * cam.lockOnTargetRatio
-	};
-
-	// íçéãì_Ç…ÅAîCà”ÇÃÉIÉtÉZÉbÉgÇâ¡Ç¶ÇÈ
-	targetPos.x += cam.lockOnTargetOffset.x;
-	targetPos.y += cam.lockOnTargetOffset.y;
-	targetPos.z += cam.lockOnTargetOffset.z;
-
-	float t = 1.0f - powf(0.001f, elapsedTime * cam.followSpeed);
-
-	cam.base.currentTarget.x += (targetPos.x - cam.base.currentTarget.x) * t;
-	cam.base.currentTarget.y += (targetPos.y - cam.base.currentTarget.y) * t;
-	cam.base.currentTarget.z += (targetPos.z - cam.base.currentTarget.z) * t;
-} 
+ 
  
 ===== GameInputSystem.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Systems\GameInputSystem.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Project\ECS\Systems\GameInputSystem.cpp 
 Ôªø#include "GameInputSystem.h"
 #include <cmath>
 #include <algorithm>
@@ -13102,7 +13041,7 @@ void GameInputSystem::UpdateButtonState(TriggerState& state, bool isHeldNow)
  
  
 ===== PlayerDodgeSystem.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Systems\PlayerDodgeSystem.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Project\ECS\Systems\PlayerDodgeSystem.cpp 
 #include "PlayerDodgeSystem.h"
 #include "Project/ECS/Components/GameInputComponent.h"
 #include "Project/ECS/Components/PlayerDodgeComponent.h"
@@ -13232,7 +13171,7 @@ void PlayerDodgeSystem::Update(entt::registry& registry, float elapsedTime, cons
 } 
  
 ===== PlayerIdleSystem.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Systems\PlayerIdleSystem.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Project\ECS\Systems\PlayerIdleSystem.cpp 
 #include "PlayerIdleSystem.h"
 #include "Project/ECS/Components/PlayerIdleComponent.h"
 
@@ -13282,7 +13221,7 @@ void PlayerIdleSystem::Update(entt::registry& registry, float elapsedTime, const
 } 
  
 ===== PlayerMovementUtils.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Systems\PlayerMovementUtils.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Project\ECS\Systems\PlayerMovementUtils.cpp 
 #include "PlayerMovementUtils.h"
 #include <cmath>
 
@@ -13357,7 +13296,7 @@ namespace PlayerMovementUtils
 } 
  
 ===== PlayerMoveSystem.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Systems\PlayerMoveSystem.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Project\ECS\Systems\PlayerMoveSystem.cpp 
 #include "PlayerMoveSystem.h"
 #include "Project/ECS/Components/GameInputComponent.h"
 #include "Project/ECS/Components/PlayerMoveComponent.h"
@@ -13475,7 +13414,7 @@ void PlayerMoveSystem::Update(entt::registry& registry, float elapsedTime, const
 } 
  
 ===== PlayerSprintSystem.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Systems\PlayerSprintSystem.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Project\ECS\Systems\PlayerSprintSystem.cpp 
 #include "PlayerSprintSystem.h"
 #include "Project/ECS/Components/GameInputComponent.h"
 #include "Project/ECS/Components/PlayerSprintComponent.h"
@@ -13556,7 +13495,7 @@ void PlayerSprintSystem::Update(entt::registry& registry, float elapsedTime, con
 } 
  
 ===== SceneGame.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Project\Scene\SceneGame.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Project\Scene\SceneGame.h 
 #pragma once
 #include "Engine/Core/Scene.h"
 
@@ -13644,7 +13583,7 @@ private:
  
  
 ===== SceneGame.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Project\Scene\SceneGame.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Project\Scene\SceneGame.cpp 
 Ôªø#include "SceneGame.h"
 #include <imgui.h>
 
@@ -13981,7 +13920,7 @@ void SceneGame::UpdateCamera(float elapsedTime, const SceneContext& context)
  
  
 ===== AdaptiveTriggerToolWindow.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Tool\AdaptiveTriggerToolWindow.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\AdaptiveTriggerToolWindow.h 
 #pragma once
 #include <vector>
 #include "Engine/ECS/Components/ControllerComponent.h"
@@ -14023,7 +13962,7 @@ private:
 }; 
  
 ===== AdaptiveTriggerToolWindow.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Tool\AdaptiveTriggerToolWindow.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\AdaptiveTriggerToolWindow.cpp 
 #include "AdaptiveTriggerToolWindow.h"
 #include <imgui.h>
 #include <algorithm>
@@ -14418,7 +14357,7 @@ void AdaptiveTriggerToolWindow::DrawSelectedPointPanel(std::vector<AdaptiveTrigg
 } 
  
 ===== ComponentRegistry.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Editor\ComponentRegistry.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Editor\ComponentRegistry.h 
 #pragma once
 #include <string>
 #include <vector>
@@ -14456,7 +14395,7 @@ private:
 }; 
  
 ===== ComponentRegistryInitializer.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Editor\ComponentRegistryInitializer.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Editor\ComponentRegistryInitializer.h 
 #pragma once
 
 class ComponentRegistryInitializer
@@ -14467,7 +14406,7 @@ public:
 }; 
  
 ===== EditorContext.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Editor\EditorContext.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Editor\EditorContext.h 
 #pragma once
 #include <string>
 #include <unordered_map>
@@ -14523,7 +14462,7 @@ struct EditorContext
 }; 
  
 ===== HierarchyWindow.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Editor\HierarchyWindow.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Editor\HierarchyWindow.h 
 #pragma once
 #include "entt.hpp"
 #include "Tool/Editor/EditorContext.h"
@@ -14536,7 +14475,7 @@ public:
 }; 
  
 ===== InspectorWindow.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Editor\InspectorWindow.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Editor\InspectorWindow.h 
 #pragma once
 #include "entt.hpp"
 #include "EditorContext.h"
@@ -14559,7 +14498,7 @@ private:
 }; 
  
 ===== MetaRegistry.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Editor\MetaRegistry.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Editor\MetaRegistry.h 
 #pragma once
 #include <string>
 #include <vector>
@@ -14640,7 +14579,7 @@ private:
 }; 
  
 ===== ProjectWindow.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Editor\ProjectWindow.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Editor\ProjectWindow.h 
 #pragma once
 #include <string>
 #include <vector>
@@ -14716,7 +14655,7 @@ private:
 }; 
  
 ===== ComponentRegistry.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Editor\ComponentRegistry.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Editor\ComponentRegistry.cpp 
 #include "ComponentRegistry.h"
 
 std::unordered_map<std::string, ComponentInfo> ComponentRegistry::registry;
@@ -14756,7 +14695,7 @@ const ComponentInfo* ComponentRegistry::GetByTypeName(const std::string& typeNam
 } 
  
 ===== ComponentRegistryInitializer.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Editor\ComponentRegistryInitializer.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Editor\ComponentRegistryInitializer.cpp 
 #include "ComponentRegistryInitializer.h"
 #include "Tool/Editor/ComponentRegistry.h"
 #include <imgui.h>
@@ -15033,7 +14972,7 @@ void ComponentRegistryInitializer::Initialize()
 				ImGui::SameLine();
 				if (ImGui::Button("Clear##followTarget")) _c->followTarget = entt::null;
 
-				// íçéãëŒè€(LookAtTarget)
+				// íçéãëŒè€(LookAtTargetÅAî†ÇÃÇ›)
 				std::string lookAtTargetName = "None";
 				if (_c->lookAtTarget != entt::null && reg.valid(_c->lookAtTarget))
 					lookAtTargetName = "Entity " + std::to_string((uint32_t)_c->lookAtTarget);
@@ -15052,18 +14991,15 @@ void ComponentRegistryInitializer::Initialize()
 				ImGui::SameLine();
 				if (ImGui::Button("Clear##lookAtTarget")) _c->lookAtTarget = entt::null;
 
-				ImGui::DragFloat("Distance", &_c->distance, 0.1f, 0.0f, 50.0f);
-				ImGui::DragFloat("Height", &_c->height, 0.1f, 0.0f, 20.0f);
-				ImGui::DragFloat("Follow Speed", &_c->followSpeed, 0.1f, 0.1f, 30.0f);
 				ImGui::DragFloat("Pitch", &_c->pitch, 0.01f, -1.5f, 1.5f);
 				ImGui::Separator();
-				ImGui::Text("LockOn");
-				ImGui::DragFloat("Sideways Strength", &_c->sidewaysStrength, 0.1f, 0.0f, 30.0f);
-				ImGui::DragFloat("Target Ratio", &_c->lockOnTargetRatio, 0.01f, 0.0f, 1.0f);
-				ImGui::DragFloat3("Target Offset", &_c->lockOnTargetOffset.x, 0.1f);
-				ImGui::Text("Side: %s", (_c->lockOnSide >= 0.0f) ? "Right" : "Left");
+				ImGui::Text("Follow Camera");
+				ImGui::DragFloat("Distance",     &_c->followCameraDistance,  0.1f, 0.0f, 50.0f);
+				ImGui::DragFloat("Height",       &_c->followCameraHeight,    0.1f, 0.0f, 20.0f);
+				ImGui::DragFloat("Target Y Up",  &_c->followCameraTargetYUp, 0.1f, 0.0f, 10.0f);
+				ImGui::DragFloat("Speed Ratio",  &_c->followCameraSpeedRatio, 0.5f, 0.0f, 100.0f);
 				ImGui::Separator();
-				ImGui::DragFloat3("Eye", &_c->base.currentEye.x, 0.1f);
+				ImGui::DragFloat3("Eye",    &_c->base.currentEye.x,    0.1f);
 				ImGui::DragFloat3("Target", &_c->base.currentTarget.x, 0.1f);
 			}
 		});
@@ -15308,7 +15244,7 @@ void ComponentRegistryInitializer::Initialize()
  
  
 ===== HierarchyWindow.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Editor\HierarchyWindow.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Editor\HierarchyWindow.cpp 
 #include "HierarchyWindow.h"
 #include "imgui_internal.h"
 #include <imgui.h>
@@ -15460,7 +15396,7 @@ void HierarchyWindow::Draw(entt::registry& registry, EditorContext& context)
 } 
  
 ===== InspectorWindow.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Editor\InspectorWindow.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Editor\InspectorWindow.cpp 
 #include "InspectorWindow.h"
 #include <imgui.h>
 #include "imgui_internal.h"
@@ -15585,7 +15521,7 @@ void InspectorWindow::DrawAddComponent(entt::registry& registry, EditorContext& 
  
  
 ===== MetaRegistry.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Editor\MetaRegistry.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Editor\MetaRegistry.cpp 
 #include "MetaRegistry.h"
 #include <DirectXMath.h>
 #include <filesystem>
@@ -16024,7 +15960,7 @@ void MetaRegistry::RegisterAnimationSpeedComponent()
 } 
  
 ===== ProjectWindow.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Editor\ProjectWindow.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Editor\ProjectWindow.cpp 
 #include "ProjectWindow.h"
 #include <imgui.h>
 
@@ -16629,7 +16565,7 @@ void ProjectWindow::CommitRename()
  
  
 ===== NodeEditorCanvas.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Tool\NodeEditor\NodeEditorCanvas.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\NodeEditor\NodeEditorCanvas.h 
 #pragma once
 #include <imgui_node_editor.h>
 
@@ -16652,7 +16588,7 @@ private:
 }; 
  
 ===== NodeEditorCanvas.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Tool\NodeEditor\NodeEditorCanvas.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\NodeEditor\NodeEditorCanvas.cpp 
 #include "NodeEditorCanvas.h"
 
 NodeEditorCanvas::~NodeEditorCanvas()
@@ -16684,7 +16620,7 @@ void NodeEditorCanvas::End()
 } 
  
 ===== AnimatorGraphNavigation.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\AnimatorGraphNavigation.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\AnimatorGraphNavigation.h 
 #pragma once
 
 // ÉAÉjÉÅÅ[É^Å[ÉOÉâÉtï“èWíÜÇÃâÊñ ëJà⁄óvãÅ
@@ -16696,7 +16632,7 @@ enum class NavigationRequest
 }; 
  
 ===== IStudioAttachment.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\IStudioAttachment.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\IStudioAttachment.h 
 #pragma once
 #include <d3d11.h>
 #include <DirectXMath.h>
@@ -16728,7 +16664,7 @@ public:
 }; 
  
 ===== StudioAnimationSpeed.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioAnimationSpeed.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioAnimationSpeed.h 
 #pragma once
 #include "IStudioAttachment.h"
 #include "Engine/Data/AnimationSpeedData.h"
@@ -16781,7 +16717,7 @@ private:
 }; 
  
 ===== StudioAnimator.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioAnimator.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioAnimator.h 
 #pragma once
 #include "IStudioAttachment.h"
 #include "Engine/ECS/Components/AnimatorComponent.h"
@@ -16805,7 +16741,7 @@ private:
 }; 
  
 ===== StudioAnimatorGraph.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioAnimatorGraph.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioAnimatorGraph.h 
 #pragma once
 #include "IStudioAttachment.h"
 #include "Engine/Data/AnimatorGraphData.h"
@@ -16886,7 +16822,7 @@ private:
 }; 
  
 ===== StudioCamera.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioCamera.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioCamera.h 
 #pragma once
 #include <DirectXMath.h>
 
@@ -16935,7 +16871,7 @@ private:
 }; 
  
 ===== StudioChildStateGraph.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioChildStateGraph.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioChildStateGraph.h 
 #pragma once
 #include "Engine/Data/AnimatorGraphData.h"
 #include "Tool/NodeEditor/NodeEditorCanvas.h"
@@ -17015,7 +16951,7 @@ private:
 }; 
  
 ===== StudioConditionGraph.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioConditionGraph.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioConditionGraph.h 
 #pragma once
 #include "Engine/Data/AnimatorGraphData.h"
 #include "Tool/NodeEditor/NodeEditorCanvas.h"
@@ -17138,7 +17074,7 @@ private:
 }; 
  
 ===== StudioContext.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioContext.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioContext.h 
 #pragma once
 #include <d3d11.h>
 #include <string>
@@ -17171,7 +17107,7 @@ struct StudioContext
 }; 
  
 ===== StudioModelViewer.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioModelViewer.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioModelViewer.h 
 #pragma once
 #include <string>
 #include <d3d11.h>
@@ -17232,7 +17168,7 @@ private:
 }; 
  
 ===== StudioParentStateGraph.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioParentStateGraph.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioParentStateGraph.h 
 #include "Engine/Data/AnimatorGraphData.h"
 #include "Tool/NodeEditor/NodeEditorCanvas.h"
 #include "Tool/Studio/AnimatorGraphNavigation.h"
@@ -17309,7 +17245,7 @@ private:
 }; 
  
 ===== StudioSequencer.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioSequencer.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioSequencer.h 
 #pragma once
 #include "IStudioAttachment.h"
 #include "Engine/Data/SequencerData.h"
@@ -17367,7 +17303,7 @@ private:
 };  
  
 ===== StudioSharedContext.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioSharedContext.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioSharedContext.h 
 #pragma once
 #include <d3d11.h>
 #include "Engine/Rendering/SkyBox.h"
@@ -17389,7 +17325,7 @@ struct StudioSharedContext
 }; 
  
 ===== StudioTimeline.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioTimeline.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioTimeline.h 
 #pragma once
 #include "IStudioAttachment.h"
 #include "Engine/ECS/Components/AnimatorComponent.h"
@@ -17412,7 +17348,7 @@ private:
 }; 
  
 ===== StudioTransitionGraph.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioTransitionGraph.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioTransitionGraph.h 
 #pragma once
 #include "Engine/Data/AnimatorGraphData.h"
 #include "Tool/NodeEditor/NodeEditorCanvas.h"
@@ -17485,7 +17421,7 @@ private:
 }; 
  
 ===== StudioWindow.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioWindow.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioWindow.h 
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
@@ -17603,7 +17539,7 @@ private:
 }; 
  
 ===== StudioAnimationSpeed.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioAnimationSpeed.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioAnimationSpeed.cpp 
 #include "StudioAnimationSpeed.h"
 #include "Engine/ECS/Components/SkinnedMeshComponent.h"
 #include "Engine/ECS/Components/AnimatorComponent.h"
@@ -17979,7 +17915,7 @@ void StudioAnimationSpeed::RefreshAvailableAnimations(entt::registry& registry)
 } 
  
 ===== StudioAnimator.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioAnimator.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioAnimator.cpp 
 #include "Tool/Studio/StudioAnimator.h"
 #include <imgui.h>
 
@@ -18051,7 +17987,7 @@ void StudioAnimator::DrawGUI(
 } 
  
 ===== StudioAnimatorGraph.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioAnimatorGraph.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioAnimatorGraph.cpp 
 #include "StudioAnimatorGraph.h"
 #include "Engine/ECS/Components/SkinnedMeshComponent.h"
 #include "Tool/Editor/ProjectWindow.h"
@@ -18400,7 +18336,7 @@ std::string StudioAnimatorGraph::BuildNewSavePath(StudioContext& context)
  
  
 ===== StudioCamera.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioCamera.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioCamera.cpp 
 #include "StudioCamera.h"
 #include <imgui.h>
 #include <Windows.h>
@@ -18556,7 +18492,7 @@ DirectX::XMFLOAT3 StudioCamera::GetRight() const
 } 
  
 ===== StudioChildStateGraph.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioChildStateGraph.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioChildStateGraph.cpp 
 Ôªø#include "StudioChildStateGraph.h"
 
 void StudioChildStateGraph::Initialize()
@@ -19092,7 +19028,7 @@ void StudioChildStateGraph::DrawDeleteButton(const char* label, const std::funct
 } 
  
 ===== StudioConditionGraph.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioConditionGraph.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioConditionGraph.cpp 
 Ôªø#include "StudioConditionGraph.h"
 #include <algorithm>
 #include <vector>
@@ -20334,7 +20270,7 @@ ValueType StudioConditionGraph::GetOutputValueType(PinRole outRole, int outNodeI
 } 
  
 ===== StudioModelViewer.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioModelViewer.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioModelViewer.cpp 
 #include "StudioModelViewer.h"
 
 #include <windows.h>
@@ -20489,7 +20425,7 @@ void StudioModelViewer::LoadModel(
  
  
 ===== StudioParentStateGraph.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioParentStateGraph.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioParentStateGraph.cpp 
 #include "StudioParentStateGraph.h"
 #include <algorithm>
 
@@ -21038,7 +20974,7 @@ void StudioParentStateGraph::DrawDeleteButton(const char* label, const std::func
 } 
  
 ===== StudioSequencer.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioSequencer.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioSequencer.cpp 
 #include "StudioSequencer.h"
 #include "Engine/ECS/Components/SkinnedMeshComponent.h"
 #include "Engine/ECS/Components/AnimatorComponent.h"
@@ -21537,7 +21473,7 @@ const char* StudioSequencer::GetSequencerFlagName(SequencerFlag flag)
  
  
 ===== StudioTimeline.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioTimeline.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioTimeline.cpp 
 Ôªø#include "StudioTimeline.h"
 #include <imgui.h>
 #include <string>
@@ -21637,7 +21573,7 @@ void StudioTimeline::DrawGUI(entt::registry& registry, StudioContext& context)
  
  
 ===== StudioTransitionGraph.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioTransitionGraph.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioTransitionGraph.cpp 
 #include "StudioTransitionGraph.h"
 
 void StudioTransitionGraph::Initialize()
@@ -22078,7 +22014,7 @@ void StudioTransitionGraph::DrawDeleteButton(const char* label, const std::funct
 } 
  
 ===== StudioWindow.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioWindow.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioWindow.cpp 
 #include "StudioWindow.h"
 #include <imgui.h>
 #include <imgui_internal.h>
@@ -22456,7 +22392,7 @@ void StudioWindow::ResizeRenderTarget()
  
  
 ===== AdaptiveTrigger.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Unsorted\Controller\AdaptiveTrigger.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Unsorted\Controller\AdaptiveTrigger.h 
 #pragma once
 #include <vector>
 #include <cmath>
@@ -22603,7 +22539,7 @@ namespace AdaptiveTrigger
 } 
  
 ===== WaveDemo.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Unsorted\Demo\WaveDemo.h 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Unsorted\Demo\WaveDemo.h 
 #pragma once
 #include <entt.hpp>
 #include <d3d11.h>
@@ -22642,7 +22578,7 @@ private:
 }; 
  
 ===== WaveDemo.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Unsorted\Demo\WaveDemo.cpp 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Unsorted\Demo\WaveDemo.cpp 
 #include "WaveDemo.h"
 
 void WaveDemo::Initialize(

@@ -32,9 +32,7 @@ struct GameCameraComponent
 	float followCameraDistance   = 4.4f;  // 追従カメラの距離
 	float followCameraHeight     = 1.7f;  // 追従カメラの高さ
 	float followCameraTargetYUp  = 1.6f;  // 注視点のオフセット(Y)
-	float followCameraSpeedRatio = 10.0f; // 追従速度の比率
+	float followCameraEyeSpeedRatio    = 6.0f;  //  eye   の追従速度比率
+	float followCameraTargetSpeedRatio = 12.0f; // target の追従速度比率
 
-	// 追従対象の速度計算用
-	DirectX::XMFLOAT3 prevFollowTargetPos = {}; // 前フレームの、追従対象の位置
-	float followTargetSpeed = 0.0f;             // 追従対象の速度
 };
