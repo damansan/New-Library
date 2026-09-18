@@ -15,13 +15,13 @@ public:
     void ApplyToCamera(entt::registry& registry, Camera& camera);
 
 private:
+    // Followカメラの更新
+    void UpdateFollowTarget(GameCameraComponent& cam, const TransformComponent& followTransform, float elapsedTime);
 	// Follow用のcurrentEye計算
     void UpdateFollowEye(GameCameraComponent& cam, const TransformComponent& followTransform, float elapsedTime);
-    // LookAt用のcurrentEye計算
-    void UpdateLockOnEye(GameCameraComponent& cam, entt::registry& registry, float elapsedTime);
 
-	// Followカメラの更新
-    void UpdateFollowTarget(GameCameraComponent& cam, const TransformComponent& followTransform, float elapsedTime);
     // LookAtカメラの更新
     void UpdateLookAtTarget(GameCameraComponent& cam, entt::registry& registry, float elapsedTime);
+    // LookAt用のcurrentEye計算
+    void UpdateLockOnEye(GameCameraComponent& cam, entt::registry& registry, float elapsedTime);
 };

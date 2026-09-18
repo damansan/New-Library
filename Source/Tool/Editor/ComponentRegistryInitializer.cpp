@@ -274,7 +274,7 @@ void ComponentRegistryInitializer::Initialize()
 				ImGui::SameLine();
 				if (ImGui::Button("Clear##followTarget")) _c->followTarget = entt::null;
 
-				// ’‹‘ÎÛ(LookAtTarget)
+				// ’‹‘ÎÛ(LookAtTargetA” ‚Ì‚İ)
 				std::string lookAtTargetName = "None";
 				if (_c->lookAtTarget != entt::null && reg.valid(_c->lookAtTarget))
 					lookAtTargetName = "Entity " + std::to_string((uint32_t)_c->lookAtTarget);
@@ -293,18 +293,15 @@ void ComponentRegistryInitializer::Initialize()
 				ImGui::SameLine();
 				if (ImGui::Button("Clear##lookAtTarget")) _c->lookAtTarget = entt::null;
 
-				ImGui::DragFloat("Distance", &_c->distance, 0.1f, 0.0f, 50.0f);
-				ImGui::DragFloat("Height", &_c->height, 0.1f, 0.0f, 20.0f);
-				ImGui::DragFloat("Follow Speed", &_c->followSpeed, 0.1f, 0.1f, 30.0f);
 				ImGui::DragFloat("Pitch", &_c->pitch, 0.01f, -1.5f, 1.5f);
 				ImGui::Separator();
-				ImGui::Text("LockOn");
-				ImGui::DragFloat("Sideways Strength", &_c->sidewaysStrength, 0.1f, 0.0f, 30.0f);
-				ImGui::DragFloat("Target Ratio", &_c->lockOnTargetRatio, 0.01f, 0.0f, 1.0f);
-				ImGui::DragFloat3("Target Offset", &_c->lockOnTargetOffset.x, 0.1f);
-				ImGui::Text("Side: %s", (_c->lockOnSide >= 0.0f) ? "Right" : "Left");
+				ImGui::Text("Follow Camera");
+				ImGui::DragFloat("Distance",     &_c->followCameraDistance,  0.1f, 0.0f, 50.0f);
+				ImGui::DragFloat("Height",       &_c->followCameraHeight,    0.1f, 0.0f, 20.0f);
+				ImGui::DragFloat("Target Y Up",  &_c->followCameraTargetYUp, 0.1f, 0.0f, 10.0f);
+				ImGui::DragFloat("Speed Ratio",  &_c->followCameraSpeedRatio, 0.5f, 0.0f, 100.0f);
 				ImGui::Separator();
-				ImGui::DragFloat3("Eye", &_c->base.currentEye.x, 0.1f);
+				ImGui::DragFloat3("Eye",    &_c->base.currentEye.x,    0.1f);
 				ImGui::DragFloat3("Target", &_c->base.currentTarget.x, 0.1f);
 			}
 		});

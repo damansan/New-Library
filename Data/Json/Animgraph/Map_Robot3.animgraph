@@ -140,7 +140,7 @@
                     "type": "Normal",
                     "clipName": "AS_Walk_Loop",
                     "loop": true,
-                    "useRootMotion": false
+                    "useRootMotion": true
                 },
                 {
                     "id": 40,

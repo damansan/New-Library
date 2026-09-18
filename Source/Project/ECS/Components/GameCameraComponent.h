@@ -24,16 +24,17 @@ struct GameCameraComponent
 	// 注視対象の Entity
 	entt::entity lookAtTarget = entt::null;
 
-    // 追従パラメータ
-	float distance = 5.0f;     // カメラと対象の距離
-	float height = 2.0f;       // カメラの高さ
+    // パラメータ
 	float yaw = 0.0f;          // カメラの回転角度
 	float pitch = 0.3f;        // カメラの上下角度
-	float followSpeed = 10.0f; // 追従速度
 
-	// ロックオンパラメータ
-	float lockOnSide = 1.0f;        // +1.0で右/-1.0で左
-	float sidewaysStrength = 6.0f;  // 横方向のずれの強さ
-	DirectX::XMFLOAT3 lockOnTargetOffset = { 0.0f, 1.0f, 0.0f }; // 注視対象のオフセット
-	float lockOnTargetRatio = 0.5f;
+	// 追従カメラのパラメーター
+	float followCameraTargetYUp = 1.0f;   // 注視点のオフセット(Y)
+	float followCameraSpeedRatio = 5.5f; // 追従速度の比率
+	float followCameraHeight = 0.5f;      // 追従カメラの高さ
+	float followCameraDistance = 3.0f;    // 追従カメラの距離
+
+	// 追従対象の速度計算用
+	DirectX::XMFLOAT3 prevFollowTargetPos = {}; // 前フレームの、追従対象の位置
+	float followTargetSpeed = 0.0f;             // 追従対象の速度
 };
