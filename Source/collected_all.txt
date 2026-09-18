@@ -12419,11 +12419,17 @@ struct GameCameraComponent
 	float followCameraDistance   = 4.4f;  // 追従カメラの距離
 	float followCameraHeight     = 1.7f;  // 追従カメラの高さ
 	float followCameraTargetYUp  = 1.6f;  // 注視点のオフセット(Y)
-	float followCameraSpeedRatio = 10.0f; // 追従速度の比率
+	float followCameraEyeSpeedRatio    = 6.0f;  //  eye   の追従速度比率
+	float followCameraTargetSpeedRatio = 12.0f; // target の追従速度比率
 
-	// 追従対象の速度計算用
-	DirectX::XMFLOAT3 prevFollowTargetPos = {}; // 前フレームの、追従対象の位置
-	float followTargetSpeed = 0.0f;             // 追従対象の速度
+
+	// 減衰ばね用パラメーター(カメラの速度)
+	DirectX::XMFLOAT3 eyeVelocity = {};    // currentEyeの現在の速度
+	DirectX::XMFLOAT3 targetVelocity = {}; // currentTargetの現在の速度
+
+	// 減衰ばね用パラメーター(eye)
+	float eyeSpringStiffness = 200.0f; // バネの強さ（大きいほど速く反応する）
+	float eyeSpringDamping = 20.0f;    // 減衰（小さいほどオーバーシュートが大きく、揺れが長く続く）
 }; 
  
 ===== GameInputComponent.h ===== 
@@ -12791,8 +12797,8 @@ void GameCameraSystem::Update(entt::registry& registry, float elapsedTime)
 			auto* followTransform = registry.try_get<TransformComponent>(cam.followTarget);
 			if (!followTransform) return;
 
-			// 初回だけ currentEye / currentTarget / prevFollowTargetPos を即座に設定
-			if (cam.base.currentEye.x == 0.0f &&
+			// 初回だけ currentEye / currentTarget を即座に設定
+			if (cam.base.currentEye.x == 0.0f && 
 				cam.base.currentEye.y == 0.0f &&
 				cam.base.currentEye.z == 0.0f)
 			{
@@ -12803,21 +12809,6 @@ void GameCameraSystem::Update(entt::registry& registry, float elapsedTime)
 					followTransform->position.y + cam.followCameraHeight,
 					followTransform->position.z - cam.followCameraDistance
 				};
-				cam.prevFollowTargetPos = followTransform->position;
-			}
-
-			// 追従対象の速度を計算する
-			{
-				DirectX::XMFLOAT3 delta =
-				{
-					followTransform->position.x - cam.prevFollowTargetPos.x,
-					followTransform->position.y - cam.prevFollowTargetPos.y,
-					followTransform->position.z - cam.prevFollowTargetPos.z
-				};
-				float dist = sqrtf(delta.x * delta.x + delta.y * delta.y + delta.z * delta.z);
-
-				cam.followTargetSpeed = (elapsedTime > 0.0f) ? (dist / elapsedTime) : 0.0f;
-				cam.prevFollowTargetPos = followTransform->position;
 			}
 
 			// InputComponent からカメラ操作入力を取得
@@ -12895,7 +12886,7 @@ void GameCameraSystem::UpdateFollowTarget(GameCameraComponent& cam, const Transf
 {
 	DirectX::XMFLOAT3 targetPos = followTransform.position;
 
-	float t = std::clamp(cam.followCameraSpeedRatio / 100.0f, 0.0f, 1.0f);
+	float t = std::clamp(cam.followCameraTargetSpeedRatio / 100.0f, 0.0f, 1.0f);
 
 	cam.base.currentTarget.x += (targetPos.x - cam.base.currentTarget.x) * t;
 	cam.base.currentTarget.y += ((targetPos.y + cam.followCameraTargetYUp) - cam.base.currentTarget.y) * t;
@@ -12918,11 +12909,22 @@ void GameCameraSystem::UpdateFollowEye(GameCameraComponent& cam, const Transform
 		basePos.z - cosYaw * cosPitch * cam.followCameraDistance
 	};
 
-	float t = std::clamp(cam.followCameraSpeedRatio / 100.0f, 0.0f, 1.0f);
+	float t = std::clamp(cam.followCameraEyeSpeedRatio / 100.0f, 0.0f, 1.0f);
 
+	// X,Zはlerpで補間
 	cam.base.currentEye.x += (idealEye.x - cam.base.currentEye.x) * t;
-	cam.base.currentEye.y += (idealEye.y - cam.base.currentEye.y) * t;
 	cam.base.currentEye.z += (idealEye.z - cam.base.currentEye.z) * t;
+
+	auto springAxis = [&](float current, float ideal, float& velocity) -> float
+		{
+			// 加速度 = バネの力（目標との差） - ダンパーの力（速度に比例して減衰）
+			float accel = cam.eyeSpringStiffness * (ideal - current) - cam.eyeSpringDamping * velocity;
+			velocity += accel * elapsedTime;
+			return current + velocity * elapsedTime;
+		};
+
+	// Yは減衰ばねで補間
+	cam.base.currentEye.y = springAxis(cam.base.currentEye.y, idealEye.y, cam.eyeVelocity.y);
 }
 
 // LookAtカメラの更新
@@ -14997,7 +14999,9 @@ void ComponentRegistryInitializer::Initialize()
 				ImGui::DragFloat("Distance",     &_c->followCameraDistance,  0.1f, 0.0f, 50.0f);
 				ImGui::DragFloat("Height",       &_c->followCameraHeight,    0.1f, 0.0f, 20.0f);
 				ImGui::DragFloat("Target Y Up",  &_c->followCameraTargetYUp, 0.1f, 0.0f, 10.0f);
-				ImGui::DragFloat("Speed Ratio",  &_c->followCameraSpeedRatio, 0.5f, 0.0f, 100.0f);
+				ImGui::Separator();
+				ImGui::DragFloat("Eye Spring Stiffness", &_c->eyeSpringStiffness, 5.0f, 0.0f, 1000.0f);
+				ImGui::DragFloat("Eye Spring Damping", &_c->eyeSpringDamping, 1.0f, 0.0f, 200.0f);
 				ImGui::Separator();
 				ImGui::DragFloat3("Eye",    &_c->base.currentEye.x,    0.1f);
 				ImGui::DragFloat3("Target", &_c->base.currentTarget.x, 0.1f);

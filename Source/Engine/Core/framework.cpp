@@ -215,7 +215,7 @@ int framework::run()
 {
 	MSG msg{};
 
-	// 固定タイムステップ設定（60fps）
+	// 固定タイムステップ設定（144fps）
 	const double fixedTimestep = 1.0 / 144.0;
 	double accumulator = 0.0;
 

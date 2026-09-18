@@ -33,9 +33,13 @@ void ProjectWindow::Draw(entt::registry& registry, EditorContext& context, bool 
 {
 	ZoneScoped;
 
+	// 2秒経過していればディスクを見てキャッシュを作り直す
+	RefreshFolderTreeIfNeeded();
+	RefreshFileGridIfNeeded();
+
 	ImGui::Begin("Project");
 
-	if (ImGui::BeginTable("ProjectLayout", 2, 
+	if (ImGui::BeginTable("ProjectLayout", 2,
 		ImGuiTableFlags_Resizable |
 		ImGuiTableFlags_BordersInnerV))
 	{
@@ -48,7 +52,7 @@ void ProjectWindow::Draw(entt::registry& registry, EditorContext& context, bool 
 		// 左側：フォルダツリー
 		ImGui::TableSetColumnIndex(0);
 		ImGui::BeginChild("FolderTree", ImVec2(0, 0), false);
-		DrawFolderTree(rootPath);
+		DrawFolderTree(folderTreeCache);
 		ImGui::EndChild();
 
 		// 右側：ファイルグリッド
@@ -92,23 +96,13 @@ std::string ProjectWindow::GenerateUniqueName(const std::filesystem::path& paren
 }
 
 // フォルダツリー
-void ProjectWindow::DrawFolderTree(const std::filesystem::path& path)
+void ProjectWindow::DrawFolderTree(FolderNode& node)
 {
-	if (!std::filesystem::is_directory(path)) return;
-
-	std::string folderName = path.filename().string();
+	const std::filesystem::path& path = node.path;
 	bool isRenamingThis = (itemState.mode == ProjectItemMode::Renaming && itemState.targetPath == path);
 
-	// サブフォルダがあるか確認
-	bool hasSubFolder = false;
-	for (const auto& entry : std::filesystem::directory_iterator(path))
-	{
-		if (entry.is_directory())
-		{
-			hasSubFolder = true;
-			break;
-		}
-	}
+	// キャッシュを確認してサブフォルダを確認する
+	bool hasSubFolder = !node.children.empty();
 
 	// リネーム中はツリー行の代わりに入力欄を表示する
 	if (isRenamingThis)
@@ -142,7 +136,7 @@ void ProjectWindow::DrawFolderTree(const std::filesystem::path& path)
 		flags |= ImGuiTreeNodeFlags_NoTreePushOnOpen;
 	}
 
-	bool open = ImGui::TreeNodeEx(folderName.c_str(), flags);
+	bool open = ImGui::TreeNodeEx(node.name.c_str(), flags);
 
 	// クリックで選択
 	if (ImGui::IsItemClicked())
@@ -163,7 +157,7 @@ void ProjectWindow::DrawFolderTree(const std::filesystem::path& path)
 
 			ImGui::EndMenu();
 		}
-		
+
 		ImGui::Separator();
 		if (ImGui::MenuItem(u8"名前の変更"))
 		{
@@ -186,21 +180,18 @@ void ProjectWindow::DrawFolderTree(const std::filesystem::path& path)
 	// 最下層はTreePopが不要
 	if (open && hasSubFolder)
 	{
-		for (const auto& entry : std::filesystem::directory_iterator(path))
+		for (auto& child : node.children)
 		{
-			if (entry.is_directory())
-			{
-				DrawFolderTree(entry.path());
-			}
+			DrawFolderTree(child);
 		}
 		ImGui::TreePop();
 	}
+
 }
 // ファイル一覧
 void ProjectWindow::DrawFileGrid(entt::registry& registry, EditorContext& context)
 {
 	if (itemState.selectedPath.empty()) return;
-	if (!std::filesystem::exists(itemState.selectedPath)) return;
 
 	// アイコンサイズと余白
 	const float iconSize = 64.0f;
@@ -213,101 +204,15 @@ void ProjectWindow::DrawFileGrid(entt::registry& registry, EditorContext& contex
 
 	int index = 0;
 
-	//for (const auto& entry : std::filesystem::directory_iterator(itemState.selectedPath)) 
-	//{
-	//	if (!entry.is_regular_file()) continue;
-	//	if (!IsModelFile(entry.path())) continue;
-
-	//	std::string filename = entry.path().stem().string();
-	//	std::string modelPath = entry.path().string();
-	//	std::replace(modelPath.begin(), modelPath.end(), '\\', '/');
-
-	//	// 列の折り返し
-	//	if (index % columns != 0)
-	//	{
-	//		ImGui::SameLine();
-	//	}
-
-	//	// グループ化してアイコン＋名前をまとめる
-	//	ImGui::BeginGroup();
-
-	//	ImVec2 pos = ImGui::GetCursorScreenPos();
-
-	//	// アイコン表示
-	//	if (modelIconSRV)
-	//	{
-	//		ImGui::Image(
-	//			(ImTextureID)modelIconSRV.Get(),
-	//			ImVec2(iconSize, iconSize)
-	//		);
-	//	}
-	//	else
-	//	{
-	//		ImGui::GetWindowDrawList()->AddRectFilled(
-	//			pos,
-	//			ImVec2(pos.x + iconSize, pos.y + iconSize),
-	//			IM_COL32(80, 120, 200, 255),
-	//			8.0f
-	//		);
-	//		ImGui::Dummy(ImVec2(iconSize, iconSize));
-	//	}
-
-	//	// 画像の上に透明ボタンを重ねてドラッグ判定
-	//	ImGui::SetCursorScreenPos(pos);
-	//	ImGui::PushID(index);
-	//	ImGui::InvisibleButton("##icon", ImVec2(iconSize, iconSize));
-
-	//	// ダブルクリックでStudioを開くリクエスト
-	//	if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(0))
-	//	{
-	//		context.studioRequest.pending = true;
-	//		context.studioRequest.assetPath = modelPath;
-	//	}
-
-	//	// ドラッグ開始
-	//	if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
-	//	{
-	//		// モデルパスをペイロードとして渡す
-	//		ImGui::SetDragDropPayload(
-	//			"MODEL_PATH",
-	//			modelPath.c_str(),
-	//			modelPath.size() + 1
-	//		);
-	//		if (modelIconSRV)
-	//		{
-	//			ImGui::Image(
-	//				(ImTextureID)modelIconSRV.Get(),
-	//				ImVec2(iconSize, iconSize)
-	//			);
-	//		}
-	//		ImGui::Text(filename.c_str());
-	//		ImGui::EndDragDropSource();
-	//	}
-
-	//	ImGui::PopID();
-
-	//	// ファイル名（長ければ省略）
-	//	std::string displayName = filename;
-	//	if (displayName.size() > 10)
-	//		displayName = displayName.substr(0, 9) + "...";
-	//	ImGui::TextUnformatted(displayName.c_str());
-
-	//	ImGui::EndGroup();
-	//	index++;
-	//}
-
-	for (const auto& entry : std::filesystem::directory_iterator(itemState.selectedPath))
+	for (auto& file : fileGridCache)
 	{
-		if (!entry.is_regular_file()) continue;
+		bool isModel = file.isModel;
+		bool isAnimGraph = file.isAnimGraph;
+		bool isSequencer = file.isSequencer;
+		bool isAnimSpeed = file.isAnimSpeed;
 
-		bool isModel = IsModelFile(entry.path());
-		bool isAnimGraph = IsAnimGraphFile(entry.path());
-		bool isSequencer = IsSequencerFile(entry.path());
-		bool isAnimSpeed = IsAnimSpeedFile(entry.path());
-		if (!isModel && !isAnimGraph && !isSequencer && !isAnimSpeed) continue;
-
-		std::string filename = entry.path().stem().string();
-		std::string modelPath = entry.path().string();
+		const std::string& filename = file.filename;
+		std::string modelPath = file.path.string();
 		std::replace(modelPath.begin(), modelPath.end(), '\\', '/');
 
 		// 列の折り返し
@@ -412,12 +317,12 @@ void ProjectWindow::DrawFileGrid(entt::registry& registry, EditorContext& contex
 		{
 			if (ImGui::MenuItem(u8"名前の変更"))
 			{
-				BeginRename(entry.path());
+				BeginRename(file.path);
 			}
 			if (ImGui::MenuItem(u8"削除"))
 			{
 				itemState.mode = ProjectItemMode::ConfirmingDelete;
-				itemState.targetPath = entry.path();
+				itemState.targetPath = file.path;
 			}
 			ImGui::EndPopup();
 		}
@@ -425,10 +330,10 @@ void ProjectWindow::DrawFileGrid(entt::registry& registry, EditorContext& contex
 		ImGui::PopID();
 
 		// ファイル名表示 or リネーム中はインライン入力欄
-		bool isRenamingThis = (itemState.mode == ProjectItemMode::Renaming && itemState.targetPath == entry.path());
+		bool isRenamingThis = (itemState.mode == ProjectItemMode::Renaming && itemState.targetPath == file.path);
 		if (isRenamingThis)
 		{
-			std::string extension = entry.path().extension().string();
+			std::string extension = file.path.extension().string();
 
 			// 入力欄はアイコン幅いっぱいに使う（拡張子は次の行に表示するため幅を分ける必要が無い）
 			ImGui::SetNextItemWidth(iconSize + padding);
@@ -474,6 +379,87 @@ void ProjectWindow::DrawFileGrid(entt::registry& registry, EditorContext& contex
 		}
 		ImGui::EndPopup();
 	}
+}
+
+// 一定間隔が経過していれば、フォルダツリーのキャッシュを作り直す(2秒)
+void ProjectWindow::RefreshFolderTreeIfNeeded()
+{
+	auto now = std::chrono::steady_clock::now();
+	if (now - lastFolderScanTime < folderScanInterval) return;
+
+	folderTreeCache = BuildFolderNode(rootPath);
+	lastFolderScanTime = now;
+}
+// ディスクを実際に走査して、指定パス以下のFolderNodeを構築する（再帰）
+ProjectWindow::FolderNode ProjectWindow::BuildFolderNode(const std::filesystem::path& path)
+{
+	FolderNode node;
+	node.path = path;
+	node.name = path.filename().string();
+
+	if (!std::filesystem::is_directory(path)) return node;
+
+	for (const auto& entry : std::filesystem::directory_iterator(path))
+	{
+		if (entry.is_directory())
+		{
+			node.children.push_back(BuildFolderNode(entry.path()));
+		}
+	}
+
+	return node;
+}
+
+// 選択フォルダが変わった／一定間隔が経過していれば、ファイルグリッドのキャッシュを作り直す
+void ProjectWindow::RefreshFileGridIfNeeded()
+{
+	// 選択フォルダが前回と違う場合は、待たずに即座に作り直す
+	bool folderChanged = (itemState.selectedPath != fileGridCachedPath);
+
+	auto now = std::chrono::steady_clock::now();
+	bool intervalElapsed = (now - lastFileGridScanTime >= folderScanInterval);
+
+	if (!folderChanged && !intervalElapsed) return;
+
+	if (itemState.selectedPath.empty() || !std::filesystem::exists(itemState.selectedPath))
+	{
+		fileGridCache.clear();
+	}
+	else
+	{
+		fileGridCache = BuildFileGrid(itemState.selectedPath);
+	}
+
+	fileGridCachedPath = itemState.selectedPath;
+	lastFileGridScanTime = now;
+}
+// ディスクを実際に走査して、指定フォルダ直下のFileEntry一覧を構築する
+std::vector<ProjectWindow::FileEntry> ProjectWindow::BuildFileGrid(const std::filesystem::path& path)
+{
+	std::vector<FileEntry> result;
+
+	for (const auto& entry : std::filesystem::directory_iterator(path))
+	{
+		if (!entry.is_regular_file()) continue;
+
+		bool isModel = IsModelFile(entry.path());
+		bool isAnimGraph = IsAnimGraphFile(entry.path());
+		bool isSequencer = IsSequencerFile(entry.path());
+		bool isAnimSpeed = IsAnimSpeedFile(entry.path());
+		if (!isModel && !isAnimGraph && !isSequencer && !isAnimSpeed) continue;
+
+		FileEntry file;
+		file.path = entry.path();
+		file.filename = entry.path().stem().string();
+		file.isModel = isModel;
+		file.isAnimGraph = isAnimGraph;
+		file.isSequencer = isSequencer;
+		file.isAnimSpeed = isAnimSpeed;
+
+		result.push_back(std::move(file));
+	}
+
+	return result;
 }
 
 // ファイルがモデルファイルか判定

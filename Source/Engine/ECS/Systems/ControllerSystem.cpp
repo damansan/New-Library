@@ -2,6 +2,8 @@
 #include <cmath>
 #include <algorithm>
 
+#include "tracy/Tracy.hpp"
+
 // コンストラクタ
 ControllerSystem::ControllerSystem()
 {
@@ -22,11 +24,17 @@ ControllerSystem::~ControllerSystem()
 void ControllerSystem::Update(entt::registry& registry, float elapsedTime)
 {
     // Xbox 接続確認
-    xboxConnected = XInputGetState(0, &xboxState) == ERROR_SUCCESS;
+    {
+        ZoneScopedN("ControllerSystem::XInputGetState");
+
+        xboxConnected = XInputGetState(0, &xboxState) == ERROR_SUCCESS;
+    }
 
     // PS5 接続確認 / 再接続
     if (ds5Connected)
     {
+        ZoneScopedN("ControllerSystem::DS5_getDeviceInputState");
+
         DS5W_ReturnValue rv = DS5W::getDeviceInputState(&ds5Context, &ds5InputState);
         if (DS5W_FAILED(rv))
         {
@@ -39,6 +47,8 @@ void ControllerSystem::Update(entt::registry& registry, float elapsedTime)
         ds5ReconnectTimer += elapsedTime;
         if (ds5ReconnectTimer >= ds5ReconnectInterval)
         {
+            ZoneScopedN("ControllerSystem::TryConnectPS5");
+
             ds5ReconnectTimer = 0.0f;
             TryConnectPS5();
         }
@@ -162,6 +172,8 @@ bool ControllerSystem::UpdateTriggerDigital(float triggerValue, float pressThres
 // PS5 出力送信
 void ControllerSystem::SendPS5Output(ControllerComponent& ctrl)
 {
+    ZoneScoped;
+
     DS5W::TriggerEffect newLeft = {};
     DS5W::TriggerEffect newRight = {};
 
