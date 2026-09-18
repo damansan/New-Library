@@ -35,4 +35,12 @@ struct GameCameraComponent
 	float followCameraEyeSpeedRatio    = 6.0f;  //  eye   の追従速度比率
 	float followCameraTargetSpeedRatio = 12.0f; // target の追従速度比率
 
+
+	// 減衰ばね用パラメーター(カメラの速度)
+	DirectX::XMFLOAT3 eyeVelocity = {};    // currentEyeの現在の速度
+	DirectX::XMFLOAT3 targetVelocity = {}; // currentTargetの現在の速度
+
+	// 減衰ばね用パラメーター(eye)
+	float eyeSpringStiffness = 200.0f; // バネの強さ（大きいほど速く反応する）
+	float eyeSpringDamping = 20.0f;    // 減衰（小さいほどオーバーシュートが大きく、揺れが長く続く）
 };

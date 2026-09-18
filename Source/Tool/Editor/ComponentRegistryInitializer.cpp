@@ -299,8 +299,9 @@ void ComponentRegistryInitializer::Initialize()
 				ImGui::DragFloat("Distance",     &_c->followCameraDistance,  0.1f, 0.0f, 50.0f);
 				ImGui::DragFloat("Height",       &_c->followCameraHeight,    0.1f, 0.0f, 20.0f);
 				ImGui::DragFloat("Target Y Up",  &_c->followCameraTargetYUp, 0.1f, 0.0f, 10.0f);
-				ImGui::DragFloat("Speed eye Ratio",  &_c->followCameraEyeSpeedRatio, 0.5f, 0.0f, 100.0f);
-				ImGui::DragFloat("Speed target Ratio",  &_c->followCameraTargetSpeedRatio, 0.5f, 0.0f, 100.0f);
+				ImGui::Separator();
+				ImGui::DragFloat("Eye Spring Stiffness", &_c->eyeSpringStiffness, 5.0f, 0.0f, 1000.0f);
+				ImGui::DragFloat("Eye Spring Damping", &_c->eyeSpringDamping, 1.0f, 0.0f, 200.0f);
 				ImGui::Separator();
 				ImGui::DragFloat3("Eye",    &_c->base.currentEye.x,    0.1f);
 				ImGui::DragFloat3("Target", &_c->base.currentTarget.x, 0.1f);

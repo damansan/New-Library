@@ -14,8 +14,8 @@ void GameCameraSystem::Update(entt::registry& registry, float elapsedTime)
 			auto* followTransform = registry.try_get<TransformComponent>(cam.followTarget);
 			if (!followTransform) return;
 
-			// 初回だけ currentEye / currentTarget / prevFollowTargetPos を即座に設定
-			if (cam.base.currentEye.x == 0.0f &&
+			// 初回だけ currentEye / currentTarget を即座に設定
+			if (cam.base.currentEye.x == 0.0f && 
 				cam.base.currentEye.y == 0.0f &&
 				cam.base.currentEye.z == 0.0f)
 			{
@@ -128,9 +128,20 @@ void GameCameraSystem::UpdateFollowEye(GameCameraComponent& cam, const Transform
 
 	float t = std::clamp(cam.followCameraEyeSpeedRatio / 100.0f, 0.0f, 1.0f);
 
+	// X,Zはlerpで補間
 	cam.base.currentEye.x += (idealEye.x - cam.base.currentEye.x) * t;
-	cam.base.currentEye.y += (idealEye.y - cam.base.currentEye.y) * t;
 	cam.base.currentEye.z += (idealEye.z - cam.base.currentEye.z) * t;
+
+	auto springAxis = [&](float current, float ideal, float& velocity) -> float
+		{
+			// 加速度 = バネの力（目標との差） - ダンパーの力（速度に比例して減衰）
+			float accel = cam.eyeSpringStiffness * (ideal - current) - cam.eyeSpringDamping * velocity;
+			velocity += accel * elapsedTime;
+			return current + velocity * elapsedTime;
+		};
+
+	// Yは減衰ばねで補間
+	cam.base.currentEye.y = springAxis(cam.base.currentEye.y, idealEye.y, cam.eyeVelocity.y);
 }
 
 // LookAtカメラの更新
