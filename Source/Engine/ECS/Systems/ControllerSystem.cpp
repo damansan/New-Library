@@ -7,12 +7,22 @@
 // コンストラクタ
 ControllerSystem::ControllerSystem()
 {
-    TryConnectPS5();
+    // 専用スレッドを起動する
+    ds5ThreadRunning = true;
+    ds5Thread = std::thread(&ControllerSystem::DS5ThreadFunc, this);
 }
 
 // デストラクタ
 ControllerSystem::~ControllerSystem()
 {
+    // 専用スレッドに停止を伝えて終わるまで待つ
+    ds5ThreadRunning = false;
+
+    if (ds5Thread.joinable())
+    {
+        ds5Thread.join();
+    }
+
     if (ds5Connected)
     {
         DS5W::freeDeviceContext(&ds5Context);
@@ -23,35 +33,23 @@ ControllerSystem::~ControllerSystem()
 // 更新
 void ControllerSystem::Update(entt::registry& registry, float elapsedTime)
 {
+
+    (void)elapsedTime;
+
     // Xbox 接続確認
     {
         ZoneScopedN("ControllerSystem::XInputGetState");
-
         xboxConnected = XInputGetState(0, &xboxState) == ERROR_SUCCESS;
     }
 
-    // PS5 接続確認 / 再接続
-    if (ds5Connected)
+    // PS5 側は専用スレッドが読み取り済みの最新状態を、ロックして取ってくるだけ
+    bool ds5ConnectedNow = false;
+    DS5W::DS5InputState ds5Snapshot = {};
     {
-        ZoneScopedN("ControllerSystem::DS5_getDeviceInputState");
-
-        DS5W_ReturnValue rv = DS5W::getDeviceInputState(&ds5Context, &ds5InputState);
-        if (DS5W_FAILED(rv))
-        {
-            DS5W::freeDeviceContext(&ds5Context);
-            ds5Connected = false;
-        }
-    }
-    else
-    {
-        ds5ReconnectTimer += elapsedTime;
-        if (ds5ReconnectTimer >= ds5ReconnectInterval)
-        {
-            ZoneScopedN("ControllerSystem::TryConnectPS5");
-
-            ds5ReconnectTimer = 0.0f;
-            TryConnectPS5();
-        }
+        ZoneScopedN("ControllerSystem::DS5_CopyFromShared");
+        std::lock_guard<std::mutex> lock(ds5Mutex);
+        ds5ConnectedNow = ds5ConnectedShared;
+        ds5Snapshot = ds5InputStateShared;
     }
 
     // ControllerComponent を持つ Entity を更新
@@ -70,12 +68,16 @@ void ControllerSystem::Update(entt::registry& registry, float elapsedTime)
             ctrl.type = ControllerType::None;
 
             // PS5 優先、なければ Xbox
-            if (ds5Connected)
+            if (ds5ConnectedNow)
             {
                 ctrl.type = ControllerType::PS5;
                 ctrl.connected = true;
-                UpdatePS5Input(ctrl);
-                SendPS5Output(ctrl);
+                UpdatePS5Input(ds5Snapshot, ctrl);
+
+                // 次に専用スレッドが送信するトリガー効果をリクエストしておく
+                std::lock_guard<std::mutex> lock(ds5Mutex);
+                ds5RequestedLeftEffect = ctrl.leftTriggerEffect;
+                ds5RequestedRightEffect = ctrl.rightTriggerEffect;
             }
             else if (xboxConnected)
             {
@@ -121,28 +123,28 @@ void ControllerSystem::UpdateXboxInput(ControllerComponent& ctrl)
         ctrl.buttons |= ControllerButtons::R2;
 }
 
-// PS5 入力
-void ControllerSystem::UpdatePS5Input(ControllerComponent& ctrl)
+// PS5 入力をControllerComponentに書く(共有バッファから書く)
+void ControllerSystem::UpdatePS5Input(const DS5W::DS5InputState& snapshot, ControllerComponent& ctrl)
 {
     // スティック
-    ctrl.leftStickX = ds5InputState.leftStick.x / 127.0f;
-    ctrl.leftStickY = ds5InputState.leftStick.y / 127.0f;
-    ctrl.rightStickX = ds5InputState.rightStick.x / 127.0f;
-    ctrl.rightStickY = ds5InputState.rightStick.y / 127.0f;
+    ctrl.leftStickX = snapshot.leftStick.x / 127.0f;
+    ctrl.leftStickY = snapshot.leftStick.y / 127.0f;
+    ctrl.rightStickX = snapshot.rightStick.x / 127.0f;
+    ctrl.rightStickY = snapshot.rightStick.y / 127.0f;
 
     // トリガー
-    ctrl.leftTrigger = ds5InputState.leftTrigger / 255.0f;
-    ctrl.rightTrigger = ds5InputState.rightTrigger / 255.0f;
+    ctrl.leftTrigger = snapshot.leftTrigger / 255.0f;
+    ctrl.rightTrigger = snapshot.rightTrigger / 255.0f;
 
     // ボタン
-    auto btn = ds5InputState.buttonsAndDpad;
+    auto btn = snapshot.buttonsAndDpad;
     if (btn & DS5W_ISTATE_BTX_CROSS)    ctrl.buttons |= ControllerButtons::Cross;
     if (btn & DS5W_ISTATE_BTX_CIRCLE)   ctrl.buttons |= ControllerButtons::Circle;
     if (btn & DS5W_ISTATE_BTX_SQUARE)   ctrl.buttons |= ControllerButtons::Square;
     if (btn & DS5W_ISTATE_BTX_TRIANGLE) ctrl.buttons |= ControllerButtons::Triangle;
 
     // ボタン
-    auto btnA = ds5InputState.buttonsA;
+    auto btnA = snapshot.buttonsA;
     if (btnA & DS5W_ISTATE_BTN_A_LEFT_BUMPER)  ctrl.buttons |= ControllerButtons::L1;
     if (btnA & DS5W_ISTATE_BTN_A_RIGHT_BUMPER) ctrl.buttons |= ControllerButtons::R1;
     if (btnA & DS5W_ISTATE_BTN_A_LEFT_STICK)   ctrl.buttons |= ControllerButtons::L3;
@@ -157,6 +159,42 @@ void ControllerSystem::UpdatePS5Input(ControllerComponent& ctrl)
         ctrl.buttons |= ControllerButtons::R2;
 }
 
+//// PS5 入力
+//void ControllerSystem::UpdatePS5Input(ControllerComponent& ctrl)
+//{
+//    // スティック
+//    ctrl.leftStickX = ds5InputState.leftStick.x / 127.0f;
+//    ctrl.leftStickY = ds5InputState.leftStick.y / 127.0f;
+//    ctrl.rightStickX = ds5InputState.rightStick.x / 127.0f;
+//    ctrl.rightStickY = ds5InputState.rightStick.y / 127.0f;
+//
+//    // トリガー
+//    ctrl.leftTrigger = ds5InputState.leftTrigger / 255.0f;
+//    ctrl.rightTrigger = ds5InputState.rightTrigger / 255.0f;
+//
+//    // ボタン
+//    auto btn = ds5InputState.buttonsAndDpad;
+//    if (btn & DS5W_ISTATE_BTX_CROSS)    ctrl.buttons |= ControllerButtons::Cross;
+//    if (btn & DS5W_ISTATE_BTX_CIRCLE)   ctrl.buttons |= ControllerButtons::Circle;
+//    if (btn & DS5W_ISTATE_BTX_SQUARE)   ctrl.buttons |= ControllerButtons::Square;
+//    if (btn & DS5W_ISTATE_BTX_TRIANGLE) ctrl.buttons |= ControllerButtons::Triangle;
+//
+//    // ボタン
+//    auto btnA = ds5InputState.buttonsA;
+//    if (btnA & DS5W_ISTATE_BTN_A_LEFT_BUMPER)  ctrl.buttons |= ControllerButtons::L1;
+//    if (btnA & DS5W_ISTATE_BTN_A_RIGHT_BUMPER) ctrl.buttons |= ControllerButtons::R1;
+//    if (btnA & DS5W_ISTATE_BTN_A_LEFT_STICK)   ctrl.buttons |= ControllerButtons::L3;
+//    if (btnA & DS5W_ISTATE_BTN_A_RIGHT_STICK)  ctrl.buttons |= ControllerButtons::R3;
+//    if (btnA & DS5W_ISTATE_BTN_A_SELECT)       ctrl.buttons |= ControllerButtons::Share;
+//    if (btnA & DS5W_ISTATE_BTN_A_MENU)         ctrl.buttons |= ControllerButtons::Options;
+//
+//    // L2/R2 デジタル判定（ヒステリシス込み）
+//    if (UpdateTriggerDigital(ctrl.leftTrigger, settings.leftTriggerPressThreshold, settings.leftTriggerReleaseThreshold, ctrl.leftTriggerHysteresis))
+//        ctrl.buttons |= ControllerButtons::L2;
+//    if (UpdateTriggerDigital(ctrl.rightTrigger, settings.rightTriggerPressThreshold, settings.rightTriggerReleaseThreshold, ctrl.rightTriggerHysteresis))
+//        ctrl.buttons |= ControllerButtons::R2;
+//}
+
 // トリガーのヒステリシス判定
 bool ControllerSystem::UpdateTriggerDigital(float triggerValue, float pressThreshold, float releaseThreshold, TriggerHysteresisState& state)
 {
@@ -169,36 +207,36 @@ bool ControllerSystem::UpdateTriggerDigital(float triggerValue, float pressThres
     return nowHeld;
 }
 
-// PS5 出力送信
-void ControllerSystem::SendPS5Output(ControllerComponent& ctrl)
-{
-    ZoneScoped;
-
-    DS5W::TriggerEffect newLeft = {};
-    DS5W::TriggerEffect newRight = {};
-
-    ApplyTriggerEffect(newLeft, ctrl.leftTriggerEffect, ctrl.leftTrigger);
-    ApplyTriggerEffect(newRight, ctrl.rightTriggerEffect, ctrl.rightTrigger);
-
-    bool changed =
-        !IsSameTriggerEffect(newLeft, lastLeftEffect) ||
-        !IsSameTriggerEffect(newRight, lastRightEffect);
-
-    // 前回と同じ内容なら送信しない
-    if (!changed)
-    {
-        return;
-    }
-
-    ds5OutputState = {};
-    ds5OutputState.leftTriggerEffect = newLeft;
-    ds5OutputState.rightTriggerEffect = newRight;
-
-    DS5W::setDeviceOutputState(&ds5Context, &ds5OutputState);
-
-    lastLeftEffect = newLeft;
-    lastRightEffect = newRight;
-}
+//// PS5 出力送信
+//void ControllerSystem::SendPS5Output(ControllerComponent& ctrl)
+//{
+//    ZoneScoped;
+//
+//    DS5W::TriggerEffect newLeft = {};
+//    DS5W::TriggerEffect newRight = {};
+//
+//    ApplyTriggerEffect(newLeft, ctrl.leftTriggerEffect, ctrl.leftTrigger);
+//    ApplyTriggerEffect(newRight, ctrl.rightTriggerEffect, ctrl.rightTrigger);
+//
+//    bool changed =
+//        !IsSameTriggerEffect(newLeft, lastLeftEffect) ||
+//        !IsSameTriggerEffect(newRight, lastRightEffect);
+//
+//    // 前回と同じ内容なら送信しない
+//    if (!changed)
+//    {
+//        return;
+//    }
+//
+//    ds5OutputState = {};
+//    ds5OutputState.leftTriggerEffect = newLeft;
+//    ds5OutputState.rightTriggerEffect = newRight;
+//
+//    DS5W::setDeviceOutputState(&ds5Context, &ds5OutputState);
+//
+//    lastLeftEffect = newLeft;
+//    lastRightEffect = newRight;
+//}
 
 // AdaptiveTrigger::TriggerEffectからDS5W::TriggerEffectへの変換
 void ControllerSystem::ApplyTriggerEffect(DS5W::TriggerEffect& dst, const AdaptiveTrigger::TriggerEffect& src, float currentPosition)
@@ -246,6 +284,66 @@ bool ControllerSystem::IsSameTriggerEffect(const DS5W::TriggerEffect& a, const D
     return true;
 }
 
+
+// 専用スレッドエントリーポイント(PS5との通信を繰り返す)
+void ControllerSystem::DS5ThreadFunc()
+{
+    auto lastTime = std::chrono::steady_clock::now();
+
+    while (ds5ThreadRunning)
+    {
+        auto now = std::chrono::steady_clock::now();
+        float dt = std::chrono::duration<float>(now - lastTime).count();
+        lastTime = now;
+
+        if (!ds5Connected)
+        {
+            // 未接続の間は、一定間隔で再接続を試みる
+            ds5ReconnectTimer += dt;
+            if (ds5ReconnectTimer >= ds5ReconnectInterval)
+            {
+                ds5ReconnectTimer = 0.0f;
+                TryConnectPS5();
+            }
+
+            // 接続を試みるだけの間はCPUを無駄に回さないよう少し待つ
+            std::this_thread::sleep_for(std::chrono::milliseconds(16));
+            continue;
+        }
+
+        // 入力読み取り（ここでブロックしてもこのスレッドが止まるだけ。メインスレッドには影響しない）
+        DS5W::DS5InputState inputState = {};
+        DS5W_ReturnValue rv = DS5W::getDeviceInputState(&ds5Context, &inputState);
+
+        if (DS5W_FAILED(rv))
+        {
+            DS5W::freeDeviceContext(&ds5Context);
+            ds5Connected = false;
+
+            std::lock_guard<std::mutex> lock(ds5Mutex);
+            ds5ConnectedShared = false;
+            continue;
+        }
+
+        // メインスレッド用に、最新の入力状態と、メインスレッドからのリクエストを橋渡しする
+        AdaptiveTrigger::TriggerEffect requestedLeft;
+        AdaptiveTrigger::TriggerEffect requestedRight;
+        {
+            std::lock_guard<std::mutex> lock(ds5Mutex);
+            ds5ConnectedShared = true;
+            ds5InputStateShared = inputState;
+
+            requestedLeft = ds5RequestedLeftEffect;
+            requestedRight = ds5RequestedRightEffect;
+        }
+
+        // アダプティブトリガーの出力送信
+        float leftPos = inputState.leftTrigger / 255.0f;
+        float rightPos = inputState.rightTrigger / 255.0f;
+        SendPS5Output(requestedLeft, requestedRight, leftPos, rightPos);
+    }
+}
+
 // PS5 接続試行
 void ControllerSystem::TryConnectPS5()
 {
@@ -262,5 +360,33 @@ void ControllerSystem::TryConnectPS5()
             }
         }
     }
+}
+
+// PS5 出力送信（専用スレッドから呼ぶ）
+void ControllerSystem::SendPS5Output(const AdaptiveTrigger::TriggerEffect& left, const AdaptiveTrigger::TriggerEffect& right, float leftPos, float rightPos)
+{
+    DS5W::TriggerEffect newLeft = {};
+    DS5W::TriggerEffect newRight = {};
+
+    ApplyTriggerEffect(newLeft, left, leftPos);
+    ApplyTriggerEffect(newRight, right, rightPos);
+
+    bool changed =
+        !IsSameTriggerEffect(newLeft, lastLeftEffect) ||
+        !IsSameTriggerEffect(newRight, lastRightEffect);
+
+    if (!changed)
+    {
+        return;
+    }
+
+    ds5OutputState = {};
+    ds5OutputState.leftTriggerEffect = newLeft;
+    ds5OutputState.rightTriggerEffect = newRight;
+
+    DS5W::setDeviceOutputState(&ds5Context, &ds5OutputState);
+
+    lastLeftEffect = newLeft;
+    lastRightEffect = newRight;
 }
 

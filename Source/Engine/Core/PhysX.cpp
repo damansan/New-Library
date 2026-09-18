@@ -19,7 +19,7 @@ void PhysX::Initialize()
 	physics = PxCreatePhysics(PX_PHYSICS_VERSION, *foundation, PxTolerancesScale(), true, pvd);
 
 	// シミュレーションをCPUスレッドに割り振るディスパッチャを作成
-	dispatcher = PxDefaultCpuDispatcherCreate(1); // スレッド数１
+	dispatcher = PxDefaultCpuDispatcherCreate(1); // スレッド数１(夏期講座だと2スレッドだった)
 
 	// デフォルトマテリアル(静摩擦, 動摩擦, 反発係数)作成
 	defaultMaterial = physics->createMaterial(0.5f, 0.5f, 0.6f);

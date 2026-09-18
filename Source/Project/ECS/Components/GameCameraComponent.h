@@ -40,7 +40,7 @@ struct GameCameraComponent
 	DirectX::XMFLOAT3 eyeVelocity = {};    // currentEyeの現在の速度
 	DirectX::XMFLOAT3 targetVelocity = {}; // currentTargetの現在の速度
 
-	// 減衰ばね用パラメーター(eye)
-	float eyeSpringStiffness = 200.0f; // バネの強さ（大きいほど速く反応する）
-	float eyeSpringDamping = 20.0f;    // 減衰（小さいほどオーバーシュートが大きく、揺れが長く続く）
+	// 減衰ばね用パラメーター(eye)  200/20のほうが良いかも
+	float eyeSpringStiffness = 100.0f; // バネの強さ（大きいほど速く反応する）
+	float eyeSpringDamping = 10.0f;    // 減衰（小さいほどオーバーシュートが大きく、揺れが長く続く）
 };
