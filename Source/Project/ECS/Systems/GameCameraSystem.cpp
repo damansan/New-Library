@@ -79,6 +79,21 @@ void GameCameraSystem::Update(entt::registry& registry, float elapsedTime)
 					cam.lockOnOrbitAngle -= DirectX::XM_PI;
 
 					cam.lockOnOrbitPitch = std::clamp(cam.lockOnOrbitPitch, -0.8f, 0.8f); // 上下角度の制限
+				
+					// くの字が曲がる向きの判定（ヒステリシス）
+					// 閾値を超えて倒した時だけ切り替わり、それ以外は今の向きを維持する
+					if (cam.lockOnOrbitAngle > cam.lockOnSideSwitchThreshold)
+					{
+						cam.lockOnSide = 1.0f;
+					}
+					else if (cam.lockOnOrbitAngle < -cam.lockOnSideSwitchThreshold)
+					{
+						cam.lockOnSide = -1.0f;
+					}
+
+					// lockOnSideへ、lerpでなめらかに追従させる
+					float sideT = std::clamp(cam.lockOnSideSmoothSpeed * elapsedTime, 0.0f, 1.0f);
+					cam.lockOnSideSmooth += (cam.lockOnSide - cam.lockOnSideSmooth) * sideT;
 				}
 
 				// L2を押した瞬間、Follow<->LookAtをトグル切り替え
@@ -226,7 +241,7 @@ void GameCameraSystem::DrawDebug(
 
 			// デフォルト角度のオフセット
 			float nearT = 1.0f - std::clamp(len / cam.lockOnRangeSwitchDistance, 0.0f, 1.0f);
-			float angleOffset = DirectX::XMConvertToRadians(cam.lockOnNearAngleOffsetMax) * nearT;
+			float angleOffset = DirectX::XMConvertToRadians(cam.lockOnNearAngleOffsetMax) * nearT * cam.lockOnSideSmooth;
 
 			// eyeの円周を、点の集まりで描く
 			const int segments = 32;
@@ -352,7 +367,7 @@ void GameCameraSystem::UpdateLookAtTarget(GameCameraComponent& cam, entt::regist
 
 		// 距離に応じてなめらかに変化
 		float nearT = 1.0f - std::clamp(len / cam.lockOnRangeSwitchDistance, 0.0f, 1.0f);
-		float angleOffset = DirectX::XMConvertToRadians(cam.lockOnNearAngleOffsetMax) * nearT;
+		float angleOffset = DirectX::XMConvertToRadians(cam.lockOnNearAngleOffsetMax) * nearT * cam.lockOnSideSmooth;
 
 		// Cameraと同じ角度で回転させた方向を求め、反対方向に配置する
 		float angle = cam.lockOnOrbitAngle + angleOffset;
@@ -430,7 +445,7 @@ void GameCameraSystem::UpdateLockOnEye(GameCameraComponent& cam, entt::registry&
 
 		// デフォルト角度のoffsetEnemyに近づく程滑らかに角度を増やす
 		float nearT = 1.0f - std::clamp(len / cam.lockOnRangeSwitchDistance, 0.0f, 1.0f);
-		float angleOffset = DirectX::XMConvertToRadians(cam.lockOnNearAngleOffsetMax) * nearT;
+		float angleOffset = DirectX::XMConvertToRadians(cam.lockOnNearAngleOffsetMax) * nearT * cam.lockOnSideSmooth;
 
 		// 円の中心Oを求める
 		float centerDistByRatio = len * cam.lockOnCenterRatio;

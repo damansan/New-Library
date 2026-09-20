@@ -53,10 +53,17 @@ struct GameCameraComponent
 	float lockOnRangeSwitchDistance = 10.0f;
 
 	// 近距離時のカメラパラメーター
-	float lockOnNearCameraDistance = 6.0f;  // カメラの距離
-	float lockOnNearCameraHeight = 3.0f;    // カメラの高さ
-	float lockOnNearCameraTargetYUp = 2.0f; // 注視点のオフセット(Y)
-	float lockOnNearAngleOffsetMax = 30.0f; // Enemyに最も近づいた時の、デフォルト角度のズレ
+	float lockOnNearCameraDistance = 6.0f;   // カメラの距離
+	float lockOnNearCameraHeight = 3.0f;     // カメラの高さ
+	float lockOnNearCameraTargetYUp = 2.0f;  // 注視点のオフセット(Y)
+	float lockOnNearAngleOffsetMax = 30.0f;  // Enemyに最も近づいた時の、デフォルト角度のズレ
+
+	float lockOnSide = 1.0f;                 // +1=右 -1=左
+	float lockOnSideSwitchThreshold = 0.35f; // この角度を超えて倒すと向きが切り替わる
+
+	float lockOnSideSmooth = 1.0f;           // lockOnSideへ、lerpでなめらかに追従する値
+	float lockOnSideSmoothSpeed = 2.0f;      // 1フレームで縮める割合の目安値
+
 	// 遠距離時のカメラパラメーター
 	float lockOnFarCameraDistance = 6.0f;  // カメラの距離
 	float lockOnFarCameraHeight = 3.0f;    // カメラの高さ
