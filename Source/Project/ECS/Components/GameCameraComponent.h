@@ -49,16 +49,18 @@ struct GameCameraComponent
 	float lockOnCameraEyeSpeedRatio = 12.0f;    // eyeの追従速度比率
 	float lockOnCameraTargetSpeedRatio = 15.0f; // target追従速度比率
 
+	// 近距離 / 遠距離 切り替えの距離しきい値
+	float lockOnRangeSwitchDistance = 10.0f;
+
 	// 近距離時のカメラパラメーター
 	float lockOnNearCameraDistance = 6.0f;  // カメラの距離
 	float lockOnNearCameraHeight = 3.0f;    // カメラの高さ
 	float lockOnNearCameraTargetYUp = 2.0f; // 注視点のオフセット(Y)
+	float lockOnNearAngleOffsetMax = 30.0f; // Enemyに最も近づいた時の、デフォルト角度のズレ
 	// 遠距離時のカメラパラメーター
 	float lockOnFarCameraDistance = 6.0f;  // カメラの距離
 	float lockOnFarCameraHeight = 3.0f;    // カメラの高さ
 	float lockOnFarCameraTargetYUp = 2.0f; // 注視点のオフセット(Y)
-
-
 
 
 	// 円の中心

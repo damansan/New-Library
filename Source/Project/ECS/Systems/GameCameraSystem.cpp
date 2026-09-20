@@ -90,6 +90,7 @@ void GameCameraSystem::Update(entt::registry& registry, float elapsedTime)
 					}
 					else if (cam.mode == Mode::LookAt)
 					{
+						// LockOnからFollowに戻す際に逆算して同期させる
 						float dx = cam.base.currentEye.x - followTransform->position.x;
 						float dy = cam.base.currentEye.y - followTransform->position.y - cam.followCameraHeight;
 						float dz = cam.base.currentEye.z - followTransform->position.z;
@@ -207,17 +208,36 @@ void GameCameraSystem::DrawDebug(
 
 			shapeRenderer.DrawSphere(center, 0.15f, centerColor);
 
+			// 近距離/遠距離で、eyeの半径・高さ・targetの高さを切り替える
+			float eyeRadius, eyeHeight, targetYUp;
+			if (cam.lockOnRange == LockOnRangeState::Near)
+			{
+				eyeRadius = cam.lockOnNearCameraDistance;
+				eyeHeight = cam.lockOnNearCameraHeight;
+				targetYUp = cam.lockOnNearCameraTargetYUp;
+			}
+			else
+			{
+				eyeRadius = cam.lockOnFarCameraDistance;
+				eyeHeight = cam.lockOnFarCameraHeight;
+				targetYUp = cam.lockOnFarCameraTargetYUp;
+
+			}
+
+			// デフォルト角度のオフセット
+			float nearT = 1.0f - std::clamp(len / cam.lockOnRangeSwitchDistance, 0.0f, 1.0f);
+			float angleOffset = DirectX::XMConvertToRadians(cam.lockOnNearAngleOffsetMax) * nearT;
+
 			// eyeの円周を、点の集まりで描く
 			const int segments = 32;
-			const float radius = cam.lockOnFarCameraDistance;
 			for (int i = 0; i < segments; ++i)
 			{
-				float t = (float)i / (float)segments * DirectX::XM_2PI;
+				float t = (float)i / (float)segments * DirectX::XM_2PI + angleOffset;
 				DirectX::XMFLOAT3 p =
 				{
-					center.x + sinf(t) * radius,
-					center.y + cam.lockOnFarCameraHeight,
-					center.z + cosf(t) * radius
+					center.x + sinf(t) * eyeRadius,
+					center.y + eyeHeight,
+					center.z + cosf(t) * eyeRadius
 				};
 				shapeRenderer.DrawSphere(p, 0.05f, ringColor);
 			}
@@ -226,11 +246,11 @@ void GameCameraSystem::DrawDebug(
 			const float targetRadius = (std::min)(len * 0.25f, cam.lockOnTargetCircleRadiusMax);
 			for (int i = 0; i < segments; ++i)
 			{
-				float t = (float)i / (float)segments * DirectX::XM_2PI;
+				float t = (float)i / (float)segments * DirectX::XM_2PI + angleOffset;
 				DirectX::XMFLOAT3 p =
 				{
 					center.x + sinf(t) * targetRadius,
-					center.y + cam.lockOnFarCameraTargetYUp,
+					center.y + targetYUp,
 					center.z + cosf(t) * targetRadius
 				};
 				shapeRenderer.DrawSphere(p, 0.05f, targetRingColor);
@@ -306,8 +326,8 @@ void GameCameraSystem::UpdateLookAtTarget(GameCameraComponent& cam, entt::regist
 
 	DirectX::XMFLOAT3 idealTarget = cam.base.currentTarget;
 
-	if (len > 0.0001f) 
-	{		
+	if (len > 0.0001f)
+	{
 		backX /= len;
 		backZ /= len;
 
@@ -325,20 +345,30 @@ void GameCameraSystem::UpdateLookAtTarget(GameCameraComponent& cam, entt::regist
 		// targetの円の半径
 		float targetRadius = (std::min)(len * 0.25f, cam.lockOnTargetCircleRadiusMax);
 
-		// Cameraと同じorbitAngleで回転させた方向を求め、反対方向（-）に配置する
-		float cosA = cosf(cam.lockOnOrbitAngle);
-		float sinA = sinf(cam.lockOnOrbitAngle);
+		// targetの高さ(近距離/遠距離で切り替え)
+		float targetYUp = (cam.lockOnRange == LockOnRangeState::Near)
+			? cam.lockOnNearCameraTargetYUp
+			: cam.lockOnFarCameraTargetYUp;
+
+		// 距離に応じてなめらかに変化
+		float nearT = 1.0f - std::clamp(len / cam.lockOnRangeSwitchDistance, 0.0f, 1.0f);
+		float angleOffset = DirectX::XMConvertToRadians(cam.lockOnNearAngleOffsetMax) * nearT;
+
+		// Cameraと同じ角度で回転させた方向を求め、反対方向に配置する
+		float angle = cam.lockOnOrbitAngle + angleOffset;
+		float cosA = cosf(angle);
+		float sinA = sinf(angle);
 		float rotatedX = backX * cosA - backZ * sinA;
 		float rotatedZ = backX * sinA + backZ * cosA;
 
-		// orbitPitchも、eyeとは上下逆方向（-sinP）にすることで、点対称を保つ
+		// orbitPitchも、eyeとは上下逆方向にすることで、点対称を保つ
 		float cosP = cosf(cam.lockOnOrbitPitch);
 		float sinP = sinf(cam.lockOnOrbitPitch);
 
 		idealTarget =
 		{
 			center.x - rotatedX * targetRadius * cosP,
-			center.y + cam.lockOnFarCameraTargetYUp - targetRadius * sinP,
+			center.y + targetYUp - targetRadius * sinP,
 			center.z - rotatedZ * targetRadius * cosP
 		};
 	}
@@ -380,37 +410,57 @@ void GameCameraSystem::UpdateLockOnEye(GameCameraComponent& cam, entt::registry&
 		backX /= len;
 		backZ /= len;
 	
-		// 遠距離：円の中心Oを基準に、円周上をorbitAngleで回転させる
+		// 距離に応じて 近距離 / 遠距離 を切り替える
+		cam.lockOnRange = (len >= cam.lockOnRangeSwitchDistance)
+			? LockOnRangeState::Far
+			: LockOnRangeState::Near;
+
+		// 近距離 / 遠距離 で、半径・高さと、デフォルト角度のオフセットを切り替える
+		float eyeRadius, eyeHeight;
+		if (cam.lockOnRange == LockOnRangeState::Near)
 		{
-			// 円の中心Oを求める（「Player-Enemy間の按分比率」と「固定の安全距離」の、短い方を採用）
-			float centerDistByRatio = len * cam.lockOnCenterRatio;
-			float centerDist = (std::min)(centerDistByRatio, cam.lockOnFarCenterMaxDistance);
-			
-			DirectX::XMFLOAT3 center =
-			{
-				playerPos.x - backX * centerDist,
-				playerPos.y,
-				playerPos.z - backZ * centerDist
-			};
-
-			// backベクトル（Enemyの反対方向＝orbitAngle=0の基準）を、orbitAngleぶん回転させる
-			float cosA = cosf(cam.lockOnOrbitAngle);
-			float sinA = sinf(cam.lockOnOrbitAngle);
-			float rotatedX = backX * cosA - backZ * sinA;
-			float rotatedZ = backX * sinA + backZ * cosA;
-
-			// orbitPitchで、水平方向の広がり(cosP)と、上下方向の高さ(sinP)に分配する
-			float cosP = cosf(cam.lockOnOrbitPitch);
-			float sinP = sinf(cam.lockOnOrbitPitch);
-
-			idealEye =
-			{
-				center.x + rotatedX * cam.lockOnFarCameraDistance * cosP,
-				center.y + cam.lockOnFarCameraHeight + cam.lockOnFarCameraDistance * sinP,
-				center.z + rotatedZ * cam.lockOnFarCameraDistance * cosP
-			};
-
+			eyeRadius = cam.lockOnNearCameraDistance;
+			eyeHeight = cam.lockOnNearCameraHeight;
 		}
+		else
+		{
+			eyeRadius = cam.lockOnFarCameraDistance;
+			eyeHeight = cam.lockOnFarCameraHeight;
+		}
+
+		// デフォルト角度のoffsetEnemyに近づく程滑らかに角度を増やす
+		float nearT = 1.0f - std::clamp(len / cam.lockOnRangeSwitchDistance, 0.0f, 1.0f);
+		float angleOffset = DirectX::XMConvertToRadians(cam.lockOnNearAngleOffsetMax) * nearT;
+
+		// 円の中心Oを求める
+		float centerDistByRatio = len * cam.lockOnCenterRatio;
+		float centerDist = (std::min)(centerDistByRatio, cam.lockOnFarCenterMaxDistance);
+
+		DirectX::XMFLOAT3 center =
+		{
+			playerPos.x - backX * centerDist,
+			playerPos.y,
+			playerPos.z - backZ * centerDist
+		};
+
+		// backベクトル（Enemyの反対方向＝角度0の基準）を、(orbitAngle + angleOffset)ぶん回転させる
+		float angle = cam.lockOnOrbitAngle + angleOffset;
+		float cosA = cosf(angle);
+		float sinA = sinf(angle);
+		float rotatedX = backX * cosA - backZ * sinA;
+		float rotatedZ = backX * sinA + backZ * cosA;
+
+		// orbitPitchで、水平方向の広がり(cosP)と、上下方向の高さ(sinP)に分配する
+		float cosP = cosf(cam.lockOnOrbitPitch);
+		float sinP = sinf(cam.lockOnOrbitPitch);
+
+		idealEye =
+		{
+			center.x + rotatedX * eyeRadius * cosP,
+			center.y + eyeHeight + eyeRadius * sinP,
+			center.z + rotatedZ * eyeRadius * cosP
+		};
+		
 	}
 
 	// eyeの補間速度を正規化
