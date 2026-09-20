@@ -56,6 +56,8 @@ void SceneGame::Initialize(const SceneContext& context)
 		);
 	}
 
+	gameCameraSystem.Initialize(context.device);
+
 #if WaveDemo && !defined(_DEBUG)
 	// デモ初期化
 	waveDemo.Initialize(context.device, registry, 500, 1.0f);
@@ -188,6 +190,15 @@ void SceneGame::Render(const SceneContext& context)
 			context.view,
 			context.projection,
 			lightManager.GetDirectionalLight().direction);
+
+		DirectX::XMFLOAT4 lightDir4 = lightManager.GetDirectionalLight().direction;
+		DirectX::XMFLOAT3 lightDir3 = { lightDir4.x, lightDir4.y, lightDir4.z };
+		gameCameraSystem.DrawDebug(
+			registry,
+			context.deviceContext,
+			context.view,
+			context.projection,
+			lightDir3);
 	}
 }
 
