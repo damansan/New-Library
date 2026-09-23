@@ -62,6 +62,7 @@
     <ClCompile Include="Source\Engine\Rendering\PrimitiveRenderer.cpp" />
     <ClCompile Include="Source\Engine\Rendering\ShapeRenderer.cpp" />
     <ClCompile Include="Source\Engine\Rendering\SkyBox.cpp" />
+    <ClCompile Include="Source\Engine\Resource\EntitySerializer.cpp" />
     <ClCompile Include="Source\Engine\Resource\GLTFConverter.cpp" />
     <ClCompile Include="Source\Engine\Resource\GLTFImporter.cpp" />
     <ClCompile Include="Source\Engine\Resource\GpuResourceUtils.cpp" />
@@ -85,6 +86,7 @@
     <ClCompile Include="Source\Tool\Editor\HierarchyWindow.cpp" />
     <ClCompile Include="Source\Tool\Editor\InspectorWindow.cpp" />
     <ClCompile Include="Source\Tool\Editor\MetaRegistry.cpp" />
+    <ClCompile Include="Source\Tool\Editor\PrefabWindow.cpp" />
     <ClCompile Include="Source\Tool\Editor\ProjectWindow.cpp" />
     <ClCompile Include="Source\Tool\NodeEditor\NodeEditorCanvas.cpp" />
     <ClCompile Include="Source\Tool\Studio\StudioAnimationSpeed.cpp" />
@@ -127,6 +129,7 @@
     <ClInclude Include="Source\Engine\ECS\Components\AnimationSpeedComponent.h" />
     <ClInclude Include="Source\Engine\ECS\Components\AnimatorComponent.h" />
     <ClInclude Include="Source\Engine\ECS\Components\BaseCameraComponent.h" />
+    <ClInclude Include="Source\Engine\ECS\Components\CategoryComponent.h" />
     <ClInclude Include="Source\Engine\ECS\Components\ControllerComponent.h" />
     <ClInclude Include="Source\Engine\ECS\Components\ControllerSettings.h" />
     <ClInclude Include="Source\Engine\ECS\Components\FreeCameraComponent.h" />
@@ -141,6 +144,7 @@
     <ClInclude Include="Source\Engine\ECS\Components\StaticMeshComponent.h" />
     <ClInclude Include="Source\Engine\ECS\Components\Tags.h" />
     <ClInclude Include="Source\Engine\ECS\Components\TransformComponent.h" />
+    <ClInclude Include="Source\Engine\ECS\EntityFinder.h" />
     <ClInclude Include="Source\Engine\ECS\Systems\AnimationSpeedSystem.h" />
     <ClInclude Include="Source\Engine\ECS\Systems\AnimationSystem.h" />
     <ClInclude Include="Source\Engine\ECS\Systems\AnimatorControllerSystem.h" />
@@ -162,6 +166,7 @@
     <ClInclude Include="Source\Engine\Rendering\PrimitiveRenderer.h" />
     <ClInclude Include="Source\Engine\Rendering\ShapeRenderer.h" />
     <ClInclude Include="Source\Engine\Rendering\SkyBox.h" />
+    <ClInclude Include="Source\Engine\Resource\EntitySerializer.h" />
     <ClInclude Include="Source\Engine\Resource\GLTFConverter.h" />
     <ClInclude Include="Source\Engine\Resource\GLTFData.h" />
     <ClInclude Include="Source\Engine\Resource\GLTFImporter.h" />
@@ -188,12 +193,14 @@
     <ClInclude Include="Source\Project\ECS\Systems\PlayerSprintSystem.h" />
     <ClInclude Include="Source\Project\Scene\SceneGame.h" />
     <ClInclude Include="Source\Tool\AdaptiveTriggerToolWindow.h" />
+    <ClInclude Include="Source\Tool\Editor\ComponentInspectorRegistry.h" />
     <ClInclude Include="Source\Tool\Editor\ComponentRegistry.h" />
     <ClInclude Include="Source\Tool\Editor\ComponentRegistryInitializer.h" />
     <ClInclude Include="Source\Tool\Editor\EditorContext.h" />
     <ClInclude Include="Source\Tool\Editor\HierarchyWindow.h" />
     <ClInclude Include="Source\Tool\Editor\InspectorWindow.h" />
     <ClInclude Include="Source\Tool\Editor\MetaRegistry.h" />
+    <ClInclude Include="Source\Tool\Editor\PrefabWindow.h" />
     <ClInclude Include="Source\Tool\Editor\ProjectWindow.h" />
     <ClInclude Include="Source\Tool\NodeEditor\NodeEditorCanvas.h" />
     <ClInclude Include="Source\Tool\Studio\AnimatorGraphNavigation.h" />

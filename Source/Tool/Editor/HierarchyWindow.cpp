@@ -6,6 +6,7 @@
 #include "Engine/ECS/Components/TransformComponent.h"
 #include "Engine/ECS/Components/MeshComponent.h"
 #include "Engine/ECS/Components/MaterialComponent.h"
+#include "Engine/ECS/Components/CategoryComponent.h"
 
 #include "tracy/Tracy.hpp"
 
@@ -20,6 +21,7 @@ void HierarchyWindow::Draw(entt::registry& registry, EditorContext& context)
     {
         entt::entity e = registry.create();
 
+        registry.emplace<ComponentCategory>(e);
         registry.emplace<TransformComponent>(e);
 
         // 名前を自動設定
@@ -43,35 +45,6 @@ void HierarchyWindow::Draw(entt::registry& registry, EditorContext& context)
     // セパレータの下の座標を記録
     ImVec2 dropAreaMin = ImGui::GetCursorScreenPos();
 
-    //// 全 Entity を列挙
-    //auto view = registry.view<entt::entity>();
-    //for (auto e : view)
-    //{
-    //    std::string name = context.GetName(e);
-
-    //    // 選択状態をハイライト
-    //    bool isSelected = context.IsSelected(e);
-    //    if (ImGui::Selectable(
-    //        (name + "##" + std::to_string((uint32_t)e)).c_str(),
-    //        isSelected))
-    //    {
-    //        context.Select(e);
-    //    }
-
-    //    // Entity をドラッグできるようにする
-    //    if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
-    //    {
-    //        // Entity ID をペイロードとして渡す
-    //        ImGui::SetDragDropPayload(
-    //            "ENTITY",
-    //            &e,
-    //            sizeof(entt::entity)
-    //        );
-    //        // ドラッグ中のプレビュー
-    //        ImGui::Text(name.c_str());
-    //        ImGui::EndDragDropSource();
-    //    }
-    //}
     // 全 Entity を列挙(画面に映っている範囲だけ処理する)
     auto view = registry.view<entt::entity>();
 
@@ -130,6 +103,8 @@ void HierarchyWindow::Draw(entt::registry& registry, EditorContext& context)
 
             // Entity 生成
             entt::entity e = registry.create();
+
+            registry.emplace<ComponentCategory>(e);
 
             auto& t = registry.emplace<TransformComponent>(e);
             t.position = { 0.0f, 0.0f, 0.0f };

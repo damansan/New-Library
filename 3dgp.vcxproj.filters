@@ -356,6 +356,12 @@
     <Filter Include="Sources\Project\ECS\Systems\Player\PlayerSprintSystem">
       <UniqueIdentifier>{3842680e-5e2f-44d3-b351-c518b08af1c4}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\Tool\Editor\PrefabWindow">
+      <UniqueIdentifier>{ba0aded9-53a6-4137-a09a-a0c6a3d171fd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Engine\Resource\EntitySerializer">
+      <UniqueIdentifier>{114efd14-bbc8-4f60-bbf0-bca2f1a610f7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="External\imgui-docking\imgui.cpp">
@@ -600,6 +606,12 @@
     </ClCompile>
     <ClCompile Include="Source\Project\ECS\Systems\PlayerSprintSystem.cpp">
       <Filter>Sources\Project\ECS\Systems\Player\PlayerSprintSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Tool\Editor\PrefabWindow.cpp">
+      <Filter>Sources\Tool\Editor\PrefabWindow</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Engine\Resource\EntitySerializer.cpp">
+      <Filter>Sources\Engine\Resource\EntitySerializer</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -938,6 +950,21 @@
     </ClInclude>
     <ClInclude Include="Source\Project\ECS\Systems\PlayerSprintSystem.h">
       <Filter>Sources\Project\ECS\Systems\Player\PlayerSprintSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Engine\ECS\Components\CategoryComponent.h">
+      <Filter>Sources\Engine\ECS\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Engine\ECS\EntityFinder.h">
+      <Filter>Sources\Engine\ECS</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Tool\Editor\PrefabWindow.h">
+      <Filter>Sources\Tool\Editor\PrefabWindow</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Engine\Resource\EntitySerializer.h">
+      <Filter>Sources\Engine\Resource\EntitySerializer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Tool\Editor\ComponentInspectorRegistry.h">
+      <Filter>Sources\Tool\Editor\ComponentRegistry</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

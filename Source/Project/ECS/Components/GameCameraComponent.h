@@ -85,7 +85,6 @@ struct GameCameraComponent
 	// スティック入力のない時に戻す力
 	float lockOnOrbitReturnSpeed = 2.0f;
 
-
 	// 減衰ばね用パラメーター(カメラの速度)
 	DirectX::XMFLOAT3 eyeVelocity = {};    // currentEyeの現在の速度
 	DirectX::XMFLOAT3 targetVelocity = {}; // currentTargetの現在の速度

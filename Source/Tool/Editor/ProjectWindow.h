@@ -22,7 +22,7 @@ struct ProjectItemState
 {
     std::filesystem::path selectedPath;   // 選択中のファイル・フォルダ
     ProjectItemMode        mode = ProjectItemMode::None;
-    std::filesystem::path  targetPath;    // リネーム・削除対象のパス
+    std::filesystem::path  targetPath;           // リネーム・削除対象のパス
     char                   editBuffer[256] = {}; // リネーム中の入力バッファ
 };
 

@@ -1,4 +1,6 @@
 ﻿#include "GameCameraSystem.h"
+#include "Engine/ECS/EntityFinder.h"
+
 #include <algorithm>
 
 void GameCameraSystem::Initialize(ID3D11Device* device)
@@ -11,9 +13,15 @@ void GameCameraSystem::Update(entt::registry& registry, float elapsedTime)
 	auto view = registry.view<GameCameraComponent, TransformComponent>();
 	view.each([&](auto entity, GameCameraComponent& cam, TransformComponent& transform)
 		{
-			// 追従対象が未設定なら何も行わない
-			if (cam.followTarget == entt::null) return;    
-			if (!registry.valid(cam.followTarget)) return;  
+			// 追従対象が未設定なら Player属性 を持つEntityを見つけるまで探す
+			if (cam.followTarget == entt::null)
+			{
+				cam.followTarget = FindFirstByCategory(registry, EntityCategory::Player);
+			}
+
+			// それでも見つからなければ、何も行わない
+			if (cam.followTarget == entt::null) return;
+			if (!registry.valid(cam.followTarget)) return;
 
 			// 追従対象のTransformComponentを取得、なければ何も行わない
 			auto* followTransform = registry.try_get<TransformComponent>(cam.followTarget);
@@ -99,9 +107,39 @@ void GameCameraSystem::Update(entt::registry& registry, float elapsedTime)
 				// L2を押した瞬間、Follow<->LookAtをトグル切り替え
 				if (input->lockOnTrigger.pressed)
 				{
-					if (cam.mode == Mode::Follow && registry.valid(cam.lookAtTarget))
+					if (cam.mode == Mode::Follow)
 					{
-						cam.mode = Mode::LookAt;
+						// Playerに一番近いEnemyを選ぶ
+						auto enemies = FindAllByCategory(registry, EntityCategory::Enemy);
+
+						entt::entity best = entt::null;
+						float bestDistSq = FLT_MAX;
+
+						for (auto e : enemies)
+						{
+
+							if (!registry.valid(e)) continue;
+							auto* enemyTransform = registry.try_get<TransformComponent>(e);
+							if (!enemyTransform) continue;
+
+							float dx = enemyTransform->position.x - followTransform->position.x;
+							float dy = enemyTransform->position.y - followTransform->position.y;
+							float dz = enemyTransform->position.z - followTransform->position.z;
+							float distSq = dx * dx + dy * dy + dz * dz;
+							if (distSq < 0.0001f) continue;
+
+							if (distSq < bestDistSq)
+							{
+								bestDistSq = distSq;
+								best = e;
+							}
+						}
+
+						if (best != entt::null)
+						{
+							cam.lookAtTarget = best;
+							cam.mode = Mode::LookAt;
+						}
 					}
 					else if (cam.mode == Mode::LookAt)
 					{

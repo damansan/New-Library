@@ -1,5 +1,5 @@
 ===== main.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\main.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\main.cpp 
 #include <time.h>
 
 #include "Engine/Core/framework.h"
@@ -58,7 +58,7 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_  HINSTANCE prev_instance, _
  
  
 ===== Camera.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Core\Camera.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Core\Camera.h 
 #pragma once
 #include <DirectXMath.h>
 
@@ -107,7 +107,7 @@ private:
 }; 
  
 ===== framework.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Core\framework.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Core\framework.h 
 #pragma once
 
 #include <windows.h>
@@ -129,6 +129,7 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Core\framework.h
 #include "Tool/Editor/ProjectWindow.h"
 #include "Tool/Editor/HierarchyWindow.h"
 #include "Tool/Editor/InspectorWindow.h"
+#include "Tool/Editor/PrefabWindow.h"
 
 #include "Tool/Studio/StudioSharedContext.h"
 #include "Tool/Studio/StudioWindow.h"
@@ -190,10 +191,11 @@ private:
 
 
 	// Editor
-	EditorContext  editorContext;
-	ProjectWindow  projectWindow;
+	EditorContext   editorContext;
+	ProjectWindow   projectWindow;
 	HierarchyWindow hierarchyWindow;
 	InspectorWindow inspectorWindow;
+	PrefabWindow    prefabWindow;
 
 	// Studio
 	StudioSharedContext        studioShared;
@@ -219,7 +221,7 @@ private:
 }; 
  
 ===== GameWindow.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Core\GameWindow.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Core\GameWindow.h 
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
@@ -293,7 +295,7 @@ private:
 }; 
  
 ===== Graphics.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Core\Graphics.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Core\Graphics.h 
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
@@ -383,7 +385,7 @@ private:
 }; 
  
 ===== ImGuiManager.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Core\ImGuiManager.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Core\ImGuiManager.h 
 #pragma once
 #include <windows.h>
 #include <d3d11.h>
@@ -422,7 +424,7 @@ public:
 }; 
  
 ===== JsonFileCache.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Core\JsonFileCache.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Core\JsonFileCache.h 
 #pragma once
 #include <string>
 #include <unordered_map>
@@ -483,7 +485,7 @@ private:
 }; 
  
 ===== PhysicsDestroyQueue.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Core\PhysicsDestroyQueue.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Core\PhysicsDestroyQueue.h 
 #pragma once
 #include <vector>
 #include <PxPhysicsAPI.h>
@@ -525,7 +527,7 @@ namespace PhysicsDestroyQueue
 } 
  
 ===== PhysicsLayer.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Core\PhysicsLayer.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Core\PhysicsLayer.h 
 #pragma once
 #include <PxPhysicsAPI.h>
 
@@ -578,7 +580,7 @@ private:
 }; 
  
 ===== PhysX.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Core\PhysX.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Core\PhysX.h 
 #pragma once
 #include <PxPhysicsAPI.h>
 
@@ -625,7 +627,7 @@ private:
 }; 
  
 ===== Scene.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Core\Scene.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Core\Scene.h 
 #pragma once
 #include "entt.hpp"
 #include "SceneContext.h"
@@ -679,7 +681,7 @@ protected:
 }; 
  
 ===== SceneContext.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Core\SceneContext.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Core\SceneContext.h 
 #pragma once
 #include <d3d11.h>
 #include <DirectXMath.h>
@@ -716,7 +718,7 @@ struct SceneContext
 }; 
  
 ===== SceneManager.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Core\SceneManager.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Core\SceneManager.h 
 #pragma once
 #include "Scene.h"
 #include <memory>
@@ -756,7 +758,7 @@ private:
 }; 
  
 ===== Camera.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Core\Camera.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Core\Camera.cpp 
 #include "Camera.h"
 
 // ‰Šú‰»
@@ -815,7 +817,7 @@ void Camera::SetPerspectiveFov(
 } 
  
 ===== framework.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Core\framework.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Core\framework.cpp 
 #include "framework.h"
 #include "tracy/Tracy.hpp"
 #include "Project/Scene/SceneGame.h"
@@ -842,8 +844,12 @@ framework::framework(HWND hwnd) : hwnd(hwnd)
 	sceneManager.ChangeScene(std::make_unique<SceneGame>());
 
 	// ProjectWindow‰Šú‰»
-	projectWindow.Initialize("Data");
+	projectWindow.Initialize("Data/Model");
 	projectWindow.LoadIcons(graphics.GetDevice());
+	// PrefabWindow‰Šú‰»
+	prefabWindow.Initialize("Data/Prefab");
+
+
 	ComponentRegistryInitializer::Initialize();
 	MetaRegistry::Initialize();
 
@@ -931,6 +937,7 @@ void framework::updateImGui()
 		projectWindow.Draw(scene->GetRegistry(), editorContext);
 		hierarchyWindow.Draw(scene->GetRegistry(), editorContext);
 		inspectorWindow.Draw(scene->GetRegistry(), editorContext);
+		prefabWindow.Draw(scene->GetRegistry(), editorContext);
 	}
 
 	// StudioOpenRequest‚ğˆ—
@@ -1033,7 +1040,7 @@ int framework::run()
 {
 	MSG msg{};
 
-	// ŒÅ’èƒ^ƒCƒ€ƒXƒeƒbƒvİ’èi60fpsj
+	// ŒÅ’èƒ^ƒCƒ€ƒXƒeƒbƒvİ’èi144fpsj
 	const double fixedTimestep = 1.0 / 144.0;
 	double accumulator = 0.0;
 
@@ -1191,7 +1198,7 @@ bool framework::IsGameInputActive() const
  
  
 ===== GameWindow.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Core\GameWindow.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Core\GameWindow.cpp 
 #include "GameWindow.h"
 #include <imgui.h>
 #include <imgui_internal.h>
@@ -1369,7 +1376,7 @@ void GameWindow::ResizeRenderTarget(UINT width, UINT height)
 } 
  
 ===== Graphics.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Core\Graphics.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Core\Graphics.cpp 
 #include "Graphics.h"
 #include "Engine/Utility/misc.h"
 #include "Engine/Resource/GpuResourceUtils.h"
@@ -1820,7 +1827,7 @@ void Graphics::InitializePresentResources()
 } 
  
 ===== ImGuiManager.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Core\ImGuiManager.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Core\ImGuiManager.cpp 
 #include "ImGuiManager.h"
 
 ImGuiManager::~ImGuiManager()
@@ -1921,7 +1928,7 @@ bool ImGuiManager::HandleMessage(HWND hWnd, UINT msg, WPARAM wparam, LPARAM lpar
  
  
 ===== PhysX.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Core\PhysX.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Core\PhysX.cpp 
 #include "PhysX.h"
 
 using namespace physx;
@@ -1943,7 +1950,7 @@ void PhysX::Initialize()
 	physics = PxCreatePhysics(PX_PHYSICS_VERSION, *foundation, PxTolerancesScale(), true, pvd);
 
 	// ƒVƒ~ƒ…ƒŒ[ƒVƒ‡ƒ“‚ğCPUƒXƒŒƒbƒh‚ÉŠ„‚èU‚éƒfƒBƒXƒpƒbƒ`ƒƒ‚ğì¬
-	dispatcher = PxDefaultCpuDispatcherCreate(1); // ƒXƒŒƒbƒh”‚P
+	dispatcher = PxDefaultCpuDispatcherCreate(1); // ƒXƒŒƒbƒh”‚P(‰ÄŠúuÀ‚¾‚Æ2ƒXƒŒƒbƒh‚¾‚Á‚½)
 
 	// ƒfƒtƒHƒ‹ƒgƒ}ƒeƒŠƒAƒ‹(Ã–€C, “®–€C, ”½”­ŒW”)ì¬
 	defaultMaterial = physics->createMaterial(0.5f, 0.5f, 0.6f);
@@ -1992,7 +1999,7 @@ physx::PxTriangleMesh* PhysX::CreateTriangleMesh(
  
  
 ===== Scene.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Core\Scene.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Core\Scene.cpp 
 #include "Scene.h"
 
 // •¨—ƒV[ƒ“‚Ìì¬
@@ -2042,7 +2049,7 @@ void Scene::UpdatePhysicsScene(float elapsedTime)
 } 
  
 ===== SceneManager.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Core\SceneManager.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Core\SceneManager.cpp 
 #include "SceneManager.h"
 
 // XV
@@ -2109,7 +2116,7 @@ void SceneManager::ClearScene()
  
  
 ===== AnimationSpeedData.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Data\AnimationSpeedData.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Data\AnimationSpeedData.h 
 #pragma once
 #include <string>
 #include <vector>
@@ -2152,7 +2159,7 @@ public:
 }; 
  
 ===== AnimatorGraphData.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Data\AnimatorGraphData.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Data\AnimatorGraphData.h 
 #pragma once
 #include <string>
 #include <vector>
@@ -2435,7 +2442,7 @@ private:
 }; 
  
 ===== SequencerData.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Data\SequencerData.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Data\SequencerData.h 
 #pragma once
 #include <string>
 #include <vector>
@@ -2486,7 +2493,7 @@ public:
 }; 
  
 ===== AnimationSpeedData.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Data\AnimationSpeedData.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Data\AnimationSpeedData.cpp 
 #include "AnimationSpeedData.h"
 #include <algorithm>
 
@@ -2612,7 +2619,7 @@ void AnimationSpeedData::FromJson(const nlohmann::json& j)
 } 
  
 ===== AnimatorGraphData.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Data\AnimatorGraphData.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Data\AnimatorGraphData.cpp 
 #include "AnimatorGraphData.h"
 #include <algorithm>
 
@@ -3594,7 +3601,7 @@ void TransitionGraphData::DeleteLink(int linkId)
 } 
  
 ===== SequencerData.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Data\SequencerData.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Data\SequencerData.cpp 
 #include "SequencerData.h"
 
 namespace
@@ -3716,8 +3723,46 @@ void SequencerData::FromJson(const nlohmann::json& j)
 	}
 } 
  
+===== EntityFinder.h ===== 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\EntityFinder.h 
+#pragma once
+#include "entt.hpp"
+#include "Engine/ECS/Components/CategoryComponent.h"
+
+#include <vector>
+
+// w’è‚µ‚½‘®«‚ğ‚ÂÅ‰‚ÌEntity‚ğ—ñ‹“
+inline entt::entity FindFirstByCategory(entt::registry& registry, EntityCategory category)
+{
+	auto view = registry.view<ComponentCategory>();
+	for (auto entity : view)
+	{
+		if (view.get<ComponentCategory>(entity).category == category)
+		{
+			return entity;
+		}
+	}
+	return entt::null;
+}
+
+// w’è‚µ‚½‘®«‚ğ‚Â‘S•”‚ÌEntity‚ğ—ñ‹“
+inline std::vector<entt::entity> FindAllByCategory(entt::registry& registry, EntityCategory category)
+{
+	std::vector<entt::entity> result;
+
+	auto view = registry.view<ComponentCategory>();
+	for (auto entity : view)
+	{
+		if (view.get<ComponentCategory>(entity).category == category)
+		{
+			result.push_back(entity);
+		}
+	}
+	return result;
+} 
+ 
 ===== AnimationSpeedComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Components\AnimationSpeedComponent.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Components\AnimationSpeedComponent.h 
 #pragma once
 #include <string>
 
@@ -3727,7 +3772,7 @@ struct AnimationSpeedComponent
 }; 
  
 ===== AnimatorComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Components\AnimatorComponent.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Components\AnimatorComponent.h 
 ï»¿#pragma once
 #include <string>
 #include <DirectXMath.h>
@@ -3773,7 +3818,7 @@ struct AnimatorComponent
 }; 
  
 ===== BaseCameraComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Components\BaseCameraComponent.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Components\BaseCameraComponent.h 
 #pragma once
 #include <DirectXMath.h>
 
@@ -3785,8 +3830,23 @@ struct BaseCameraComponent
 };
  
  
+===== CategoryComponent.h ===== 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Components\CategoryComponent.h 
+#pragma once
+
+// ƒGƒ“ƒeƒBƒeƒB‚Ì‘®«‚ğ•t—^‚·‚éƒRƒ“ƒ|[ƒlƒ“ƒg
+enum class EntityCategory
+{
+    None, Player, Enemy, Stage, Object, Camera
+};
+
+struct ComponentCategory
+{
+    EntityCategory category = EntityCategory::None;
+}; 
+ 
 ===== ControllerComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Components\ControllerComponent.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Components\ControllerComponent.h 
 ï»¿#pragma once
 #include <cstdint>
 #include "Unsorted/Controller/AdaptiveTrigger.h"
@@ -3855,7 +3915,7 @@ namespace ControllerButtons
 } 
  
 ===== ControllerSettings.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Components\ControllerSettings.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Components\ControllerSettings.h 
 #pragma once
 #include <cstdint>
 
@@ -3878,7 +3938,7 @@ struct ControllerSettings
 }; 
  
 ===== FreeCameraComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Components\FreeCameraComponent.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Components\FreeCameraComponent.h 
 #pragma once
 #include <windows.h>
 #include "BaseCameraComponent.h"
@@ -3896,7 +3956,7 @@ struct FreeCameraComponent
 }; 
  
 ===== IKComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Components\IKComponent.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Components\IKComponent.h 
 #pragma once
 #include <DirectXMath.h>
 #include <vector>
@@ -3933,7 +3993,7 @@ struct IKComponent
 }; 
  
 ===== MaterialComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Components\MaterialComponent.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Components\MaterialComponent.h 
 #pragma once
 #include <cstdint>
 
@@ -3960,7 +4020,7 @@ struct MaterialComponent
 }; 
  
 ===== MeshComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Components\MeshComponent.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Components\MeshComponent.h 
 #pragma once
 #include <string>
 
@@ -3974,7 +4034,7 @@ struct MeshComponent
 }; 
  
 ===== MovementComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Components\MovementComponent.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Components\MovementComponent.h 
 #pragma once
 #include <DirectXMath.h>
 
@@ -3999,7 +4059,7 @@ struct MovementComponent
 }; 
  
 ===== PhysicsComponents.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Components\PhysicsComponents.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Components\PhysicsComponents.h 
 #pragma once
 #include <PxPhysicsAPI.h>
 
@@ -4035,7 +4095,7 @@ struct CharacterControllerComponent
 }; 
  
 ===== SequencerComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Components\SequencerComponent.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Components\SequencerComponent.h 
 #pragma once
 #include <string>
 
@@ -4067,7 +4127,7 @@ struct SequencerComponent
 }; 
  
 ===== SkinnedMeshComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Components\SkinnedMeshComponent.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Components\SkinnedMeshComponent.h 
 #pragma once
 #include <memory>
 #include <vector>
@@ -4095,7 +4155,7 @@ struct SkinnedMeshComponent
 }; 
  
 ===== StateComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Components\StateComponent.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Components\StateComponent.h 
 #pragma once
 
 // ‘JˆÚƒRƒ“ƒ|[ƒlƒ“ƒg
@@ -4106,7 +4166,7 @@ struct StateComponent
 }; 
  
 ===== StaticMeshComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Components\StaticMeshComponent.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Components\StaticMeshComponent.h 
 #pragma once
 #include <memory>
 #include "Engine/Resource/Model.h"
@@ -4119,7 +4179,7 @@ struct StaticMeshComponent
 }; 
  
 ===== Tags.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Components\Tags.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Components\Tags.h 
 #pragma once
 
 // ƒ[ƒhÏ‚İƒtƒ‰ƒO
@@ -4132,7 +4192,7 @@ struct InvisibleTag {};
 struct NoShadowTag {}; 
  
 ===== TransformComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Components\TransformComponent.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Components\TransformComponent.h 
 #pragma once
 #include <DirectXMath.h>
 
@@ -4154,7 +4214,7 @@ struct TransformComponent
 }; 
  
 ===== AnimationSpeedSystem.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\AnimationSpeedSystem.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\AnimationSpeedSystem.h 
 #pragma once
 #include "entt.hpp"
 #include "Engine/Data/AnimationSpeedData.h"
@@ -4171,7 +4231,7 @@ private:
 }; 
  
 ===== AnimationSystem.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\AnimationSystem.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\AnimationSystem.h 
 #pragma once
 #include <d3d11.h>
 #include <algorithm>
@@ -4248,7 +4308,7 @@ private:
 }; 
  
 ===== AnimatorControllerSystem.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\AnimatorControllerSystem.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\AnimatorControllerSystem.h 
 #pragma once
 #include "entt.hpp"
 #include "Engine/Data/AnimatorGraphData.h"
@@ -4297,7 +4357,7 @@ private:
 }; 
  
 ===== ConditionGraphEvaluator.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\ConditionGraphEvaluator.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\ConditionGraphEvaluator.h 
 #pragma once
 #include "entt.hpp"
 #include "Engine/Data/AnimatorGraphData.h"
@@ -4325,13 +4385,17 @@ private:
 }; 
  
 ===== ControllerSystem.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\ControllerSystem.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\ControllerSystem.h 
 #pragma once
 #pragma comment(lib, "Xinput.lib")
 
 #include <windows.h>
 #include <Xinput.h>
 #include <DualSenseWindows/IO.h>
+
+#include <thread>
+#include <mutex>
+#include <atomic>
 
 #include "entt.hpp"
 #include "Engine/ECS/Components/ControllerComponent.h"
@@ -4359,14 +4423,11 @@ private:
     // Xbox “ü—Í‚ğControllerComponent‚É‘‚­
     void UpdateXboxInput(ControllerComponent& ctrl);
 
-    // PS5 “ü—Í‚ğControllerComponent‚É‘‚­
-    void UpdatePS5Input(ControllerComponent& ctrl);
+    // PS5 “ü—Í‚ğControllerComponent‚É‘‚­(‹¤—Lƒoƒbƒtƒ@‚©‚ç‘‚­)
+    void UpdatePS5Input(const DS5W::DS5InputState& snapshot, ControllerComponent& ctrl);
 
 	// ƒgƒŠƒK[‚ÌƒqƒXƒeƒŠƒVƒX”»’è
     bool UpdateTriggerDigital(float triggerValue, float pressThreshold, float releaseThreshold, TriggerHysteresisState& state);
-
-    // PS5 o—Í‘—M
-    void SendPS5Output(ControllerComponent& ctrl);
 
     // AdaptiveTrigger::TriggerEffect‚©‚çDS5W::TriggerEffect‚Ö‚Ì•ÏŠ·
     void ApplyTriggerEffect(DS5W::TriggerEffect& dst, const AdaptiveTrigger::TriggerEffect& src, float currentPosition);
@@ -4374,23 +4435,45 @@ private:
     // 2‚Â‚ÌTriggerEffect‚ª“¯‚¶“à—e‚©‚Ç‚¤‚©”äŠr‚·‚é
     bool IsSameTriggerEffect(const DS5W::TriggerEffect& a, const DS5W::TriggerEffect& b);
 
-    // PS5 Ú‘±s
+
+
+    // ê—pƒXƒŒƒbƒhƒGƒ“ƒgƒŠ[ƒ|ƒCƒ“ƒg(PS5‚Æ‚Ì’ÊM‚ğŒJ‚è•Ô‚·)
+    void DS5ThreadFunc();
+
+    // PS5 Ú‘±s(ê—pƒXƒŒƒbƒh‚©‚çŒÄ‚Ô)
     void TryConnectPS5();
+
+    // PS5 o—Í‘—Miê—pƒXƒŒƒbƒh‚©‚çŒÄ‚Ôj
+    void SendPS5Output(const AdaptiveTrigger::TriggerEffect& left, const AdaptiveTrigger::TriggerEffect& right, float leftPos, float rightPos);
+
 
     // Xbox
     bool         xboxConnected = false;
     XINPUT_STATE xboxState = {};
 
+    // PS5ê—pƒXƒŒƒbƒh
+    std::thread       ds5Thread;
+    std::atomic<bool> ds5ThreadRunning{ false };
+
     // PS5
     DS5W::DeviceContext  ds5Context = {};
-    DS5W::DS5InputState  ds5InputState = {};
     DS5W::DS5OutputState ds5OutputState = {};
     bool                 ds5Connected = false;
     float                ds5ReconnectTimer = 0.0f;
     static constexpr float ds5ReconnectInterval = 3.0f;
-
     DS5W::TriggerEffect lastLeftEffect = {};
     DS5W::TriggerEffect lastRightEffect = {};
+
+    // ƒƒCƒ“ƒXƒŒƒbƒh‚Æê—p‚ÌƒXƒŒƒbƒh‚Ì‹´“n‚µ
+    std::mutex ds5Mutex;
+
+    // ê—pƒXƒŒƒbƒh‚©‚çƒƒCƒ“ƒXƒŒƒbƒh‚ÖÅV‚Ì“ü—Íó‘Ô
+    bool                 ds5ConnectedShared = false;
+    DS5W::DS5InputState  ds5InputStateShared = {};
+
+    // ƒƒCƒ“ƒXƒŒƒbƒh‹óê—pƒXƒŒƒbƒh‚Ös‚¢‚½‚¢ƒgƒŠƒK[ƒGƒtƒFƒNƒg
+    AdaptiveTrigger::TriggerEffect ds5RequestedLeftEffect = {};
+    AdaptiveTrigger::TriggerEffect ds5RequestedRightEffect = {};
 
     // İ’è’l
     ControllerSettings settings;
@@ -4398,7 +4481,7 @@ private:
 }; 
  
 ===== DebugCameraSystem.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\DebugCameraSystem.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\DebugCameraSystem.h 
 #pragma once
 #include "entt.hpp"
 #include "Engine/Core/Camera.h"
@@ -4419,7 +4502,7 @@ private:
 }; 
  
 ===== IKSystem.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\IKSystem.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\IKSystem.h 
 #pragma once
 #include <DirectXMath.h>
 #include "entt.hpp"
@@ -4442,7 +4525,7 @@ private:
 }; 
  
 ===== MeshLoaderSystem.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\MeshLoaderSystem.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\MeshLoaderSystem.h 
 #pragma once
 #include <d3d11.h>
 
@@ -4468,7 +4551,7 @@ public:
 }; 
  
 ===== MovementSystem.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\MovementSystem.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\MovementSystem.h 
 #pragma once
 #include "entt.hpp"
 #include "Engine/Core/SceneContext.h"
@@ -4480,7 +4563,7 @@ public:
 }; 
  
 ===== PhysicsSystem.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\PhysicsSystem.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\PhysicsSystem.h 
 #pragma once
 #include "entt.hpp"
 #include "Engine/Core/PhysX.h"
@@ -4541,7 +4624,7 @@ private:
 }; 
  
 ===== RenderSystem.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\RenderSystem.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\RenderSystem.h 
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
@@ -4739,7 +4822,7 @@ private:
 }; 
  
 ===== SequencerSystem.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\SequencerSystem.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\SequencerSystem.h 
 #pragma once
 #include "entt.hpp"
 #include "Engine/Data/SequencerData.h"
@@ -4759,7 +4842,7 @@ private:
 }; 
  
 ===== StateGraphUtils.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\StateGraphUtils.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\StateGraphUtils.h 
 #pragma once
 #include <string>
 #include "Engine/Data/AnimatorGraphData.h"
@@ -4771,7 +4854,7 @@ namespace StateGraphUtils
 } 
  
 ===== TransitionControllerSystem.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\TransitionControllerSystem.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\TransitionControllerSystem.h 
 #pragma once
 #include "entt.hpp"
 #include "Engine/Core/SceneContext.h"
@@ -4791,7 +4874,7 @@ private:
 }; 
  
 ===== TwoBoneIKSolver.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\TwoBoneIKSolver.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\TwoBoneIKSolver.h 
 #pragma once
 #include <DirectXMath.h>
 
@@ -4825,7 +4908,7 @@ namespace TwoBoneIKSolver
 } 
  
 ===== AnimationSpeedSystem.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\AnimationSpeedSystem.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\AnimationSpeedSystem.cpp 
 #include "AnimationSpeedSystem.h"
 #include "Engine/ECS/Components/SkinnedMeshComponent.h"
 #include "Engine/ECS/Components/AnimatorComponent.h"
@@ -4887,7 +4970,7 @@ void AnimationSpeedSystem::Update(entt::registry& registry)
 } 
  
 ===== AnimationSystem.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\AnimationSystem.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\AnimationSystem.cpp 
 #include "AnimationSystem.h"
 #include "tracy/Tracy.hpp"
 #include "Engine/Resource/SkeletonUtils.h"
@@ -5423,7 +5506,7 @@ DirectX::XMFLOAT3 AnimationSystem::CalcRootMotionDelta(
  
  
 ===== AnimatorControllerSystem.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\AnimatorControllerSystem.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\AnimatorControllerSystem.cpp 
 #include "AnimatorControllerSystem.h"
 #include "Engine/ECS/Components/AnimatorComponent.h"
 #include "ConditionGraphEvaluator.h"
@@ -5660,7 +5743,7 @@ void AnimatorControllerSystem::ApplyChildState(AnimatorComponent& animator, cons
  
  
 ===== ConditionGraphEvaluator.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\ConditionGraphEvaluator.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\ConditionGraphEvaluator.cpp 
 #include "ConditionGraphEvaluator.h"
 #include "Tool/Editor/ComponentRegistry.h"
 #include "Tool/Editor/MetaRegistry.h"
@@ -5858,20 +5941,32 @@ float ConditionGraphEvaluator::ResolveInputValue(const ConditionGraph& graph, in
  
  
 ===== ControllerSystem.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\ControllerSystem.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\ControllerSystem.cpp 
 ï»¿#include "ControllerSystem.h"
 #include <cmath>
 #include <algorithm>
 
+#include "tracy/Tracy.hpp"
+
 // ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 ControllerSystem::ControllerSystem()
 {
-    TryConnectPS5();
+    // å°‚ç”¨ã‚¹ãƒ¬ãƒƒãƒ‰ã‚’èµ·å‹•ã™ã‚‹
+    ds5ThreadRunning = true;
+    ds5Thread = std::thread(&ControllerSystem::DS5ThreadFunc, this);
 }
 
 // ãƒ‡ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 ControllerSystem::~ControllerSystem()
 {
+    // å°‚ç”¨ã‚¹ãƒ¬ãƒƒãƒ‰ã«åœæ­¢ã‚’ä¼ãˆã¦çµ‚ã‚ã‚‹ã¾ã§å¾…ã¤
+    ds5ThreadRunning = false;
+
+    if (ds5Thread.joinable())
+    {
+        ds5Thread.join();
+    }
+
     if (ds5Connected)
     {
         DS5W::freeDeviceContext(&ds5Context);
@@ -5882,27 +5977,23 @@ ControllerSystem::~ControllerSystem()
 // æ›´æ–°
 void ControllerSystem::Update(entt::registry& registry, float elapsedTime)
 {
-    // Xbox æ¥ç¶šç¢ºèª
-    xboxConnected = XInputGetState(0, &xboxState) == ERROR_SUCCESS;
 
-    // PS5 æ¥ç¶šç¢ºèª / å†æ¥ç¶š
-    if (ds5Connected)
+    (void)elapsedTime;
+
+    // Xbox æ¥ç¶šç¢ºèª
     {
-        DS5W_ReturnValue rv = DS5W::getDeviceInputState(&ds5Context, &ds5InputState);
-        if (DS5W_FAILED(rv))
-        {
-            DS5W::freeDeviceContext(&ds5Context);
-            ds5Connected = false;
-        }
+        ZoneScopedN("ControllerSystem::XInputGetState");
+        xboxConnected = XInputGetState(0, &xboxState) == ERROR_SUCCESS;
     }
-    else
+
+    // PS5 å´ã¯å°‚ç”¨ã‚¹ãƒ¬ãƒƒãƒ‰ãŒèª­ã¿å–ã‚Šæ¸ˆã¿ã®æœ€æ–°çŠ¶æ…‹ã‚’ã€ãƒ­ãƒƒã‚¯ã—ã¦å–ã£ã¦ãã‚‹ã ã‘
+    bool ds5ConnectedNow = false;
+    DS5W::DS5InputState ds5Snapshot = {};
     {
-        ds5ReconnectTimer += elapsedTime;
-        if (ds5ReconnectTimer >= ds5ReconnectInterval)
-        {
-            ds5ReconnectTimer = 0.0f;
-            TryConnectPS5();
-        }
+        ZoneScopedN("ControllerSystem::DS5_CopyFromShared");
+        std::lock_guard<std::mutex> lock(ds5Mutex);
+        ds5ConnectedNow = ds5ConnectedShared;
+        ds5Snapshot = ds5InputStateShared;
     }
 
     // ControllerComponent ã‚’æŒã¤ Entity ã‚’æ›´æ–°
@@ -5921,12 +6012,16 @@ void ControllerSystem::Update(entt::registry& registry, float elapsedTime)
             ctrl.type = ControllerType::None;
 
             // PS5 å„ªå…ˆã€ãªã‘ã‚Œã° Xbox
-            if (ds5Connected)
+            if (ds5ConnectedNow)
             {
                 ctrl.type = ControllerType::PS5;
                 ctrl.connected = true;
-                UpdatePS5Input(ctrl);
-                SendPS5Output(ctrl);
+                UpdatePS5Input(ds5Snapshot, ctrl);
+
+                // æ¬¡ã«å°‚ç”¨ã‚¹ãƒ¬ãƒƒãƒ‰ãŒé€ä¿¡ã™ã‚‹ãƒˆãƒªã‚¬ãƒ¼åŠ¹æœã‚’ãƒªã‚¯ã‚¨ã‚¹ãƒˆã—ã¦ãŠã
+                std::lock_guard<std::mutex> lock(ds5Mutex);
+                ds5RequestedLeftEffect = ctrl.leftTriggerEffect;
+                ds5RequestedRightEffect = ctrl.rightTriggerEffect;
             }
             else if (xboxConnected)
             {
@@ -5972,28 +6067,28 @@ void ControllerSystem::UpdateXboxInput(ControllerComponent& ctrl)
         ctrl.buttons |= ControllerButtons::R2;
 }
 
-// PS5 å…¥åŠ›
-void ControllerSystem::UpdatePS5Input(ControllerComponent& ctrl)
+// PS5 å…¥åŠ›ã‚’ControllerComponentã«æ›¸ã(å…±æœ‰ãƒãƒƒãƒ•ã‚¡ã‹ã‚‰æ›¸ã)
+void ControllerSystem::UpdatePS5Input(const DS5W::DS5InputState& snapshot, ControllerComponent& ctrl)
 {
     // ã‚¹ãƒ†ã‚£ãƒƒã‚¯
-    ctrl.leftStickX = ds5InputState.leftStick.x / 127.0f;
-    ctrl.leftStickY = ds5InputState.leftStick.y / 127.0f;
-    ctrl.rightStickX = ds5InputState.rightStick.x / 127.0f;
-    ctrl.rightStickY = ds5InputState.rightStick.y / 127.0f;
+    ctrl.leftStickX = snapshot.leftStick.x / 127.0f;
+    ctrl.leftStickY = snapshot.leftStick.y / 127.0f;
+    ctrl.rightStickX = snapshot.rightStick.x / 127.0f;
+    ctrl.rightStickY = snapshot.rightStick.y / 127.0f;
 
     // ãƒˆãƒªã‚¬ãƒ¼
-    ctrl.leftTrigger = ds5InputState.leftTrigger / 255.0f;
-    ctrl.rightTrigger = ds5InputState.rightTrigger / 255.0f;
+    ctrl.leftTrigger = snapshot.leftTrigger / 255.0f;
+    ctrl.rightTrigger = snapshot.rightTrigger / 255.0f;
 
     // ãƒœã‚¿ãƒ³
-    auto btn = ds5InputState.buttonsAndDpad;
+    auto btn = snapshot.buttonsAndDpad;
     if (btn & DS5W_ISTATE_BTX_CROSS)    ctrl.buttons |= ControllerButtons::Cross;
     if (btn & DS5W_ISTATE_BTX_CIRCLE)   ctrl.buttons |= ControllerButtons::Circle;
     if (btn & DS5W_ISTATE_BTX_SQUARE)   ctrl.buttons |= ControllerButtons::Square;
     if (btn & DS5W_ISTATE_BTX_TRIANGLE) ctrl.buttons |= ControllerButtons::Triangle;
 
     // ãƒœã‚¿ãƒ³
-    auto btnA = ds5InputState.buttonsA;
+    auto btnA = snapshot.buttonsA;
     if (btnA & DS5W_ISTATE_BTN_A_LEFT_BUMPER)  ctrl.buttons |= ControllerButtons::L1;
     if (btnA & DS5W_ISTATE_BTN_A_RIGHT_BUMPER) ctrl.buttons |= ControllerButtons::R1;
     if (btnA & DS5W_ISTATE_BTN_A_LEFT_STICK)   ctrl.buttons |= ControllerButtons::L3;
@@ -6008,6 +6103,42 @@ void ControllerSystem::UpdatePS5Input(ControllerComponent& ctrl)
         ctrl.buttons |= ControllerButtons::R2;
 }
 
+//// PS5 å…¥åŠ›
+//void ControllerSystem::UpdatePS5Input(ControllerComponent& ctrl)
+//{
+//    // ã‚¹ãƒ†ã‚£ãƒƒã‚¯
+//    ctrl.leftStickX = ds5InputState.leftStick.x / 127.0f;
+//    ctrl.leftStickY = ds5InputState.leftStick.y / 127.0f;
+//    ctrl.rightStickX = ds5InputState.rightStick.x / 127.0f;
+//    ctrl.rightStickY = ds5InputState.rightStick.y / 127.0f;
+//
+//    // ãƒˆãƒªã‚¬ãƒ¼
+//    ctrl.leftTrigger = ds5InputState.leftTrigger / 255.0f;
+//    ctrl.rightTrigger = ds5InputState.rightTrigger / 255.0f;
+//
+//    // ãƒœã‚¿ãƒ³
+//    auto btn = ds5InputState.buttonsAndDpad;
+//    if (btn & DS5W_ISTATE_BTX_CROSS)    ctrl.buttons |= ControllerButtons::Cross;
+//    if (btn & DS5W_ISTATE_BTX_CIRCLE)   ctrl.buttons |= ControllerButtons::Circle;
+//    if (btn & DS5W_ISTATE_BTX_SQUARE)   ctrl.buttons |= ControllerButtons::Square;
+//    if (btn & DS5W_ISTATE_BTX_TRIANGLE) ctrl.buttons |= ControllerButtons::Triangle;
+//
+//    // ãƒœã‚¿ãƒ³
+//    auto btnA = ds5InputState.buttonsA;
+//    if (btnA & DS5W_ISTATE_BTN_A_LEFT_BUMPER)  ctrl.buttons |= ControllerButtons::L1;
+//    if (btnA & DS5W_ISTATE_BTN_A_RIGHT_BUMPER) ctrl.buttons |= ControllerButtons::R1;
+//    if (btnA & DS5W_ISTATE_BTN_A_LEFT_STICK)   ctrl.buttons |= ControllerButtons::L3;
+//    if (btnA & DS5W_ISTATE_BTN_A_RIGHT_STICK)  ctrl.buttons |= ControllerButtons::R3;
+//    if (btnA & DS5W_ISTATE_BTN_A_SELECT)       ctrl.buttons |= ControllerButtons::Share;
+//    if (btnA & DS5W_ISTATE_BTN_A_MENU)         ctrl.buttons |= ControllerButtons::Options;
+//
+//    // L2/R2 ãƒ‡ã‚¸ã‚¿ãƒ«åˆ¤å®šï¼ˆãƒ’ã‚¹ãƒ†ãƒªã‚·ã‚¹è¾¼ã¿ï¼‰
+//    if (UpdateTriggerDigital(ctrl.leftTrigger, settings.leftTriggerPressThreshold, settings.leftTriggerReleaseThreshold, ctrl.leftTriggerHysteresis))
+//        ctrl.buttons |= ControllerButtons::L2;
+//    if (UpdateTriggerDigital(ctrl.rightTrigger, settings.rightTriggerPressThreshold, settings.rightTriggerReleaseThreshold, ctrl.rightTriggerHysteresis))
+//        ctrl.buttons |= ControllerButtons::R2;
+//}
+
 // ãƒˆãƒªã‚¬ãƒ¼ã®ãƒ’ã‚¹ãƒ†ãƒªã‚·ã‚¹åˆ¤å®š
 bool ControllerSystem::UpdateTriggerDigital(float triggerValue, float pressThreshold, float releaseThreshold, TriggerHysteresisState& state)
 {
@@ -6020,34 +6151,36 @@ bool ControllerSystem::UpdateTriggerDigital(float triggerValue, float pressThres
     return nowHeld;
 }
 
-// PS5 å‡ºåŠ›é€ä¿¡
-void ControllerSystem::SendPS5Output(ControllerComponent& ctrl)
-{
-    DS5W::TriggerEffect newLeft = {};
-    DS5W::TriggerEffect newRight = {};
-
-    ApplyTriggerEffect(newLeft, ctrl.leftTriggerEffect, ctrl.leftTrigger);
-    ApplyTriggerEffect(newRight, ctrl.rightTriggerEffect, ctrl.rightTrigger);
-
-    bool changed =
-        !IsSameTriggerEffect(newLeft, lastLeftEffect) ||
-        !IsSameTriggerEffect(newRight, lastRightEffect);
-
-    // å‰å›ã¨åŒã˜å†…å®¹ãªã‚‰é€ä¿¡ã—ãªã„
-    if (!changed)
-    {
-        return;
-    }
-
-    ds5OutputState = {};
-    ds5OutputState.leftTriggerEffect = newLeft;
-    ds5OutputState.rightTriggerEffect = newRight;
-
-    DS5W::setDeviceOutputState(&ds5Context, &ds5OutputState);
-
-    lastLeftEffect = newLeft;
-    lastRightEffect = newRight;
-}
+//// PS5 å‡ºåŠ›é€ä¿¡
+//void ControllerSystem::SendPS5Output(ControllerComponent& ctrl)
+//{
+//    ZoneScoped;
+//
+//    DS5W::TriggerEffect newLeft = {};
+//    DS5W::TriggerEffect newRight = {};
+//
+//    ApplyTriggerEffect(newLeft, ctrl.leftTriggerEffect, ctrl.leftTrigger);
+//    ApplyTriggerEffect(newRight, ctrl.rightTriggerEffect, ctrl.rightTrigger);
+//
+//    bool changed =
+//        !IsSameTriggerEffect(newLeft, lastLeftEffect) ||
+//        !IsSameTriggerEffect(newRight, lastRightEffect);
+//
+//    // å‰å›ã¨åŒã˜å†…å®¹ãªã‚‰é€ä¿¡ã—ãªã„
+//    if (!changed)
+//    {
+//        return;
+//    }
+//
+//    ds5OutputState = {};
+//    ds5OutputState.leftTriggerEffect = newLeft;
+//    ds5OutputState.rightTriggerEffect = newRight;
+//
+//    DS5W::setDeviceOutputState(&ds5Context, &ds5OutputState);
+//
+//    lastLeftEffect = newLeft;
+//    lastRightEffect = newRight;
+//}
 
 // AdaptiveTrigger::TriggerEffectã‹ã‚‰DS5W::TriggerEffectã¸ã®å¤‰æ›
 void ControllerSystem::ApplyTriggerEffect(DS5W::TriggerEffect& dst, const AdaptiveTrigger::TriggerEffect& src, float currentPosition)
@@ -6095,6 +6228,66 @@ bool ControllerSystem::IsSameTriggerEffect(const DS5W::TriggerEffect& a, const D
     return true;
 }
 
+
+// å°‚ç”¨ã‚¹ãƒ¬ãƒƒãƒ‰ã‚¨ãƒ³ãƒˆãƒªãƒ¼ãƒã‚¤ãƒ³ãƒˆ(PS5ã¨ã®é€šä¿¡ã‚’ç¹°ã‚Šè¿”ã™)
+void ControllerSystem::DS5ThreadFunc()
+{
+    auto lastTime = std::chrono::steady_clock::now();
+
+    while (ds5ThreadRunning)
+    {
+        auto now = std::chrono::steady_clock::now();
+        float dt = std::chrono::duration<float>(now - lastTime).count();
+        lastTime = now;
+
+        if (!ds5Connected)
+        {
+            // æœªæ¥ç¶šã®é–“ã¯ã€ä¸€å®šé–“éš”ã§å†æ¥ç¶šã‚’è©¦ã¿ã‚‹
+            ds5ReconnectTimer += dt;
+            if (ds5ReconnectTimer >= ds5ReconnectInterval)
+            {
+                ds5ReconnectTimer = 0.0f;
+                TryConnectPS5();
+            }
+
+            // æ¥ç¶šã‚’è©¦ã¿ã‚‹ã ã‘ã®é–“ã¯CPUã‚’ç„¡é§„ã«å›ã•ãªã„ã‚ˆã†å°‘ã—å¾…ã¤
+            std::this_thread::sleep_for(std::chrono::milliseconds(16));
+            continue;
+        }
+
+        // å…¥åŠ›èª­ã¿å–ã‚Šï¼ˆã“ã“ã§ãƒ–ãƒ­ãƒƒã‚¯ã—ã¦ã‚‚ã“ã®ã‚¹ãƒ¬ãƒƒãƒ‰ãŒæ­¢ã¾ã‚‹ã ã‘ã€‚ãƒ¡ã‚¤ãƒ³ã‚¹ãƒ¬ãƒƒãƒ‰ã«ã¯å½±éŸ¿ã—ãªã„ï¼‰
+        DS5W::DS5InputState inputState = {};
+        DS5W_ReturnValue rv = DS5W::getDeviceInputState(&ds5Context, &inputState);
+
+        if (DS5W_FAILED(rv))
+        {
+            DS5W::freeDeviceContext(&ds5Context);
+            ds5Connected = false;
+
+            std::lock_guard<std::mutex> lock(ds5Mutex);
+            ds5ConnectedShared = false;
+            continue;
+        }
+
+        // ãƒ¡ã‚¤ãƒ³ã‚¹ãƒ¬ãƒƒãƒ‰ç”¨ã«ã€æœ€æ–°ã®å…¥åŠ›çŠ¶æ…‹ã¨ã€ãƒ¡ã‚¤ãƒ³ã‚¹ãƒ¬ãƒƒãƒ‰ã‹ã‚‰ã®ãƒªã‚¯ã‚¨ã‚¹ãƒˆã‚’æ©‹æ¸¡ã—ã™ã‚‹
+        AdaptiveTrigger::TriggerEffect requestedLeft;
+        AdaptiveTrigger::TriggerEffect requestedRight;
+        {
+            std::lock_guard<std::mutex> lock(ds5Mutex);
+            ds5ConnectedShared = true;
+            ds5InputStateShared = inputState;
+
+            requestedLeft = ds5RequestedLeftEffect;
+            requestedRight = ds5RequestedRightEffect;
+        }
+
+        // ã‚¢ãƒ€ãƒ—ãƒ†ã‚£ãƒ–ãƒˆãƒªã‚¬ãƒ¼ã®å‡ºåŠ›é€ä¿¡
+        float leftPos = inputState.leftTrigger / 255.0f;
+        float rightPos = inputState.rightTrigger / 255.0f;
+        SendPS5Output(requestedLeft, requestedRight, leftPos, rightPos);
+    }
+}
+
 // PS5 æ¥ç¶šè©¦è¡Œ
 void ControllerSystem::TryConnectPS5()
 {
@@ -6113,10 +6306,38 @@ void ControllerSystem::TryConnectPS5()
     }
 }
 
+// PS5 å‡ºåŠ›é€ä¿¡ï¼ˆå°‚ç”¨ã‚¹ãƒ¬ãƒƒãƒ‰ã‹ã‚‰å‘¼ã¶ï¼‰
+void ControllerSystem::SendPS5Output(const AdaptiveTrigger::TriggerEffect& left, const AdaptiveTrigger::TriggerEffect& right, float leftPos, float rightPos)
+{
+    DS5W::TriggerEffect newLeft = {};
+    DS5W::TriggerEffect newRight = {};
+
+    ApplyTriggerEffect(newLeft, left, leftPos);
+    ApplyTriggerEffect(newRight, right, rightPos);
+
+    bool changed =
+        !IsSameTriggerEffect(newLeft, lastLeftEffect) ||
+        !IsSameTriggerEffect(newRight, lastRightEffect);
+
+    if (!changed)
+    {
+        return;
+    }
+
+    ds5OutputState = {};
+    ds5OutputState.leftTriggerEffect = newLeft;
+    ds5OutputState.rightTriggerEffect = newRight;
+
+    DS5W::setDeviceOutputState(&ds5Context, &ds5OutputState);
+
+    lastLeftEffect = newLeft;
+    lastRightEffect = newRight;
+}
+
  
  
 ===== DebugCameraSystem.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\DebugCameraSystem.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\DebugCameraSystem.cpp 
 #include "DebugCameraSystem.h"
 #include <imgui.h>
 #include <algorithm>
@@ -6262,7 +6483,7 @@ void DebugCameraSystem::UpdateFreeCamera(FreeCameraComponent& free, float elapse
 } 
  
 ===== IKSystem.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\IKSystem.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\IKSystem.cpp 
 #include "IKSystem.h"
 #include "Engine/ECS/Systems/TwoBoneIKSolver.h"
 #include "Engine/Resource/SkeletonUtils.h"
@@ -6432,7 +6653,7 @@ void IKSystem::SolveFootIK(FootIKSettings& footSettings, SkinnedMeshComponent& s
 } 
  
 ===== MeshLoaderSystem.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\MeshLoaderSystem.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\MeshLoaderSystem.cpp 
 #include "MeshLoaderSystem.h"
 
 void MeshLoaderSystem::Update(
@@ -6516,7 +6737,7 @@ void MeshLoaderSystem::Update(
 } 
  
 ===== MovementSystem.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\MovementSystem.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\MovementSystem.cpp 
 #include "MovementSystem.h"
 
 #include "Project/ECS/Components/GameInputComponent.h"
@@ -6569,7 +6790,7 @@ void MovementSystem::Update(entt::registry& registry, float elapsedTime, const S
  
  
 ===== PhysicsSystem.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\PhysicsSystem.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\PhysicsSystem.cpp 
 #include "PhysicsSystem.h"
 #include "Engine/Core/PhysicsDestroyQueue.h"
 #include "Engine/Core/PhysicsLayer.h"
@@ -6857,7 +7078,7 @@ void PhysicsSystem::ProcessCharacterControllers(entt::registry& registry, PhysX&
  
  
 ===== RenderSystem.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\RenderSystem.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\RenderSystem.cpp 
 ï»¿#include "RenderSystem.h"
 #include "Engine/Resource/GpuResourceUtils.h"
 #include "Engine/Utility/misc.h"
@@ -7471,7 +7692,7 @@ void RenderSystem::ForwardTransparentPass(
  
  
 ===== SequencerSystem.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\SequencerSystem.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\SequencerSystem.cpp 
 #include "SequencerSystem.h"
 #include "Engine/ECS/Components/SkinnedMeshComponent.h"
 #include "Engine/ECS/Components/AnimatorComponent.h"
@@ -7567,7 +7788,7 @@ void SequencerSystem::Update(entt::registry& registry)
 } 
  
 ===== StateGraphUtils.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\StateGraphUtils.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\StateGraphUtils.cpp 
 #include "StateGraphUtils.h"
 
 namespace StateGraphUtils
@@ -7583,7 +7804,7 @@ namespace StateGraphUtils
 } 
  
 ===== TransitionControllerSystem.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\TransitionControllerSystem.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\TransitionControllerSystem.cpp 
 #include "TransitionControllerSystem.h"
 #include "Engine/ECS/Components/AnimatorComponent.h"
 #include "Engine/ECS/Components/StateComponent.h"
@@ -7646,7 +7867,7 @@ int TransitionControllerSystem::FindTransition(const std::vector<TransitionLink>
  
  
 ===== TwoBoneIKSolver.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\TwoBoneIKSolver.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\TwoBoneIKSolver.cpp 
 #include "TwoBoneIKSolver.h"
 #include <algorithm>
 #include <cmath>
@@ -7826,7 +8047,7 @@ namespace TwoBoneIKSolver
 } 
  
 ===== GBuffer.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Rendering\GBuffer.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Rendering\GBuffer.h 
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
@@ -7866,7 +8087,7 @@ private:
 }; 
  
 ===== LightManager.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Rendering\LightManager.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Rendering\LightManager.h 
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
@@ -7934,7 +8155,7 @@ private:
 }; 
  
 ===== PhysicsDebugRenderer.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Rendering\PhysicsDebugRenderer.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Rendering\PhysicsDebugRenderer.h 
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
@@ -7988,7 +8209,7 @@ private:
 }; 
  
 ===== PrimitiveRenderer.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Rendering\PrimitiveRenderer.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Rendering\PrimitiveRenderer.h 
 #pragma once
 #include <vector>
 #include <wrl.h>
@@ -8034,7 +8255,7 @@ private:
 }; 
  
 ===== ShapeRenderer.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Rendering\ShapeRenderer.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Rendering\ShapeRenderer.h 
 #pragma once
 #include <vector>
 #include <wrl.h>
@@ -8192,7 +8413,7 @@ private:
 }; 
  
 ===== SkyBox.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Rendering\SkyBox.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Rendering\SkyBox.h 
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
@@ -8261,7 +8482,7 @@ private:
 }; 
  
 ===== GBuffer.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Rendering\GBuffer.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Rendering\GBuffer.cpp 
 #include "GBuffer.h"
 #include "Engine/Utility/misc.h"
 
@@ -8343,7 +8564,7 @@ void GBuffer::EndGeometryPass(ID3D11DeviceContext* dc)
 } 
  
 ===== LightManager.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Rendering\LightManager.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Rendering\LightManager.cpp 
 #include "LightManager.h"
 #include "Engine/Resource/GpuResourceUtils.h"
 #include "Engine/Utility/misc.h"
@@ -8431,7 +8652,7 @@ void LightManager::Bind(ID3D11DeviceContext* dc)
  
  
 ===== PhysicsDebugRenderer.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Rendering\PhysicsDebugRenderer.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Rendering\PhysicsDebugRenderer.cpp 
 #include "PhysicsDebugRenderer.h"
 #include "Engine/ECS/Systems/PhysicsSystem.h"
 #include <string>
@@ -8786,7 +9007,7 @@ PhysicsDebugRenderer::GetOrCreateTriangleMeshCache(
 } 
  
 ===== PrimitiveRenderer.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Rendering\PrimitiveRenderer.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Rendering\PrimitiveRenderer.cpp 
 #include "PrimitiveRenderer.h"
 #include "Engine/Resource/GpuResourceUtils.h"
 
@@ -8878,7 +9099,7 @@ void PrimitiveRenderer::Render(
 } 
  
 ===== ShapeRenderer.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Rendering\ShapeRenderer.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Rendering\ShapeRenderer.cpp 
 #include "ShapeRenderer.h"
 #include "Engine/Resource/GpuResourceUtils.h"
 #include <algorithm>
@@ -9450,7 +9671,7 @@ void ShapeRenderer::CreateSolidCylinderMesh(ID3D11Device* device, int subdivisio
  
  
 ===== SkyBox.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Rendering\SkyBox.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Rendering\SkyBox.cpp 
 #include "SkyBox.h"
 #include "Engine/Resource/GpuResourceUtils.h"
 #include "Engine/Utility/misc.h"
@@ -9627,8 +9848,30 @@ void SkyBox::Render(
 }
  
  
+===== EntitySerializer.h ===== 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Resource\EntitySerializer.h 
+#pragma once
+#include "entt.hpp"
+#include <json.hpp>
+
+class EntitySerializer
+{
+public:
+	// Entity1‚Â‚ğAƒRƒ“ƒ|[ƒlƒ“ƒg–¼‚ğƒL[‚É‚µ‚½JSON‚Ö•ÏŠ·‚·‚é
+	static nlohmann::json SerializeEntity(entt::registry& registry, entt::entity e);
+
+	// JSON‚Ì“à—e‚ğAEntity‚Ö”½‰f‚·‚é(ƒRƒ“ƒ|[ƒlƒ“ƒg‚ğ•t—^‚µAƒtƒB[ƒ‹ƒh‚ğ‘‚«–ß‚·)
+	static void DeserializeEntity(entt::registry& registry, entt::entity e, const nlohmann::json& data);
+
+private:
+	// entt::meta_any 1‚Â•ª‚ÌƒtƒB[ƒ‹ƒh’l‚ğAJSON‚Ö•ÏŠ·‚·‚é
+	static nlohmann::json SerializeMetaAny(entt::meta_any& value);
+	// JSON‚Ì’l‚ğAentt::metaŒo—R‚ÅƒtƒB[ƒ‹ƒh‚Ö‘‚«–ß‚·
+	static void DeserializeMetaAny(entt::meta_data metaData, entt::meta_any& instance, const nlohmann::json& value);
+}; 
+ 
 ===== GLTFConverter.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Resource\GLTFConverter.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Resource\GLTFConverter.h 
 #pragma once
 #include <memory>
 #include <d3d11.h>
@@ -9677,7 +9920,7 @@ private:
 }; 
  
 ===== GLTFData.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Resource\GLTFData.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Resource\GLTFData.h 
 #pragma once
 #include <string>
 #include <vector>
@@ -9794,7 +10037,7 @@ struct GLTFData
 }; 
  
 ===== GLTFImporter.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Resource\GLTFImporter.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Resource\GLTFImporter.h 
 #pragma once
 #include <memory>
 #include <string>
@@ -9870,7 +10113,7 @@ private:
 }; 
  
 ===== GpuResourceUtils.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Resource\GpuResourceUtils.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Resource\GpuResourceUtils.h 
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
@@ -9948,7 +10191,7 @@ public:
 }; 
  
 ===== Model.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Resource\Model.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Resource\Model.h 
 #pragma once
 
 #include <string>
@@ -10130,7 +10373,7 @@ private:
 }; 
  
 ===== ModelSerializer.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Resource\ModelSerializer.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Resource\ModelSerializer.h 
 #pragma once
 #include <memory>
 #include <string>
@@ -10161,7 +10404,7 @@ public:
 }; 
  
 ===== ResourceManager.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Resource\ResourceManager.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Resource\ResourceManager.h 
 #pragma once
 #include <string>
 #include <memory>
@@ -10200,7 +10443,7 @@ private:
 }; 
  
 ===== SkeletonUtils.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Resource\SkeletonUtils.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Resource\SkeletonUtils.h 
 #pragma once
 #include <vector>
 #include <DirectXMath.h>
@@ -10224,8 +10467,119 @@ namespace SkeletonUtils
 		std::vector<std::vector<DirectX::XMFLOAT4X4>>& outBoneTransforms);
 } 
  
+===== EntitySerializer.cpp ===== 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Resource\EntitySerializer.cpp 
+#include "EntitySerializer.h"
+#include "Tool/Editor/ComponentRegistry.h"
+#include <DirectXMath.h>
+
+nlohmann::json EntitySerializer::SerializeEntity(entt::registry& registry, entt::entity e)
+{
+	nlohmann::json result = nlohmann::json::object();
+
+	for (const auto& name : ComponentRegistry::GetNames())
+	{
+		const ComponentInfo* info = ComponentRegistry::Get(name);
+		if (!info || !info->has(registry, e)) continue;
+		if (!info->getMeta) continue; // entt::meta‚É–¢“o˜^‚ÌƒRƒ“ƒ|[ƒlƒ“ƒg‚ÍƒXƒLƒbƒv
+
+		entt::meta_any instance = info->getMeta(registry, e);
+		if (!instance) continue;
+
+		entt::meta_type metaType = instance.type();
+		nlohmann::json fields = nlohmann::json::object();
+
+		for (auto&& [id, metaData] : metaType.data())
+		{
+			std::string fieldName(metaData.name());
+			entt::meta_any value = metaData.get(instance);
+			fields[fieldName] = SerializeMetaAny(value);
+		}
+
+		result[name] = fields;
+	}
+
+	return result;
+}
+
+nlohmann::json EntitySerializer::SerializeMetaAny(entt::meta_any& value)
+{
+	if (float* f = value.try_cast<float>()) return *f;
+	if (int* i = value.try_cast<int>()) return *i;
+	if (bool* b = value.try_cast<bool>()) return *b;
+	if (std::string* s = value.try_cast<std::string>()) return *s;
+
+	if (DirectX::XMFLOAT2* v = value.try_cast<DirectX::XMFLOAT2>())
+		return nlohmann::json::array({ v->x, v->y });
+	if (DirectX::XMFLOAT3* v = value.try_cast<DirectX::XMFLOAT3>())
+		return nlohmann::json::array({ v->x, v->y, v->z });
+	if (DirectX::XMFLOAT4* v = value.try_cast<DirectX::XMFLOAT4>())
+		return nlohmann::json::array({ v->x, v->y, v->z, v->w });
+
+	return nullptr; // ‘Î‰‚µ‚Ä‚¢‚È‚¢Œ^
+}
+
+void EntitySerializer::DeserializeEntity(entt::registry& registry, entt::entity e, const nlohmann::json& data)
+{
+	for (auto& [name, fields] : data.items())
+	{
+		const ComponentInfo* info = ComponentRegistry::Get(name);
+		if (!info) continue; // ¡‚Í‘¶İ‚µ‚È‚¢ƒRƒ“ƒ|[ƒlƒ“ƒg–¼‚Í–³‹(íœ‚³‚ê‚½ƒRƒ“ƒ|[ƒlƒ“ƒg‘Îô)
+
+		info->add(registry, e); // –³‚¯‚ê‚Î•t—^
+		if (!info->getMeta) continue;
+
+		entt::meta_any instance = info->getMeta(registry, e);
+		if (!instance) continue;
+
+		entt::meta_type metaType = instance.type();
+
+		for (auto&& [id, metaData] : metaType.data())
+		{
+			std::string fieldName(metaData.name());
+			if (!fields.contains(fieldName)) continue; // JSON‚É–³‚¢ƒtƒB[ƒ‹ƒh‚Í‰Šú’l‚Ì‚Ü‚Ü(–³‹)
+
+			DeserializeMetaAny(metaData, instance, fields[fieldName]);
+		}
+	}
+}
+
+void EntitySerializer::DeserializeMetaAny(entt::meta_data metaData, entt::meta_any& instance, const nlohmann::json& value)
+{
+	entt::meta_any current = metaData.get(instance);
+
+	if (current.try_cast<float>() && value.is_number())
+	{
+		metaData.set(instance, value.get<float>());
+	}
+	else if (current.try_cast<int>() && value.is_number_integer())
+	{
+		metaData.set(instance, value.get<int>());
+	}
+	else if (current.try_cast<bool>() && value.is_boolean())
+	{
+		metaData.set(instance, value.get<bool>());
+	}
+	else if (current.try_cast<std::string>() && value.is_string())
+	{
+		metaData.set(instance, value.get<std::string>());
+	}
+	else if (current.try_cast<DirectX::XMFLOAT2>() && value.is_array() && value.size() == 2)
+	{
+		metaData.set(instance, DirectX::XMFLOAT2{ value[0].get<float>(), value[1].get<float>() });
+	}
+	else if (current.try_cast<DirectX::XMFLOAT3>() && value.is_array() && value.size() == 3)
+	{
+		metaData.set(instance, DirectX::XMFLOAT3{ value[0].get<float>(), value[1].get<float>(), value[2].get<float>() });
+	}
+	else if (current.try_cast<DirectX::XMFLOAT4>() && value.is_array() && value.size() == 4)
+	{
+		metaData.set(instance, DirectX::XMFLOAT4{ value[0].get<float>(), value[1].get<float>(), value[2].get<float>(), value[3].get<float>() });
+	}
+} 
+ 
 ===== GLTFConverter.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Resource\GLTFConverter.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Resource\GLTFConverter.cpp 
 #include "GLTFConverter.h"
 #include "GpuResourceUtils.h"
 #include "Engine/Utility/misc.h"
@@ -10598,7 +10952,7 @@ void GLTFConverter::ConvertAnimations(
  
  
 ===== GLTFImporter.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Resource\GLTFImporter.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Resource\GLTFImporter.cpp 
 #include "GLTFImporter.h"
 #include "Engine/Utility/misc.h"
 #include <filesystem>
@@ -11413,7 +11767,7 @@ void GLTFImporter::CalcGlobalTransform(
  
  
 ===== GpuResourceUtils.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Resource\GpuResourceUtils.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Resource\GpuResourceUtils.cpp 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 #include "GpuResourceUtils.h"
@@ -11735,7 +12089,7 @@ HRESULT GpuResourceUtils::CreateConstantBuffer(
  
  
 ===== Model.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Resource\Model.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Resource\Model.cpp 
 #include "Model.h"
 
 // “ü—ÍƒŒƒCƒAƒEƒg’è‹`
@@ -11750,7 +12104,7 @@ const std::vector<D3D11_INPUT_ELEMENT_DESC> Model::InputElementDescs =
 }; 
  
 ===== ModelSerializer.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Resource\ModelSerializer.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Resource\ModelSerializer.cpp 
 #include "ModelSerializer.h"
 #include "Model.h"
 #include "Engine/Utility/CerealHelper.h"
@@ -11910,7 +12264,7 @@ std::string ModelSerializer::ToCerealPath(const std::string& gltfPath)
 } 
  
 ===== ResourceManager.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Resource\ResourceManager.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Resource\ResourceManager.cpp 
 #include "ResourceManager.h"
 #include "GLTFImporter.h"
 #include "GLTFConverter.h" 
@@ -11971,7 +12325,7 @@ void ResourceManager::ReleaseAll()
  
  
 ===== SkeletonUtils.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Resource\SkeletonUtils.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Resource\SkeletonUtils.cpp 
 #include "SkeletonUtils.h"
 #include <functional>
 
@@ -12066,7 +12420,7 @@ namespace SkeletonUtils
 } 
  
 ===== CerealHelper.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Utility\CerealHelper.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Utility\CerealHelper.h 
 #pragma once
 #include <DirectXMath.h>
 
@@ -12100,7 +12454,7 @@ namespace DirectX
 } 
  
 ===== high_resolution_timer.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Utility\high_resolution_timer.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Utility\high_resolution_timer.h 
 #pragma once
 
 #include <windows.h>
@@ -12239,7 +12593,7 @@ private:
  
  
 ===== misc.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Utility\misc.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Utility\misc.h 
 #pragma once
 
 #include <windows.h>
@@ -12303,7 +12657,7 @@ public:
  
  
 ===== CerealHelper.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Utility\CerealHelper.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Utility\CerealHelper.cpp 
 #include "CerealHelper.h"
 #include <cereal/archives/binary.hpp>
 
@@ -12384,7 +12738,7 @@ namespace DirectX
 } 
  
 ===== GameCameraComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Project\ECS\Components\GameCameraComponent.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Components\GameCameraComponent.h 
 #pragma once
 #include <DirectXMath.h>
 #include "entt.hpp"
@@ -12393,47 +12747,96 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Project\ECS\Components\GameCam
 // ƒJƒƒ‰‚Ìí—Ş
 enum class Mode
 {
-    Follow, // ’Ç]ƒJƒƒ‰
-    LookAt, // ’‹ƒJƒƒ‰
+	Follow, // ’Ç]ƒJƒƒ‰
+	LookAt, // ’‹ƒJƒƒ‰
+};
+// ’‹ƒJƒƒ‰‚Ì‹——£ó‘Ô
+enum class LockOnRangeState
+{
+	Near, // ‹ß‹——£F‚­‚Ìš
+	Far,  // ‰“‹——£Fc•À‚Ñ
 };
 
 // ƒQ[ƒ€ƒJƒƒ‰ƒRƒ“ƒ|[ƒlƒ“ƒg
 struct GameCameraComponent
 {
-    // ƒJƒƒ‰‚Ì‹¤’Êƒf[ƒ^ieye, targetj
-    BaseCameraComponent base;  
+	// ƒJƒƒ‰‚Ì‹¤’Êƒf[ƒ^ieye, targetj
+	BaseCameraComponent base;
 
 	// ƒJƒƒ‰‚Ìí—Ş
-    Mode mode = Mode::Follow;
+	Mode mode = Mode::Follow;
+	// ’‹ƒJƒƒ‰‚Ì‹——£ó‘Ô
+	LockOnRangeState lockOnRange = LockOnRangeState::Near;
 
-    // ’Ç]‘ÎÛ‚Ì Entity
-    entt::entity followTarget = entt::null;
+	// ’Ç]‘ÎÛ‚Ì Entity
+	entt::entity followTarget = entt::null;
 	// ’‹‘ÎÛ‚Ì Entity
 	entt::entity lookAtTarget = entt::null;
 
-    // ƒpƒ‰ƒ[ƒ^
+	// ƒpƒ‰ƒ[ƒ^
 	float yaw = 0.0f;          // ƒJƒƒ‰‚Ì‰ñ“]Šp“x
 	float pitch = 0.3f;        // ƒJƒƒ‰‚Ìã‰ºŠp“x
 
-	// ’Ç]ƒJƒƒ‰‚Ìƒpƒ‰ƒ[ƒ^[
-	float followCameraDistance   = 4.4f;  // ’Ç]ƒJƒƒ‰‚Ì‹——£
-	float followCameraHeight     = 1.7f;  // ’Ç]ƒJƒƒ‰‚Ì‚‚³
-	float followCameraTargetYUp  = 1.6f;  // ’‹“_‚ÌƒIƒtƒZƒbƒg(Y)
-	float followCameraEyeSpeedRatio    = 6.0f;  //  eye   ‚Ì’Ç]‘¬“x”ä—¦
-	float followCameraTargetSpeedRatio = 12.0f; // target ‚Ì’Ç]‘¬“x”ä—¦
 
+	// ’Ç]ƒJƒƒ‰‚Ìƒpƒ‰ƒ[ƒ^[
+	float followCameraDistance = 4.4f;   // ƒJƒƒ‰‚Ì‹——£
+	float followCameraHeight = 1.7f;     // ƒJƒƒ‰‚Ì‚‚³
+	float followCameraTargetYUp = 1.6f;  // ’‹“_‚ÌƒIƒtƒZƒbƒg(Y)
+	float followCameraEyeSpeedRatio = 12.0f;    // eye‚Ì’Ç]‘¬“x”ä—¦
+	float followCameraTargetSpeedRatio = 24.0f; // target’Ç]‘¬“x”ä—¦
+
+
+	// ’‹ƒJƒƒ‰‚Ìƒpƒ‰ƒ[ƒ^[
+	float lockOnCameraEyeSpeedRatio = 12.0f;    // eye‚Ì’Ç]‘¬“x”ä—¦
+	float lockOnCameraTargetSpeedRatio = 15.0f; // target’Ç]‘¬“x”ä—¦
+
+	// ‹ß‹——£ / ‰“‹——£ Ø‚è‘Ö‚¦‚Ì‹——£‚µ‚«‚¢’l
+	float lockOnRangeSwitchDistance = 10.0f;
+
+	// ‹ß‹——£‚ÌƒJƒƒ‰ƒpƒ‰ƒ[ƒ^[
+	float lockOnNearCameraDistance = 6.0f;   // ƒJƒƒ‰‚Ì‹——£
+	float lockOnNearCameraHeight = 3.0f;     // ƒJƒƒ‰‚Ì‚‚³
+	float lockOnNearCameraTargetYUp = 2.0f;  // ’‹“_‚ÌƒIƒtƒZƒbƒg(Y)
+	float lockOnNearAngleOffsetMax = 30.0f;  // Enemy‚ÉÅ‚à‹ß‚Ã‚¢‚½‚ÌAƒfƒtƒHƒ‹ƒgŠp“x‚ÌƒYƒŒ
+
+	float lockOnSide = 1.0f;                 // +1=‰E -1=¶
+	float lockOnSideSwitchThreshold = 0.35f; // ‚±‚ÌŠp“x‚ğ’´‚¦‚Ä“|‚·‚ÆŒü‚«‚ªØ‚è‘Ö‚í‚é
+
+	float lockOnSideSmooth = 1.0f;           // lockOnSide‚ÖAlerp‚Å‚È‚ß‚ç‚©‚É’Ç]‚·‚é’l
+	float lockOnSideSmoothSpeed = 2.0f;      // 1ƒtƒŒ[ƒ€‚Åk‚ß‚éŠ„‡‚Ì–ÚˆÀ’l
+
+	// ‰“‹——£‚ÌƒJƒƒ‰ƒpƒ‰ƒ[ƒ^[
+	float lockOnFarCameraDistance = 6.0f;  // ƒJƒƒ‰‚Ì‹——£
+	float lockOnFarCameraHeight = 3.0f;    // ƒJƒƒ‰‚Ì‚‚³
+	float lockOnFarCameraTargetYUp = 2.0f; // ’‹“_‚ÌƒIƒtƒZƒbƒg(Y)
+
+
+	// ‰~‚Ì’†S
+	float lockOnCenterRatio = 0.25f;          // Player‚©‚çEnemy‚ÌˆÂ•ª”ä—¦
+	float lockOnFarCenterMaxDistance = 1.2f;  // Player‚©‚ç‚ÌŒÅ’è‹——£‚ÌãŒÀ(‰“‹——£)
+	float lockOnTargetCircleRadiusMax = 3.0f; // target‰~‚Ì”¼Œa‚ÌãŒÀ
+	
+	// ‰~üã‚ÌŠp“x(…•½)
+	float lockOnOrbitAngle = 0.0f;
+	float lockOnOrbitRotateSpeed = 2.0f; // ƒXƒeƒBƒbƒN‚Å‚Ì‰ñ“]‘¬“x
+	// ‰~üã‚ÌŠp“x(ã‰º)
+	float lockOnOrbitPitch = 0.0f;
+	float lockOnOrbitPitchRotateSpeed = 2.0f; // ƒXƒeƒBƒbƒN‚Å‚Ìã‰º‰ñ“]‘¬“x
+	
+	// ƒXƒeƒBƒbƒN“ü—Í‚Ì‚È‚¢‚É–ß‚·—Í
+	float lockOnOrbitReturnSpeed = 2.0f;
 
 	// Œ¸Š‚Î‚Ë—pƒpƒ‰ƒ[ƒ^[(ƒJƒƒ‰‚Ì‘¬“x)
 	DirectX::XMFLOAT3 eyeVelocity = {};    // currentEye‚ÌŒ»İ‚Ì‘¬“x
 	DirectX::XMFLOAT3 targetVelocity = {}; // currentTarget‚ÌŒ»İ‚Ì‘¬“x
 
-	// Œ¸Š‚Î‚Ë—pƒpƒ‰ƒ[ƒ^[(eye)
+	// Œ¸Š‚Î‚Ë—pƒpƒ‰ƒ[ƒ^[(eye)  
 	float eyeSpringStiffness = 200.0f; // ƒoƒl‚Ì‹­‚³i‘å‚«‚¢‚Ù‚Ç‘¬‚­”½‰‚·‚éj
 	float eyeSpringDamping = 20.0f;    // Œ¸Ši¬‚³‚¢‚Ù‚ÇƒI[ƒo[ƒVƒ…[ƒg‚ª‘å‚«‚­A—h‚ê‚ª’·‚­‘±‚­j
 }; 
  
 ===== GameInputComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Project\ECS\Components\GameInputComponent.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Components\GameInputComponent.h 
 #pragma once
 
 // ƒXƒeƒBƒbƒN‚Ìó‘Ô
@@ -12487,7 +12890,7 @@ struct GameInputComponent
  
  
 ===== PlayerDodgeComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Project\ECS\Components\PlayerDodgeComponent.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Components\PlayerDodgeComponent.h 
 #pragma once
 
 enum class PlayerDodgeSubState
@@ -12523,7 +12926,7 @@ struct PlayerDodgeComponent
 }; 
  
 ===== PlayerIdleComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Project\ECS\Components\PlayerIdleComponent.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Components\PlayerIdleComponent.h 
 #pragma once
 
 enum class PlayerIdleSubState
@@ -12545,7 +12948,7 @@ struct PlayerIdleComponent
 }; 
  
 ===== PlayerMoveComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Project\ECS\Components\PlayerMoveComponent.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Components\PlayerMoveComponent.h 
 #pragma once
 
 enum class PlayerMoveSubState
@@ -12579,7 +12982,7 @@ struct PlayerMoveComponent
 }; 
  
 ===== PlayerSprintComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Project\ECS\Components\PlayerSprintComponent.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Components\PlayerSprintComponent.h 
 #pragma once
 
 enum class PlayerSprintSubState
@@ -12603,7 +13006,7 @@ struct PlayerSprintComponent
 }; 
  
 ===== GameCameraSystem.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Project\ECS\Systems\GameCameraSystem.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Systems\GameCameraSystem.h 
 #pragma once
 #include "entt.hpp"
 #include "Engine/Core/Camera.h"
@@ -12611,16 +13014,30 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Project\ECS\Systems\GameCamera
 #include "Engine/ECS/Components/TransformComponent.h"
 #include "Project/ECS/Components/GameInputComponent.h"
 
+#include "Engine/Rendering/ShapeRenderer.h"
+
 class GameCameraSystem
 {
 public:
+    void Initialize(ID3D11Device* device);
+
     // ƒQ[ƒ€ƒJƒƒ‰‚ÌXV
     void Update(entt::registry& registry, float elapsedTime);
 
     // Camera ƒNƒ‰ƒX‚ÉŒ‹‰Ê‚ğ”½‰f
     void ApplyToCamera(entt::registry& registry, Camera& camera);
 
+    // ƒfƒoƒbƒO•`‰æ
+    void DrawDebug(
+        entt::registry& registry,
+        ID3D11DeviceContext* dc,
+        const DirectX::XMFLOAT4X4& view,
+        const DirectX::XMFLOAT4X4& projection,
+        const DirectX::XMFLOAT3& lightDirection);
+
 private:
+    ShapeRenderer shapeRenderer;
+
     // FollowƒJƒƒ‰‚ÌXV
     void UpdateFollowTarget(GameCameraComponent& cam, const TransformComponent& followTransform, float elapsedTime);
 	// Follow—p‚ÌcurrentEyeŒvZ
@@ -12633,7 +13050,7 @@ private:
 }; 
  
 ===== GameInputSystem.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Project\ECS\Systems\GameInputSystem.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Systems\GameInputSystem.h 
 #pragma once
 #include "entt.hpp"
 #include "Project/ECS/Components/GameInputComponent.h"
@@ -12667,7 +13084,7 @@ private:
 }; 
  
 ===== PlayerDodgeSystem.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Project\ECS\Systems\PlayerDodgeSystem.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Systems\PlayerDodgeSystem.h 
 #pragma once
 #include "entt.hpp"
 #include "Engine/Core/SceneContext.h"
@@ -12686,7 +13103,7 @@ private:
 }; 
  
 ===== PlayerIdleSystem.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Project\ECS\Systems\PlayerIdleSystem.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Systems\PlayerIdleSystem.h 
 #pragma once
 #include "entt.hpp"
 #include "Engine/Core/SceneContext.h"
@@ -12705,7 +13122,7 @@ private:
 }; 
  
 ===== PlayerMovementUtils.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Project\ECS\Systems\PlayerMovementUtils.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Systems\PlayerMovementUtils.h 
 #pragma once
 #include <DirectXMath.h>
 
@@ -12742,7 +13159,7 @@ namespace PlayerMovementUtils
 } 
  
 ===== PlayerMoveSystem.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Project\ECS\Systems\PlayerMoveSystem.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Systems\PlayerMoveSystem.h 
 #pragma once
 #include "entt.hpp"
 #include "Engine/Core/SceneContext.h"
@@ -12761,7 +13178,7 @@ private:
 }; 
  
 ===== PlayerSprintSystem.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Project\ECS\Systems\PlayerSprintSystem.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Systems\PlayerSprintSystem.h 
 #pragma once
 #include "entt.hpp"
 #include "Engine/Core/SceneContext.h"
@@ -12780,24 +13197,37 @@ private:
 }; 
  
 ===== GameCameraSystem.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Project\ECS\Systems\GameCameraSystem.cpp 
-#include "GameCameraSystem.h"
+Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Systems\GameCameraSystem.cpp 
+ï»¿#include "GameCameraSystem.h"
+#include "Engine/ECS/EntityFinder.h"
+
 #include <algorithm>
+
+void GameCameraSystem::Initialize(ID3D11Device* device)
+{
+	shapeRenderer = ShapeRenderer(device);
+}
 
 void GameCameraSystem::Update(entt::registry& registry, float elapsedTime)
 {
 	auto view = registry.view<GameCameraComponent, TransformComponent>();
 	view.each([&](auto entity, GameCameraComponent& cam, TransformComponent& transform)
 		{
-			// ’Ç]‘ÎÛ‚ª–¢İ’è‚È‚ç‰½‚às‚í‚È‚¢
-			if (cam.followTarget == entt::null) return;    
-			if (!registry.valid(cam.followTarget)) return;  
+			// è¿½å¾“å¯¾è±¡ãŒæœªè¨­å®šãªã‚‰ Playerå±æ€§ ã‚’æŒã¤Entityã‚’è¦‹ã¤ã‘ã‚‹ã¾ã§æ¢ã™
+			if (cam.followTarget == entt::null)
+			{
+				cam.followTarget = FindFirstByCategory(registry, EntityCategory::Player);
+			}
 
-			// ’Ç]‘ÎÛ‚ÌTransformComponent‚ğæ“¾A‚È‚¯‚ê‚Î‰½‚às‚í‚È‚¢
+			// ãã‚Œã§ã‚‚è¦‹ã¤ã‹ã‚‰ãªã‘ã‚Œã°ã€ä½•ã‚‚è¡Œã‚ãªã„
+			if (cam.followTarget == entt::null) return;
+			if (!registry.valid(cam.followTarget)) return;
+
+			// è¿½å¾“å¯¾è±¡ã®TransformComponentã‚’å–å¾—ã€ãªã‘ã‚Œã°ä½•ã‚‚è¡Œã‚ãªã„
 			auto* followTransform = registry.try_get<TransformComponent>(cam.followTarget);
 			if (!followTransform) return;
 
-			// ‰‰ñ‚¾‚¯ currentEye / currentTarget ‚ğ‘¦À‚Éİ’è
+			// åˆå›ã ã‘ currentEye / currentTarget ã‚’å³åº§ã«è¨­å®š
 			if (cam.base.currentEye.x == 0.0f && 
 				cam.base.currentEye.y == 0.0f &&
 				cam.base.currentEye.z == 0.0f)
@@ -12811,44 +13241,140 @@ void GameCameraSystem::Update(entt::registry& registry, float elapsedTime)
 				};
 			}
 
-			// InputComponent ‚©‚çƒJƒƒ‰‘€ì“ü—Í‚ğæ“¾
+			// InputComponent ã‹ã‚‰ã‚«ãƒ¡ãƒ©æ“ä½œå…¥åŠ›ã‚’å–å¾—
 			auto* input = registry.try_get<GameInputComponent>(cam.followTarget);
 			if (input)
 			{
-				const float rotSpeed = 2.0f;
-				cam.yaw += input->cameraStick.x * rotSpeed * elapsedTime;   // ¶‰EƒXƒeƒBƒbƒN‚ÅƒJƒƒ‰‰ñ“]
-				cam.pitch += input->cameraStick.y * rotSpeed * elapsedTime; // ã‰ºƒXƒeƒBƒbƒN‚ÅƒJƒƒ‰ã‰ºŠp“x
-				cam.pitch = std::clamp(cam.pitch, -0.8f, 1.0f); // ã‰ºŠp“x‚Ì§ŒÀ
+				if (cam.mode == Mode::Follow)
+				{
+					// Follow ã‚«ãƒ¡ãƒ©
+					const float rotSpeed = 2.0f;
+					cam.yaw += input->cameraStick.x * rotSpeed * elapsedTime;   // ã‚¹ãƒ†ã‚£ãƒƒã‚¯å·¦å³ã§ã‚«ãƒ¡ãƒ©å›è»¢
+					cam.pitch += input->cameraStick.y * rotSpeed * elapsedTime; // ã‚¹ãƒ†ã‚£ãƒƒã‚¯ä¸Šä¸‹ã§ã‚«ãƒ¡ãƒ©ä¸Šä¸‹è§’åº¦
+					cam.pitch = std::clamp(cam.pitch, -0.8f, 1.0f); // ä¸Šä¸‹è§’åº¦ã®åˆ¶é™
+				}
+				else // LockOn ã‚«ãƒ¡ãƒ©
+				{
+					// ã‚¹ãƒ†ã‚£ãƒƒã‚¯å…¥åŠ›æœ‰
+					if (input->cameraStick.hasInput)
+					{
+						// ã‚¹ãƒ†ã‚£ãƒƒã‚¯å·¦å³ã§ã‚«ãƒ¡ãƒ©å›è»¢
+						cam.lockOnOrbitAngle -= input->cameraStick.x * cam.lockOnOrbitRotateSpeed * elapsedTime;
+						cam.lockOnOrbitPitch += input->cameraStick.y * cam.lockOnOrbitPitchRotateSpeed * elapsedTime;
+					}
+					else // ã‚¹ãƒ†ã‚£ãƒƒã‚¯å…¥åŠ›ç„¡
+					{
+						// æˆ»ã‚‹å¼·ã•ã®å€ç‡ã€Enemyã«è¿‘ã„ã»ã©å¼±ãã™ã‚‹
+						float returnScale = 1.0f;
+						if (registry.valid(cam.lookAtTarget))
+						{
+							DirectX::XMFLOAT3 enemyPos = registry.get<TransformComponent>(cam.lookAtTarget).position;
+							float dx = followTransform->position.x - enemyPos.x;
+							float dz = followTransform->position.z - enemyPos.z;
+							float distToEnemy = sqrtf(dx * dx + dz * dz);
+							returnScale = std::clamp(distToEnemy / cam.lockOnFarCenterMaxDistance, 0.0f, 1.0f);
+						}
 
-				// L2‚ğ‰Ÿ‚µ‚½uŠÔAFollow<->LookAt‚ğƒgƒOƒ‹Ø‚è‘Ö‚¦
+						// lerpã§ãµã‚ã£ã¨æˆ»ã™
+						float returnT = std::clamp(cam.lockOnOrbitReturnSpeed * returnScale * elapsedTime, 0.0f, 1.0f);
+						cam.lockOnOrbitAngle -= cam.lockOnOrbitAngle * returnT;
+						cam.lockOnOrbitPitch -= cam.lockOnOrbitPitch * returnT;
+					}
+
+					// -180åº¦ï½180åº¦ã®ç¯„å›²ã«æŠ‘ãˆã¦æœ€çŸ­è·é›¢ã§æˆ»ã™ã‚ˆã†ã«ã™ã‚‹
+					cam.lockOnOrbitAngle = fmodf(cam.lockOnOrbitAngle + DirectX::XM_PI, DirectX::XM_2PI);
+					if (cam.lockOnOrbitAngle < 0.0f) cam.lockOnOrbitAngle += DirectX::XM_2PI;
+					cam.lockOnOrbitAngle -= DirectX::XM_PI;
+
+					cam.lockOnOrbitPitch = std::clamp(cam.lockOnOrbitPitch, -0.8f, 0.8f); // ä¸Šä¸‹è§’åº¦ã®åˆ¶é™
+				
+					// ãã®å­—ãŒæ›²ãŒã‚‹å‘ãã®åˆ¤å®šï¼ˆãƒ’ã‚¹ãƒ†ãƒªã‚·ã‚¹ï¼‰
+					// é–¾å€¤ã‚’è¶…ãˆã¦å€’ã—ãŸæ™‚ã ã‘åˆ‡ã‚Šæ›¿ã‚ã‚Šã€ãã‚Œä»¥å¤–ã¯ä»Šã®å‘ãã‚’ç¶­æŒã™ã‚‹
+					if (cam.lockOnOrbitAngle > cam.lockOnSideSwitchThreshold)
+					{
+						cam.lockOnSide = 1.0f;
+					}
+					else if (cam.lockOnOrbitAngle < -cam.lockOnSideSwitchThreshold)
+					{
+						cam.lockOnSide = -1.0f;
+					}
+
+					// lockOnSideã¸ã€lerpã§ãªã‚ã‚‰ã‹ã«è¿½å¾“ã•ã›ã‚‹
+					float sideT = std::clamp(cam.lockOnSideSmoothSpeed * elapsedTime, 0.0f, 1.0f);
+					cam.lockOnSideSmooth += (cam.lockOnSide - cam.lockOnSideSmooth) * sideT;
+				}
+
+				// L2ã‚’æŠ¼ã—ãŸç¬é–“ã€Follow<->LookAtã‚’ãƒˆã‚°ãƒ«åˆ‡ã‚Šæ›¿ãˆ
 				if (input->lockOnTrigger.pressed)
 				{
-					if (cam.mode == Mode::Follow && registry.valid(cam.lookAtTarget))
+					if (cam.mode == Mode::Follow)
 					{
-						cam.mode = Mode::LookAt;
+						// Playerã«ä¸€ç•ªè¿‘ã„Enemyã‚’é¸ã¶
+						auto enemies = FindAllByCategory(registry, EntityCategory::Enemy);
+
+						entt::entity best = entt::null;
+						float bestDistSq = FLT_MAX;
+
+						for (auto e : enemies)
+						{
+
+							if (!registry.valid(e)) continue;
+							auto* enemyTransform = registry.try_get<TransformComponent>(e);
+							if (!enemyTransform) continue;
+
+							float dx = enemyTransform->position.x - followTransform->position.x;
+							float dy = enemyTransform->position.y - followTransform->position.y;
+							float dz = enemyTransform->position.z - followTransform->position.z;
+							float distSq = dx * dx + dy * dy + dz * dz;
+							if (distSq < 0.0001f) continue;
+
+							if (distSq < bestDistSq)
+							{
+								bestDistSq = distSq;
+								best = e;
+							}
+						}
+
+						if (best != entt::null)
+						{
+							cam.lookAtTarget = best;
+							cam.mode = Mode::LookAt;
+						}
 					}
 					else if (cam.mode == Mode::LookAt)
 					{
+						// LockOnã‹ã‚‰Followã«æˆ»ã™éš›ã«é€†ç®—ã—ã¦åŒæœŸã•ã›ã‚‹
+						float dx = cam.base.currentEye.x - followTransform->position.x;
+						float dy = cam.base.currentEye.y - followTransform->position.y - cam.followCameraHeight;
+						float dz = cam.base.currentEye.z - followTransform->position.z;
+						float horizDist = sqrtf(dx * dx + dz * dz);
+
+						if (horizDist > 0.0001f)
+						{
+							cam.yaw = atan2f(-dx, -dz);
+							cam.pitch = std::clamp(atan2f(dy, horizDist), -0.8f, 1.0f);
+						}
+
 						cam.mode = Mode::Follow;
 					}
 				}
 			}
 
-			// LookAt’†‚ÉA’‹‘ÎÛ‚ª”jŠü‚³‚ê‚Ä‚¢‚½‚çAFollow‚Ö©“®“I‚É–ß‚·
+			// LookAtä¸­ã«ã€æ³¨è¦–å¯¾è±¡ãŒç ´æ£„ã•ã‚Œã¦ã„ãŸã‚‰ã€Followã¸è‡ªå‹•çš„ã«æˆ»ã™
 			if (cam.mode == Mode::LookAt && !registry.valid(cam.lookAtTarget))
 			{
 				cam.mode = Mode::Follow;
 			}
 
 
-			// ’‹“_‚ğƒJƒƒ‰‚Ìƒ‚[ƒh‚É‰‚¶‚Ä•ÏX
+			// æ³¨è¦–ç‚¹ã‚’ã‚«ãƒ¡ãƒ©ã®ãƒ¢ãƒ¼ãƒ‰ã«å¿œã˜ã¦å¤‰æ›´
 			switch (cam.mode)
 			{
-			case Mode::Follow: // ’Ç]‘ÎÛ©g‚ğŒ©‚é
+			case Mode::Follow: // è¿½å¾“å¯¾è±¡è‡ªèº«ã‚’è¦‹ã‚‹
 				UpdateFollowEye(cam, *followTransform, elapsedTime);
 				UpdateFollowTarget(cam, *followTransform, elapsedTime);
 				break;
-			case Mode::LookAt: // ƒƒbƒNƒIƒ“æ‚ğŒ©‚é
+			case Mode::LookAt: // ãƒ­ãƒƒã‚¯ã‚ªãƒ³å…ˆã‚’è¦‹ã‚‹
 				UpdateLockOnEye(cam, registry, elapsedTime);
 				UpdateLookAtTarget(cam, registry, elapsedTime);
 				break;
@@ -12856,7 +13382,7 @@ void GameCameraSystem::Update(entt::registry& registry, float elapsedTime)
 		});
 }
 
-// Camera ƒNƒ‰ƒX‚ÉŒ‹‰Ê‚ğ”½‰f
+// Camera ã‚¯ãƒ©ã‚¹ã«çµæœã‚’åæ˜ 
 void GameCameraSystem::ApplyToCamera(entt::registry& registry, Camera& camera)
 {
 	auto view = registry.view<GameCameraComponent>();
@@ -12864,14 +13390,15 @@ void GameCameraSystem::ApplyToCamera(entt::registry& registry, Camera& camera)
 	{
 		auto& cam = view.get<GameCameraComponent>(entity);
 
-		// followTarget ‚ª–¢İ’è‚È‚çƒXƒLƒbƒv
+		// followTarget ãŒæœªè¨­å®šãªã‚‰ã‚¹ã‚­ãƒƒãƒ—
 		if (cam.followTarget == entt::null) continue;
 
-		// eye ‚Æ target ‚ª“¯‚¶ˆÊ’u‚È‚çƒXƒLƒbƒv
+		// eye ã¨ target ãŒåŒã˜ä½ç½®ãªã‚‰ã‚¹ã‚­ãƒƒãƒ—
 		if (cam.base.currentEye.x == cam.base.currentTarget.x &&
 			cam.base.currentEye.y == cam.base.currentTarget.y &&
 			cam.base.currentEye.z == cam.base.currentTarget.z) continue;
 
+		// Camera ã‚¯ãƒ©ã‚¹ã« eye ã¨ target ã‚’åæ˜ 
 		camera.SetLookAt(
 			cam.base.currentEye,
 			cam.base.currentTarget,
@@ -12881,27 +13408,137 @@ void GameCameraSystem::ApplyToCamera(entt::registry& registry, Camera& camera)
 	}
 }
 
-// FollowƒJƒƒ‰‚ÌXV
+// ãƒ‡ãƒãƒƒã‚°æç”»
+void GameCameraSystem::DrawDebug(
+	entt::registry& registry,
+	ID3D11DeviceContext* dc, 
+	const DirectX::XMFLOAT4X4& view,
+	const DirectX::XMFLOAT4X4& projection, 
+	const DirectX::XMFLOAT3& lightDirection)
+{
+	const DirectX::XMFLOAT4 eyeColor        = { 0.2f, 0.5f, 1.0f, 1.0f }; // eye         ï¼šé’
+	const DirectX::XMFLOAT4 targetColor     = { 1.0f, 0.6f, 0.1f, 1.0f }; // target      ï¼šã‚ªãƒ¬ãƒ³ã‚¸
+	const DirectX::XMFLOAT4 centerColor     = { 1.0f, 1.0f, 1.0f, 1.0f }; // ä¸­å¿ƒ O      ï¼šç™½
+	const DirectX::XMFLOAT4 ringColor       = { 0.2f, 0.5f, 1.0f, 0.6f }; // å††å‘¨        ï¼šè–„ã„é’
+	const DirectX::XMFLOAT4 targetRingColor = { 0.6f, 0.3f, 1.0f, 0.6f }; // targetã®å††å‘¨ï¼šè–„ã„ç´«
+
+	auto camView = registry.view<GameCameraComponent>();
+	for (auto entity : camView)
+	{
+		auto& cam = camView.get<GameCameraComponent>(entity);
+		if (cam.mode != Mode::LookAt) continue;
+
+		// ç¾åœ¨ã®eye/target
+		shapeRenderer.DrawSphere(cam.base.currentEye, 0.15f, eyeColor);
+		shapeRenderer.DrawSphere(cam.base.currentTarget, 0.15f, targetColor);
+
+		if (registry.valid(cam.followTarget) && registry.valid(cam.lookAtTarget)) 
+		{
+			DirectX::XMFLOAT3 playerPos = registry.get<TransformComponent>(cam.followTarget).position;
+			DirectX::XMFLOAT3 enemyPos = registry.get<TransformComponent>(cam.lookAtTarget).position;
+
+			// Enemyã‹ã‚‰Playerã®æ–¹å‘ãƒ™ã‚¯ãƒˆãƒ«
+			float backX = playerPos.x - enemyPos.x;
+			float backZ = playerPos.z - enemyPos.z;
+			float len = sqrtf(backX * backX + backZ * backZ);
+
+			if (len <= 0.0001f) continue;
+
+
+			backX /= len;
+			backZ /= len;
+
+			// å††ã®ä¸­å¿ƒ O
+			float centerDistByRatio = len * cam.lockOnCenterRatio;
+			float centerDist = (std::min)(centerDistByRatio, cam.lockOnFarCenterMaxDistance);
+
+			DirectX::XMFLOAT3 center =
+			{
+				playerPos.x - backX * centerDist,
+				playerPos.y,
+				playerPos.z - backZ * centerDist
+			};
+
+			shapeRenderer.DrawSphere(center, 0.15f, centerColor);
+
+			// è¿‘è·é›¢/é è·é›¢ã§ã€eyeã®åŠå¾„ãƒ»é«˜ã•ãƒ»targetã®é«˜ã•ã‚’åˆ‡ã‚Šæ›¿ãˆã‚‹
+			float eyeRadius, eyeHeight, targetYUp;
+			if (cam.lockOnRange == LockOnRangeState::Near)
+			{
+				eyeRadius = cam.lockOnNearCameraDistance;
+				eyeHeight = cam.lockOnNearCameraHeight;
+				targetYUp = cam.lockOnNearCameraTargetYUp;
+			}
+			else
+			{
+				eyeRadius = cam.lockOnFarCameraDistance;
+				eyeHeight = cam.lockOnFarCameraHeight;
+				targetYUp = cam.lockOnFarCameraTargetYUp;
+
+			}
+
+			// ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆè§’åº¦ã®ã‚ªãƒ•ã‚»ãƒƒãƒˆ
+			float nearT = 1.0f - std::clamp(len / cam.lockOnRangeSwitchDistance, 0.0f, 1.0f);
+			float angleOffset = DirectX::XMConvertToRadians(cam.lockOnNearAngleOffsetMax) * nearT * cam.lockOnSideSmooth;
+
+			// eyeã®å††å‘¨ã‚’ã€ç‚¹ã®é›†ã¾ã‚Šã§æã
+			const int segments = 32;
+			for (int i = 0; i < segments; ++i)
+			{
+				float t = (float)i / (float)segments * DirectX::XM_2PI + angleOffset;
+				DirectX::XMFLOAT3 p =
+				{
+					center.x + sinf(t) * eyeRadius,
+					center.y + eyeHeight,
+					center.z + cosf(t) * eyeRadius
+				};
+				shapeRenderer.DrawSphere(p, 0.05f, ringColor);
+			}
+
+			// targetã®å††å‘¨ã‚’ã€ç‚¹ã®é›†ã¾ã‚Šã§æã
+			const float targetRadius = (std::min)(len * 0.25f, cam.lockOnTargetCircleRadiusMax);
+			for (int i = 0; i < segments; ++i)
+			{
+				float t = (float)i / (float)segments * DirectX::XM_2PI + angleOffset;
+				DirectX::XMFLOAT3 p =
+				{
+					center.x + sinf(t) * targetRadius,
+					center.y + targetYUp,
+					center.z + cosf(t) * targetRadius
+				};
+				shapeRenderer.DrawSphere(p, 0.05f, targetRingColor);
+			}
+		}
+	}
+
+	shapeRenderer.Render(dc, view, projection, lightDirection);
+}
+
+// Followã‚«ãƒ¡ãƒ©ã®æ›´æ–°
 void GameCameraSystem::UpdateFollowTarget(GameCameraComponent& cam, const TransformComponent& followTransform, float elapsedTime)
 {
 	DirectX::XMFLOAT3 targetPos = followTransform.position;
 
+	// targetã®è£œé–“é€Ÿåº¦ã‚’æ­£è¦åŒ–
 	float t = std::clamp(cam.followCameraTargetSpeedRatio / 100.0f, 0.0f, 1.0f);
 
+	// X,Zã¯lerpã§è£œé–“ã€Yã¯followCameraTargetYUpã‚’åŠ ç®—ã—ã¦lerpã§è£œé–“
 	cam.base.currentTarget.x += (targetPos.x - cam.base.currentTarget.x) * t;
 	cam.base.currentTarget.y += ((targetPos.y + cam.followCameraTargetYUp) - cam.base.currentTarget.y) * t;
 	cam.base.currentTarget.z += (targetPos.z - cam.base.currentTarget.z) * t;
 }
-// Follow—p‚ÌcurrentEyeŒvZ
+// Followç”¨ã®currentEyeè¨ˆç®—
 void GameCameraSystem::UpdateFollowEye(GameCameraComponent& cam, const TransformComponent& followTransform, float elapsedTime)
 {
 	DirectX::XMFLOAT3 basePos = followTransform.position;
 
+	// yaw, pitchã‹ã‚‰ç†æƒ³ã®eyeä½ç½®ã‚’è¨ˆç®—
 	float sinYaw = sinf(cam.yaw);
 	float cosYaw = cosf(cam.yaw);
 	float cosPitch = cosf(cam.pitch);
 	float sinPitch = sinf(cam.pitch);
 
+	// FollowTargetã‹ã‚‰Distanceã ã‘é›¢ã‚ŒãŸçƒé¢ä¸Šã®ç‚¹ã‚’æ±‚ã‚ã‚‹
 	DirectX::XMFLOAT3 idealEye =
 	{
 		basePos.x - sinYaw * cosPitch * cam.followCameraDistance,
@@ -12909,36 +13546,198 @@ void GameCameraSystem::UpdateFollowEye(GameCameraComponent& cam, const Transform
 		basePos.z - cosYaw * cosPitch * cam.followCameraDistance
 	};
 
+	// eyeã®è£œé–“é€Ÿåº¦ã‚’æ­£è¦åŒ–
 	float t = std::clamp(cam.followCameraEyeSpeedRatio / 100.0f, 0.0f, 1.0f);
 
-	// X,Z‚Ílerp‚Å•âŠÔ
+	// X,Zã¯lerpã§è£œé–“
 	cam.base.currentEye.x += (idealEye.x - cam.base.currentEye.x) * t;
 	cam.base.currentEye.z += (idealEye.z - cam.base.currentEye.z) * t;
 
+	// æ¸›è¡°ã°ã­
 	auto springAxis = [&](float current, float ideal, float& velocity) -> float
 		{
-			// ‰Á‘¬“x = ƒoƒl‚Ì—Íi–Ú•W‚Æ‚Ì·j - ƒ_ƒ“ƒp[‚Ì—Íi‘¬“x‚É”ä—á‚µ‚ÄŒ¸Šj
+			// åŠ é€Ÿåº¦ = ãƒãƒã®åŠ›ï¼ˆç›®æ¨™ã¨ã®å·®ï¼‰ - ãƒ€ãƒ³ãƒ‘ãƒ¼ã®åŠ›ï¼ˆé€Ÿåº¦ã«æ¯”ä¾‹ã—ã¦æ¸›è¡°ï¼‰
 			float accel = cam.eyeSpringStiffness * (ideal - current) - cam.eyeSpringDamping * velocity;
 			velocity += accel * elapsedTime;
 			return current + velocity * elapsedTime;
 		};
 
-	// Y‚ÍŒ¸Š‚Î‚Ë‚Å•âŠÔ
+	// Yã¯æ¸›è¡°ã°ã­ã§è£œé–“
 	cam.base.currentEye.y = springAxis(cam.base.currentEye.y, idealEye.y, cam.eyeVelocity.y);
 }
 
-// LookAtƒJƒƒ‰‚ÌXV
+// LookAtã‚«ãƒ¡ãƒ©ã®æ›´æ–°
 void GameCameraSystem::UpdateLookAtTarget(GameCameraComponent& cam, entt::registry& registry, float elapsedTime)
 {
+	DirectX::XMFLOAT3 playerPos = registry.get<TransformComponent>(cam.followTarget).position;
+	DirectX::XMFLOAT3 enemyPos = registry.get<TransformComponent>(cam.lookAtTarget).position;
+
+	// Enemyã‹ã‚‰Playeræ–¹å‘ã®ãƒ™ã‚¯ãƒˆãƒ«ç®—å‡º
+	float backX = playerPos.x - enemyPos.x;
+	float backZ = playerPos.z - enemyPos.z;
+	float len = sqrtf(backX * backX + backZ * backZ);
+
+	DirectX::XMFLOAT3 idealTarget = cam.base.currentTarget;
+
+	if (len > 0.0001f)
+	{
+		backX /= len;
+		backZ /= len;
+
+		// å††ã®ä¸­å¿ƒ O
+		float centerDistByRatio = len * cam.lockOnCenterRatio;
+		float centerDist = (std::min)(centerDistByRatio, cam.lockOnFarCenterMaxDistance);
+
+		DirectX::XMFLOAT3 center =
+		{
+			playerPos.x - backX * centerDist,
+			playerPos.y,
+			playerPos.z - backZ * centerDist
+		};
+
+		// targetã®å††ã®åŠå¾„
+		float targetRadius = (std::min)(len * 0.25f, cam.lockOnTargetCircleRadiusMax);
+
+		// targetã®é«˜ã•(è¿‘è·é›¢/é è·é›¢ã§åˆ‡ã‚Šæ›¿ãˆ)
+		float targetYUp = (cam.lockOnRange == LockOnRangeState::Near)
+			? cam.lockOnNearCameraTargetYUp
+			: cam.lockOnFarCameraTargetYUp;
+
+		// è·é›¢ã«å¿œã˜ã¦ãªã‚ã‚‰ã‹ã«å¤‰åŒ–
+		float nearT = 1.0f - std::clamp(len / cam.lockOnRangeSwitchDistance, 0.0f, 1.0f);
+		float angleOffset = DirectX::XMConvertToRadians(cam.lockOnNearAngleOffsetMax) * nearT * cam.lockOnSideSmooth;
+
+		// Cameraã¨åŒã˜è§’åº¦ã§å›è»¢ã•ã›ãŸæ–¹å‘ã‚’æ±‚ã‚ã€åå¯¾æ–¹å‘ã«é…ç½®ã™ã‚‹
+		float angle = cam.lockOnOrbitAngle + angleOffset;
+		float cosA = cosf(angle);
+		float sinA = sinf(angle);
+		float rotatedX = backX * cosA - backZ * sinA;
+		float rotatedZ = backX * sinA + backZ * cosA;
+
+		// orbitPitchã‚‚ã€eyeã¨ã¯ä¸Šä¸‹é€†æ–¹å‘ã«ã™ã‚‹ã“ã¨ã§ã€ç‚¹å¯¾ç§°ã‚’ä¿ã¤
+		float cosP = cosf(cam.lockOnOrbitPitch);
+		float sinP = sinf(cam.lockOnOrbitPitch);
+
+		idealTarget =
+		{
+			center.x - rotatedX * targetRadius * cosP,
+			center.y + targetYUp - targetRadius * sinP,
+			center.z - rotatedZ * targetRadius * cosP
+		};
+	}
+
+	// targetã®è£œé–“é€Ÿåº¦ã‚’æ­£è¦åŒ–
+	float t = std::clamp(cam.lockOnCameraTargetSpeedRatio / 100.0f, 0.0f, 1.0f);
+
+	// X,Zã¯lerpã§è£œé–“
+	cam.base.currentTarget.x += (idealTarget.x - cam.base.currentTarget.x) * t;
+	cam.base.currentTarget.z += (idealTarget.z - cam.base.currentTarget.z) * t;
+
+	// æ¸›è¡°ã°ã­
+	auto springAxis = [&](float current, float ideal, float& velocity) -> float
+		{
+			float accel = cam.eyeSpringStiffness * (ideal - current) - cam.eyeSpringDamping * velocity;
+			velocity += accel * elapsedTime;
+			return current + velocity * elapsedTime;
+		};
+
+	// Yã¯æ¸›è¡°ã°ã­ã§è£œé–“
+	cam.base.currentTarget.y = springAxis(cam.base.currentTarget.y, idealTarget.y, cam.targetVelocity.y);
 }
-// LookAt—p‚ÌcurrentEyeŒvZ
+// LookAtç”¨ã®currentEyeè¨ˆç®—
 void GameCameraSystem::UpdateLockOnEye(GameCameraComponent& cam, entt::registry& registry, float elapsedTime)
 {
+	DirectX::XMFLOAT3 playerPos = registry.get<TransformComponent>(cam.followTarget).position;
+	DirectX::XMFLOAT3 enemyPos = registry.get<TransformComponent>(cam.lookAtTarget).position;
+
+	// Enemyã‹ã‚‰Playeræ–¹å‘ã®ãƒ™ã‚¯ãƒˆãƒ«ç®—å‡º
+	float backX = playerPos.x - enemyPos.x;
+	float backZ = playerPos.z - enemyPos.z;
+	float len = sqrtf(backX * backX + backZ * backZ);
+
+	// Enemyã¨PlayerãŒåŒã˜ä½ç½®ã®å ´åˆã¯ç¾åœ¨ã®ä½ç½®ã‚’ç¶­æŒã™ã‚‹
+	DirectX::XMFLOAT3 idealEye = cam.base.currentEye;
+	if (len > 0.0001f)
+	{
+		// æ­£è¦åŒ–
+		backX /= len;
+		backZ /= len;
+	
+		// è·é›¢ã«å¿œã˜ã¦ è¿‘è·é›¢ / é è·é›¢ ã‚’åˆ‡ã‚Šæ›¿ãˆã‚‹
+		cam.lockOnRange = (len >= cam.lockOnRangeSwitchDistance)
+			? LockOnRangeState::Far
+			: LockOnRangeState::Near;
+
+		// è¿‘è·é›¢ / é è·é›¢ ã§ã€åŠå¾„ãƒ»é«˜ã•ã¨ã€ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆè§’åº¦ã®ã‚ªãƒ•ã‚»ãƒƒãƒˆã‚’åˆ‡ã‚Šæ›¿ãˆã‚‹
+		float eyeRadius, eyeHeight;
+		if (cam.lockOnRange == LockOnRangeState::Near)
+		{
+			eyeRadius = cam.lockOnNearCameraDistance;
+			eyeHeight = cam.lockOnNearCameraHeight;
+		}
+		else
+		{
+			eyeRadius = cam.lockOnFarCameraDistance;
+			eyeHeight = cam.lockOnFarCameraHeight;
+		}
+
+		// ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆè§’åº¦ã®offsetEnemyã«è¿‘ã¥ãç¨‹æ»‘ã‚‰ã‹ã«è§’åº¦ã‚’å¢—ã‚„ã™
+		float nearT = 1.0f - std::clamp(len / cam.lockOnRangeSwitchDistance, 0.0f, 1.0f);
+		float angleOffset = DirectX::XMConvertToRadians(cam.lockOnNearAngleOffsetMax) * nearT * cam.lockOnSideSmooth;
+
+		// å††ã®ä¸­å¿ƒOã‚’æ±‚ã‚ã‚‹
+		float centerDistByRatio = len * cam.lockOnCenterRatio;
+		float centerDist = (std::min)(centerDistByRatio, cam.lockOnFarCenterMaxDistance);
+
+		DirectX::XMFLOAT3 center =
+		{
+			playerPos.x - backX * centerDist,
+			playerPos.y,
+			playerPos.z - backZ * centerDist
+		};
+
+		// backãƒ™ã‚¯ãƒˆãƒ«ï¼ˆEnemyã®åå¯¾æ–¹å‘ï¼è§’åº¦0ã®åŸºæº–ï¼‰ã‚’ã€(orbitAngle + angleOffset)ã¶ã‚“å›è»¢ã•ã›ã‚‹
+		float angle = cam.lockOnOrbitAngle + angleOffset;
+		float cosA = cosf(angle);
+		float sinA = sinf(angle);
+		float rotatedX = backX * cosA - backZ * sinA;
+		float rotatedZ = backX * sinA + backZ * cosA;
+
+		// orbitPitchã§ã€æ°´å¹³æ–¹å‘ã®åºƒãŒã‚Š(cosP)ã¨ã€ä¸Šä¸‹æ–¹å‘ã®é«˜ã•(sinP)ã«åˆ†é…ã™ã‚‹
+		float cosP = cosf(cam.lockOnOrbitPitch);
+		float sinP = sinf(cam.lockOnOrbitPitch);
+
+		idealEye =
+		{
+			center.x + rotatedX * eyeRadius * cosP,
+			center.y + eyeHeight + eyeRadius * sinP,
+			center.z + rotatedZ * eyeRadius * cosP
+		};
+		
+	}
+
+	// eyeã®è£œé–“é€Ÿåº¦ã‚’æ­£è¦åŒ–
+	float t = std::clamp(cam.lockOnCameraEyeSpeedRatio / 100.0f, 0.0f, 1.0f);
+
+	// X,Zã¯lerpã§è£œé–“
+	cam.base.currentEye.x += (idealEye.x - cam.base.currentEye.x) * t;
+	cam.base.currentEye.z += (idealEye.z - cam.base.currentEye.z) * t;
+
+	// æ¸›è¡°ã°ã­
+	auto springAxis = [&](float current, float ideal, float& velocity) -> float
+		{
+			float accel = cam.eyeSpringStiffness * (ideal - current) - cam.eyeSpringDamping * velocity;
+			velocity += accel * elapsedTime;
+			return current + velocity * elapsedTime;
+		};
+
+	// Yã¯æ¸›è¡°ã°ã­ã§è£œé–“
+	cam.base.currentEye.y = springAxis(cam.base.currentEye.y, idealEye.y, cam.eyeVelocity.y);
 }
  
  
 ===== GameInputSystem.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Project\ECS\Systems\GameInputSystem.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Systems\GameInputSystem.cpp 
 ï»¿#include "GameInputSystem.h"
 #include <cmath>
 #include <algorithm>
@@ -13043,7 +13842,7 @@ void GameInputSystem::UpdateButtonState(TriggerState& state, bool isHeldNow)
  
  
 ===== PlayerDodgeSystem.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Project\ECS\Systems\PlayerDodgeSystem.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Systems\PlayerDodgeSystem.cpp 
 #include "PlayerDodgeSystem.h"
 #include "Project/ECS/Components/GameInputComponent.h"
 #include "Project/ECS/Components/PlayerDodgeComponent.h"
@@ -13173,7 +13972,7 @@ void PlayerDodgeSystem::Update(entt::registry& registry, float elapsedTime, cons
 } 
  
 ===== PlayerIdleSystem.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Project\ECS\Systems\PlayerIdleSystem.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Systems\PlayerIdleSystem.cpp 
 #include "PlayerIdleSystem.h"
 #include "Project/ECS/Components/PlayerIdleComponent.h"
 
@@ -13223,7 +14022,7 @@ void PlayerIdleSystem::Update(entt::registry& registry, float elapsedTime, const
 } 
  
 ===== PlayerMovementUtils.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Project\ECS\Systems\PlayerMovementUtils.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Systems\PlayerMovementUtils.cpp 
 #include "PlayerMovementUtils.h"
 #include <cmath>
 
@@ -13298,7 +14097,7 @@ namespace PlayerMovementUtils
 } 
  
 ===== PlayerMoveSystem.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Project\ECS\Systems\PlayerMoveSystem.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Systems\PlayerMoveSystem.cpp 
 #include "PlayerMoveSystem.h"
 #include "Project/ECS/Components/GameInputComponent.h"
 #include "Project/ECS/Components/PlayerMoveComponent.h"
@@ -13416,7 +14215,7 @@ void PlayerMoveSystem::Update(entt::registry& registry, float elapsedTime, const
 } 
  
 ===== PlayerSprintSystem.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Project\ECS\Systems\PlayerSprintSystem.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Systems\PlayerSprintSystem.cpp 
 #include "PlayerSprintSystem.h"
 #include "Project/ECS/Components/GameInputComponent.h"
 #include "Project/ECS/Components/PlayerSprintComponent.h"
@@ -13497,7 +14296,7 @@ void PlayerSprintSystem::Update(entt::registry& registry, float elapsedTime, con
 } 
  
 ===== SceneGame.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Project\Scene\SceneGame.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Project\Scene\SceneGame.h 
 #pragma once
 #include "Engine/Core/Scene.h"
 
@@ -13585,7 +14384,7 @@ private:
  
  
 ===== SceneGame.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Project\Scene\SceneGame.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Project\Scene\SceneGame.cpp 
 ï»¿#include "SceneGame.h"
 #include <imgui.h>
 
@@ -13643,6 +14442,8 @@ void SceneGame::Initialize(const SceneContext& context)
 			3.0f              // å¼·åº¦
 		);
 	}
+
+	gameCameraSystem.Initialize(context.device);
 
 #if WaveDemo && !defined(_DEBUG)
 	// ãƒ‡ãƒ¢åˆæœŸåŒ–
@@ -13776,6 +14577,15 @@ void SceneGame::Render(const SceneContext& context)
 			context.view,
 			context.projection,
 			lightManager.GetDirectionalLight().direction);
+
+		DirectX::XMFLOAT4 lightDir4 = lightManager.GetDirectionalLight().direction;
+		DirectX::XMFLOAT3 lightDir3 = { lightDir4.x, lightDir4.y, lightDir4.z };
+		gameCameraSystem.DrawDebug(
+			registry,
+			context.deviceContext,
+			context.view,
+			context.projection,
+			lightDir3);
 	}
 }
 
@@ -13922,7 +14732,7 @@ void SceneGame::UpdateCamera(float elapsedTime, const SceneContext& context)
  
  
 ===== AdaptiveTriggerToolWindow.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\AdaptiveTriggerToolWindow.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\AdaptiveTriggerToolWindow.h 
 #pragma once
 #include <vector>
 #include "Engine/ECS/Components/ControllerComponent.h"
@@ -13964,7 +14774,7 @@ private:
 }; 
  
 ===== AdaptiveTriggerToolWindow.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\AdaptiveTriggerToolWindow.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\AdaptiveTriggerToolWindow.cpp 
 #include "AdaptiveTriggerToolWindow.h"
 #include <imgui.h>
 #include <algorithm>
@@ -14359,7 +15169,7 @@ void AdaptiveTriggerToolWindow::DrawSelectedPointPanel(std::vector<AdaptiveTrigg
 } 
  
 ===== ComponentRegistry.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Editor\ComponentRegistry.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Editor\ComponentRegistry.h 
 #pragma once
 #include <string>
 #include <vector>
@@ -14397,7 +15207,7 @@ private:
 }; 
  
 ===== ComponentRegistryInitializer.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Editor\ComponentRegistryInitializer.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Editor\ComponentRegistryInitializer.h 
 #pragma once
 
 class ComponentRegistryInitializer
@@ -14408,7 +15218,7 @@ public:
 }; 
  
 ===== EditorContext.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Editor\EditorContext.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Editor\EditorContext.h 
 #pragma once
 #include <string>
 #include <unordered_map>
@@ -14464,7 +15274,7 @@ struct EditorContext
 }; 
  
 ===== HierarchyWindow.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Editor\HierarchyWindow.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Editor\HierarchyWindow.h 
 #pragma once
 #include "entt.hpp"
 #include "Tool/Editor/EditorContext.h"
@@ -14477,7 +15287,7 @@ public:
 }; 
  
 ===== InspectorWindow.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Editor\InspectorWindow.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Editor\InspectorWindow.h 
 #pragma once
 #include "entt.hpp"
 #include "EditorContext.h"
@@ -14500,7 +15310,7 @@ private:
 }; 
  
 ===== MetaRegistry.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Editor\MetaRegistry.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Editor\MetaRegistry.h 
 #pragma once
 #include <string>
 #include <vector>
@@ -14580,12 +15390,105 @@ private:
 	static void RegisterAnimationSpeedComponent();
 }; 
  
+===== PrefabWindow.h ===== 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Editor\PrefabWindow.h 
+#pragma once
+#include "EditorContext.h"
+#include "entt.hpp"
+#include <string>
+#include <filesystem>
+
+// ƒtƒHƒ‹ƒ_Eƒtƒ@ƒCƒ‹‚Ì‘€ìó‘Ô
+enum class PrefabItemMode
+{
+	None,             // ‰½‚à‚µ‚Ä‚¢‚È‚¢
+	Renaming,         // –¼‘O•ÒW’†
+	ConfirmingDelete, // íœŠm”Fƒ_ƒCƒAƒƒO•\¦’†
+};
+
+// ƒtƒHƒ‹ƒ_Eƒtƒ@ƒCƒ‹‘€ì‚Ìó‘Ô‚ğ‚Ü‚Æ‚ß‚½‚à‚Ì
+struct PrefabItemState
+{
+	std::filesystem::path selectedPath;
+	PrefabItemMode mode = PrefabItemMode::None;
+	std::filesystem::path targetPath; // ƒŠƒl[ƒ€Eíœ‘ÎÛ‚ÌƒpƒX
+	char editBuffer[256] = {};        // ƒŠƒl[ƒ€‚Ì“ü—Íƒoƒbƒtƒ@
+};
+
+class PrefabWindow
+{
+public:
+	// ‰Šú‰»
+	void Initialize(const std::string& rootPath);
+
+	// •`‰æ
+	void Draw(entt::registry& registry, EditorContext& context);
+
+	// d•¡‚µ‚È‚¢–¼‘O‚Åì¬
+	static std::string GenerateUniqueName(const std::filesystem::path& parentDir, const std::string& baseName);
+
+private:
+	// ƒLƒƒƒbƒVƒ…‚³‚ê‚½ƒtƒHƒ‹ƒ_ƒcƒŠ[‚Ì1ƒm[ƒh
+	struct FolderNode
+	{
+		std::filesystem::path path;
+		std::string name;
+		std::vector<FolderNode> children;
+	};
+	// ƒLƒƒƒbƒVƒ…‚³‚ê‚½ƒtƒ@ƒCƒ‹ƒOƒŠƒbƒh‚Ì1ƒGƒ“ƒgƒŠ
+	struct FileEntry
+	{
+		std::filesystem::path path;
+		std::string filename;
+	};
+
+	// ¶FƒtƒHƒ‹ƒ_ƒcƒŠ[
+	void DrawFolderTree(FolderNode& node);
+	// ‰EFƒtƒ@ƒCƒ‹ˆê——
+	void DrawFileGrid(entt::registry& registry, EditorContext& context);
+
+	// ŠÔŠu‚ªŒo‰ß‚µ‚Ä‚¢‚ê‚ÎAƒtƒHƒ‹ƒ_ƒcƒŠ[‚ÌƒLƒƒƒbƒVƒ…‚ğì‚è’¼‚·
+	void RefreshFolderTreeIfNeeded();
+	FolderNode BuildFolderNode(const std::filesystem::path& path);
+
+	// ‘I‘ğƒtƒHƒ‹ƒ_‚ª•Ï‚í‚Á‚½^ŠÔŠu‚ªŒo‰ß‚µ‚Ä‚¢‚ê‚ÎAƒtƒ@ƒCƒ‹ƒOƒŠƒbƒh‚ÌƒLƒƒƒbƒVƒ…‚ğì‚è’¼‚·
+	void RefreshFileGridIfNeeded();
+	std::vector<FileEntry> BuildFileGrid(const std::filesystem::path& path);
+
+	// ƒvƒŒƒnƒuƒtƒ@ƒCƒ‹‚©‚Ç‚¤‚©‚Ì”»’è
+	static bool IsPrefabFile(const std::filesystem::path& path);
+
+	// íœŠm”Fƒ|ƒbƒvƒAƒbƒv
+	void DrawDeleteConfirmPopup();
+
+	// ƒŠƒl[ƒ€ŠJnEŠm’è
+	void BeginRename(const std::filesystem::path& target);
+	void CommitRename();
+
+	// ƒ‹[ƒgƒpƒX
+	std::filesystem::path rootPath;
+
+	// ƒtƒHƒ‹ƒ_Eƒtƒ@ƒCƒ‹‘€ì‚Ìó‘Ô
+	PrefabItemState itemState;
+
+	// ƒLƒƒƒbƒVƒ…‚³‚ê‚½ƒtƒHƒ‹ƒ_ƒcƒŠ[‚Ìƒ‹[ƒg
+	FolderNode folderTreeCache;
+	std::chrono::steady_clock::time_point lastFolderScanTime{};
+	static constexpr std::chrono::seconds folderScanInterval{ 2 };
+
+	// ƒLƒƒƒbƒVƒ…‚³‚ê‚½ƒtƒ@ƒCƒ‹ƒOƒŠƒbƒh
+	std::vector<FileEntry> fileGridCache;
+	std::filesystem::path fileGridCachedPath;
+	std::chrono::steady_clock::time_point lastFileGridScanTime{};
+}; 
+ 
 ===== ProjectWindow.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Editor\ProjectWindow.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Editor\ProjectWindow.h 
 #pragma once
 #include <string>
 #include <vector>
 #include <filesystem>
+#include <chrono>
 #include <d3d11.h>
 #include <wrl.h>
 
@@ -14605,7 +15508,7 @@ struct ProjectItemState
 {
     std::filesystem::path selectedPath;   // ‘I‘ğ’†‚Ìƒtƒ@ƒCƒ‹EƒtƒHƒ‹ƒ_
     ProjectItemMode        mode = ProjectItemMode::None;
-    std::filesystem::path  targetPath;    // ƒŠƒl[ƒ€Eíœ‘ÎÛ‚ÌƒpƒX
+    std::filesystem::path  targetPath;           // ƒŠƒl[ƒ€Eíœ‘ÎÛ‚ÌƒpƒX
     char                   editBuffer[256] = {}; // ƒŠƒl[ƒ€’†‚Ì“ü—Íƒoƒbƒtƒ@
 };
 
@@ -14624,11 +15527,40 @@ public:
     static std::string GenerateUniqueName(const std::filesystem::path& parentDir, const std::string& baseName);
 
 private:
+    // ƒLƒƒƒbƒVƒ…‚³‚ê‚½ƒtƒHƒ‹ƒ_ƒcƒŠ[‚Ì1ƒm[ƒh
+    struct FolderNode
+    {
+        std::filesystem::path path;
+        std::string name;
+        std::vector<FolderNode> children;
+    };
+    // ƒLƒƒƒbƒVƒ…‚³‚ê‚½ƒtƒ@ƒCƒ‹ƒOƒŠƒbƒh‚Ì1ƒGƒ“ƒgƒŠ
+    struct FileEntry
+    {
+        std::filesystem::path path;
+        std::string filename; // Šg’£q‚ğœ‚¢‚½ƒtƒ@ƒCƒ‹–¼i•\¦—pj
+        bool isModel = false;
+        bool isAnimGraph = false;
+        bool isSequencer = false;
+        bool isAnimSpeed = false;
+    };
+
+
     // ¶‘¤FƒtƒHƒ‹ƒ_ƒcƒŠ[
-    void DrawFolderTree(const std::filesystem::path& path);
+    void DrawFolderTree(FolderNode& node);
     // ‰E‘¤Fƒtƒ@ƒCƒ‹ˆê——
     void DrawFileGrid(entt::registry& registry, EditorContext& context);
-    
+
+    // ˆê’èŠÔŠu‚ªŒo‰ß‚µ‚Ä‚¢‚ê‚ÎAƒtƒHƒ‹ƒ_ƒcƒŠ[‚ÌƒLƒƒƒbƒVƒ…‚ğì‚è’¼‚·
+    void RefreshFolderTreeIfNeeded();
+    // ƒfƒBƒXƒN‚ğÀÛ‚É‘–¸‚µ‚ÄAw’èƒpƒXˆÈ‰º‚ÌFolderNode‚ğ\’z‚·‚éiÄ‹Aj
+    FolderNode BuildFolderNode(const std::filesystem::path& path);
+
+    // ‘I‘ğƒtƒHƒ‹ƒ_‚ª•Ï‚í‚Á‚½^ˆê’èŠÔŠu‚ªŒo‰ß‚µ‚Ä‚¢‚ê‚ÎAƒtƒ@ƒCƒ‹ƒOƒŠƒbƒh‚ÌƒLƒƒƒbƒVƒ…‚ğì‚è’¼‚·
+    void RefreshFileGridIfNeeded();
+    // ƒfƒBƒXƒN‚ğÀÛ‚É‘–¸‚µ‚ÄAw’èƒtƒHƒ‹ƒ_’¼‰º‚ÌFileEntryˆê——‚ğ\’z‚·‚é
+    std::vector<FileEntry> BuildFileGrid(const std::filesystem::path& path);
+
     // ƒtƒ@ƒCƒ‹‚ªƒ‚ƒfƒ‹ƒtƒ@ƒCƒ‹‚©”»’è
     bool IsModelFile(const std::filesystem::path& path);
     // ƒtƒ@ƒCƒ‹‚ªƒAƒjƒ[ƒVƒ‡ƒ“ƒOƒ‰ƒtƒtƒ@ƒCƒ‹‚©”»’è
@@ -14652,12 +15584,26 @@ private:
     // ƒtƒHƒ‹ƒ_Eƒtƒ@ƒCƒ‹‹¤’Ê‚Ì‘€ìó‘Ô
     ProjectItemState itemState;
 
+    // ƒLƒƒƒbƒVƒ…‚³‚ê‚½ƒtƒHƒ‹ƒ_ƒcƒŠ[‚Ìƒ‹[ƒg
+    FolderNode folderTreeCache;
+
+    // ƒtƒHƒ‹ƒ_ƒcƒŠ[ÄƒXƒLƒƒƒ“‚ÌŠÔŠuŠÇ—
+    std::chrono::steady_clock::time_point lastFolderScanTime{};
+    static constexpr std::chrono::seconds folderScanInterval{ 2 };
+
+    // ƒLƒƒƒbƒVƒ…‚³‚ê‚½ƒtƒ@ƒCƒ‹ƒOƒŠƒbƒh
+    std::vector<FileEntry> fileGridCache;
+    // fileGridCache‚ª‚Ç‚ÌƒtƒHƒ‹ƒ_‚É‘Î‚·‚éƒLƒƒƒbƒVƒ…‚©‚ğ‹L˜^
+    std::filesystem::path fileGridCachedPath;
+    // ƒtƒ@ƒCƒ‹ƒOƒŠƒbƒhÄƒXƒLƒƒƒ“‚ÌŠÔŠuŠÇ—
+    std::chrono::steady_clock::time_point lastFileGridScanTime{};
+
     // ƒ‚ƒfƒ‹ƒAƒCƒRƒ“—pSRV
     Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> modelIconSRV;
 }; 
  
 ===== ComponentRegistry.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Editor\ComponentRegistry.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Editor\ComponentRegistry.cpp 
 #include "ComponentRegistry.h"
 
 std::unordered_map<std::string, ComponentInfo> ComponentRegistry::registry;
@@ -14697,7 +15643,7 @@ const ComponentInfo* ComponentRegistry::GetByTypeName(const std::string& typeNam
 } 
  
 ===== ComponentRegistryInitializer.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Editor\ComponentRegistryInitializer.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Editor\ComponentRegistryInitializer.cpp 
 #include "ComponentRegistryInitializer.h"
 #include "Tool/Editor/ComponentRegistry.h"
 #include <imgui.h>
@@ -14706,6 +15652,7 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Editor\ComponentRegistryI
 #include <filesystem>
 #include <algorithm>
 
+#include "Engine/ECS/Components/CategoryComponent.h"
 #include "Engine/ECS/Components/TransformComponent.h"
 #include "Engine/ECS/Components/MeshComponent.h"
 #include "Engine/ECS/Components/MaterialComponent.h"
@@ -14763,6 +15710,29 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Editor\ComponentRegistryI
 
 void ComponentRegistryInitializer::Initialize()
 {
+	// ƒJƒeƒSƒŠƒRƒ“ƒ|[ƒlƒ“ƒg‚Ì“o˜^
+	ComponentRegistry::Register("Category",
+		{
+			"Category",
+			[](auto& reg, auto e) { if (!reg.any_of<ComponentCategory>(e)) reg.emplace<ComponentCategory>(e); },
+			[](auto& reg, auto e) { reg.remove<ComponentCategory>(e); },
+			[](auto& reg, auto e) { return reg.any_of<ComponentCategory>(e); },
+			[](auto& reg, auto e)
+			{
+				auto* _c = reg.try_get<ComponentCategory>(e);
+				if (!_c) return;
+
+				const char* categoryNames[] = { "None", "Player", "Enemy", "Stage", "Object", "Camera" };
+				std::string header = "Category: " + std::string(categoryNames[(int)_c->category]);
+
+				if (!ImGui::CollapsingHeader(header.c_str(), ImGuiTreeNodeFlags_DefaultOpen)) return;
+
+				int category = (int)_c->category;
+				if (ImGui::Combo("Category", &category, categoryNames, 6))
+					_c->category = (EntityCategory)category;
+			}
+		});
+
 	// ƒgƒ‰ƒ“ƒXƒtƒH[ƒ€ƒRƒ“ƒ|[ƒlƒ“ƒg‚Ì“o˜^
 	REGISTER_COMPONENT(TransformComponent, "Transform",
 		[](auto& reg, auto e)
@@ -14955,57 +15925,89 @@ void ComponentRegistryInitializer::Initialize()
 				if (ImGui::Combo("Mode", &mode, modeNames, 2))
 					_c->mode = (Mode)mode;
 
-				// ’Ç]‘ÎÛ(FollowTarget)
-				std::string followTargetName = "None";
+				// FollowTarget‚Í©“®‚Å’T‚·(Playerƒ^ƒO)
+				std::string followTargetName = "None (auto)";
 				if (_c->followTarget != entt::null && reg.valid(_c->followTarget))
 					followTargetName = "Entity " + std::to_string((uint32_t)_c->followTarget);
 
-				ImGui::Text("Follow Target"); ImGui::SameLine();
-				ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - 60.0f);
-				ImGui::InputText("##followTarget", followTargetName.data(),
-					followTargetName.size() + 1, ImGuiInputTextFlags_ReadOnly);
+				ImGui::Text("Follow Target: %s", followTargetName.c_str());
 
-				if (ImGui::BeginDragDropTarget())
-				{
-					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ENTITY"))
-						_c->followTarget = *(const entt::entity*)payload->Data;
-					ImGui::EndDragDropTarget();
-				}
-				ImGui::SameLine();
-				if (ImGui::Button("Clear##followTarget")) _c->followTarget = entt::null;
-
-				// ’‹‘ÎÛ(LookAtTargetA” ‚Ì‚İ)
-				std::string lookAtTargetName = "None";
+				// LookAtTarget‚Í©“®‚Å’T‚·(Enemyƒ^ƒO)
+				std::string lookAtTargetName = "None (auto)";
 				if (_c->lookAtTarget != entt::null && reg.valid(_c->lookAtTarget))
 					lookAtTargetName = "Entity " + std::to_string((uint32_t)_c->lookAtTarget);
 
-				ImGui::Text("LookAt Target"); ImGui::SameLine();
-				ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - 60.0f);
-				ImGui::InputText("##lookAtTarget", lookAtTargetName.data(),
-					lookAtTargetName.size() + 1, ImGuiInputTextFlags_ReadOnly);
+				ImGui::Text("LookAt Target: %s", lookAtTargetName.c_str());
 
-				if (ImGui::BeginDragDropTarget())
-				{
-					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ENTITY"))
-						_c->lookAtTarget = *(const entt::entity*)payload->Data;
-					ImGui::EndDragDropTarget();
-				}
-				ImGui::SameLine();
-				if (ImGui::Button("Clear##lookAtTarget")) _c->lookAtTarget = entt::null;
-
+				ImGui::DragFloat("Yaw", &_c->yaw, 0.01f);
 				ImGui::DragFloat("Pitch", &_c->pitch, 0.01f, -1.5f, 1.5f);
+
+				// --- Follow Camera ---
 				ImGui::Separator();
 				ImGui::Text("Follow Camera");
-				ImGui::DragFloat("Distance",     &_c->followCameraDistance,  0.1f, 0.0f, 50.0f);
-				ImGui::DragFloat("Height",       &_c->followCameraHeight,    0.1f, 0.0f, 20.0f);
-				ImGui::DragFloat("Target Y Up",  &_c->followCameraTargetYUp, 0.1f, 0.0f, 10.0f);
+				ImGui::DragFloat("Distance", &_c->followCameraDistance, 0.1f, 0.0f, 50.0f);
+				ImGui::DragFloat("Height", &_c->followCameraHeight, 0.1f, 0.0f, 20.0f);
+				ImGui::DragFloat("Target Y Up", &_c->followCameraTargetYUp, 0.1f, 0.0f, 10.0f);
+				ImGui::DragFloat("Eye Speed Ratio", &_c->followCameraEyeSpeedRatio, 0.5f, 0.0f, 100.0f);
+				ImGui::DragFloat("Target Speed Ratio", &_c->followCameraTargetSpeedRatio, 0.5f, 0.0f, 100.0f);
+
+				// --- LockOn Camerai‹¤’Êj ---
 				ImGui::Separator();
-				ImGui::DragFloat("Eye Spring Stiffness", &_c->eyeSpringStiffness, 5.0f, 0.0f, 1000.0f);
-				ImGui::DragFloat("Eye Spring Damping", &_c->eyeSpringDamping, 1.0f, 0.0f, 200.0f);
+				ImGui::Text("LockOn Camera");
+				ImGui::DragFloat("Eye Speed Ratio##LockOn", &_c->lockOnCameraEyeSpeedRatio, 0.5f, 0.0f, 100.0f);
+				ImGui::DragFloat("Target Speed Ratio##LockOn", &_c->lockOnCameraTargetSpeedRatio, 0.5f, 0.0f, 100.0f);
+				ImGui::DragFloat("Range Switch Distance", &_c->lockOnRangeSwitchDistance, 0.1f, 0.1f, 50.0f);
+
+				// --- ‰~‚Ì’†SO ---
 				ImGui::Separator();
-				ImGui::DragFloat3("Eye",    &_c->base.currentEye.x,    0.1f);
-				ImGui::DragFloat3("Target", &_c->base.currentTarget.x, 0.1f);
-			}
+				ImGui::Text("Center O");
+				ImGui::DragFloat("Center Ratio", &_c->lockOnCenterRatio, 0.01f, 0.0f, 1.0f);
+				ImGui::DragFloat("Far Center Max Distance", &_c->lockOnFarCenterMaxDistance, 0.05f, 0.0f, 20.0f);
+				ImGui::DragFloat("Target Circle Radius Max", &_c->lockOnTargetCircleRadiusMax, 0.1f, 0.0f, 20.0f);
+
+				// --- ‰~üã‚ÌŠp“xEƒXƒeƒBƒbƒN‘€ì ---
+				ImGui::Separator();
+				ImGui::Text("Orbit");
+				ImGui::DragFloat("Orbit Rotate Speed", &_c->lockOnOrbitRotateSpeed, 0.1f, 0.0f, 20.0f);
+				ImGui::DragFloat("Orbit Pitch Rotate Speed", &_c->lockOnOrbitPitchRotateSpeed, 0.1f, 0.0f, 20.0f);
+				ImGui::DragFloat("Orbit Return Speed", &_c->lockOnOrbitReturnSpeed, 0.5f, 0.0f, 50.0f);
+				ImGui::Separator();
+				ImGui::Text("Orbit");
+				ImGui::DragFloat("Orbit Angle", &_c->lockOnOrbitAngle, 0.01f);
+				ImGui::DragFloat("Orbit Pitch", &_c->lockOnOrbitPitch, 0.01f, -0.8f, 0.8f);
+
+				// --- ‚­‚Ìš‚ÌŒü‚« ---
+				ImGui::Separator();
+				ImGui::Text("Side");
+				ImGui::DragFloat("Side Switch Threshold", &_c->lockOnSideSwitchThreshold, 0.01f, 0.0f, 3.14f);
+				ImGui::DragFloat("Side Smooth Speed", &_c->lockOnSideSmoothSpeed, 0.5f, 0.0f, 50.0f);
+				ImGui::Text("Side : %.2f -> %.2f", _c->lockOnSide, _c->lockOnSideSmooth);
+
+				// --- ‹ß‹——£—pƒpƒ‰ƒ[ƒ^ ---
+				ImGui::Separator();
+				ImGui::Text("Near");
+				ImGui::DragFloat("Near Distance", &_c->lockOnNearCameraDistance, 0.1f, 0.0f, 30.0f);
+				ImGui::DragFloat("Near Height", &_c->lockOnNearCameraHeight, 0.1f, 0.0f, 20.0f);
+				ImGui::DragFloat("Near Target Y Up", &_c->lockOnNearCameraTargetYUp, 0.1f, 0.0f, 10.0f);
+				ImGui::DragFloat("Near Angle Offset Max", &_c->lockOnNearAngleOffsetMax, 0.5f, 0.0f, 90.0f);
+
+				// --- ‰“‹——£—pƒpƒ‰ƒ[ƒ^ ---
+				ImGui::Separator();
+				ImGui::Text("Far");
+				ImGui::DragFloat("Far Distance", &_c->lockOnFarCameraDistance, 0.1f, 0.0f, 30.0f);
+				ImGui::DragFloat("Far Height", &_c->lockOnFarCameraHeight, 0.1f, 0.0f, 20.0f);
+				ImGui::DragFloat("Far Target Y Up", &_c->lockOnFarCameraTargetYUp, 0.1f, 0.0f, 10.0f);
+
+				// --- Œ¸Š‚Î‚Ë ---
+				ImGui::Separator();
+				ImGui::Text("Spring");
+				ImGui::DragFloat("Stiffness", &_c->eyeSpringStiffness, 5.0f, 0.0f, 1000.0f);
+				ImGui::DragFloat("Damping", &_c->eyeSpringDamping, 1.0f, 0.0f, 200.0f);
+
+				// --- Œ»İ‚Ìeye/targetiƒfƒoƒbƒO•\¦j ---
+				ImGui::Separator();
+				ImGui::DragFloat3("Eye", &_c->base.currentEye.x, 0.1f);
+				ImGui::DragFloat3("Target", &_c->base.currentTarget.x, 0.1f);			}
 		});
 
 	// ƒRƒ“ƒgƒ[ƒ‰[ƒRƒ“ƒ|[ƒlƒ“ƒg‚Ì“o˜^
@@ -15248,7 +16250,7 @@ void ComponentRegistryInitializer::Initialize()
  
  
 ===== HierarchyWindow.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Editor\HierarchyWindow.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Editor\HierarchyWindow.cpp 
 #include "HierarchyWindow.h"
 #include "imgui_internal.h"
 #include <imgui.h>
@@ -15257,6 +16259,7 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Editor\HierarchyWindow.cp
 #include "Engine/ECS/Components/TransformComponent.h"
 #include "Engine/ECS/Components/MeshComponent.h"
 #include "Engine/ECS/Components/MaterialComponent.h"
+#include "Engine/ECS/Components/CategoryComponent.h"
 
 #include "tracy/Tracy.hpp"
 
@@ -15271,6 +16274,7 @@ void HierarchyWindow::Draw(entt::registry& registry, EditorContext& context)
     {
         entt::entity e = registry.create();
 
+        registry.emplace<ComponentCategory>(e);
         registry.emplace<TransformComponent>(e);
 
         // –¼‘O‚ğ©“®İ’è
@@ -15294,35 +16298,6 @@ void HierarchyWindow::Draw(entt::registry& registry, EditorContext& context)
     // ƒZƒpƒŒ[ƒ^‚Ì‰º‚ÌÀ•W‚ğ‹L˜^
     ImVec2 dropAreaMin = ImGui::GetCursorScreenPos();
 
-    //// ‘S Entity ‚ğ—ñ‹“
-    //auto view = registry.view<entt::entity>();
-    //for (auto e : view)
-    //{
-    //    std::string name = context.GetName(e);
-
-    //    // ‘I‘ğó‘Ô‚ğƒnƒCƒ‰ƒCƒg
-    //    bool isSelected = context.IsSelected(e);
-    //    if (ImGui::Selectable(
-    //        (name + "##" + std::to_string((uint32_t)e)).c_str(),
-    //        isSelected))
-    //    {
-    //        context.Select(e);
-    //    }
-
-    //    // Entity ‚ğƒhƒ‰ƒbƒO‚Å‚«‚é‚æ‚¤‚É‚·‚é
-    //    if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
-    //    {
-    //        // Entity ID ‚ğƒyƒCƒ[ƒh‚Æ‚µ‚Ä“n‚·
-    //        ImGui::SetDragDropPayload(
-    //            "ENTITY",
-    //            &e,
-    //            sizeof(entt::entity)
-    //        );
-    //        // ƒhƒ‰ƒbƒO’†‚ÌƒvƒŒƒrƒ…[
-    //        ImGui::Text(name.c_str());
-    //        ImGui::EndDragDropSource();
-    //    }
-    //}
     // ‘S Entity ‚ğ—ñ‹“(‰æ–Ê‚É‰f‚Á‚Ä‚¢‚é”ÍˆÍ‚¾‚¯ˆ—‚·‚é)
     auto view = registry.view<entt::entity>();
 
@@ -15382,6 +16357,8 @@ void HierarchyWindow::Draw(entt::registry& registry, EditorContext& context)
             // Entity ¶¬
             entt::entity e = registry.create();
 
+            registry.emplace<ComponentCategory>(e);
+
             auto& t = registry.emplace<TransformComponent>(e);
             t.position = { 0.0f, 0.0f, 0.0f };
             t.scale = { 1.0f, 1.0f, 1.0f };
@@ -15400,7 +16377,7 @@ void HierarchyWindow::Draw(entt::registry& registry, EditorContext& context)
 } 
  
 ===== InspectorWindow.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Editor\InspectorWindow.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Editor\InspectorWindow.cpp 
 #include "InspectorWindow.h"
 #include <imgui.h>
 #include "imgui_internal.h"
@@ -15525,7 +16502,7 @@ void InspectorWindow::DrawAddComponent(entt::registry& registry, EditorContext& 
  
  
 ===== MetaRegistry.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Editor\MetaRegistry.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Editor\MetaRegistry.cpp 
 #include "MetaRegistry.h"
 #include <DirectXMath.h>
 #include <filesystem>
@@ -15963,8 +16940,444 @@ void MetaRegistry::RegisterAnimationSpeedComponent()
 		.custom<FieldInfo>(FieldInfo{ "Speed Curve File", 0.0f, 0.0f, 0.1f, "ANIMSPEED_PATH" });
 } 
  
+===== PrefabWindow.cpp ===== 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Editor\PrefabWindow.cpp 
+#include "PrefabWindow.h"
+#include <imgui.h>
+#include <algorithm>
+
+// ‰Šú‰»
+void PrefabWindow::Initialize(const std::string& root)
+{
+	rootPath = root;
+	itemState.selectedPath = rootPath;
+
+	if (!std::filesystem::exists(rootPath))
+	{
+		std::filesystem::create_directories(rootPath);
+	}
+}
+
+// •`‰æ
+void PrefabWindow::Draw(entt::registry& registry, EditorContext& context)
+{
+	RefreshFolderTreeIfNeeded();
+	RefreshFileGridIfNeeded();
+
+	ImGui::Begin("Prefab");
+
+	if (ImGui::BeginTable("PrefabLayout", 2,
+		ImGuiTableFlags_Resizable |
+		ImGuiTableFlags_BordersInnerV))
+	{
+		ImGui::TableSetupColumn("Folders", ImGuiTableColumnFlags_WidthFixed, 200.0f);
+		ImGui::TableSetupColumn("Files", ImGuiTableColumnFlags_WidthStretch);
+
+		ImGui::TableNextRow();
+
+		ImGui::TableSetColumnIndex(0);
+		ImGui::BeginChild("PrefabFolderTree", ImVec2(0, 0), false);
+		DrawFolderTree(folderTreeCache);
+		ImGui::EndChild();
+
+		ImGui::TableSetColumnIndex(1);
+		ImGui::BeginChild("PrefabFileGrid", ImVec2(0, 0), false);
+		DrawFileGrid(registry, context);
+		ImGui::EndChild();
+
+		ImGui::EndTable();
+	}
+
+	DrawDeleteConfirmPopup();
+
+	ImGui::End();
+}
+
+// d•¡‚µ‚È‚¢–¼‘O‚Åì¬
+std::string PrefabWindow::GenerateUniqueName(const std::filesystem::path& parentDir, const std::string& baseName)
+{
+	std::filesystem::path candidate = parentDir / baseName;
+	if (!std::filesystem::exists(candidate))
+	{
+		return baseName;
+	}
+
+	std::filesystem::path basePath(baseName);
+	std::string stem = basePath.stem().string();
+	std::string ext = basePath.extension().string();
+
+	int suffix = 2;
+	while (true)
+	{
+		std::string name = stem + " (" + std::to_string(suffix) + ")" + ext;
+		if (!std::filesystem::exists(parentDir / name))
+		{
+			return name;
+		}
+		++suffix;
+	}
+}
+
+
+// ¶FƒtƒHƒ‹ƒ_ƒcƒŠ[
+void PrefabWindow::DrawFolderTree(FolderNode& node)
+{
+	const std::filesystem::path& path = node.path;
+	bool isRenamingThis = (itemState.mode == PrefabItemMode::Renaming && itemState.targetPath == path);
+
+	bool hasSubFolder = !node.children.empty();
+
+	// ƒŠƒl[ƒ€’†‚ÍƒcƒŠ[s‚Ì‘ã‚í‚è‚É“ü—Í—“‚ğ•\¦‚·‚é
+	if (isRenamingThis)
+	{
+		ImGui::SetNextItemWidth(160.0f);
+		ImGui::SetKeyboardFocusHere();
+
+		bool confirmedByEnter = ImGui::InputText("##rename", itemState.editBuffer, sizeof(itemState.editBuffer), ImGuiInputTextFlags_EnterReturnsTrue);
+		bool confirmedByBlur = ImGui::IsItemDeactivated() && !confirmedByEnter;
+
+		if (confirmedByEnter || confirmedByBlur)
+		{
+			CommitRename();
+		}
+		// ƒŠƒl[ƒ€’†‚ÍƒTƒuƒtƒHƒ‹ƒ_‚ÌÄ‹A•`‰æ‚ğs‚í‚È‚¢
+		return;
+	}
+
+	ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_SpanAvailWidth;
+
+	if (itemState.selectedPath == path)
+	{
+		flags |= ImGuiTreeNodeFlags_Selected;
+	}
+
+	if (!hasSubFolder)
+	{
+		flags |= ImGuiTreeNodeFlags_Leaf;
+		flags |= ImGuiTreeNodeFlags_NoTreePushOnOpen;
+	}
+
+	bool open = ImGui::TreeNodeEx(node.name.c_str(), flags);
+
+	if (ImGui::IsItemClicked())
+	{
+		itemState.selectedPath = path;
+	}
+
+	// ‰EƒNƒŠƒbƒN‚ÅƒRƒ“ƒeƒLƒXƒgƒƒjƒ…[
+	if (ImGui::BeginPopupContextItem(path.string().c_str()))
+	{
+		if (ImGui::BeginMenu(u8"V‹Kì¬"))
+		{
+			if (ImGui::MenuItem(u8"ƒtƒHƒ‹ƒ_"))
+			{
+				std::string newName = GenerateUniqueName(path, "New Folder");
+				std::filesystem::create_directory(path / newName);
+			}
+
+			ImGui::EndMenu();
+		}
+
+		ImGui::Separator();
+		if (ImGui::MenuItem(u8"–¼‘O‚Ì•ÏX"))
+		{
+			BeginRename(path);
+		}
+
+		// ƒ‹[ƒgƒtƒHƒ‹ƒ_‚Ííœ‚µ‚È‚¢
+		if (path != rootPath)
+		{
+			ImGui::Separator();
+			if (ImGui::MenuItem(u8"íœ"))
+			{
+				itemState.mode = PrefabItemMode::ConfirmingDelete;
+				itemState.targetPath = path;
+			}
+		}
+		ImGui::EndPopup();
+	}
+
+	if (open && hasSubFolder)
+	{
+		for (auto& child : node.children)
+		{
+			DrawFolderTree(child);
+		}
+		ImGui::TreePop();
+	}
+}
+// ‰EFƒtƒ@ƒCƒ‹ˆê——
+void PrefabWindow::DrawFileGrid(entt::registry& registry, EditorContext& context)
+{
+	if (itemState.selectedPath.empty()) return;
+
+	const float iconSize = 64.0f;
+	const float padding = 16.0f;
+	const float cellSize = iconSize + padding;
+
+	float windowWidth = ImGui::GetContentRegionAvail().x;
+	int columns = (std::max)(1, (int)(windowWidth / cellSize));
+
+	int index = 0;
+
+	for (auto& file : fileGridCache)
+	{
+		const std::string& filename = file.filename;
+		std::string prefabPath = file.path.string();
+		std::replace(prefabPath.begin(), prefabPath.end(), '\\', '/');
+
+		if (index % columns != 0)
+		{
+			ImGui::SameLine();
+		}
+
+		ImGui::BeginGroup();
+
+		ImVec2 pos = ImGui::GetCursorScreenPos();
+
+		// ƒvƒŒƒnƒu—p‚ÌƒAƒCƒRƒ“i’PF‚ÌlŠp‚Å‰¼•\¦j
+		ImGui::GetWindowDrawList()->AddRectFilled(
+			pos,
+			ImVec2(pos.x + iconSize, pos.y + iconSize),
+			IM_COL32(90, 170, 90, 255),
+			8.0f
+		);
+		ImGui::Dummy(ImVec2(iconSize, iconSize));
+
+		ImGui::SetCursorScreenPos(pos);
+		ImGui::PushID(index);
+		ImGui::InvisibleButton("##icon", ImVec2(iconSize, iconSize));
+
+		// ƒhƒ‰ƒbƒOŠJniHierarchy‚Öƒhƒƒbƒv‚µ‚Ä”z’u‚·‚é‚½‚ßj
+		if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
+		{
+			ImGui::SetDragDropPayload(
+				"PREFAB_PATH",
+				prefabPath.c_str(),
+				prefabPath.size() + 1
+			);
+			ImGui::Text(filename.c_str());
+			ImGui::EndDragDropSource();
+		}
+
+		// ‰EƒNƒŠƒbƒN‚Åu–¼‘O‚Ì•ÏXvuíœv
+		if (ImGui::BeginPopupContextItem("##fileContext"))
+		{
+			if (ImGui::MenuItem(u8"–¼‘O‚Ì•ÏX"))
+			{
+				BeginRename(file.path);
+			}
+			if (ImGui::MenuItem(u8"íœ"))
+			{
+				itemState.mode = PrefabItemMode::ConfirmingDelete;
+				itemState.targetPath = file.path;
+			}
+			ImGui::EndPopup();
+		}
+
+		ImGui::PopID();
+
+		bool isRenamingThis = (itemState.mode == PrefabItemMode::Renaming && itemState.targetPath == file.path);
+		if (isRenamingThis)
+		{
+			std::string extension = file.path.extension().string();
+
+			ImGui::SetNextItemWidth(iconSize + padding);
+			ImGui::SetKeyboardFocusHere();
+
+			bool confirmedByEnter = ImGui::InputText("##rename", itemState.editBuffer, sizeof(itemState.editBuffer), ImGuiInputTextFlags_EnterReturnsTrue);
+			bool confirmedByBlur = ImGui::IsItemDeactivated() && !confirmedByEnter;
+
+			if (!extension.empty())
+			{
+				ImGui::TextDisabled("%s", extension.c_str());
+			}
+
+			if (confirmedByEnter || confirmedByBlur)
+			{
+				CommitRename();
+			}
+		}
+		else
+		{
+			std::string displayName = filename;
+			if (displayName.size() > 10)
+				displayName = displayName.substr(0, 9) + "...";
+			ImGui::TextUnformatted(displayName.c_str());
+		}
+
+		ImGui::EndGroup();
+		index++;
+	}
+
+	// ‹ó”’•”•ª‚Ì‰EƒNƒŠƒbƒN‚ÅAV‹KƒtƒHƒ‹ƒ_ì¬
+	if (ImGui::BeginPopupContextWindow("PrefabFileGridContext", ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverExistingPopup))
+	{
+		if (ImGui::BeginMenu(u8"V‹Kì¬"))
+		{
+			if (ImGui::MenuItem(u8"ƒtƒHƒ‹ƒ_"))
+			{
+				std::string newName = GenerateUniqueName(itemState.selectedPath, "New Folder");
+				std::filesystem::create_directory(itemState.selectedPath / newName);
+			}
+			ImGui::EndMenu();
+		}
+		ImGui::EndPopup();
+	}
+}
+
+// ŠÔŠu‚ªŒo‰ß‚µ‚Ä‚¢‚ê‚ÎAƒtƒHƒ‹ƒ_ƒcƒŠ[‚ÌƒLƒƒƒbƒVƒ…‚ğì‚è’¼‚·
+void PrefabWindow::RefreshFolderTreeIfNeeded()
+{
+	auto now = std::chrono::steady_clock::now();
+	if (now - lastFolderScanTime < folderScanInterval) return;
+
+	folderTreeCache = BuildFolderNode(rootPath);
+	lastFolderScanTime = now;
+}
+PrefabWindow::FolderNode PrefabWindow::BuildFolderNode(const std::filesystem::path& path)
+{
+	FolderNode node;
+	node.path = path;
+	node.name = path.filename().string();
+	if (node.name.empty()) node.name = path.string();
+
+	for (auto& entry : std::filesystem::directory_iterator(path))
+	{
+		if (entry.is_directory())
+		{
+			node.children.push_back(BuildFolderNode(entry.path()));
+		}
+	}
+	return node;
+}
+
+// ‘I‘ğƒtƒHƒ‹ƒ_‚ª•Ï‚í‚Á‚½^ŠÔŠu‚ªŒo‰ß‚µ‚Ä‚¢‚ê‚ÎAƒtƒ@ƒCƒ‹ƒOƒŠƒbƒh‚ÌƒLƒƒƒbƒVƒ…‚ğì‚è’¼‚·
+void PrefabWindow::RefreshFileGridIfNeeded()
+{
+	bool folderChanged = (itemState.selectedPath != fileGridCachedPath);
+	auto now = std::chrono::steady_clock::now();
+	bool timeElapsed = (now - lastFileGridScanTime >= std::chrono::seconds(2));
+
+	if (!folderChanged && !timeElapsed) return;
+
+	fileGridCache = BuildFileGrid(itemState.selectedPath);
+	fileGridCachedPath = itemState.selectedPath;
+	lastFileGridScanTime = now;
+}
+std::vector<PrefabWindow::FileEntry> PrefabWindow::BuildFileGrid(const std::filesystem::path& path)
+{
+	std::vector<FileEntry> result;
+
+	for (auto& entry : std::filesystem::directory_iterator(path))
+	{
+		if (entry.is_directory()) continue;
+		if (!IsPrefabFile(entry.path())) continue;
+
+		FileEntry file;
+		file.path = entry.path();
+		file.filename = entry.path().filename().string();
+		result.push_back(file);
+	}
+	return result;
+}
+
+// ƒvƒŒƒnƒuƒtƒ@ƒCƒ‹‚©‚Ç‚¤‚©‚Ì”»’è
+bool PrefabWindow::IsPrefabFile(const std::filesystem::path& path)
+{
+	if (path.extension() != ".json") return false;
+
+	std::string stem = path.stem().string();
+	std::filesystem::path stemPath(stem);
+	return stemPath.extension() == ".prefab";
+}
+
+// íœŠm”Fƒ|ƒbƒvƒAƒbƒv
+void PrefabWindow::DrawDeleteConfirmPopup()
+{
+	if (itemState.mode != PrefabItemMode::ConfirmingDelete) return;
+
+	ImGui::OpenPopup(u8"íœ‚ÌŠm”F");
+
+	bool open = true;
+	if (ImGui::BeginPopupModal(u8"íœ‚ÌŠm”F", &open, ImGuiWindowFlags_AlwaysAutoResize))
+	{
+		std::string name = itemState.targetPath.filename().string();
+		ImGui::Text(u8"u%sv‚ğíœ‚µ‚Ü‚·‚©H", name.c_str());
+		ImGui::Spacing();
+
+		if (ImGui::Button(u8"íœ", ImVec2(120, 0)))
+		{
+			std::error_code ec;
+			std::filesystem::remove_all(itemState.targetPath, ec);
+
+			if (itemState.selectedPath == itemState.targetPath)
+			{
+				itemState.selectedPath = rootPath;
+			}
+
+			itemState.mode = PrefabItemMode::None;
+			itemState.targetPath.clear();
+			ImGui::CloseCurrentPopup();
+		}
+
+		ImGui::SameLine();
+
+		if (ImGui::Button(u8"ƒLƒƒƒ“ƒZƒ‹", ImVec2(120, 0)))
+		{
+			itemState.mode = PrefabItemMode::None;
+			itemState.targetPath.clear();
+			ImGui::CloseCurrentPopup();
+		}
+
+		ImGui::EndPopup();
+	}
+
+	if (!open && itemState.mode == PrefabItemMode::ConfirmingDelete)
+	{
+		itemState.mode = PrefabItemMode::None;
+		itemState.targetPath.clear();
+	}
+}
+
+// ƒŠƒl[ƒ€ŠJn
+void PrefabWindow::BeginRename(const std::filesystem::path& target)
+{
+	itemState.mode = PrefabItemMode::Renaming;
+	itemState.targetPath = target;
+
+	std::string currentStem = target.stem().string();
+	strncpy_s(itemState.editBuffer, currentStem.c_str(), sizeof(itemState.editBuffer) - 1);
+}
+// ƒŠƒl[ƒ€Šm’è
+void PrefabWindow::CommitRename()
+{
+	std::string newStem = itemState.editBuffer;
+	std::string extension = itemState.targetPath.extension().string();
+	std::string newName = newStem + extension;
+
+	if (!newStem.empty() && newName != itemState.targetPath.filename().string())
+	{
+		std::filesystem::path newPath = itemState.targetPath.parent_path() / newName;
+
+		std::error_code ec;
+		std::filesystem::rename(itemState.targetPath, newPath, ec);
+
+		if (!ec)
+		{
+			if (itemState.selectedPath == itemState.targetPath)
+			{
+				itemState.selectedPath = newPath;
+			}
+		}
+	}
+
+	itemState.mode = PrefabItemMode::None;
+	itemState.targetPath.clear();
+} 
+ 
 ===== ProjectWindow.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Editor\ProjectWindow.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Editor\ProjectWindow.cpp 
 #include "ProjectWindow.h"
 #include <imgui.h>
 
@@ -16000,9 +17413,13 @@ void ProjectWindow::Draw(entt::registry& registry, EditorContext& context, bool 
 {
 	ZoneScoped;
 
+	// 2•bŒo‰ß‚µ‚Ä‚¢‚ê‚ÎƒfƒBƒXƒN‚ğŒ©‚ÄƒLƒƒƒbƒVƒ…‚ğì‚è’¼‚·
+	RefreshFolderTreeIfNeeded();
+	RefreshFileGridIfNeeded();
+
 	ImGui::Begin("Project");
 
-	if (ImGui::BeginTable("ProjectLayout", 2, 
+	if (ImGui::BeginTable("ProjectLayout", 2,
 		ImGuiTableFlags_Resizable |
 		ImGuiTableFlags_BordersInnerV))
 	{
@@ -16015,7 +17432,7 @@ void ProjectWindow::Draw(entt::registry& registry, EditorContext& context, bool 
 		// ¶‘¤FƒtƒHƒ‹ƒ_ƒcƒŠ[
 		ImGui::TableSetColumnIndex(0);
 		ImGui::BeginChild("FolderTree", ImVec2(0, 0), false);
-		DrawFolderTree(rootPath);
+		DrawFolderTree(folderTreeCache);
 		ImGui::EndChild();
 
 		// ‰E‘¤Fƒtƒ@ƒCƒ‹ƒOƒŠƒbƒh
@@ -16059,23 +17476,13 @@ std::string ProjectWindow::GenerateUniqueName(const std::filesystem::path& paren
 }
 
 // ƒtƒHƒ‹ƒ_ƒcƒŠ[
-void ProjectWindow::DrawFolderTree(const std::filesystem::path& path)
+void ProjectWindow::DrawFolderTree(FolderNode& node)
 {
-	if (!std::filesystem::is_directory(path)) return;
-
-	std::string folderName = path.filename().string();
+	const std::filesystem::path& path = node.path;
 	bool isRenamingThis = (itemState.mode == ProjectItemMode::Renaming && itemState.targetPath == path);
 
-	// ƒTƒuƒtƒHƒ‹ƒ_‚ª‚ ‚é‚©Šm”F
-	bool hasSubFolder = false;
-	for (const auto& entry : std::filesystem::directory_iterator(path))
-	{
-		if (entry.is_directory())
-		{
-			hasSubFolder = true;
-			break;
-		}
-	}
+	// ƒLƒƒƒbƒVƒ…‚ğŠm”F‚µ‚ÄƒTƒuƒtƒHƒ‹ƒ_‚ğŠm”F‚·‚é
+	bool hasSubFolder = !node.children.empty();
 
 	// ƒŠƒl[ƒ€’†‚ÍƒcƒŠ[s‚Ì‘ã‚í‚è‚É“ü—Í—“‚ğ•\¦‚·‚é
 	if (isRenamingThis)
@@ -16109,7 +17516,7 @@ void ProjectWindow::DrawFolderTree(const std::filesystem::path& path)
 		flags |= ImGuiTreeNodeFlags_NoTreePushOnOpen;
 	}
 
-	bool open = ImGui::TreeNodeEx(folderName.c_str(), flags);
+	bool open = ImGui::TreeNodeEx(node.name.c_str(), flags);
 
 	// ƒNƒŠƒbƒN‚Å‘I‘ğ
 	if (ImGui::IsItemClicked())
@@ -16130,7 +17537,7 @@ void ProjectWindow::DrawFolderTree(const std::filesystem::path& path)
 
 			ImGui::EndMenu();
 		}
-		
+
 		ImGui::Separator();
 		if (ImGui::MenuItem(u8"–¼‘O‚Ì•ÏX"))
 		{
@@ -16153,21 +17560,18 @@ void ProjectWindow::DrawFolderTree(const std::filesystem::path& path)
 	// Å‰º‘w‚ÍTreePop‚ª•s—v
 	if (open && hasSubFolder)
 	{
-		for (const auto& entry : std::filesystem::directory_iterator(path))
+		for (auto& child : node.children)
 		{
-			if (entry.is_directory())
-			{
-				DrawFolderTree(entry.path());
-			}
+			DrawFolderTree(child);
 		}
 		ImGui::TreePop();
 	}
+
 }
 // ƒtƒ@ƒCƒ‹ˆê——
 void ProjectWindow::DrawFileGrid(entt::registry& registry, EditorContext& context)
 {
 	if (itemState.selectedPath.empty()) return;
-	if (!std::filesystem::exists(itemState.selectedPath)) return;
 
 	// ƒAƒCƒRƒ“ƒTƒCƒY‚Æ—]”’
 	const float iconSize = 64.0f;
@@ -16180,101 +17584,15 @@ void ProjectWindow::DrawFileGrid(entt::registry& registry, EditorContext& contex
 
 	int index = 0;
 
-	//for (const auto& entry : std::filesystem::directory_iterator(itemState.selectedPath)) 
-	//{
-	//	if (!entry.is_regular_file()) continue;
-	//	if (!IsModelFile(entry.path())) continue;
-
-	//	std::string filename = entry.path().stem().string();
-	//	std::string modelPath = entry.path().string();
-	//	std::replace(modelPath.begin(), modelPath.end(), '\\', '/');
-
-	//	// —ñ‚ÌÜ‚è•Ô‚µ
-	//	if (index % columns != 0)
-	//	{
-	//		ImGui::SameLine();
-	//	}
-
-	//	// ƒOƒ‹[ƒv‰»‚µ‚ÄƒAƒCƒRƒ“{–¼‘O‚ğ‚Ü‚Æ‚ß‚é
-	//	ImGui::BeginGroup();
-
-	//	ImVec2 pos = ImGui::GetCursorScreenPos();
-
-	//	// ƒAƒCƒRƒ“•\¦
-	//	if (modelIconSRV)
-	//	{
-	//		ImGui::Image(
-	//			(ImTextureID)modelIconSRV.Get(),
-	//			ImVec2(iconSize, iconSize)
-	//		);
-	//	}
-	//	else
-	//	{
-	//		ImGui::GetWindowDrawList()->AddRectFilled(
-	//			pos,
-	//			ImVec2(pos.x + iconSize, pos.y + iconSize),
-	//			IM_COL32(80, 120, 200, 255),
-	//			8.0f
-	//		);
-	//		ImGui::Dummy(ImVec2(iconSize, iconSize));
-	//	}
-
-	//	// ‰æ‘œ‚Ìã‚É“§–¾ƒ{ƒ^ƒ“‚ğd‚Ë‚Äƒhƒ‰ƒbƒO”»’è
-	//	ImGui::SetCursorScreenPos(pos);
-	//	ImGui::PushID(index);
-	//	ImGui::InvisibleButton("##icon", ImVec2(iconSize, iconSize));
-
-	//	// ƒ_ƒuƒ‹ƒNƒŠƒbƒN‚ÅStudio‚ğŠJ‚­ƒŠƒNƒGƒXƒg
-	//	if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(0))
-	//	{
-	//		context.studioRequest.pending = true;
-	//		context.studioRequest.assetPath = modelPath;
-	//	}
-
-	//	// ƒhƒ‰ƒbƒOŠJn
-	//	if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
-	//	{
-	//		// ƒ‚ƒfƒ‹ƒpƒX‚ğƒyƒCƒ[ƒh‚Æ‚µ‚Ä“n‚·
-	//		ImGui::SetDragDropPayload(
-	//			"MODEL_PATH",
-	//			modelPath.c_str(),
-	//			modelPath.size() + 1
-	//		);
-	//		if (modelIconSRV)
-	//		{
-	//			ImGui::Image(
-	//				(ImTextureID)modelIconSRV.Get(),
-	//				ImVec2(iconSize, iconSize)
-	//			);
-	//		}
-	//		ImGui::Text(filename.c_str());
-	//		ImGui::EndDragDropSource();
-	//	}
-
-	//	ImGui::PopID();
-
-	//	// ƒtƒ@ƒCƒ‹–¼i’·‚¯‚ê‚ÎÈ—ªj
-	//	std::string displayName = filename;
-	//	if (displayName.size() > 10)
-	//		displayName = displayName.substr(0, 9) + "...";
-	//	ImGui::TextUnformatted(displayName.c_str());
-
-	//	ImGui::EndGroup();
-	//	index++;
-	//}
-
-	for (const auto& entry : std::filesystem::directory_iterator(itemState.selectedPath))
+	for (auto& file : fileGridCache)
 	{
-		if (!entry.is_regular_file()) continue;
+		bool isModel = file.isModel;
+		bool isAnimGraph = file.isAnimGraph;
+		bool isSequencer = file.isSequencer;
+		bool isAnimSpeed = file.isAnimSpeed;
 
-		bool isModel = IsModelFile(entry.path());
-		bool isAnimGraph = IsAnimGraphFile(entry.path());
-		bool isSequencer = IsSequencerFile(entry.path());
-		bool isAnimSpeed = IsAnimSpeedFile(entry.path());
-		if (!isModel && !isAnimGraph && !isSequencer && !isAnimSpeed) continue;
-
-		std::string filename = entry.path().stem().string();
-		std::string modelPath = entry.path().string();
+		const std::string& filename = file.filename;
+		std::string modelPath = file.path.string();
 		std::replace(modelPath.begin(), modelPath.end(), '\\', '/');
 
 		// —ñ‚ÌÜ‚è•Ô‚µ
@@ -16379,12 +17697,12 @@ void ProjectWindow::DrawFileGrid(entt::registry& registry, EditorContext& contex
 		{
 			if (ImGui::MenuItem(u8"–¼‘O‚Ì•ÏX"))
 			{
-				BeginRename(entry.path());
+				BeginRename(file.path);
 			}
 			if (ImGui::MenuItem(u8"íœ"))
 			{
 				itemState.mode = ProjectItemMode::ConfirmingDelete;
-				itemState.targetPath = entry.path();
+				itemState.targetPath = file.path;
 			}
 			ImGui::EndPopup();
 		}
@@ -16392,10 +17710,10 @@ void ProjectWindow::DrawFileGrid(entt::registry& registry, EditorContext& contex
 		ImGui::PopID();
 
 		// ƒtƒ@ƒCƒ‹–¼•\¦ or ƒŠƒl[ƒ€’†‚ÍƒCƒ“ƒ‰ƒCƒ““ü—Í—“
-		bool isRenamingThis = (itemState.mode == ProjectItemMode::Renaming && itemState.targetPath == entry.path());
+		bool isRenamingThis = (itemState.mode == ProjectItemMode::Renaming && itemState.targetPath == file.path);
 		if (isRenamingThis)
 		{
-			std::string extension = entry.path().extension().string();
+			std::string extension = file.path.extension().string();
 
 			// “ü—Í—“‚ÍƒAƒCƒRƒ“•‚¢‚Á‚Ï‚¢‚Ég‚¤iŠg’£q‚ÍŸ‚Ìs‚É•\¦‚·‚é‚½‚ß•‚ğ•ª‚¯‚é•K—v‚ª–³‚¢j
 			ImGui::SetNextItemWidth(iconSize + padding);
@@ -16441,6 +17759,87 @@ void ProjectWindow::DrawFileGrid(entt::registry& registry, EditorContext& contex
 		}
 		ImGui::EndPopup();
 	}
+}
+
+// ˆê’èŠÔŠu‚ªŒo‰ß‚µ‚Ä‚¢‚ê‚ÎAƒtƒHƒ‹ƒ_ƒcƒŠ[‚ÌƒLƒƒƒbƒVƒ…‚ğì‚è’¼‚·(2•b)
+void ProjectWindow::RefreshFolderTreeIfNeeded()
+{
+	auto now = std::chrono::steady_clock::now();
+	if (now - lastFolderScanTime < folderScanInterval) return;
+
+	folderTreeCache = BuildFolderNode(rootPath);
+	lastFolderScanTime = now;
+}
+// ƒfƒBƒXƒN‚ğÀÛ‚É‘–¸‚µ‚ÄAw’èƒpƒXˆÈ‰º‚ÌFolderNode‚ğ\’z‚·‚éiÄ‹Aj
+ProjectWindow::FolderNode ProjectWindow::BuildFolderNode(const std::filesystem::path& path)
+{
+	FolderNode node;
+	node.path = path;
+	node.name = path.filename().string();
+
+	if (!std::filesystem::is_directory(path)) return node;
+
+	for (const auto& entry : std::filesystem::directory_iterator(path))
+	{
+		if (entry.is_directory())
+		{
+			node.children.push_back(BuildFolderNode(entry.path()));
+		}
+	}
+
+	return node;
+}
+
+// ‘I‘ğƒtƒHƒ‹ƒ_‚ª•Ï‚í‚Á‚½^ˆê’èŠÔŠu‚ªŒo‰ß‚µ‚Ä‚¢‚ê‚ÎAƒtƒ@ƒCƒ‹ƒOƒŠƒbƒh‚ÌƒLƒƒƒbƒVƒ…‚ğì‚è’¼‚·
+void ProjectWindow::RefreshFileGridIfNeeded()
+{
+	// ‘I‘ğƒtƒHƒ‹ƒ_‚ª‘O‰ñ‚Æˆá‚¤ê‡‚ÍA‘Ò‚½‚¸‚É‘¦À‚Éì‚è’¼‚·
+	bool folderChanged = (itemState.selectedPath != fileGridCachedPath);
+
+	auto now = std::chrono::steady_clock::now();
+	bool intervalElapsed = (now - lastFileGridScanTime >= folderScanInterval);
+
+	if (!folderChanged && !intervalElapsed) return;
+
+	if (itemState.selectedPath.empty() || !std::filesystem::exists(itemState.selectedPath))
+	{
+		fileGridCache.clear();
+	}
+	else
+	{
+		fileGridCache = BuildFileGrid(itemState.selectedPath);
+	}
+
+	fileGridCachedPath = itemState.selectedPath;
+	lastFileGridScanTime = now;
+}
+// ƒfƒBƒXƒN‚ğÀÛ‚É‘–¸‚µ‚ÄAw’èƒtƒHƒ‹ƒ_’¼‰º‚ÌFileEntryˆê——‚ğ\’z‚·‚é
+std::vector<ProjectWindow::FileEntry> ProjectWindow::BuildFileGrid(const std::filesystem::path& path)
+{
+	std::vector<FileEntry> result;
+
+	for (const auto& entry : std::filesystem::directory_iterator(path))
+	{
+		if (!entry.is_regular_file()) continue;
+
+		bool isModel = IsModelFile(entry.path());
+		bool isAnimGraph = IsAnimGraphFile(entry.path());
+		bool isSequencer = IsSequencerFile(entry.path());
+		bool isAnimSpeed = IsAnimSpeedFile(entry.path());
+		if (!isModel && !isAnimGraph && !isSequencer && !isAnimSpeed) continue;
+
+		FileEntry file;
+		file.path = entry.path();
+		file.filename = entry.path().stem().string();
+		file.isModel = isModel;
+		file.isAnimGraph = isAnimGraph;
+		file.isSequencer = isSequencer;
+		file.isAnimSpeed = isAnimSpeed;
+
+		result.push_back(std::move(file));
+	}
+
+	return result;
 }
 
 // ƒtƒ@ƒCƒ‹‚ªƒ‚ƒfƒ‹ƒtƒ@ƒCƒ‹‚©”»’è
@@ -16569,7 +17968,7 @@ void ProjectWindow::CommitRename()
  
  
 ===== NodeEditorCanvas.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\NodeEditor\NodeEditorCanvas.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\NodeEditor\NodeEditorCanvas.h 
 #pragma once
 #include <imgui_node_editor.h>
 
@@ -16592,7 +17991,7 @@ private:
 }; 
  
 ===== NodeEditorCanvas.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\NodeEditor\NodeEditorCanvas.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\NodeEditor\NodeEditorCanvas.cpp 
 #include "NodeEditorCanvas.h"
 
 NodeEditorCanvas::~NodeEditorCanvas()
@@ -16624,7 +18023,7 @@ void NodeEditorCanvas::End()
 } 
  
 ===== AnimatorGraphNavigation.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\AnimatorGraphNavigation.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\AnimatorGraphNavigation.h 
 #pragma once
 
 // ƒAƒjƒ[ƒ^[ƒOƒ‰ƒt•ÒW’†‚Ì‰æ–Ê‘JˆÚ—v‹
@@ -16636,7 +18035,7 @@ enum class NavigationRequest
 }; 
  
 ===== IStudioAttachment.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\IStudioAttachment.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\IStudioAttachment.h 
 #pragma once
 #include <d3d11.h>
 #include <DirectXMath.h>
@@ -16668,7 +18067,7 @@ public:
 }; 
  
 ===== StudioAnimationSpeed.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioAnimationSpeed.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioAnimationSpeed.h 
 #pragma once
 #include "IStudioAttachment.h"
 #include "Engine/Data/AnimationSpeedData.h"
@@ -16721,7 +18120,7 @@ private:
 }; 
  
 ===== StudioAnimator.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioAnimator.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioAnimator.h 
 #pragma once
 #include "IStudioAttachment.h"
 #include "Engine/ECS/Components/AnimatorComponent.h"
@@ -16745,7 +18144,7 @@ private:
 }; 
  
 ===== StudioAnimatorGraph.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioAnimatorGraph.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioAnimatorGraph.h 
 #pragma once
 #include "IStudioAttachment.h"
 #include "Engine/Data/AnimatorGraphData.h"
@@ -16826,7 +18225,7 @@ private:
 }; 
  
 ===== StudioCamera.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioCamera.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioCamera.h 
 #pragma once
 #include <DirectXMath.h>
 
@@ -16875,7 +18274,7 @@ private:
 }; 
  
 ===== StudioChildStateGraph.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioChildStateGraph.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioChildStateGraph.h 
 #pragma once
 #include "Engine/Data/AnimatorGraphData.h"
 #include "Tool/NodeEditor/NodeEditorCanvas.h"
@@ -16955,7 +18354,7 @@ private:
 }; 
  
 ===== StudioConditionGraph.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioConditionGraph.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioConditionGraph.h 
 #pragma once
 #include "Engine/Data/AnimatorGraphData.h"
 #include "Tool/NodeEditor/NodeEditorCanvas.h"
@@ -17078,7 +18477,7 @@ private:
 }; 
  
 ===== StudioContext.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioContext.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioContext.h 
 #pragma once
 #include <d3d11.h>
 #include <string>
@@ -17111,7 +18510,7 @@ struct StudioContext
 }; 
  
 ===== StudioModelViewer.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioModelViewer.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioModelViewer.h 
 #pragma once
 #include <string>
 #include <d3d11.h>
@@ -17172,7 +18571,7 @@ private:
 }; 
  
 ===== StudioParentStateGraph.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioParentStateGraph.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioParentStateGraph.h 
 #include "Engine/Data/AnimatorGraphData.h"
 #include "Tool/NodeEditor/NodeEditorCanvas.h"
 #include "Tool/Studio/AnimatorGraphNavigation.h"
@@ -17249,7 +18648,7 @@ private:
 }; 
  
 ===== StudioSequencer.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioSequencer.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioSequencer.h 
 #pragma once
 #include "IStudioAttachment.h"
 #include "Engine/Data/SequencerData.h"
@@ -17307,7 +18706,7 @@ private:
 };  
  
 ===== StudioSharedContext.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioSharedContext.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioSharedContext.h 
 #pragma once
 #include <d3d11.h>
 #include "Engine/Rendering/SkyBox.h"
@@ -17329,7 +18728,7 @@ struct StudioSharedContext
 }; 
  
 ===== StudioTimeline.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioTimeline.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioTimeline.h 
 #pragma once
 #include "IStudioAttachment.h"
 #include "Engine/ECS/Components/AnimatorComponent.h"
@@ -17352,7 +18751,7 @@ private:
 }; 
  
 ===== StudioTransitionGraph.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioTransitionGraph.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioTransitionGraph.h 
 #pragma once
 #include "Engine/Data/AnimatorGraphData.h"
 #include "Tool/NodeEditor/NodeEditorCanvas.h"
@@ -17425,7 +18824,7 @@ private:
 }; 
  
 ===== StudioWindow.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioWindow.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioWindow.h 
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
@@ -17543,7 +18942,7 @@ private:
 }; 
  
 ===== StudioAnimationSpeed.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioAnimationSpeed.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioAnimationSpeed.cpp 
 #include "StudioAnimationSpeed.h"
 #include "Engine/ECS/Components/SkinnedMeshComponent.h"
 #include "Engine/ECS/Components/AnimatorComponent.h"
@@ -17919,7 +19318,7 @@ void StudioAnimationSpeed::RefreshAvailableAnimations(entt::registry& registry)
 } 
  
 ===== StudioAnimator.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioAnimator.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioAnimator.cpp 
 #include "Tool/Studio/StudioAnimator.h"
 #include <imgui.h>
 
@@ -17991,7 +19390,7 @@ void StudioAnimator::DrawGUI(
 } 
  
 ===== StudioAnimatorGraph.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioAnimatorGraph.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioAnimatorGraph.cpp 
 #include "StudioAnimatorGraph.h"
 #include "Engine/ECS/Components/SkinnedMeshComponent.h"
 #include "Tool/Editor/ProjectWindow.h"
@@ -18340,7 +19739,7 @@ std::string StudioAnimatorGraph::BuildNewSavePath(StudioContext& context)
  
  
 ===== StudioCamera.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioCamera.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioCamera.cpp 
 #include "StudioCamera.h"
 #include <imgui.h>
 #include <Windows.h>
@@ -18496,7 +19895,7 @@ DirectX::XMFLOAT3 StudioCamera::GetRight() const
 } 
  
 ===== StudioChildStateGraph.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioChildStateGraph.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioChildStateGraph.cpp 
 ï»¿#include "StudioChildStateGraph.h"
 
 void StudioChildStateGraph::Initialize()
@@ -19032,7 +20431,7 @@ void StudioChildStateGraph::DrawDeleteButton(const char* label, const std::funct
 } 
  
 ===== StudioConditionGraph.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioConditionGraph.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioConditionGraph.cpp 
 ï»¿#include "StudioConditionGraph.h"
 #include <algorithm>
 #include <vector>
@@ -20274,7 +21673,7 @@ ValueType StudioConditionGraph::GetOutputValueType(PinRole outRole, int outNodeI
 } 
  
 ===== StudioModelViewer.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioModelViewer.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioModelViewer.cpp 
 #include "StudioModelViewer.h"
 
 #include <windows.h>
@@ -20429,7 +21828,7 @@ void StudioModelViewer::LoadModel(
  
  
 ===== StudioParentStateGraph.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioParentStateGraph.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioParentStateGraph.cpp 
 #include "StudioParentStateGraph.h"
 #include <algorithm>
 
@@ -20978,7 +22377,7 @@ void StudioParentStateGraph::DrawDeleteButton(const char* label, const std::func
 } 
  
 ===== StudioSequencer.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioSequencer.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioSequencer.cpp 
 #include "StudioSequencer.h"
 #include "Engine/ECS/Components/SkinnedMeshComponent.h"
 #include "Engine/ECS/Components/AnimatorComponent.h"
@@ -21477,7 +22876,7 @@ const char* StudioSequencer::GetSequencerFlagName(SequencerFlag flag)
  
  
 ===== StudioTimeline.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioTimeline.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioTimeline.cpp 
 ï»¿#include "StudioTimeline.h"
 #include <imgui.h>
 #include <string>
@@ -21577,7 +22976,7 @@ void StudioTimeline::DrawGUI(entt::registry& registry, StudioContext& context)
  
  
 ===== StudioTransitionGraph.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioTransitionGraph.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioTransitionGraph.cpp 
 #include "StudioTransitionGraph.h"
 
 void StudioTransitionGraph::Initialize()
@@ -22018,7 +23417,7 @@ void StudioTransitionGraph::DrawDeleteButton(const char* label, const std::funct
 } 
  
 ===== StudioWindow.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioWindow.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioWindow.cpp 
 #include "StudioWindow.h"
 #include <imgui.h>
 #include <imgui_internal.h>
@@ -22396,7 +23795,7 @@ void StudioWindow::ResizeRenderTarget()
  
  
 ===== AdaptiveTrigger.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Unsorted\Controller\AdaptiveTrigger.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Unsorted\Controller\AdaptiveTrigger.h 
 #pragma once
 #include <vector>
 #include <cmath>
@@ -22543,7 +23942,7 @@ namespace AdaptiveTrigger
 } 
  
 ===== WaveDemo.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Unsorted\Demo\WaveDemo.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Unsorted\Demo\WaveDemo.h 
 #pragma once
 #include <entt.hpp>
 #include <d3d11.h>
@@ -22582,7 +23981,7 @@ private:
 }; 
  
 ===== WaveDemo.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Unsorted\Demo\WaveDemo.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Unsorted\Demo\WaveDemo.cpp 
 #include "WaveDemo.h"
 
 void WaveDemo::Initialize(

@@ -6,6 +6,7 @@
 #include <filesystem>
 #include <algorithm>
 
+#include "Engine/ECS/Components/CategoryComponent.h"
 #include "Engine/ECS/Components/TransformComponent.h"
 #include "Engine/ECS/Components/MeshComponent.h"
 #include "Engine/ECS/Components/MaterialComponent.h"
@@ -42,7 +43,6 @@
         [](auto& r, auto e){ if (!r.any_of<Type>(e)) r.emplace<Type>(e); },         \
         [](auto& r, auto e){ r.remove<Type>(e); },                                  \
         [](auto& r, auto e){ return r.any_of<Type>(e); },                           \
-        DrawFunc,                                                                   \
         [](entt::registry& r, entt::entity e) -> entt::meta_any                     \
         {                                                                           \
             auto* c = r.try_get<Type>(e);                                           \
@@ -50,6 +50,7 @@
             return entt::forward_as_meta(*c);                                       \
         }                                                                           \
     });                                                                             \
+    ComponentInspectorRegistry::Register(Name, DrawFunc);                           \
     ComponentRegistry::RegisterTypeName(#Type, Name)
 
 #define DRAW_COMPONENT(Type, Label, body)                                           \
@@ -63,6 +64,36 @@
 
 void ComponentRegistryInitializer::Initialize()
 {
+	// カテゴリコンポーネントの登録
+	ComponentRegistry::Register("Category",
+		{
+			"Category",
+			[](auto& reg, auto e) { if (!reg.any_of<ComponentCategory>(e)) reg.emplace<ComponentCategory>(e); },
+			[](auto& reg, auto e) { reg.remove<ComponentCategory>(e); },
+			[](auto& reg, auto e) { return reg.any_of<ComponentCategory>(e); },
+			[](entt::registry& r, entt::entity e) -> entt::meta_any
+			{
+				auto* c = r.try_get<ComponentCategory>(e);
+				if (!c) return entt::meta_any{};
+				return entt::forward_as_meta(*c);
+			}
+		});
+	ComponentInspectorRegistry::Register("Category",
+		[](auto& reg, auto e)
+		{
+			auto* _c = reg.try_get<ComponentCategory>(e);
+			if (!_c) return;
+
+			const char* categoryNames[] = { "None", "Player", "Enemy", "Stage", "Object", "Camera" };
+			std::string header = "Category: " + std::string(categoryNames[(int)_c->category]);
+
+			if (!ImGui::CollapsingHeader(header.c_str(), ImGuiTreeNodeFlags_DefaultOpen)) return;
+
+			int category = (int)_c->category;
+			if (ImGui::Combo("Category", &category, categoryNames, 6))
+				_c->category = (EntityCategory)category;
+		});
+
 	// トランスフォームコンポーネントの登録
 	REGISTER_COMPONENT(TransformComponent, "Transform",
 		[](auto& reg, auto e)
@@ -96,18 +127,25 @@ void ComponentRegistryInitializer::Initialize()
 			[](auto& reg, auto e) { if (!reg.any_of<MaterialComponent>(e)) reg.emplace<MaterialComponent>(e); },
 			[](auto& reg, auto e) { reg.remove<MaterialComponent>(e); },
 			[](auto& reg, auto e) { return reg.any_of<MaterialComponent>(e); },
-			[](auto& reg, auto e)
+			[](entt::registry& r, entt::entity e) -> entt::meta_any
 			{
-				auto* mat = reg.try_get<MaterialComponent>(e);
-				if (!mat) return;
-				if (!ImGui::CollapsingHeader("Material", ImGuiTreeNodeFlags_DefaultOpen)) return;
+				auto* c = r.try_get<MaterialComponent>(e);
+				if (!c) return entt::meta_any{};
+				return entt::forward_as_meta(*c);
+			}
+		});
+	ComponentInspectorRegistry::Register("Material",
+		[](auto& reg, auto e)
+		{
+			auto* mat = reg.try_get<MaterialComponent>(e);
+			if (!mat) return;
+			if (!ImGui::CollapsingHeader("Material", ImGuiTreeNodeFlags_DefaultOpen)) return;
 
-				const char* shaderNames[] = { "Default (PBR)", "Basic" };
-				int current = (int)mat->shadingModel;
-				if (ImGui::Combo("Shader", &current, shaderNames, 2))
-				{
-					mat->shadingModel = (ShadingModel)current;
-				}
+			const char* shaderNames[] = { "Default (PBR)", "Basic" };
+			int current = (int)mat->shadingModel;
+			if (ImGui::Combo("Shader", &current, shaderNames, 2))
+			{
+				mat->shadingModel = (ShadingModel)current;
 			}
 		});
 
@@ -244,124 +282,108 @@ void ComponentRegistryInitializer::Initialize()
 			[](auto& reg, auto e) { if (!reg.any_of<GameCameraComponent>(e)) reg.emplace<GameCameraComponent>(e); },
 			[](auto& reg, auto e) { reg.remove<GameCameraComponent>(e); },
 			[](auto& reg, auto e) { return reg.any_of<GameCameraComponent>(e); },
-			[](auto& reg, auto e)
+			[](entt::registry& r, entt::entity e) -> entt::meta_any
 			{
-				auto* _c = reg.try_get<GameCameraComponent>(e);
-				if (!_c) return;
-				if (!ImGui::CollapsingHeader("GameCamera", ImGuiTreeNodeFlags_DefaultOpen)) return;
+				auto* c = r.try_get<GameCameraComponent>(e);
+				if (!c) return entt::meta_any{};
+				return entt::forward_as_meta(*c);
+			}
+		});
+	ComponentInspectorRegistry::Register("GameCamera",
+		[](auto& reg, auto e)
+		{
+			auto* _c = reg.try_get<GameCameraComponent>(e);
+			if (!_c) return;
+			if (!ImGui::CollapsingHeader("GameCamera", ImGuiTreeNodeFlags_DefaultOpen)) return;
 
-				const char* modeNames[] = { "Follow", "LookAt" };
-				int mode = (int)_c->mode;
-				if (ImGui::Combo("Mode", &mode, modeNames, 2))
-					_c->mode = (Mode)mode;
+			const char* modeNames[] = { "Follow", "LookAt" };
+			int mode = (int)_c->mode;
+			if (ImGui::Combo("Mode", &mode, modeNames, 2))
+				_c->mode = (Mode)mode;
 
-				// 追従対象(FollowTarget)
-				std::string followTargetName = "None";
-				if (_c->followTarget != entt::null && reg.valid(_c->followTarget))
-					followTargetName = "Entity " + std::to_string((uint32_t)_c->followTarget);
+			// FollowTargetは自動で探す(Playerタグ)
+			std::string followTargetName = "None (auto)";
+			if (_c->followTarget != entt::null && reg.valid(_c->followTarget))
+				followTargetName = "Entity " + std::to_string((uint32_t)_c->followTarget);
 
-				ImGui::Text("Follow Target"); ImGui::SameLine();
-				ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - 60.0f);
-				ImGui::InputText("##followTarget", followTargetName.data(),
-					followTargetName.size() + 1, ImGuiInputTextFlags_ReadOnly);
+			ImGui::Text("Follow Target: %s", followTargetName.c_str());
 
-				if (ImGui::BeginDragDropTarget())
-				{
-					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ENTITY"))
-						_c->followTarget = *(const entt::entity*)payload->Data;
-					ImGui::EndDragDropTarget();
-				}
-				ImGui::SameLine();
-				if (ImGui::Button("Clear##followTarget")) _c->followTarget = entt::null;
+			// LookAtTargetは自動で探す(Enemyタグ)
+			std::string lookAtTargetName = "None (auto)";
+			if (_c->lookAtTarget != entt::null && reg.valid(_c->lookAtTarget))
+				lookAtTargetName = "Entity " + std::to_string((uint32_t)_c->lookAtTarget);
 
-				// 注視対象(LookAtTarget、箱のみ)
-				std::string lookAtTargetName = "None";
-				if (_c->lookAtTarget != entt::null && reg.valid(_c->lookAtTarget))
-					lookAtTargetName = "Entity " + std::to_string((uint32_t)_c->lookAtTarget);
+			ImGui::Text("LookAt Target: %s", lookAtTargetName.c_str());
 
-				ImGui::Text("LookAt Target"); ImGui::SameLine();
-				ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - 60.0f);
-				ImGui::InputText("##lookAtTarget", lookAtTargetName.data(),
-					lookAtTargetName.size() + 1, ImGuiInputTextFlags_ReadOnly);
+			ImGui::DragFloat("Yaw", &_c->yaw, 0.01f);
+			ImGui::DragFloat("Pitch", &_c->pitch, 0.01f, -1.5f, 1.5f);
 
-				if (ImGui::BeginDragDropTarget())
-				{
-					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ENTITY"))
-						_c->lookAtTarget = *(const entt::entity*)payload->Data;
-					ImGui::EndDragDropTarget();
-				}
-				ImGui::SameLine();
-				if (ImGui::Button("Clear##lookAtTarget")) _c->lookAtTarget = entt::null;
+			// --- Follow Camera ---
+			ImGui::Separator();
+			ImGui::Text("Follow Camera");
+			ImGui::DragFloat("Distance", &_c->followCameraDistance, 0.1f, 0.0f, 50.0f);
+			ImGui::DragFloat("Height", &_c->followCameraHeight, 0.1f, 0.0f, 20.0f);
+			ImGui::DragFloat("Target Y Up", &_c->followCameraTargetYUp, 0.1f, 0.0f, 10.0f);
+			ImGui::DragFloat("Eye Speed Ratio", &_c->followCameraEyeSpeedRatio, 0.5f, 0.0f, 100.0f);
+			ImGui::DragFloat("Target Speed Ratio", &_c->followCameraTargetSpeedRatio, 0.5f, 0.0f, 100.0f);
 
-				ImGui::DragFloat("Yaw", &_c->yaw, 0.01f);
-				ImGui::DragFloat("Pitch", &_c->pitch, 0.01f, -1.5f, 1.5f);
+			// --- LockOn Camera（共通） ---
+			ImGui::Separator();
+			ImGui::Text("LockOn Camera");
+			ImGui::DragFloat("Eye Speed Ratio##LockOn", &_c->lockOnCameraEyeSpeedRatio, 0.5f, 0.0f, 100.0f);
+			ImGui::DragFloat("Target Speed Ratio##LockOn", &_c->lockOnCameraTargetSpeedRatio, 0.5f, 0.0f, 100.0f);
+			ImGui::DragFloat("Range Switch Distance", &_c->lockOnRangeSwitchDistance, 0.1f, 0.1f, 50.0f);
 
-				// --- Follow Camera ---
-				ImGui::Separator();
-				ImGui::Text("Follow Camera");
-				ImGui::DragFloat("Distance", &_c->followCameraDistance, 0.1f, 0.0f, 50.0f);
-				ImGui::DragFloat("Height", &_c->followCameraHeight, 0.1f, 0.0f, 20.0f);
-				ImGui::DragFloat("Target Y Up", &_c->followCameraTargetYUp, 0.1f, 0.0f, 10.0f);
-				ImGui::DragFloat("Eye Speed Ratio", &_c->followCameraEyeSpeedRatio, 0.5f, 0.0f, 100.0f);
-				ImGui::DragFloat("Target Speed Ratio", &_c->followCameraTargetSpeedRatio, 0.5f, 0.0f, 100.0f);
+			// --- 円の中心O ---
+			ImGui::Separator();
+			ImGui::Text("Center O");
+			ImGui::DragFloat("Center Ratio", &_c->lockOnCenterRatio, 0.01f, 0.0f, 1.0f);
+			ImGui::DragFloat("Far Center Max Distance", &_c->lockOnFarCenterMaxDistance, 0.05f, 0.0f, 20.0f);
+			ImGui::DragFloat("Target Circle Radius Max", &_c->lockOnTargetCircleRadiusMax, 0.1f, 0.0f, 20.0f);
 
-				// --- LockOn Camera（共通） ---
-				ImGui::Separator();
-				ImGui::Text("LockOn Camera");
-				ImGui::DragFloat("Eye Speed Ratio##LockOn", &_c->lockOnCameraEyeSpeedRatio, 0.5f, 0.0f, 100.0f);
-				ImGui::DragFloat("Target Speed Ratio##LockOn", &_c->lockOnCameraTargetSpeedRatio, 0.5f, 0.0f, 100.0f);
-				ImGui::DragFloat("Range Switch Distance", &_c->lockOnRangeSwitchDistance, 0.1f, 0.1f, 50.0f);
+			// --- 円周上の角度・スティック操作 ---
+			ImGui::Separator();
+			ImGui::Text("Orbit");
+			ImGui::DragFloat("Orbit Rotate Speed", &_c->lockOnOrbitRotateSpeed, 0.1f, 0.0f, 20.0f);
+			ImGui::DragFloat("Orbit Pitch Rotate Speed", &_c->lockOnOrbitPitchRotateSpeed, 0.1f, 0.0f, 20.0f);
+			ImGui::DragFloat("Orbit Return Speed", &_c->lockOnOrbitReturnSpeed, 0.5f, 0.0f, 50.0f);
+			ImGui::Separator();
+			ImGui::Text("Orbit");
+			ImGui::DragFloat("Orbit Angle", &_c->lockOnOrbitAngle, 0.01f);
+			ImGui::DragFloat("Orbit Pitch", &_c->lockOnOrbitPitch, 0.01f, -0.8f, 0.8f);
 
-				// --- 円の中心O ---
-				ImGui::Separator();
-				ImGui::Text("Center O");
-				ImGui::DragFloat("Center Ratio", &_c->lockOnCenterRatio, 0.01f, 0.0f, 1.0f);
-				ImGui::DragFloat("Far Center Max Distance", &_c->lockOnFarCenterMaxDistance, 0.05f, 0.0f, 20.0f);
-				ImGui::DragFloat("Target Circle Radius Max", &_c->lockOnTargetCircleRadiusMax, 0.1f, 0.0f, 20.0f);
+			// --- くの字の向き ---
+			ImGui::Separator();
+			ImGui::Text("Side");
+			ImGui::DragFloat("Side Switch Threshold", &_c->lockOnSideSwitchThreshold, 0.01f, 0.0f, 3.14f);
+			ImGui::DragFloat("Side Smooth Speed", &_c->lockOnSideSmoothSpeed, 0.5f, 0.0f, 50.0f);
+			ImGui::Text("Side : %.2f -> %.2f", _c->lockOnSide, _c->lockOnSideSmooth);
 
-				// --- 円周上の角度・スティック操作 ---
-				ImGui::Separator();
-				ImGui::Text("Orbit");
-				ImGui::DragFloat("Orbit Rotate Speed", &_c->lockOnOrbitRotateSpeed, 0.1f, 0.0f, 20.0f);
-				ImGui::DragFloat("Orbit Pitch Rotate Speed", &_c->lockOnOrbitPitchRotateSpeed, 0.1f, 0.0f, 20.0f);
-				ImGui::DragFloat("Orbit Return Speed", &_c->lockOnOrbitReturnSpeed, 0.5f, 0.0f, 50.0f);
-				ImGui::Separator();
-				ImGui::Text("Orbit");
-				ImGui::DragFloat("Orbit Angle", &_c->lockOnOrbitAngle, 0.01f);
-				ImGui::DragFloat("Orbit Pitch", &_c->lockOnOrbitPitch, 0.01f, -0.8f, 0.8f);
+			// --- 近距離用パラメータ ---
+			ImGui::Separator();
+			ImGui::Text("Near");
+			ImGui::DragFloat("Near Distance", &_c->lockOnNearCameraDistance, 0.1f, 0.0f, 30.0f);
+			ImGui::DragFloat("Near Height", &_c->lockOnNearCameraHeight, 0.1f, 0.0f, 20.0f);
+			ImGui::DragFloat("Near Target Y Up", &_c->lockOnNearCameraTargetYUp, 0.1f, 0.0f, 10.0f);
+			ImGui::DragFloat("Near Angle Offset Max", &_c->lockOnNearAngleOffsetMax, 0.5f, 0.0f, 90.0f);
 
-				// --- くの字の向き ---
-				ImGui::Separator();
-				ImGui::Text("Side");
-				ImGui::DragFloat("Side Switch Threshold", &_c->lockOnSideSwitchThreshold, 0.01f, 0.0f, 3.14f);
-				ImGui::DragFloat("Side Smooth Speed", &_c->lockOnSideSmoothSpeed, 0.5f, 0.0f, 50.0f);
-				ImGui::Text("Side : %.2f -> %.2f", _c->lockOnSide, _c->lockOnSideSmooth);
+			// --- 遠距離用パラメータ ---
+			ImGui::Separator();
+			ImGui::Text("Far");
+			ImGui::DragFloat("Far Distance", &_c->lockOnFarCameraDistance, 0.1f, 0.0f, 30.0f);
+			ImGui::DragFloat("Far Height", &_c->lockOnFarCameraHeight, 0.1f, 0.0f, 20.0f);
+			ImGui::DragFloat("Far Target Y Up", &_c->lockOnFarCameraTargetYUp, 0.1f, 0.0f, 10.0f);
 
-				// --- 近距離用パラメータ ---
-				ImGui::Separator();
-				ImGui::Text("Near");
-				ImGui::DragFloat("Near Distance", &_c->lockOnNearCameraDistance, 0.1f, 0.0f, 30.0f);
-				ImGui::DragFloat("Near Height", &_c->lockOnNearCameraHeight, 0.1f, 0.0f, 20.0f);
-				ImGui::DragFloat("Near Target Y Up", &_c->lockOnNearCameraTargetYUp, 0.1f, 0.0f, 10.0f);
-				ImGui::DragFloat("Near Angle Offset Max", &_c->lockOnNearAngleOffsetMax, 0.5f, 0.0f, 90.0f);
+			// --- 減衰ばね ---
+			ImGui::Separator();
+			ImGui::Text("Spring");
+			ImGui::DragFloat("Stiffness", &_c->eyeSpringStiffness, 5.0f, 0.0f, 1000.0f);
+			ImGui::DragFloat("Damping", &_c->eyeSpringDamping, 1.0f, 0.0f, 200.0f);
 
-				// --- 遠距離用パラメータ ---
-				ImGui::Separator();
-				ImGui::Text("Far");
-				ImGui::DragFloat("Far Distance", &_c->lockOnFarCameraDistance, 0.1f, 0.0f, 30.0f);
-				ImGui::DragFloat("Far Height", &_c->lockOnFarCameraHeight, 0.1f, 0.0f, 20.0f);
-				ImGui::DragFloat("Far Target Y Up", &_c->lockOnFarCameraTargetYUp, 0.1f, 0.0f, 10.0f);
-
-				// --- 減衰ばね ---
-				ImGui::Separator();
-				ImGui::Text("Spring");
-				ImGui::DragFloat("Stiffness", &_c->eyeSpringStiffness, 5.0f, 0.0f, 1000.0f);
-				ImGui::DragFloat("Damping", &_c->eyeSpringDamping, 1.0f, 0.0f, 200.0f);
-
-				// --- 現在のeye/target（デバッグ表示） ---
-				ImGui::Separator();
-				ImGui::DragFloat3("Eye", &_c->base.currentEye.x, 0.1f);
-				ImGui::DragFloat3("Target", &_c->base.currentTarget.x, 0.1f);			}
+			// --- 現在のeye/target（デバッグ表示） ---
+			ImGui::Separator();
+			ImGui::DragFloat3("Eye", &_c->base.currentEye.x, 0.1f);
+			ImGui::DragFloat3("Target", &_c->base.currentTarget.x, 0.1f);
 		});
 
 	// コントローラーコンポーネントの登録
@@ -391,111 +413,110 @@ void ComponentRegistryInitializer::Initialize()
 					reg.emplace<PhysicsBodyTypeComponent>(e);
 			},
 		// Remove: 共通コンポーネントと紐づいた個別のコンポーネントを両方削除
-			[](auto& reg, auto e)
+		[](auto& reg, auto e)
+		{
+			if (reg.any_of<StaticBodyComponent>(e))
+				reg.remove<StaticBodyComponent>(e);
+
+			if (auto* ctrl = reg.try_get<CharacterControllerComponent>(e))
 			{
-				if (reg.any_of<StaticBodyComponent>(e))
-					reg.remove<StaticBodyComponent>(e);
+				PhysicsDestroyQueue::Push(ctrl->controller);
+				reg.remove<CharacterControllerComponent>(e);
+			}
 
-				if (auto* ctrl = reg.try_get<CharacterControllerComponent>(e))
-				{
-					// これは1フレーム遅延させ、他の更新の内でまとめて処理する
-					PhysicsDestroyQueue::Push(ctrl->controller);
-					reg.remove<CharacterControllerComponent>(e);
-				}
+			if (reg.any_of<MovementComponent>(e))
+				reg.remove<MovementComponent>(e);
 
-				// CharacterControllerとセットで生まれたMovementComponentも一緒に外す
-				if (reg.any_of<MovementComponent>(e))
-					reg.remove<MovementComponent>(e);
-
-				reg.remove<PhysicsBodyTypeComponent>(e);		},
+			reg.remove<PhysicsBodyTypeComponent>(e);
+		},
 		// Has
 		[](auto& reg, auto e) { return reg.any_of<PhysicsBodyTypeComponent>(e); },
-		// DrawImGui
-				[](auto& reg, auto e)
+		// GetMeta
+		[](entt::registry& r, entt::entity e) -> entt::meta_any
+		{
+			auto* c = r.try_get<PhysicsBodyTypeComponent>(e);
+			if (!c) return entt::meta_any{};
+			return entt::forward_as_meta(*c);
+		}
+		});
+	ComponentInspectorRegistry::Register("Physics",
+		[](auto& reg, auto e)
+		{
+			auto* body = reg.try_get<PhysicsBodyTypeComponent>(e);
+			if (!body) return;
+			if (!ImGui::CollapsingHeader("Physics", ImGuiTreeNodeFlags_DefaultOpen)) return;
+
+			const char* typeNames[] = { "None", "Static", "Dynamic", "Character" };
+			int current = (int)body->type;
+
+			if (ImGui::Combo("Type", &current, typeNames, 4))
+			{
+				auto newType = (PhysicsBodyTypeComponent::Type)current;
+
+				if (body->type == PhysicsBodyTypeComponent::Type::Static)
 				{
-					auto* body = reg.try_get<PhysicsBodyTypeComponent>(e);
-					if (!body) return;
-					if (!ImGui::CollapsingHeader("Physics", ImGuiTreeNodeFlags_DefaultOpen)) return;
-
-					const char* typeNames[] = { "None", "Static", "Dynamic", "Character" };
-					int current = (int)body->type;
-
-					if (ImGui::Combo("Type", &current, typeNames, 4))
+					auto* staticBody = reg.try_get<StaticBodyComponent>(e);
+					if (staticBody && staticBody->actor)
 					{
-						auto newType = (PhysicsBodyTypeComponent::Type)current;
-
-						// 切り替え前の実体があれば削除予約してから外す
-						if (body->type == PhysicsBodyTypeComponent::Type::Static)
-						{
-							auto* staticBody = reg.try_get<StaticBodyComponent>(e);
-							if (staticBody && staticBody->actor)
-							{
-								PhysicsDestroyQueue::Push(staticBody->actor);
-							}
-							reg.remove<StaticBodyComponent>(e);
-						}
-						else if (body->type == PhysicsBodyTypeComponent::Type::Character)
-						{
-							auto* ctrl = reg.try_get<CharacterControllerComponent>(e);
-							if (ctrl && ctrl->controller)
-							{
-								PhysicsDestroyQueue::Push(ctrl->controller);
-							}
-							reg.remove<CharacterControllerComponent>(e);
-
-							// CharacterControllerとセットで生まれたMovementComponentも一緒に外す
-							if (reg.any_of<MovementComponent>(e))
-								reg.remove<MovementComponent>(e);
-						}
-
-						body->type = newType;
-
-						// 切り替え後の実体を新規作成
-						if (newType == PhysicsBodyTypeComponent::Type::Static)
-						{
-							reg.emplace<StaticBodyComponent>(e);
-						}
-						else if (newType == PhysicsBodyTypeComponent::Type::Character)
-						{
-							reg.emplace<CharacterControllerComponent>(e);
-
-							// CharacterControllerとセットでMovementComponentも生成
-							if (!reg.any_of<MovementComponent>(e))
-								reg.emplace<MovementComponent>(e);
-						}
+						PhysicsDestroyQueue::Push(staticBody->actor);
 					}
-
-					// 選択中の種別ごとの項目表示
-					switch (body->type)
+					reg.remove<StaticBodyComponent>(e);
+				}
+				else if (body->type == PhysicsBodyTypeComponent::Type::Character)
+				{
+					auto* ctrl = reg.try_get<CharacterControllerComponent>(e);
+					if (ctrl && ctrl->controller)
 					{
-					case PhysicsBodyTypeComponent::Type::Static:
-					{
-						auto* staticBody = reg.try_get<StaticBodyComponent>(e);
-						if (staticBody)
-						{
-							ImGui::Text(staticBody->actor ? u8"状態: 生成済み" : u8"状態: 未生成");
-						}
-						break;
+						PhysicsDestroyQueue::Push(ctrl->controller);
 					}
-					case PhysicsBodyTypeComponent::Type::Dynamic:
-						ImGui::TextColored({ 1, 0.5f, 0, 1 }, u8"Dynamicは未実装です");
-						break;
-					case PhysicsBodyTypeComponent::Type::Character:
-					{
-						auto* ctrl = reg.try_get<CharacterControllerComponent>(e);
-						if (ctrl)
-						{
-							bool created = (ctrl->controller != nullptr);
+					reg.remove<CharacterControllerComponent>(e);
 
-							ImGui::Text(created ? u8"状態: 生成済み" : u8"状態: 未生成");
-						}
-						break;
-					}
+					if (reg.any_of<MovementComponent>(e))
+						reg.remove<MovementComponent>(e);
+				}
 
-					default:
-						break;
-					}
-				} 
+				body->type = newType;
+
+				if (newType == PhysicsBodyTypeComponent::Type::Static)
+				{
+					reg.emplace<StaticBodyComponent>(e);
+				}
+				else if (newType == PhysicsBodyTypeComponent::Type::Character)
+				{
+					reg.emplace<CharacterControllerComponent>(e);
+
+					if (!reg.any_of<MovementComponent>(e))
+						reg.emplace<MovementComponent>(e);
+				}
+			}
+
+			switch (body->type)
+			{
+			case PhysicsBodyTypeComponent::Type::Static:
+			{
+				auto* staticBody = reg.try_get<StaticBodyComponent>(e);
+				if (staticBody)
+				{
+					ImGui::Text(staticBody->actor ? u8"状態: 生成済み" : u8"状態: 未生成");
+				}
+				break;
+			}
+			case PhysicsBodyTypeComponent::Type::Dynamic:
+				ImGui::TextColored({ 1, 0.5f, 0, 1 }, u8"Dynamicは未実装です");
+				break;
+			case PhysicsBodyTypeComponent::Type::Character:
+			{
+				auto* ctrl = reg.try_get<CharacterControllerComponent>(e);
+				if (ctrl)
+				{
+					bool created = (ctrl->controller != nullptr);
+					ImGui::Text(created ? u8"状態: 生成済み" : u8"状態: 未生成");
+				}
+				break;
+			}
+			default:
+				break;
+			}
 		});
 
 		// IKコンポーネントの登録

@@ -24,8 +24,12 @@ framework::framework(HWND hwnd) : hwnd(hwnd)
 	sceneManager.ChangeScene(std::make_unique<SceneGame>());
 
 	// ProjectWindow‰Šú‰»
-	projectWindow.Initialize("Data");
+	projectWindow.Initialize("Data/Model");
 	projectWindow.LoadIcons(graphics.GetDevice());
+	// PrefabWindow‰Šú‰»
+	prefabWindow.Initialize("Data/Prefab");
+
+
 	ComponentRegistryInitializer::Initialize();
 	MetaRegistry::Initialize();
 
@@ -113,6 +117,7 @@ void framework::updateImGui()
 		projectWindow.Draw(scene->GetRegistry(), editorContext);
 		hierarchyWindow.Draw(scene->GetRegistry(), editorContext);
 		inspectorWindow.Draw(scene->GetRegistry(), editorContext);
+		prefabWindow.Draw(scene->GetRegistry(), editorContext);
 	}
 
 	// StudioOpenRequest‚ğˆ—
