@@ -11,7 +11,6 @@ struct ComponentInfo
     std::function<void(entt::registry&, entt::entity)> add;
     std::function<void(entt::registry&, entt::entity)> remove;
     std::function<bool(entt::registry&, entt::entity)> has;
-    std::function<void(entt::registry&, entt::entity)> drawImGui;
 
 	// エンティティが持つコンポーネントの実態をmeta_anyとして取得する
     std::function<entt::meta_any(entt::registry&, entt::entity)> getMeta;

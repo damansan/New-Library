@@ -62,6 +62,7 @@
     <ClCompile Include="Source\Engine\Rendering\PrimitiveRenderer.cpp" />
     <ClCompile Include="Source\Engine\Rendering\ShapeRenderer.cpp" />
     <ClCompile Include="Source\Engine\Rendering\SkyBox.cpp" />
+    <ClCompile Include="Source\Engine\Resource\ComponentRegistry.cpp" />
     <ClCompile Include="Source\Engine\Resource\EntitySerializer.cpp" />
     <ClCompile Include="Source\Engine\Resource\GLTFConverter.cpp" />
     <ClCompile Include="Source\Engine\Resource\GLTFImporter.cpp" />
@@ -81,7 +82,7 @@
     <ClCompile Include="Source\Project\ECS\Systems\PlayerSprintSystem.cpp" />
     <ClCompile Include="Source\Project\Scene\SceneGame.cpp" />
     <ClCompile Include="Source\Tool\AdaptiveTriggerToolWindow.cpp" />
-    <ClCompile Include="Source\Tool\Editor\ComponentRegistry.cpp" />
+    <ClCompile Include="Source\Tool\Editor\ComponentInspectorRegistry.cpp" />
     <ClCompile Include="Source\Tool\Editor\ComponentRegistryInitializer.cpp" />
     <ClCompile Include="Source\Tool\Editor\HierarchyWindow.cpp" />
     <ClCompile Include="Source\Tool\Editor\InspectorWindow.cpp" />
@@ -166,6 +167,7 @@
     <ClInclude Include="Source\Engine\Rendering\PrimitiveRenderer.h" />
     <ClInclude Include="Source\Engine\Rendering\ShapeRenderer.h" />
     <ClInclude Include="Source\Engine\Rendering\SkyBox.h" />
+    <ClInclude Include="Source\Engine\Resource\ComponentRegistry.h" />
     <ClInclude Include="Source\Engine\Resource\EntitySerializer.h" />
     <ClInclude Include="Source\Engine\Resource\GLTFConverter.h" />
     <ClInclude Include="Source\Engine\Resource\GLTFData.h" />
@@ -194,7 +196,6 @@
     <ClInclude Include="Source\Project\Scene\SceneGame.h" />
     <ClInclude Include="Source\Tool\AdaptiveTriggerToolWindow.h" />
     <ClInclude Include="Source\Tool\Editor\ComponentInspectorRegistry.h" />
-    <ClInclude Include="Source\Tool\Editor\ComponentRegistry.h" />
     <ClInclude Include="Source\Tool\Editor\ComponentRegistryInitializer.h" />
     <ClInclude Include="Source\Tool\Editor\EditorContext.h" />
     <ClInclude Include="Source\Tool\Editor\HierarchyWindow.h" />

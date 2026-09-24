@@ -1,5 +1,5 @@
 #include "EntitySerializer.h"
-#include "Tool/Editor/ComponentRegistry.h"
+#include "Engine/Resource/ComponentRegistry.h"
 #include <DirectXMath.h>
 
 nlohmann::json EntitySerializer::SerializeEntity(entt::registry& registry, entt::entity e)

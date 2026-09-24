@@ -1,5 +1,7 @@
 #include "ComponentRegistryInitializer.h"
-#include "Tool/Editor/ComponentRegistry.h"
+#include "Engine/Resource/ComponentRegistry.h"
+#include "Tool/Editor/ComponentInspectorRegistry.h"
+
 #include <imgui.h>
 #include <Windows.h>
 #include <commdlg.h>

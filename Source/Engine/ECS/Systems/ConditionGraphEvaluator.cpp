@@ -1,5 +1,5 @@
 #include "ConditionGraphEvaluator.h"
-#include "Tool/Editor/ComponentRegistry.h"
+#include "Engine/Resource/ComponentRegistry.h"
 #include "Tool/Editor/MetaRegistry.h"
 #include <DirectXMath.h>
 #include <cmath>

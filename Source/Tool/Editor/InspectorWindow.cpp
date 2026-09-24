@@ -1,8 +1,8 @@
 #include "InspectorWindow.h"
 #include <imgui.h>
 #include "imgui_internal.h"
-#include "ComponentRegistry.h"
-
+#include "Engine/Resource/ComponentRegistry.h"
+#include "Tool/Editor/ComponentInspectorRegistry.h"
 #include "tracy/Tracy.hpp"
 
 // 描画
@@ -78,7 +78,11 @@ void InspectorWindow::DrawComponents(entt::registry& registry, EditorContext& co
 
 
         // コンポーネントのImGuiを描画
-        info->drawImGui(registry, e);
+        const auto* drawImGui = ComponentInspectorRegistry::Get(name);
+        if (drawImGui)
+        {
+            (*drawImGui)(registry, e);
+        }
     }
 }
 

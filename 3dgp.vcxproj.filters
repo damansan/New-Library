@@ -362,6 +362,9 @@
     <Filter Include="Sources\Engine\Resource\EntitySerializer">
       <UniqueIdentifier>{114efd14-bbc8-4f60-bbf0-bca2f1a610f7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\Engine\Resource\ComponentRegistry">
+      <UniqueIdentifier>{d112c1fd-5bbf-4f83-82dc-83b74a90f577}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="External\imgui-docking\imgui.cpp">
@@ -544,9 +547,6 @@
     <ClCompile Include="Source\Project\ECS\Systems\GameCameraSystem.cpp">
       <Filter>Sources\Project\ECS\Systems\GameCameraSystem</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Tool\Editor\ComponentRegistry.cpp">
-      <Filter>Sources\Tool\Editor\ComponentRegistry</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Tool\Editor\ComponentRegistryInitializer.cpp">
       <Filter>Sources\Tool\Editor\ComponentRegistry</Filter>
     </ClCompile>
@@ -612,6 +612,12 @@
     </ClCompile>
     <ClCompile Include="Source\Engine\Resource\EntitySerializer.cpp">
       <Filter>Sources\Engine\Resource\EntitySerializer</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Tool\Editor\ComponentInspectorRegistry.cpp">
+      <Filter>Sources\Tool\Editor\ComponentRegistry</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Engine\Resource\ComponentRegistry.cpp">
+      <Filter>Sources\Engine\Resource\ComponentRegistry</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -867,9 +873,6 @@
     <ClInclude Include="Source\Project\ECS\Systems\GameCameraSystem.h">
       <Filter>Sources\Project\ECS\Systems\GameCameraSystem</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Tool\Editor\ComponentRegistry.h">
-      <Filter>Sources\Tool\Editor\ComponentRegistry</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Tool\Editor\ComponentRegistryInitializer.h">
       <Filter>Sources\Tool\Editor\ComponentRegistry</Filter>
     </ClInclude>
@@ -965,6 +968,9 @@
     </ClInclude>
     <ClInclude Include="Source\Tool\Editor\ComponentInspectorRegistry.h">
       <Filter>Sources\Tool\Editor\ComponentRegistry</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Engine\Resource\ComponentRegistry.h">
+      <Filter>Sources\Engine\Resource\ComponentRegistry</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
