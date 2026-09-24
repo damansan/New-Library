@@ -1,16 +1,19 @@
 #pragma once
 #include <DirectXMath.h>
+#include "Engine/ECS/Reflect.h"
 
 struct MovementComponent
 {
-    // 重力・ジャンプ
-    float jumpPower = 8.0f;
-    float gravity = -20.0f;
-    // 現在の速度ベクトル（Systemが毎フレーム書き換える）
-    DirectX::XMFLOAT3 velocity{ 0.0f, 0.0f, 0.0f };
+	REFLECT_BEGIN(MovementComponent, "Movement")
 
-    // 地面に接しているか
-    bool isGrounded = false;
+		// 設定値
+		REFLECT_FIELD(float,             jumpPower,  (8.0f),             ("Jump Power", 0.0f,   50.0f        )) 
+		REFLECT_FIELD(float,             gravity,    (-20.0f),           ("Gravity",   -100.0f, 0.0f         ))  
+		REFLECT_FIELD(DirectX::XMFLOAT3, velocity,   (0.0f, 0.0f, 0.0f), ("Velocity",   0.0f,   0.0f,  0.01f ))
+		REFLECT_FIELD(bool,              isGrounded, (false),            ("Is Grounded"                      ))
+
+		REFLECT_END()
+
 
 	// 移動の制御権
     bool movementLocked = false;

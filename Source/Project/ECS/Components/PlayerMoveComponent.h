@@ -1,4 +1,5 @@
 #pragma once
+#include "Engine/ECS/Reflect.h"
 
 enum class PlayerMoveSubState
 {
@@ -9,23 +10,25 @@ enum class PlayerMoveSubState
 
 struct PlayerMoveComponent
 {
-	// 設定値
-	float walkSpeed = 2.0f; // 歩行速度
-	float jogSpeed = 4.0f; // 小走り速度
-	float jogThreshold = 0.9f; // スティックの倒し込み量が、この値を超えたら小走りとみなす
-
-	float turnSpeed = 10.0f;    // 1秒あたりの最大旋回速度
-
 	// 状態
 	PlayerMoveSubState moveSub = PlayerMoveSubState::None;
 
-	// 状態フラグ
-	bool isMoving = false;  // 現在、移動中かどうか
-	bool isWalking = false; // 現在、歩き判定かどうか
-	bool isJogging = false; // 現在、小走り判定かどうか
+	REFLECT_BEGIN(PlayerMoveComponent, "Player Move")
 
+		// 設定値
+		REFLECT_FIELD(float, walkSpeed,    (2.0f),  ("Walk Speed",    0.0f, 10.0f))
+		REFLECT_FIELD(float, jogSpeed,     (4.0f),  ("Jog Speed",     0.0f, 10.0f))
+		REFLECT_FIELD(float, jogThreshold, (0.9f),  ("Jog Threshold", 0.0f, 1.0f))
+		REFLECT_FIELD(float, turnSpeed,    (10.0f), ("Turn Speed",    0.0f, 30.0f))
 
-	// 内部実装用
-	float inputLossGraceTime = 0.1f; // 入力が一瞬無くなっても、猶予として維持する時間
-	float inputLossTimer = 0.0f;     // 内部実装用、入力が無くなってからの経過時間
+		// 状態フラグ
+		REFLECT_FIELD(bool, isWalking, (false), ("Is Walking"))
+		REFLECT_FIELD(bool, isJogging, (false), ("Is Jogging"))
+		REFLECT_FIELD(bool, isMoving,  (false), ("Is Moving"))
+
+	REFLECT_END()
+
+		// 内部実装用
+		float inputLossGraceTime = 0.1f; // 入力が一瞬無くなっても、猶予として維持する時間
+		float inputLossTimer = 0.0f;     // 内部実装用、入力が無くなってからの経過時間
 };

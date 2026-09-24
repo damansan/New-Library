@@ -249,139 +249,139 @@ void MetaRegistry::RegisterTransformComponent()
 // メッシュコンポーネントを登録
 void MetaRegistry::RegisterMeshComponent()
 {
-	entt::meta_factory<MeshComponent>{}
-	.type("MeshComponent")
-		.custom<TypeInfo>(TypeInfo{ "Mesh" })
-		.data<&MeshComponent::modelPath>("modelPath"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Model", 0.0f, 0.0f, 0.1f, "MODEL_PATH" });
+	//entt::meta_factory<MeshComponent>{}
+	//.type("MeshComponent")
+	//	.custom<TypeInfo>(TypeInfo{ "Mesh" })
+	//	.data<&MeshComponent::modelPath>("modelPath"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Model", 0.0f, 0.0f, 0.1f, "MODEL_PATH" });
 }
 // 移動コンポーネントを登録
 void MetaRegistry::RegisterMovementComponent()
 {
-	entt::meta_factory<MovementComponent>{}
-	.type("MovementComponent")
-		.custom<TypeInfo>(TypeInfo{ "Movement" })
-		.data<&MovementComponent::jumpPower>("jumpPower"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Jump Power", 0.0f, 50.0f })
-		.data<&MovementComponent::gravity>("gravity"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Gravity", -100.0f, 0.0f })
-		.data<&MovementComponent::velocity>("velocity"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Velocity", 0.0f, 0.0f, 0.01f })
-		.data<&MovementComponent::isGrounded>("isGrounded"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Is Grounded" });
+	//entt::meta_factory<MovementComponent>{}
+	//.type("MovementComponent")
+	//	.custom<TypeInfo>(TypeInfo{ "Movement" })
+	//	.data<&MovementComponent::jumpPower>("jumpPower"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Jump Power", 0.0f, 50.0f })
+	//	.data<&MovementComponent::gravity>("gravity"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Gravity", -100.0f, 0.0f })
+	//	.data<&MovementComponent::velocity>("velocity"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Velocity", 0.0f, 0.0f, 0.01f })
+	//	.data<&MovementComponent::isGrounded>("isGrounded"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Is Grounded" });
 }
 
 // プレイヤー待機コンポーネントを登録
 void MetaRegistry::RegisterPlayerIdleComponent()
 {
-	entt::meta_factory<PlayerIdleComponent>{}
-	.type("PlayerIdleComponent")
-		.custom<TypeInfo>(TypeInfo{ "Player Idle" })
-		.data<&PlayerIdleComponent::isIdling>("isIdling"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Is Idling", 0.0f, 0.0f, 0.1f, "", true });
+	//entt::meta_factory<PlayerIdleComponent>{}
+	//.type("PlayerIdleComponent")
+	//	.custom<TypeInfo>(TypeInfo{ "Player Idle" })
+	//	.data<&PlayerIdleComponent::isIdling>("isIdling"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Is Idling", 0.0f, 0.0f, 0.1f, "", true });
 }
 // プレイヤー移動コンポーネントを登録
 void MetaRegistry::RegisterPlayerMoveComponent()
 {
-	entt::meta_factory<PlayerMoveComponent>{}
-	.type("PlayerMoveComponent")
-		.custom<TypeInfo>(TypeInfo{ "Player Move" })
-		.data<&PlayerMoveComponent::walkSpeed>("walkSpeed"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Walk Speed", 0.0f, 10.0f })
-		.data<&PlayerMoveComponent::jogSpeed>("jogSpeed"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Jog Speed", 0.0f, 10.0f })
-		.data<&PlayerMoveComponent::jogThreshold>("jogThreshold"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Jog Threshold", 0.0f, 1.0f })
-		.data<&PlayerMoveComponent::turnSpeed>("turnSpeed"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Turn Speed", 0.0f, 30.0f })
-		.data<&PlayerMoveComponent::inputLossGraceTime>("inputLossGraceTime"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Input Loss Grace Time", 0.0f, 1.0f })
-		.data<&PlayerMoveComponent::isWalking>("isWalking"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Is Walking" })
-		.data<&PlayerMoveComponent::isJogging>("isJogging"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Is Jogging" })
-		.data<&PlayerMoveComponent::isMoving>("isMoving"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Is Moving" });
+	//entt::meta_factory<PlayerMoveComponent>{}
+	//.type("PlayerMoveComponent")
+	//	.custom<TypeInfo>(TypeInfo{ "Player Move" })
+	//	.data<&PlayerMoveComponent::walkSpeed>("walkSpeed"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Walk Speed", 0.0f, 10.0f })
+	//	.data<&PlayerMoveComponent::jogSpeed>("jogSpeed"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Jog Speed", 0.0f, 10.0f })
+	//	.data<&PlayerMoveComponent::jogThreshold>("jogThreshold"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Jog Threshold", 0.0f, 1.0f })
+	//	.data<&PlayerMoveComponent::turnSpeed>("turnSpeed"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Turn Speed", 0.0f, 30.0f })
+	//	.data<&PlayerMoveComponent::inputLossGraceTime>("inputLossGraceTime"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Input Loss Grace Time", 0.0f, 1.0f })
+	//	.data<&PlayerMoveComponent::isWalking>("isWalking"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Is Walking" })
+	//	.data<&PlayerMoveComponent::isJogging>("isJogging"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Is Jogging" })
+	//	.data<&PlayerMoveComponent::isMoving>("isMoving"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Is Moving" });
 }
 // プレイヤー回避コンポーネントを登録
 void MetaRegistry::RegisterPlayerDodgeComponent()
 {
-	entt::meta_factory<PlayerDodgeComponent>{}
-	.type("PlayerDodgeComponent")
-		.custom<TypeInfo>(TypeInfo{ "Player Dodge" })
-		.data<&PlayerDodgeComponent::directionBufferTime>("directionBufferTime"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Direction Buffer Time", 0.0f, 1.0f })
-		.data<&PlayerDodgeComponent::isDodging>("isDodging"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Is Dodging", 0.0f, 0.0f, 0.1f, "", true })
-		.data<&PlayerDodgeComponent::isNoneInput>("isNoneInput"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Is None Input", 0.0f, 0.0f, 0.1f, "", true })
-		.data<&PlayerDodgeComponent::isFrontInput>("isFrontInput"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Is Front Input", 0.0f, 0.0f, 0.1f, "", true })
-		.data<&PlayerDodgeComponent::isBackInput>("isBackInput"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Is Back Input", 0.0f, 0.0f, 0.1f, "", true })
-		.data<&PlayerDodgeComponent::isLeftInput>("isLeftInput"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Is Left Input", 0.0f, 0.0f, 0.1f, "", true })
-		.data<&PlayerDodgeComponent::isRightInput>("isRightInput"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Is Right Input", 0.0f, 0.0f, 0.1f, "", true });
+	//entt::meta_factory<PlayerDodgeComponent>{}
+	//.type("PlayerDodgeComponent")
+	//	.custom<TypeInfo>(TypeInfo{ "Player Dodge" })
+	//	.data<&PlayerDodgeComponent::directionBufferTime>("directionBufferTime"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Direction Buffer Time", 0.0f, 1.0f })
+	//	.data<&PlayerDodgeComponent::isDodging>("isDodging"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Is Dodging", 0.0f, 0.0f, 0.1f, "", true })
+	//	.data<&PlayerDodgeComponent::isNoneInput>("isNoneInput"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Is None Input", 0.0f, 0.0f, 0.1f, "", true })
+	//	.data<&PlayerDodgeComponent::isFrontInput>("isFrontInput"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Is Front Input", 0.0f, 0.0f, 0.1f, "", true })
+	//	.data<&PlayerDodgeComponent::isBackInput>("isBackInput"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Is Back Input", 0.0f, 0.0f, 0.1f, "", true })
+	//	.data<&PlayerDodgeComponent::isLeftInput>("isLeftInput"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Is Left Input", 0.0f, 0.0f, 0.1f, "", true })
+	//	.data<&PlayerDodgeComponent::isRightInput>("isRightInput"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Is Right Input", 0.0f, 0.0f, 0.1f, "", true });
 }
 // プレイヤー全力疾走コンポーネントを登録
 void MetaRegistry::RegisterPlayerSprintComponent()
 {
-	entt::meta_factory<PlayerSprintComponent>{}
-	.type("PlayerSprintComponent")
-		.custom<TypeInfo>(TypeInfo{ "Player Sprint" })
-		.data<&PlayerSprintComponent::sprintSpeed>("sprintSpeed"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Sprint Speed", 0.0f, 20.0f })
-		.data<&PlayerSprintComponent::turnSpeed>("turnSpeed"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Turn Speed", 0.0f, 30.0f })
-		.data<&PlayerSprintComponent::isSprinting>("isSprinting"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Is Sprinting", 0.0f, 0.0f, 0.1f, "", true });
+	//entt::meta_factory<PlayerSprintComponent>{}
+	//.type("PlayerSprintComponent")
+	//	.custom<TypeInfo>(TypeInfo{ "Player Sprint" })
+	//	.data<&PlayerSprintComponent::sprintSpeed>("sprintSpeed"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Sprint Speed", 0.0f, 20.0f })
+	//	.data<&PlayerSprintComponent::turnSpeed>("turnSpeed"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Turn Speed", 0.0f, 30.0f })
+	//	.data<&PlayerSprintComponent::isSprinting>("isSprinting"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Is Sprinting", 0.0f, 0.0f, 0.1f, "", true });
 }
 // ゲーム入力コンポーネントを登録
 void MetaRegistry::RegisterGameInputComponent()
 {
-	entt::meta_factory<StickState>{}
-	.type("StickState")
-		.data<&StickState::x>("x"_hs)
-		.custom<FieldInfo>(FieldInfo{ "X", 0.0f, 0.0f, 0.1f, "", true })
-		.data<&StickState::y>("y"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Y", 0.0f, 0.0f, 0.1f, "", true })
-		.data<&StickState::hasInput>("hasInput"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Has Input", 0.0f, 0.0f, 0.1f, "", true });
+	//entt::meta_factory<StickState>{}
+	//.type("StickState")
+	//	.data<&StickState::x>("x"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "X", 0.0f, 0.0f, 0.1f, "", true })
+	//	.data<&StickState::y>("y"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Y", 0.0f, 0.0f, 0.1f, "", true })
+	//	.data<&StickState::hasInput>("hasInput"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Has Input", 0.0f, 0.0f, 0.1f, "", true });
 
-	entt::meta_factory<ButtonState>{}
-	.type("ButtonState")
-		.data<&ButtonState::pressed>("pressed"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Pressed", 0.0f, 0.0f, 0.1f, "", true })
-		.data<&ButtonState::held>("held"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Held", 0.0f, 0.0f, 0.1f, "", true })
-		.data<&ButtonState::released>("released"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Released", 0.0f, 0.0f, 0.1f, "", true });
+	//entt::meta_factory<ButtonState>{}
+	//.type("ButtonState")
+	//	.data<&ButtonState::pressed>("pressed"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Pressed", 0.0f, 0.0f, 0.1f, "", true })
+	//	.data<&ButtonState::held>("held"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Held", 0.0f, 0.0f, 0.1f, "", true })
+	//	.data<&ButtonState::released>("released"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Released", 0.0f, 0.0f, 0.1f, "", true });
 
-	entt::meta_factory<TriggerState>{}
-	.type("TriggerState")
-		.data<&TriggerState::value>("value"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Value", 0.0f, 0.0f, 0.1f, "", true })
-		.data<&TriggerState::pressed>("pressed"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Pressed", 0.0f, 0.0f, 0.1f, "", true })
-		.data<&TriggerState::held>("held"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Held", 0.0f, 0.0f, 0.1f, "", true })
-		.data<&TriggerState::released>("released"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Released", 0.0f, 0.0f, 0.1f, "", true });
+	//entt::meta_factory<TriggerState>{}
+	//.type("TriggerState")
+	//	.data<&TriggerState::value>("value"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Value", 0.0f, 0.0f, 0.1f, "", true })
+	//	.data<&TriggerState::pressed>("pressed"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Pressed", 0.0f, 0.0f, 0.1f, "", true })
+	//	.data<&TriggerState::held>("held"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Held", 0.0f, 0.0f, 0.1f, "", true })
+	//	.data<&TriggerState::released>("released"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Released", 0.0f, 0.0f, 0.1f, "", true });
 
-	entt::meta_factory<GameInputComponent>{}
-	.type("GameInputComponent")
-		.custom<TypeInfo>(TypeInfo{ "Input" })
-		.data<&GameInputComponent::moveStick>("moveStick"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Move Stick" })
-		.data<&GameInputComponent::cameraStick>("cameraStick"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Camera Stick" })
-		.data<&GameInputComponent::dodgeTrigger>("dodgeTrigger"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Dodge Trigger" })
-		.data<&GameInputComponent::jump>("jump"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Jump", 0.0f, 0.0f, 0.1f, "", true })
-		.data<&GameInputComponent::attack>("attack"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Attack", 0.0f, 0.0f, 0.1f, "", true });
+	//entt::meta_factory<GameInputComponent>{}
+	//.type("GameInputComponent")
+	//	.custom<TypeInfo>(TypeInfo{ "Input" })
+	//	.data<&GameInputComponent::moveStick>("moveStick"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Move Stick" })
+	//	.data<&GameInputComponent::cameraStick>("cameraStick"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Camera Stick" })
+	//	.data<&GameInputComponent::dodgeTrigger>("dodgeTrigger"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Dodge Trigger" })
+	//	.data<&GameInputComponent::jump>("jump"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Jump", 0.0f, 0.0f, 0.1f, "", true })
+	//	.data<&GameInputComponent::attack>("attack"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Attack", 0.0f, 0.0f, 0.1f, "", true });
 }
 // アニメーターコンポーネントを登録
 void MetaRegistry::RegisterAnimatorComponent()

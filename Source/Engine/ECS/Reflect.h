@@ -4,7 +4,7 @@
 
 using namespace entt::literals;
 
-// 型そのものの登録（TypeInfoの付与）を開始する
+// 型そのものの登録を開始する
 #define REFLECT_BEGIN(Type, DisplayName)                                            \
 private:                                                                            \
     using ReflectSelf = Type;                                                       \
@@ -17,16 +17,28 @@ private:                                                                        
     }();                                                                            \
 public:
 
+// FieldInfoを、位置引数＋デフォルト引数で組み立てるヘルパー
+inline FieldInfo MakeFieldInfo(
+    std::string label,
+    float minValue = 0.0f,
+    float maxValue = 0.0f,
+    float dragSpeed = 0.1f,
+    std::string dragDropPayload = "",
+    bool readOnly = false)
+{
+    return FieldInfo{ label, minValue, maxValue, dragSpeed, dragDropPayload, readOnly };
+}
+
 // 1フィールド分の宣言＋登録
-#define REFLECT_FIELD(FieldType, FieldName, Label, Min, Max, Step, ...)             \
-    FieldType FieldName = { __VA_ARGS__ };                                          \
+#define REFLECT_FIELD(FieldType, FieldName, DefaultArgs, FieldInfoArgs)             \
+    FieldType FieldName = FieldType DefaultArgs;                                    \
     static inline bool _reflect_##FieldName##_registered = []                       \
     {                                                                               \
         entt::meta_factory<ReflectSelf>{}                                           \
             .data<&ReflectSelf::FieldName>(#FieldName##_hs)                         \
-            .custom<FieldInfo>(FieldInfo{ Label, Min, Max, Step });                 \
+            .custom<FieldInfo>(MakeFieldInfo FieldInfoArgs);                        \
         return true;                                                                \
     }();
 
-// 今回は特に何もしないが、対称性のために用意（将来の拡張用）
+
 #define REFLECT_END()

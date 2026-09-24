@@ -1,4 +1,5 @@
 #pragma once
+#include "Engine/ECS/Reflect.h"
 
 enum class PlayerSprintSubState
 {
@@ -8,14 +9,17 @@ enum class PlayerSprintSubState
 
 struct PlayerSprintComponent
 {
-	// 設定値
-	float sprintSpeed = 15.0f; // ダッシュ速度
-
-	float turnSpeed = 15.0f;    // 1秒あたりの最大旋回速度
-
 	// 状態
 	PlayerSprintSubState state = PlayerSprintSubState::None;
+	
+	REFLECT_BEGIN(PlayerSprintComponent, "Player Sprint")
 
-	// 状態フラグ
-	bool isSprinting = false;
+		// 設定値
+		REFLECT_FIELD(float, sprintSpeed, (15.0f), ("Sprint Speed", 0.0f, 20.0f))
+		REFLECT_FIELD(float, turnSpeed,   (15.0f), ("Turn Speed",   0.0f, 30.0f))
+
+		// 状態フラグ
+		REFLECT_FIELD(bool, isSprinting, (false), ("Is Sprinting", 0.0f, 0.0f, 0.1f, "", true))
+
+	REFLECT_END()
 };

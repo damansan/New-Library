@@ -1,50 +1,64 @@
 #pragma once
+#include "Engine/ECS/Reflect.h"
 
 // スティックの状態
 struct StickState
 {
-    float x = 0.0f;
-    float y = 0.0f;
+    REFLECT_BEGIN(StickState, "Stick State")
+    
+        REFLECT_FIELD(float, x,        (0.0f),  ("X",         0.0f, 0.0f, 0.1f, "", true))
+        REFLECT_FIELD(float, y,        (0.0f),  ("Y",         0.0f, 0.0f, 0.1f, "", true))
+        REFLECT_FIELD(bool,  hasInput, (false), ("Has Input", 0.0f, 0.0f, 0.1f, "", true)) // 入力があったかどうか
 
-	// 入力があったかどうか
-    bool hasInput = false;
+    REFLECT_END()
 };
 
 // ボタンの状態
 struct ButtonState
 {
-    bool pressed = false;  // 今フレーム新しく押された
-    bool held = false;     // 押しっぱなし中
-    bool released = false; // 今フレーム離された
+    REFLECT_BEGIN(ButtonState, "Button State")
+        
+        REFLECT_FIELD(bool, pressed,  (false), ("Pressed",  0.0f, 0.0f, 0.1f, "", true)) // 入力があったかどうか
+        REFLECT_FIELD(bool, held,     (false), ("Held",     0.0f, 0.0f, 0.1f, "", true)) // 押しっぱなし中
+        REFLECT_FIELD(bool, released, (false), ("Released", 0.0f, 0.0f, 0.1f, "", true)) // 今フレーム離された
+        
+    REFLECT_END()
 
-    // 内部用：前フレームの押下状態
-    bool wasHeld = false;
+        // 内部用：前フレームの押下状態
+        bool wasHeld = false;
 };
 
 // トリガーの状態
 struct TriggerState
 {
-    float value = 0.0f; // 入力値(0.0～1.0)
+    REFLECT_BEGIN(TriggerState, "Trigger State")
 
-    bool pressed = false;  // 今フレーム新しく押された
-    bool held = false;     // 押しっぱなし中
-    bool released = false; // 今フレーム離された
+        REFLECT_FIELD(float, value,    (0.0f),  ("Value",    0.0f, 0.0f, 0.1f, "", true)) // 入力値(0.0～1.0)
+        REFLECT_FIELD(bool,  pressed,  (false), ("Pressed",  0.0f, 0.0f, 0.1f, "", true)) // 今フレーム新しく押された
+        REFLECT_FIELD(bool,  held,     (false), ("Held",     0.0f, 0.0f, 0.1f, "", true)) // 押しっぱなし中
+        REFLECT_FIELD(bool,  released, (false), ("Released", 0.0f, 0.0f, 0.1f, "", true)) // 今フレーム離された
+        
+    REFLECT_END()
 
-    // 内部用：前フレームの押下状態
-    bool wasHeld = false;  
+        // 内部用：前フレームの押下状態
+        bool wasHeld = false;
 };
 
 struct GameInputComponent
 {
-    // スティック
-    StickState moveStick;
-    StickState cameraStick;
+    REFLECT_BEGIN(GameInputComponent, "Input")
+    
+        // スティック
+        REFLECT_FIELD(StickState, moveStick,   (), ("Move Stick"))
+        REFLECT_FIELD(StickState, cameraStick, (), ("Camera Stick"))
 
-    // トリガー
-    TriggerState dodgeTrigger;  // R2
-    TriggerState lockOnTrigger; // L2
+        // トリガー
+        REFLECT_FIELD(TriggerState, dodgeTrigger,  (), ("Dodge Trigger"))   // R2
+        REFLECT_FIELD(TriggerState, lockOnTrigger, (), ("Lock On Trigger")) // L2
 
-    // ボタン
-    bool jump = false;
-    bool attack = false;
+        // ボタン
+        REFLECT_FIELD(bool, jump,   (false), ("Jump",   0.0f, 0.0f, 0.1f, "", true))
+        REFLECT_FIELD(bool, attack, (false), ("Attack", 0.0f, 0.0f, 0.1f, "", true))
+        
+    REFLECT_END()
 };

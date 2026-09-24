@@ -1,4 +1,5 @@
 #pragma once
+#include "Engine/ECS/Reflect.h"
 
 enum class PlayerDodgeSubState
 {
@@ -13,20 +14,23 @@ enum class PlayerDodgeSubState
 
 struct PlayerDodgeComponent
 {
-	// 設定値
-	float directionBufferTime = 0.12f; // スティック入力を待つ猶予時間
-
 	// 状態
 	PlayerDodgeSubState dodgeSub = PlayerDodgeSubState::None;
 
-	// 状態フラグ
-	bool isDodging = false; // 回避中かどうか
+	REFLECT_BEGIN(PlayerDodgeComponent, "Player Dodge")
 
-	bool isNoneInput = false;  // 入力なし状態かどうか
-	bool isFrontInput = false; // 前入力中かどうか
-	bool isBackInput = false;  // 後入力中かどうか
-	bool isLeftInput = false;  // 左入力中かどうか
-	bool isRightInput = false; // 右入力中かどうか
+		// 設定値
+		REFLECT_FIELD(float, directionBufferTime, (0.12f), ("Direction Buffer Time", 0.0f, 1.0f))
+
+		// 状態フラグ
+		REFLECT_FIELD(bool, isDodging,    (false), ("Is Dodging",     0.0f, 0.0f, 0.1f, "", true))
+		REFLECT_FIELD(bool, isNoneInput,  (false), ("Is None Input",  0.0f, 0.0f, 0.1f, "", true))
+		REFLECT_FIELD(bool, isFrontInput, (false), ("Is Front Input", 0.0f, 0.0f, 0.1f, "", true))
+		REFLECT_FIELD(bool, isBackInput,  (false), ("Is Back Input",  0.0f, 0.0f, 0.1f, "", true))
+		REFLECT_FIELD(bool, isLeftInput,  (false), ("Is Left Input",  0.0f, 0.0f, 0.1f, "", true))
+		REFLECT_FIELD(bool, isRightInput, (false), ("Is Right Input", 0.0f, 0.0f, 0.1f, "", true))
+
+	REFLECT_END()
 
 	// 内部実装用
 	float bufferTimer = 0.0f; // 猶予経過時間

@@ -1,19 +1,21 @@
 #pragma once
+#include "Engine/ECS/Reflect.h"
 
 enum class PlayerIdleSubState
 {
-	None,   
+	None,
 	Idle,   // 待機中
 };
 
 struct PlayerIdleComponent
 {
-	// 設定値
-
-
 	// 状態
 	PlayerIdleSubState idleSub = PlayerIdleSubState::None;
 
-	// 状態フラグ
-	bool isIdling = false;
+	REFLECT_BEGIN(PlayerIdleComponent, "Player Idle")
+
+		// 状態フラグ
+		REFLECT_FIELD(bool, isIdling, (false), ("Is Idling", 0.0f, 0.0f, 0.1f, "", true))
+
+	REFLECT_END()
 };
