@@ -146,6 +146,7 @@
     <ClInclude Include="Source\Engine\ECS\Components\Tags.h" />
     <ClInclude Include="Source\Engine\ECS\Components\TransformComponent.h" />
     <ClInclude Include="Source\Engine\ECS\EntityFinder.h" />
+    <ClInclude Include="Source\Engine\ECS\Reflect.h" />
     <ClInclude Include="Source\Engine\ECS\Systems\AnimationSpeedSystem.h" />
     <ClInclude Include="Source\Engine\ECS\Systems\AnimationSystem.h" />
     <ClInclude Include="Source\Engine\ECS\Systems\AnimatorControllerSystem.h" />

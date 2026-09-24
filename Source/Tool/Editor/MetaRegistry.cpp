@@ -236,15 +236,15 @@ int MetaRegistry::GetComponentCount(ValueType type)
 // トランスフォームコンポーネントを登録
 void MetaRegistry::RegisterTransformComponent()
 {
-	entt::meta_factory<TransformComponent>{}
-	.type("TransformComponent")
-		.custom<TypeInfo>(TypeInfo{ "Transform" })
-		.data<&TransformComponent::position>("position"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Position", 0.0f, 0.0f, 0.1f })
-		.data<&TransformComponent::rotation>("rotation"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Rotation", 0.0f, 0.0f, 0.01f })
-		.data<&TransformComponent::scale>("scale"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Scale", 0.0f, 0.0f, 0.01f });
+	//entt::meta_factory<TransformComponent>{}
+	//.type("TransformComponent")
+	//	.custom<TypeInfo>(TypeInfo{ "Transform" })
+	//	.data<&TransformComponent::position>("position"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Position", 0.0f, 0.0f, 0.1f })
+	//	.data<&TransformComponent::rotation>("rotation"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Rotation", 0.0f, 0.0f, 0.01f })
+	//	.data<&TransformComponent::scale>("scale"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Scale", 0.0f, 0.0f, 0.01f });
 }
 // メッシュコンポーネントを登録
 void MetaRegistry::RegisterMeshComponent()

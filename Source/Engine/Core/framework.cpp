@@ -24,7 +24,7 @@ framework::framework(HWND hwnd) : hwnd(hwnd)
 	sceneManager.ChangeScene(std::make_unique<SceneGame>());
 
 	// ProjectWindow‰Šú‰»
-	projectWindow.Initialize("Data/Model");
+	projectWindow.Initialize("Data");
 	projectWindow.LoadIcons(graphics.GetDevice());
 	// PrefabWindow‰Šú‰»
 	prefabWindow.Initialize("Data/Prefab");

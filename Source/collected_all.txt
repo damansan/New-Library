@@ -844,7 +844,7 @@ framework::framework(HWND hwnd) : hwnd(hwnd)
 	sceneManager.ChangeScene(std::make_unique<SceneGame>());
 
 	// ProjectWindow初期化
-	projectWindow.Initialize("Data/Model");
+	projectWindow.Initialize("Data");
 	projectWindow.LoadIcons(graphics.GetDevice());
 	// PrefabWindow初期化
 	prefabWindow.Initialize("Data/Prefab");
@@ -3761,6 +3761,41 @@ inline std::vector<entt::entity> FindAllByCategory(entt::registry& registry, Ent
 	return result;
 } 
  
+===== Reflect.h ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Reflect.h 
+#pragma once
+#include "entt.hpp"
+#include "Tool/Editor/MetaRegistry.h"
+
+using namespace entt::literals;
+
+// 型そのものの登録（TypeInfoの付与）を開始する
+#define REFLECT_BEGIN(Type, DisplayName)                                            \
+private:                                                                            \
+    using ReflectSelf = Type;                                                       \
+    static inline bool _reflect_type_registered = []                                \
+    {                                                                               \
+        entt::meta_factory<Type>{}                                                  \
+            .type(#Type##_hs)                                                       \
+            .custom<TypeInfo>(TypeInfo{ DisplayName });                             \
+        return true;                                                                \
+    }();                                                                            \
+public:
+
+// 1フィールド分の宣言＋登録
+#define REFLECT_FIELD(FieldType, FieldName, Label, Min, Max, Step, ...)             \
+    FieldType FieldName = { __VA_ARGS__ };                                          \
+    static inline bool _reflect_##FieldName##_registered = []                       \
+    {                                                                               \
+        entt::meta_factory<ReflectSelf>{}                                           \
+            .data<&ReflectSelf::FieldName>(#FieldName##_hs)                         \
+            .custom<FieldInfo>(FieldInfo{ Label, Min, Max, Step });                 \
+        return true;                                                                \
+    }();
+
+// 今回は特に何もしないが、対称性のために用意（将来の拡張用）
+#define REFLECT_END() 
+ 
 ===== AnimationSpeedComponent.h ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Components\AnimationSpeedComponent.h 
 #pragma once
@@ -4195,16 +4230,18 @@ struct NoShadowTag {};
 Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Components\TransformComponent.h 
 #pragma once
 #include <DirectXMath.h>
+#include "Engine/ECS/Reflect.h"
 
 struct TransformComponent
 {
-	DirectX::XMFLOAT3 position{ 0.0f,0.0f,0.0f }; // 位置
-	DirectX::XMFLOAT3 rotation{ 0.0f,0.0f,0.0f }; // 回転(オイラー角)
-	DirectX::XMFLOAT3 scale   { 1.0f,1.0f,1.0f }; // スケール
+	REFLECT_BEGIN(TransformComponent, "Transform")
+		REFLECT_FIELD(DirectX::XMFLOAT3, position, "Position", 0.0f, 0.0f, 0.1f, 0.0f, 0.0f, 0.0f) // 位置
+		REFLECT_FIELD(DirectX::XMFLOAT3, rotation, "Rotation", 0.0f, 0.0f, 0.01f, 0.0f, 0.0f, 0.0f) // 回転(オイラー角)
+		REFLECT_FIELD(DirectX::XMFLOAT3, scale, "Scale", 0.0f, 0.0f, 0.01f, 1.0f, 1.0f, 1.0f) // スケール
+		REFLECT_END()
 
-
-	// ワールド行列取得
-	DirectX::XMMATRIX GetWorldMatrix() const
+		// ワールド行列取得
+		DirectX::XMMATRIX GetWorldMatrix() const
 	{
 		DirectX::XMMATRIX S = DirectX::XMMatrixScaling(scale.x, scale.y, scale.z);
 		DirectX::XMMATRIX R = DirectX::XMMatrixRotationRollPitchYaw(rotation.x, rotation.y, rotation.z);
@@ -5745,7 +5782,7 @@ void AnimatorControllerSystem::ApplyChildState(AnimatorComponent& animator, cons
 ===== ConditionGraphEvaluator.cpp ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\ConditionGraphEvaluator.cpp 
 #include "ConditionGraphEvaluator.h"
-#include "Tool/Editor/ComponentRegistry.h"
+#include "Engine/Resource/ComponentRegistry.h"
 #include "Tool/Editor/MetaRegistry.h"
 #include <DirectXMath.h>
 #include <cmath>
@@ -9848,6 +9885,43 @@ void SkyBox::Render(
 }
  
  
+===== ComponentRegistry.h ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Resource\ComponentRegistry.h 
+#pragma once
+#include <string>
+#include <vector>
+#include <unordered_map>
+#include <functional>
+#include "entt.hpp"
+
+struct ComponentInfo
+{
+    std::string name;
+    std::function<void(entt::registry&, entt::entity)> add;
+    std::function<void(entt::registry&, entt::entity)> remove;
+    std::function<bool(entt::registry&, entt::entity)> has;
+
+	// エンティティが持つコンポーネントの実態をmeta_anyとして取得する
+    std::function<entt::meta_any(entt::registry&, entt::entity)> getMeta;
+};
+
+class ComponentRegistry
+{
+public:
+    static void Register(const std::string& name, ComponentInfo info);
+    static const std::vector<std::string>& GetNames();
+    static const ComponentInfo* Get(const std::string& name);
+
+    static void RegisterTypeName(const std::string& typeName, const std::string& displayName);
+    static const ComponentInfo* GetByTypeName(const std::string& typeName);
+
+private:
+    static std::unordered_map<std::string, ComponentInfo> registry;
+    static std::vector<std::string> names;
+
+    static std::unordered_map<std::string, std::string> typeNameToDisplayName;
+}; 
+ 
 ===== EntitySerializer.h ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Resource\EntitySerializer.h 
 #pragma once
@@ -10467,10 +10541,50 @@ namespace SkeletonUtils
 		std::vector<std::vector<DirectX::XMFLOAT4X4>>& outBoneTransforms);
 } 
  
+===== ComponentRegistry.cpp ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Resource\ComponentRegistry.cpp 
+#include "ComponentRegistry.h"
+
+std::unordered_map<std::string, ComponentInfo> ComponentRegistry::registry;
+std::vector<std::string> ComponentRegistry::names;
+std::unordered_map<std::string, std::string> ComponentRegistry::typeNameToDisplayName;
+
+void ComponentRegistry::Register(const std::string& name, ComponentInfo info)
+{
+    if (registry.find(name) != registry.end()) return;
+    info.name = name;
+    registry[name] = info;
+    names.push_back(name);
+}
+
+const std::vector<std::string>& ComponentRegistry::GetNames()
+{
+    return names;
+}
+
+const ComponentInfo* ComponentRegistry::Get(const std::string& name)
+{
+    auto it = registry.find(name);
+    if (it == registry.end()) return nullptr;
+    return &it->second;
+}
+
+void ComponentRegistry::RegisterTypeName(const std::string& typeName, const std::string& displayName)
+{
+    typeNameToDisplayName[typeName] = displayName;
+}
+
+const ComponentInfo* ComponentRegistry::GetByTypeName(const std::string& typeName)
+{
+    auto it = typeNameToDisplayName.find(typeName);
+    if (it == typeNameToDisplayName.end()) return nullptr;
+    return Get(it->second);
+} 
+ 
 ===== EntitySerializer.cpp ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Resource\EntitySerializer.cpp 
 #include "EntitySerializer.h"
-#include "Tool/Editor/ComponentRegistry.h"
+#include "Engine/Resource/ComponentRegistry.h"
 #include <DirectXMath.h>
 
 nlohmann::json EntitySerializer::SerializeEntity(entt::registry& registry, entt::entity e)
@@ -15186,44 +15300,6 @@ private:
 	static std::unordered_map<std::string, std::function<void(entt::registry&, entt::entity)>> registry;
 }; 
  
-===== ComponentRegistry.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Editor\ComponentRegistry.h 
-#pragma once
-#include <string>
-#include <vector>
-#include <unordered_map>
-#include <functional>
-#include "entt.hpp"
-
-struct ComponentInfo
-{
-    std::string name;
-    std::function<void(entt::registry&, entt::entity)> add;
-    std::function<void(entt::registry&, entt::entity)> remove;
-    std::function<bool(entt::registry&, entt::entity)> has;
-    std::function<void(entt::registry&, entt::entity)> drawImGui;
-
-	// エンティティが持つコンポーネントの実態をmeta_anyとして取得する
-    std::function<entt::meta_any(entt::registry&, entt::entity)> getMeta;
-};
-
-class ComponentRegistry
-{
-public:
-    static void Register(const std::string& name, ComponentInfo info);
-    static const std::vector<std::string>& GetNames();
-    static const ComponentInfo* Get(const std::string& name);
-
-    static void RegisterTypeName(const std::string& typeName, const std::string& displayName);
-    static const ComponentInfo* GetByTypeName(const std::string& typeName);
-
-private:
-    static std::unordered_map<std::string, ComponentInfo> registry;
-    static std::vector<std::string> names;
-
-    static std::unordered_map<std::string, std::string> typeNameToDisplayName;
-}; 
- 
 ===== ComponentRegistryInitializer.h ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Editor\ComponentRegistryInitializer.h 
 #pragma once
@@ -15638,50 +15714,12 @@ const std::function<void(entt::registry&, entt::entity)>* ComponentInspectorRegi
 	return &it->second;
 } 
  
-===== ComponentRegistry.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Editor\ComponentRegistry.cpp 
-#include "ComponentRegistry.h"
-
-std::unordered_map<std::string, ComponentInfo> ComponentRegistry::registry;
-std::vector<std::string> ComponentRegistry::names;
-std::unordered_map<std::string, std::string> ComponentRegistry::typeNameToDisplayName;
-
-void ComponentRegistry::Register(const std::string& name, ComponentInfo info)
-{
-    if (registry.find(name) != registry.end()) return;
-    info.name = name;
-    registry[name] = info;
-    names.push_back(name);
-}
-
-const std::vector<std::string>& ComponentRegistry::GetNames()
-{
-    return names;
-}
-
-const ComponentInfo* ComponentRegistry::Get(const std::string& name)
-{
-    auto it = registry.find(name);
-    if (it == registry.end()) return nullptr;
-    return &it->second;
-}
-
-void ComponentRegistry::RegisterTypeName(const std::string& typeName, const std::string& displayName)
-{
-    typeNameToDisplayName[typeName] = displayName;
-}
-
-const ComponentInfo* ComponentRegistry::GetByTypeName(const std::string& typeName)
-{
-    auto it = typeNameToDisplayName.find(typeName);
-    if (it == typeNameToDisplayName.end()) return nullptr;
-    return Get(it->second);
-} 
- 
 ===== ComponentRegistryInitializer.cpp ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Editor\ComponentRegistryInitializer.cpp 
 #include "ComponentRegistryInitializer.h"
-#include "Tool/Editor/ComponentRegistry.h"
+#include "Engine/Resource/ComponentRegistry.h"
+#include "Tool/Editor/ComponentInspectorRegistry.h"
+
 #include <imgui.h>
 #include <Windows.h>
 #include <commdlg.h>
@@ -16438,8 +16476,8 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Editor\InspectorWindow.cp
 #include "InspectorWindow.h"
 #include <imgui.h>
 #include "imgui_internal.h"
-#include "ComponentRegistry.h"
-
+#include "Engine/Resource/ComponentRegistry.h"
+#include "Tool/Editor/ComponentInspectorRegistry.h"
 #include "tracy/Tracy.hpp"
 
 // 描画
@@ -16515,7 +16553,11 @@ void InspectorWindow::DrawComponents(entt::registry& registry, EditorContext& co
 
 
         // コンポーネントのImGuiを描画
-        info->drawImGui(registry, e);
+        const auto* drawImGui = ComponentInspectorRegistry::Get(name);
+        if (drawImGui)
+        {
+            (*drawImGui)(registry, e);
+        }
     }
 }
 
@@ -16798,15 +16840,15 @@ int MetaRegistry::GetComponentCount(ValueType type)
 // トランスフォームコンポーネントを登録
 void MetaRegistry::RegisterTransformComponent()
 {
-	entt::meta_factory<TransformComponent>{}
-	.type("TransformComponent")
-		.custom<TypeInfo>(TypeInfo{ "Transform" })
-		.data<&TransformComponent::position>("position"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Position", 0.0f, 0.0f, 0.1f })
-		.data<&TransformComponent::rotation>("rotation"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Rotation", 0.0f, 0.0f, 0.01f })
-		.data<&TransformComponent::scale>("scale"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Scale", 0.0f, 0.0f, 0.01f });
+	//entt::meta_factory<TransformComponent>{}
+	//.type("TransformComponent")
+	//	.custom<TypeInfo>(TypeInfo{ "Transform" })
+	//	.data<&TransformComponent::position>("position"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Position", 0.0f, 0.0f, 0.1f })
+	//	.data<&TransformComponent::rotation>("rotation"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Rotation", 0.0f, 0.0f, 0.01f })
+	//	.data<&TransformComponent::scale>("scale"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Scale", 0.0f, 0.0f, 0.01f });
 }
 // メッシュコンポーネントを登録
 void MetaRegistry::RegisterMeshComponent()

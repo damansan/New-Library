@@ -972,6 +972,9 @@
     <ClInclude Include="Source\Engine\Resource\ComponentRegistry.h">
       <Filter>Sources\Engine\Resource\ComponentRegistry</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Engine\ECS\Reflect.h">
+      <Filter>Sources\Engine\ECS</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shader\Static_VS.hlsl">
