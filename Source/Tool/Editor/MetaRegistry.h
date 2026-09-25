@@ -40,9 +40,6 @@ struct TypeInfo
 class MetaRegistry
 {
 public:
-	// メタデータの初期化
-	static void Initialize();
-
 	// 登録済みメタ情報からInspectorUIを自動描画
 	static void DrawMetaFields(entt::meta_type metaType, entt::meta_any instance);
 
@@ -51,28 +48,4 @@ public:
 
 	// Float2/3/4型の、成分数を返す(それ以外は0)
 	static int GetComponentCount(ValueType type);
-
-private:
-	// トランスフォームコンポーネントを登録
-	static void RegisterTransformComponent();
-	// メッシュコンポーネントを登録
-	static void RegisterMeshComponent();
-	// 移動コンポーネントを登録
-	static void RegisterMovementComponent();
-	// プレイヤー待機コンポーネントを登録
-	static void RegisterPlayerIdleComponent();
-	// プレイヤー移動コンポーネントを登録
-	static void RegisterPlayerMoveComponent();
-	// プレイヤー回避コンポーネントを登録
-	static void RegisterPlayerDodgeComponent();
-	// プレイヤー全力疾走コンポーネントを登録
-	static void RegisterPlayerSprintComponent();
-	// ゲーム入力コンポーネントを登録
-	static void RegisterGameInputComponent();
-	// アニメーターコンポーネントを登録
-	static void RegisterAnimatorComponent();
-	// シーケンサーコンポーネントを登録
-	static void RegisterSequencerComponent();
-	// アニメーション速度コンポーネントを登録
-	static void RegisterAnimationSpeedComponent();
 };

@@ -83,6 +83,24 @@
                     "isEndpoint": true
                 }
             ]
+        },
+        {
+            "clipName": "AS_Idle",
+            "nextId": 3,
+            "points": [
+                {
+                    "id": 1,
+                    "time": 0.0,
+                    "speed": 2.0,
+                    "isEndpoint": true
+                },
+                {
+                    "id": 2,
+                    "time": 1.0,
+                    "speed": 2.0,
+                    "isEndpoint": true
+                }
+            ]
         }
     ]
 }

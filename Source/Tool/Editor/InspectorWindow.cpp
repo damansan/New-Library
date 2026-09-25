@@ -3,6 +3,7 @@
 #include "imgui_internal.h"
 #include "Engine/Resource/ComponentRegistry.h"
 #include "Tool/Editor/ComponentInspectorRegistry.h"
+#include "Tool/Editor/MetaRegistry.h"
 #include "tracy/Tracy.hpp"
 
 // •`‰æ
@@ -81,7 +82,24 @@ void InspectorWindow::DrawComponents(entt::registry& registry, EditorContext& co
         const auto* drawImGui = ComponentInspectorRegistry::Get(name);
         if (drawImGui)
         {
+            // “Æ©‚ÌUI‚ª“o˜^‚³‚ê‚Ä‚¢‚ê‚Î‚»‚ê‚ğg‚¤
             (*drawImGui)(registry, e);
+        }
+        else if (info->getMeta)
+        {
+            // “o˜^‚ª–³‚¯‚ê‚ÎAentt::meta‚Ìî•ñ‚©‚ç©“®•`‰æ‚·‚é
+            entt::meta_any firstInstance = info->getMeta(registry, e);
+            if (firstInstance)
+            {
+                entt::meta_type metaType = firstInstance.type();
+                TypeInfo* typeInfo = metaType.custom();
+                std::string label = typeInfo ? typeInfo->category : name;
+
+                if (ImGui::CollapsingHeader(label.c_str(), ImGuiTreeNodeFlags_DefaultOpen))
+                {
+                    MetaRegistry::DrawMetaFields(metaType, info->getMeta(registry, e));
+                }
+            }
         }
     }
 }

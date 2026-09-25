@@ -3769,7 +3769,7 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Reflect.h
 
 using namespace entt::literals;
 
-// Œ^‚»‚Ì‚à‚Ì‚Ì“o˜^iTypeInfo‚Ì•t—^j‚ğŠJn‚·‚é
+// Œ^‚»‚Ì‚à‚Ì‚Ì“o˜^‚ğŠJn‚·‚é
 #define REFLECT_BEGIN(Type, DisplayName)                                            \
 private:                                                                            \
     using ReflectSelf = Type;                                                       \
@@ -3782,18 +3782,30 @@ private:                                                                        
     }();                                                                            \
 public:
 
+// FieldInfo‚ğAˆÊ’uˆø”{ƒfƒtƒHƒ‹ƒgˆø”‚Å‘g‚İ—§‚Ä‚éƒwƒ‹ƒp[
+inline FieldInfo MakeFieldInfo(
+    std::string label,
+    float minValue = 0.0f,
+    float maxValue = 0.0f,
+    float dragSpeed = 0.1f,
+    std::string dragDropPayload = "",
+    bool readOnly = false)
+{
+    return FieldInfo{ label, minValue, maxValue, dragSpeed, dragDropPayload, readOnly };
+}
+
 // 1ƒtƒB[ƒ‹ƒh•ª‚ÌéŒ¾{“o˜^
-#define REFLECT_FIELD(FieldType, FieldName, Label, Min, Max, Step, ...)             \
-    FieldType FieldName = { __VA_ARGS__ };                                          \
+#define REFLECT_FIELD(FieldType, FieldName, DefaultArgs, FieldInfoArgs)             \
+    FieldType FieldName = FieldType DefaultArgs;                                    \
     static inline bool _reflect_##FieldName##_registered = []                       \
     {                                                                               \
         entt::meta_factory<ReflectSelf>{}                                           \
             .data<&ReflectSelf::FieldName>(#FieldName##_hs)                         \
-            .custom<FieldInfo>(FieldInfo{ Label, Min, Max, Step });                 \
+            .custom<FieldInfo>(MakeFieldInfo FieldInfoArgs);                        \
         return true;                                                                \
     }();
 
-// ¡‰ñ‚Í“Á‚É‰½‚à‚µ‚È‚¢‚ªA‘ÎÌ«‚Ì‚½‚ß‚É—pˆÓi«—ˆ‚ÌŠg’£—pj
+
 #define REFLECT_END() 
  
 ===== AnimationSpeedComponent.h ===== 
@@ -3811,37 +3823,51 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Components\Animator
 ï»¿#pragma once
 #include <string>
 #include <DirectXMath.h>
+#include "Engine/ECS/Reflect.h"
 
 struct AnimatorComponent
 {
+    REFLECT_BEGIN(AnimatorComponent,"Animator")
+
+        // å†ç”Ÿé–¢é€£
+        REFLECT_FIELD(float, playSpeed, (1.0f),  ("Play Speed", 0.0f, 3.0f))                 // å†ç”Ÿé€Ÿåº¦
+        REFLECT_FIELD(bool,  loop,      (true),  ("Loop"))                                   // ãƒ«ãƒ¼ãƒ—ãƒ•ãƒ©ã‚°
+        REFLECT_FIELD(bool,  isEnd,     (false), ("Is End",     0.0f, 0.0f, 0.1f, "", true)) // å†ç”Ÿçµ‚äº†ãƒ•ãƒ©ã‚°
+
+        // ãƒ–ãƒ¬ãƒ³ãƒ‰é–¢é€£
+        REFLECT_FIELD(std::string, blendAnimation, (""),    ("Blend From (Old Clip)", 0.0f, 0.0f, 0.1f, "", true)) // æ—§ã‚¯ãƒªãƒƒãƒ—å
+        REFLECT_FIELD(float,       blendRate,      (0.0f),  ("Blend Rate",            0.0f, 1.0f, 0.1f, "", true)) // ãƒ–ãƒ¬ãƒ³ãƒ‰ã®é€²æ—
+        REFLECT_FIELD(bool,        isBlending,     (false), ("Is Blending",           0.0f, 0.0f, 0.1f, "", true)) // ãƒ–ãƒ¬ãƒ³ãƒ‰ä¸­ãƒ•ãƒ©ã‚°
+
+        // ãƒ«ãƒ¼ãƒˆãƒ¢ãƒ¼ã‚·ãƒ§ãƒ³é–¢é€£
+        REFLECT_FIELD(bool, useRootMotionY,            (false), ("Use Root Motion Y")) // Yè»¸é©å¿œ
+        REFLECT_FIELD(bool, useRootMotion,             (false), ("Use Root Motion"))   // ãƒ«ãƒ¼ãƒˆãƒ¢ãƒ¼ã‚·ãƒ§ãƒ³ä½¿ç”¨
+        REFLECT_FIELD(std::string, rootMotionNodeName, (""),    ("Root Motion Node"))  // ãƒ«ãƒ¼ãƒˆãƒãƒ¼ãƒ‰å
+
+        // ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã‚°ãƒ©ãƒ•
+        REFLECT_FIELD(std::string, animatorGraphPath, (""), ("Animator Graph", 0.0f, 0.0f, 0.1f, "ANIMGRAPH_PATH")) // .animatorãƒ•ã‚¡ã‚¤ãƒ«ã®ãƒ‘ã‚¹
+      
+    REFLECT_END()
+
+
+    // å†ç”Ÿé–¢é€£
     std::string currentAnimation;      // ç¾åœ¨ã®ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³å
     float       animationTime{ 0.0f }; // ç¾åœ¨ã®å†ç”Ÿæ™‚é–“
-    float       playSpeed{ 1.0f };     // å†ç”Ÿé€Ÿåº¦
-    bool        loop{ true };          // ãƒ«ãƒ¼ãƒ—ãƒ•ãƒ©ã‚°
     bool        isPlaying{ true };     // å†ç”Ÿä¸­ãƒ•ãƒ©ã‚°
-    bool        isEnd{ false };        // å†ç”Ÿçµ‚äº†ãƒ•ãƒ©ã‚°
 
-    // ãƒ–ãƒ¬ãƒ³ãƒ‰ç”¨
-    std::string blendAnimation;              // æ—§ã‚¯ãƒªãƒƒãƒ—å
+    // ãƒ–ãƒ¬ãƒ³ãƒ‰é–¢é€£
     float       blendAnimationTime{ 0.0f };  // æ—§ã‚¯ãƒªãƒƒãƒ—ã®ã€ãƒ–ãƒ¬ãƒ³ãƒ‰ä¸­ã®å†ç”Ÿæ™‚é–“
     bool        blendUseRootMotion{ false }; // æ—§ã‚¯ãƒªãƒƒãƒ—ãŒãƒ«ãƒ¼ãƒˆãƒ¢ãƒ¼ã‚·ãƒ§ãƒ³ã‚’ä½¿ã£ã¦ã„ãŸã‹
     bool        blendUseRootMotionY{ false };// æ—§ã‚¯ãƒªãƒƒãƒ—ãŒYè»¸ãƒ«ãƒ¼ãƒˆãƒ¢ãƒ¼ã‚·ãƒ§ãƒ³ã‚’ä½¿ã£ã¦ã„ãŸã‹
     float       blendTrimEnd{ -1.0f };       // æ—§ã‚¯ãƒªãƒƒãƒ—ã®ãƒˆãƒªãƒŸãƒ³ã‚°çµ‚ç«¯
-
     float       blendTime{ 0.0f };   // ãƒ–ãƒ¬ãƒ³ãƒ‰ã®åˆè¨ˆæ™‚é–“
-    float       blendRate{ 0.0f };   // ãƒ–ãƒ¬ãƒ³ãƒ‰ã®é€²æ—
-    bool        isBlending{ false }; // ãƒ–ãƒ¬ãƒ³ãƒ‰ä¸­ãƒ•ãƒ©ã‚°
 
-    // ãƒ«ãƒ¼ãƒˆãƒ¢ãƒ¼ã‚·ãƒ§ãƒ³ç”¨
-    bool        useRootMotion { false }; // ãƒ«ãƒ¼ãƒˆãƒ¢ãƒ¼ã‚·ãƒ§ãƒ³ä½¿ç”¨
-    bool        useRootMotionY{ false }; // Yè»¸é©å¿œ
-    std::string rootMotionNodeName;      // ãƒ«ãƒ¼ãƒˆãƒãƒ¼ãƒ‰å
+    // ãƒ«ãƒ¼ãƒˆãƒ¢ãƒ¼ã‚·ãƒ§ãƒ³é–¢é€£
     DirectX::XMFLOAT3 rootMotionDelta{ 0.0f, 0.0f, 0.0f }; // ãƒ«ãƒ¼ãƒˆãƒ¢ãƒ¼ã‚·ãƒ§ãƒ³ç§»å‹•é‡
 
-    // Stateé·ç§»ç”¨
-	std::string animatorGraphPath; // .animatorãƒ•ã‚¡ã‚¤ãƒ«ã®ãƒ‘ã‚¹
-	int         currentParentStateId{ -1 }; // ç¾åœ¨ã®è¦ªã‚¹ãƒ†ãƒ¼ãƒˆID
-	int         currentChildStateId{ -1 };  // ç¾åœ¨ã®å­ã‚¹ãƒ†ãƒ¼ãƒˆID
+    // ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã‚°ãƒ©ãƒ•
+	int currentParentStateId{ -1 }; // ç¾åœ¨ã®è¦ªã‚¹ãƒ†ãƒ¼ãƒˆID
+	int currentChildStateId{ -1 };  // ç¾åœ¨ã®å­ã‚¹ãƒ†ãƒ¼ãƒˆID
 
     // ãƒˆãƒªãƒŸãƒ³ã‚°ç¯„å›²
     float trimStart{ 0.0f };
@@ -4058,11 +4084,18 @@ struct MaterialComponent
 Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Components\MeshComponent.h 
 #pragma once
 #include <string>
+#include "Engine/ECS/Reflect.h"
 
 struct MeshComponent
 {
-	std::string modelPath;    // ƒ‚ƒfƒ‹ƒtƒ@ƒCƒ‹ƒpƒX
-	std::string previousPath; // ‘OƒtƒŒ[ƒ€‚ÌƒpƒX‚ğ‹L˜^
+	REFLECT_BEGIN(MeshComponent, "Mesh")
+	
+		// ƒ‚ƒfƒ‹ƒtƒ@ƒCƒ‹ƒpƒX
+		REFLECT_FIELD(std::string, modelPath, (""), ("Model", 0.0f, 0.0f, 0.1f, "MODEL_PATH")) 
+		
+	REFLECT_END()
+
+		std::string previousPath; // ‘OƒtƒŒ[ƒ€‚ÌƒpƒX‚ğ‹L˜^
 
 	MeshComponent() = default;
 	MeshComponent(const std::string& path) : modelPath(path) {}
@@ -4072,17 +4105,20 @@ struct MeshComponent
 Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Components\MovementComponent.h 
 #pragma once
 #include <DirectXMath.h>
+#include "Engine/ECS/Reflect.h"
 
 struct MovementComponent
 {
-    // d—ÍEƒWƒƒƒ“ƒv
-    float jumpPower = 8.0f;
-    float gravity = -20.0f;
-    // Œ»İ‚Ì‘¬“xƒxƒNƒgƒ‹iSystem‚ª–ˆƒtƒŒ[ƒ€‘‚«Š·‚¦‚éj
-    DirectX::XMFLOAT3 velocity{ 0.0f, 0.0f, 0.0f };
+	REFLECT_BEGIN(MovementComponent, "Movement")
 
-    // ’n–Ê‚ÉÚ‚µ‚Ä‚¢‚é‚©
-    bool isGrounded = false;
+		// İ’è’l
+		REFLECT_FIELD(float,             jumpPower,  (8.0f),             ("Jump Power", 0.0f,   50.0f        )) 
+		REFLECT_FIELD(float,             gravity,    (-20.0f),           ("Gravity",   -100.0f, 0.0f         ))  
+		REFLECT_FIELD(DirectX::XMFLOAT3, velocity,   (0.0f, 0.0f, 0.0f), ("Velocity",   0.0f,   0.0f,  0.01f ))
+		REFLECT_FIELD(bool,              isGrounded, (false),            ("Is Grounded"                      ))
+
+	REFLECT_END()
+
 
 	// ˆÚ“®‚Ì§ŒäŒ 
     bool movementLocked = false;
@@ -4235,10 +4271,12 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Components\Transfor
 struct TransformComponent
 {
 	REFLECT_BEGIN(TransformComponent, "Transform")
-		REFLECT_FIELD(DirectX::XMFLOAT3, position, "Position", 0.0f, 0.0f, 0.1f, 0.0f, 0.0f, 0.0f) // ˆÊ’u
-		REFLECT_FIELD(DirectX::XMFLOAT3, rotation, "Rotation", 0.0f, 0.0f, 0.01f, 0.0f, 0.0f, 0.0f) // ‰ñ“](ƒIƒCƒ‰[Šp)
-		REFLECT_FIELD(DirectX::XMFLOAT3, scale, "Scale", 0.0f, 0.0f, 0.01f, 1.0f, 1.0f, 1.0f) // ƒXƒP[ƒ‹
-		REFLECT_END()
+
+		REFLECT_FIELD(DirectX::XMFLOAT3, position, (0.0f, 0.0f, 0.0f), ("Position", 0.0f, 0.0f, 0.1f))  // ˆÊ’u
+		REFLECT_FIELD(DirectX::XMFLOAT3, rotation, (0.0f, 0.0f, 0.0f), ("Rotation", 0.0f, 0.0f, 0.01f)) // ‰ñ“]
+		REFLECT_FIELD(DirectX::XMFLOAT3, scale,    (1.0f, 1.0f, 1.0f), ("Scale",    0.0f, 0.0f, 0.01f)) // ƒXƒP[ƒ‹
+		
+	REFLECT_END()
 
 		// ƒ[ƒ‹ƒhs—ñæ“¾
 		DirectX::XMMATRIX GetWorldMatrix() const
@@ -12952,60 +12990,74 @@ struct GameCameraComponent
 ===== GameInputComponent.h ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\Project\ECS\Components\GameInputComponent.h 
 #pragma once
+#include "Engine/ECS/Reflect.h"
 
 // ƒXƒeƒBƒbƒN‚Ìó‘Ô
 struct StickState
 {
-    float x = 0.0f;
-    float y = 0.0f;
+    REFLECT_BEGIN(StickState, "Stick State")
+    
+        REFLECT_FIELD(float, x,        (0.0f),  ("X",         0.0f, 0.0f, 0.1f, "", true))
+        REFLECT_FIELD(float, y,        (0.0f),  ("Y",         0.0f, 0.0f, 0.1f, "", true))
+        REFLECT_FIELD(bool,  hasInput, (false), ("Has Input", 0.0f, 0.0f, 0.1f, "", true)) // “ü—Í‚ª‚ ‚Á‚½‚©‚Ç‚¤‚©
 
-	// “ü—Í‚ª‚ ‚Á‚½‚©‚Ç‚¤‚©
-    bool hasInput = false;
+    REFLECT_END()
 };
 
 // ƒ{ƒ^ƒ“‚Ìó‘Ô
 struct ButtonState
 {
-    bool pressed = false;  // ¡ƒtƒŒ[ƒ€V‚µ‚­‰Ÿ‚³‚ê‚½
-    bool held = false;     // ‰Ÿ‚µ‚Á‚Ï‚È‚µ’†
-    bool released = false; // ¡ƒtƒŒ[ƒ€—£‚³‚ê‚½
+    REFLECT_BEGIN(ButtonState, "Button State")
+        
+        REFLECT_FIELD(bool, pressed,  (false), ("Pressed",  0.0f, 0.0f, 0.1f, "", true)) // “ü—Í‚ª‚ ‚Á‚½‚©‚Ç‚¤‚©
+        REFLECT_FIELD(bool, held,     (false), ("Held",     0.0f, 0.0f, 0.1f, "", true)) // ‰Ÿ‚µ‚Á‚Ï‚È‚µ’†
+        REFLECT_FIELD(bool, released, (false), ("Released", 0.0f, 0.0f, 0.1f, "", true)) // ¡ƒtƒŒ[ƒ€—£‚³‚ê‚½
+        
+    REFLECT_END()
 
-    // “à•”—pF‘OƒtƒŒ[ƒ€‚Ì‰Ÿ‰ºó‘Ô
-    bool wasHeld = false;
+        // “à•”—pF‘OƒtƒŒ[ƒ€‚Ì‰Ÿ‰ºó‘Ô
+        bool wasHeld = false;
 };
 
 // ƒgƒŠƒK[‚Ìó‘Ô
 struct TriggerState
 {
-    float value = 0.0f; // “ü—Í’l(0.0`1.0)
+    REFLECT_BEGIN(TriggerState, "Trigger State")
 
-    bool pressed = false;  // ¡ƒtƒŒ[ƒ€V‚µ‚­‰Ÿ‚³‚ê‚½
-    bool held = false;     // ‰Ÿ‚µ‚Á‚Ï‚È‚µ’†
-    bool released = false; // ¡ƒtƒŒ[ƒ€—£‚³‚ê‚½
+        REFLECT_FIELD(float, value,    (0.0f),  ("Value",    0.0f, 0.0f, 0.1f, "", true)) // “ü—Í’l(0.0`1.0)
+        REFLECT_FIELD(bool,  pressed,  (false), ("Pressed",  0.0f, 0.0f, 0.1f, "", true)) // ¡ƒtƒŒ[ƒ€V‚µ‚­‰Ÿ‚³‚ê‚½
+        REFLECT_FIELD(bool,  held,     (false), ("Held",     0.0f, 0.0f, 0.1f, "", true)) // ‰Ÿ‚µ‚Á‚Ï‚È‚µ’†
+        REFLECT_FIELD(bool,  released, (false), ("Released", 0.0f, 0.0f, 0.1f, "", true)) // ¡ƒtƒŒ[ƒ€—£‚³‚ê‚½
+        
+    REFLECT_END()
 
-    // “à•”—pF‘OƒtƒŒ[ƒ€‚Ì‰Ÿ‰ºó‘Ô
-    bool wasHeld = false;  
+        // “à•”—pF‘OƒtƒŒ[ƒ€‚Ì‰Ÿ‰ºó‘Ô
+        bool wasHeld = false;
 };
 
 struct GameInputComponent
 {
-    // ƒXƒeƒBƒbƒN
-    StickState moveStick;
-    StickState cameraStick;
+    REFLECT_BEGIN(GameInputComponent, "Input")
+    
+        // ƒXƒeƒBƒbƒN
+        REFLECT_FIELD(StickState, moveStick,   (), ("Move Stick"))
+        REFLECT_FIELD(StickState, cameraStick, (), ("Camera Stick"))
 
-    // ƒgƒŠƒK[
-    TriggerState dodgeTrigger;  // R2
-    TriggerState lockOnTrigger; // L2
+        // ƒgƒŠƒK[
+        REFLECT_FIELD(TriggerState, dodgeTrigger,  (), ("Dodge Trigger"))   // R2
+        REFLECT_FIELD(TriggerState, lockOnTrigger, (), ("Lock On Trigger")) // L2
 
-    // ƒ{ƒ^ƒ“
-    bool jump = false;
-    bool attack = false;
-};
- 
+        // ƒ{ƒ^ƒ“
+        REFLECT_FIELD(bool, jump,   (false), ("Jump",   0.0f, 0.0f, 0.1f, "", true))
+        REFLECT_FIELD(bool, attack, (false), ("Attack", 0.0f, 0.0f, 0.1f, "", true))
+        
+    REFLECT_END()
+}; 
  
 ===== PlayerDodgeComponent.h ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\Project\ECS\Components\PlayerDodgeComponent.h 
 #pragma once
+#include "Engine/ECS/Reflect.h"
 
 enum class PlayerDodgeSubState
 {
@@ -13020,20 +13072,23 @@ enum class PlayerDodgeSubState
 
 struct PlayerDodgeComponent
 {
-	// İ’è’l
-	float directionBufferTime = 0.12f; // ƒXƒeƒBƒbƒN“ü—Í‚ğ‘Ò‚Â—P—\ŠÔ
-
 	// ó‘Ô
 	PlayerDodgeSubState dodgeSub = PlayerDodgeSubState::None;
 
-	// ó‘Ôƒtƒ‰ƒO
-	bool isDodging = false; // ‰ñ”ğ’†‚©‚Ç‚¤‚©
+	REFLECT_BEGIN(PlayerDodgeComponent, "Player Dodge")
 
-	bool isNoneInput = false;  // “ü—Í‚È‚µó‘Ô‚©‚Ç‚¤‚©
-	bool isFrontInput = false; // ‘O“ü—Í’†‚©‚Ç‚¤‚©
-	bool isBackInput = false;  // Œã“ü—Í’†‚©‚Ç‚¤‚©
-	bool isLeftInput = false;  // ¶“ü—Í’†‚©‚Ç‚¤‚©
-	bool isRightInput = false; // ‰E“ü—Í’†‚©‚Ç‚¤‚©
+		// İ’è’l
+		REFLECT_FIELD(float, directionBufferTime, (0.12f), ("Direction Buffer Time", 0.0f, 1.0f))
+
+		// ó‘Ôƒtƒ‰ƒO
+		REFLECT_FIELD(bool, isDodging,    (false), ("Is Dodging",     0.0f, 0.0f, 0.1f, "", true))
+		REFLECT_FIELD(bool, isNoneInput,  (false), ("Is None Input",  0.0f, 0.0f, 0.1f, "", true))
+		REFLECT_FIELD(bool, isFrontInput, (false), ("Is Front Input", 0.0f, 0.0f, 0.1f, "", true))
+		REFLECT_FIELD(bool, isBackInput,  (false), ("Is Back Input",  0.0f, 0.0f, 0.1f, "", true))
+		REFLECT_FIELD(bool, isLeftInput,  (false), ("Is Left Input",  0.0f, 0.0f, 0.1f, "", true))
+		REFLECT_FIELD(bool, isRightInput, (false), ("Is Right Input", 0.0f, 0.0f, 0.1f, "", true))
+
+	REFLECT_END()
 
 	// “à•”À‘•—p
 	float bufferTimer = 0.0f; // —P—\Œo‰ßŠÔ
@@ -13042,28 +13097,31 @@ struct PlayerDodgeComponent
 ===== PlayerIdleComponent.h ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\Project\ECS\Components\PlayerIdleComponent.h 
 #pragma once
+#include "Engine/ECS/Reflect.h"
 
 enum class PlayerIdleSubState
 {
-	None,   
+	None,
 	Idle,   // ‘Ò‹@’†
 };
 
 struct PlayerIdleComponent
 {
-	// İ’è’l
-
-
 	// ó‘Ô
 	PlayerIdleSubState idleSub = PlayerIdleSubState::None;
 
-	// ó‘Ôƒtƒ‰ƒO
-	bool isIdling = false;
+	REFLECT_BEGIN(PlayerIdleComponent, "Player Idle")
+
+		// ó‘Ôƒtƒ‰ƒO
+		REFLECT_FIELD(bool, isIdling, (false), ("Is Idling", 0.0f, 0.0f, 0.1f, "", true))
+
+	REFLECT_END()
 }; 
  
 ===== PlayerMoveComponent.h ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\Project\ECS\Components\PlayerMoveComponent.h 
 #pragma once
+#include "Engine/ECS/Reflect.h"
 
 enum class PlayerMoveSubState
 {
@@ -13074,30 +13132,33 @@ enum class PlayerMoveSubState
 
 struct PlayerMoveComponent
 {
-	// İ’è’l
-	float walkSpeed = 2.0f; // •às‘¬“x
-	float jogSpeed = 4.0f; // ¬‘–‚è‘¬“x
-	float jogThreshold = 0.9f; // ƒXƒeƒBƒbƒN‚Ì“|‚µ‚İ—Ê‚ªA‚±‚Ì’l‚ğ’´‚¦‚½‚ç¬‘–‚è‚Æ‚İ‚È‚·
-
-	float turnSpeed = 10.0f;    // 1•b‚ ‚½‚è‚ÌÅ‘åù‰ñ‘¬“x
-
 	// ó‘Ô
 	PlayerMoveSubState moveSub = PlayerMoveSubState::None;
 
-	// ó‘Ôƒtƒ‰ƒO
-	bool isMoving = false;  // Œ»İAˆÚ“®’†‚©‚Ç‚¤‚©
-	bool isWalking = false; // Œ»İA•à‚«”»’è‚©‚Ç‚¤‚©
-	bool isJogging = false; // Œ»İA¬‘–‚è”»’è‚©‚Ç‚¤‚©
+	REFLECT_BEGIN(PlayerMoveComponent, "Player Move")
 
+		// İ’è’l
+		REFLECT_FIELD(float, walkSpeed,    (2.0f),  ("Walk Speed",    0.0f, 10.0f))
+		REFLECT_FIELD(float, jogSpeed,     (4.0f),  ("Jog Speed",     0.0f, 10.0f))
+		REFLECT_FIELD(float, jogThreshold, (0.9f),  ("Jog Threshold", 0.0f, 1.0f))
+		REFLECT_FIELD(float, turnSpeed,    (10.0f), ("Turn Speed",    0.0f, 30.0f))
 
-	// “à•”À‘•—p
-	float inputLossGraceTime = 0.1f; // “ü—Í‚ªˆêu–³‚­‚È‚Á‚Ä‚àA—P—\‚Æ‚µ‚ÄˆÛ‚·‚éŠÔ
-	float inputLossTimer = 0.0f;     // “à•”À‘•—pA“ü—Í‚ª–³‚­‚È‚Á‚Ä‚©‚ç‚ÌŒo‰ßŠÔ
+		// ó‘Ôƒtƒ‰ƒO
+		REFLECT_FIELD(bool, isWalking, (false), ("Is Walking"))
+		REFLECT_FIELD(bool, isJogging, (false), ("Is Jogging"))
+		REFLECT_FIELD(bool, isMoving,  (false), ("Is Moving"))
+
+	REFLECT_END()
+
+		// “à•”À‘•—p
+		float inputLossGraceTime = 0.1f; // “ü—Í‚ªˆêu–³‚­‚È‚Á‚Ä‚àA—P—\‚Æ‚µ‚ÄˆÛ‚·‚éŠÔ
+		float inputLossTimer = 0.0f;     // “à•”À‘•—pA“ü—Í‚ª–³‚­‚È‚Á‚Ä‚©‚ç‚ÌŒo‰ßŠÔ
 }; 
  
 ===== PlayerSprintComponent.h ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\Project\ECS\Components\PlayerSprintComponent.h 
 #pragma once
+#include "Engine/ECS/Reflect.h"
 
 enum class PlayerSprintSubState
 {
@@ -13107,16 +13168,19 @@ enum class PlayerSprintSubState
 
 struct PlayerSprintComponent
 {
-	// İ’è’l
-	float sprintSpeed = 15.0f; // ƒ_ƒbƒVƒ…‘¬“x
-
-	float turnSpeed = 15.0f;    // 1•b‚ ‚½‚è‚ÌÅ‘åù‰ñ‘¬“x
-
 	// ó‘Ô
 	PlayerSprintSubState state = PlayerSprintSubState::None;
+	
+	REFLECT_BEGIN(PlayerSprintComponent, "Player Sprint")
 
-	// ó‘Ôƒtƒ‰ƒO
-	bool isSprinting = false;
+		// İ’è’l
+		REFLECT_FIELD(float, sprintSpeed, (15.0f), ("Sprint Speed", 0.0f, 20.0f))
+		REFLECT_FIELD(float, turnSpeed,   (15.0f), ("Turn Speed",   0.0f, 30.0f))
+
+		// ó‘Ôƒtƒ‰ƒO
+		REFLECT_FIELD(bool, isSprinting, (false), ("Is Sprinting", 0.0f, 0.0f, 0.1f, "", true))
+
+	REFLECT_END()
 }; 
  
 ===== GameCameraSystem.h ===== 
@@ -16853,166 +16917,166 @@ void MetaRegistry::RegisterTransformComponent()
 // ƒƒbƒVƒ…ƒRƒ“ƒ|[ƒlƒ“ƒg‚ğ“o˜^
 void MetaRegistry::RegisterMeshComponent()
 {
-	entt::meta_factory<MeshComponent>{}
-	.type("MeshComponent")
-		.custom<TypeInfo>(TypeInfo{ "Mesh" })
-		.data<&MeshComponent::modelPath>("modelPath"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Model", 0.0f, 0.0f, 0.1f, "MODEL_PATH" });
+	//entt::meta_factory<MeshComponent>{}
+	//.type("MeshComponent")
+	//	.custom<TypeInfo>(TypeInfo{ "Mesh" })
+	//	.data<&MeshComponent::modelPath>("modelPath"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Model", 0.0f, 0.0f, 0.1f, "MODEL_PATH" });
 }
 // ˆÚ“®ƒRƒ“ƒ|[ƒlƒ“ƒg‚ğ“o˜^
 void MetaRegistry::RegisterMovementComponent()
 {
-	entt::meta_factory<MovementComponent>{}
-	.type("MovementComponent")
-		.custom<TypeInfo>(TypeInfo{ "Movement" })
-		.data<&MovementComponent::jumpPower>("jumpPower"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Jump Power", 0.0f, 50.0f })
-		.data<&MovementComponent::gravity>("gravity"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Gravity", -100.0f, 0.0f })
-		.data<&MovementComponent::velocity>("velocity"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Velocity", 0.0f, 0.0f, 0.01f })
-		.data<&MovementComponent::isGrounded>("isGrounded"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Is Grounded" });
+	//entt::meta_factory<MovementComponent>{}
+	//.type("MovementComponent")
+	//	.custom<TypeInfo>(TypeInfo{ "Movement" })
+	//	.data<&MovementComponent::jumpPower>("jumpPower"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Jump Power", 0.0f, 50.0f })
+	//	.data<&MovementComponent::gravity>("gravity"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Gravity", -100.0f, 0.0f })
+	//	.data<&MovementComponent::velocity>("velocity"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Velocity", 0.0f, 0.0f, 0.01f })
+	//	.data<&MovementComponent::isGrounded>("isGrounded"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Is Grounded" });
 }
 
 // ƒvƒŒƒCƒ„[‘Ò‹@ƒRƒ“ƒ|[ƒlƒ“ƒg‚ğ“o˜^
 void MetaRegistry::RegisterPlayerIdleComponent()
 {
-	entt::meta_factory<PlayerIdleComponent>{}
-	.type("PlayerIdleComponent")
-		.custom<TypeInfo>(TypeInfo{ "Player Idle" })
-		.data<&PlayerIdleComponent::isIdling>("isIdling"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Is Idling", 0.0f, 0.0f, 0.1f, "", true });
+	//entt::meta_factory<PlayerIdleComponent>{}
+	//.type("PlayerIdleComponent")
+	//	.custom<TypeInfo>(TypeInfo{ "Player Idle" })
+	//	.data<&PlayerIdleComponent::isIdling>("isIdling"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Is Idling", 0.0f, 0.0f, 0.1f, "", true });
 }
 // ƒvƒŒƒCƒ„[ˆÚ“®ƒRƒ“ƒ|[ƒlƒ“ƒg‚ğ“o˜^
 void MetaRegistry::RegisterPlayerMoveComponent()
 {
-	entt::meta_factory<PlayerMoveComponent>{}
-	.type("PlayerMoveComponent")
-		.custom<TypeInfo>(TypeInfo{ "Player Move" })
-		.data<&PlayerMoveComponent::walkSpeed>("walkSpeed"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Walk Speed", 0.0f, 10.0f })
-		.data<&PlayerMoveComponent::jogSpeed>("jogSpeed"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Jog Speed", 0.0f, 10.0f })
-		.data<&PlayerMoveComponent::jogThreshold>("jogThreshold"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Jog Threshold", 0.0f, 1.0f })
-		.data<&PlayerMoveComponent::turnSpeed>("turnSpeed"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Turn Speed", 0.0f, 30.0f })
-		.data<&PlayerMoveComponent::inputLossGraceTime>("inputLossGraceTime"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Input Loss Grace Time", 0.0f, 1.0f })
-		.data<&PlayerMoveComponent::isWalking>("isWalking"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Is Walking" })
-		.data<&PlayerMoveComponent::isJogging>("isJogging"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Is Jogging" })
-		.data<&PlayerMoveComponent::isMoving>("isMoving"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Is Moving" });
+	//entt::meta_factory<PlayerMoveComponent>{}
+	//.type("PlayerMoveComponent")
+	//	.custom<TypeInfo>(TypeInfo{ "Player Move" })
+	//	.data<&PlayerMoveComponent::walkSpeed>("walkSpeed"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Walk Speed", 0.0f, 10.0f })
+	//	.data<&PlayerMoveComponent::jogSpeed>("jogSpeed"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Jog Speed", 0.0f, 10.0f })
+	//	.data<&PlayerMoveComponent::jogThreshold>("jogThreshold"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Jog Threshold", 0.0f, 1.0f })
+	//	.data<&PlayerMoveComponent::turnSpeed>("turnSpeed"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Turn Speed", 0.0f, 30.0f })
+	//	.data<&PlayerMoveComponent::inputLossGraceTime>("inputLossGraceTime"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Input Loss Grace Time", 0.0f, 1.0f })
+	//	.data<&PlayerMoveComponent::isWalking>("isWalking"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Is Walking" })
+	//	.data<&PlayerMoveComponent::isJogging>("isJogging"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Is Jogging" })
+	//	.data<&PlayerMoveComponent::isMoving>("isMoving"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Is Moving" });
 }
 // ƒvƒŒƒCƒ„[‰ñ”ğƒRƒ“ƒ|[ƒlƒ“ƒg‚ğ“o˜^
 void MetaRegistry::RegisterPlayerDodgeComponent()
 {
-	entt::meta_factory<PlayerDodgeComponent>{}
-	.type("PlayerDodgeComponent")
-		.custom<TypeInfo>(TypeInfo{ "Player Dodge" })
-		.data<&PlayerDodgeComponent::directionBufferTime>("directionBufferTime"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Direction Buffer Time", 0.0f, 1.0f })
-		.data<&PlayerDodgeComponent::isDodging>("isDodging"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Is Dodging", 0.0f, 0.0f, 0.1f, "", true })
-		.data<&PlayerDodgeComponent::isNoneInput>("isNoneInput"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Is None Input", 0.0f, 0.0f, 0.1f, "", true })
-		.data<&PlayerDodgeComponent::isFrontInput>("isFrontInput"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Is Front Input", 0.0f, 0.0f, 0.1f, "", true })
-		.data<&PlayerDodgeComponent::isBackInput>("isBackInput"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Is Back Input", 0.0f, 0.0f, 0.1f, "", true })
-		.data<&PlayerDodgeComponent::isLeftInput>("isLeftInput"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Is Left Input", 0.0f, 0.0f, 0.1f, "", true })
-		.data<&PlayerDodgeComponent::isRightInput>("isRightInput"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Is Right Input", 0.0f, 0.0f, 0.1f, "", true });
+	//entt::meta_factory<PlayerDodgeComponent>{}
+	//.type("PlayerDodgeComponent")
+	//	.custom<TypeInfo>(TypeInfo{ "Player Dodge" })
+	//	.data<&PlayerDodgeComponent::directionBufferTime>("directionBufferTime"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Direction Buffer Time", 0.0f, 1.0f })
+	//	.data<&PlayerDodgeComponent::isDodging>("isDodging"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Is Dodging", 0.0f, 0.0f, 0.1f, "", true })
+	//	.data<&PlayerDodgeComponent::isNoneInput>("isNoneInput"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Is None Input", 0.0f, 0.0f, 0.1f, "", true })
+	//	.data<&PlayerDodgeComponent::isFrontInput>("isFrontInput"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Is Front Input", 0.0f, 0.0f, 0.1f, "", true })
+	//	.data<&PlayerDodgeComponent::isBackInput>("isBackInput"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Is Back Input", 0.0f, 0.0f, 0.1f, "", true })
+	//	.data<&PlayerDodgeComponent::isLeftInput>("isLeftInput"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Is Left Input", 0.0f, 0.0f, 0.1f, "", true })
+	//	.data<&PlayerDodgeComponent::isRightInput>("isRightInput"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Is Right Input", 0.0f, 0.0f, 0.1f, "", true });
 }
 // ƒvƒŒƒCƒ„[‘S—Í¾‘–ƒRƒ“ƒ|[ƒlƒ“ƒg‚ğ“o˜^
 void MetaRegistry::RegisterPlayerSprintComponent()
 {
-	entt::meta_factory<PlayerSprintComponent>{}
-	.type("PlayerSprintComponent")
-		.custom<TypeInfo>(TypeInfo{ "Player Sprint" })
-		.data<&PlayerSprintComponent::sprintSpeed>("sprintSpeed"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Sprint Speed", 0.0f, 20.0f })
-		.data<&PlayerSprintComponent::turnSpeed>("turnSpeed"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Turn Speed", 0.0f, 30.0f })
-		.data<&PlayerSprintComponent::isSprinting>("isSprinting"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Is Sprinting", 0.0f, 0.0f, 0.1f, "", true });
+	//entt::meta_factory<PlayerSprintComponent>{}
+	//.type("PlayerSprintComponent")
+	//	.custom<TypeInfo>(TypeInfo{ "Player Sprint" })
+	//	.data<&PlayerSprintComponent::sprintSpeed>("sprintSpeed"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Sprint Speed", 0.0f, 20.0f })
+	//	.data<&PlayerSprintComponent::turnSpeed>("turnSpeed"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Turn Speed", 0.0f, 30.0f })
+	//	.data<&PlayerSprintComponent::isSprinting>("isSprinting"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Is Sprinting", 0.0f, 0.0f, 0.1f, "", true });
 }
 // ƒQ[ƒ€“ü—ÍƒRƒ“ƒ|[ƒlƒ“ƒg‚ğ“o˜^
 void MetaRegistry::RegisterGameInputComponent()
 {
-	entt::meta_factory<StickState>{}
-	.type("StickState")
-		.data<&StickState::x>("x"_hs)
-		.custom<FieldInfo>(FieldInfo{ "X", 0.0f, 0.0f, 0.1f, "", true })
-		.data<&StickState::y>("y"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Y", 0.0f, 0.0f, 0.1f, "", true })
-		.data<&StickState::hasInput>("hasInput"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Has Input", 0.0f, 0.0f, 0.1f, "", true });
+	//entt::meta_factory<StickState>{}
+	//.type("StickState")
+	//	.data<&StickState::x>("x"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "X", 0.0f, 0.0f, 0.1f, "", true })
+	//	.data<&StickState::y>("y"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Y", 0.0f, 0.0f, 0.1f, "", true })
+	//	.data<&StickState::hasInput>("hasInput"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Has Input", 0.0f, 0.0f, 0.1f, "", true });
 
-	entt::meta_factory<ButtonState>{}
-	.type("ButtonState")
-		.data<&ButtonState::pressed>("pressed"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Pressed", 0.0f, 0.0f, 0.1f, "", true })
-		.data<&ButtonState::held>("held"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Held", 0.0f, 0.0f, 0.1f, "", true })
-		.data<&ButtonState::released>("released"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Released", 0.0f, 0.0f, 0.1f, "", true });
+	//entt::meta_factory<ButtonState>{}
+	//.type("ButtonState")
+	//	.data<&ButtonState::pressed>("pressed"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Pressed", 0.0f, 0.0f, 0.1f, "", true })
+	//	.data<&ButtonState::held>("held"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Held", 0.0f, 0.0f, 0.1f, "", true })
+	//	.data<&ButtonState::released>("released"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Released", 0.0f, 0.0f, 0.1f, "", true });
 
-	entt::meta_factory<TriggerState>{}
-	.type("TriggerState")
-		.data<&TriggerState::value>("value"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Value", 0.0f, 0.0f, 0.1f, "", true })
-		.data<&TriggerState::pressed>("pressed"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Pressed", 0.0f, 0.0f, 0.1f, "", true })
-		.data<&TriggerState::held>("held"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Held", 0.0f, 0.0f, 0.1f, "", true })
-		.data<&TriggerState::released>("released"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Released", 0.0f, 0.0f, 0.1f, "", true });
+	//entt::meta_factory<TriggerState>{}
+	//.type("TriggerState")
+	//	.data<&TriggerState::value>("value"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Value", 0.0f, 0.0f, 0.1f, "", true })
+	//	.data<&TriggerState::pressed>("pressed"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Pressed", 0.0f, 0.0f, 0.1f, "", true })
+	//	.data<&TriggerState::held>("held"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Held", 0.0f, 0.0f, 0.1f, "", true })
+	//	.data<&TriggerState::released>("released"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Released", 0.0f, 0.0f, 0.1f, "", true });
 
-	entt::meta_factory<GameInputComponent>{}
-	.type("GameInputComponent")
-		.custom<TypeInfo>(TypeInfo{ "Input" })
-		.data<&GameInputComponent::moveStick>("moveStick"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Move Stick" })
-		.data<&GameInputComponent::cameraStick>("cameraStick"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Camera Stick" })
-		.data<&GameInputComponent::dodgeTrigger>("dodgeTrigger"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Dodge Trigger" })
-		.data<&GameInputComponent::jump>("jump"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Jump", 0.0f, 0.0f, 0.1f, "", true })
-		.data<&GameInputComponent::attack>("attack"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Attack", 0.0f, 0.0f, 0.1f, "", true });
+	//entt::meta_factory<GameInputComponent>{}
+	//.type("GameInputComponent")
+	//	.custom<TypeInfo>(TypeInfo{ "Input" })
+	//	.data<&GameInputComponent::moveStick>("moveStick"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Move Stick" })
+	//	.data<&GameInputComponent::cameraStick>("cameraStick"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Camera Stick" })
+	//	.data<&GameInputComponent::dodgeTrigger>("dodgeTrigger"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Dodge Trigger" })
+	//	.data<&GameInputComponent::jump>("jump"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Jump", 0.0f, 0.0f, 0.1f, "", true })
+	//	.data<&GameInputComponent::attack>("attack"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Attack", 0.0f, 0.0f, 0.1f, "", true });
 }
 // ƒAƒjƒ[ƒ^[ƒRƒ“ƒ|[ƒlƒ“ƒg‚ğ“o˜^
 void MetaRegistry::RegisterAnimatorComponent()
 {
-	entt::meta_factory<AnimatorComponent>{}
-	.type("AnimatorComponent")
-		.custom<TypeInfo>(TypeInfo{ "Animator" })
-		.data<&AnimatorComponent::animatorGraphPath>("animatorGraphPath"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Animator Graph", 0.0f, 0.0f, 0.1f, "ANIMGRAPH_PATH" })
-		.data<&AnimatorComponent::playSpeed>("playSpeed"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Play Speed", 0.0f, 3.0f })
-		.data<&AnimatorComponent::loop>("loop"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Loop" })
-		.data<&AnimatorComponent::useRootMotion>("useRootMotion"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Use Root Motion" })
-		.data<&AnimatorComponent::useRootMotionY>("useRootMotionY"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Use Root Motion Y" })
-		.data<&AnimatorComponent::rootMotionNodeName>("rootMotionNodeName"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Root Motion Node" })
-		.data<&AnimatorComponent::isBlending>("isBlending"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Is Blending", 0.0f, 0.0f, 0.1f, "", true })
-		.data<&AnimatorComponent::blendRate>("blendRate"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Blend Rate", 0.0f, 1.0f, 0.1f, "", true })
-		.data<&AnimatorComponent::isEnd>("isEnd"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Is End", 0.0f, 0.0f, 0.1f, "", true })
-		.data<&AnimatorComponent::blendAnimation>("blendAnimation"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Blend From (Old Clip)", 0.0f, 0.0f, 0.1f, "", true });
+	//entt::meta_factory<AnimatorComponent>{}
+	//.type("AnimatorComponent")
+	//	.custom<TypeInfo>(TypeInfo{ "Animator" })
+	//	.data<&AnimatorComponent::animatorGraphPath>("animatorGraphPath"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Animator Graph", 0.0f, 0.0f, 0.1f, "ANIMGRAPH_PATH" })
+	//	.data<&AnimatorComponent::playSpeed>("playSpeed"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Play Speed", 0.0f, 3.0f })
+	//	.data<&AnimatorComponent::loop>("loop"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Loop" })
+	//	.data<&AnimatorComponent::useRootMotion>("useRootMotion"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Use Root Motion" })
+	//	.data<&AnimatorComponent::useRootMotionY>("useRootMotionY"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Use Root Motion Y" })
+	//	.data<&AnimatorComponent::rootMotionNodeName>("rootMotionNodeName"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Root Motion Node" })
+	//	.data<&AnimatorComponent::isBlending>("isBlending"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Is Blending", 0.0f, 0.0f, 0.1f, "", true })
+	//	.data<&AnimatorComponent::blendRate>("blendRate"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Blend Rate", 0.0f, 1.0f, 0.1f, "", true })
+	//	.data<&AnimatorComponent::isEnd>("isEnd"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Is End", 0.0f, 0.0f, 0.1f, "", true })
+	//	.data<&AnimatorComponent::blendAnimation>("blendAnimation"_hs)
+	//	.custom<FieldInfo>(FieldInfo{ "Blend From (Old Clip)", 0.0f, 0.0f, 0.1f, "", true });
 }
 // ƒV[ƒPƒ“ƒT[ƒRƒ“ƒ|[ƒlƒ“ƒg‚ğ“o˜^
 void MetaRegistry::RegisterSequencerComponent()

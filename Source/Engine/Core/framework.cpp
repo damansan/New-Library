@@ -31,7 +31,6 @@ framework::framework(HWND hwnd) : hwnd(hwnd)
 
 
 	ComponentRegistryInitializer::Initialize();
-	MetaRegistry::Initialize();
 
 	// Studio共有リソース初期化
 	studioShared.Initialize(graphics.GetDevice());

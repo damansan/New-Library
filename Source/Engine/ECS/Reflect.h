@@ -11,7 +11,7 @@ private:                                                                        
     static inline bool _reflect_type_registered = []                                \
     {                                                                               \
         entt::meta_factory<Type>{}                                                  \
-            .type(#Type##_hs)                                                       \
+            .type(#Type)                                                            \
             .custom<TypeInfo>(TypeInfo{ DisplayName });                             \
         return true;                                                                \
     }();                                                                            \

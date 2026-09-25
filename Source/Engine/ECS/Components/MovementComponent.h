@@ -12,7 +12,7 @@ struct MovementComponent
 		REFLECT_FIELD(DirectX::XMFLOAT3, velocity,   (0.0f, 0.0f, 0.0f), ("Velocity",   0.0f,   0.0f,  0.01f ))
 		REFLECT_FIELD(bool,              isGrounded, (false),            ("Is Grounded"                      ))
 
-		REFLECT_END()
+	REFLECT_END()
 
 
 	// à⁄ìÆÇÃêßå‰å†

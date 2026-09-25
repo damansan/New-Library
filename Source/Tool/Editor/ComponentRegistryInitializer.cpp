@@ -55,6 +55,26 @@
     ComponentInspectorRegistry::Register(Name, DrawFunc);                           \
     ComponentRegistry::RegisterTypeName(#Type, Name)
 
+// 独自UIが不要な、シンプルなコンポーネント用
+#define REGISTER_COMPONENT_AUTO(Type, Name)                                         \
+    ComponentRegistry::Register(Name,                                               \
+    {                                                                               \
+        Name,                                                                       \
+        [](auto& r, auto e){ if (!r.any_of<Type>(e)) r.emplace<Type>(e); },         \
+        [](auto& r, auto e){ r.remove<Type>(e); },                                  \
+        [](auto& r, auto e){ return r.any_of<Type>(e); },                           \
+        [](entt::registry& r, entt::entity e) -> entt::meta_any                     \
+        {                                                                           \
+            auto* c = r.try_get<Type>(e);                                           \
+            if (!c) return entt::meta_any{};                                        \
+            return entt::forward_as_meta(*c);                                       \
+        }                                                                           \
+    });                                                                             \
+    ComponentRegistry::RegisterTypeName(#Type, Name)
+
+#define DRAW_COMPONENT(Type, Label, body)                                           \
+
+
 #define DRAW_COMPONENT(Type, Label, body)                                           \
     [](auto& reg, auto e)                                                           \
     {                                                                               \
@@ -97,30 +117,10 @@ void ComponentRegistryInitializer::Initialize()
 		});
 
 	// トランスフォームコンポーネントの登録
-	REGISTER_COMPONENT(TransformComponent, "Transform",
-		[](auto& reg, auto e)
-		{
-			auto* _c = reg.try_get<TransformComponent>(e);
-			if (!_c) return;
-
-			if (ImGui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen))
-			{
-				MetaRegistry::DrawMetaFields(entt::resolve<TransformComponent>(), entt::forward_as_meta(*_c));
-			}
-		});
+	REGISTER_COMPONENT_AUTO(TransformComponent, "Transform");
 
 	// メッシュコンポーネントの登録
-	REGISTER_COMPONENT(MeshComponent, "Mesh",
-		[](auto& reg, auto e)
-		{
-			auto* _c = reg.try_get<MeshComponent>(e);
-			if (!_c) return;
-
-			if (ImGui::CollapsingHeader("Mesh", ImGuiTreeNodeFlags_DefaultOpen))
-			{
-				MetaRegistry::DrawMetaFields(entt::resolve<MeshComponent>(), entt::forward_as_meta(*_c));
-			}
-		});
+	REGISTER_COMPONENT_AUTO(MeshComponent, "Mesh");
 
 	// マテリアルコンポーネントの登録
 	ComponentRegistry::Register("Material",
@@ -152,68 +152,16 @@ void ComponentRegistryInitializer::Initialize()
 		});
 
 	// Player待機コンポーネントの登録
-	REGISTER_COMPONENT(PlayerIdleComponent, "Player Idle",
-		[](auto& reg, auto e)
-		{
-			auto* _c = reg.try_get<PlayerIdleComponent>(e);
-			if (!_c) return;
-
-			if (ImGui::CollapsingHeader("Player Idle", ImGuiTreeNodeFlags_DefaultOpen))
-			{
-				MetaRegistry::DrawMetaFields(entt::resolve<PlayerIdleComponent>(), entt::forward_as_meta(*_c));
-			}
-		});
-
+	REGISTER_COMPONENT_AUTO(PlayerIdleComponent, "Player Idle");
 	// Player移動コンポーネントの登録
-	REGISTER_COMPONENT(PlayerMoveComponent, "Player Move",
-		[](auto& reg, auto e)
-		{
-			auto* _c = reg.try_get<PlayerMoveComponent>(e);
-			if (!_c) return;
-
-			if (ImGui::CollapsingHeader("Player Move", ImGuiTreeNodeFlags_DefaultOpen))
-			{
-				MetaRegistry::DrawMetaFields(entt::resolve<PlayerMoveComponent>(), entt::forward_as_meta(*_c));
-			}
-		});
-	// Dodgeコンポーネントの登録
-	REGISTER_COMPONENT(PlayerDodgeComponent, "Player Dodge",
-		[](auto& reg, auto e)
-		{
-			auto* _c = reg.try_get<PlayerDodgeComponent>(e);
-			if (!_c) return;
-
-			if (ImGui::CollapsingHeader("Player Dodge", ImGuiTreeNodeFlags_DefaultOpen))
-			{
-				MetaRegistry::DrawMetaFields(entt::resolve<PlayerDodgeComponent>(), entt::forward_as_meta(*_c));
-			}
-		});
-
+	REGISTER_COMPONENT_AUTO(PlayerMoveComponent, "Player Move");
+	// Player回避コンポーネントの登録
+	REGISTER_COMPONENT_AUTO(PlayerDodgeComponent, "Player Dodge");
 	// Sprintコンポーネントの登録
-	REGISTER_COMPONENT(PlayerSprintComponent, "Player Sprint",
-		[](auto& reg, auto e)
-		{
-			auto* _c = reg.try_get<PlayerSprintComponent>(e);
-			if (!_c) return;
-
-			if (ImGui::CollapsingHeader("Player Sprint", ImGuiTreeNodeFlags_DefaultOpen))
-			{
-				MetaRegistry::DrawMetaFields(entt::resolve<PlayerSprintComponent>(), entt::forward_as_meta(*_c));
-			}
-		});
+	REGISTER_COMPONENT_AUTO(PlayerSprintComponent, "Player Sprint");
 
 	// インプットコンポーネントの登録
-	REGISTER_COMPONENT(GameInputComponent, "GameInput",
-		[](auto& reg, auto e)
-		{
-			auto* _c = reg.try_get<GameInputComponent>(e);
-			if (!_c) return;
-
-			if (ImGui::CollapsingHeader("Input", ImGuiTreeNodeFlags_DefaultOpen))
-			{
-				MetaRegistry::DrawMetaFields(entt::resolve<GameInputComponent>(), entt::forward_as_meta(*_c));
-			}
-		});
+	REGISTER_COMPONENT_AUTO(GameInputComponent, "GameInput");
 
 	// アニメーターコンポーネントの登録
 	REGISTER_COMPONENT(AnimatorComponent, "Animator",
@@ -599,28 +547,8 @@ void ComponentRegistryInitializer::Initialize()
 
 
 		// シーケンサーコンポーネントの登録
-		REGISTER_COMPONENT(SequencerComponent, "Sequencer",
-			[](auto& reg, auto e)
-			{
-				auto* seq = reg.try_get<SequencerComponent>(e);
-				if (!seq) return;
-
-				if (ImGui::CollapsingHeader("Sequencer", ImGuiTreeNodeFlags_DefaultOpen))
-				{
-					MetaRegistry::DrawMetaFields(entt::resolve<SequencerComponent>(), entt::forward_as_meta(*seq));
-				}
-			}); 
+		REGISTER_COMPONENT_AUTO(SequencerComponent, "Sequencer");
 
 		// アニメーション速度コンポーネントの登録
-		REGISTER_COMPONENT(AnimationSpeedComponent, "Animation Speed",
-			[](auto& reg, auto e)
-			{
-				auto* animSpeed = reg.try_get<AnimationSpeedComponent>(e);
-				if (!animSpeed) return;
-
-				if (ImGui::CollapsingHeader("Animation Speed", ImGuiTreeNodeFlags_DefaultOpen))
-				{
-					MetaRegistry::DrawMetaFields(entt::resolve<AnimationSpeedComponent>(), entt::forward_as_meta(*animSpeed));
-				}
-			});
+		REGISTER_COMPONENT_AUTO(AnimationSpeedComponent, "Animation Speed"); 
 }
