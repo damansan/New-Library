@@ -5,16 +5,16 @@
 using namespace entt::literals;
 
 // å^ÇªÇÃÇ‡ÇÃÇÃìoò^ÇäJénÇ∑ÇÈ
-#define REFLECT_BEGIN(Type, DisplayName)                                            \
-private:                                                                            \
-    using ReflectSelf = Type;                                                       \
-    static inline bool _reflect_type_registered = []                                \
-    {                                                                               \
-        entt::meta_factory<Type>{}                                                  \
-            .type(#Type)                                                            \
-            .custom<TypeInfo>(TypeInfo{ DisplayName });                             \
-        return true;                                                                \
-    }();                                                                            \
+#define REFLECT_BEGIN(Type, DisplayName)                \
+private:                                                \
+    using ReflectSelf = Type;                           \
+    static inline bool _reflect_type_registered = []    \
+    {                                                   \
+        entt::meta_factory<Type>{}                      \
+            .type(#Type)                                \
+            .custom<TypeInfo>(TypeInfo{ DisplayName }); \
+        return true;                                    \
+    }();                                                \
 public:
 
 // FieldInfoÇÅAà íuà¯êîÅ{ÉfÉtÉHÉãÉgà¯êîÇ≈ëgÇ›óßÇƒÇÈÉwÉãÉpÅ[
@@ -30,34 +30,34 @@ inline FieldInfo MakeFieldInfo(
 }
 
 // 1ÉtÉBÅ[ÉãÉhï™ÇÃêÈåæÅ{ìoò^
-#define REFLECT_FIELD(FieldType, FieldName, DefaultArgs, FieldInfoArgs)             \
-    FieldType FieldName = FieldType DefaultArgs;                                    \
-    static inline bool _reflect_##FieldName##_registered = []                       \
-    {                                                                               \
-        entt::meta_factory<ReflectSelf>{}                                           \
-            .data<&ReflectSelf::FieldName>(#FieldName##_hs)                         \
-            .custom<FieldInfo>(MakeFieldInfo FieldInfoArgs);                        \
-        return true;                                                                \
+#define REFLECT_FIELD(FieldType, FieldName, DefaultArgs, FieldInfoArgs) \
+    FieldType FieldName = FieldType DefaultArgs;                        \
+    static inline bool _reflect_##FieldName##_registered = []           \
+    {                                                                   \
+        entt::meta_factory<ReflectSelf>{}                               \
+            .data<&ReflectSelf::FieldName>(#FieldName##_hs)             \
+            .custom<FieldInfo>(MakeFieldInfo FieldInfoArgs);            \
+        return true;                                                    \
     }();
 
 // enumÇÃìoò^
-#define REFLECT_ENUM(EnumType)                                                      \
-namespace ReflectEnumDetail_##EnumType                                              \
-{                                                                                   \
-    using ReflectEnumSelf = EnumType;                                               \
-    inline bool _reflect_enum_type_registered = []                                  \
-    {                                                                               \
-        entt::meta_factory<EnumType>{}.type(#EnumType);                             \
-        return true;                                                                \
+#define REFLECT_ENUM(EnumType)                          \
+namespace ReflectEnumDetail_##EnumType                  \
+{                                                       \
+    using ReflectEnumSelf = EnumType;                   \
+    inline bool _reflect_enum_type_registered = []      \
+    {                                                   \
+        entt::meta_factory<EnumType>{}.type(#EnumType); \
+        return true;                                    \
     }();
 
-#define REFLECT_ENUM_VALUE(ValueName, Value, Label)                                 \
-    inline bool _reflect_##ValueName##_registered = []                              \
-    {                                                                               \
-        entt::meta_factory<ReflectEnumSelf>{}                                       \
-            .data<Value>(#ValueName##_hs)                                           \
-            .custom<EnumValueInfo>(EnumValueInfo{ Label });                         \
-        return true;                                                                \
+#define REFLECT_ENUM_VALUE(ValueName, Value, Label)         \
+    inline bool _reflect_##ValueName##_registered = []      \
+    {                                                       \
+        entt::meta_factory<ReflectEnumSelf>{}               \
+            .data<Value>(#ValueName##_hs)                   \
+            .custom<EnumValueInfo>(EnumValueInfo{ Label }); \
+        return true;                                        \
     }();
 
 #define REFLECT_ENUM_END() }
