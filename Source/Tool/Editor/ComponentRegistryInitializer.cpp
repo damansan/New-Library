@@ -87,34 +87,7 @@
 void ComponentRegistryInitializer::Initialize()
 {
 	// カテゴリコンポーネントの登録
-	ComponentRegistry::Register("Category",
-		{
-			"Category",
-			[](auto& reg, auto e) { if (!reg.any_of<ComponentCategory>(e)) reg.emplace<ComponentCategory>(e); },
-			[](auto& reg, auto e) { reg.remove<ComponentCategory>(e); },
-			[](auto& reg, auto e) { return reg.any_of<ComponentCategory>(e); },
-			[](entt::registry& r, entt::entity e) -> entt::meta_any
-			{
-				auto* c = r.try_get<ComponentCategory>(e);
-				if (!c) return entt::meta_any{};
-				return entt::forward_as_meta(*c);
-			}
-		});
-	ComponentInspectorRegistry::Register("Category",
-		[](auto& reg, auto e)
-		{
-			auto* _c = reg.try_get<ComponentCategory>(e);
-			if (!_c) return;
-
-			const char* categoryNames[] = { "None", "Player", "Enemy", "Stage", "Object", "Camera" };
-			std::string header = "Category: " + std::string(categoryNames[(int)_c->category]);
-
-			if (!ImGui::CollapsingHeader(header.c_str(), ImGuiTreeNodeFlags_DefaultOpen)) return;
-
-			int category = (int)_c->category;
-			if (ImGui::Combo("Category", &category, categoryNames, 6))
-				_c->category = (EntityCategory)category;
-		});
+	REGISTER_COMPONENT_AUTO(ComponentCategory, "Category");
 
 	// トランスフォームコンポーネントの登録
 	REGISTER_COMPONENT_AUTO(TransformComponent, "Transform");
@@ -123,33 +96,7 @@ void ComponentRegistryInitializer::Initialize()
 	REGISTER_COMPONENT_AUTO(MeshComponent, "Mesh");
 
 	// マテリアルコンポーネントの登録
-	ComponentRegistry::Register("Material",
-		{
-			"Material",
-			[](auto& reg, auto e) { if (!reg.any_of<MaterialComponent>(e)) reg.emplace<MaterialComponent>(e); },
-			[](auto& reg, auto e) { reg.remove<MaterialComponent>(e); },
-			[](auto& reg, auto e) { return reg.any_of<MaterialComponent>(e); },
-			[](entt::registry& r, entt::entity e) -> entt::meta_any
-			{
-				auto* c = r.try_get<MaterialComponent>(e);
-				if (!c) return entt::meta_any{};
-				return entt::forward_as_meta(*c);
-			}
-		});
-	ComponentInspectorRegistry::Register("Material",
-		[](auto& reg, auto e)
-		{
-			auto* mat = reg.try_get<MaterialComponent>(e);
-			if (!mat) return;
-			if (!ImGui::CollapsingHeader("Material", ImGuiTreeNodeFlags_DefaultOpen)) return;
-
-			const char* shaderNames[] = { "Default (PBR)", "Basic" };
-			int current = (int)mat->shadingModel;
-			if (ImGui::Combo("Shader", &current, shaderNames, 2))
-			{
-				mat->shadingModel = (ShadingModel)current;
-			}
-		});
+	REGISTER_COMPONENT_AUTO(MaterialComponent, "Material");
 
 	// Player待機コンポーネントの登録
 	REGISTER_COMPONENT_AUTO(PlayerIdleComponent, "Player Idle");

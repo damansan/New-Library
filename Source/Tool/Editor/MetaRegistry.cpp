@@ -2,6 +2,8 @@
 #include <DirectXMath.h>
 #include <filesystem>
 #include <imgui.h>
+#include <vector>
+#include <utility>
 
 using namespace entt::literals;
 
@@ -107,6 +109,42 @@ void MetaRegistry::DrawMetaFields(entt::meta_type metaType, entt::meta_any insta
 				}
 			}
 		}
+		else if (value.type().is_enum())
+		{
+			entt::meta_type enumType = value.type();
+
+			// enumの各値(REFLECT_ENUM_VALUEで登録した定数)を、ラベル付きで列挙する
+			std::vector<std::pair<std::string, entt::meta_any>> options;
+			std::string currentLabel = "(Unknown)";
+
+			for (auto&& [enumId, enumData] : enumType.data())
+			{
+				EnumValueInfo* enumInfo = enumData.custom();
+				std::string optLabel = enumInfo ? enumInfo->label : std::string(enumData.name());
+
+				entt::meta_any optValue = enumData.get({});
+				options.push_back({ optLabel, optValue });
+
+				if (optValue == value)
+				{
+					currentLabel = optLabel;
+				}
+			}
+
+			if (ImGui::BeginCombo(label.c_str(), currentLabel.c_str()))
+			{
+				for (auto& [optLabel, optValue] : options)
+				{
+					bool selected = (optLabel == currentLabel);
+					if (ImGui::Selectable(optLabel.c_str(), selected))
+					{
+						metaData.set(instance, optValue);
+					}
+					if (selected) ImGui::SetItemDefaultFocus();
+				}
+				ImGui::EndCombo();
+			}
+		}
 		else
 		{
 			ImGui::TextDisabled("%s: (unsupported type)", label.c_str());
@@ -165,7 +203,7 @@ const std::vector<FieldEntry>& MetaRegistry::GetAllFields()
 
 				entt::meta_type fieldType = metaData.type();
 
-				if (!IsLeafType(fieldType) && fieldType && fieldType.data().begin() != fieldType.data().end())
+				if (!IsLeafType(fieldType) && fieldType && !fieldType.is_enum() && fieldType.data().begin() != fieldType.data().end())
 				{
 					// ネストしたフィールド：内側の型が持つフィールドを、1段階だけ掘り下げて追加する
 					for (auto&& [subFieldId, subMetaData] : fieldType.data())

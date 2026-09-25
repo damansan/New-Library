@@ -37,6 +37,12 @@ struct TypeInfo
 	std::string category;
 };
 
+// enum‚ÌA1‚Â‚Ì’l‚É•R‚Ã‚­•\¦–¼
+struct EnumValueInfo
+{
+	std::string label;
+};
+
 class MetaRegistry
 {
 public:

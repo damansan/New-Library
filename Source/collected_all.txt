@@ -851,7 +851,6 @@ framework::framework(HWND hwnd) : hwnd(hwnd)
 
 
 	ComponentRegistryInitializer::Initialize();
-	MetaRegistry::Initialize();
 
 	// Studio共有リソース初期化
 	studioShared.Initialize(graphics.GetDevice());
@@ -3776,7 +3775,7 @@ private:                                                                        
     static inline bool _reflect_type_registered = []                                \
     {                                                                               \
         entt::meta_factory<Type>{}                                                  \
-            .type(#Type##_hs)                                                       \
+            .type(#Type)                                                            \
             .custom<TypeInfo>(TypeInfo{ DisplayName });                             \
         return true;                                                                \
     }();                                                                            \
@@ -3784,14 +3783,14 @@ public:
 
 // FieldInfoを、位置引数＋デフォルト引数で組み立てるヘルパー
 inline FieldInfo MakeFieldInfo(
-    std::string label,
-    float minValue = 0.0f,
-    float maxValue = 0.0f,
-    float dragSpeed = 0.1f,
-    std::string dragDropPayload = "",
-    bool readOnly = false)
+	std::string label,
+	float minValue = 0.0f,
+	float maxValue = 0.0f,
+	float dragSpeed = 0.1f,
+	std::string dragDropPayload = "",
+	bool readOnly = false)
 {
-    return FieldInfo{ label, minValue, maxValue, dragSpeed, dragDropPayload, readOnly };
+	return FieldInfo{ label, minValue, maxValue, dragSpeed, dragDropPayload, readOnly };
 }
 
 // 1フィールド分の宣言＋登録
@@ -3805,6 +3804,27 @@ inline FieldInfo MakeFieldInfo(
         return true;                                                                \
     }();
 
+// enumの登録
+#define REFLECT_ENUM(EnumType)                                                      \
+namespace ReflectEnumDetail_##EnumType                                              \
+{                                                                                    \
+    using ReflectEnumSelf = EnumType;                                               \
+    inline bool _reflect_enum_type_registered = []                                  \
+    {                                                                               \
+        entt::meta_factory<EnumType>{}.type(#EnumType);                             \
+        return true;                                                                \
+    }();
+
+#define REFLECT_ENUM_VALUE(ValueName, Value, Label)                                 \
+    inline bool _reflect_##ValueName##_registered = []                              \
+    {                                                                               \
+        entt::meta_factory<ReflectEnumSelf>{}                                       \
+            .data<Value>(#ValueName##_hs)                                           \
+            .custom<EnumValueInfo>(EnumValueInfo{ Label });                         \
+        return true;                                                                \
+    }();
+
+#define REFLECT_ENUM_END() }
 
 #define REFLECT_END() 
  
@@ -3812,10 +3832,15 @@ inline FieldInfo MakeFieldInfo(
 Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Components\AnimationSpeedComponent.h 
 #pragma once
 #include <string>
+#include "Engine/ECS/Reflect.h"
 
 struct AnimationSpeedComponent
 {
-	std::string animationSpeedPath; // .animspeedファイルのパス
+	REFLECT_BEGIN(AnimationSpeedComponent, "Animation Speed")
+		
+		REFLECT_FIELD(std::string, animationSpeedPath, (""), ("Speed Curve File", 0.0f, 0.0f, 0.1f, "ANIMSPEED_PATH")) // .animspeedファイルのパス
+	
+	REFLECT_END()
 }; 
  
 ===== AnimatorComponent.h ===== 
@@ -3894,6 +3919,7 @@ struct BaseCameraComponent
 ===== CategoryComponent.h ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Components\CategoryComponent.h 
 #pragma once
+#include "Engine/ECS/Reflect.h"
 
 // エンティティの属性を付与するコンポーネント
 enum class EntityCategory
@@ -3901,9 +3927,24 @@ enum class EntityCategory
     None, Player, Enemy, Stage, Object, Camera
 };
 
+REFLECT_ENUM(EntityCategory)
+
+    REFLECT_ENUM_VALUE(None,   EntityCategory::None,   "None")
+    REFLECT_ENUM_VALUE(Player, EntityCategory::Player, "Player")
+    REFLECT_ENUM_VALUE(Enemy,  EntityCategory::Enemy,  "Enemy")
+    REFLECT_ENUM_VALUE(Stage,  EntityCategory::Stage,  "Stage")
+    REFLECT_ENUM_VALUE(Object, EntityCategory::Object, "Object")
+    REFLECT_ENUM_VALUE(Camera, EntityCategory::Camera, "Camera")
+
+REFLECT_ENUM_END()
+
 struct ComponentCategory
 {
-    EntityCategory category = EntityCategory::None;
+    REFLECT_BEGIN(ComponentCategory, "Category")
+        
+        REFLECT_FIELD(EntityCategory, category, (EntityCategory::None), ("Category"))
+
+    REFLECT_END()
 }; 
  
 ===== ControllerComponent.h ===== 
@@ -4057,6 +4098,7 @@ struct IKComponent
 Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Components\MaterialComponent.h 
 #pragma once
 #include <cstdint>
+#include "Engine/ECS/Reflect.h"
 
 // 使用するGBufferシェーダーの種類
 enum class ShadingModel : uint8_t
@@ -4065,9 +4107,20 @@ enum class ShadingModel : uint8_t
     Basic,      
 };
 
+REFLECT_ENUM(ShadingModel)
+
+    REFLECT_ENUM_VALUE(Default, ShadingModel::Default, "Default (PBR)")
+    REFLECT_ENUM_VALUE(Basic, ShadingModel::Basic, "Basic")
+
+REFLECT_ENUM_END()
+
 struct MaterialComponent
 {
-    ShadingModel shadingModel = ShadingModel::Default;
+    REFLECT_BEGIN(MaterialComponent, "Material")
+    
+        REFLECT_FIELD(ShadingModel, shadingModel, (ShadingModel::Default), ("Shader"))
+    
+    REFLECT_END()
 
     // シェーダー名に変換するヘルパー
     const char* GetShaderName() const
@@ -4169,6 +4222,7 @@ struct CharacterControllerComponent
 Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Components\SequencerComponent.h 
 #pragma once
 #include <string>
+#include "Engine/ECS/Reflect.h"
 
 // フラグの種類
 enum class SequencerFlag
@@ -4186,13 +4240,17 @@ enum class SequencerFlag
 
 struct SequencerComponent
 {
-	std::string sequencerPath; // .sequencerファイルのパス
+	REFLECT_BEGIN(SequencerComponent, "Sequencer")
 
-	bool animExit = false;
-	bool superArmor = false;
-	bool attack = false;
-	// 種類が増えたらここにも追加する
+		// ファイルパス
+		REFLECT_FIELD(std::string, sequencerPath, (""), ("Sequencer File", 0.0f, 0.0f, 0.1f, "SEQUENCER_PATH")) // .sequencerファイルのパス
 
+		// 各フラグ
+		REFLECT_FIELD(bool, animExit,   (false), ("Anim Exit",  0.0f, 0.0f, 0.1f, "", true))
+		REFLECT_FIELD(bool, superArmor, (false), ("SuperArmor", 0.0f, 0.0f, 0.1f, "", true))
+		REFLECT_FIELD(bool, attack,     (false), ("Attack",     0.0f, 0.0f, 0.1f, "", true))
+
+	REFLECT_END()
 
 	float previousNormalizedTime = 0.0f; // 前フレームの正規化時間
 }; 
@@ -15508,12 +15566,15 @@ struct TypeInfo
 	std::string category;
 };
 
+// enumの、1つの値に紐づく表示名
+struct EnumValueInfo
+{
+	std::string label;
+};
+
 class MetaRegistry
 {
 public:
-	// メタデータの初期化
-	static void Initialize();
-
 	// 登録済みメタ情報からInspectorUIを自動描画
 	static void DrawMetaFields(entt::meta_type metaType, entt::meta_any instance);
 
@@ -15522,30 +15583,6 @@ public:
 
 	// Float2/3/4型の、成分数を返す(それ以外は0)
 	static int GetComponentCount(ValueType type);
-
-private:
-	// トランスフォームコンポーネントを登録
-	static void RegisterTransformComponent();
-	// メッシュコンポーネントを登録
-	static void RegisterMeshComponent();
-	// 移動コンポーネントを登録
-	static void RegisterMovementComponent();
-	// プレイヤー待機コンポーネントを登録
-	static void RegisterPlayerIdleComponent();
-	// プレイヤー移動コンポーネントを登録
-	static void RegisterPlayerMoveComponent();
-	// プレイヤー回避コンポーネントを登録
-	static void RegisterPlayerDodgeComponent();
-	// プレイヤー全力疾走コンポーネントを登録
-	static void RegisterPlayerSprintComponent();
-	// ゲーム入力コンポーネントを登録
-	static void RegisterGameInputComponent();
-	// アニメーターコンポーネントを登録
-	static void RegisterAnimatorComponent();
-	// シーケンサーコンポーネントを登録
-	static void RegisterSequencerComponent();
-	// アニメーション速度コンポーネントを登録
-	static void RegisterAnimationSpeedComponent();
 }; 
  
 ===== PrefabWindow.h ===== 
@@ -15837,6 +15874,26 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Editor\ComponentRegistryI
     ComponentInspectorRegistry::Register(Name, DrawFunc);                           \
     ComponentRegistry::RegisterTypeName(#Type, Name)
 
+// 独自UIが不要な、シンプルなコンポーネント用
+#define REGISTER_COMPONENT_AUTO(Type, Name)                                         \
+    ComponentRegistry::Register(Name,                                               \
+    {                                                                               \
+        Name,                                                                       \
+        [](auto& r, auto e){ if (!r.any_of<Type>(e)) r.emplace<Type>(e); },         \
+        [](auto& r, auto e){ r.remove<Type>(e); },                                  \
+        [](auto& r, auto e){ return r.any_of<Type>(e); },                           \
+        [](entt::registry& r, entt::entity e) -> entt::meta_any                     \
+        {                                                                           \
+            auto* c = r.try_get<Type>(e);                                           \
+            if (!c) return entt::meta_any{};                                        \
+            return entt::forward_as_meta(*c);                                       \
+        }                                                                           \
+    });                                                                             \
+    ComponentRegistry::RegisterTypeName(#Type, Name)
+
+#define DRAW_COMPONENT(Type, Label, body)                                           \
+
+
 #define DRAW_COMPONENT(Type, Label, body)                                           \
     [](auto& reg, auto e)                                                           \
     {                                                                               \
@@ -15849,153 +15906,28 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Editor\ComponentRegistryI
 void ComponentRegistryInitializer::Initialize()
 {
 	// カテゴリコンポーネントの登録
-	ComponentRegistry::Register("Category",
-		{
-			"Category",
-			[](auto& reg, auto e) { if (!reg.any_of<ComponentCategory>(e)) reg.emplace<ComponentCategory>(e); },
-			[](auto& reg, auto e) { reg.remove<ComponentCategory>(e); },
-			[](auto& reg, auto e) { return reg.any_of<ComponentCategory>(e); },
-			[](entt::registry& r, entt::entity e) -> entt::meta_any
-			{
-				auto* c = r.try_get<ComponentCategory>(e);
-				if (!c) return entt::meta_any{};
-				return entt::forward_as_meta(*c);
-			}
-		});
-	ComponentInspectorRegistry::Register("Category",
-		[](auto& reg, auto e)
-		{
-			auto* _c = reg.try_get<ComponentCategory>(e);
-			if (!_c) return;
-
-			const char* categoryNames[] = { "None", "Player", "Enemy", "Stage", "Object", "Camera" };
-			std::string header = "Category: " + std::string(categoryNames[(int)_c->category]);
-
-			if (!ImGui::CollapsingHeader(header.c_str(), ImGuiTreeNodeFlags_DefaultOpen)) return;
-
-			int category = (int)_c->category;
-			if (ImGui::Combo("Category", &category, categoryNames, 6))
-				_c->category = (EntityCategory)category;
-		});
+	REGISTER_COMPONENT_AUTO(ComponentCategory, "Category");
 
 	// トランスフォームコンポーネントの登録
-	REGISTER_COMPONENT(TransformComponent, "Transform",
-		[](auto& reg, auto e)
-		{
-			auto* _c = reg.try_get<TransformComponent>(e);
-			if (!_c) return;
-
-			if (ImGui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen))
-			{
-				MetaRegistry::DrawMetaFields(entt::resolve<TransformComponent>(), entt::forward_as_meta(*_c));
-			}
-		});
+	REGISTER_COMPONENT_AUTO(TransformComponent, "Transform");
 
 	// メッシュコンポーネントの登録
-	REGISTER_COMPONENT(MeshComponent, "Mesh",
-		[](auto& reg, auto e)
-		{
-			auto* _c = reg.try_get<MeshComponent>(e);
-			if (!_c) return;
-
-			if (ImGui::CollapsingHeader("Mesh", ImGuiTreeNodeFlags_DefaultOpen))
-			{
-				MetaRegistry::DrawMetaFields(entt::resolve<MeshComponent>(), entt::forward_as_meta(*_c));
-			}
-		});
+	REGISTER_COMPONENT_AUTO(MeshComponent, "Mesh");
 
 	// マテリアルコンポーネントの登録
-	ComponentRegistry::Register("Material",
-		{
-			"Material",
-			[](auto& reg, auto e) { if (!reg.any_of<MaterialComponent>(e)) reg.emplace<MaterialComponent>(e); },
-			[](auto& reg, auto e) { reg.remove<MaterialComponent>(e); },
-			[](auto& reg, auto e) { return reg.any_of<MaterialComponent>(e); },
-			[](entt::registry& r, entt::entity e) -> entt::meta_any
-			{
-				auto* c = r.try_get<MaterialComponent>(e);
-				if (!c) return entt::meta_any{};
-				return entt::forward_as_meta(*c);
-			}
-		});
-	ComponentInspectorRegistry::Register("Material",
-		[](auto& reg, auto e)
-		{
-			auto* mat = reg.try_get<MaterialComponent>(e);
-			if (!mat) return;
-			if (!ImGui::CollapsingHeader("Material", ImGuiTreeNodeFlags_DefaultOpen)) return;
-
-			const char* shaderNames[] = { "Default (PBR)", "Basic" };
-			int current = (int)mat->shadingModel;
-			if (ImGui::Combo("Shader", &current, shaderNames, 2))
-			{
-				mat->shadingModel = (ShadingModel)current;
-			}
-		});
+	REGISTER_COMPONENT_AUTO(MaterialComponent, "Material");
 
 	// Player待機コンポーネントの登録
-	REGISTER_COMPONENT(PlayerIdleComponent, "Player Idle",
-		[](auto& reg, auto e)
-		{
-			auto* _c = reg.try_get<PlayerIdleComponent>(e);
-			if (!_c) return;
-
-			if (ImGui::CollapsingHeader("Player Idle", ImGuiTreeNodeFlags_DefaultOpen))
-			{
-				MetaRegistry::DrawMetaFields(entt::resolve<PlayerIdleComponent>(), entt::forward_as_meta(*_c));
-			}
-		});
-
+	REGISTER_COMPONENT_AUTO(PlayerIdleComponent, "Player Idle");
 	// Player移動コンポーネントの登録
-	REGISTER_COMPONENT(PlayerMoveComponent, "Player Move",
-		[](auto& reg, auto e)
-		{
-			auto* _c = reg.try_get<PlayerMoveComponent>(e);
-			if (!_c) return;
-
-			if (ImGui::CollapsingHeader("Player Move", ImGuiTreeNodeFlags_DefaultOpen))
-			{
-				MetaRegistry::DrawMetaFields(entt::resolve<PlayerMoveComponent>(), entt::forward_as_meta(*_c));
-			}
-		});
-	// Dodgeコンポーネントの登録
-	REGISTER_COMPONENT(PlayerDodgeComponent, "Player Dodge",
-		[](auto& reg, auto e)
-		{
-			auto* _c = reg.try_get<PlayerDodgeComponent>(e);
-			if (!_c) return;
-
-			if (ImGui::CollapsingHeader("Player Dodge", ImGuiTreeNodeFlags_DefaultOpen))
-			{
-				MetaRegistry::DrawMetaFields(entt::resolve<PlayerDodgeComponent>(), entt::forward_as_meta(*_c));
-			}
-		});
-
+	REGISTER_COMPONENT_AUTO(PlayerMoveComponent, "Player Move");
+	// Player回避コンポーネントの登録
+	REGISTER_COMPONENT_AUTO(PlayerDodgeComponent, "Player Dodge");
 	// Sprintコンポーネントの登録
-	REGISTER_COMPONENT(PlayerSprintComponent, "Player Sprint",
-		[](auto& reg, auto e)
-		{
-			auto* _c = reg.try_get<PlayerSprintComponent>(e);
-			if (!_c) return;
-
-			if (ImGui::CollapsingHeader("Player Sprint", ImGuiTreeNodeFlags_DefaultOpen))
-			{
-				MetaRegistry::DrawMetaFields(entt::resolve<PlayerSprintComponent>(), entt::forward_as_meta(*_c));
-			}
-		});
+	REGISTER_COMPONENT_AUTO(PlayerSprintComponent, "Player Sprint");
 
 	// インプットコンポーネントの登録
-	REGISTER_COMPONENT(GameInputComponent, "GameInput",
-		[](auto& reg, auto e)
-		{
-			auto* _c = reg.try_get<GameInputComponent>(e);
-			if (!_c) return;
-
-			if (ImGui::CollapsingHeader("Input", ImGuiTreeNodeFlags_DefaultOpen))
-			{
-				MetaRegistry::DrawMetaFields(entt::resolve<GameInputComponent>(), entt::forward_as_meta(*_c));
-			}
-		});
+	REGISTER_COMPONENT_AUTO(GameInputComponent, "GameInput");
 
 	// アニメーターコンポーネントの登録
 	REGISTER_COMPONENT(AnimatorComponent, "Animator",
@@ -16381,30 +16313,10 @@ void ComponentRegistryInitializer::Initialize()
 
 
 		// シーケンサーコンポーネントの登録
-		REGISTER_COMPONENT(SequencerComponent, "Sequencer",
-			[](auto& reg, auto e)
-			{
-				auto* seq = reg.try_get<SequencerComponent>(e);
-				if (!seq) return;
-
-				if (ImGui::CollapsingHeader("Sequencer", ImGuiTreeNodeFlags_DefaultOpen))
-				{
-					MetaRegistry::DrawMetaFields(entt::resolve<SequencerComponent>(), entt::forward_as_meta(*seq));
-				}
-			}); 
+		REGISTER_COMPONENT_AUTO(SequencerComponent, "Sequencer");
 
 		// アニメーション速度コンポーネントの登録
-		REGISTER_COMPONENT(AnimationSpeedComponent, "Animation Speed",
-			[](auto& reg, auto e)
-			{
-				auto* animSpeed = reg.try_get<AnimationSpeedComponent>(e);
-				if (!animSpeed) return;
-
-				if (ImGui::CollapsingHeader("Animation Speed", ImGuiTreeNodeFlags_DefaultOpen))
-				{
-					MetaRegistry::DrawMetaFields(entt::resolve<AnimationSpeedComponent>(), entt::forward_as_meta(*animSpeed));
-				}
-			});
+		REGISTER_COMPONENT_AUTO(AnimationSpeedComponent, "Animation Speed"); 
 }
  
  
@@ -16542,6 +16454,7 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Editor\InspectorWindow.cp
 #include "imgui_internal.h"
 #include "Engine/Resource/ComponentRegistry.h"
 #include "Tool/Editor/ComponentInspectorRegistry.h"
+#include "Tool/Editor/MetaRegistry.h"
 #include "tracy/Tracy.hpp"
 
 // 描画
@@ -16620,7 +16533,26 @@ void InspectorWindow::DrawComponents(entt::registry& registry, EditorContext& co
         const auto* drawImGui = ComponentInspectorRegistry::Get(name);
         if (drawImGui)
         {
+            // 独自のUIが登録されていればそれを使う
             (*drawImGui)(registry, e);
+        }
+        else if (info->getMeta)
+        {
+            entt::meta_any firstInstance = info->getMeta(registry, e);
+            if (firstInstance)
+            {
+                entt::meta_type metaType = firstInstance.type();
+                TypeInfo* typeInfo = metaType.custom();
+                std::string label = typeInfo ? typeInfo->category : name;
+
+                if (ImGui::CollapsingHeader(label.c_str(), ImGuiTreeNodeFlags_DefaultOpen))
+                {
+                    // 別のID空間で囲む
+                    ImGui::PushID("fields");
+                    MetaRegistry::DrawMetaFields(metaType, info->getMeta(registry, e));
+                    ImGui::PopID();
+                }
+            }
         }
     }
 }
@@ -16670,6 +16602,8 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Editor\MetaRegistry.cpp
 #include <DirectXMath.h>
 #include <filesystem>
 #include <imgui.h>
+#include <vector>
+#include <utility>
 
 using namespace entt::literals;
 
@@ -16686,32 +16620,6 @@ using namespace entt::literals;
 #include "Engine/ECS/Components/AnimatorComponent.h"
 #include "Engine/ECS/Components/SequencerComponent.h"
 #include "Engine/ECS/Components/AnimationSpeedComponent.h"
-
-void MetaRegistry::Initialize()
-{
-	// トランスフォームコンポーネントを登録
-	RegisterTransformComponent();
-	// メッシュコンポーネントを登録
-	RegisterMeshComponent();
-	// 移動コンポーネントを登録
-	RegisterMovementComponent();
-	// プレイヤー待機コンポーネントを登録
-	RegisterPlayerIdleComponent();
-	// プレイヤー移動コンポーネントを登録
-	RegisterPlayerMoveComponent();
-	// プレイヤー回避コンポーネントを登録
-	RegisterPlayerDodgeComponent();
-	// プレイヤー全力疾走コンポーネントを登録
-	RegisterPlayerSprintComponent();
-	// ゲーム入力コンポーネントを登録
-	RegisterGameInputComponent();
-	// アニメーターコンポーネントを登録
-	RegisterAnimatorComponent();
-	// シーケンサーコンポーネントを登録
-	RegisterSequencerComponent();
-	// アニメーション速度コンポーネントを登録
-	RegisterAnimationSpeedComponent();
-}
 
 // 登録済みメタ情報からInspectorUIを自動描画
 void MetaRegistry::DrawMetaFields(entt::meta_type metaType, entt::meta_any instance)
@@ -16801,6 +16709,42 @@ void MetaRegistry::DrawMetaFields(entt::meta_type metaType, entt::meta_any insta
 				}
 			}
 		}
+		else if (value.type().is_enum())
+		{
+			entt::meta_type enumType = value.type();
+
+			// enumの各値(REFLECT_ENUM_VALUEで登録した定数)を、ラベル付きで列挙する
+			std::vector<std::pair<std::string, entt::meta_any>> options;
+			std::string currentLabel = "(Unknown)";
+
+			for (auto&& [enumId, enumData] : enumType.data())
+			{
+				EnumValueInfo* enumInfo = enumData.custom();
+				std::string optLabel = enumInfo ? enumInfo->label : std::string(enumData.name());
+
+				entt::meta_any optValue = enumData.get({});
+				options.push_back({ optLabel, optValue });
+
+				if (optValue == value)
+				{
+					currentLabel = optLabel;
+				}
+			}
+
+			if (ImGui::BeginCombo(label.c_str(), currentLabel.c_str()))
+			{
+				for (auto& [optLabel, optValue] : options)
+				{
+					bool selected = (optLabel == currentLabel);
+					if (ImGui::Selectable(optLabel.c_str(), selected))
+					{
+						metaData.set(instance, optValue);
+					}
+					if (selected) ImGui::SetItemDefaultFocus();
+				}
+				ImGui::EndCombo();
+			}
+		}
 		else
 		{
 			ImGui::TextDisabled("%s: (unsupported type)", label.c_str());
@@ -16859,7 +16803,7 @@ const std::vector<FieldEntry>& MetaRegistry::GetAllFields()
 
 				entt::meta_type fieldType = metaData.type();
 
-				if (!IsLeafType(fieldType) && fieldType && fieldType.data().begin() != fieldType.data().end())
+				if (!IsLeafType(fieldType) && fieldType && !fieldType.is_enum() && fieldType.data().begin() != fieldType.data().end())
 				{
 					// ネストしたフィールド：内側の型が持つフィールドを、1段階だけ掘り下げて追加する
 					for (auto&& [subFieldId, subMetaData] : fieldType.data())
@@ -16899,208 +16843,6 @@ int MetaRegistry::GetComponentCount(ValueType type)
 	case ValueType::Float4: return 4;
 	default: return 0;
 	}
-}
-
-// トランスフォームコンポーネントを登録
-void MetaRegistry::RegisterTransformComponent()
-{
-	//entt::meta_factory<TransformComponent>{}
-	//.type("TransformComponent")
-	//	.custom<TypeInfo>(TypeInfo{ "Transform" })
-	//	.data<&TransformComponent::position>("position"_hs)
-	//	.custom<FieldInfo>(FieldInfo{ "Position", 0.0f, 0.0f, 0.1f })
-	//	.data<&TransformComponent::rotation>("rotation"_hs)
-	//	.custom<FieldInfo>(FieldInfo{ "Rotation", 0.0f, 0.0f, 0.01f })
-	//	.data<&TransformComponent::scale>("scale"_hs)
-	//	.custom<FieldInfo>(FieldInfo{ "Scale", 0.0f, 0.0f, 0.01f });
-}
-// メッシュコンポーネントを登録
-void MetaRegistry::RegisterMeshComponent()
-{
-	//entt::meta_factory<MeshComponent>{}
-	//.type("MeshComponent")
-	//	.custom<TypeInfo>(TypeInfo{ "Mesh" })
-	//	.data<&MeshComponent::modelPath>("modelPath"_hs)
-	//	.custom<FieldInfo>(FieldInfo{ "Model", 0.0f, 0.0f, 0.1f, "MODEL_PATH" });
-}
-// 移動コンポーネントを登録
-void MetaRegistry::RegisterMovementComponent()
-{
-	//entt::meta_factory<MovementComponent>{}
-	//.type("MovementComponent")
-	//	.custom<TypeInfo>(TypeInfo{ "Movement" })
-	//	.data<&MovementComponent::jumpPower>("jumpPower"_hs)
-	//	.custom<FieldInfo>(FieldInfo{ "Jump Power", 0.0f, 50.0f })
-	//	.data<&MovementComponent::gravity>("gravity"_hs)
-	//	.custom<FieldInfo>(FieldInfo{ "Gravity", -100.0f, 0.0f })
-	//	.data<&MovementComponent::velocity>("velocity"_hs)
-	//	.custom<FieldInfo>(FieldInfo{ "Velocity", 0.0f, 0.0f, 0.01f })
-	//	.data<&MovementComponent::isGrounded>("isGrounded"_hs)
-	//	.custom<FieldInfo>(FieldInfo{ "Is Grounded" });
-}
-
-// プレイヤー待機コンポーネントを登録
-void MetaRegistry::RegisterPlayerIdleComponent()
-{
-	//entt::meta_factory<PlayerIdleComponent>{}
-	//.type("PlayerIdleComponent")
-	//	.custom<TypeInfo>(TypeInfo{ "Player Idle" })
-	//	.data<&PlayerIdleComponent::isIdling>("isIdling"_hs)
-	//	.custom<FieldInfo>(FieldInfo{ "Is Idling", 0.0f, 0.0f, 0.1f, "", true });
-}
-// プレイヤー移動コンポーネントを登録
-void MetaRegistry::RegisterPlayerMoveComponent()
-{
-	//entt::meta_factory<PlayerMoveComponent>{}
-	//.type("PlayerMoveComponent")
-	//	.custom<TypeInfo>(TypeInfo{ "Player Move" })
-	//	.data<&PlayerMoveComponent::walkSpeed>("walkSpeed"_hs)
-	//	.custom<FieldInfo>(FieldInfo{ "Walk Speed", 0.0f, 10.0f })
-	//	.data<&PlayerMoveComponent::jogSpeed>("jogSpeed"_hs)
-	//	.custom<FieldInfo>(FieldInfo{ "Jog Speed", 0.0f, 10.0f })
-	//	.data<&PlayerMoveComponent::jogThreshold>("jogThreshold"_hs)
-	//	.custom<FieldInfo>(FieldInfo{ "Jog Threshold", 0.0f, 1.0f })
-	//	.data<&PlayerMoveComponent::turnSpeed>("turnSpeed"_hs)
-	//	.custom<FieldInfo>(FieldInfo{ "Turn Speed", 0.0f, 30.0f })
-	//	.data<&PlayerMoveComponent::inputLossGraceTime>("inputLossGraceTime"_hs)
-	//	.custom<FieldInfo>(FieldInfo{ "Input Loss Grace Time", 0.0f, 1.0f })
-	//	.data<&PlayerMoveComponent::isWalking>("isWalking"_hs)
-	//	.custom<FieldInfo>(FieldInfo{ "Is Walking" })
-	//	.data<&PlayerMoveComponent::isJogging>("isJogging"_hs)
-	//	.custom<FieldInfo>(FieldInfo{ "Is Jogging" })
-	//	.data<&PlayerMoveComponent::isMoving>("isMoving"_hs)
-	//	.custom<FieldInfo>(FieldInfo{ "Is Moving" });
-}
-// プレイヤー回避コンポーネントを登録
-void MetaRegistry::RegisterPlayerDodgeComponent()
-{
-	//entt::meta_factory<PlayerDodgeComponent>{}
-	//.type("PlayerDodgeComponent")
-	//	.custom<TypeInfo>(TypeInfo{ "Player Dodge" })
-	//	.data<&PlayerDodgeComponent::directionBufferTime>("directionBufferTime"_hs)
-	//	.custom<FieldInfo>(FieldInfo{ "Direction Buffer Time", 0.0f, 1.0f })
-	//	.data<&PlayerDodgeComponent::isDodging>("isDodging"_hs)
-	//	.custom<FieldInfo>(FieldInfo{ "Is Dodging", 0.0f, 0.0f, 0.1f, "", true })
-	//	.data<&PlayerDodgeComponent::isNoneInput>("isNoneInput"_hs)
-	//	.custom<FieldInfo>(FieldInfo{ "Is None Input", 0.0f, 0.0f, 0.1f, "", true })
-	//	.data<&PlayerDodgeComponent::isFrontInput>("isFrontInput"_hs)
-	//	.custom<FieldInfo>(FieldInfo{ "Is Front Input", 0.0f, 0.0f, 0.1f, "", true })
-	//	.data<&PlayerDodgeComponent::isBackInput>("isBackInput"_hs)
-	//	.custom<FieldInfo>(FieldInfo{ "Is Back Input", 0.0f, 0.0f, 0.1f, "", true })
-	//	.data<&PlayerDodgeComponent::isLeftInput>("isLeftInput"_hs)
-	//	.custom<FieldInfo>(FieldInfo{ "Is Left Input", 0.0f, 0.0f, 0.1f, "", true })
-	//	.data<&PlayerDodgeComponent::isRightInput>("isRightInput"_hs)
-	//	.custom<FieldInfo>(FieldInfo{ "Is Right Input", 0.0f, 0.0f, 0.1f, "", true });
-}
-// プレイヤー全力疾走コンポーネントを登録
-void MetaRegistry::RegisterPlayerSprintComponent()
-{
-	//entt::meta_factory<PlayerSprintComponent>{}
-	//.type("PlayerSprintComponent")
-	//	.custom<TypeInfo>(TypeInfo{ "Player Sprint" })
-	//	.data<&PlayerSprintComponent::sprintSpeed>("sprintSpeed"_hs)
-	//	.custom<FieldInfo>(FieldInfo{ "Sprint Speed", 0.0f, 20.0f })
-	//	.data<&PlayerSprintComponent::turnSpeed>("turnSpeed"_hs)
-	//	.custom<FieldInfo>(FieldInfo{ "Turn Speed", 0.0f, 30.0f })
-	//	.data<&PlayerSprintComponent::isSprinting>("isSprinting"_hs)
-	//	.custom<FieldInfo>(FieldInfo{ "Is Sprinting", 0.0f, 0.0f, 0.1f, "", true });
-}
-// ゲーム入力コンポーネントを登録
-void MetaRegistry::RegisterGameInputComponent()
-{
-	//entt::meta_factory<StickState>{}
-	//.type("StickState")
-	//	.data<&StickState::x>("x"_hs)
-	//	.custom<FieldInfo>(FieldInfo{ "X", 0.0f, 0.0f, 0.1f, "", true })
-	//	.data<&StickState::y>("y"_hs)
-	//	.custom<FieldInfo>(FieldInfo{ "Y", 0.0f, 0.0f, 0.1f, "", true })
-	//	.data<&StickState::hasInput>("hasInput"_hs)
-	//	.custom<FieldInfo>(FieldInfo{ "Has Input", 0.0f, 0.0f, 0.1f, "", true });
-
-	//entt::meta_factory<ButtonState>{}
-	//.type("ButtonState")
-	//	.data<&ButtonState::pressed>("pressed"_hs)
-	//	.custom<FieldInfo>(FieldInfo{ "Pressed", 0.0f, 0.0f, 0.1f, "", true })
-	//	.data<&ButtonState::held>("held"_hs)
-	//	.custom<FieldInfo>(FieldInfo{ "Held", 0.0f, 0.0f, 0.1f, "", true })
-	//	.data<&ButtonState::released>("released"_hs)
-	//	.custom<FieldInfo>(FieldInfo{ "Released", 0.0f, 0.0f, 0.1f, "", true });
-
-	//entt::meta_factory<TriggerState>{}
-	//.type("TriggerState")
-	//	.data<&TriggerState::value>("value"_hs)
-	//	.custom<FieldInfo>(FieldInfo{ "Value", 0.0f, 0.0f, 0.1f, "", true })
-	//	.data<&TriggerState::pressed>("pressed"_hs)
-	//	.custom<FieldInfo>(FieldInfo{ "Pressed", 0.0f, 0.0f, 0.1f, "", true })
-	//	.data<&TriggerState::held>("held"_hs)
-	//	.custom<FieldInfo>(FieldInfo{ "Held", 0.0f, 0.0f, 0.1f, "", true })
-	//	.data<&TriggerState::released>("released"_hs)
-	//	.custom<FieldInfo>(FieldInfo{ "Released", 0.0f, 0.0f, 0.1f, "", true });
-
-	//entt::meta_factory<GameInputComponent>{}
-	//.type("GameInputComponent")
-	//	.custom<TypeInfo>(TypeInfo{ "Input" })
-	//	.data<&GameInputComponent::moveStick>("moveStick"_hs)
-	//	.custom<FieldInfo>(FieldInfo{ "Move Stick" })
-	//	.data<&GameInputComponent::cameraStick>("cameraStick"_hs)
-	//	.custom<FieldInfo>(FieldInfo{ "Camera Stick" })
-	//	.data<&GameInputComponent::dodgeTrigger>("dodgeTrigger"_hs)
-	//	.custom<FieldInfo>(FieldInfo{ "Dodge Trigger" })
-	//	.data<&GameInputComponent::jump>("jump"_hs)
-	//	.custom<FieldInfo>(FieldInfo{ "Jump", 0.0f, 0.0f, 0.1f, "", true })
-	//	.data<&GameInputComponent::attack>("attack"_hs)
-	//	.custom<FieldInfo>(FieldInfo{ "Attack", 0.0f, 0.0f, 0.1f, "", true });
-}
-// アニメーターコンポーネントを登録
-void MetaRegistry::RegisterAnimatorComponent()
-{
-	//entt::meta_factory<AnimatorComponent>{}
-	//.type("AnimatorComponent")
-	//	.custom<TypeInfo>(TypeInfo{ "Animator" })
-	//	.data<&AnimatorComponent::animatorGraphPath>("animatorGraphPath"_hs)
-	//	.custom<FieldInfo>(FieldInfo{ "Animator Graph", 0.0f, 0.0f, 0.1f, "ANIMGRAPH_PATH" })
-	//	.data<&AnimatorComponent::playSpeed>("playSpeed"_hs)
-	//	.custom<FieldInfo>(FieldInfo{ "Play Speed", 0.0f, 3.0f })
-	//	.data<&AnimatorComponent::loop>("loop"_hs)
-	//	.custom<FieldInfo>(FieldInfo{ "Loop" })
-	//	.data<&AnimatorComponent::useRootMotion>("useRootMotion"_hs)
-	//	.custom<FieldInfo>(FieldInfo{ "Use Root Motion" })
-	//	.data<&AnimatorComponent::useRootMotionY>("useRootMotionY"_hs)
-	//	.custom<FieldInfo>(FieldInfo{ "Use Root Motion Y" })
-	//	.data<&AnimatorComponent::rootMotionNodeName>("rootMotionNodeName"_hs)
-	//	.custom<FieldInfo>(FieldInfo{ "Root Motion Node" })
-	//	.data<&AnimatorComponent::isBlending>("isBlending"_hs)
-	//	.custom<FieldInfo>(FieldInfo{ "Is Blending", 0.0f, 0.0f, 0.1f, "", true })
-	//	.data<&AnimatorComponent::blendRate>("blendRate"_hs)
-	//	.custom<FieldInfo>(FieldInfo{ "Blend Rate", 0.0f, 1.0f, 0.1f, "", true })
-	//	.data<&AnimatorComponent::isEnd>("isEnd"_hs)
-	//	.custom<FieldInfo>(FieldInfo{ "Is End", 0.0f, 0.0f, 0.1f, "", true })
-	//	.data<&AnimatorComponent::blendAnimation>("blendAnimation"_hs)
-	//	.custom<FieldInfo>(FieldInfo{ "Blend From (Old Clip)", 0.0f, 0.0f, 0.1f, "", true });
-}
-// シーケンサーコンポーネントを登録
-void MetaRegistry::RegisterSequencerComponent()
-{
-	entt::meta_factory<SequencerComponent>{}
-	.type("SequencerComponent")
-		.custom<TypeInfo>(TypeInfo{ "Sequencer" })
-		.data<&SequencerComponent::sequencerPath>("sequencerPath"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Sequencer File", 0.0f, 0.0f, 0.1f, "SEQUENCER_PATH" })
-		.data<&SequencerComponent::animExit>("animExit"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Anim Exit", 0.0f, 0.0f, 0.1f, "", true })
-		.data<&SequencerComponent::attack>("attack"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Attack", 0.0f, 0.0f, 0.1f, "", true })
-		.data<&SequencerComponent::superArmor>("superArmor"_hs)
-		.custom<FieldInfo>(FieldInfo{ "SuperArmor", 0.0f, 0.0f, 0.1f, "", true });
-}
-// アニメーション速度コンポーネントを登録
-void MetaRegistry::RegisterAnimationSpeedComponent()
-{
-	entt::meta_factory<AnimationSpeedComponent>{}
-	.type("AnimationSpeedComponent")
-		.custom<TypeInfo>(TypeInfo{ "Animation Speed" })
-		.data<&AnimationSpeedComponent::animationSpeedPath>("animationSpeedPath"_hs)
-		.custom<FieldInfo>(FieldInfo{ "Speed Curve File", 0.0f, 0.0f, 0.1f, "ANIMSPEED_PATH" });
 } 
  
 ===== PrefabWindow.cpp ===== 

@@ -87,7 +87,6 @@ void InspectorWindow::DrawComponents(entt::registry& registry, EditorContext& co
         }
         else if (info->getMeta)
         {
-            // “o˜^‚ª–³‚¯‚ê‚ÎAentt::meta‚Ìî•ñ‚©‚çŽ©“®•`‰æ‚·‚é
             entt::meta_any firstInstance = info->getMeta(registry, e);
             if (firstInstance)
             {
@@ -97,7 +96,10 @@ void InspectorWindow::DrawComponents(entt::registry& registry, EditorContext& co
 
                 if (ImGui::CollapsingHeader(label.c_str(), ImGuiTreeNodeFlags_DefaultOpen))
                 {
+                    // •Ê‚ÌID‹óŠÔ‚ÅˆÍ‚Þ
+                    ImGui::PushID("fields");
                     MetaRegistry::DrawMetaFields(metaType, info->getMeta(registry, e));
+                    ImGui::PopID();
                 }
             }
         }
