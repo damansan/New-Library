@@ -10,18 +10,19 @@ nlohmann::json EntitySerializer::SerializeEntity(entt::registry& registry, entt:
 	{
 		const ComponentInfo* info = ComponentRegistry::Get(name);
 		if (!info || !info->has(registry, e)) continue;
-		if (!info->getMeta) continue; // entt::metaに未登録のコンポーネントはスキップ
+		if (!info->getMeta) continue;
 
-		entt::meta_any instance = info->getMeta(registry, e);
-		if (!instance) continue;
+		// instanceをローカル変数に代入すると参照が崩れるため、type()の取得と
+		// フィールドの読み取りで、それぞれその場でgetMeta()を呼び直す
+		entt::meta_type metaType = info->getMeta(registry, e).type();
+		if (!metaType) continue;
 
-		entt::meta_type metaType = instance.type();
 		nlohmann::json fields = nlohmann::json::object();
 
 		for (auto&& [id, metaData] : metaType.data())
 		{
 			std::string fieldName(metaData.name());
-			entt::meta_any value = metaData.get(instance);
+			entt::meta_any value = metaData.get(info->getMeta(registry, e));
 			fields[fieldName] = SerializeMetaAny(value);
 		}
 

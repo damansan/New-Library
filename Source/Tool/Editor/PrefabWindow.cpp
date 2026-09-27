@@ -1,6 +1,9 @@
 #include "PrefabWindow.h"
 #include <imgui.h>
 #include <algorithm>
+#include <fstream>
+#include "entt.hpp"
+#include "Engine/Resource/EntitySerializer.h"
 
 // 初期化
 void PrefabWindow::Initialize(const std::string& root)
@@ -33,7 +36,7 @@ void PrefabWindow::Draw(entt::registry& registry, EditorContext& context)
 
 		ImGui::TableSetColumnIndex(0);
 		ImGui::BeginChild("PrefabFolderTree", ImVec2(0, 0), false);
-		DrawFolderTree(folderTreeCache);
+		DrawFolderTree(folderTreeCache, registry, context);
 		ImGui::EndChild();
 
 		ImGui::TableSetColumnIndex(1);
@@ -76,7 +79,7 @@ std::string PrefabWindow::GenerateUniqueName(const std::filesystem::path& parent
 
 
 // 左：フォルダツリー
-void PrefabWindow::DrawFolderTree(FolderNode& node)
+void PrefabWindow::DrawFolderTree(FolderNode& node, entt::registry& registry, EditorContext& context)
 {
 	const std::filesystem::path& path = node.path;
 	bool isRenamingThis = (itemState.mode == PrefabItemMode::Renaming && itemState.targetPath == path);
@@ -120,6 +123,17 @@ void PrefabWindow::DrawFolderTree(FolderNode& node)
 		itemState.selectedPath = path;
 	}
 
+	// Entityのドロップを受け取り、このフォルダにプレハブとして保存する
+	if (ImGui::BeginDragDropTarget())
+	{
+		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ENTITY"))
+		{
+			entt::entity droppedEntity = *(const entt::entity*)payload->Data;
+			SaveEntityAsPrefab(registry, context, droppedEntity, path);
+		}
+		ImGui::EndDragDropTarget();
+	}
+
 	// 右クリックでコンテキストメニュー
 	if (ImGui::BeginPopupContextItem(path.string().c_str()))
 	{
@@ -157,7 +171,7 @@ void PrefabWindow::DrawFolderTree(FolderNode& node)
 	{
 		for (auto& child : node.children)
 		{
-			DrawFolderTree(child);
+			DrawFolderTree(child, registry, context);
 		}
 		ImGui::TreePop();
 	}
@@ -173,6 +187,18 @@ void PrefabWindow::DrawFileGrid(entt::registry& registry, EditorContext& context
 
 	float windowWidth = ImGui::GetContentRegionAvail().x;
 	int columns = (std::max)(1, (int)(windowWidth / cellSize));
+
+	//ImGui::InvisibleButton("##fileGridDropArea", ImGui::GetContentRegionAvail());
+	//if (ImGui::BeginDragDropTarget())
+	//{
+	//	if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ENTITY"))
+	//	{
+	//		entt::entity droppedEntity = *(const entt::entity*)payload->Data;
+	//		SaveEntityAsPrefab(registry, context, droppedEntity, itemState.selectedPath);
+	//	}
+	//	ImGui::EndDragDropTarget();
+	//}
+	//ImGui::SetCursorScreenPos(ImGui::GetItemRectMin());
 
 	int index = 0;
 
@@ -203,6 +229,17 @@ void PrefabWindow::DrawFileGrid(entt::registry& registry, EditorContext& context
 		ImGui::SetCursorScreenPos(pos);
 		ImGui::PushID(index);
 		ImGui::InvisibleButton("##icon", ImVec2(iconSize, iconSize));
+
+		// 既存のプレハブに、Entityがドロップされたら、そのファイルを上書き保存する
+		if (ImGui::BeginDragDropTarget())
+		{
+			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ENTITY"))
+			{
+				entt::entity droppedEntity = *(const entt::entity*)payload->Data;
+				OverwritePrefab(registry, context, droppedEntity, file.path);
+			}
+			ImGui::EndDragDropTarget();
+		}
 
 		// ドラッグ開始（Hierarchyへドロップして配置するため）
 		if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
@@ -236,18 +273,14 @@ void PrefabWindow::DrawFileGrid(entt::registry& registry, EditorContext& context
 		bool isRenamingThis = (itemState.mode == PrefabItemMode::Renaming && itemState.targetPath == file.path);
 		if (isRenamingThis)
 		{
-			std::string extension = file.path.extension().string();
-
 			ImGui::SetNextItemWidth(iconSize + padding);
 			ImGui::SetKeyboardFocusHere();
 
 			bool confirmedByEnter = ImGui::InputText("##rename", itemState.editBuffer, sizeof(itemState.editBuffer), ImGuiInputTextFlags_EnterReturnsTrue);
 			bool confirmedByBlur = ImGui::IsItemDeactivated() && !confirmedByEnter;
 
-			if (!extension.empty())
-			{
-				ImGui::TextDisabled("%s", extension.c_str());
-			}
+			// 拡張子は「.prefab」の部分だけ固定表示する（.jsonの部分は内部実装として隠す）
+			ImGui::TextDisabled(".prefab");
 
 			if (confirmedByEnter || confirmedByBlur)
 			{
@@ -279,6 +312,36 @@ void PrefabWindow::DrawFileGrid(entt::registry& registry, EditorContext& context
 			ImGui::EndMenu();
 		}
 		ImGui::EndPopup();
+	}
+}
+
+// Entityを、指定フォルダにプレハブとして保存する
+void PrefabWindow::SaveEntityAsPrefab(entt::registry& registry, EditorContext& context, entt::entity e, const std::filesystem::path& folder)
+{
+	if (!registry.valid(e)) return;
+
+	std::string name = context.GetName(e);
+	std::string fileName = GenerateUniqueName(folder, name + ".prefab.json");
+
+	nlohmann::json data = EntitySerializer::SerializeEntity(registry, e);
+
+	std::ofstream ofs(folder / fileName);
+	if (ofs)
+	{
+		ofs << data.dump(4);
+	}
+}
+// Entityを、既存のプレハブファイルに上書き保存する
+void PrefabWindow::OverwritePrefab(entt::registry& registry, EditorContext& context, entt::entity e, const std::filesystem::path& filePath)
+{
+	if (!registry.valid(e)) return;
+
+	nlohmann::json data = EntitySerializer::SerializeEntity(registry, e);
+
+	std::ofstream ofs(filePath);
+	if (ofs)
+	{
+		ofs << data.dump(4);
 	}
 }
 
@@ -402,15 +465,27 @@ void PrefabWindow::BeginRename(const std::filesystem::path& target)
 	itemState.mode = PrefabItemMode::Renaming;
 	itemState.targetPath = target;
 
-	std::string currentStem = target.stem().string();
+	// プレハブファイル(.prefab.json)は、2段階の拡張子を両方取り除く。フォルダはそのまま
+	std::string currentStem;
+	if (IsPrefabFile(target))
+	{
+		currentStem = std::filesystem::path(target.stem()).stem().string(); // "xxx.prefab" -> "xxx"
+	}
+	else
+	{
+		currentStem = target.stem().string();
+	}
+
 	strncpy_s(itemState.editBuffer, currentStem.c_str(), sizeof(itemState.editBuffer) - 1);
 }
 // リネーム確定
 void PrefabWindow::CommitRename()
 {
 	std::string newStem = itemState.editBuffer;
-	std::string extension = itemState.targetPath.extension().string();
-	std::string newName = newStem + extension;
+
+	// プレハブファイルは、常に「.prefab.json」を付け直す。フォルダはそのまま(拡張子なし)
+	std::string newName = IsPrefabFile(itemState.targetPath)
+		? newStem + ".prefab.json" : newStem;
 
 	if (!newStem.empty() && newName != itemState.targetPath.filename().string())
 	{

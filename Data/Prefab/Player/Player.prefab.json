@@ -1,0 +1,84 @@
+{
+    "Animation Speed": {
+        "animationSpeedPath": "Data/Json/AnimSpeed/Map_Robot3.animspeed"
+    },
+    "Animator": {
+        "animatorGraphPath": "Data/Json/Animgraph/Map_Robot3.animgraph",
+        "blendAnimation": "AS_Walk_End",
+        "blendRate": 1.006944179534912,
+        "isBlending": false,
+        "isEnd": false,
+        "loop": true,
+        "playSpeed": 1.0,
+        "rootMotionNodeName": "root",
+        "useRootMotion": true,
+        "useRootMotionY": false
+    },
+    "Category": {
+        "category": null
+    },
+    "GameInput": {
+        "attack": false,
+        "cameraStick": null,
+        "dodgeTrigger": null,
+        "jump": false,
+        "lockOnTrigger": null,
+        "moveStick": null
+    },
+    "Material": {
+        "shadingModel": null
+    },
+    "Mesh": {
+        "modelPath": "Data/Model/PlayerRobot/Map_Robot3.gltf"
+    },
+    "Physics": {},
+    "Player Dodge": {
+        "directionBufferTime": 0.11999999731779099,
+        "isBackInput": false,
+        "isDodging": false,
+        "isFrontInput": false,
+        "isLeftInput": false,
+        "isNoneInput": false,
+        "isRightInput": false
+    },
+    "Player Idle": {
+        "isIdling": true
+    },
+    "Player Move": {
+        "isJogging": false,
+        "isMoving": false,
+        "isWalking": false,
+        "jogSpeed": 4.0,
+        "jogThreshold": 0.8999999761581421,
+        "turnSpeed": 10.0,
+        "walkSpeed": 2.0
+    },
+    "Player Sprint": {
+        "isSprinting": false,
+        "sprintSpeed": 15.0,
+        "turnSpeed": 15.0
+    },
+    "Sequencer": {
+        "animExit": false,
+        "attack": false,
+        "sequencerPath": "Data/Json/Sequencer/Map_Robot3.sequencer",
+        "superArmor": false
+    },
+    "Transform": {
+        "position": [
+            0.0,
+            -0.016267335042357445,
+            0.0
+        ],
+        "rotation": [
+            0.0,
+            0.0,
+            0.0
+        ],
+        "scale": [
+            1.0,
+            1.0,
+            1.0
+        ]
+    }
+}

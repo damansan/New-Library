@@ -35,7 +35,7 @@ inline FieldInfo MakeFieldInfo(
     static inline bool _reflect_##FieldName##_registered = []           \
     {                                                                   \
         entt::meta_factory<ReflectSelf>{}                               \
-            .data<&ReflectSelf::FieldName>(#FieldName##_hs)             \
+            .data<&ReflectSelf::FieldName>(#FieldName)                  \
             .custom<FieldInfo>(MakeFieldInfo FieldInfoArgs);            \
         return true;                                                    \
     }();
@@ -55,7 +55,7 @@ namespace ReflectEnumDetail_##EnumType                  \
     inline bool _reflect_##ValueName##_registered = []      \
     {                                                       \
         entt::meta_factory<ReflectEnumSelf>{}               \
-            .data<Value>(#ValueName##_hs)                   \
+            .data<Value>(#ValueName)                        \
             .custom<EnumValueInfo>(EnumValueInfo{ Label }); \
         return true;                                        \
     }();

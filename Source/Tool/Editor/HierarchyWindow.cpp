@@ -2,11 +2,14 @@
 #include "imgui_internal.h"
 #include <imgui.h>
 #include <filesystem>
+#include <fstream>
 
 #include "Engine/ECS/Components/TransformComponent.h"
 #include "Engine/ECS/Components/MeshComponent.h"
 #include "Engine/ECS/Components/MaterialComponent.h"
 #include "Engine/ECS/Components/CategoryComponent.h"
+
+#include "Engine/Resource/EntitySerializer.h"
 
 #include "tracy/Tracy.hpp"
 
@@ -118,6 +121,34 @@ void HierarchyWindow::Draw(entt::registry& registry, EditorContext& context)
             context.SetName(e, p.stem().string());
             context.Select(e);
         }
+
+        if (const ImGuiPayload* payload =
+            ImGui::AcceptDragDropPayload("PREFAB_PATH"))
+        {
+            // プレハブのパスを受け取る
+            std::string prefabPath(static_cast<const char*>(payload->Data));
+
+            // JSONファイルを読み込む
+            std::ifstream ifs(prefabPath);
+            if (ifs)
+            {
+                nlohmann::json data;
+                ifs >> data;
+
+                // Entity 生成し、JSONの内容を反映する
+                entt::entity e = registry.create();
+                EntitySerializer::DeserializeEntity(registry, e, data);
+
+                // ファイル名（.prefab.jsonを除いた部分）から Entity 名を設定
+                std::filesystem::path p(prefabPath);
+                std::string stem = p.stem().string(); // "○○.prefab"
+                std::filesystem::path stemPath(stem);
+                context.SetName(e, stemPath.stem().string()); // "○○"
+
+                context.Select(e);
+            }
+        }
+
         ImGui::EndDragDropTarget();
     }
     ImGui::End();

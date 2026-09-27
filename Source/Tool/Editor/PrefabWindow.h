@@ -49,9 +49,14 @@ private:
 	};
 
 	// 左：フォルダツリー
-	void DrawFolderTree(FolderNode& node);
+	void DrawFolderTree(FolderNode& node, entt::registry& registry, EditorContext& context);
 	// 右：ファイル一覧
 	void DrawFileGrid(entt::registry& registry, EditorContext& context);
+
+	// Entityを、指定フォルダにプレハブとして保存する
+	void SaveEntityAsPrefab(entt::registry& registry, EditorContext& context, entt::entity e, const std::filesystem::path& folder);
+	// Entityを、既存のプレハブファイルに上書き保存する
+	void OverwritePrefab(entt::registry& registry, EditorContext& context, entt::entity e, const std::filesystem::path& filePath);
 
 	// 間隔が経過していれば、フォルダツリーのキャッシュを作り直す
 	void RefreshFolderTreeIfNeeded();
