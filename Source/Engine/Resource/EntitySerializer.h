@@ -11,6 +11,12 @@ public:
 	// JSONの内容を、Entityへ反映する(コンポーネントを付与し、フィールドを書き戻す)
 	static void DeserializeEntity(entt::registry& registry, entt::entity e, const nlohmann::json& data);
 
+	// JSONファイルを読み込む。ファイルが無い・壊れている場合は、falseを返す
+	static bool LoadJsonFile(const std::string& path, nlohmann::json& out);
+
+	// プレハブファイルからEntityを生成する。成功したらそのEntityを、失敗したらentt::nullを返す
+	static entt::entity InstantiatePrefab(entt::registry& registry, const std::string& prefabPath);
+
 private:
 	// entt::meta_any 1つ分のフィールド値を、JSONへ変換する
 	static nlohmann::json SerializeMetaAny(entt::meta_any& value);

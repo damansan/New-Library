@@ -291,12 +291,12 @@ private:
     bool firstDockSetup = true;
 
     // ドッキング比率
-    float dockRatioBottom = 0.2f;  // Project / Prefab
-
     float dockRatioLeft = 0.1f;  // Hierarchy
     float dockRatioRight = 0.15f; // Inspector
-    float dockRatioPrefab = 0.6f; // Prefab / log
-    float dockRatiolog = 0.5f;    // log
+
+    float dockRatioBottom = 0.2f;  // Project / Prefab
+    float dockRatioPrefab = 0.75f; // Prefab / Log
+    float dockRatioLog = 0.5f;    // Log
 }; 
  
 ===== Graphics.h ===== 
@@ -543,8 +543,8 @@ namespace LogBuffer
 	{
 		SYSTEMTIME now;
 		GetLocalTime(&now);
-		char time[16];
-		snprintf(time, sizeof(time), "%02d:%02d:%02d", now.wHour, now.wMinute, now.wSecond);
+		char timestamp[16];
+		snprintf(timestamp, sizeof(timestamp), "%02d:%02d:%02d", now.wHour, now.wMinute, now.wSecond);
 
 		// Visual Studioの「出力」ウィンドウ
 		OutputDebugStringW(detail::Utf8ToWide(std::string(message) + "\n").c_str());
@@ -552,7 +552,7 @@ namespace LogBuffer
 		// メモリ上のバッファ（将来、別スレッドから書かれても安全なようにロックする）
 		auto& storage = detail::GetStorage();
 		std::lock_guard<std::mutex> lock(storage.mutex);
-		storage.entries.push_back({ time, message });
+		storage.entries.push_back({ timestamp, message });
 		if (storage.entries.size() > MaxEntries)
 		{
 			storage.entries.pop_front();
@@ -959,8 +959,6 @@ framework::framework(HWND hwnd) : hwnd(hwnd)
 	// Studio共有リソース初期化
 	studioShared.Initialize(graphics.GetDevice());
 
-	Log(u8"ログ機能のテスト");
-	Log(u8"数値の表示: %d", 123);
 #ifndef _DEBUG
 	// リリース時はボーダーレスフルスクリーンで起動
 	graphics.ToggleFullscreen();
@@ -1394,15 +1392,15 @@ void GameWindow::DrawWindow(const char* windowName, bool& vsync)
             dockMain, ImGuiDir_Right, dockRatioRight, nullptr, &dockMain);
         ImGuiID dockBottomRight = ImGui::DockBuilderSplitNode(
             dockBottom, ImGuiDir_Right, dockRatioPrefab, nullptr, &dockBottom);
-        ImGuiID docklog = ImGui::DockBuilderSplitNode(
-            dockBottomRight, ImGuiDir_Right, dockRatiolog, nullptr, &dockBottomRight);
+        ImGuiID dockLog = ImGui::DockBuilderSplitNode(
+            dockBottomRight, ImGuiDir_Right, dockRatioLog, nullptr, &dockBottomRight);
 
         ImGui::DockBuilderDockWindow("Viewport", dockMain);
         ImGui::DockBuilderDockWindow("Hierarchy", dockLeft);
         ImGui::DockBuilderDockWindow("Inspector", dockRight);
         ImGui::DockBuilderDockWindow("Project", dockBottom);
         ImGui::DockBuilderDockWindow("Prefab", dockBottomRight);
-        ImGui::DockBuilderDockWindow("log", docklog);
+        ImGui::DockBuilderDockWindow("Log", dockLog);
         ImGui::DockBuilderFinish(dockSpaceId);
     }
 
@@ -10257,6 +10255,12 @@ public:
 	// JSONの内容を、Entityへ反映する(コンポーネントを付与し、フィールドを書き戻す)
 	static void DeserializeEntity(entt::registry& registry, entt::entity e, const nlohmann::json& data);
 
+	// JSONファイルを読み込む。ファイルが無い・壊れている場合は、falseを返す
+	static bool LoadJsonFile(const std::string& path, nlohmann::json& out);
+
+	// プレハブファイルからEntityを生成する。成功したらそのEntityを、失敗したらentt::nullを返す
+	static entt::entity InstantiatePrefab(entt::registry& registry, const std::string& prefabPath);
+
 private:
 	// entt::meta_any 1つ分のフィールド値を、JSONへ変換する
 	static nlohmann::json SerializeMetaAny(entt::meta_any& value);
@@ -10905,7 +10909,13 @@ const ComponentInfo* ComponentRegistry::GetByTypeName(const std::string& typeNam
 Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Resource\EntitySerializer.cpp 
 #include "EntitySerializer.h"
 #include "Engine/Resource/ComponentRegistry.h"
+#include "Engine/ECS/Components/PrefabInstanceComponent.h"
+#include "Engine/Core/Log.h"
+
+#include "Tool/Editor/MetaRegistry.h"
+
 #include <DirectXMath.h>
+#include <fstream>
 
 nlohmann::json EntitySerializer::SerializeEntity(entt::registry& registry, entt::entity e)
 {
@@ -10926,9 +10936,18 @@ nlohmann::json EntitySerializer::SerializeEntity(entt::registry& registry, entt:
 
 		for (auto&& [id, metaData] : metaType.data())
 		{
+			// readOnlyの項目は、実行中にSystemが書き換える状態なので、保存しない
+			FieldInfo* fieldInfo = metaData.custom();
+			if (fieldInfo && fieldInfo->readOnly) continue;
+
 			std::string fieldName(metaData.name());
 			entt::meta_any value = metaData.get(info->getMeta(registry, e));
-			fields[fieldName] = SerializeMetaAny(value);
+
+			// 保存に未対応の型は、書き出さない
+			nlohmann::json serialized = SerializeMetaAny(value);
+			if (serialized.is_null()) continue;
+
+			fields[fieldName] = serialized;
 		}
 
 		result[name] = fields;
@@ -10973,7 +10992,12 @@ void EntitySerializer::DeserializeEntity(entt::registry& registry, entt::entity 
 	for (auto& [name, fields] : data.items())
 	{
 		const ComponentInfo* info = ComponentRegistry::Get(name);
-		if (!info) continue; // 今は存在しないコンポーネント名は無視(削除されたコンポーネント対策)
+		if (!info)
+		{
+			// 削除・改名されたコンポーネント。落とさずに飛ばして、ログに残す
+			Log(u8"未登録のコンポーネントを無視しました: %s", name.c_str());
+			continue;
+		}
 
 		info->add(registry, e); // 無ければ付与
 		if (!info->getMeta) continue;
@@ -10985,12 +11009,66 @@ void EntitySerializer::DeserializeEntity(entt::registry& registry, entt::entity 
 
 		for (auto&& [id, metaData] : metaType.data())
 		{
-			std::string fieldName(metaData.name());
-			if (!fields.contains(fieldName)) continue; // JSONに無いフィールドは初期値のまま(無視)
+			// readOnlyの項目は、ファイルに入っていても書き戻さない
+			FieldInfo* fieldInfo = metaData.custom();
+			if (fieldInfo && fieldInfo->readOnly) continue;
 
+			std::string fieldName(metaData.name());
+			if (!fields.contains(fieldName)) continue; // JSONに無いフィールドは初期値のまま
 			DeserializeMetaAny(metaData, instance, fields[fieldName]);
 		}
 	}
+}
+
+// JSONファイルを読み込む。ファイルが無い・壊れている場合は、falseを返す
+bool EntitySerializer::LoadJsonFile(const std::string& path, nlohmann::json& out)
+{
+	std::ifstream ifs(path);
+	if (!ifs)
+	{
+		Log(u8"ファイルを開けません: %s", path.c_str());
+		return false;
+	}
+
+	// 例外を無効にして、壊れたファイルでもアプリを落とさない
+	out = nlohmann::json::parse(ifs, nullptr, false);
+	if (out.is_discarded())
+	{
+		Log(u8"JSONの形式が不正です: %s", path.c_str());
+		return false;
+	}
+	return true;
+}
+
+// プレハブファイルからEntityを生成する。成功したらそのEntityを、失敗したらentt::nullを返す
+entt::entity EntitySerializer::InstantiatePrefab(entt::registry& registry, const std::string& prefabPath)
+{
+	nlohmann::json data;
+	if (!LoadJsonFile(prefabPath, data)) return entt::null;
+
+	if (!data.is_object())
+	{
+		Log(u8"プレハブの形式が不正です: %s", prefabPath.c_str());
+		return entt::null;
+	}
+
+	entt::entity e = registry.create();
+
+	try
+	{
+		DeserializeEntity(registry, e, data);
+	}
+	catch (const nlohmann::json::exception& ex)
+	{
+		// 値の型が想定と違う場合など。作りかけのEntityは残さない
+		Log(u8"プレハブの復元中にエラー: %s (%s)", prefabPath.c_str(), ex.what());
+		registry.destroy(e);
+		return entt::null;
+	}
+
+	// どのプレハブから生まれたかを記録する
+	registry.emplace<PrefabInstanceComponent>(e, prefabPath);
+	return e;
 }
 
 void EntitySerializer::DeserializeMetaAny(entt::meta_data metaData, entt::meta_any& instance, const nlohmann::json& value)
@@ -13206,6 +13284,7 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Project\ECS\Components\GameCam
 #pragma once
 #include <DirectXMath.h>
 #include "entt.hpp"
+#include "Engine/ECS/Reflect.h"
 #include "Engine/ECS/Components/BaseCameraComponent.h"
 
 // カメラの種類
@@ -13224,6 +13303,52 @@ enum class LockOnRangeState
 // ゲームカメラコンポーネント
 struct GameCameraComponent
 {
+	// 調整用カメラパラメーター
+	REFLECT_BEGIN(GameCameraComponent, "GameCamera")
+
+		// 追従カメラ
+		REFLECT_FIELD(float, followCameraDistance, (4.4f), ("Follow Distance"))
+		REFLECT_FIELD(float, followCameraHeight, (1.7f), ("Follow Height"))
+		REFLECT_FIELD(float, followCameraTargetYUp, (1.6f), ("Follow Target Y Up"))
+		REFLECT_FIELD(float, followCameraEyeSpeedRatio, (12.0f), ("Follow Eye Speed Ratio"))
+		REFLECT_FIELD(float, followCameraTargetSpeedRatio, (24.0f), ("Follow Target Speed Ratio"))
+
+		// ロックオン共通
+		REFLECT_FIELD(float, lockOnCameraEyeSpeedRatio, (12.0f), ("LockOn Eye Speed Ratio"))
+		REFLECT_FIELD(float, lockOnCameraTargetSpeedRatio, (15.0f), ("LockOn Target Speed Ratio"))
+		REFLECT_FIELD(float, lockOnRangeSwitchDistance, (10.0f), ("LockOn Range Switch Distance"))
+
+		// ロックオン近距離
+		REFLECT_FIELD(float, lockOnNearCameraDistance, (6.0f), ("Near Distance"))
+		REFLECT_FIELD(float, lockOnNearCameraHeight, (3.0f), ("Near Height"))
+		REFLECT_FIELD(float, lockOnNearCameraTargetYUp, (2.0f), ("Near Target Y Up"))
+		REFLECT_FIELD(float, lockOnNearAngleOffsetMax, (30.0f), ("Near Angle Offset Max"))
+
+		// ロックオン遠距離
+		REFLECT_FIELD(float, lockOnFarCameraDistance, (6.0f), ("Far Distance"))
+		REFLECT_FIELD(float, lockOnFarCameraHeight, (3.0f), ("Far Height"))
+		REFLECT_FIELD(float, lockOnFarCameraTargetYUp, (2.0f), ("Far Target Y Up"))
+
+		// くの字の向き
+		REFLECT_FIELD(float, lockOnSideSwitchThreshold, (0.35f), ("Side Switch Threshold"))
+		REFLECT_FIELD(float, lockOnSideSmoothSpeed, (2.0f), ("Side Smooth Speed"))
+
+		// 円の中心O
+		REFLECT_FIELD(float, lockOnCenterRatio, (0.25f), ("Center Ratio"))
+		REFLECT_FIELD(float, lockOnFarCenterMaxDistance, (1.2f), ("Far Center Max Distance"))
+		REFLECT_FIELD(float, lockOnTargetCircleRadiusMax, (3.0f), ("Target Circle Radius Max"))
+
+		// 円周上の回転（スティック操作）
+		REFLECT_FIELD(float, lockOnOrbitRotateSpeed, (2.0f), ("Orbit Rotate Speed"))
+		REFLECT_FIELD(float, lockOnOrbitPitchRotateSpeed, (2.0f), ("Orbit Pitch Rotate Speed"))
+		REFLECT_FIELD(float, lockOnOrbitReturnSpeed, (2.0f), ("Orbit Return Speed"))
+
+		// 減衰ばね（Y軸）
+		REFLECT_FIELD(float, eyeSpringStiffness, (200.0f), ("Spring Stiffness"))
+		REFLECT_FIELD(float, eyeSpringDamping, (20.0f), ("Spring Damping"))
+
+	REFLECT_END()
+
 	// カメラの共通データ（eye, target）
 	BaseCameraComponent base;
 
@@ -13238,65 +13363,20 @@ struct GameCameraComponent
 	entt::entity lookAtTarget = entt::null;
 
 	// パラメータ
-	float yaw = 0.0f;          // カメラの回転角度
-	float pitch = 0.3f;        // カメラの上下角度
-
-
-	// 追従カメラのパラメーター
-	float followCameraDistance = 4.4f;   // カメラの距離
-	float followCameraHeight = 1.7f;     // カメラの高さ
-	float followCameraTargetYUp = 1.6f;  // 注視点のオフセット(Y)
-	float followCameraEyeSpeedRatio = 12.0f;    // eyeの追従速度比率
-	float followCameraTargetSpeedRatio = 24.0f; // target追従速度比率
-
-
-	// 注視カメラのパラメーター
-	float lockOnCameraEyeSpeedRatio = 12.0f;    // eyeの追従速度比率
-	float lockOnCameraTargetSpeedRatio = 15.0f; // target追従速度比率
-
-	// 近距離 / 遠距離 切り替えの距離しきい値
-	float lockOnRangeSwitchDistance = 10.0f;
-
-	// 近距離時のカメラパラメーター
-	float lockOnNearCameraDistance = 6.0f;   // カメラの距離
-	float lockOnNearCameraHeight = 3.0f;     // カメラの高さ
-	float lockOnNearCameraTargetYUp = 2.0f;  // 注視点のオフセット(Y)
-	float lockOnNearAngleOffsetMax = 30.0f;  // Enemyに最も近づいた時の、デフォルト角度のズレ
-
-	float lockOnSide = 1.0f;                 // +1=右 -1=左
-	float lockOnSideSwitchThreshold = 0.35f; // この角度を超えて倒すと向きが切り替わる
-
-	float lockOnSideSmooth = 1.0f;           // lockOnSideへ、lerpでなめらかに追従する値
-	float lockOnSideSmoothSpeed = 2.0f;      // 1フレームで縮める割合の目安値
-
-	// 遠距離時のカメラパラメーター
-	float lockOnFarCameraDistance = 6.0f;  // カメラの距離
-	float lockOnFarCameraHeight = 3.0f;    // カメラの高さ
-	float lockOnFarCameraTargetYUp = 2.0f; // 注視点のオフセット(Y)
-
-
-	// 円の中心
-	float lockOnCenterRatio = 0.25f;          // PlayerからEnemyの按分比率
-	float lockOnFarCenterMaxDistance = 1.2f;  // Playerからの固定距離の上限(遠距離)
-	float lockOnTargetCircleRadiusMax = 3.0f; // target円の半径の上限
+	float yaw = 0.0f;   // カメラの回転角度
+	float pitch = 0.3f; // カメラの上下角度
 	
-	// 円周上の角度(水平)
+	// ロックオン中の、円周上の角度（スティックで動く）
 	float lockOnOrbitAngle = 0.0f;
-	float lockOnOrbitRotateSpeed = 2.0f; // スティックでの回転速度
-	// 円周上の角度(上下)
 	float lockOnOrbitPitch = 0.0f;
-	float lockOnOrbitPitchRotateSpeed = 2.0f; // スティックでの上下回転速度
-	
-	// スティック入力のない時に戻す力
-	float lockOnOrbitReturnSpeed = 2.0f;
 
-	// 減衰ばね用パラメーター(カメラの速度)
-	DirectX::XMFLOAT3 eyeVelocity = {};    // currentEyeの現在の速度
-	DirectX::XMFLOAT3 targetVelocity = {}; // currentTargetの現在の速度
+	// くの字の向き（+1=右 -1=左）と、それになめらかに追従する値
+	float lockOnSide = 1.0f;
+	float lockOnSideSmooth = 1.0f;
 
-	// 減衰ばね用パラメーター(eye)  
-	float eyeSpringStiffness = 200.0f; // バネの強さ（大きいほど速く反応する）
-	float eyeSpringDamping = 20.0f;    // 減衰（小さいほどオーバーシュートが大きく、揺れが長く続く）
+	// ばね計算用の現在速度
+	DirectX::XMFLOAT3 eyeVelocity = {};
+	DirectX::XMFLOAT3 targetVelocity = {};
 }; 
  
 ===== GameInputComponent.h ===== 
@@ -13456,9 +13536,9 @@ struct PlayerMoveComponent
 		REFLECT_FIELD(float, turnSpeed,    (10.0f), ("Turn Speed",    0.0f, 30.0f))
 
 		// 状態フラグ
-		REFLECT_FIELD(bool, isWalking, (false), ("Is Walking"))
-		REFLECT_FIELD(bool, isJogging, (false), ("Is Jogging"))
-		REFLECT_FIELD(bool, isMoving,  (false), ("Is Moving"))
+		REFLECT_FIELD(bool, isWalking, (false), ("Is Walking", 0.0f, 0.0f, 0.1f, "", true))
+		REFLECT_FIELD(bool, isJogging, (false), ("Is Jogging", 0.0f, 0.0f, 0.1f, "", true))
+		REFLECT_FIELD(bool, isMoving, (false),  ("Is Moving",  0.0f, 0.0f, 0.1f, "", true))
 
 	REFLECT_END()
 
@@ -16138,50 +16218,50 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Editor\ComponentRegistryI
 
 #include "MetaRegistry.h"
 
-#define REGISTER_COMPONENT(Type, Name, DrawFunc)                                    \
-    ComponentRegistry::Register(Name,                                               \
-    {                                                                               \
-        Name,                                                                       \
-        [](auto& r, auto e){ if (!r.any_of<Type>(e)) r.emplace<Type>(e); },         \
-        [](auto& r, auto e){ r.remove<Type>(e); },                                  \
-        [](auto& r, auto e){ return r.any_of<Type>(e); },                           \
-        [](entt::registry& r, entt::entity e) -> entt::meta_any                     \
-        {                                                                           \
-            auto* c = r.try_get<Type>(e);                                           \
-            if (!c) return entt::meta_any{};                                        \
-            return entt::forward_as_meta(*c);                                       \
-        }                                                                           \
-    });                                                                             \
-    ComponentInspectorRegistry::Register(Name, DrawFunc);                           \
+#define REGISTER_COMPONENT(Type, Name, DrawFunc)                            \
+    ComponentRegistry::Register(Name,                                       \
+    {                                                                       \
+        Name,                                                               \
+        [](auto& r, auto e){ if (!r.any_of<Type>(e)) r.emplace<Type>(e); }, \
+        [](auto& r, auto e){ r.remove<Type>(e); },                          \
+        [](auto& r, auto e){ return r.any_of<Type>(e); },                   \
+        [](entt::registry& r, entt::entity e) -> entt::meta_any             \
+        {                                                                   \
+            auto* c = r.try_get<Type>(e);                                   \
+            if (!c) return entt::meta_any{};                                \
+            return entt::forward_as_meta(*c);                               \
+        }                                                                   \
+    });                                                                     \
+    ComponentInspectorRegistry::Register(Name, DrawFunc);                   \
     ComponentRegistry::RegisterTypeName(#Type, Name)
 
 // 独自UIが不要な、シンプルなコンポーネント用
-#define REGISTER_COMPONENT_AUTO(Type, Name)                                         \
-    ComponentRegistry::Register(Name,                                               \
-    {                                                                               \
-        Name,                                                                       \
-        [](auto& r, auto e){ if (!r.any_of<Type>(e)) r.emplace<Type>(e); },         \
-        [](auto& r, auto e){ r.remove<Type>(e); },                                  \
-        [](auto& r, auto e){ return r.any_of<Type>(e); },                           \
-        [](entt::registry& r, entt::entity e) -> entt::meta_any                     \
-        {                                                                           \
-            auto* c = r.try_get<Type>(e);                                           \
-            if (!c) return entt::meta_any{};                                        \
-            return entt::forward_as_meta(*c);                                       \
-        }                                                                           \
-    });                                                                             \
+#define REGISTER_COMPONENT_AUTO(Type, Name)                                 \
+    ComponentRegistry::Register(Name,                                       \
+    {                                                                       \
+        Name,                                                               \
+        [](auto& r, auto e){ if (!r.any_of<Type>(e)) r.emplace<Type>(e); }, \
+        [](auto& r, auto e){ r.remove<Type>(e); },                          \
+        [](auto& r, auto e){ return r.any_of<Type>(e); },                   \
+        [](entt::registry& r, entt::entity e) -> entt::meta_any             \
+        {                                                                   \
+            auto* c = r.try_get<Type>(e);                                   \
+            if (!c) return entt::meta_any{};                                \
+            return entt::forward_as_meta(*c);                               \
+        }                                                                   \
+    });                                                                     \
     ComponentRegistry::RegisterTypeName(#Type, Name)
 
-#define DRAW_COMPONENT(Type, Label, body)                                           \
+#define DRAW_COMPONENT(Type, Label, body)                                   \
 
 
-#define DRAW_COMPONENT(Type, Label, body)                                           \
-    [](auto& reg, auto e)                                                           \
-    {                                                                               \
-        auto* _c = reg.try_get<Type>(e);                                            \
-        if (!_c) return;                                                            \
-        if (ImGui::CollapsingHeader(Label, ImGuiTreeNodeFlags_DefaultOpen))         \
-        { body }                                                                    \
+#define DRAW_COMPONENT(Type, Label, body)                                   \
+    [](auto& reg, auto e)                                                   \
+    {                                                                       \
+        auto* _c = reg.try_get<Type>(e);                                    \
+        if (!_c) return;                                                    \
+        if (ImGui::CollapsingHeader(Label, ImGuiTreeNodeFlags_DefaultOpen)) \
+        { body }                                                            \
     }
 
 void ComponentRegistryInitializer::Initialize()
@@ -16708,25 +16788,15 @@ void HierarchyWindow::Draw(entt::registry& registry, EditorContext& context)
             // プレハブのパスを受け取る
             std::string prefabPath(static_cast<const char*>(payload->Data));
 
-            // JSONファイルを読み込む
-            std::ifstream ifs(prefabPath);
-            if (ifs)
+            // プレハブからEntityを生成する（読み込みに失敗した場合は、何も置かれない）
+            entt::entity e = EntitySerializer::InstantiatePrefab(registry, prefabPath);
+            if (e != entt::null)
             {
-                nlohmann::json data;
-                ifs >> data;
-
-                // Entity 生成し、JSONの内容を反映する
-                entt::entity e = registry.create();
-                EntitySerializer::DeserializeEntity(registry, e, data);
-
-                // このEntityが、どのプレハブから生成されたかを記録する
-                registry.emplace<PrefabInstanceComponent>(e, prefabPath);
-
                 // ファイル名（.prefab.jsonを除いた部分）から Entity 名を設定
                 std::filesystem::path p(prefabPath);
-                std::string stem = p.stem().string(); // "○○.prefab"
+                std::string stem = p.stem().string(); // "xxx.prefab"
                 std::filesystem::path stemPath(stem);
-                context.SetName(e, stemPath.stem().string()); // "○○"
+                context.SetName(e, stemPath.stem().string()); // "xxx"
 
                 context.Select(e);
             }
@@ -16892,7 +16962,7 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Editor\LogWindow.cpp
 
 void LogWindow::Draw()
 {
-	ImGui::Begin("log");
+	ImGui::Begin("Log");
 
 	// ログが更新されていたら、表示用の写しを取り直す
 	uint64_t version = LogBuffer::Version();
@@ -16916,7 +16986,7 @@ void LogWindow::Draw()
 		}
 	}
 
-	ImGui::BeginChild("ConsoleScroll", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);
+	ImGui::BeginChild("LogScroll", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);
 
 	// 画面に見えている行だけを描画する
 	ImGuiListClipper clipper;

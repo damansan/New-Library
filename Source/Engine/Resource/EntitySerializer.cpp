@@ -1,6 +1,12 @@
 #include "EntitySerializer.h"
 #include "Engine/Resource/ComponentRegistry.h"
+#include "Engine/ECS/Components/PrefabInstanceComponent.h"
+#include "Engine/Core/Log.h"
+
+#include "Tool/Editor/MetaRegistry.h"
+
 #include <DirectXMath.h>
+#include <fstream>
 
 nlohmann::json EntitySerializer::SerializeEntity(entt::registry& registry, entt::entity e)
 {
@@ -21,9 +27,18 @@ nlohmann::json EntitySerializer::SerializeEntity(entt::registry& registry, entt:
 
 		for (auto&& [id, metaData] : metaType.data())
 		{
+			// readOnlyの項目は、実行中にSystemが書き換える状態なので、保存しない
+			FieldInfo* fieldInfo = metaData.custom();
+			if (fieldInfo && fieldInfo->readOnly) continue;
+
 			std::string fieldName(metaData.name());
 			entt::meta_any value = metaData.get(info->getMeta(registry, e));
-			fields[fieldName] = SerializeMetaAny(value);
+
+			// 保存に未対応の型は、書き出さない
+			nlohmann::json serialized = SerializeMetaAny(value);
+			if (serialized.is_null()) continue;
+
+			fields[fieldName] = serialized;
 		}
 
 		result[name] = fields;
@@ -68,7 +83,12 @@ void EntitySerializer::DeserializeEntity(entt::registry& registry, entt::entity 
 	for (auto& [name, fields] : data.items())
 	{
 		const ComponentInfo* info = ComponentRegistry::Get(name);
-		if (!info) continue; // 今は存在しないコンポーネント名は無視(削除されたコンポーネント対策)
+		if (!info)
+		{
+			// 削除・改名されたコンポーネント。落とさずに飛ばして、ログに残す
+			Log(u8"未登録のコンポーネントを無視しました: %s", name.c_str());
+			continue;
+		}
 
 		info->add(registry, e); // 無ければ付与
 		if (!info->getMeta) continue;
@@ -80,12 +100,66 @@ void EntitySerializer::DeserializeEntity(entt::registry& registry, entt::entity 
 
 		for (auto&& [id, metaData] : metaType.data())
 		{
-			std::string fieldName(metaData.name());
-			if (!fields.contains(fieldName)) continue; // JSONに無いフィールドは初期値のまま(無視)
+			// readOnlyの項目は、ファイルに入っていても書き戻さない
+			FieldInfo* fieldInfo = metaData.custom();
+			if (fieldInfo && fieldInfo->readOnly) continue;
 
+			std::string fieldName(metaData.name());
+			if (!fields.contains(fieldName)) continue; // JSONに無いフィールドは初期値のまま
 			DeserializeMetaAny(metaData, instance, fields[fieldName]);
 		}
 	}
+}
+
+// JSONファイルを読み込む。ファイルが無い・壊れている場合は、falseを返す
+bool EntitySerializer::LoadJsonFile(const std::string& path, nlohmann::json& out)
+{
+	std::ifstream ifs(path);
+	if (!ifs)
+	{
+		Log(u8"ファイルを開けません: %s", path.c_str());
+		return false;
+	}
+
+	// 例外を無効にして、壊れたファイルでもアプリを落とさない
+	out = nlohmann::json::parse(ifs, nullptr, false);
+	if (out.is_discarded())
+	{
+		Log(u8"JSONの形式が不正です: %s", path.c_str());
+		return false;
+	}
+	return true;
+}
+
+// プレハブファイルからEntityを生成する。成功したらそのEntityを、失敗したらentt::nullを返す
+entt::entity EntitySerializer::InstantiatePrefab(entt::registry& registry, const std::string& prefabPath)
+{
+	nlohmann::json data;
+	if (!LoadJsonFile(prefabPath, data)) return entt::null;
+
+	if (!data.is_object())
+	{
+		Log(u8"プレハブの形式が不正です: %s", prefabPath.c_str());
+		return entt::null;
+	}
+
+	entt::entity e = registry.create();
+
+	try
+	{
+		DeserializeEntity(registry, e, data);
+	}
+	catch (const nlohmann::json::exception& ex)
+	{
+		// 値の型が想定と違う場合など。作りかけのEntityは残さない
+		Log(u8"プレハブの復元中にエラー: %s (%s)", prefabPath.c_str(), ex.what());
+		registry.destroy(e);
+		return entt::null;
+	}
+
+	// どのプレハブから生まれたかを記録する
+	registry.emplace<PrefabInstanceComponent>(e, prefabPath);
+	return e;
 }
 
 void EntitySerializer::DeserializeMetaAny(entt::meta_data metaData, entt::meta_any& instance, const nlohmann::json& value)

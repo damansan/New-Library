@@ -22,9 +22,9 @@ struct PlayerMoveComponent
 		REFLECT_FIELD(float, turnSpeed,    (10.0f), ("Turn Speed",    0.0f, 30.0f))
 
 		// èÛë‘ÉtÉâÉO
-		REFLECT_FIELD(bool, isWalking, (false), ("Is Walking"))
-		REFLECT_FIELD(bool, isJogging, (false), ("Is Jogging"))
-		REFLECT_FIELD(bool, isMoving,  (false), ("Is Moving"))
+		REFLECT_FIELD(bool, isWalking, (false), ("Is Walking", 0.0f, 0.0f, 0.1f, "", true))
+		REFLECT_FIELD(bool, isJogging, (false), ("Is Jogging", 0.0f, 0.0f, 0.1f, "", true))
+		REFLECT_FIELD(bool, isMoving, (false),  ("Is Moving",  0.0f, 0.0f, 0.1f, "", true))
 
 	REFLECT_END()
 

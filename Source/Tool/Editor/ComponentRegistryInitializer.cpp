@@ -38,50 +38,50 @@
 
 #include "MetaRegistry.h"
 
-#define REGISTER_COMPONENT(Type, Name, DrawFunc)                                    \
-    ComponentRegistry::Register(Name,                                               \
-    {                                                                               \
-        Name,                                                                       \
-        [](auto& r, auto e){ if (!r.any_of<Type>(e)) r.emplace<Type>(e); },         \
-        [](auto& r, auto e){ r.remove<Type>(e); },                                  \
-        [](auto& r, auto e){ return r.any_of<Type>(e); },                           \
-        [](entt::registry& r, entt::entity e) -> entt::meta_any                     \
-        {                                                                           \
-            auto* c = r.try_get<Type>(e);                                           \
-            if (!c) return entt::meta_any{};                                        \
-            return entt::forward_as_meta(*c);                                       \
-        }                                                                           \
-    });                                                                             \
-    ComponentInspectorRegistry::Register(Name, DrawFunc);                           \
+#define REGISTER_COMPONENT(Type, Name, DrawFunc)                            \
+    ComponentRegistry::Register(Name,                                       \
+    {                                                                       \
+        Name,                                                               \
+        [](auto& r, auto e){ if (!r.any_of<Type>(e)) r.emplace<Type>(e); }, \
+        [](auto& r, auto e){ r.remove<Type>(e); },                          \
+        [](auto& r, auto e){ return r.any_of<Type>(e); },                   \
+        [](entt::registry& r, entt::entity e) -> entt::meta_any             \
+        {                                                                   \
+            auto* c = r.try_get<Type>(e);                                   \
+            if (!c) return entt::meta_any{};                                \
+            return entt::forward_as_meta(*c);                               \
+        }                                                                   \
+    });                                                                     \
+    ComponentInspectorRegistry::Register(Name, DrawFunc);                   \
     ComponentRegistry::RegisterTypeName(#Type, Name)
 
 // 独自UIが不要な、シンプルなコンポーネント用
-#define REGISTER_COMPONENT_AUTO(Type, Name)                                         \
-    ComponentRegistry::Register(Name,                                               \
-    {                                                                               \
-        Name,                                                                       \
-        [](auto& r, auto e){ if (!r.any_of<Type>(e)) r.emplace<Type>(e); },         \
-        [](auto& r, auto e){ r.remove<Type>(e); },                                  \
-        [](auto& r, auto e){ return r.any_of<Type>(e); },                           \
-        [](entt::registry& r, entt::entity e) -> entt::meta_any                     \
-        {                                                                           \
-            auto* c = r.try_get<Type>(e);                                           \
-            if (!c) return entt::meta_any{};                                        \
-            return entt::forward_as_meta(*c);                                       \
-        }                                                                           \
-    });                                                                             \
+#define REGISTER_COMPONENT_AUTO(Type, Name)                                 \
+    ComponentRegistry::Register(Name,                                       \
+    {                                                                       \
+        Name,                                                               \
+        [](auto& r, auto e){ if (!r.any_of<Type>(e)) r.emplace<Type>(e); }, \
+        [](auto& r, auto e){ r.remove<Type>(e); },                          \
+        [](auto& r, auto e){ return r.any_of<Type>(e); },                   \
+        [](entt::registry& r, entt::entity e) -> entt::meta_any             \
+        {                                                                   \
+            auto* c = r.try_get<Type>(e);                                   \
+            if (!c) return entt::meta_any{};                                \
+            return entt::forward_as_meta(*c);                               \
+        }                                                                   \
+    });                                                                     \
     ComponentRegistry::RegisterTypeName(#Type, Name)
 
-#define DRAW_COMPONENT(Type, Label, body)                                           \
+#define DRAW_COMPONENT(Type, Label, body)                                   \
 
 
-#define DRAW_COMPONENT(Type, Label, body)                                           \
-    [](auto& reg, auto e)                                                           \
-    {                                                                               \
-        auto* _c = reg.try_get<Type>(e);                                            \
-        if (!_c) return;                                                            \
-        if (ImGui::CollapsingHeader(Label, ImGuiTreeNodeFlags_DefaultOpen))         \
-        { body }                                                                    \
+#define DRAW_COMPONENT(Type, Label, body)                                   \
+    [](auto& reg, auto e)                                                   \
+    {                                                                       \
+        auto* _c = reg.try_get<Type>(e);                                    \
+        if (!_c) return;                                                    \
+        if (ImGui::CollapsingHeader(Label, ImGuiTreeNodeFlags_DefaultOpen)) \
+        { body }                                                            \
     }
 
 void ComponentRegistryInitializer::Initialize()

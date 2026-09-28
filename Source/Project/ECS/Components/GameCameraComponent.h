@@ -1,6 +1,7 @@
 #pragma once
 #include <DirectXMath.h>
 #include "entt.hpp"
+#include "Engine/ECS/Reflect.h"
 #include "Engine/ECS/Components/BaseCameraComponent.h"
 
 // カメラの種類
@@ -19,6 +20,52 @@ enum class LockOnRangeState
 // ゲームカメラコンポーネント
 struct GameCameraComponent
 {
+	// 調整用カメラパラメーター
+	REFLECT_BEGIN(GameCameraComponent, "GameCamera")
+
+		// 追従カメラ
+		REFLECT_FIELD(float, followCameraDistance, (4.4f), ("Follow Distance"))
+		REFLECT_FIELD(float, followCameraHeight, (1.7f), ("Follow Height"))
+		REFLECT_FIELD(float, followCameraTargetYUp, (1.6f), ("Follow Target Y Up"))
+		REFLECT_FIELD(float, followCameraEyeSpeedRatio, (12.0f), ("Follow Eye Speed Ratio"))
+		REFLECT_FIELD(float, followCameraTargetSpeedRatio, (24.0f), ("Follow Target Speed Ratio"))
+
+		// ロックオン共通
+		REFLECT_FIELD(float, lockOnCameraEyeSpeedRatio, (12.0f), ("LockOn Eye Speed Ratio"))
+		REFLECT_FIELD(float, lockOnCameraTargetSpeedRatio, (15.0f), ("LockOn Target Speed Ratio"))
+		REFLECT_FIELD(float, lockOnRangeSwitchDistance, (10.0f), ("LockOn Range Switch Distance"))
+
+		// ロックオン近距離
+		REFLECT_FIELD(float, lockOnNearCameraDistance, (6.0f), ("Near Distance"))
+		REFLECT_FIELD(float, lockOnNearCameraHeight, (3.0f), ("Near Height"))
+		REFLECT_FIELD(float, lockOnNearCameraTargetYUp, (2.0f), ("Near Target Y Up"))
+		REFLECT_FIELD(float, lockOnNearAngleOffsetMax, (30.0f), ("Near Angle Offset Max"))
+
+		// ロックオン遠距離
+		REFLECT_FIELD(float, lockOnFarCameraDistance, (6.0f), ("Far Distance"))
+		REFLECT_FIELD(float, lockOnFarCameraHeight, (3.0f), ("Far Height"))
+		REFLECT_FIELD(float, lockOnFarCameraTargetYUp, (2.0f), ("Far Target Y Up"))
+
+		// くの字の向き
+		REFLECT_FIELD(float, lockOnSideSwitchThreshold, (0.35f), ("Side Switch Threshold"))
+		REFLECT_FIELD(float, lockOnSideSmoothSpeed, (2.0f), ("Side Smooth Speed"))
+
+		// 円の中心O
+		REFLECT_FIELD(float, lockOnCenterRatio, (0.25f), ("Center Ratio"))
+		REFLECT_FIELD(float, lockOnFarCenterMaxDistance, (1.2f), ("Far Center Max Distance"))
+		REFLECT_FIELD(float, lockOnTargetCircleRadiusMax, (3.0f), ("Target Circle Radius Max"))
+
+		// 円周上の回転（スティック操作）
+		REFLECT_FIELD(float, lockOnOrbitRotateSpeed, (2.0f), ("Orbit Rotate Speed"))
+		REFLECT_FIELD(float, lockOnOrbitPitchRotateSpeed, (2.0f), ("Orbit Pitch Rotate Speed"))
+		REFLECT_FIELD(float, lockOnOrbitReturnSpeed, (2.0f), ("Orbit Return Speed"))
+
+		// 減衰ばね（Y軸）
+		REFLECT_FIELD(float, eyeSpringStiffness, (200.0f), ("Spring Stiffness"))
+		REFLECT_FIELD(float, eyeSpringDamping, (20.0f), ("Spring Damping"))
+
+	REFLECT_END()
+
 	// カメラの共通データ（eye, target）
 	BaseCameraComponent base;
 
@@ -33,63 +80,18 @@ struct GameCameraComponent
 	entt::entity lookAtTarget = entt::null;
 
 	// パラメータ
-	float yaw = 0.0f;          // カメラの回転角度
-	float pitch = 0.3f;        // カメラの上下角度
-
-
-	// 追従カメラのパラメーター
-	float followCameraDistance = 4.4f;   // カメラの距離
-	float followCameraHeight = 1.7f;     // カメラの高さ
-	float followCameraTargetYUp = 1.6f;  // 注視点のオフセット(Y)
-	float followCameraEyeSpeedRatio = 12.0f;    // eyeの追従速度比率
-	float followCameraTargetSpeedRatio = 24.0f; // target追従速度比率
-
-
-	// 注視カメラのパラメーター
-	float lockOnCameraEyeSpeedRatio = 12.0f;    // eyeの追従速度比率
-	float lockOnCameraTargetSpeedRatio = 15.0f; // target追従速度比率
-
-	// 近距離 / 遠距離 切り替えの距離しきい値
-	float lockOnRangeSwitchDistance = 10.0f;
-
-	// 近距離時のカメラパラメーター
-	float lockOnNearCameraDistance = 6.0f;   // カメラの距離
-	float lockOnNearCameraHeight = 3.0f;     // カメラの高さ
-	float lockOnNearCameraTargetYUp = 2.0f;  // 注視点のオフセット(Y)
-	float lockOnNearAngleOffsetMax = 30.0f;  // Enemyに最も近づいた時の、デフォルト角度のズレ
-
-	float lockOnSide = 1.0f;                 // +1=右 -1=左
-	float lockOnSideSwitchThreshold = 0.35f; // この角度を超えて倒すと向きが切り替わる
-
-	float lockOnSideSmooth = 1.0f;           // lockOnSideへ、lerpでなめらかに追従する値
-	float lockOnSideSmoothSpeed = 2.0f;      // 1フレームで縮める割合の目安値
-
-	// 遠距離時のカメラパラメーター
-	float lockOnFarCameraDistance = 6.0f;  // カメラの距離
-	float lockOnFarCameraHeight = 3.0f;    // カメラの高さ
-	float lockOnFarCameraTargetYUp = 2.0f; // 注視点のオフセット(Y)
-
-
-	// 円の中心
-	float lockOnCenterRatio = 0.25f;          // PlayerからEnemyの按分比率
-	float lockOnFarCenterMaxDistance = 1.2f;  // Playerからの固定距離の上限(遠距離)
-	float lockOnTargetCircleRadiusMax = 3.0f; // target円の半径の上限
+	float yaw = 0.0f;   // カメラの回転角度
+	float pitch = 0.3f; // カメラの上下角度
 	
-	// 円周上の角度(水平)
+	// ロックオン中の、円周上の角度（スティックで動く）
 	float lockOnOrbitAngle = 0.0f;
-	float lockOnOrbitRotateSpeed = 2.0f; // スティックでの回転速度
-	// 円周上の角度(上下)
 	float lockOnOrbitPitch = 0.0f;
-	float lockOnOrbitPitchRotateSpeed = 2.0f; // スティックでの上下回転速度
-	
-	// スティック入力のない時に戻す力
-	float lockOnOrbitReturnSpeed = 2.0f;
 
-	// 減衰ばね用パラメーター(カメラの速度)
-	DirectX::XMFLOAT3 eyeVelocity = {};    // currentEyeの現在の速度
-	DirectX::XMFLOAT3 targetVelocity = {}; // currentTargetの現在の速度
+	// くの字の向き（+1=右 -1=左）と、それになめらかに追従する値
+	float lockOnSide = 1.0f;
+	float lockOnSideSmooth = 1.0f;
 
-	// 減衰ばね用パラメーター(eye)  
-	float eyeSpringStiffness = 200.0f; // バネの強さ（大きいほど速く反応する）
-	float eyeSpringDamping = 20.0f;    // 減衰（小さいほどオーバーシュートが大きく、揺れが長く続く）
+	// ばね計算用の現在速度
+	DirectX::XMFLOAT3 eyeVelocity = {};
+	DirectX::XMFLOAT3 targetVelocity = {};
 };

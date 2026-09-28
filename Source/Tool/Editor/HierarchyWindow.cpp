@@ -144,25 +144,15 @@ void HierarchyWindow::Draw(entt::registry& registry, EditorContext& context)
             // プレハブのパスを受け取る
             std::string prefabPath(static_cast<const char*>(payload->Data));
 
-            // JSONファイルを読み込む
-            std::ifstream ifs(prefabPath);
-            if (ifs)
+            // プレハブからEntityを生成する（読み込みに失敗した場合は、何も置かれない）
+            entt::entity e = EntitySerializer::InstantiatePrefab(registry, prefabPath);
+            if (e != entt::null)
             {
-                nlohmann::json data;
-                ifs >> data;
-
-                // Entity 生成し、JSONの内容を反映する
-                entt::entity e = registry.create();
-                EntitySerializer::DeserializeEntity(registry, e, data);
-
-                // このEntityが、どのプレハブから生成されたかを記録する
-                registry.emplace<PrefabInstanceComponent>(e, prefabPath);
-
                 // ファイル名（.prefab.jsonを除いた部分）から Entity 名を設定
                 std::filesystem::path p(prefabPath);
-                std::string stem = p.stem().string(); // "○○.prefab"
+                std::string stem = p.stem().string(); // "xxx.prefab"
                 std::filesystem::path stemPath(stem);
-                context.SetName(e, stemPath.stem().string()); // "○○"
+                context.SetName(e, stemPath.stem().string()); // "xxx"
 
                 context.Select(e);
             }

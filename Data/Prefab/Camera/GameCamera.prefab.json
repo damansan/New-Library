@@ -2,7 +2,33 @@
     "Category": {
         "category": "Camera"
     },
-    "GameCamera": {},
+    "GameCamera": {
+        "eyeSpringDamping": 20.0,
+        "eyeSpringStiffness": 200.0,
+        "followCameraDistance": 4.400000095367432,
+        "followCameraEyeSpeedRatio": 12.0,
+        "followCameraHeight": 1.7000000476837158,
+        "followCameraTargetSpeedRatio": 24.0,
+        "followCameraTargetYUp": 1.600000023841858,
+        "lockOnCameraEyeSpeedRatio": 12.0,
+        "lockOnCameraTargetSpeedRatio": 15.0,
+        "lockOnCenterRatio": 0.25,
+        "lockOnFarCameraDistance": 6.0,
+        "lockOnFarCameraHeight": 2.5999999046325684,
+        "lockOnFarCameraTargetYUp": 2.0,
+        "lockOnFarCenterMaxDistance": 1.2000000476837158,
+        "lockOnNearAngleOffsetMax": 20.0,
+        "lockOnNearCameraDistance": 6.0,
+        "lockOnNearCameraHeight": 3.0,
+        "lockOnNearCameraTargetYUp": 2.0,
+        "lockOnOrbitPitchRotateSpeed": 2.0,
+        "lockOnOrbitReturnSpeed": 2.0,
+        "lockOnOrbitRotateSpeed": 2.0,
+        "lockOnRangeSwitchDistance": 10.0,
+        "lockOnSideSmoothSpeed": 1.0,
+        "lockOnSideSwitchThreshold": 0.3499999940395355,
+        "lockOnTargetCircleRadiusMax": 3.0
+    },
     "Transform": {
         "position": [
             0.0,
