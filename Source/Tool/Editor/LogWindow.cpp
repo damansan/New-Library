@@ -2,7 +2,7 @@
 
 void LogWindow::Draw()
 {
-	ImGui::Begin("log");
+	ImGui::Begin("Log");
 
 	// ログが更新されていたら、表示用の写しを取り直す
 	uint64_t version = LogBuffer::Version();
@@ -26,7 +26,7 @@ void LogWindow::Draw()
 		}
 	}
 
-	ImGui::BeginChild("ConsoleScroll", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);
+	ImGui::BeginChild("LogScroll", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);
 
 	// 画面に見えている行だけを描画する
 	ImGuiListClipper clipper;

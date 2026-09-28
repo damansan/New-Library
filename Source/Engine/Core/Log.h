@@ -50,8 +50,8 @@ namespace LogBuffer
 	{
 		SYSTEMTIME now;
 		GetLocalTime(&now);
-		char time[16];
-		snprintf(time, sizeof(time), "%02d:%02d:%02d", now.wHour, now.wMinute, now.wSecond);
+		char timestamp[16];
+		snprintf(timestamp, sizeof(timestamp), "%02d:%02d:%02d", now.wHour, now.wMinute, now.wSecond);
 
 		// Visual Studioの「出力」ウィンドウ
 		OutputDebugStringW(detail::Utf8ToWide(std::string(message) + "\n").c_str());
@@ -59,7 +59,7 @@ namespace LogBuffer
 		// メモリ上のバッファ（将来、別スレッドから書かれても安全なようにロックする）
 		auto& storage = detail::GetStorage();
 		std::lock_guard<std::mutex> lock(storage.mutex);
-		storage.entries.push_back({ time, message });
+		storage.entries.push_back({ timestamp, message });
 		if (storage.entries.size() > MaxEntries)
 		{
 			storage.entries.pop_front();

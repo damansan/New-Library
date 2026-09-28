@@ -35,8 +35,6 @@ framework::framework(HWND hwnd) : hwnd(hwnd)
 	// Studio共有リソース初期化
 	studioShared.Initialize(graphics.GetDevice());
 
-	Log(u8"ログ機能のテスト");
-	Log(u8"数値の表示: %d", 123);
 #ifndef _DEBUG
 	// リリース時はボーダーレスフルスクリーンで起動
 	graphics.ToggleFullscreen();

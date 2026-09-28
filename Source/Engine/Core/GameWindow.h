@@ -65,10 +65,10 @@ private:
     bool firstDockSetup = true;
 
     // ドッキング比率
-    float dockRatioBottom = 0.2f;  // Project / Prefab
-
     float dockRatioLeft = 0.1f;  // Hierarchy
     float dockRatioRight = 0.15f; // Inspector
-    float dockRatioPrefab = 0.6f; // Prefab / log
-    float dockRatiolog = 0.5f;    // log
+
+    float dockRatioBottom = 0.2f;  // Project / Prefab
+    float dockRatioPrefab = 0.75f; // Prefab / Log
+    float dockRatioLog = 0.5f;    // Log
 };
