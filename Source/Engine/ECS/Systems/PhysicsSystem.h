@@ -29,6 +29,9 @@ public:
 	// 更新
 	void Update(entt::registry& registry, PhysX& physX, physx::PxScene* pxScene, physx::PxControllerManager* controllerManager, float elapsedTime);
 
+	// 剛体コンポーネントが外れる/エンティティが破壊される前にPhysXの実体を削除する
+	static void ConnectDestroyListeners(entt::registry& registry);
+
 	// レイヤーにレイキャスト
 	static RaycastHitResult Raycast(
 		physx::PxScene* pxScene,
@@ -40,6 +43,10 @@ public:
 	static std::vector<DebugRay> FetchDebugRays();
 
 private:
+
+	// PhysicsBodyTypeComponent::type に合わせて、剛体コンポーネントを付け外しする
+	void SyncBodyTypes(entt::registry& registry);
+
 	// 削除予約されたActorを解放する
 	void ProcessDestroyQueue();
 

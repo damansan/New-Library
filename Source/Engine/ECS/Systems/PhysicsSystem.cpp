@@ -22,14 +22,45 @@ static PxQuat ToPxQuat(const DirectX::XMFLOAT3& rotation)
 	return PxQuat(qf.x, qf.y, qf.z, qf.w);
 }
 
+namespace
+{
+	// StaticBodyComponentが外れる／Entityが破棄される直前に、Actorを破棄予約する
+	void OnStaticBodyDestroyed(entt::registry& registry, entt::entity entity)
+	{
+		if (auto* body = registry.try_get<StaticBodyComponent>(entity))
+		{
+			PhysicsDestroyQueue::Push(body->actor);
+			body->actor = nullptr; // 二重予約の保険
+		}
+	}
+
+	// CharacterControllerComponentが外れる／Entityが破棄される直前に、Controllerを破棄予約する
+	void OnCharacterControllerDestroyed(entt::registry& registry, entt::entity entity)
+	{
+		if (auto* ctrl = registry.try_get<CharacterControllerComponent>(entity))
+		{
+			PhysicsDestroyQueue::Push(ctrl->controller);
+			ctrl->controller = nullptr; // 二重予約の保険
+		}
+	}
+}
+
 // 更新
 void PhysicsSystem::Update(entt::registry& registry, PhysX& physX, physx::PxScene* pxScene, physx::PxControllerManager* controllerManager, float elapsedTime)
 {
+	SyncBodyTypes(registry);
 	ProcessDestroyQueue();
 	ProcessStaticBodies(registry, physX, pxScene);
 	// ProcessDynamicBodies(registry, physX, pxScene);
 	ProcessCharacterControllers(registry, physX, controllerManager, elapsedTime);
 
+}
+
+// 剛体コンポーネントが外れる/エンティティが破壊される前にPhysXの実体を削除する
+void PhysicsSystem::ConnectDestroyListeners(entt::registry& registry)
+{
+	registry.on_destroy<StaticBodyComponent>().connect<&OnStaticBodyDestroyed>();
+	registry.on_destroy<CharacterControllerComponent>().connect<&OnCharacterControllerDestroyed>();
 }
 
 // レイヤーにレイキャスト
@@ -95,6 +126,54 @@ std::vector<DebugRay> PhysicsSystem::FetchDebugRays()
 	std::vector<DebugRay> result = std::move(debugRays);
 	debugRays.clear();
 	return result;
+}
+
+// PhysicsBodyTypeComponent::type に合わせて、剛体コンポーネントを付け外しする
+void PhysicsSystem::SyncBodyTypes(entt::registry& registry)
+{
+	auto view = registry.view<PhysicsBodyTypeComponent>();
+
+	for (auto entity : view)
+	{
+		PhysicsBodyType type = view.get<PhysicsBodyTypeComponent>(entity).type;
+
+		// Static
+		if (type == PhysicsBodyType::Static)
+		{
+			if (!registry.all_of<StaticBodyComponent>(entity))
+			{
+				registry.emplace<StaticBodyComponent>(entity);
+			}
+		}
+		else if (registry.all_of<StaticBodyComponent>(entity))
+		{
+			// 実体のActorの破棄予約は、on_destroyの通知で行われる
+			registry.remove<StaticBodyComponent>(entity);
+		}
+
+		// Character（MovementComponentとセット）
+		if (type == PhysicsBodyType::Character)
+		{
+			if (!registry.all_of<CharacterControllerComponent>(entity))
+			{
+				registry.emplace<CharacterControllerComponent>(entity);
+			}
+			if (!registry.all_of<MovementComponent>(entity))
+			{
+				registry.emplace<MovementComponent>(entity);
+			}
+		}
+		else if (registry.all_of<CharacterControllerComponent>(entity))
+		{
+			// Controllerの破棄予約は、on_destroyの通知で行われる
+			registry.remove<CharacterControllerComponent>(entity);
+
+			if (registry.all_of<MovementComponent>(entity))
+			{
+				registry.remove<MovementComponent>(entity);
+			}
+		}
+	}
 }
 
 // 削除予約されたActorを解放する

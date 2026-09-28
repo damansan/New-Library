@@ -5,16 +5,16 @@
 using namespace entt::literals;
 
 // 型そのものの登録を開始する
-#define REFLECT_BEGIN(Type, DisplayName)                \
-private:                                                \
-    using ReflectSelf = Type;                           \
-    static inline bool _reflect_type_registered = []    \
-    {                                                   \
-        entt::meta_factory<Type>{}                      \
-            .type(#Type)                                \
-            .custom<TypeInfo>(TypeInfo{ DisplayName }); \
-        return true;                                    \
-    }();                                                \
+#define REFLECT_BEGIN(Type, DisplayName)                                            \
+private:                                                                            \
+    using ReflectSelf = Type;                                                       \
+    static inline bool _reflect_begin = []                                          \
+    {                                                                               \
+        entt::meta_factory<Type>{}                                                  \
+            .type(#Type)                                                            \
+            .custom<TypeInfo>(TypeInfo{ DisplayName });                             \
+        return true;                                                                \
+    }();                                                                            \
 public:
 
 // FieldInfoを、位置引数＋デフォルト引数で組み立てるヘルパー

@@ -46,6 +46,20 @@ nlohmann::json EntitySerializer::SerializeMetaAny(entt::meta_any& value)
 	if (DirectX::XMFLOAT4* v = value.try_cast<DirectX::XMFLOAT4>())
 		return nlohmann::json::array({ v->x, v->y, v->z, v->w });
 
+	if (value.type().is_enum())
+	{
+		// enum‚Ì’l‚ğAREFLECT_ENUM_VALUE‚Å“o˜^‚µ‚½–¼‘O(•¶š—ñ)‚Æ‚µ‚Ä•Û‘¶‚·‚é
+		entt::meta_type enumType = value.type();
+		for (auto&& [id, enumData] : enumType.data())
+		{
+			entt::meta_any constValue = enumData.get({});
+			if (constValue == value)
+			{
+				return std::string(enumData.name());
+			}
+		}
+	}
+
 	return nullptr; // ‘Î‰‚µ‚Ä‚¢‚È‚¢Œ^
 }
 
@@ -105,5 +119,20 @@ void EntitySerializer::DeserializeMetaAny(entt::meta_data metaData, entt::meta_a
 	else if (current.try_cast<DirectX::XMFLOAT4>() && value.is_array() && value.size() == 4)
 	{
 		metaData.set(instance, DirectX::XMFLOAT4{ value[0].get<float>(), value[1].get<float>(), value[2].get<float>(), value[3].get<float>() });
+	}
+	else if (current.type().is_enum() && value.is_string())
+	{
+		// •Û‘¶‚³‚ê‚Ä‚¢‚½–¼‘O‚©‚çA‘Î‰‚·‚éenum’l‚ğ’T‚µ‚Ä‘‚«–ß‚·
+		entt::meta_type enumType = current.type();
+		std::string targetName = value.get<std::string>();
+
+		for (auto&& [id, enumData] : enumType.data())
+		{
+			if (std::string(enumData.name()) == targetName)
+			{
+				metaData.set(instance, enumData.get({}));
+				break;
+			}
+		}
 	}
 }

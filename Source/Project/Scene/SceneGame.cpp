@@ -7,8 +7,11 @@
 
 void SceneGame::Initialize(const SceneContext& context)
 {
+	// 剛体コンポーネントの破棄時に、PhysXの実体を自動で破棄予約するようにする
+	PhysicsSystem::ConnectDestroyListeners(registry);
 	// 物理シーン初期化
 	InitializePhysicsScene(*context.physX);
+
 	// 描画システム初期化
 	renderSystem.Initialize(context.device);
 

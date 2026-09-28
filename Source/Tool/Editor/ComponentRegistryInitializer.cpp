@@ -310,16 +310,14 @@ void ComponentRegistryInitializer::Initialize()
 					reg.emplace<PhysicsBodyTypeComponent>(e);
 			},
 		// Remove: 共通コンポーネントと紐づいた個別のコンポーネントを両方削除
-		[](auto& reg, auto e)
+[](auto& reg, auto e)
 		{
+			// 実体(PxActor/PxController)の破棄予約は、on_destroyの通知で自動的に行われる
 			if (reg.any_of<StaticBodyComponent>(e))
 				reg.remove<StaticBodyComponent>(e);
 
-			if (auto* ctrl = reg.try_get<CharacterControllerComponent>(e))
-			{
-				PhysicsDestroyQueue::Push(ctrl->controller);
+			if (reg.any_of<CharacterControllerComponent>(e))
 				reg.remove<CharacterControllerComponent>(e);
-			}
 
 			if (reg.any_of<MovementComponent>(e))
 				reg.remove<MovementComponent>(e);
@@ -343,53 +341,14 @@ void ComponentRegistryInitializer::Initialize()
 			if (!body) return;
 			if (!ImGui::CollapsingHeader("Physics", ImGuiTreeNodeFlags_DefaultOpen)) return;
 
-			const char* typeNames[] = { "None", "Static", "Dynamic", "Character" };
-			int current = (int)body->type;
+			// typeを書き換えるだけ。剛体の生成・破棄は、PhysicsSystemが追従して行う
+			ImGui::PushID("fields");
+			MetaRegistry::DrawMetaFields(entt::resolve<PhysicsBodyTypeComponent>(), entt::forward_as_meta(*body));
+			ImGui::PopID();
 
-			if (ImGui::Combo("Type", &current, typeNames, 4))
+			switch (body->type) 
 			{
-				auto newType = (PhysicsBodyTypeComponent::Type)current;
-
-				if (body->type == PhysicsBodyTypeComponent::Type::Static)
-				{
-					auto* staticBody = reg.try_get<StaticBodyComponent>(e);
-					if (staticBody && staticBody->actor)
-					{
-						PhysicsDestroyQueue::Push(staticBody->actor);
-					}
-					reg.remove<StaticBodyComponent>(e);
-				}
-				else if (body->type == PhysicsBodyTypeComponent::Type::Character)
-				{
-					auto* ctrl = reg.try_get<CharacterControllerComponent>(e);
-					if (ctrl && ctrl->controller)
-					{
-						PhysicsDestroyQueue::Push(ctrl->controller);
-					}
-					reg.remove<CharacterControllerComponent>(e);
-
-					if (reg.any_of<MovementComponent>(e))
-						reg.remove<MovementComponent>(e);
-				}
-
-				body->type = newType;
-
-				if (newType == PhysicsBodyTypeComponent::Type::Static)
-				{
-					reg.emplace<StaticBodyComponent>(e);
-				}
-				else if (newType == PhysicsBodyTypeComponent::Type::Character)
-				{
-					reg.emplace<CharacterControllerComponent>(e);
-
-					if (!reg.any_of<MovementComponent>(e))
-						reg.emplace<MovementComponent>(e);
-				}
-			}
-
-			switch (body->type)
-			{
-			case PhysicsBodyTypeComponent::Type::Static:
+			case PhysicsBodyType::Static:
 			{
 				auto* staticBody = reg.try_get<StaticBodyComponent>(e);
 				if (staticBody)
@@ -398,10 +357,10 @@ void ComponentRegistryInitializer::Initialize()
 				}
 				break;
 			}
-			case PhysicsBodyTypeComponent::Type::Dynamic:
+			case PhysicsBodyType::Dynamic:
 				ImGui::TextColored({ 1, 0.5f, 0, 1 }, u8"Dynamicは未実装です");
 				break;
-			case PhysicsBodyTypeComponent::Type::Character:
+			case PhysicsBodyType::Character:
 			{
 				auto* ctrl = reg.try_get<CharacterControllerComponent>(e);
 				if (ctrl)

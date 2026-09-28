@@ -20,6 +20,7 @@
 #include "Tool/Editor/HierarchyWindow.h"
 #include "Tool/Editor/InspectorWindow.h"
 #include "Tool/Editor/PrefabWindow.h"
+#include "Tool/Editor/LogWindow.h"
 
 #include "Tool/Studio/StudioSharedContext.h"
 #include "Tool/Studio/StudioWindow.h"
@@ -86,6 +87,7 @@ private:
 	HierarchyWindow hierarchyWindow;
 	InspectorWindow inspectorWindow;
 	PrefabWindow    prefabWindow;
+	LogWindow       logWindow;
 
 	// Studio
 	StudioSharedContext        studioShared;

@@ -84,12 +84,17 @@ void GameWindow::DrawWindow(const char* windowName, bool& vsync)
             dockMain, ImGuiDir_Left, dockRatioLeft, nullptr, &dockMain);
         ImGuiID dockRight = ImGui::DockBuilderSplitNode(
             dockMain, ImGuiDir_Right, dockRatioRight, nullptr, &dockMain);
+        ImGuiID dockBottomRight = ImGui::DockBuilderSplitNode(
+            dockBottom, ImGuiDir_Right, dockRatioPrefab, nullptr, &dockBottom);
+        ImGuiID docklog = ImGui::DockBuilderSplitNode(
+            dockBottomRight, ImGuiDir_Right, dockRatiolog, nullptr, &dockBottomRight);
 
         ImGui::DockBuilderDockWindow("Viewport", dockMain);
         ImGui::DockBuilderDockWindow("Hierarchy", dockLeft);
         ImGui::DockBuilderDockWindow("Inspector", dockRight);
         ImGui::DockBuilderDockWindow("Project", dockBottom);
-
+        ImGui::DockBuilderDockWindow("Prefab", dockBottomRight);
+        ImGui::DockBuilderDockWindow("log", docklog);
         ImGui::DockBuilderFinish(dockSpaceId);
     }
 

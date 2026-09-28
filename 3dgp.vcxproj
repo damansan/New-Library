@@ -84,6 +84,7 @@
     <ClCompile Include="Source\Tool\AdaptiveTriggerToolWindow.cpp" />
     <ClCompile Include="Source\Tool\Editor\ComponentInspectorRegistry.cpp" />
     <ClCompile Include="Source\Tool\Editor\ComponentRegistryInitializer.cpp" />
+    <ClCompile Include="Source\Tool\Editor\LogWindow.cpp" />
     <ClCompile Include="Source\Tool\Editor\HierarchyWindow.cpp" />
     <ClCompile Include="Source\Tool\Editor\InspectorWindow.cpp" />
     <ClCompile Include="Source\Tool\Editor\MetaRegistry.cpp" />
@@ -118,6 +119,7 @@
     <ClInclude Include="Source\Engine\Core\Graphics.h" />
     <ClInclude Include="Source\Engine\Core\ImGuiManager.h" />
     <ClInclude Include="Source\Engine\Core\JsonFileCache.h" />
+    <ClInclude Include="Source\Engine\Core\Log.h" />
     <ClInclude Include="Source\Engine\Core\PhysicsDestroyQueue.h" />
     <ClInclude Include="Source\Engine\Core\PhysicsLayer.h" />
     <ClInclude Include="Source\Engine\Core\PhysX.h" />
@@ -135,6 +137,7 @@
     <ClInclude Include="Source\Engine\ECS\Components\ControllerSettings.h" />
     <ClInclude Include="Source\Engine\ECS\Components\FreeCameraComponent.h" />
     <ClInclude Include="Source\Engine\ECS\Components\IKComponent.h" />
+    <ClInclude Include="Source\Engine\ECS\Components\PrefabInstanceComponent.h" />
     <ClInclude Include="Source\Engine\ECS\Components\StateComponent.h" />
     <ClInclude Include="Source\Engine\ECS\Components\MaterialComponent.h" />
     <ClInclude Include="Source\Engine\ECS\Components\MeshComponent.h" />
@@ -198,6 +201,7 @@
     <ClInclude Include="Source\Tool\AdaptiveTriggerToolWindow.h" />
     <ClInclude Include="Source\Tool\Editor\ComponentInspectorRegistry.h" />
     <ClInclude Include="Source\Tool\Editor\ComponentRegistryInitializer.h" />
+    <ClInclude Include="Source\Tool\Editor\LogWindow.h" />
     <ClInclude Include="Source\Tool\Editor\EditorContext.h" />
     <ClInclude Include="Source\Tool\Editor\HierarchyWindow.h" />
     <ClInclude Include="Source\Tool\Editor\InspectorWindow.h" />

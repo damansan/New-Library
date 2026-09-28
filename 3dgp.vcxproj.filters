@@ -365,6 +365,12 @@
     <Filter Include="Sources\Engine\Resource\ComponentRegistry">
       <UniqueIdentifier>{d112c1fd-5bbf-4f83-82dc-83b74a90f577}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\Engine\Core\Log">
+      <UniqueIdentifier>{041409d7-abac-4e5c-bd5c-b86161549fa8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Tool\Editor\LogWindow">
+      <UniqueIdentifier>{dc2ab9fc-e149-4c3c-92cb-7db055a85218}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="External\imgui-docking\imgui.cpp">
@@ -618,6 +624,9 @@
     </ClCompile>
     <ClCompile Include="Source\Engine\Resource\ComponentRegistry.cpp">
       <Filter>Sources\Engine\Resource\ComponentRegistry</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Tool\Editor\LogWindow.cpp">
+      <Filter>Sources\Tool\Editor\LogWindow</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -974,6 +983,15 @@
     </ClInclude>
     <ClInclude Include="Source\Engine\ECS\Reflect.h">
       <Filter>Sources\Engine\ECS</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Engine\ECS\Components\PrefabInstanceComponent.h">
+      <Filter>Sources\Engine\ECS\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Engine\Core\Log.h">
+      <Filter>Sources\Engine\Core\Log</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Tool\Editor\LogWindow.h">
+      <Filter>Sources\Tool\Editor\LogWindow</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

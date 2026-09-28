@@ -64,8 +64,11 @@ private:
     // trueの間、次のDrawWindow()でDockSpaceのレイアウトを（再）構築する
     bool firstDockSetup = true;
 
-    // ドッキング比率（実行中にメニューのスライダーで調整可能）
-    float dockRatioBottom = 0.2f;  // Project
+    // ドッキング比率
+    float dockRatioBottom = 0.2f;  // Project / Prefab
+
     float dockRatioLeft = 0.1f;  // Hierarchy
     float dockRatioRight = 0.15f; // Inspector
+    float dockRatioPrefab = 0.6f; // Prefab / log
+    float dockRatiolog = 0.5f;    // log
 };

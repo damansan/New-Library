@@ -8,6 +8,7 @@
 #include "Engine/ECS/Components/MeshComponent.h"
 #include "Engine/ECS/Components/MaterialComponent.h"
 #include "Engine/ECS/Components/CategoryComponent.h"
+#include "Engine/ECS/Components/PrefabInstanceComponent.h"
 
 #include "Engine/Resource/EntitySerializer.h"
 
@@ -64,6 +65,14 @@ void HierarchyWindow::Draw(entt::registry& registry, EditorContext& context)
             entt::entity e = entities[i];
 
             std::string name = context.GetName(e);
+
+            // プレハブのインスタンスは、名前の色を変えて見分けられるようにする
+            bool isPrefabInstance = registry.any_of<PrefabInstanceComponent>(e);
+            if (isPrefabInstance)
+            {
+                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.4f, 0.7f, 1.0f, 1.0f)); // 薄い青
+            }
+
             // 選択状態をハイライト
             bool isSelected = context.IsSelected(e);
             if (ImGui::Selectable(
@@ -72,6 +81,12 @@ void HierarchyWindow::Draw(entt::registry& registry, EditorContext& context)
             {
                 context.Select(e);
             }
+
+            if (isPrefabInstance)
+            {
+                ImGui::PopStyleColor();
+            }
+
             // Entity をドラッグできるようにする
             if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
             {
@@ -95,7 +110,7 @@ void HierarchyWindow::Draw(entt::registry& registry, EditorContext& context)
 
     ImRect dropRect(dropAreaMin, dropAreaMax);
 
-	// ドロップターゲット
+	// モデルのドロップ受け取り
     if (ImGui::BeginDragDropTargetCustom(dropRect, ImGui::GetCurrentWindow()->ID))
     {
         if (const ImGuiPayload* payload =
@@ -122,6 +137,7 @@ void HierarchyWindow::Draw(entt::registry& registry, EditorContext& context)
             context.Select(e);
         }
 
+        // プレハブのドロップ受け取り
         if (const ImGuiPayload* payload =
             ImGui::AcceptDragDropPayload("PREFAB_PATH"))
         {
@@ -138,6 +154,9 @@ void HierarchyWindow::Draw(entt::registry& registry, EditorContext& context)
                 // Entity 生成し、JSONの内容を反映する
                 entt::entity e = registry.create();
                 EntitySerializer::DeserializeEntity(registry, e, data);
+
+                // このEntityが、どのプレハブから生成されたかを記録する
+                registry.emplace<PrefabInstanceComponent>(e, prefabPath);
 
                 // ファイル名（.prefab.jsonを除いた部分）から Entity 名を設定
                 std::filesystem::path p(prefabPath);
