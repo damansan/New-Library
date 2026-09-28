@@ -1,0 +1,31 @@
+{
+    "Category": {
+        "category": "None"
+    },
+    "Material": {
+        "shadingModel": "Default"
+    },
+    "Mesh": {
+        "modelPath": "Data/Model/Stage/Fighting Stage/Fighting Stage.gltf"
+    },
+    "Physics": {
+        "type": "Static"
+    },
+    "Transform": {
+        "position": [
+            0.0,
+            0.0,
+            0.0
+        ],
+        "rotation": [
+            0.0,
+            0.0,
+            0.0
+        ],
+        "scale": [
+            2.0,
+            2.0,
+            2.0
+        ]
+    }
+}
