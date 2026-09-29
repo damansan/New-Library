@@ -95,6 +95,14 @@ private:
 	void openStudioWindow(const std::string& assetPath = "", const std::string& graphPath = "");
 	int nextStudioWindowId = 0;
 
+	// メニューバーの中身
+	void drawMainMenu();
+	// メニューが立てた、シーンの保存・読み込みリクエストを実行する
+	void processSceneRequest();
+
+	// Openの確認ポップアップ
+	std::string pendingOpenPath;
+
 private:
 	// VSync ON OFF
 	bool vsync = true;

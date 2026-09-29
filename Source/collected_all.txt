@@ -205,6 +205,14 @@ private:
 	void openStudioWindow(const std::string& assetPath = "", const std::string& graphPath = "");
 	int nextStudioWindowId = 0;
 
+	// メニューバーの中身
+	void drawMainMenu();
+	// メニューが立てた、シーンの保存・読み込みリクエストを実行する
+	void processSceneRequest();
+
+	// Openの確認ポップアップ
+	std::string pendingOpenPath;
+
 private:
 	// VSync ON OFF
 	bool vsync = true;
@@ -227,6 +235,7 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Core\GameWindow.h
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
+#include <functional>
 
 #include "Camera.h"
 
@@ -249,7 +258,7 @@ public:
     void End(ID3D11DeviceContext* dc);
 
     // ImGui描画
-    void DrawWindow(const char* windowName, bool& vsync);
+    void DrawWindow(const char* windowName, const std::function<void()>& drawMenus = nullptr);
 
     // テクスチャの再生成
     void ResizeRenderTarget(UINT width, UINT height);
@@ -927,7 +936,11 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Core\framework.cpp
 #include "Project/Scene/SceneGame.h"
 #include "Tool/Editor/ComponentRegistryInitializer.h"
 #include "Tool/Editor/MetaRegistry.h"
+#include "Tool/Editor/FileDialog.h"
 
+#include "Engine/Resource/SceneSerializer.h"
+
+#include <filesystem>
 #include <iomanip>
 
 framework::framework(HWND hwnd) : hwnd(hwnd)
@@ -1031,9 +1044,8 @@ void framework::updateImGui()
 	// シーンImGui描画
 	sceneManager.RenderImGui();
 
-	// Gameウィンドウ（ドッキング/タブ化対象）
-	gameWindow.DrawWindow("Game", vsync);
-
+	// Gameウィンドウ（ドッキング/タブ化対象）メニュー内容
+	gameWindow.DrawWindow("Game", [this]() { drawMainMenu(); });
 #ifdef _DEBUG
 	if (auto* scene = sceneManager.GetCurrentScene())
 	{
@@ -1068,6 +1080,40 @@ void framework::updateImGui()
 		studioWindows.end()
 	);
 #endif
+	// 全てのウィンドウの描画後にシーン保存・読み込みを実行する
+	processSceneRequest();
+
+	// Openの確認ポップアップ
+	if (ImGui::BeginPopupModal("Open Scene##Confirm", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+	{
+		ImGui::Text("Current scene will be discarded.\nAre you sure you want to continue?");
+		ImGui::Spacing();
+
+		if (ImGui::Button("Open", ImVec2(120, 0)))
+		{
+			Scene* scene = sceneManager.GetCurrentScene();
+			if (scene)
+			{
+				// 破棄する古いEntityへの参照が残らないよう、読み込みの前に、選択・名前マップをリセットする
+				editorContext.Deselect();
+				editorContext.entityNames.clear();
+
+				auto setName = [this](entt::entity e, const std::string& name) { editorContext.SetName(e, name); };
+
+				if (SceneSerializer::LoadFromFile(scene->GetRegistry(), pendingOpenPath, setName))
+				{
+					editorContext.currentScenePath = pendingOpenPath;
+				}
+			}
+			ImGui::CloseCurrentPopup();
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("Cancel", ImVec2(120, 0)))
+		{
+			ImGui::CloseCurrentPopup();
+		}
+		ImGui::EndPopup();
+	}
 }
 
 void framework::render(float elapsedTime)
@@ -1287,6 +1333,87 @@ void framework::openStudioWindow(const std::string& assetPath, const std::string
 	studioWindows.push_back(std::move(win));
 }
 
+// メニューバーの中身
+void framework::drawMainMenu()
+{
+	if (ImGui::BeginMenu("File"))
+	{
+		if (ImGui::MenuItem("Save"))
+		{
+			editorContext.sceneRequest = SceneAction::Save;
+		}
+		if (ImGui::MenuItem("Save As..."))
+		{
+			editorContext.sceneRequest = SceneAction::SaveAs;
+		}
+		if (ImGui::MenuItem("Open Scene..."))
+		{
+			editorContext.sceneRequest = SceneAction::Open;
+		}
+
+		ImGui::Separator();
+
+		if (ImGui::BeginMenu("System"))
+		{
+			ImGui::MenuItem("VSync", nullptr, &vsync);
+			ImGui::EndMenu();
+		}
+
+		ImGui::EndMenu();
+	}
+
+	// 今開いているシーン（Saveの上書き先）
+	std::string sceneName = editorContext.currentScenePath.empty()
+		? "(unsaved)"
+		: std::filesystem::path(editorContext.currentScenePath).filename().string();
+	ImGui::TextDisabled("Scene: %s", sceneName.c_str());
+}
+
+// シーンの保存・読み込みリクエストを実行する
+void framework::processSceneRequest()
+{
+	SceneAction action = editorContext.sceneRequest;
+	if (action == SceneAction::None) return;
+	editorContext.sceneRequest = SceneAction::None;
+
+	Scene* scene = sceneManager.GetCurrentScene();
+	if (!scene) return;
+
+	if (action == SceneAction::Open)
+	{
+		timer.stop();
+		std::string path;
+		bool selected = FileDialog::OpenScene(hwnd, path);
+		timer.start();
+
+		if (selected)
+		{
+			// 既存のEntityを破棄するため、確認ポップアップを次のフレームで開く
+			pendingOpenPath = path;
+			ImGui::OpenPopup("Open Scene##Confirm");
+		}
+		return;
+	}
+
+	std::string path = editorContext.currentScenePath;
+
+	// Save As、またはまだ保存先が無いSaveは、ダイアログで保存先を選ぶ
+	if (action == SceneAction::SaveAs || path.empty())
+	{
+		timer.stop();
+		bool selected = FileDialog::SaveScene(hwnd, path);
+		timer.start();
+
+		if (!selected) return; // キャンセル
+}
+
+	auto getName = [this](entt::entity e) { return editorContext.GetName(e); };
+	if (SceneSerializer::SaveToFile(scene->GetRegistry(), path, getName))
+	{
+		editorContext.currentScenePath = path;
+	}
+}
+
 bool framework::IsEditorActive() const
 {
 #ifdef _DEBUG
@@ -1358,14 +1485,17 @@ void GameWindow::End(ID3D11DeviceContext* dc)
 }
 
 // ImGui描画
-void GameWindow::DrawWindow(const char* windowName, bool& vsync)
+void GameWindow::DrawWindow(const char* windowName, const std::function<void()>& drawMenus)
 {
     ImGui::Begin(windowName, nullptr, ImGuiWindowFlags_MenuBar);
 
     // メニューバー
     if (ImGui::BeginMenuBar())
     {
-        ImGui::Checkbox("VSync", &vsync);
+        if (drawMenus)
+        {
+            drawMenus();
+        }
 
         ImGui::EndMenuBar();
     }
@@ -10261,6 +10391,9 @@ public:
 	// プレハブファイルからEntityを生成する。成功したらそのEntityを、失敗したらentt::nullを返す
 	static entt::entity InstantiatePrefab(entt::registry& registry, const std::string& prefabPath);
 
+	// コンポーネントの中身(JSON)からEntityを生成する。復元中にエラーが起きたら、作りかけのEntityを破棄してentt::nullを返す
+	static entt::entity CreateFromComponents(entt::registry& registry, const nlohmann::json& components);
+
 private:
 	// entt::meta_any 1つ分のフィールド値を、JSONへ変換する
 	static nlohmann::json SerializeMetaAny(entt::meta_any& value);
@@ -10840,6 +10973,39 @@ private:
 
 }; 
  
+===== SceneSerializer.h ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Resource\SceneSerializer.h 
+#pragma once
+#include <functional>
+#include <string>
+#include "entt.hpp"
+#include <json.hpp>
+
+// シーン保存 / 読み込み
+class SceneSerializer
+{
+public:
+	// 名前はコールバックで受け取る
+	using NameGetter = std::function<std::string(entt::entity)>;
+
+	static constexpr int Version = 1;
+
+	// シーン全体をJSONにする
+	static nlohmann::json Serialize(entt::registry& registry, const NameGetter& getName = nullptr);
+
+	// JSONをファイルに書き出す
+	static bool SaveToFile(entt::registry& registry, const std::string& path, const NameGetter& getName = nullptr);
+
+	// 名前はエディタ側の情報なので、設定はコールバックで渡す
+	using NameSetter = std::function<void(entt::entity, const std::string&)>;
+
+	// JSONの内容で、Entityを作る（既存のEntityには触れない）
+	static void Deserialize(entt::registry& registry, const nlohmann::json& scene, const NameSetter& setName = nullptr);
+
+	// ファイルから読み込む。読み込み前に、既存のEntityを1つずつdestroyする
+	static bool LoadFromFile(entt::registry& registry, const std::string& path, const NameSetter& setName = nullptr);
+}; 
+ 
 ===== SkeletonUtils.h ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Resource\SkeletonUtils.h 
 #pragma once
@@ -11052,22 +11218,35 @@ entt::entity EntitySerializer::InstantiatePrefab(entt::registry& registry, const
 		return entt::null;
 	}
 
-	entt::entity e = registry.create();
-
-	try
+	entt::entity e = CreateFromComponents(registry, data);
+	if (e == entt::null)
 	{
-		DeserializeEntity(registry, e, data);
-	}
-	catch (const nlohmann::json::exception& ex)
-	{
-		// 値の型が想定と違う場合など。作りかけのEntityは残さない
-		Log(u8"プレハブの復元中にエラー: %s (%s)", prefabPath.c_str(), ex.what());
-		registry.destroy(e);
+		Log(u8"プレハブの復元中にエラー: %s", prefabPath.c_str());
 		return entt::null;
 	}
 
 	// どのプレハブから生まれたかを記録する
 	registry.emplace<PrefabInstanceComponent>(e, prefabPath);
+	return e;
+}
+
+// コンポーネントの中身(JSON)からEntityを生成する。復元中にエラーが起きたら、作りかけのEntityを破棄してentt::nullを返す
+entt::entity EntitySerializer::CreateFromComponents(entt::registry& registry, const nlohmann::json& components)
+{
+	if (!components.is_object()) return entt::null;
+
+	entt::entity e = registry.create();
+
+	try
+	{
+		DeserializeEntity(registry, e, components);
+	}
+	catch (const nlohmann::json::exception&)
+	{
+		registry.destroy(e);
+		return entt::null;
+	}
+
 	return e;
 }
 
@@ -12863,6 +13042,151 @@ void ResourceManager::ReleaseModel(const std::string& filename)
 void ResourceManager::ReleaseAll()
 {
 	modelCache.clear();
+}
+ 
+ 
+===== SceneSerializer.cpp ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Resource\SceneSerializer.cpp 
+#include "SceneSerializer.h"
+#include "Engine/Resource/EntitySerializer.h"
+#include "Engine/ECS/Components/PrefabInstanceComponent.h"
+#include "Engine/Core/Log.h"
+#include <algorithm>
+#include <filesystem>
+#include <fstream>
+#include <vector>
+
+nlohmann::json SceneSerializer::Serialize(entt::registry& registry, const NameGetter& getName)
+{
+	nlohmann::json scene = nlohmann::json::object();
+	scene["version"] = Version;
+	scene["settings"] = nlohmann::json::object(); // 環境設定（ライト・SkyBoxなど）の置き場所。今は空
+
+	std::vector<entt::entity> entities;
+	for (auto e : registry.view<entt::entity>())
+	{
+		entities.push_back(e);
+	}
+	std::reverse(entities.begin(), entities.end());
+
+	nlohmann::json entries = nlohmann::json::array();
+	for (auto e : entities)
+	{
+		nlohmann::json entry = nlohmann::json::object();
+
+		if (getName)
+		{
+			entry["name"] = getName(e);
+		}
+
+		if (auto* prefab = registry.try_get<PrefabInstanceComponent>(e))
+		{
+			// プレハブ配置のEntityは、どのプレハブかだけを書く
+			entry["prefab"] = prefab->prefabPath;
+		}
+		else
+		{
+			// それ以外は、プレハブと同じ形式で、コンポーネントの中身を書く
+			entry["components"] = EntitySerializer::SerializeEntity(registry, e);
+		}
+
+		entries.push_back(std::move(entry));
+	}
+	scene["entities"] = std::move(entries);
+
+	return scene;
+}
+
+bool SceneSerializer::SaveToFile(entt::registry& registry, const std::string& path, const NameGetter& getName)
+{
+	nlohmann::json scene = Serialize(registry, getName);
+
+	// 保存先のフォルダが無ければ作る
+	std::filesystem::path filePath(path);
+	if (filePath.has_parent_path())
+	{
+		std::error_code ec;
+		std::filesystem::create_directories(filePath.parent_path(), ec);
+	}
+
+	std::ofstream ofs(filePath);
+	if (!ofs)
+	{
+		Log(u8"[Error] シーンを書き込めません: %s", path.c_str());
+		return false;
+	}
+
+	// UTF-8として不正な文字が名前・パスに入っていても、例外で落とさず置き換えて書き出す
+	ofs << scene.dump(4, ' ', false, nlohmann::json::error_handler_t::replace);
+
+	Log(u8"[Info] シーンを保存しました: %s (%d個のEntity)", path.c_str(), static_cast<int>(scene["entities"].size()));
+	return true;
+}
+
+// JSONの内容で、Entityを作る
+void SceneSerializer::Deserialize(entt::registry& registry, const nlohmann::json& scene, const NameSetter& setName)
+{
+	if (!scene.contains("entities") || !scene["entities"].is_array())
+	{
+		Log(u8"シーンの形式が不正です(entitiesがありません)");
+		return;
+	}
+
+	int failedCount = 0;
+
+	for (const auto& entry : scene["entities"])
+	{
+		entt::entity e = entt::null;
+
+		if (entry.contains("prefab") && entry["prefab"].is_string())
+		{
+			e = EntitySerializer::InstantiatePrefab(registry, entry["prefab"].get<std::string>());
+		}
+		else if (entry.contains("components"))
+		{
+			e = EntitySerializer::CreateFromComponents(registry, entry["components"]);
+		}
+
+		if (e == entt::null)
+		{
+			// InstantiatePrefab / CreateFromComponents 側が、詳しい理由をLogに出している
+			++failedCount;
+			continue;
+		}
+
+		if (setName && entry.contains("name") && entry["name"].is_string())
+		{
+			setName(e, entry["name"].get<std::string>());
+		}
+	}
+
+	if (failedCount > 0)
+	{
+		Log(u8"%d個のEntityを復元できませんでした", failedCount);
+	}
+}
+
+// ファイルから読み込む。読み込み前に、既存のEntityを1つずつdestroyする
+bool SceneSerializer::LoadFromFile(entt::registry& registry, const std::string& path, const NameSetter& setName)
+{
+	nlohmann::json scene;
+	if (!EntitySerializer::LoadJsonFile(path, scene)) return false;
+
+	// 既存のEntityを、1つずつ破棄する
+	std::vector<entt::entity> existing;
+	for (auto e : registry.view<entt::entity>())
+	{
+		existing.push_back(e);
+	}
+	for (auto e : existing)
+	{
+		registry.destroy(e);
+	}
+
+	Deserialize(registry, scene, setName);
+
+	Log(u8"シーンを読み込みました: %s", path.c_str());
+	return true;
 }
  
  
@@ -15792,6 +16116,15 @@ struct StudioOpenRequest
     std::string graphPath;
 };
 
+// シーンの保存・読み込みのリクエスト
+enum class SceneAction
+{
+    None,
+    Save,   // 今のシーンに上書き
+    SaveAs, // 名前を付けて保存
+    Open,   // 読み込み
+};
+
 struct EditorContext
 {
     entt::entity selectedEntity = entt::null;
@@ -15824,7 +16157,28 @@ struct EditorContext
     {
         return selectedEntity == e;
     }
-}; 
+
+    // メニューが立てるリクエスト
+    SceneAction sceneRequest = SceneAction::None;
+    // 今開いているシーンのファイル
+    std::string currentScenePath;
+};
+
+ 
+ 
+===== FileDialog.h ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Editor\FileDialog.h 
+#pragma once
+#include <string>
+#include <Windows.h>
+
+// Windowsのファイルダイアログ
+namespace FileDialog
+{
+	bool SaveScene(HWND owner, std::string& path);
+
+	bool OpenScene(HWND owner, std::string & path);
+} 
  
 ===== HierarchyWindow.h ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Editor\HierarchyWindow.h 
@@ -16639,6 +16993,99 @@ void ComponentRegistryInitializer::Initialize()
 		REGISTER_COMPONENT_AUTO(AnimationSpeedComponent, "Animation Speed"); 
 }
  
+ 
+===== FileDialog.cpp ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Editor\FileDialog.cpp 
+#include "FileDialog.h"
+#include <commdlg.h>
+#include <filesystem>
+
+#pragma comment(lib, "comdlg32.lib")
+
+namespace
+{
+	bool EndsWith(const std::string& text, const std::string& suffix)
+	{
+		return text.size() >= suffix.size()
+			&& text.compare(text.size() - suffix.size(), suffix.size(), suffix) == 0;
+	}
+
+	// 拡張子を「.scene.json」に揃える
+	std::string EnsureSceneExtension(std::string path)
+	{
+		const std::string sceneExtension = ".scene.json";
+		if (EndsWith(path, sceneExtension)) return path;
+		if (EndsWith(path, ".json")) path.erase(path.size() - 5);
+		return path + sceneExtension;
+	}
+}
+
+namespace FileDialog
+{
+	bool SaveScene(HWND owner, std::string& path)
+	{
+		// 保存先の初期フォルダ（無ければ作る）。ダイアログには絶対パスで渡す
+		std::error_code ec;
+		std::filesystem::create_directories("Data/Scene", ec);
+		std::string initialDir = std::filesystem::absolute("Data/Scene").string();
+
+		char fileName[MAX_PATH] = {};
+		strncpy_s(fileName, path.c_str(), _TRUNCATE);
+
+		OPENFILENAMEA ofn = {};
+		ofn.lStructSize = sizeof(ofn);
+		ofn.hwndOwner = owner;
+		ofn.lpstrFilter = "Scene (*.scene.json)\0*.scene.json\0";
+		ofn.lpstrFile = fileName;
+		ofn.nMaxFile = MAX_PATH;
+		ofn.lpstrInitialDir = initialDir.c_str();
+		ofn.lpstrTitle = "Save Scene";
+		// OFN_NOCHANGEDIR：ダイアログが、カレントディレクトリを変えないようにする（相対パスを使っているため）
+		ofn.Flags = OFN_NOCHANGEDIR | OFN_PATHMUSTEXIST;
+
+		if (!GetSaveFileNameA(&ofn)) return false;
+
+		std::string selected = EnsureSceneExtension(fileName);
+
+		// 拡張子を補った後のファイルが既にあれば、上書きの確認を出す
+		// （ダイアログ標準の確認は、補う前の名前で判定されるため、使わない）
+		if (std::filesystem::exists(selected))
+		{
+			std::string message = "'" + std::filesystem::path(selected).filename().string()
+				+ "' already exists.\nDo you want to replace it?";
+			if (MessageBoxA(owner, message.c_str(), "Save Scene", MB_YESNO | MB_ICONWARNING) != IDYES)
+			{
+				return false;
+			}
+		}
+
+		path = selected;
+		return true;
+	}
+	bool OpenScene(HWND owner, std::string& path)
+	{
+		std::error_code ec;
+		std::filesystem::create_directories("Data/Scene", ec);
+		std::string initialDir = std::filesystem::absolute("Data/Scene").string();
+
+		char fileName[MAX_PATH] = {};
+
+		OPENFILENAMEA ofn = {};
+		ofn.lStructSize = sizeof(ofn);
+		ofn.hwndOwner = owner;
+		ofn.lpstrFilter = "Scene (*.scene.json)\0*.scene.json\0";
+		ofn.lpstrFile = fileName;
+		ofn.nMaxFile = MAX_PATH;
+		ofn.lpstrInitialDir = initialDir.c_str();
+		ofn.lpstrTitle = "Open Scene";
+		ofn.Flags = OFN_NOCHANGEDIR | OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
+
+		if (!GetOpenFileNameA(&ofn)) return false;
+
+		path = fileName;
+		return true;
+	}
+} 
  
 ===== HierarchyWindow.cpp ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Editor\HierarchyWindow.cpp 

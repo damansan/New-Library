@@ -371,6 +371,12 @@
     <Filter Include="Sources\Tool\Editor\LogWindow">
       <UniqueIdentifier>{dc2ab9fc-e149-4c3c-92cb-7db055a85218}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\Engine\Resource\SceneSerializer">
+      <UniqueIdentifier>{acdf4300-305b-45c3-a5c3-591daaa6dde2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Tool\Editor\FileDialog">
+      <UniqueIdentifier>{dcbf0678-b62b-4ded-9a08-1bedec1a8e44}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="External\imgui-docking\imgui.cpp">
@@ -627,6 +633,12 @@
     </ClCompile>
     <ClCompile Include="Source\Tool\Editor\LogWindow.cpp">
       <Filter>Sources\Tool\Editor\LogWindow</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Engine\Resource\SceneSerializer.cpp">
+      <Filter>Sources\Engine\Resource\SceneSerializer</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Tool\Editor\FileDialog.cpp">
+      <Filter>Sources\Tool\Editor\FileDialog</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -992,6 +1004,12 @@
     </ClInclude>
     <ClInclude Include="Source\Tool\Editor\LogWindow.h">
       <Filter>Sources\Tool\Editor\LogWindow</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Engine\Resource\SceneSerializer.h">
+      <Filter>Sources\Engine\Resource\SceneSerializer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Tool\Editor\FileDialog.h">
+      <Filter>Sources\Tool\Editor\FileDialog</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

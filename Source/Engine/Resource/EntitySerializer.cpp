@@ -143,22 +143,35 @@ entt::entity EntitySerializer::InstantiatePrefab(entt::registry& registry, const
 		return entt::null;
 	}
 
-	entt::entity e = registry.create();
-
-	try
+	entt::entity e = CreateFromComponents(registry, data);
+	if (e == entt::null)
 	{
-		DeserializeEntity(registry, e, data);
-	}
-	catch (const nlohmann::json::exception& ex)
-	{
-		// 値の型が想定と違う場合など。作りかけのEntityは残さない
-		Log(u8"プレハブの復元中にエラー: %s (%s)", prefabPath.c_str(), ex.what());
-		registry.destroy(e);
+		Log(u8"プレハブの復元中にエラー: %s", prefabPath.c_str());
 		return entt::null;
 	}
 
 	// どのプレハブから生まれたかを記録する
 	registry.emplace<PrefabInstanceComponent>(e, prefabPath);
+	return e;
+}
+
+// コンポーネントの中身(JSON)からEntityを生成する。復元中にエラーが起きたら、作りかけのEntityを破棄してentt::nullを返す
+entt::entity EntitySerializer::CreateFromComponents(entt::registry& registry, const nlohmann::json& components)
+{
+	if (!components.is_object()) return entt::null;
+
+	entt::entity e = registry.create();
+
+	try
+	{
+		DeserializeEntity(registry, e, components);
+	}
+	catch (const nlohmann::json::exception&)
+	{
+		registry.destroy(e);
+		return entt::null;
+	}
+
 	return e;
 }
 

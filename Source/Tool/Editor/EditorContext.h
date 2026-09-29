@@ -18,6 +18,15 @@ struct StudioOpenRequest
     std::string graphPath;
 };
 
+// シーンの保存・読み込みのリクエスト
+enum class SceneAction
+{
+    None,
+    Save,   // 今のシーンに上書き
+    SaveAs, // 名前を付けて保存
+    Open,   // 読み込み
+};
+
 struct EditorContext
 {
     entt::entity selectedEntity = entt::null;
@@ -50,4 +59,10 @@ struct EditorContext
     {
         return selectedEntity == e;
     }
+
+    // メニューが立てるリクエスト
+    SceneAction sceneRequest = SceneAction::None;
+    // 今開いているシーンのファイル
+    std::string currentScenePath;
 };
+

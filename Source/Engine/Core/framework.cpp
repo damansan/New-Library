@@ -3,7 +3,11 @@
 #include "Project/Scene/SceneGame.h"
 #include "Tool/Editor/ComponentRegistryInitializer.h"
 #include "Tool/Editor/MetaRegistry.h"
+#include "Tool/Editor/FileDialog.h"
 
+#include "Engine/Resource/SceneSerializer.h"
+
+#include <filesystem>
 #include <iomanip>
 
 framework::framework(HWND hwnd) : hwnd(hwnd)
@@ -107,9 +111,8 @@ void framework::updateImGui()
 	// シーンImGui描画
 	sceneManager.RenderImGui();
 
-	// Gameウィンドウ（ドッキング/タブ化対象）
-	gameWindow.DrawWindow("Game", vsync);
-
+	// Gameウィンドウ（ドッキング/タブ化対象）メニュー内容
+	gameWindow.DrawWindow("Game", [this]() { drawMainMenu(); });
 #ifdef _DEBUG
 	if (auto* scene = sceneManager.GetCurrentScene())
 	{
@@ -144,6 +147,40 @@ void framework::updateImGui()
 		studioWindows.end()
 	);
 #endif
+	// 全てのウィンドウの描画後にシーン保存・読み込みを実行する
+	processSceneRequest();
+
+	// Openの確認ポップアップ
+	if (ImGui::BeginPopupModal("Open Scene##Confirm", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+	{
+		ImGui::Text("Current scene will be discarded.\nAre you sure you want to continue?");
+		ImGui::Spacing();
+
+		if (ImGui::Button("Open", ImVec2(120, 0)))
+		{
+			Scene* scene = sceneManager.GetCurrentScene();
+			if (scene)
+			{
+				// 破棄する古いEntityへの参照が残らないよう、読み込みの前に、選択・名前マップをリセットする
+				editorContext.Deselect();
+				editorContext.entityNames.clear();
+
+				auto setName = [this](entt::entity e, const std::string& name) { editorContext.SetName(e, name); };
+
+				if (SceneSerializer::LoadFromFile(scene->GetRegistry(), pendingOpenPath, setName))
+				{
+					editorContext.currentScenePath = pendingOpenPath;
+				}
+			}
+			ImGui::CloseCurrentPopup();
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("Cancel", ImVec2(120, 0)))
+		{
+			ImGui::CloseCurrentPopup();
+		}
+		ImGui::EndPopup();
+	}
 }
 
 void framework::render(float elapsedTime)
@@ -361,6 +398,87 @@ void framework::openStudioWindow(const std::string& assetPath, const std::string
 	}
 
 	studioWindows.push_back(std::move(win));
+}
+
+// メニューバーの中身
+void framework::drawMainMenu()
+{
+	if (ImGui::BeginMenu("File"))
+	{
+		if (ImGui::MenuItem("Save"))
+		{
+			editorContext.sceneRequest = SceneAction::Save;
+		}
+		if (ImGui::MenuItem("Save As..."))
+		{
+			editorContext.sceneRequest = SceneAction::SaveAs;
+		}
+		if (ImGui::MenuItem("Open Scene..."))
+		{
+			editorContext.sceneRequest = SceneAction::Open;
+		}
+
+		ImGui::Separator();
+
+		if (ImGui::BeginMenu("System"))
+		{
+			ImGui::MenuItem("VSync", nullptr, &vsync);
+			ImGui::EndMenu();
+		}
+
+		ImGui::EndMenu();
+	}
+
+	// 今開いているシーン（Saveの上書き先）
+	std::string sceneName = editorContext.currentScenePath.empty()
+		? "(unsaved)"
+		: std::filesystem::path(editorContext.currentScenePath).filename().string();
+	ImGui::TextDisabled("Scene: %s", sceneName.c_str());
+}
+
+// シーンの保存・読み込みリクエストを実行する
+void framework::processSceneRequest()
+{
+	SceneAction action = editorContext.sceneRequest;
+	if (action == SceneAction::None) return;
+	editorContext.sceneRequest = SceneAction::None;
+
+	Scene* scene = sceneManager.GetCurrentScene();
+	if (!scene) return;
+
+	if (action == SceneAction::Open)
+	{
+		timer.stop();
+		std::string path;
+		bool selected = FileDialog::OpenScene(hwnd, path);
+		timer.start();
+
+		if (selected)
+		{
+			// 既存のEntityを破棄するため、確認ポップアップを次のフレームで開く
+			pendingOpenPath = path;
+			ImGui::OpenPopup("Open Scene##Confirm");
+		}
+		return;
+	}
+
+	std::string path = editorContext.currentScenePath;
+
+	// Save As、またはまだ保存先が無いSaveは、ダイアログで保存先を選ぶ
+	if (action == SceneAction::SaveAs || path.empty())
+	{
+		timer.stop();
+		bool selected = FileDialog::SaveScene(hwnd, path);
+		timer.start();
+
+		if (!selected) return; // キャンセル
+}
+
+	auto getName = [this](entt::entity e) { return editorContext.GetName(e); };
+	if (SceneSerializer::SaveToFile(scene->GetRegistry(), path, getName))
+	{
+		editorContext.currentScenePath = path;
+	}
 }
 
 bool framework::IsEditorActive() const

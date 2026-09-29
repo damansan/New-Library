@@ -17,6 +17,9 @@ public:
 	// プレハブファイルからEntityを生成する。成功したらそのEntityを、失敗したらentt::nullを返す
 	static entt::entity InstantiatePrefab(entt::registry& registry, const std::string& prefabPath);
 
+	// コンポーネントの中身(JSON)からEntityを生成する。復元中にエラーが起きたら、作りかけのEntityを破棄してentt::nullを返す
+	static entt::entity CreateFromComponents(entt::registry& registry, const nlohmann::json& components);
+
 private:
 	// entt::meta_any 1つ分のフィールド値を、JSONへ変換する
 	static nlohmann::json SerializeMetaAny(entt::meta_any& value);

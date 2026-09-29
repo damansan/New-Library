@@ -70,6 +70,7 @@
     <ClCompile Include="Source\Engine\Resource\Model.cpp" />
     <ClCompile Include="Source\Engine\Resource\ModelSerializer.cpp" />
     <ClCompile Include="Source\Engine\Resource\ResourceManager.cpp" />
+    <ClCompile Include="Source\Engine\Resource\SceneSerializer.cpp" />
     <ClCompile Include="Source\Engine\Resource\SkeletonUtils.cpp" />
     <ClCompile Include="Source\Engine\Utility\CerealHelper.cpp" />
     <ClCompile Include="Source\main.cpp" />
@@ -84,6 +85,7 @@
     <ClCompile Include="Source\Tool\AdaptiveTriggerToolWindow.cpp" />
     <ClCompile Include="Source\Tool\Editor\ComponentInspectorRegistry.cpp" />
     <ClCompile Include="Source\Tool\Editor\ComponentRegistryInitializer.cpp" />
+    <ClCompile Include="Source\Tool\Editor\FileDialog.cpp" />
     <ClCompile Include="Source\Tool\Editor\LogWindow.cpp" />
     <ClCompile Include="Source\Tool\Editor\HierarchyWindow.cpp" />
     <ClCompile Include="Source\Tool\Editor\InspectorWindow.cpp" />
@@ -180,6 +182,7 @@
     <ClInclude Include="Source\Engine\Resource\Model.h" />
     <ClInclude Include="Source\Engine\Resource\ModelSerializer.h" />
     <ClInclude Include="Source\Engine\Resource\ResourceManager.h" />
+    <ClInclude Include="Source\Engine\Resource\SceneSerializer.h" />
     <ClInclude Include="Source\Engine\Resource\SkeletonUtils.h" />
     <ClInclude Include="Source\Engine\Utility\CerealHelper.h" />
     <ClInclude Include="Source\Engine\Utility\high_resolution_timer.h" />
@@ -201,6 +204,7 @@
     <ClInclude Include="Source\Tool\AdaptiveTriggerToolWindow.h" />
     <ClInclude Include="Source\Tool\Editor\ComponentInspectorRegistry.h" />
     <ClInclude Include="Source\Tool\Editor\ComponentRegistryInitializer.h" />
+    <ClInclude Include="Source\Tool\Editor\FileDialog.h" />
     <ClInclude Include="Source\Tool\Editor\LogWindow.h" />
     <ClInclude Include="Source\Tool\Editor\EditorContext.h" />
     <ClInclude Include="Source\Tool\Editor\HierarchyWindow.h" />

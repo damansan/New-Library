@@ -1,6 +1,7 @@
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
+#include <functional>
 
 #include "Camera.h"
 
@@ -23,7 +24,7 @@ public:
     void End(ID3D11DeviceContext* dc);
 
     // ImGui描画
-    void DrawWindow(const char* windowName, bool& vsync);
+    void DrawWindow(const char* windowName, const std::function<void()>& drawMenus = nullptr);
 
     // テクスチャの再生成
     void ResizeRenderTarget(UINT width, UINT height);

@@ -52,14 +52,17 @@ void GameWindow::End(ID3D11DeviceContext* dc)
 }
 
 // ImGui描画
-void GameWindow::DrawWindow(const char* windowName, bool& vsync)
+void GameWindow::DrawWindow(const char* windowName, const std::function<void()>& drawMenus)
 {
     ImGui::Begin(windowName, nullptr, ImGuiWindowFlags_MenuBar);
 
     // メニューバー
     if (ImGui::BeginMenuBar())
     {
-        ImGui::Checkbox("VSync", &vsync);
+        if (drawMenus)
+        {
+            drawMenus();
+        }
 
         ImGui::EndMenuBar();
     }

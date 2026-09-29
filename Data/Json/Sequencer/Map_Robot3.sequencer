@@ -50,15 +50,9 @@
             "ranges": [
                 {
                     "id": 1,
-                    "start": 0.2209356427192688,
-                    "end": 0.3700000047683716,
+                    "start": 0.34485000371932983,
+                    "end": 1.0,
                     "flag": "AnimExit"
-                },
-                {
-                    "id": 2,
-                    "start": 0.0,
-                    "end": 0.3700000047683716,
-                    "flag": "Trimming"
                 }
             ],
             "points": []
@@ -87,6 +81,18 @@
                     "flag": "AnimExit"
                 }
             ],
+            "points": []
+        },
+        {
+            "clipName": "AS_Dodge_to_Sprint",
+            "nextId": 1,
+            "ranges": [],
+            "points": []
+        },
+        {
+            "clipName": "AS_Sprint_End",
+            "nextId": 1,
+            "ranges": [],
             "points": []
         }
     ]
