@@ -30,7 +30,7 @@ std::shared_ptr<Model> ResourceManager::GetModel(ID3D11Device* device, const std
 	// .cereal ‚ª‚ ‚é(.cereal‚ğ“Ç‚İ‚Ş)
 	if (ModelSerializer::Exists(filename))
 	{
-		Log(u8"[Model] .cereal‚©‚ç“Ç‚İ‚İ: %s", cerealPath.c_str());
+		Log(u8" .cereal‚©‚ç“Ç‚İ‚İ: %s", cerealPath.c_str());
 
 		model = std::make_shared<Model>();
 		ModelSerializer::Load(*model, ModelSerializer::ToCerealPath(filename));
@@ -39,7 +39,7 @@ std::shared_ptr<Model> ResourceManager::GetModel(ID3D11Device* device, const std
 	// .cereal ‚ª‚È‚¢(GLTF‚ğ“Ç‚İ‚Ş)
 	else
 	{
-		Log(u8"[Model] glTF‚©‚ç•ÏŠ·: %s -> •Û‘¶æ %s", filename.c_str(), cerealPath.c_str());
+		Log(u8" glTF‚©‚ç•ÏŠ·: %s -> •Û‘¶æ %s", filename.c_str(), cerealPath.c_str());
 
 		auto gltfData = GLTFImporter::Load(filename);
 		model = GLTFConverter::Convert(device, gltfData);
