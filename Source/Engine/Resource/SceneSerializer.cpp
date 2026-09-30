@@ -32,8 +32,25 @@ nlohmann::json SceneSerializer::Serialize(entt::registry& registry, const NameGe
 
 		if (auto* prefab = registry.try_get<PrefabInstanceComponent>(e))
 		{
-			// プレハブ配置のEntityは、どのプレハブかだけを書く
+			// プレハブ配置のEntityは、現在値とプレハブの値の差分だけを書く
 			entry["prefab"] = prefab->prefabPath;
+
+			nlohmann::json prefabData;
+			if (EntitySerializer::LoadJsonFile(prefab->prefabPath, prefabData))
+			{
+				nlohmann::json current = EntitySerializer::SerializeEntity(registry, e);
+				nlohmann::json overrides = DiffAgainstPrefab(current, prefabData);
+
+				if (!overrides.empty())
+				{
+					entry["overrides"] = std::move(overrides);
+				}
+			}
+			else
+			{
+				// プレハブ本体が読めない場合は、差分を取れないので、参照だけ残す
+				Log(u8"[Warn] 差分比較のため、プレハブを読み込めませんでした: %s", prefab->prefabPath.c_str());
+			}
 		}
 		else
 		{
@@ -105,6 +122,19 @@ void SceneSerializer::Deserialize(entt::registry& registry, const nlohmann::json
 			continue;
 		}
 
+		// プレハブ生成の後、差分があれば上書きする
+		if (entry.contains("overrides") && entry["overrides"].is_object())
+		{
+			try
+			{
+				EntitySerializer::DeserializeEntity(registry, e, entry["overrides"]);
+			}
+			catch (const nlohmann::json::exception&)
+			{
+				Log(u8"[Warn] overridesの適用中にエラー: %s", entry.value("name", std::string()).c_str());
+			}
+		}
+
 		if (setName && entry.contains("name") && entry["name"].is_string())
 		{
 			setName(e, entry["name"].get<std::string>());
@@ -138,4 +168,41 @@ bool SceneSerializer::LoadFromFile(entt::registry& registry, const std::string& 
 
 	Log(u8"シーンを読み込みました: %s", path.c_str());
 	return true;
+}
+
+// 現在のEntityの値とプレハブでの値を比較する
+nlohmann::json SceneSerializer::DiffAgainstPrefab(const nlohmann::json& current, const nlohmann::json& prefab)
+{
+	nlohmann::json overrides = nlohmann::json::object();
+
+	// currentは、そのEntityが今持っているコンポーネントだけを含む
+	for (auto& [componentName, currentFields] : current.items())
+	{
+		if (!currentFields.is_object()) continue;
+
+		// プレハブ側に無いコンポーネント（配置後に追加した）は、比較のしようがないので対象外
+		if (!prefab.contains(componentName)) continue;
+		const nlohmann::json& prefabFields = prefab[componentName];
+		if (!prefabFields.is_object()) continue;
+
+		nlohmann::json fieldDiff = nlohmann::json::object();
+
+		for (auto& [fieldName, value] : currentFields.items())
+		{
+			// プレハブ側に無いフィールド（改名・追加）は、比較できないので飛ばす
+			if (!prefabFields.contains(fieldName)) continue;
+
+			if (value != prefabFields[fieldName])
+			{
+				fieldDiff[fieldName] = value;
+			}
+		}
+
+		if (!fieldDiff.empty())
+		{
+			overrides[componentName] = std::move(fieldDiff);
+		}
+	}
+
+	return overrides;
 }

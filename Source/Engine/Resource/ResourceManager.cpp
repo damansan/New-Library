@@ -4,6 +4,8 @@
 #include "ModelSerializer.h" 
 #include "GpuResourceUtils.h" //（GPU再生成用）
 
+#include "Engine/Core/Log.h"
+
 // モデル取得
 std::shared_ptr<Model> ResourceManager::GetModel(ID3D11Device* device, const std::string& filename)
 {
@@ -23,9 +25,13 @@ std::shared_ptr<Model> ResourceManager::GetModel(ID3D11Device* device, const std
 
 	std::shared_ptr<Model> model;
 
+	const std::string cerealPath = ModelSerializer::ToCerealPath(filename);
+
 	// .cereal がある(.cerealを読み込む)
 	if (ModelSerializer::Exists(filename))
 	{
+		Log(u8"[Model] .cerealから読み込み: %s", cerealPath.c_str());
+
 		model = std::make_shared<Model>();
 		ModelSerializer::Load(*model, ModelSerializer::ToCerealPath(filename));
 		GLTFConverter::CreateGpuResources(device, *model);
@@ -33,6 +39,8 @@ std::shared_ptr<Model> ResourceManager::GetModel(ID3D11Device* device, const std
 	// .cereal がない(GLTFを読み込む)
 	else
 	{
+		Log(u8"[Model] glTFから変換: %s -> 保存先 %s", filename.c_str(), cerealPath.c_str());
+
 		auto gltfData = GLTFImporter::Load(filename);
 		model = GLTFConverter::Convert(device, gltfData);
 		ModelSerializer::Save(*model, ModelSerializer::ToCerealPath(filename));

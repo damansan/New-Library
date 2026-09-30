@@ -27,4 +27,9 @@ public:
 
 	// ファイルから読み込む。読み込み前に、既存のEntityを1つずつdestroyする
 	static bool LoadFromFile(entt::registry& registry, const std::string& path, const NameSetter& setName = nullptr);
+
+private:
+	// 現在のEntityの値とプレハブでの値を比較する
+	static nlohmann::json DiffAgainstPrefab(const nlohmann::json& current, const nlohmann::json& prefab);
+
 };

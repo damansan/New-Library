@@ -1,0 +1,124 @@
+{
+    "states": [
+        {
+            "id": 1,
+            "name": "Entry",
+            "posX": 0.0,
+            "posY": 0.0,
+            "type": "Entry",
+            "color": [
+                0.27000001072883606,
+                0.3499999940395355,
+                0.4699999988079071
+            ],
+            "children": [],
+            "childLinks": []
+        },
+        {
+            "id": 2,
+            "name": "Idle",
+            "posX": 176.0,
+            "posY": 0.0,
+            "type": "State",
+            "color": [
+                0.27000001072883606,
+                0.3499999940395355,
+                0.4699999988079071
+            ],
+            "children": [
+                {
+                    "id": 3,
+                    "name": "Entry",
+                    "posX": 48.0,
+                    "posY": 192.0,
+                    "type": "Start",
+                    "clipName": "",
+                    "loop": true,
+                    "useRootMotion": false
+                },
+                {
+                    "id": 4,
+                    "name": "Exit",
+                    "posX": 400.0,
+                    "posY": 200.0,
+                    "type": "End",
+                    "clipName": "",
+                    "loop": true,
+                    "useRootMotion": false
+                },
+                {
+                    "id": 9,
+                    "name": "Idle",
+                    "posX": 224.0,
+                    "posY": 192.0,
+                    "type": "Normal",
+                    "clipName": "Anim_Idle_0",
+                    "loop": true,
+                    "useRootMotion": false
+                }
+            ],
+            "childLinks": [
+                {
+                    "id": 10,
+                    "fromId": 3,
+                    "toId": 9,
+                    "blend": true,
+                    "blendDuration": 0.20000000298023224,
+                    "condition": {
+                        "returnNode": {
+                            "id": 11,
+                            "posX": 500.0,
+                            "posY": 200.0
+                        },
+                        "variableNodes": [],
+                        "operatorNodes": [],
+                        "logicNodes": [],
+                        "getterNodes": [],
+                        "links": []
+                    }
+                }
+            ]
+        }
+    ],
+    "stateLinks": [
+        {
+            "id": 5,
+            "fromId": 1,
+            "toId": 2,
+            "blend": true,
+            "blendDuration": 0.20000000298023224,
+            "condition": {
+                "returnNode": {
+                    "id": 6,
+                    "posX": 500.0,
+                    "posY": 200.0
+                },
+                "variableNodes": [],
+                "operatorNodes": [],
+                "logicNodes": [],
+                "getterNodes": [],
+                "links": []
+            }
+        }
+    ],
+    "transitionLinks": [
+        {
+            "id": 7,
+            "fromId": 1,
+            "toId": 2,
+            "condition": {
+                "returnNode": {
+                    "id": 8,
+                    "posX": 500.0,
+                    "posY": 200.0
+                },
+                "variableNodes": [],
+                "operatorNodes": [],
+                "logicNodes": [],
+                "getterNodes": [],
+                "links": []
+            }
+        }
+    ],
+    "sourceModelPath": "Data/Model/EnemyRobot/SK_SteamPunkBoss.gltf"
+}

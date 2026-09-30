@@ -1,4 +1,12 @@
 {
+    "Animator": {
+        "animatorGraphPath": "Data/Json/Animgraph/SK_SteamPunkBoss.animgraph",
+        "loop": true,
+        "playSpeed": 1.0,
+        "rootMotionNodeName": "root",
+        "useRootMotion": false,
+        "useRootMotionY": false
+    },
     "Category": {
         "category": "Enemy"
     },

@@ -51,8 +51,6 @@ void PlayerMoveSystem::Update(entt::registry& registry, float elapsedTime, const
 				playerMove.isJogging = false;
 
 				playerMove.moveSub = PlayerMoveSubState::None;
-				movement.velocity.x = 0.0f;
-				movement.velocity.z = 0.0f;
 				return;
 			}
 
