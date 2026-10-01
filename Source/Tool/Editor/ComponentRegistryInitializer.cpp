@@ -17,10 +17,13 @@
 #include "Engine/ECS/Components/ControllerComponent.h"
 #include "Engine/ECS/Components/MovementComponent.h"
 
+
 #include "Project/ECS/Components/PlayerIdleComponent.h"
 #include "Project/ECS/Components/PlayerMoveComponent.h"
 #include "Project/ECS/Components/PlayerDodgeComponent.h"
 #include "Project/ECS/Components/PlayerSprintComponent.h"
+#include "Project/ECS/Components/PlayerJumpComponent.h"
+
 
 #include "Engine/ECS/Components/AnimatorComponent.h"
 #include "Engine/ECS/Components/SkinnedMeshComponent.h"
@@ -104,8 +107,11 @@ void ComponentRegistryInitializer::Initialize()
 	REGISTER_COMPONENT_AUTO(PlayerMoveComponent, "Player Move");
 	// Player回避コンポーネントの登録
 	REGISTER_COMPONENT_AUTO(PlayerDodgeComponent, "Player Dodge");
-	// Sprintコンポーネントの登録
+	// Playerダッシュコンポーネントの登録
 	REGISTER_COMPONENT_AUTO(PlayerSprintComponent, "Player Sprint");
+	// Playerジャンプコンポーネントの登録
+	REGISTER_COMPONENT_AUTO(PlayerJumpComponent,"Player Jump");
+
 
 	// インプットコンポーネントの登録
 	REGISTER_COMPONENT_AUTO(GameInputComponent, "GameInput");

@@ -3,8 +3,8 @@
         {
             "id": 1,
             "name": "Entry",
-            "posX": 0.0,
-            "posY": 0.0,
+            "posX": 384.0,
+            "posY": -176.0,
             "type": "Entry",
             "color": [
                 0.27000001072883606,
@@ -70,12 +70,12 @@
                 {
                     "id": 7,
                     "name": "Idle",
-                    "posX": 224.0,
+                    "posX": 208.0,
                     "posY": 192.0,
                     "type": "Normal",
                     "clipName": "AS_Idle",
                     "loop": true,
-                    "useRootMotion": true
+                    "useRootMotion": false
                 }
             ],
             "childLinks": [
@@ -792,8 +792,8 @@
         {
             "id": 169,
             "name": "Sprint",
-            "posX": 256.0,
-            "posY": 96.0,
+            "posX": 176.0,
+            "posY": 112.0,
             "type": "State",
             "color": [
                 0.27000001072883606,
@@ -842,6 +842,71 @@
                     "condition": {
                         "returnNode": {
                             "id": 199,
+                            "posX": 500.0,
+                            "posY": 200.0
+                        },
+                        "variableNodes": [],
+                        "operatorNodes": [],
+                        "logicNodes": [],
+                        "getterNodes": [],
+                        "links": []
+                    }
+                }
+            ]
+        },
+        {
+            "id": 353,
+            "name": "Jump",
+            "posX": 16.0,
+            "posY": 0.0,
+            "type": "State",
+            "color": [
+                0.27000001072883606,
+                0.3499999940395355,
+                0.4699999988079071
+            ],
+            "children": [
+                {
+                    "id": 354,
+                    "name": "Entry",
+                    "posX": 48.0,
+                    "posY": 192.0,
+                    "type": "Start",
+                    "clipName": "",
+                    "loop": true,
+                    "useRootMotion": false
+                },
+                {
+                    "id": 355,
+                    "name": "Exit",
+                    "posX": 400.0,
+                    "posY": 200.0,
+                    "type": "End",
+                    "clipName": "",
+                    "loop": true,
+                    "useRootMotion": false
+                },
+                {
+                    "id": 442,
+                    "name": "New State",
+                    "posX": 240.0,
+                    "posY": 192.0,
+                    "type": "Normal",
+                    "clipName": "AS_Walk_End",
+                    "loop": true,
+                    "useRootMotion": false
+                }
+            ],
+            "childLinks": [
+                {
+                    "id": 443,
+                    "fromId": 354,
+                    "toId": 442,
+                    "blend": true,
+                    "blendDuration": 0.20000000298023224,
+                    "condition": {
+                        "returnNode": {
+                            "id": 444,
                             "posX": 500.0,
                             "posY": 200.0
                         },
@@ -1399,6 +1464,210 @@
                         "fromId": 190,
                         "toId": 193,
                         "toPinB": true
+                    }
+                ]
+            }
+        },
+        {
+            "id": 363,
+            "fromId": 2,
+            "toId": 353,
+            "blend": true,
+            "blendDuration": 0.20000000298023224,
+            "condition": {
+                "returnNode": {
+                    "id": 364,
+                    "posX": 498.0,
+                    "posY": 208.0
+                },
+                "variableNodes": [
+                    {
+                        "id": 386,
+                        "posX": 83.0,
+                        "posY": 223.0,
+                        "name": "",
+                        "type": "Bool",
+                        "intValue": 0,
+                        "floatValue": 0.0,
+                        "boolValue": true
+                    }
+                ],
+                "operatorNodes": [
+                    {
+                        "id": 384,
+                        "posX": 286.0,
+                        "posY": 152.0,
+                        "op": "Equal"
+                    }
+                ],
+                "logicNodes": [],
+                "getterNodes": [
+                    {
+                        "id": 383,
+                        "posX": 98.0,
+                        "posY": 108.0,
+                        "componentName": "PlayerJumpComponent",
+                        "fieldName": "Is Jumping",
+                        "type": "Bool",
+                        "selectedComponent": "None"
+                    }
+                ],
+                "links": [
+                    {
+                        "id": 387,
+                        "fromId": 386,
+                        "toId": 384,
+                        "toPinB": true
+                    },
+                    {
+                        "id": 388,
+                        "fromId": 383,
+                        "toId": 384,
+                        "toPinB": false
+                    },
+                    {
+                        "id": 389,
+                        "fromId": 384,
+                        "toId": 364,
+                        "toPinB": false
+                    }
+                ]
+            }
+        },
+        {
+            "id": 371,
+            "fromId": 353,
+            "toId": 2,
+            "blend": true,
+            "blendDuration": 0.20000000298023224,
+            "condition": {
+                "returnNode": {
+                    "id": 372,
+                    "posX": 482.0,
+                    "posY": 224.0
+                },
+                "variableNodes": [
+                    {
+                        "id": 392,
+                        "posX": 86.0,
+                        "posY": 240.0,
+                        "name": "",
+                        "type": "Bool",
+                        "intValue": 0,
+                        "floatValue": 0.0,
+                        "boolValue": false
+                    }
+                ],
+                "operatorNodes": [
+                    {
+                        "id": 391,
+                        "posX": 322.0,
+                        "posY": 168.0,
+                        "op": "Equal"
+                    }
+                ],
+                "logicNodes": [],
+                "getterNodes": [
+                    {
+                        "id": 390,
+                        "posX": 101.0,
+                        "posY": 108.0,
+                        "componentName": "PlayerJumpComponent",
+                        "fieldName": "Is Jumping",
+                        "type": "Bool",
+                        "selectedComponent": "None"
+                    }
+                ],
+                "links": [
+                    {
+                        "id": 393,
+                        "fromId": 391,
+                        "toId": 372,
+                        "toPinB": false
+                    },
+                    {
+                        "id": 394,
+                        "fromId": 390,
+                        "toId": 391,
+                        "toPinB": false
+                    },
+                    {
+                        "id": 395,
+                        "fromId": 392,
+                        "toId": 391,
+                        "toPinB": true
+                    }
+                ]
+            }
+        },
+        {
+            "id": 416,
+            "fromId": 169,
+            "toId": 353,
+            "blend": true,
+            "blendDuration": 0.20000000298023224,
+            "condition": {
+                "returnNode": {
+                    "id": 417,
+                    "posX": 500.0,
+                    "posY": 200.0
+                },
+                "variableNodes": [],
+                "operatorNodes": [],
+                "logicNodes": [],
+                "getterNodes": [
+                    {
+                        "id": 440,
+                        "posX": 206.0,
+                        "posY": 172.0,
+                        "componentName": "PlayerJumpComponent",
+                        "fieldName": "Is Jumping",
+                        "type": "Bool",
+                        "selectedComponent": "None"
+                    }
+                ],
+                "links": [
+                    {
+                        "id": 441,
+                        "fromId": 440,
+                        "toId": 417,
+                        "toPinB": false
+                    }
+                ]
+            }
+        },
+        {
+            "id": 445,
+            "fromId": 10,
+            "toId": 353,
+            "blend": true,
+            "blendDuration": 0.20000000298023224,
+            "condition": {
+                "returnNode": {
+                    "id": 446,
+                    "posX": 500.0,
+                    "posY": 200.0
+                },
+                "variableNodes": [],
+                "operatorNodes": [],
+                "logicNodes": [],
+                "getterNodes": [
+                    {
+                        "id": 450,
+                        "posX": 190.0,
+                        "posY": 188.0,
+                        "componentName": "PlayerJumpComponent",
+                        "fieldName": "Is Jumping",
+                        "type": "Bool",
+                        "selectedComponent": "None"
+                    }
+                ],
+                "links": [
+                    {
+                        "id": 451,
+                        "fromId": 450,
+                        "toId": 446,
+                        "toPinB": false
                     }
                 ]
             }
@@ -2121,6 +2390,232 @@
                         "id": 328,
                         "fromId": 325,
                         "toId": 322,
+                        "toPinB": false
+                    }
+                ]
+            }
+        },
+        {
+            "id": 365,
+            "fromId": 2,
+            "toId": 353,
+            "condition": {
+                "returnNode": {
+                    "id": 366,
+                    "posX": 498.0,
+                    "posY": 208.0
+                },
+                "variableNodes": [
+                    {
+                        "id": 397,
+                        "posX": 98.0,
+                        "posY": 240.0,
+                        "name": "",
+                        "type": "Bool",
+                        "intValue": 0,
+                        "floatValue": 0.0,
+                        "boolValue": true
+                    }
+                ],
+                "operatorNodes": [
+                    {
+                        "id": 398,
+                        "posX": 334.0,
+                        "posY": 152.0,
+                        "op": "Equal"
+                    }
+                ],
+                "logicNodes": [],
+                "getterNodes": [
+                    {
+                        "id": 396,
+                        "posX": 114.0,
+                        "posY": 92.0,
+                        "componentName": "GameInputComponent",
+                        "fieldName": "Jump.Pressed",
+                        "type": "Bool",
+                        "selectedComponent": "None"
+                    }
+                ],
+                "links": [
+                    {
+                        "id": 399,
+                        "fromId": 398,
+                        "toId": 366,
+                        "toPinB": false
+                    },
+                    {
+                        "id": 400,
+                        "fromId": 396,
+                        "toId": 398,
+                        "toPinB": false
+                    },
+                    {
+                        "id": 401,
+                        "fromId": 397,
+                        "toId": 398,
+                        "toPinB": true
+                    }
+                ]
+            }
+        },
+        {
+            "id": 373,
+            "fromId": 353,
+            "toId": 2,
+            "condition": {
+                "returnNode": {
+                    "id": 374,
+                    "posX": 562.0,
+                    "posY": 240.0
+                },
+                "variableNodes": [
+                    {
+                        "id": 402,
+                        "posX": 178.0,
+                        "posY": 256.0,
+                        "name": "",
+                        "type": "Bool",
+                        "intValue": 0,
+                        "floatValue": 0.0,
+                        "boolValue": true
+                    }
+                ],
+                "operatorNodes": [
+                    {
+                        "id": 404,
+                        "posX": 398.0,
+                        "posY": 176.0,
+                        "op": "Equal"
+                    }
+                ],
+                "logicNodes": [],
+                "getterNodes": [
+                    {
+                        "id": 403,
+                        "posX": 197.0,
+                        "posY": 124.0,
+                        "componentName": "MovementComponent",
+                        "fieldName": "Is Grounded",
+                        "type": "Bool",
+                        "selectedComponent": "None"
+                    }
+                ],
+                "links": [
+                    {
+                        "id": 405,
+                        "fromId": 404,
+                        "toId": 374,
+                        "toPinB": false
+                    },
+                    {
+                        "id": 406,
+                        "fromId": 402,
+                        "toId": 404,
+                        "toPinB": true
+                    },
+                    {
+                        "id": 407,
+                        "fromId": 403,
+                        "toId": 404,
+                        "toPinB": false
+                    }
+                ]
+            }
+        },
+        {
+            "id": 418,
+            "fromId": 169,
+            "toId": 353,
+            "condition": {
+                "returnNode": {
+                    "id": 419,
+                    "posX": 498.0,
+                    "posY": 160.0
+                },
+                "variableNodes": [
+                    {
+                        "id": 431,
+                        "posX": 86.0,
+                        "posY": 192.0,
+                        "name": "",
+                        "type": "Bool",
+                        "intValue": 0,
+                        "floatValue": 0.0,
+                        "boolValue": true
+                    }
+                ],
+                "operatorNodes": [
+                    {
+                        "id": 433,
+                        "posX": 338.0,
+                        "posY": 104.0,
+                        "op": "Equal"
+                    }
+                ],
+                "logicNodes": [],
+                "getterNodes": [
+                    {
+                        "id": 432,
+                        "posX": 98.0,
+                        "posY": 60.0,
+                        "componentName": "GameInputComponent",
+                        "fieldName": "Jump.Pressed",
+                        "type": "Bool",
+                        "selectedComponent": "None"
+                    }
+                ],
+                "links": [
+                    {
+                        "id": 434,
+                        "fromId": 432,
+                        "toId": 433,
+                        "toPinB": false
+                    },
+                    {
+                        "id": 435,
+                        "fromId": 431,
+                        "toId": 433,
+                        "toPinB": true
+                    },
+                    {
+                        "id": 436,
+                        "fromId": 433,
+                        "toId": 419,
+                        "toPinB": false
+                    }
+                ]
+            }
+        },
+        {
+            "id": 447,
+            "fromId": 10,
+            "toId": 353,
+            "condition": {
+                "returnNode": {
+                    "id": 448,
+                    "posX": 500.0,
+                    "posY": 200.0
+                },
+                "variableNodes": [],
+                "operatorNodes": [],
+                "logicNodes": [],
+                "getterNodes": [
+                    {
+                        "id": 452,
+                        "posX": 258.0,
+                        "posY": 188.0,
+                        "componentName": "GameInputComponent",
+                        "fieldName": "Jump.Pressed",
+                        "type": "Bool",
+                        "selectedComponent": "None"
+                    }
+                ],
+                "links": [
+                    {
+                        "id": 453,
+                        "fromId": 452,
+                        "toId": 448,
                         "toPinB": false
                     }
                 ]

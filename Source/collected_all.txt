@@ -4406,7 +4406,6 @@ struct MovementComponent
 	REFLECT_BEGIN(MovementComponent, "Movement")
 
 		// İ’è’l
-		REFLECT_FIELD(float,             jumpPower,  (8.0f),             ("Jump Power", 0.0f,   50.0f        )) 
 		REFLECT_FIELD(float,             gravity,    (-20.0f),           ("Gravity",   -100.0f, 0.0f         ))  
 		REFLECT_FIELD(DirectX::XMFLOAT3, velocity,   (0.0f, 0.0f, 0.0f), ("Velocity",   0.0f,   0.0f,  0.01f ))
 		REFLECT_FIELD(bool,              isGrounded, (false),            ("Is Grounded"                      ))
@@ -6201,12 +6200,27 @@ float ConditionGraphEvaluator::GetGetterValue(const ConditionGetterNode& node, e
 	}
 	if (!found) return 0.0f;
 
-	// ƒRƒ“ƒ|[ƒlƒ“ƒg–¼‚©‚çƒGƒ“ƒeƒBƒeƒB‚Ì‚Â
-	const ComponentInfo* info = ComponentRegistry::GetByTypeName(node.componentName);
+	// ƒRƒ“ƒ|[ƒlƒ“ƒg‚ÌÀ‘Ì‚ğæ“¾‚·‚é
+	entt::meta_any instance;
 
-	if (!info) return 0.0f;
+	// ComponentRegistry‚É“o˜^‚³‚ê‚Ä‚¢‚ê‚ÎA‚»‚¿‚ç‚©‚çæ“¾‚·‚é
+	if (const ComponentInfo* info = ComponentRegistry::GetByTypeName(node.componentName))
+	{
+		instance = info->getMeta(registry, entity);
+	}
+	else
+	{
+		// “o˜^‚³‚ê‚Ä‚¢‚È‚¢(‘¼‚ÌComponent‚Æ‚Ü‚Æ‚ß‚Ä•t—^‚³‚ê‚é“™)ê‡‚ÍA
+		// Œ^î•ñ‚©‚çEnTT‚ÌƒXƒgƒŒ[ƒW‚ğ’¼Úˆø‚¢‚Äæ“¾‚·‚é
+		if (auto* storage = registry.storage(found->componentType.info().hash()))
+		{
+			if (storage->contains(entity))
+			{
+				instance = found->componentType.from_void(storage->value(entity));
+			}
+		}
+	}
 
-	entt::meta_any instance = info->getMeta(registry, entity);
 	if (!instance) return 0.0f;
 
 	// Œ^î•ñ‚©‚çƒtƒB[ƒh‚Ì’l‚ğæ“¾‚·‚é
@@ -7146,7 +7160,6 @@ void MeshLoaderSystem::Update(
 Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\MovementSystem.cpp 
 #include "MovementSystem.h"
 
-#include "Project/ECS/Components/GameInputComponent.h"
 #include "Engine/ECS/Components/MovementComponent.h"
 #include "Engine/ECS/Components/TransformComponent.h"
 #include "Engine/ECS/Components/PhysicsComponents.h"
@@ -7156,9 +7169,8 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\MovementSys
 
 void MovementSystem::Update(entt::registry& registry, float elapsedTime, const SceneContext& context)
 {
-    auto view = registry.view<GameInputComponent, MovementComponent, TransformComponent>();
+    auto view = registry.view<MovementComponent, TransformComponent>();
     view.each([&](auto entity,
-        GameInputComponent& input,
         MovementComponent& movement,
         TransformComponent& transform)
         {
@@ -7167,30 +7179,6 @@ void MovementSystem::Update(entt::registry& registry, float elapsedTime, const S
 
             // d—Í
             movement.velocity.y += movement.gravity * elapsedTime;
-
-            // ƒWƒƒƒ“ƒv
-            if (input.jump && movement.isGrounded)
-            {
-                movement.velocity.y = movement.jumpPower;
-                movement.isGrounded = false;
-            }
-
-            // ƒLƒƒƒ‰ƒNƒ^[ƒRƒ“ƒgƒ[ƒ‰[‚ğ‚Âê‡‚ÍAPlayerMoveSystem/PhysicsSystem‚É”C‚¹‚é
-            if (registry.all_of<CharacterControllerComponent>(entity))
-            {
-                return;
-            }
-
-            // ƒLƒƒƒ‰ƒNƒ^[ƒRƒ“ƒgƒ[ƒ‰[‚ğg‚í‚È‚¢ê‡‚Ì‚İA‚±‚±‚Å’¼ÚˆÊ’u‚ğXV‚·‚é
-            transform.position.y += movement.velocity.y * elapsedTime;
-
-            // ‰¼‚Ì’n–Ê”»’è
-            if (transform.position.y <= 0.0f)
-            {
-                transform.position.y = 0.0f;
-                movement.velocity.y = 0.0f;
-                movement.isGrounded = true;
-            }
         });
 }
  
@@ -11004,6 +10992,11 @@ public:
 
 	// ƒtƒ@ƒCƒ‹‚©‚ç“Ç‚İ‚ŞB“Ç‚İ‚İ‘O‚ÉAŠù‘¶‚ÌEntity‚ğ1‚Â‚¸‚Âdestroy‚·‚é
 	static bool LoadFromFile(entt::registry& registry, const std::string& path, const NameSetter& setName = nullptr);
+
+private:
+	// Œ»İ‚ÌEntity‚Ì’l‚ÆƒvƒŒƒnƒu‚Å‚Ì’l‚ğ”äŠr‚·‚é
+	static nlohmann::json DiffAgainstPrefab(const nlohmann::json& current, const nlohmann::json& prefab);
+
 }; 
  
 ===== SkeletonUtils.h ===== 
@@ -12992,6 +12985,8 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Resource\ResourceManage
 #include "ModelSerializer.h" 
 #include "GpuResourceUtils.h" //iGPUÄ¶¬—pj
 
+#include "Engine/Core/Log.h"
+
 // ƒ‚ƒfƒ‹æ“¾
 std::shared_ptr<Model> ResourceManager::GetModel(ID3D11Device* device, const std::string& filename)
 {
@@ -13011,9 +13006,13 @@ std::shared_ptr<Model> ResourceManager::GetModel(ID3D11Device* device, const std
 
 	std::shared_ptr<Model> model;
 
+	const std::string cerealPath = ModelSerializer::ToCerealPath(filename);
+
 	// .cereal ‚ª‚ ‚é(.cereal‚ğ“Ç‚İ‚Ş)
 	if (ModelSerializer::Exists(filename))
 	{
+		Log(u8" .cereal‚©‚ç“Ç‚İ‚İ: %s", cerealPath.c_str());
+
 		model = std::make_shared<Model>();
 		ModelSerializer::Load(*model, ModelSerializer::ToCerealPath(filename));
 		GLTFConverter::CreateGpuResources(device, *model);
@@ -13021,6 +13020,8 @@ std::shared_ptr<Model> ResourceManager::GetModel(ID3D11Device* device, const std
 	// .cereal ‚ª‚È‚¢(GLTF‚ğ“Ç‚İ‚Ş)
 	else
 	{
+		Log(u8" glTF‚©‚ç•ÏŠ·: %s -> •Û‘¶æ %s", filename.c_str(), cerealPath.c_str());
+
 		auto gltfData = GLTFImporter::Load(filename);
 		model = GLTFConverter::Convert(device, gltfData);
 		ModelSerializer::Save(*model, ModelSerializer::ToCerealPath(filename));
@@ -13081,8 +13082,25 @@ nlohmann::json SceneSerializer::Serialize(entt::registry& registry, const NameGe
 
 		if (auto* prefab = registry.try_get<PrefabInstanceComponent>(e))
 		{
-			// ƒvƒŒƒnƒu”z’u‚ÌEntity‚ÍA‚Ç‚ÌƒvƒŒƒnƒu‚©‚¾‚¯‚ğ‘‚­
+			// ƒvƒŒƒnƒu”z’u‚ÌEntity‚ÍAŒ»İ’l‚ÆƒvƒŒƒnƒu‚Ì’l‚Ì·•ª‚¾‚¯‚ğ‘‚­
 			entry["prefab"] = prefab->prefabPath;
+
+			nlohmann::json prefabData;
+			if (EntitySerializer::LoadJsonFile(prefab->prefabPath, prefabData))
+			{
+				nlohmann::json current = EntitySerializer::SerializeEntity(registry, e);
+				nlohmann::json overrides = DiffAgainstPrefab(current, prefabData);
+
+				if (!overrides.empty())
+				{
+					entry["overrides"] = std::move(overrides);
+				}
+			}
+			else
+			{
+				// ƒvƒŒƒnƒu–{‘Ì‚ª“Ç‚ß‚È‚¢ê‡‚ÍA·•ª‚ğæ‚ê‚È‚¢‚Ì‚ÅAQÆ‚¾‚¯c‚·
+				Log(u8"[Warn] ·•ª”äŠr‚Ì‚½‚ßAƒvƒŒƒnƒu‚ğ“Ç‚İ‚ß‚Ü‚¹‚ñ‚Å‚µ‚½: %s", prefab->prefabPath.c_str());
+			}
 		}
 		else
 		{
@@ -13154,6 +13172,19 @@ void SceneSerializer::Deserialize(entt::registry& registry, const nlohmann::json
 			continue;
 		}
 
+		// ƒvƒŒƒnƒu¶¬‚ÌŒãA·•ª‚ª‚ ‚ê‚Îã‘‚«‚·‚é
+		if (entry.contains("overrides") && entry["overrides"].is_object())
+		{
+			try
+			{
+				EntitySerializer::DeserializeEntity(registry, e, entry["overrides"]);
+			}
+			catch (const nlohmann::json::exception&)
+			{
+				Log(u8"[Warn] overrides‚Ì“K—p’†‚ÉƒGƒ‰[: %s", entry.value("name", std::string()).c_str());
+			}
+		}
+
 		if (setName && entry.contains("name") && entry["name"].is_string())
 		{
 			setName(e, entry["name"].get<std::string>());
@@ -13187,6 +13218,43 @@ bool SceneSerializer::LoadFromFile(entt::registry& registry, const std::string& 
 
 	Log(u8"ƒV[ƒ“‚ğ“Ç‚İ‚İ‚Ü‚µ‚½: %s", path.c_str());
 	return true;
+}
+
+// Œ»İ‚ÌEntity‚Ì’l‚ÆƒvƒŒƒnƒu‚Å‚Ì’l‚ğ”äŠr‚·‚é
+nlohmann::json SceneSerializer::DiffAgainstPrefab(const nlohmann::json& current, const nlohmann::json& prefab)
+{
+	nlohmann::json overrides = nlohmann::json::object();
+
+	// current‚ÍA‚»‚ÌEntity‚ª¡‚Á‚Ä‚¢‚éƒRƒ“ƒ|[ƒlƒ“ƒg‚¾‚¯‚ğŠÜ‚Ş
+	for (auto& [componentName, currentFields] : current.items())
+	{
+		if (!currentFields.is_object()) continue;
+
+		// ƒvƒŒƒnƒu‘¤‚É–³‚¢ƒRƒ“ƒ|[ƒlƒ“ƒgi”z’uŒã‚É’Ç‰Á‚µ‚½j‚ÍA”äŠr‚Ì‚µ‚æ‚¤‚ª‚È‚¢‚Ì‚Å‘ÎÛŠO
+		if (!prefab.contains(componentName)) continue;
+		const nlohmann::json& prefabFields = prefab[componentName];
+		if (!prefabFields.is_object()) continue;
+
+		nlohmann::json fieldDiff = nlohmann::json::object();
+
+		for (auto& [fieldName, value] : currentFields.items())
+		{
+			// ƒvƒŒƒnƒu‘¤‚É–³‚¢ƒtƒB[ƒ‹ƒhi‰ü–¼E’Ç‰Áj‚ÍA”äŠr‚Å‚«‚È‚¢‚Ì‚Å”ò‚Î‚·
+			if (!prefabFields.contains(fieldName)) continue;
+
+			if (value != prefabFields[fieldName])
+			{
+				fieldDiff[fieldName] = value;
+			}
+		}
+
+		if (!fieldDiff.empty())
+		{
+			overrides[componentName] = std::move(fieldDiff);
+		}
+	}
+
+	return overrides;
 }
  
  
@@ -13764,7 +13832,7 @@ struct GameInputComponent
         REFLECT_FIELD(TriggerState, lockOnTrigger, (), ("Lock On Trigger")) // L2
 
         // ƒ{ƒ^ƒ“
-        REFLECT_FIELD(bool, jump,   (false), ("Jump",   0.0f, 0.0f, 0.1f, "", true))
+        REFLECT_FIELD(ButtonState, jump, (), ("Jump"))
         REFLECT_FIELD(bool, attack, (false), ("Attack", 0.0f, 0.0f, 0.1f, "", true))
         
     REFLECT_END()
@@ -13830,6 +13898,35 @@ struct PlayerIdleComponent
 
 		// ó‘Ôƒtƒ‰ƒO
 		REFLECT_FIELD(bool, isIdling, (false), ("Is Idling", 0.0f, 0.0f, 0.1f, "", true))
+
+	REFLECT_END()
+}; 
+ 
+===== PlayerJumpComponent.h ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Project\ECS\Components\PlayerJumpComponent.h 
+#pragma once
+#include "Engine/ECS/Reflect.h"
+
+enum class PlayerJumpSubState
+{
+	None,
+	Start, // ’µ–ô
+	Loop,  // ‹ó’†
+	End,   // ’…’n
+};
+
+struct PlayerJumpComponent
+{
+	// ó‘Ô
+	PlayerJumpSubState jumpSub = PlayerJumpSubState::None;
+
+	REFLECT_BEGIN(PlayerJumpComponent, "Player Jump")
+
+		// İ’è’l
+		REFLECT_FIELD(float, jumpPower, (8.0f), ("Jump Power", 0.0f, 50.0f))
+
+		// ó‘Ôƒtƒ‰ƒO
+		REFLECT_FIELD(bool, isJumping, (false), ("Is Jumping", 0.0f, 0.0f, 0.1f, "", true))
 
 	REFLECT_END()
 }; 
@@ -13975,6 +14072,7 @@ private:
 
 	// ƒ{ƒ^ƒ“ó‘Ô‚ÌXV
     void UpdateButtonState(TriggerState& state, bool isHeldNow);
+    void UpdateButtonState(ButtonState& state, bool isHeldNow);
 }; 
  
 ===== PlayerDodgeSystem.h ===== 
@@ -14013,6 +14111,25 @@ private:
 	// "Idle"‚Æ‚¢‚¤State‚Ì–¼‘O‚ğƒLƒƒƒbƒVƒ…‚·‚é
 	JsonFileCache<AnimatorGraphData> graphCache;
 	int idleStateId = -1;
+}; 
+ 
+===== PlayerJumpSystem.h ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Project\ECS\Systems\PlayerJumpSystem.h 
+#pragma once
+#include "Engine/Core/SceneContext.h"
+#include "Engine/Core/JsonFileCache.h"
+#include "Engine/Data/AnimatorGraphData.h"
+
+class PlayerJumpSystem
+{
+public:
+	void Update(entt::registry& registry, float elapsedTime, const SceneContext& context);
+
+private:
+	// "Jump"‚Æ‚¢‚¤State‚Ì–¼‘O‚ğƒLƒƒƒbƒVƒ…‚·‚é
+	JsonFileCache<AnimatorGraphData> graphCache;
+	int jumpStateId = -1;
+
 }; 
  
 ===== PlayerMovementUtils.h ===== 
@@ -14662,14 +14779,14 @@ void GameInputSystem::Update(entt::registry& registry, const ControllerSettings&
 
             input.dodgeTrigger.value = 0.0f;
 
-            input.jump = false;
             input.attack = false;
 
             // ControllerComponent ãŒãªã‘ã‚Œã°ã‚¹ã‚­ãƒƒãƒ—
             if (!ctrl || !ctrl->connected)
             {
-				// æ¥ç¶šãŒåˆ‡ã‚ŒãŸå ´åˆã‚‚ã€ãƒœã‚¿ãƒ³ã¯æŠ¼ã•ã‚Œã¦ã„ãªã„çŠ¶æ…‹ã«ã™ã‚‹
+                // æ¥ç¶šãŒåˆ‡ã‚ŒãŸå ´åˆã‚‚ã€ãƒœã‚¿ãƒ³ã¯æŠ¼ã•ã‚Œã¦ã„ãªã„çŠ¶æ…‹ã«ã™ã‚‹
                 UpdateButtonState(input.dodgeTrigger, false);
+                UpdateButtonState(input.jump, false);
                 return;
             }
 
@@ -14705,7 +14822,9 @@ void GameInputSystem::Update(entt::registry& registry, const ControllerSettings&
             UpdateButtonState(input.lockOnTrigger, l2Held);
 
             // ãƒœã‚¿ãƒ³åˆ¤å®š
-            input.jump = ctrl->IsPressed(ControllerButtons::Cross);
+            bool crossHeld = ctrl->IsPressed(ControllerButtons::Cross);
+            UpdateButtonState(input.jump, crossHeld);
+
             input.attack = ctrl->IsPressed(ControllerButtons::Square);
         });
 }
@@ -14727,6 +14846,13 @@ float GameInputSystem::ApplyTriggerDeadzone(float value, float deadzone)
 
 // ãƒœã‚¿ãƒ³çŠ¶æ…‹ã®æ›´æ–°
 void GameInputSystem::UpdateButtonState(TriggerState& state, bool isHeldNow)
+{
+    state.pressed = isHeldNow && !state.wasHeld;
+    state.released = !isHeldNow && state.wasHeld;
+    state.held = isHeldNow;
+    state.wasHeld = isHeldNow;
+}
+void GameInputSystem::UpdateButtonState(ButtonState& state, bool isHeldNow)
 {
     state.pressed = isHeldNow && !state.wasHeld;
     state.released = !isHeldNow && state.wasHeld;
@@ -14915,6 +15041,82 @@ void PlayerIdleSystem::Update(entt::registry& registry, float elapsedTime, const
 		});
 } 
  
+===== PlayerJumpSystem.cpp ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Project\ECS\Systems\PlayerJumpSystem.cpp 
+#include "PlayerJumpSystem.h"
+#include "Project/ECS/Components/PlayerJumpComponent.h"
+
+#include "Engine/ECS/Components/AnimatorComponent.h"
+#include "Engine/ECS/Components/StateComponent.h"
+#include "Engine/ECS/Components/MovementComponent.h"
+#include "Engine/ECS/Systems/StateGraphUtils.h"
+
+
+void PlayerJumpSystem::Update(entt::registry& registry, float elapsedTime, const SceneContext& context)
+{
+	auto view = registry.view<PlayerJumpComponent, AnimatorComponent, StateComponent, MovementComponent>();
+
+	view.each(
+		[&](PlayerJumpComponent& jump,
+			AnimatorComponent& animator,
+			StateComponent& state,
+			MovementComponent& movement)
+		{
+			// AnimatorGraphPath‚ª‹ó‚È‚çJump”»’è‚ğfalse‚É‚·‚é
+			if (animator.animatorGraphPath.empty())
+			{
+				jump.isJumping = false;
+				jump.jumpSub = PlayerJumpSubState::None;
+				return;
+			}
+
+			AnimatorGraphData& data = graphCache.GetOrLoad(animator.animatorGraphPath,
+				[](AnimatorGraphData& data, const nlohmann::json& j) { data.FromJson(j); });
+
+			// "Jump"‚ÌID‚ğƒLƒƒƒbƒVƒ…‚·‚é‚Ü‚ÅŒŸõ‚·‚é
+			if (jumpStateId == -1)
+			{
+				jumpStateId = StateGraphUtils::FindStateIdByName(data.parentGraph, "Jump");
+			}
+
+			// Œ»İ‚ªJump‚©‚Ç‚¤‚©‚ğ”»’è‚·‚é
+			bool isMyState = (state.currentStateId == jumpStateId);
+
+			// Jump‚Å‚È‚¯‚ê‚ÎAˆÈ~‚Ìˆ—‚Ís‚í‚È‚¢
+			if (!isMyState)
+			{
+				jump.isJumping = false;
+				jump.jumpSub = PlayerJumpSubState::None;
+				return;
+			}
+
+			// Jump‚É“ü‚Á‚½Å‰‚ÌƒtƒŒ[ƒ€
+			if (jump.jumpSub == PlayerJumpSubState::None)
+			{
+				if (movement.isGrounded)
+				{
+					// ’nã‚©‚ç“ü‚Á‚½FƒWƒƒƒ“ƒv
+					movement.velocity.y = jump.jumpPower;
+					jump.jumpSub = PlayerJumpSubState::Start;
+				}
+				else
+				{
+					// ‹ó’†‚©‚ç“ü‚Á‚½F—‰º
+					jump.jumpSub = PlayerJumpSubState::Loop;
+				}
+			}
+
+			// ’¸“_‚ğ‰z‚¦‚½‚çLoop‚Ö
+			if (jump.jumpSub == PlayerJumpSubState::Start && movement.velocity.y <= 0.0f)
+			{
+				jump.jumpSub = PlayerJumpSubState::Loop;
+			}
+
+			// ƒtƒ‰ƒOXV
+			jump.isJumping = true;
+		});
+} 
+ 
 ===== PlayerMovementUtils.cpp ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\Project\ECS\Systems\PlayerMovementUtils.cpp 
 #include "PlayerMovementUtils.h"
@@ -15045,8 +15247,6 @@ void PlayerMoveSystem::Update(entt::registry& registry, float elapsedTime, const
 				playerMove.isJogging = false;
 
 				playerMove.moveSub = PlayerMoveSubState::None;
-				movement.velocity.x = 0.0f;
-				movement.velocity.z = 0.0f;
 				return;
 			}
 
@@ -15203,6 +15403,7 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Project\Scene\SceneGame.h
 #include "Project/ECS/Systems/PlayerMoveSystem.h"
 #include "Project/ECS/Systems/PlayerDodgeSystem.h"
 #include "Project/ECS/Systems/PlayerSprintSystem.h"
+#include "Project/ECS/Systems/PlayerJumpSystem.h"
 
 #include "Engine/ECS/Systems/MovementSystem.h"
 #include "Engine/ECS/Systems/AnimatorControllerSystem.h"
@@ -15244,11 +15445,12 @@ private:
 	ControllerSystem  controllerSystem;
 	GameInputSystem   gameInputSystem;
 	TransitionControllerSystem transitionControllerSystem;
-
-	PlayerIdleSystem  playerIdleSystem;
-	PlayerMoveSystem  playerMoveSystem;
-	PlayerDodgeSystem playerDodgeSystem;
+	 
+	PlayerIdleSystem   playerIdleSystem;
+	PlayerMoveSystem   playerMoveSystem;
+	PlayerDodgeSystem  playerDodgeSystem;
 	PlayerSprintSystem playerSprintSystem;
+	PlayerJumpSystem   playerJumpSystem;
 
 	MovementSystem    movementSystem;
 	AnimatorControllerSystem animatorControllerSystem;
@@ -15299,8 +15501,9 @@ void SceneGame::Initialize(const SceneContext& context)
 	// SkyBoxåˆæœŸåŒ–
 	skyBox.Initialize(
 		context.device,
-		"Data/SkyBox/BlueSky"
-		//"Data/SkyBox/DynamicSky"
+		//"Data/SkyBox/BlueSky"
+		"Data/SkyBox/DynamicSky"
+		//"Data/SkyBox/GoldenGateHills"
 	);
 	// IBLãƒ†ã‚¯ã‚¹ãƒãƒ£ã‚»ãƒƒãƒˆ
 	renderSystem.SetIBLTextures(
@@ -15537,6 +15740,11 @@ void SceneGame::UpdateGameplay(float elapsedTime, const SceneContext& context)
 	{
 		ZoneScopedN("PlayerSprintSystem");
 		playerSprintSystem.Update(registry, elapsedTime, context);
+	}
+	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã‚¸ãƒ£ãƒ³ãƒ—å‡¦ç†
+	{
+		ZoneScopedN("PlayerJumpSystem");
+		playerJumpSystem.Update(registry, elapsedTime, context);
 	}
 
 	// ç§»å‹•å‡¦ç†
@@ -16551,10 +16759,13 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Editor\ComponentRegistryI
 #include "Engine/ECS/Components/ControllerComponent.h"
 #include "Engine/ECS/Components/MovementComponent.h"
 
+
 #include "Project/ECS/Components/PlayerIdleComponent.h"
 #include "Project/ECS/Components/PlayerMoveComponent.h"
 #include "Project/ECS/Components/PlayerDodgeComponent.h"
 #include "Project/ECS/Components/PlayerSprintComponent.h"
+#include "Project/ECS/Components/PlayerJumpComponent.h"
+
 
 #include "Engine/ECS/Components/AnimatorComponent.h"
 #include "Engine/ECS/Components/SkinnedMeshComponent.h"
@@ -16638,8 +16849,11 @@ void ComponentRegistryInitializer::Initialize()
 	REGISTER_COMPONENT_AUTO(PlayerMoveComponent, "Player Move");
 	// Player‰ñ”ğƒRƒ“ƒ|[ƒlƒ“ƒg‚Ì“o˜^
 	REGISTER_COMPONENT_AUTO(PlayerDodgeComponent, "Player Dodge");
-	// SprintƒRƒ“ƒ|[ƒlƒ“ƒg‚Ì“o˜^
+	// Playerƒ_ƒbƒVƒ…ƒRƒ“ƒ|[ƒlƒ“ƒg‚Ì“o˜^
 	REGISTER_COMPONENT_AUTO(PlayerSprintComponent, "Player Sprint");
+	// PlayerƒWƒƒƒ“ƒvƒRƒ“ƒ|[ƒlƒ“ƒg‚Ì“o˜^
+	REGISTER_COMPONENT_AUTO(PlayerJumpComponent,"Player Jump");
+
 
 	// ƒCƒ“ƒvƒbƒgƒRƒ“ƒ|[ƒlƒ“ƒg‚Ì“o˜^
 	REGISTER_COMPONENT_AUTO(GameInputComponent, "GameInput");
@@ -17605,6 +17819,18 @@ void MetaRegistry::DrawMetaFields(entt::meta_type metaType, entt::meta_any insta
 					if (selected) ImGui::SetItemDefaultFocus();
 				}
 				ImGui::EndCombo();
+			}
+		}
+		else if (value.type().data().begin() != value.type().data().end())
+		{
+			// REFLECT‚³‚ê‚½\‘¢‘ÌF’†g‚ğ“¯‚¶ŠÖ”‚Å•`‰æ‚·‚é
+			if (ImGui::TreeNode(label.c_str()))
+			{
+				DrawMetaFields(value.type(), value.as_ref());
+				ImGui::TreePop();
+
+				// value‚ÍƒRƒs[‚È‚Ì‚ÅA•ÒWŒ‹‰Ê‚ğŒ³‚ÌƒCƒ“ƒXƒ^ƒ“ƒX‚Ö‘‚«–ß‚·
+				metaData.set(instance, value);
 			}
 		}
 		else

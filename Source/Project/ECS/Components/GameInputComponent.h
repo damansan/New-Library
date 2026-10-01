@@ -57,7 +57,7 @@ struct GameInputComponent
         REFLECT_FIELD(TriggerState, lockOnTrigger, (), ("Lock On Trigger")) // L2
 
         // ƒ{ƒ^ƒ“
-        REFLECT_FIELD(bool, jump,   (false), ("Jump",   0.0f, 0.0f, 0.1f, "", true))
+        REFLECT_FIELD(ButtonState, jump, (), ("Jump"))
         REFLECT_FIELD(bool, attack, (false), ("Attack", 0.0f, 0.0f, 0.1f, "", true))
         
     REFLECT_END()

@@ -28,14 +28,14 @@ void GameInputSystem::Update(entt::registry& registry, const ControllerSettings&
 
             input.dodgeTrigger.value = 0.0f;
 
-            input.jump = false;
             input.attack = false;
 
             // ControllerComponent がなければスキップ
             if (!ctrl || !ctrl->connected)
             {
-				// 接続が切れた場合も、ボタンは押されていない状態にする
+                // 接続が切れた場合も、ボタンは押されていない状態にする
                 UpdateButtonState(input.dodgeTrigger, false);
+                UpdateButtonState(input.jump, false);
                 return;
             }
 
@@ -71,7 +71,9 @@ void GameInputSystem::Update(entt::registry& registry, const ControllerSettings&
             UpdateButtonState(input.lockOnTrigger, l2Held);
 
             // ボタン判定
-            input.jump = ctrl->IsPressed(ControllerButtons::Cross);
+            bool crossHeld = ctrl->IsPressed(ControllerButtons::Cross);
+            UpdateButtonState(input.jump, crossHeld);
+
             input.attack = ctrl->IsPressed(ControllerButtons::Square);
         });
 }
@@ -93,6 +95,13 @@ float GameInputSystem::ApplyTriggerDeadzone(float value, float deadzone)
 
 // ボタン状態の更新
 void GameInputSystem::UpdateButtonState(TriggerState& state, bool isHeldNow)
+{
+    state.pressed = isHeldNow && !state.wasHeld;
+    state.released = !isHeldNow && state.wasHeld;
+    state.held = isHeldNow;
+    state.wasHeld = isHeldNow;
+}
+void GameInputSystem::UpdateButtonState(ButtonState& state, bool isHeldNow)
 {
     state.pressed = isHeldNow && !state.wasHeld;
     state.released = !isHeldNow && state.wasHeld;

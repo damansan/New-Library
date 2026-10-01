@@ -377,6 +377,9 @@
     <Filter Include="Sources\Tool\Editor\FileDialog">
       <UniqueIdentifier>{dcbf0678-b62b-4ded-9a08-1bedec1a8e44}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\Project\ECS\Systems\Player\PlayerJumpSystem">
+      <UniqueIdentifier>{f75b600d-86d0-4397-ae50-8b59a0151875}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="External\imgui-docking\imgui.cpp">
@@ -639,6 +642,9 @@
     </ClCompile>
     <ClCompile Include="Source\Tool\Editor\FileDialog.cpp">
       <Filter>Sources\Tool\Editor\FileDialog</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Project\ECS\Systems\PlayerJumpSystem.cpp">
+      <Filter>Sources\Project\ECS\Systems\Player\PlayerJumpSystem</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1010,6 +1016,12 @@
     </ClInclude>
     <ClInclude Include="Source\Tool\Editor\FileDialog.h">
       <Filter>Sources\Tool\Editor\FileDialog</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Project\ECS\Components\PlayerJumpComponent.h">
+      <Filter>Sources\Project\ECS\Components\Player</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Project\ECS\Systems\PlayerJumpSystem.h">
+      <Filter>Sources\Project\ECS\Systems\Player\PlayerJumpSystem</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -10,6 +10,7 @@
 #include "Project/ECS/Systems/PlayerMoveSystem.h"
 #include "Project/ECS/Systems/PlayerDodgeSystem.h"
 #include "Project/ECS/Systems/PlayerSprintSystem.h"
+#include "Project/ECS/Systems/PlayerJumpSystem.h"
 
 #include "Engine/ECS/Systems/MovementSystem.h"
 #include "Engine/ECS/Systems/AnimatorControllerSystem.h"
@@ -51,11 +52,12 @@ private:
 	ControllerSystem  controllerSystem;
 	GameInputSystem   gameInputSystem;
 	TransitionControllerSystem transitionControllerSystem;
-
-	PlayerIdleSystem  playerIdleSystem;
-	PlayerMoveSystem  playerMoveSystem;
-	PlayerDodgeSystem playerDodgeSystem;
+	 
+	PlayerIdleSystem   playerIdleSystem;
+	PlayerMoveSystem   playerMoveSystem;
+	PlayerDodgeSystem  playerDodgeSystem;
 	PlayerSprintSystem playerSprintSystem;
+	PlayerJumpSystem   playerJumpSystem;
 
 	MovementSystem    movementSystem;
 	AnimatorControllerSystem animatorControllerSystem;

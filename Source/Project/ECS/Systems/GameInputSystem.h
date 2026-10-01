@@ -28,4 +28,5 @@ private:
 
 	// ボタン状態の更新
     void UpdateButtonState(TriggerState& state, bool isHeldNow);
+    void UpdateButtonState(ButtonState& state, bool isHeldNow);
 };

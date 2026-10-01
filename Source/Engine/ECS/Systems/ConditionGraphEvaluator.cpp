@@ -49,12 +49,27 @@ float ConditionGraphEvaluator::GetGetterValue(const ConditionGetterNode& node, e
 	}
 	if (!found) return 0.0f;
 
-	// コンポーネント名からエンティティの持つ
-	const ComponentInfo* info = ComponentRegistry::GetByTypeName(node.componentName);
+	// コンポーネントの実体を取得する
+	entt::meta_any instance;
 
-	if (!info) return 0.0f;
+	// ComponentRegistryに登録されていれば、そちらから取得する
+	if (const ComponentInfo* info = ComponentRegistry::GetByTypeName(node.componentName))
+	{
+		instance = info->getMeta(registry, entity);
+	}
+	else
+	{
+		// 登録されていない(他のComponentとまとめて付与される等)場合は、
+		// 型情報からEnTTのストレージを直接引いて取得する
+		if (auto* storage = registry.storage(found->componentType.info().hash()))
+		{
+			if (storage->contains(entity))
+			{
+				instance = found->componentType.from_void(storage->value(entity));
+			}
+		}
+	}
 
-	entt::meta_any instance = info->getMeta(registry, entity);
 	if (!instance) return 0.0f;
 
 	// 型情報からフィードの値を取得する

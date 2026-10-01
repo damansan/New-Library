@@ -7,7 +7,6 @@ struct MovementComponent
 	REFLECT_BEGIN(MovementComponent, "Movement")
 
 		// ê›íËíl
-		REFLECT_FIELD(float,             jumpPower,  (8.0f),             ("Jump Power", 0.0f,   50.0f        )) 
 		REFLECT_FIELD(float,             gravity,    (-20.0f),           ("Gravity",   -100.0f, 0.0f         ))  
 		REFLECT_FIELD(DirectX::XMFLOAT3, velocity,   (0.0f, 0.0f, 0.0f), ("Velocity",   0.0f,   0.0f,  0.01f ))
 		REFLECT_FIELD(bool,              isGrounded, (false),            ("Is Grounded"                      ))

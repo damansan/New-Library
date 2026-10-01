@@ -145,6 +145,18 @@ void MetaRegistry::DrawMetaFields(entt::meta_type metaType, entt::meta_any insta
 				ImGui::EndCombo();
 			}
 		}
+		else if (value.type().data().begin() != value.type().data().end())
+		{
+			// REFLECTされた構造体：中身を同じ関数で描画する
+			if (ImGui::TreeNode(label.c_str()))
+			{
+				DrawMetaFields(value.type(), value.as_ref());
+				ImGui::TreePop();
+
+				// valueはコピーなので、編集結果を元のインスタンスへ書き戻す
+				metaData.set(instance, value);
+			}
+		}
 		else
 		{
 			ImGui::TextDisabled("%s: (unsupported type)", label.c_str());

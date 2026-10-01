@@ -78,6 +78,7 @@
     <ClCompile Include="Source\Project\ECS\Systems\GameInputSystem.cpp" />
     <ClCompile Include="Source\Project\ECS\Systems\PlayerDodgeSystem.cpp" />
     <ClCompile Include="Source\Project\ECS\Systems\PlayerIdleSystem.cpp" />
+    <ClCompile Include="Source\Project\ECS\Systems\PlayerJumpSystem.cpp" />
     <ClCompile Include="Source\Project\ECS\Systems\PlayerMovementUtils.cpp" />
     <ClCompile Include="Source\Project\ECS\Systems\PlayerMoveSystem.cpp" />
     <ClCompile Include="Source\Project\ECS\Systems\PlayerSprintSystem.cpp" />
@@ -191,12 +192,14 @@
     <ClInclude Include="Source\Project\ECS\Components\GameCameraComponent.h" />
     <ClInclude Include="Source\Project\ECS\Components\GameInputComponent.h" />
     <ClInclude Include="Source\Project\ECS\Components\PlayerIdleComponent.h" />
+    <ClInclude Include="Source\Project\ECS\Components\PlayerJumpComponent.h" />
     <ClInclude Include="Source\Project\ECS\Components\PlayerMoveComponent.h" />
     <ClInclude Include="Source\Project\ECS\Components\PlayerSprintComponent.h" />
     <ClInclude Include="Source\Project\ECS\Systems\GameCameraSystem.h" />
     <ClInclude Include="Source\Project\ECS\Systems\GameInputSystem.h" />
     <ClInclude Include="Source\Project\ECS\Systems\PlayerDodgeSystem.h" />
     <ClInclude Include="Source\Project\ECS\Systems\PlayerIdleSystem.h" />
+    <ClInclude Include="Source\Project\ECS\Systems\PlayerJumpSystem.h" />
     <ClInclude Include="Source\Project\ECS\Systems\PlayerMovementUtils.h" />
     <ClInclude Include="Source\Project\ECS\Systems\PlayerMoveSystem.h" />
     <ClInclude Include="Source\Project\ECS\Systems\PlayerSprintSystem.h" />
