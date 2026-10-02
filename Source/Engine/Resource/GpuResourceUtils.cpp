@@ -241,34 +241,49 @@ HRESULT GpuResourceUtils::SaveToDDS(
 
 	if (FAILED(hr)) return hr;
 
-	// DDS形式で保存
-	std::wstring wDdsPath = ToWString(ddsFilename);
-	hr = DirectX::SaveToDDSFile(
-		image.GetImages(),
-		image.GetImageCount(),
-		image.GetMetadata(),
-		DirectX::DDS_FLAGS_NONE,
-		wDdsPath.c_str());
-
-	//// ミップマップを生成（0 = 1x1まで全段作る）
-	//DirectX::ScratchImage mipChain;
-	//hr = DirectX::GenerateMipMaps(
+	//// DDS形式で保存
+	//std::wstring wDdsPath = ToWString(ddsFilename);
+	//hr = DirectX::SaveToDDSFile(
 	//	image.GetImages(),
 	//	image.GetImageCount(),
 	//	image.GetMetadata(),
-	//	DirectX::TEX_FILTER_DEFAULT,
-	//	0,
-	//	mipChain);
-	//if (FAILED(hr)) return hr;
-
-	//// DDS形式で保存（ミップ付き）
-	//std::wstring wDdsPath = ToWString(ddsFilename);
-	//hr = DirectX::SaveToDDSFile(
-	//	mipChain.GetImages(),
-	//	mipChain.GetImageCount(),
-	//	mipChain.GetMetadata(),
 	//	DirectX::DDS_FLAGS_NONE,
 	//	wDdsPath.c_str());
+
+	// ミップマップを生成（0 = 1x1まで全段作る）
+	DirectX::ScratchImage mipChain;
+	hr = DirectX::GenerateMipMaps(
+		image.GetImages(),
+		image.GetImageCount(),
+		image.GetMetadata(),
+		DirectX::TEX_FILTER_DEFAULT,
+		0,
+		mipChain);
+
+	if (FAILED(hr)) return hr;
+
+	// BC3圧縮（VRAM使用量を1/4に）
+	DirectX::ScratchImage compressed;
+	HRESULT compHr = DirectX::Compress(
+		mipChain.GetImages(),
+		mipChain.GetImageCount(),
+		mipChain.GetMetadata(),
+		DXGI_FORMAT_BC3_UNORM,
+		DirectX::TEX_COMPRESS_DEFAULT | DirectX::TEX_COMPRESS_PARALLEL,
+		DirectX::TEX_THRESHOLD_DEFAULT,
+		compressed);
+
+	// 圧縮できなかった場合（サイズが4の倍数でない等）は非圧縮のまま保存
+	const DirectX::ScratchImage& src = SUCCEEDED(compHr) ? compressed : mipChain;
+
+	// DDS形式で保存（ミップ付き）
+	std::wstring wDdsPath = ToWString(ddsFilename);
+	hr = DirectX::SaveToDDSFile(
+		src.GetImages(),
+		src.GetImageCount(),
+		src.GetMetadata(),
+		DirectX::DDS_FLAGS_NONE,
+		wDdsPath.c_str());
 
 	return hr;
 }

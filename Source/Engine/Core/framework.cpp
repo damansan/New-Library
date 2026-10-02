@@ -194,33 +194,47 @@ void framework::render(float elapsedTime)
 	// Game描画先をGameWindow用テクスチャに切り替えて描画
 	gameWindow.Begin(graphics.GetDeviceContext());
 	sceneManager.Render(sceneContext);
-	gameWindow.End(graphics.GetDeviceContext());
-
+	{
+		ZoneScopedN("GameWindow::End");
+		gameWindow.End(graphics.GetDeviceContext());
+	}
 
 	if (IsEditorActive())
 	{
 		// Studio描画
-		for (auto& win : studioWindows)
 		{
-			win->Render();
+			ZoneScopedN("Studio::Render");
+			for (auto& win : studioWindows)
+			{
+				win->Render();
+			}
 		}
 
 		// メインRTVを再セット
 		graphics.SetRenderTargets();
 
 		// ImGui描画（GameウィンドウもここでImGui::Image経由で表示される）
-		imguiManager.EndFrame();
+		{
+			ZoneScopedN("ImGui::EndFrame");
+			imguiManager.EndFrame();
+		}
 	}
 	else
 	{
 		// Editor無効時：Gameのテクスチャをフルスクリーンでバックバッファへ
 		graphics.SetRenderTargets();
-		graphics.PresentTexture(gameWindow.GetSRV());
+		{
+			ZoneScopedN("PresentTexture");
+			graphics.PresentTexture(gameWindow.GetSRV());
+		}
 	}
 
 	// 画面反映
-	graphics.Present(vsync);
-	
+	{
+		ZoneScopedN("Present");
+		graphics.Present(vsync);
+	}
+
 	FrameMark;
 }
 
