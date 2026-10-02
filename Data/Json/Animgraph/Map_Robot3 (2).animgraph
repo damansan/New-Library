@@ -3,15 +3,36 @@
         {
             "id": 1,
             "name": "Entry",
-            "posX": 192.0,
-            "posY": -336.0,
+            "posX": 208.0,
+            "posY": -208.0,
             "type": "Entry",
             "color": [
                 0.27000001072883606,
                 0.3499999940395355,
                 0.4699999988079071
             ],
-            "children": [],
+            "children": [
+                {
+                    "id": 2,
+                    "name": "Entry",
+                    "posX": 50.0,
+                    "posY": 200.0,
+                    "type": "Start",
+                    "clipName": "",
+                    "loop": true,
+                    "useRootMotion": false
+                },
+                {
+                    "id": 3,
+                    "name": "Exit",
+                    "posX": 400.0,
+                    "posY": 200.0,
+                    "type": "End",
+                    "clipName": "",
+                    "loop": true,
+                    "useRootMotion": false
+                }
+            ],
             "childLinks": []
         },
         {
@@ -29,8 +50,8 @@
                 {
                     "id": 3,
                     "name": "Entry",
-                    "posX": 50.0,
-                    "posY": 200.0,
+                    "posX": 48.0,
+                    "posY": 192.0,
                     "type": "Start",
                     "clipName": "",
                     "loop": true,
@@ -45,9 +66,40 @@
                     "clipName": "",
                     "loop": true,
                     "useRootMotion": false
+                },
+                {
+                    "id": 50,
+                    "name": "Idle",
+                    "posX": 224.0,
+                    "posY": 192.0,
+                    "type": "Normal",
+                    "clipName": "AS_Idle",
+                    "loop": true,
+                    "useRootMotion": false
                 }
             ],
-            "childLinks": []
+            "childLinks": [
+                {
+                    "id": 51,
+                    "fromId": 3,
+                    "toId": 50,
+                    "blend": true,
+                    "blendDuration": 0.20000000298023224,
+                    "condition": {
+                        "returnNode": {
+                            "id": 52,
+                            "posX": 500.0,
+                            "posY": 200.0
+                        },
+                        "variableNodes": [],
+                        "operatorNodes": [],
+                        "logicNodes": [],
+                        "notNodes": [],
+                        "getterNodes": [],
+                        "links": []
+                    }
+                }
+            ]
         },
         {
             "id": 9,
@@ -64,8 +116,8 @@
                 {
                     "id": 10,
                     "name": "Entry",
-                    "posX": 50.0,
-                    "posY": 200.0,
+                    "posX": 64.0,
+                    "posY": 192.0,
                     "type": "Start",
                     "clipName": "",
                     "loop": true,
@@ -80,9 +132,178 @@
                     "clipName": "",
                     "loop": true,
                     "useRootMotion": false
+                },
+                {
+                    "id": 32,
+                    "name": "Walk",
+                    "posX": 240.0,
+                    "posY": 144.0,
+                    "type": "Normal",
+                    "clipName": "AS_Run_Loop",
+                    "loop": true,
+                    "useRootMotion": false
+                },
+                {
+                    "id": 33,
+                    "name": "Run",
+                    "posX": 240.0,
+                    "posY": 240.0,
+                    "type": "Normal",
+                    "clipName": "AS_Walk_Loop",
+                    "loop": true,
+                    "useRootMotion": false
                 }
             ],
-            "childLinks": []
+            "childLinks": [
+                {
+                    "id": 34,
+                    "fromId": 10,
+                    "toId": 33,
+                    "blend": true,
+                    "blendDuration": 0.20000000298023224,
+                    "condition": {
+                        "returnNode": {
+                            "id": 35,
+                            "posX": 500.0,
+                            "posY": 200.0
+                        },
+                        "variableNodes": [],
+                        "operatorNodes": [],
+                        "logicNodes": [],
+                        "notNodes": [],
+                        "getterNodes": [
+                            {
+                                "id": 42,
+                                "posX": 184.0,
+                                "posY": 176.0,
+                                "componentName": "PlayerMoveComponent",
+                                "fieldName": "Is Jogging",
+                                "type": "Bool",
+                                "selectedComponent": "None"
+                            }
+                        ],
+                        "links": [
+                            {
+                                "id": 43,
+                                "fromId": 42,
+                                "toId": 35,
+                                "toPinB": false
+                            }
+                        ]
+                    }
+                },
+                {
+                    "id": 36,
+                    "fromId": 10,
+                    "toId": 32,
+                    "blend": true,
+                    "blendDuration": 0.20000000298023224,
+                    "condition": {
+                        "returnNode": {
+                            "id": 37,
+                            "posX": 498.0,
+                            "posY": 208.0
+                        },
+                        "variableNodes": [],
+                        "operatorNodes": [],
+                        "logicNodes": [],
+                        "notNodes": [],
+                        "getterNodes": [
+                            {
+                                "id": 44,
+                                "posX": 272.0,
+                                "posY": 188.0,
+                                "componentName": "PlayerMoveComponent",
+                                "fieldName": "Is Walking",
+                                "type": "Bool",
+                                "selectedComponent": "None"
+                            }
+                        ],
+                        "links": [
+                            {
+                                "id": 45,
+                                "fromId": 44,
+                                "toId": 37,
+                                "toPinB": false
+                            }
+                        ]
+                    }
+                },
+                {
+                    "id": 38,
+                    "fromId": 32,
+                    "toId": 33,
+                    "blend": true,
+                    "blendDuration": 0.20000000298023224,
+                    "condition": {
+                        "returnNode": {
+                            "id": 39,
+                            "posX": 498.0,
+                            "posY": 208.0
+                        },
+                        "variableNodes": [],
+                        "operatorNodes": [],
+                        "logicNodes": [],
+                        "notNodes": [],
+                        "getterNodes": [
+                            {
+                                "id": 46,
+                                "posX": 240.0,
+                                "posY": 188.0,
+                                "componentName": "PlayerMoveComponent",
+                                "fieldName": "Is Jogging",
+                                "type": "Bool",
+                                "selectedComponent": "None"
+                            }
+                        ],
+                        "links": [
+                            {
+                                "id": 47,
+                                "fromId": 46,
+                                "toId": 39,
+                                "toPinB": false
+                            }
+                        ]
+                    }
+                },
+                {
+                    "id": 40,
+                    "fromId": 33,
+                    "toId": 32,
+                    "blend": true,
+                    "blendDuration": 0.20000000298023224,
+                    "condition": {
+                        "returnNode": {
+                            "id": 41,
+                            "posX": 498.0,
+                            "posY": 192.0
+                        },
+                        "variableNodes": [],
+                        "operatorNodes": [],
+                        "logicNodes": [],
+                        "notNodes": [],
+                        "getterNodes": [
+                            {
+                                "id": 48,
+                                "posX": 256.0,
+                                "posY": 172.0,
+                                "componentName": "PlayerMoveComponent",
+                                "fieldName": "Is Walking",
+                                "type": "Bool",
+                                "selectedComponent": "None"
+                            }
+                        ],
+                        "links": [
+                            {
+                                "id": 49,
+                                "fromId": 48,
+                                "toId": 41,
+                                "toPinB": false
+                            }
+                        ]
+                    }
+                }
+            ]
         }
     ],
     "stateLinks": [

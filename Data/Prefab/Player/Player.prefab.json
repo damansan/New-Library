@@ -3,15 +3,15 @@
         "animationSpeedPath": "Data/Json/AnimSpeed/Map_Robot3.animspeed"
     },
     "Animator": {
-        "animatorGraphPath": "Data/Json/Animgraph/Map_Robot3.animgraph",
+        "animatorGraphPath": "Data/Json/Animgraph/Map_Robot3 (2).animgraph",
         "loop": true,
         "playSpeed": 1.0,
         "rootMotionNodeName": "root",
-        "useRootMotion": true,
+        "useRootMotion": false,
         "useRootMotionY": false
     },
     "Category": {
-        "category": "Player"
+        "category": "None"
     },
     "GameInput": {},
     "Material": {
@@ -45,13 +45,13 @@
     },
     "Transform": {
         "position": [
-            -13.228975296020508,
-            -9.487848728895187e-08,
-            8.318620681762695
+            0.0,
+            -0.016267426311969757,
+            0.0
         ],
         "rotation": [
             0.0,
-            0.7965977191925049,
+            0.0,
             0.0
         ],
         "scale": [
