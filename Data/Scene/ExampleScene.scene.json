@@ -9,35 +9,21 @@
             "prefab": "Data/Prefab/Stage/ExampleStage.prefab.json"
         },
         {
-            "name": "Player",
-            "overrides": {
-                "Transform": {
-                    "position": [
-                        -0.12909092009067535,
-                        -0.014650939032435417,
-                        -5.9920830726623535
-                    ],
-                    "rotation": [
-                        0.0,
-                        -3.141592264175415,
-                        0.0
-                    ]
-                }
-            },
-            "prefab": "Data/Prefab/Player/Player.prefab.json"
-        },
-        {
             "name": "Enemy",
             "overrides": {
                 "Transform": {
                     "position": [
                         0.0,
-                        -0.01626739464700222,
+                        -0.016267426311969757,
                         0.0
                     ]
                 }
             },
             "prefab": "Data/Prefab/Enemy/Enemy.prefab.json"
+        },
+        {
+            "name": "Player",
+            "prefab": "Data/Prefab/Player/Player.prefab.json"
         },
         {
             "name": "FreeCamera",

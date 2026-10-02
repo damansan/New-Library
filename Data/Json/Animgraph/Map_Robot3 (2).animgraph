@@ -3,8 +3,8 @@
         {
             "id": 1,
             "name": "Entry",
-            "posX": 208.0,
-            "posY": -208.0,
+            "posX": 288.0,
+            "posY": 96.0,
             "type": "Entry",
             "color": [
                 0.27000001072883606,
@@ -38,8 +38,8 @@
         {
             "id": 2,
             "name": "Idle",
-            "posX": 48.0,
-            "posY": -208.0,
+            "posX": 160.0,
+            "posY": 192.0,
             "type": "State",
             "color": [
                 0.27000001072883606,
@@ -104,8 +104,8 @@
         {
             "id": 9,
             "name": "Move",
-            "posX": 48.0,
-            "posY": -320.0,
+            "posX": 160.0,
+            "posY": 80.0,
             "type": "State",
             "color": [
                 0.27000001072883606,
@@ -136,20 +136,20 @@
                 {
                     "id": 32,
                     "name": "Walk",
-                    "posX": 240.0,
+                    "posX": 272.0,
                     "posY": 144.0,
                     "type": "Normal",
-                    "clipName": "AS_Run_Loop",
+                    "clipName": "AS_Walk_Loop",
                     "loop": true,
                     "useRootMotion": false
                 },
                 {
                     "id": 33,
                     "name": "Run",
-                    "posX": 240.0,
+                    "posX": 272.0,
                     "posY": 240.0,
                     "type": "Normal",
-                    "clipName": "AS_Walk_Loop",
+                    "clipName": "AS_Run_Loop",
                     "loop": true,
                     "useRootMotion": false
                 }
@@ -164,8 +164,8 @@
                     "condition": {
                         "returnNode": {
                             "id": 35,
-                            "posX": 500.0,
-                            "posY": 200.0
+                            "posX": 466.0,
+                            "posY": 208.0
                         },
                         "variableNodes": [],
                         "operatorNodes": [],
@@ -174,8 +174,8 @@
                         "getterNodes": [
                             {
                                 "id": 42,
-                                "posX": 184.0,
-                                "posY": 176.0,
+                                "posX": 224.0,
+                                "posY": 188.0,
                                 "componentName": "PlayerMoveComponent",
                                 "fieldName": "Is Jogging",
                                 "type": "Bool",
@@ -304,6 +304,317 @@
                     }
                 }
             ]
+        },
+        {
+            "id": 53,
+            "name": "Dodge",
+            "posX": 304.0,
+            "posY": 192.0,
+            "type": "State",
+            "color": [
+                0.27000001072883606,
+                0.3499999940395355,
+                0.4699999988079071
+            ],
+            "children": [
+                {
+                    "id": 54,
+                    "name": "Entry",
+                    "posX": 50.0,
+                    "posY": 200.0,
+                    "type": "Start",
+                    "clipName": "",
+                    "loop": true,
+                    "useRootMotion": false
+                },
+                {
+                    "id": 55,
+                    "name": "Exit",
+                    "posX": 400.0,
+                    "posY": 200.0,
+                    "type": "End",
+                    "clipName": "",
+                    "loop": true,
+                    "useRootMotion": false
+                },
+                {
+                    "id": 98,
+                    "name": "DodgeFront",
+                    "posX": 257.0,
+                    "posY": 196.0,
+                    "type": "Normal",
+                    "clipName": "AS_Dodge_Front",
+                    "loop": false,
+                    "useRootMotion": true
+                }
+            ],
+            "childLinks": [
+                {
+                    "id": 99,
+                    "fromId": 54,
+                    "toId": 98,
+                    "blend": true,
+                    "blendDuration": 0.20000000298023224,
+                    "condition": {
+                        "returnNode": {
+                            "id": 100,
+                            "posX": 500.0,
+                            "posY": 200.0
+                        },
+                        "variableNodes": [],
+                        "operatorNodes": [],
+                        "logicNodes": [],
+                        "notNodes": [],
+                        "getterNodes": [],
+                        "links": []
+                    }
+                }
+            ]
+        },
+        {
+            "id": 105,
+            "name": "Sprint",
+            "posX": 160.0,
+            "posY": 304.0,
+            "type": "State",
+            "color": [
+                0.27000001072883606,
+                0.3499999940395355,
+                0.4699999988079071
+            ],
+            "children": [
+                {
+                    "id": 106,
+                    "name": "Entry",
+                    "posX": 48.0,
+                    "posY": 192.0,
+                    "type": "Start",
+                    "clipName": "",
+                    "loop": true,
+                    "useRootMotion": false
+                },
+                {
+                    "id": 107,
+                    "name": "Exit",
+                    "posX": 384.0,
+                    "posY": 192.0,
+                    "type": "End",
+                    "clipName": "",
+                    "loop": true,
+                    "useRootMotion": false
+                },
+                {
+                    "id": 156,
+                    "name": "Sprint",
+                    "posX": 208.0,
+                    "posY": 192.0,
+                    "type": "Normal",
+                    "clipName": "AS_Sprint_Loop",
+                    "loop": true,
+                    "useRootMotion": false
+                }
+            ],
+            "childLinks": [
+                {
+                    "id": 157,
+                    "fromId": 106,
+                    "toId": 156,
+                    "blend": true,
+                    "blendDuration": 0.20000000298023224,
+                    "condition": {
+                        "returnNode": {
+                            "id": 158,
+                            "posX": 500.0,
+                            "posY": 200.0
+                        },
+                        "variableNodes": [],
+                        "operatorNodes": [],
+                        "logicNodes": [],
+                        "notNodes": [],
+                        "getterNodes": [],
+                        "links": []
+                    }
+                }
+            ]
+        },
+        {
+            "id": 159,
+            "name": "Jump",
+            "posX": 16.0,
+            "posY": 192.0,
+            "type": "State",
+            "color": [
+                0.27000001072883606,
+                0.3499999940395355,
+                0.4699999988079071
+            ],
+            "children": [
+                {
+                    "id": 160,
+                    "name": "Entry",
+                    "posX": 32.0,
+                    "posY": 240.0,
+                    "type": "Start",
+                    "clipName": "",
+                    "loop": true,
+                    "useRootMotion": false
+                },
+                {
+                    "id": 161,
+                    "name": "Exit",
+                    "posX": 416.0,
+                    "posY": 240.0,
+                    "type": "End",
+                    "clipName": "",
+                    "loop": true,
+                    "useRootMotion": false
+                },
+                {
+                    "id": 196,
+                    "name": "Jump Start",
+                    "posX": 208.0,
+                    "posY": 192.0,
+                    "type": "Normal",
+                    "clipName": "AS_Jump_Start",
+                    "loop": false,
+                    "useRootMotion": false
+                },
+                {
+                    "id": 201,
+                    "name": "Jump Loop",
+                    "posX": 208.0,
+                    "posY": 288.0,
+                    "type": "Normal",
+                    "clipName": "AS_Jump_Loop",
+                    "loop": true,
+                    "useRootMotion": false
+                }
+            ],
+            "childLinks": [
+                {
+                    "id": 197,
+                    "fromId": 160,
+                    "toId": 196,
+                    "blend": true,
+                    "blendDuration": 0.20000000298023224,
+                    "condition": {
+                        "returnNode": {
+                            "id": 198,
+                            "posX": 418.0,
+                            "posY": 192.0
+                        },
+                        "variableNodes": [],
+                        "operatorNodes": [],
+                        "logicNodes": [],
+                        "notNodes": [],
+                        "getterNodes": [
+                            {
+                                "id": 199,
+                                "posX": 210.0,
+                                "posY": 172.0,
+                                "componentName": "GameInputComponent",
+                                "fieldName": "Jump.Pressed",
+                                "type": "Bool",
+                                "selectedComponent": "None"
+                            }
+                        ],
+                        "links": [
+                            {
+                                "id": 200,
+                                "fromId": 199,
+                                "toId": 198,
+                                "toPinB": false
+                            }
+                        ]
+                    }
+                },
+                {
+                    "id": 202,
+                    "fromId": 160,
+                    "toId": 201,
+                    "blend": true,
+                    "blendDuration": 0.20000000298023224,
+                    "condition": {
+                        "returnNode": {
+                            "id": 203,
+                            "posX": 434.0,
+                            "posY": 192.0
+                        },
+                        "variableNodes": [],
+                        "operatorNodes": [],
+                        "logicNodes": [],
+                        "notNodes": [
+                            {
+                                "id": 207,
+                                "posX": 274.0,
+                                "posY": 164.0
+                            }
+                        ],
+                        "getterNodes": [
+                            {
+                                "id": 206,
+                                "posX": 69.0,
+                                "posY": 172.0,
+                                "componentName": "MovementComponent",
+                                "fieldName": "Is Grounded",
+                                "type": "Bool",
+                                "selectedComponent": "None"
+                            }
+                        ],
+                        "links": [
+                            {
+                                "id": 208,
+                                "fromId": 206,
+                                "toId": 207,
+                                "toPinB": false
+                            },
+                            {
+                                "id": 209,
+                                "fromId": 207,
+                                "toId": 203,
+                                "toPinB": false
+                            }
+                        ]
+                    }
+                },
+                {
+                    "id": 204,
+                    "fromId": 196,
+                    "toId": 201,
+                    "blend": true,
+                    "blendDuration": 0.20000000298023224,
+                    "condition": {
+                        "returnNode": {
+                            "id": 205,
+                            "posX": 500.0,
+                            "posY": 200.0
+                        },
+                        "variableNodes": [],
+                        "operatorNodes": [],
+                        "logicNodes": [],
+                        "notNodes": [],
+                        "getterNodes": [
+                            {
+                                "id": 259,
+                                "posX": 300.0,
+                                "posY": 172.0,
+                                "componentName": "AnimatorComponent",
+                                "fieldName": "Is End",
+                                "type": "Bool",
+                                "selectedComponent": "None"
+                            }
+                        ],
+                        "links": [
+                            {
+                                "id": 260,
+                                "fromId": 259,
+                                "toId": 205,
+                                "toPinB": false
+                            }
+                        ]
+                    }
+                }
+            ]
         }
     ],
     "stateLinks": [
@@ -373,41 +684,559 @@
             "condition": {
                 "returnNode": {
                     "id": 17,
-                    "posX": 466.0,
+                    "posX": 418.0,
                     "posY": 176.0
                 },
                 "variableNodes": [],
                 "operatorNodes": [],
                 "logicNodes": [],
-                "notNodes": [
-                    {
-                        "id": 23,
-                        "posX": 306.0,
-                        "posY": 148.0
-                    }
-                ],
+                "notNodes": [],
                 "getterNodes": [
                     {
-                        "id": 22,
-                        "posX": 80.0,
+                        "id": 103,
+                        "posX": 232.0,
                         "posY": 156.0,
-                        "componentName": "PlayerMoveComponent",
-                        "fieldName": "Is Moving",
+                        "componentName": "PlayerIdleComponent",
+                        "fieldName": "Is Idling",
                         "type": "Bool",
                         "selectedComponent": "None"
                     }
                 ],
                 "links": [
                     {
-                        "id": 24,
-                        "fromId": 22,
-                        "toId": 23,
+                        "id": 104,
+                        "fromId": 103,
+                        "toId": 17,
+                        "toPinB": false
+                    }
+                ]
+            }
+        },
+        {
+            "id": 56,
+            "fromId": 2,
+            "toId": 53,
+            "blend": true,
+            "blendDuration": 0.20000000298023224,
+            "condition": {
+                "returnNode": {
+                    "id": 57,
+                    "posX": 530.0,
+                    "posY": 192.0
+                },
+                "variableNodes": [],
+                "operatorNodes": [],
+                "logicNodes": [],
+                "notNodes": [],
+                "getterNodes": [
+                    {
+                        "id": 72,
+                        "posX": 282.0,
+                        "posY": 172.0,
+                        "componentName": "PlayerDodgeComponent",
+                        "fieldName": "Is Dodging",
+                        "type": "Bool",
+                        "selectedComponent": "None"
+                    }
+                ],
+                "links": [
+                    {
+                        "id": 73,
+                        "fromId": 72,
+                        "toId": 57,
+                        "toPinB": false
+                    }
+                ]
+            }
+        },
+        {
+            "id": 60,
+            "fromId": 53,
+            "toId": 2,
+            "blend": true,
+            "blendDuration": 0.20000000298023224,
+            "condition": {
+                "returnNode": {
+                    "id": 61,
+                    "posX": 466.0,
+                    "posY": 192.0
+                },
+                "variableNodes": [],
+                "operatorNodes": [],
+                "logicNodes": [],
+                "notNodes": [],
+                "getterNodes": [
+                    {
+                        "id": 70,
+                        "posX": 234.0,
+                        "posY": 172.0,
+                        "componentName": "PlayerIdleComponent",
+                        "fieldName": "Is Idling",
+                        "type": "Bool",
+                        "selectedComponent": "None"
+                    }
+                ],
+                "links": [
+                    {
+                        "id": 71,
+                        "fromId": 70,
+                        "toId": 61,
+                        "toPinB": false
+                    }
+                ]
+            }
+        },
+        {
+            "id": 64,
+            "fromId": 9,
+            "toId": 53,
+            "blend": true,
+            "blendDuration": 0.20000000298023224,
+            "condition": {
+                "returnNode": {
+                    "id": 65,
+                    "posX": 434.0,
+                    "posY": 208.0
+                },
+                "variableNodes": [],
+                "operatorNodes": [],
+                "logicNodes": [],
+                "notNodes": [],
+                "getterNodes": [
+                    {
+                        "id": 68,
+                        "posX": 203.0,
+                        "posY": 187.0,
+                        "componentName": "PlayerDodgeComponent",
+                        "fieldName": "Is Dodging",
+                        "type": "Bool",
+                        "selectedComponent": "None"
+                    }
+                ],
+                "links": [
+                    {
+                        "id": 69,
+                        "fromId": 68,
+                        "toId": 65,
+                        "toPinB": false
+                    }
+                ]
+            }
+        },
+        {
+            "id": 112,
+            "fromId": 105,
+            "toId": 2,
+            "blend": true,
+            "blendDuration": 0.20000000298023224,
+            "condition": {
+                "returnNode": {
+                    "id": 113,
+                    "posX": 498.0,
+                    "posY": 256.0
+                },
+                "variableNodes": [],
+                "operatorNodes": [],
+                "logicNodes": [],
+                "notNodes": [],
+                "getterNodes": [
+                    {
+                        "id": 128,
+                        "posX": 264.0,
+                        "posY": 236.0,
+                        "componentName": "PlayerIdleComponent",
+                        "fieldName": "Is Idling",
+                        "type": "Bool",
+                        "selectedComponent": "None"
+                    }
+                ],
+                "links": [
+                    {
+                        "id": 129,
+                        "fromId": 128,
+                        "toId": 113,
+                        "toPinB": false
+                    }
+                ]
+            }
+        },
+        {
+            "id": 116,
+            "fromId": 53,
+            "toId": 105,
+            "blend": true,
+            "blendDuration": 0.20000000298023224,
+            "condition": {
+                "returnNode": {
+                    "id": 117,
+                    "posX": 498.0,
+                    "posY": 208.0
+                },
+                "variableNodes": [],
+                "operatorNodes": [],
+                "logicNodes": [],
+                "notNodes": [],
+                "getterNodes": [
+                    {
+                        "id": 124,
+                        "posX": 252.0,
+                        "posY": 188.0,
+                        "componentName": "PlayerSprintComponent",
+                        "fieldName": "Is Sprinting",
+                        "type": "Bool",
+                        "selectedComponent": "None"
+                    }
+                ],
+                "links": [
+                    {
+                        "id": 125,
+                        "fromId": 124,
+                        "toId": 117,
+                        "toPinB": false
+                    }
+                ]
+            }
+        },
+        {
+            "id": 120,
+            "fromId": 105,
+            "toId": 53,
+            "blend": true,
+            "blendDuration": 0.20000000298023224,
+            "condition": {
+                "returnNode": {
+                    "id": 121,
+                    "posX": 498.0,
+                    "posY": 192.0
+                },
+                "variableNodes": [],
+                "operatorNodes": [],
+                "logicNodes": [],
+                "notNodes": [],
+                "getterNodes": [
+                    {
+                        "id": 126,
+                        "posX": 282.0,
+                        "posY": 172.0,
+                        "componentName": "PlayerDodgeComponent",
+                        "fieldName": "Is Dodging",
+                        "type": "Bool",
+                        "selectedComponent": "None"
+                    }
+                ],
+                "links": [
+                    {
+                        "id": 127,
+                        "fromId": 126,
+                        "toId": 121,
+                        "toPinB": false
+                    }
+                ]
+            }
+        },
+        {
+            "id": 162,
+            "fromId": 2,
+            "toId": 159,
+            "blend": true,
+            "blendDuration": 0.20000000298023224,
+            "condition": {
+                "returnNode": {
+                    "id": 163,
+                    "posX": 562.0,
+                    "posY": 256.0
+                },
+                "variableNodes": [],
+                "operatorNodes": [],
+                "logicNodes": [
+                    {
+                        "id": 210,
+                        "posX": 370.0,
+                        "posY": 208.0,
+                        "op": "Or"
+                    }
+                ],
+                "notNodes": [
+                    {
+                        "id": 214,
+                        "posX": 226.0,
+                        "posY": 260.0
+                    }
+                ],
+                "getterNodes": [
+                    {
+                        "id": 170,
+                        "posX": 190.0,
+                        "posY": 156.0,
+                        "componentName": "PlayerJumpComponent",
+                        "fieldName": "Is Jumping",
+                        "type": "Bool",
+                        "selectedComponent": "None"
+                    },
+                    {
+                        "id": 216,
+                        "posX": 21.0,
+                        "posY": 268.0,
+                        "componentName": "MovementComponent",
+                        "fieldName": "Is Grounded",
+                        "type": "Bool",
+                        "selectedComponent": "None"
+                    }
+                ],
+                "links": [
+                    {
+                        "id": 211,
+                        "fromId": 170,
+                        "toId": 210,
                         "toPinB": false
                     },
                     {
-                        "id": 25,
-                        "fromId": 23,
-                        "toId": 17,
+                        "id": 212,
+                        "fromId": 210,
+                        "toId": 163,
+                        "toPinB": false
+                    },
+                    {
+                        "id": 215,
+                        "fromId": 214,
+                        "toId": 210,
+                        "toPinB": true
+                    },
+                    {
+                        "id": 217,
+                        "fromId": 216,
+                        "toId": 214,
+                        "toPinB": false
+                    }
+                ]
+            }
+        },
+        {
+            "id": 166,
+            "fromId": 159,
+            "toId": 2,
+            "blend": true,
+            "blendDuration": 0.20000000298023224,
+            "condition": {
+                "returnNode": {
+                    "id": 167,
+                    "posX": 450.0,
+                    "posY": 288.0
+                },
+                "variableNodes": [],
+                "operatorNodes": [],
+                "logicNodes": [
+                    {
+                        "id": 232,
+                        "posX": 274.0,
+                        "posY": 240.0,
+                        "op": "Or"
+                    }
+                ],
+                "notNodes": [
+                    {
+                        "id": 173,
+                        "posX": 114.0,
+                        "posY": 164.0
+                    }
+                ],
+                "getterNodes": [
+                    {
+                        "id": 172,
+                        "posX": -66.0,
+                        "posY": 172.0,
+                        "componentName": "PlayerJumpComponent",
+                        "fieldName": "Is Jumping",
+                        "type": "Bool",
+                        "selectedComponent": "None"
+                    },
+                    {
+                        "id": 234,
+                        "posX": 53.0,
+                        "posY": 284.0,
+                        "componentName": "MovementComponent",
+                        "fieldName": "Is Grounded",
+                        "type": "Bool",
+                        "selectedComponent": "None"
+                    }
+                ],
+                "links": [
+                    {
+                        "id": 174,
+                        "fromId": 172,
+                        "toId": 173,
+                        "toPinB": false
+                    },
+                    {
+                        "id": 233,
+                        "fromId": 173,
+                        "toId": 232,
+                        "toPinB": false
+                    },
+                    {
+                        "id": 235,
+                        "fromId": 234,
+                        "toId": 232,
+                        "toPinB": true
+                    },
+                    {
+                        "id": 236,
+                        "fromId": 232,
+                        "toId": 167,
+                        "toPinB": false
+                    }
+                ]
+            }
+        },
+        {
+            "id": 180,
+            "fromId": 105,
+            "toId": 159,
+            "blend": true,
+            "blendDuration": 0.20000000298023224,
+            "condition": {
+                "returnNode": {
+                    "id": 181,
+                    "posX": 530.0,
+                    "posY": 320.0
+                },
+                "variableNodes": [],
+                "operatorNodes": [],
+                "logicNodes": [
+                    {
+                        "id": 225,
+                        "posX": 366.0,
+                        "posY": 272.0,
+                        "op": "Or"
+                    }
+                ],
+                "notNodes": [
+                    {
+                        "id": 228,
+                        "posX": 210.0,
+                        "posY": 340.0
+                    }
+                ],
+                "getterNodes": [
+                    {
+                        "id": 190,
+                        "posX": 174.0,
+                        "posY": 204.0,
+                        "componentName": "PlayerJumpComponent",
+                        "fieldName": "Is Jumping",
+                        "type": "Bool",
+                        "selectedComponent": "None"
+                    },
+                    {
+                        "id": 227,
+                        "posX": 5.0,
+                        "posY": 348.0,
+                        "componentName": "MovementComponent",
+                        "fieldName": "Is Grounded",
+                        "type": "Bool",
+                        "selectedComponent": "None"
+                    }
+                ],
+                "links": [
+                    {
+                        "id": 226,
+                        "fromId": 190,
+                        "toId": 225,
+                        "toPinB": false
+                    },
+                    {
+                        "id": 229,
+                        "fromId": 227,
+                        "toId": 228,
+                        "toPinB": false
+                    },
+                    {
+                        "id": 230,
+                        "fromId": 228,
+                        "toId": 225,
+                        "toPinB": true
+                    },
+                    {
+                        "id": 231,
+                        "fromId": 225,
+                        "toId": 181,
+                        "toPinB": false
+                    }
+                ]
+            }
+        },
+        {
+            "id": 184,
+            "fromId": 9,
+            "toId": 159,
+            "blend": true,
+            "blendDuration": 0.20000000298023224,
+            "condition": {
+                "returnNode": {
+                    "id": 185,
+                    "posX": 546.0,
+                    "posY": 240.0
+                },
+                "variableNodes": [],
+                "operatorNodes": [],
+                "logicNodes": [
+                    {
+                        "id": 221,
+                        "posX": 370.0,
+                        "posY": 192.0,
+                        "op": "Or"
+                    }
+                ],
+                "notNodes": [
+                    {
+                        "id": 219,
+                        "posX": 226.0,
+                        "posY": 260.0
+                    }
+                ],
+                "getterNodes": [
+                    {
+                        "id": 188,
+                        "posX": 174.0,
+                        "posY": 140.0,
+                        "componentName": "PlayerJumpComponent",
+                        "fieldName": "Is Jumping",
+                        "type": "Bool",
+                        "selectedComponent": "None"
+                    },
+                    {
+                        "id": 218,
+                        "posX": 37.0,
+                        "posY": 268.0,
+                        "componentName": "MovementComponent",
+                        "fieldName": "Is Grounded",
+                        "type": "Bool",
+                        "selectedComponent": "None"
+                    }
+                ],
+                "links": [
+                    {
+                        "id": 220,
+                        "fromId": 218,
+                        "toId": 219,
+                        "toPinB": false
+                    },
+                    {
+                        "id": 222,
+                        "fromId": 188,
+                        "toId": 221,
+                        "toPinB": false
+                    },
+                    {
+                        "id": 223,
+                        "fromId": 219,
+                        "toId": 221,
+                        "toPinB": true
+                    },
+                    {
+                        "id": 224,
+                        "fromId": 221,
+                        "toId": 185,
                         "toPinB": false
                     }
                 ]
@@ -510,6 +1339,687 @@
                         "id": 31,
                         "fromId": 28,
                         "toId": 29,
+                        "toPinB": false
+                    }
+                ]
+            }
+        },
+        {
+            "id": 58,
+            "fromId": 2,
+            "toId": 53,
+            "condition": {
+                "returnNode": {
+                    "id": 59,
+                    "posX": 546.0,
+                    "posY": 224.0
+                },
+                "variableNodes": [],
+                "operatorNodes": [],
+                "logicNodes": [],
+                "notNodes": [],
+                "getterNodes": [
+                    {
+                        "id": 74,
+                        "posX": 306.0,
+                        "posY": 204.0,
+                        "componentName": "GameInputComponent",
+                        "fieldName": "Dodge Trigger.Pressed",
+                        "type": "Bool",
+                        "selectedComponent": "None"
+                    }
+                ],
+                "links": [
+                    {
+                        "id": 75,
+                        "fromId": 74,
+                        "toId": 59,
+                        "toPinB": false
+                    }
+                ]
+            }
+        },
+        {
+            "id": 62,
+            "fromId": 53,
+            "toId": 2,
+            "condition": {
+                "returnNode": {
+                    "id": 63,
+                    "posX": 482.0,
+                    "posY": 304.0
+                },
+                "variableNodes": [],
+                "operatorNodes": [],
+                "logicNodes": [
+                    {
+                        "id": 84,
+                        "posX": -14.0,
+                        "posY": 64.0,
+                        "op": "And"
+                    },
+                    {
+                        "id": 87,
+                        "posX": 146.0,
+                        "posY": 152.0,
+                        "op": "Or"
+                    },
+                    {
+                        "id": 94,
+                        "posX": 302.0,
+                        "posY": 256.0,
+                        "op": "And"
+                    }
+                ],
+                "notNodes": [
+                    {
+                        "id": 78,
+                        "posX": -142.0,
+                        "posY": 20.0
+                    },
+                    {
+                        "id": 92,
+                        "posX": 162.0,
+                        "posY": 340.0
+                    }
+                ],
+                "getterNodes": [
+                    {
+                        "id": 76,
+                        "posX": -334.0,
+                        "posY": 28.0,
+                        "componentName": "GameInputComponent",
+                        "fieldName": "Dodge Trigger.Pressed",
+                        "type": "Bool",
+                        "selectedComponent": "None"
+                    },
+                    {
+                        "id": 80,
+                        "posX": -187.0,
+                        "posY": 124.0,
+                        "componentName": "SequencerComponent",
+                        "fieldName": "Anim Exit",
+                        "type": "Bool",
+                        "selectedComponent": "None"
+                    },
+                    {
+                        "id": 88,
+                        "posX": -36.0,
+                        "posY": 236.0,
+                        "componentName": "AnimatorComponent",
+                        "fieldName": "Is End",
+                        "type": "Bool",
+                        "selectedComponent": "None"
+                    },
+                    {
+                        "id": 91,
+                        "posX": -24.0,
+                        "posY": 346.0,
+                        "componentName": "GameInputComponent",
+                        "fieldName": "Move Stick.Has Input",
+                        "type": "Bool",
+                        "selectedComponent": "None"
+                    }
+                ],
+                "links": [
+                    {
+                        "id": 79,
+                        "fromId": 76,
+                        "toId": 78,
+                        "toPinB": false
+                    },
+                    {
+                        "id": 85,
+                        "fromId": 78,
+                        "toId": 84,
+                        "toPinB": false
+                    },
+                    {
+                        "id": 86,
+                        "fromId": 80,
+                        "toId": 84,
+                        "toPinB": true
+                    },
+                    {
+                        "id": 89,
+                        "fromId": 88,
+                        "toId": 87,
+                        "toPinB": true
+                    },
+                    {
+                        "id": 90,
+                        "fromId": 84,
+                        "toId": 87,
+                        "toPinB": false
+                    },
+                    {
+                        "id": 93,
+                        "fromId": 91,
+                        "toId": 92,
+                        "toPinB": false
+                    },
+                    {
+                        "id": 95,
+                        "fromId": 87,
+                        "toId": 94,
+                        "toPinB": false
+                    },
+                    {
+                        "id": 96,
+                        "fromId": 92,
+                        "toId": 94,
+                        "toPinB": true
+                    },
+                    {
+                        "id": 97,
+                        "fromId": 94,
+                        "toId": 63,
+                        "toPinB": false
+                    }
+                ]
+            }
+        },
+        {
+            "id": 66,
+            "fromId": 9,
+            "toId": 53,
+            "condition": {
+                "returnNode": {
+                    "id": 67,
+                    "posX": 498.0,
+                    "posY": 192.0
+                },
+                "variableNodes": [],
+                "operatorNodes": [],
+                "logicNodes": [],
+                "notNodes": [],
+                "getterNodes": [
+                    {
+                        "id": 101,
+                        "posX": 258.0,
+                        "posY": 172.0,
+                        "componentName": "GameInputComponent",
+                        "fieldName": "Dodge Trigger.Pressed",
+                        "type": "Bool",
+                        "selectedComponent": "None"
+                    }
+                ],
+                "links": [
+                    {
+                        "id": 102,
+                        "fromId": 101,
+                        "toId": 67,
+                        "toPinB": false
+                    }
+                ]
+            }
+        },
+        {
+            "id": 114,
+            "fromId": 105,
+            "toId": 2,
+            "condition": {
+                "returnNode": {
+                    "id": 115,
+                    "posX": 546.0,
+                    "posY": 208.0
+                },
+                "variableNodes": [],
+                "operatorNodes": [],
+                "logicNodes": [],
+                "notNodes": [
+                    {
+                        "id": 153,
+                        "posX": 402.0,
+                        "posY": 180.0
+                    }
+                ],
+                "getterNodes": [
+                    {
+                        "id": 152,
+                        "posX": 210.0,
+                        "posY": 188.0,
+                        "componentName": "GameInputComponent",
+                        "fieldName": "Move Stick.Has Input",
+                        "type": "Bool",
+                        "selectedComponent": "None"
+                    }
+                ],
+                "links": [
+                    {
+                        "id": 154,
+                        "fromId": 152,
+                        "toId": 153,
+                        "toPinB": false
+                    },
+                    {
+                        "id": 155,
+                        "fromId": 153,
+                        "toId": 115,
+                        "toPinB": false
+                    }
+                ]
+            }
+        },
+        {
+            "id": 118,
+            "fromId": 53,
+            "toId": 105,
+            "condition": {
+                "returnNode": {
+                    "id": 119,
+                    "posX": 626.0,
+                    "posY": 112.0
+                },
+                "variableNodes": [],
+                "operatorNodes": [],
+                "logicNodes": [
+                    {
+                        "id": 135,
+                        "posX": 114.0,
+                        "posY": 144.0,
+                        "op": "And"
+                    },
+                    {
+                        "id": 139,
+                        "posX": 286.0,
+                        "posY": 96.0,
+                        "op": "Or"
+                    },
+                    {
+                        "id": 145,
+                        "posX": 466.0,
+                        "posY": 64.0,
+                        "op": "And"
+                    }
+                ],
+                "notNodes": [
+                    {
+                        "id": 133,
+                        "posX": -46.0,
+                        "posY": 84.0
+                    }
+                ],
+                "getterNodes": [
+                    {
+                        "id": 130,
+                        "posX": -238.0,
+                        "posY": 92.0,
+                        "componentName": "GameInputComponent",
+                        "fieldName": "Dodge Trigger.Pressed",
+                        "type": "Bool",
+                        "selectedComponent": "None"
+                    },
+                    {
+                        "id": 137,
+                        "posX": -75.0,
+                        "posY": 204.0,
+                        "componentName": "SequencerComponent",
+                        "fieldName": "Anim Exit",
+                        "type": "Bool",
+                        "selectedComponent": "None"
+                    },
+                    {
+                        "id": 141,
+                        "posX": 92.0,
+                        "posY": 44.0,
+                        "componentName": "AnimatorComponent",
+                        "fieldName": "Is End",
+                        "type": "Bool",
+                        "selectedComponent": "None"
+                    },
+                    {
+                        "id": 147,
+                        "posX": 290.0,
+                        "posY": 12.0,
+                        "componentName": "GameInputComponent",
+                        "fieldName": "Move Stick.Has Input",
+                        "type": "Bool",
+                        "selectedComponent": "None"
+                    }
+                ],
+                "links": [
+                    {
+                        "id": 134,
+                        "fromId": 130,
+                        "toId": 133,
+                        "toPinB": false
+                    },
+                    {
+                        "id": 136,
+                        "fromId": 133,
+                        "toId": 135,
+                        "toPinB": false
+                    },
+                    {
+                        "id": 138,
+                        "fromId": 137,
+                        "toId": 135,
+                        "toPinB": true
+                    },
+                    {
+                        "id": 143,
+                        "fromId": 141,
+                        "toId": 139,
+                        "toPinB": false
+                    },
+                    {
+                        "id": 144,
+                        "fromId": 135,
+                        "toId": 139,
+                        "toPinB": true
+                    },
+                    {
+                        "id": 146,
+                        "fromId": 139,
+                        "toId": 145,
+                        "toPinB": true
+                    },
+                    {
+                        "id": 148,
+                        "fromId": 147,
+                        "toId": 145,
+                        "toPinB": false
+                    },
+                    {
+                        "id": 149,
+                        "fromId": 145,
+                        "toId": 119,
+                        "toPinB": false
+                    }
+                ]
+            }
+        },
+        {
+            "id": 122,
+            "fromId": 105,
+            "toId": 53,
+            "condition": {
+                "returnNode": {
+                    "id": 123,
+                    "posX": 498.0,
+                    "posY": 176.0
+                },
+                "variableNodes": [],
+                "operatorNodes": [],
+                "logicNodes": [],
+                "notNodes": [],
+                "getterNodes": [
+                    {
+                        "id": 150,
+                        "posX": 290.0,
+                        "posY": 156.0,
+                        "componentName": "GameInputComponent",
+                        "fieldName": "Dodge Trigger.Pressed",
+                        "type": "Bool",
+                        "selectedComponent": "None"
+                    }
+                ],
+                "links": [
+                    {
+                        "id": 151,
+                        "fromId": 150,
+                        "toId": 123,
+                        "toPinB": false
+                    }
+                ]
+            }
+        },
+        {
+            "id": 164,
+            "fromId": 2,
+            "toId": 159,
+            "condition": {
+                "returnNode": {
+                    "id": 165,
+                    "posX": 482.0,
+                    "posY": 320.0
+                },
+                "variableNodes": [],
+                "operatorNodes": [],
+                "logicNodes": [
+                    {
+                        "id": 237,
+                        "posX": 302.0,
+                        "posY": 272.0,
+                        "op": "Or"
+                    }
+                ],
+                "notNodes": [
+                    {
+                        "id": 242,
+                        "posX": 146.0,
+                        "posY": 324.0
+                    }
+                ],
+                "getterNodes": [
+                    {
+                        "id": 176,
+                        "posX": 98.0,
+                        "posY": 204.0,
+                        "componentName": "GameInputComponent",
+                        "fieldName": "Jump.Pressed",
+                        "type": "Bool",
+                        "selectedComponent": "None"
+                    },
+                    {
+                        "id": 239,
+                        "posX": -43.0,
+                        "posY": 332.0,
+                        "componentName": "MovementComponent",
+                        "fieldName": "Is Grounded",
+                        "type": "Bool",
+                        "selectedComponent": "None"
+                    }
+                ],
+                "links": [
+                    {
+                        "id": 238,
+                        "fromId": 176,
+                        "toId": 237,
+                        "toPinB": false
+                    },
+                    {
+                        "id": 241,
+                        "fromId": 237,
+                        "toId": 165,
+                        "toPinB": false
+                    },
+                    {
+                        "id": 243,
+                        "fromId": 239,
+                        "toId": 242,
+                        "toPinB": false
+                    },
+                    {
+                        "id": 244,
+                        "fromId": 242,
+                        "toId": 237,
+                        "toPinB": true
+                    }
+                ]
+            }
+        },
+        {
+            "id": 168,
+            "fromId": 159,
+            "toId": 2,
+            "condition": {
+                "returnNode": {
+                    "id": 169,
+                    "posX": 498.0,
+                    "posY": 192.0
+                },
+                "variableNodes": [],
+                "operatorNodes": [],
+                "logicNodes": [],
+                "notNodes": [],
+                "getterNodes": [
+                    {
+                        "id": 178,
+                        "posX": 293.0,
+                        "posY": 172.0,
+                        "componentName": "MovementComponent",
+                        "fieldName": "Is Grounded",
+                        "type": "Bool",
+                        "selectedComponent": "None"
+                    }
+                ],
+                "links": [
+                    {
+                        "id": 179,
+                        "fromId": 178,
+                        "toId": 169,
+                        "toPinB": false
+                    }
+                ]
+            }
+        },
+        {
+            "id": 182,
+            "fromId": 105,
+            "toId": 159,
+            "condition": {
+                "returnNode": {
+                    "id": 183,
+                    "posX": 690.0,
+                    "posY": 272.0
+                },
+                "variableNodes": [],
+                "operatorNodes": [],
+                "logicNodes": [
+                    {
+                        "id": 255,
+                        "posX": 498.0,
+                        "posY": 224.0,
+                        "op": "Or"
+                    }
+                ],
+                "notNodes": [
+                    {
+                        "id": 253,
+                        "posX": 354.0,
+                        "posY": 292.0
+                    }
+                ],
+                "getterNodes": [
+                    {
+                        "id": 194,
+                        "posX": 306.0,
+                        "posY": 156.0,
+                        "componentName": "GameInputComponent",
+                        "fieldName": "Jump.Pressed",
+                        "type": "Bool",
+                        "selectedComponent": "None"
+                    },
+                    {
+                        "id": 252,
+                        "posX": 181.0,
+                        "posY": 300.0,
+                        "componentName": "MovementComponent",
+                        "fieldName": "Is Grounded",
+                        "type": "Bool",
+                        "selectedComponent": "None"
+                    }
+                ],
+                "links": [
+                    {
+                        "id": 254,
+                        "fromId": 252,
+                        "toId": 253,
+                        "toPinB": false
+                    },
+                    {
+                        "id": 256,
+                        "fromId": 253,
+                        "toId": 255,
+                        "toPinB": true
+                    },
+                    {
+                        "id": 257,
+                        "fromId": 194,
+                        "toId": 255,
+                        "toPinB": false
+                    },
+                    {
+                        "id": 258,
+                        "fromId": 255,
+                        "toId": 183,
+                        "toPinB": false
+                    }
+                ]
+            }
+        },
+        {
+            "id": 186,
+            "fromId": 9,
+            "toId": 159,
+            "condition": {
+                "returnNode": {
+                    "id": 187,
+                    "posX": 594.0,
+                    "posY": 272.0
+                },
+                "variableNodes": [],
+                "operatorNodes": [],
+                "logicNodes": [
+                    {
+                        "id": 248,
+                        "posX": 398.0,
+                        "posY": 224.0,
+                        "op": "Or"
+                    }
+                ],
+                "notNodes": [
+                    {
+                        "id": 245,
+                        "posX": 258.0,
+                        "posY": 276.0
+                    }
+                ],
+                "getterNodes": [
+                    {
+                        "id": 192,
+                        "posX": 226.0,
+                        "posY": 188.0,
+                        "componentName": "GameInputComponent",
+                        "fieldName": "Jump.Pressed",
+                        "type": "Bool",
+                        "selectedComponent": "None"
+                    },
+                    {
+                        "id": 246,
+                        "posX": 49.0,
+                        "posY": 285.0,
+                        "componentName": "MovementComponent",
+                        "fieldName": "Is Grounded",
+                        "type": "Bool",
+                        "selectedComponent": "None"
+                    }
+                ],
+                "links": [
+                    {
+                        "id": 247,
+                        "fromId": 246,
+                        "toId": 245,
+                        "toPinB": false
+                    },
+                    {
+                        "id": 249,
+                        "fromId": 192,
+                        "toId": 248,
+                        "toPinB": false
+                    },
+                    {
+                        "id": 250,
+                        "fromId": 245,
+                        "toId": 248,
+                        "toPinB": true
+                    },
+                    {
+                        "id": 251,
+                        "fromId": 248,
+                        "toId": 187,
                         "toPinB": false
                     }
                 ]

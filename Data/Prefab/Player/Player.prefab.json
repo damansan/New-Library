@@ -1,6 +1,6 @@
 {
     "Animation Speed": {
-        "animationSpeedPath": "Data/Json/AnimSpeed/Map_Robot3.animspeed"
+        "animationSpeedPath": ""
     },
     "Animator": {
         "animatorGraphPath": "Data/Json/Animgraph/Map_Robot3 (2).animgraph",
@@ -11,7 +11,7 @@
         "useRootMotionY": false
     },
     "Category": {
-        "category": "None"
+        "category": "Player"
     },
     "GameInput": {},
     "Material": {

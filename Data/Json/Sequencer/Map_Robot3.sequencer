@@ -37,8 +37,8 @@
             "ranges": [
                 {
                     "id": 1,
-                    "start": 0.34485000371932983,
-                    "end": 1.0,
+                    "start": 0.32999998331069946,
+                    "end": 0.429999977350235,
                     "flag": "AnimExit"
                 }
             ],
@@ -63,8 +63,8 @@
             "ranges": [
                 {
                     "id": 1,
-                    "start": 0.34485000371932983,
-                    "end": 1.0,
+                    "start": 0.32999998331069946,
+                    "end": 0.429999977350235,
                     "flag": "AnimExit"
                 }
             ],
@@ -76,8 +76,8 @@
             "ranges": [
                 {
                     "id": 1,
-                    "start": 0.34485000371932983,
-                    "end": 1.0,
+                    "start": 0.32999998331069946,
+                    "end": 0.429999977350235,
                     "flag": "AnimExit"
                 }
             ],
@@ -91,6 +91,73 @@
         },
         {
             "clipName": "AS_Sprint_End",
+            "nextId": 1,
+            "ranges": [],
+            "points": []
+        },
+        {
+            "clipName": "AS_Idle",
+            "nextId": 1,
+            "ranges": [],
+            "points": []
+        },
+        {
+            "clipName": "AS_Walk_Start",
+            "nextId": 1,
+            "ranges": [],
+            "points": []
+        },
+        {
+            "clipName": "AS_Walk_Loop",
+            "nextId": 1,
+            "ranges": [],
+            "points": []
+        },
+        {
+            "clipName": "AS_Air_Dodge_Front",
+            "nextId": 1,
+            "ranges": [],
+            "points": []
+        },
+        {
+            "clipName": "AS_Air_Dodge_Back",
+            "nextId": 1,
+            "ranges": [],
+            "points": []
+        },
+        {
+            "clipName": "AS_Air_Dodge_Left",
+            "nextId": 1,
+            "ranges": [],
+            "points": []
+        },
+        {
+            "clipName": "AS_Air_Dodge_Right",
+            "nextId": 1,
+            "ranges": [],
+            "points": []
+        },
+        {
+            "clipName": "AS_Jump_Front_Startd",
+            "nextId": 1,
+            "ranges": [],
+            "points": []
+        },
+        {
+            "clipName": "AS_Dodge_Front",
+            "nextId": 4,
+            "ranges": [
+                {
+                    "id": 3,
+                    "start": 0.32999998331069946,
+                    "end": 0.429999977350235,
+                    "flag": "AnimExit"
+                }
+            ],
+            "points": []
+        },
+        {
+            "clipName": "AS_light_Attack_1-1",
             "nextId": 1,
             "ranges": [],
             "points": []
