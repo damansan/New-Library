@@ -33,6 +33,7 @@ void StudioConditionGraph::DrawGUI()
 	DrawOperatorNodes();
 	DrawLogicNodes();
 	DrawGetterNodes();
+	DrawNotNodes();
 
 	ed::PopStyleVar(1);
 
@@ -203,6 +204,18 @@ void StudioConditionGraph::DrawInspector()
 		}
 
 		DrawDeleteButton("Delete Logic", selectedLogic->id, [this](int id) { DeleteLogicNode(id); });
+		return;
+	}
+
+	// 否定ノード選択
+	if (selectedNot)
+	{
+		ImGui::Text("Not");
+		ImGui::Separator();
+
+		ImGui::TextDisabled("Inverts the input bool.");
+
+		DrawDeleteButton("Delete Not", selectedNot->id, [this](int id) { DeleteNotNode(id); });
 		return;
 	}
 
@@ -490,6 +503,58 @@ void StudioConditionGraph::DrawGetterNodes()
 	}
 }
 
+// 否定ノード描画
+void StudioConditionGraph::DrawNotNodes()
+{
+	const float nodeWidth = 80.0f;
+	const ImColor notBorderColor(200, 80, 80, 255); // 赤
+
+	for (auto& n : targetCondition->notNodes)
+	{
+		ed::NodeId nodeId(n.id);
+		if (needsApplyPositions)
+		{
+			ed::SetNodePosition(nodeId, ImVec2(n.posX, n.posY));
+		}
+
+		ed::PushStyleColor(ed::StyleColor_NodeBorder, notBorderColor);
+		ed::PushStyleVar(ed::StyleVar_NodeBorderWidth, 2.0f);
+
+		ed::BeginNode(nodeId);
+		ImGui::PushID(n.id);
+
+		// 記号(中央寄せ、少し大きめに表示)
+		const char* symbol = "NOT";
+		const float symbolScale = 1.5f;
+
+		ImGui::SetWindowFontScale(symbolScale);
+		float symbolWidth = ImGui::CalcTextSize(symbol).x;
+		CenterNextItem(nodeWidth, symbolWidth);
+		ImGui::Text("%s", symbol);
+		ImGui::SetWindowFontScale(1.0f);
+
+		// 入力ピンと出力ピン(同じ行)
+		ed::BeginPin(GetNotInPinId(n.id), ed::PinKind::Input);
+		ImGui::Text(u8"▶");
+		ed::EndPin();
+
+		ImGui::SameLine(nodeWidth);
+		ed::BeginPin(GetNotOutPinId(n.id), ed::PinKind::Output);
+		ImGui::Text(u8"▶");
+		ed::EndPin();
+
+		ImGui::PopID();
+		ed::EndNode();
+
+		ed::PopStyleColor(1);
+		ed::PopStyleVar(1);
+
+		ImVec2 currentPos = ed::GetNodePosition(nodeId);
+		n.posX = currentPos.x;
+		n.posY = currentPos.y;
+	}
+}
+
 // 未設定ゲッターノード
 void StudioConditionGraph::DrawUnassignedGetterNode(ConditionGetterNode& g)
 {
@@ -630,6 +695,8 @@ void StudioConditionGraph::DrawCreateNodeMenu()
 		{
 			if (ImGui::MenuItem("AND")) CreateLogicNode(LogicOp::And);
 			if (ImGui::MenuItem("OR"))  CreateLogicNode(LogicOp::Or);
+			if (ImGui::MenuItem("NOT")) CreateNotNode();
+
 			ImGui::EndMenu();
 		}
 
@@ -689,6 +756,20 @@ void StudioConditionGraph::CreateLogicNode(LogicOp op)
 
 	ed::SetNodePosition(ed::NodeId(l.id), canvasPos);
 }
+// 否定ノード作成
+void StudioConditionGraph::CreateNotNode()
+{
+	ImVec2 canvasPos = ed::ScreenToCanvas(pendingCreatePos);
+
+	ConditionNotNode n;
+	n.id = targetCondition->GenerateId();
+	n.posX = canvasPos.x;
+	n.posY = canvasPos.y;
+
+	targetCondition->notNodes.push_back(n);
+
+	ed::SetNodePosition(ed::NodeId(n.id), canvasPos);
+}
 // ゲッターノード作成
 void StudioConditionGraph::CreateGetterNode()
 {
@@ -726,6 +807,7 @@ void StudioConditionGraph::DrawDeleteButton(const char* label, int targetId, con
 		selectedGetter = nullptr;
 		selectedOperator = nullptr;
 		selectedLogic = nullptr;
+		selectedNot = nullptr;
 		selectedConditionLink = nullptr;
 	}
 }
@@ -797,6 +879,23 @@ void StudioConditionGraph::DeleteLogicNode(int id)
 		links.end()
 	);
 }
+// 否定ノード削除
+void StudioConditionGraph::DeleteNotNode(int id)
+{
+	auto& nots = targetCondition->notNodes;
+	nots.erase(
+		std::remove_if(nots.begin(), nots.end(),
+			[id](const ConditionNotNode& n) { return n.id == id; }),
+		nots.end()
+	);
+
+	auto& links = targetCondition->links;
+	links.erase(
+		std::remove_if(links.begin(), links.end(),
+			[id](const ConditionLink& cl) { return cl.fromId == id || cl.toId == id; }),
+		links.end()
+	);
+}
 // ConditionLink削除
 void StudioConditionGraph::DeleteConditionLink(int id)
 {
@@ -816,6 +915,7 @@ void StudioConditionGraph::UpdateSelection()
 	selectedGetter = nullptr;
 	selectedOperator = nullptr;
 	selectedLogic = nullptr;
+	selectedNot = nullptr;
 	selectedConditionLink = nullptr;
 
 	if (ed::GetSelectedObjectCount() == 0) return;
@@ -839,6 +939,10 @@ void StudioConditionGraph::UpdateSelection()
 	for (auto& l : targetCondition->logicNodes)
 	{
 		if (l.id == id) { selectedLogic = &l; return; }
+	}
+	for (auto& n : targetCondition->notNodes)
+	{
+		if (n.id == id) { selectedNot = &n; return; }
 	}
 
 	// Linkの選択
@@ -977,6 +1081,15 @@ void StudioConditionGraph::ResolvePinRole(int64_t rawPinId, PinRole& outRole, in
 		outRole = (rem == 0) ? PinRole::VariableIn : PinRole::VariableOut;
 		return;
 	}
+	if (rawPinId >= NotOffset && rawPinId < NotOffset + 1000000)
+	{
+		int64_t offset = rawPinId - NotOffset;
+		int64_t nodeId = offset / 2;
+		int64_t rem = offset % 2;
+		outNodeId = (int)nodeId;
+		outRole = (rem == 0) ? PinRole::NotIn : PinRole::NotOut;
+		return;
+	}
 
 	outRole = PinRole::Unknown;
 	outNodeId = -1;
@@ -997,6 +1110,9 @@ StudioConditionGraph::NodeKind StudioConditionGraph::GetNodeKind(int id) const
 
 	for (const auto& l : targetCondition->logicNodes)
 		if (l.id == id) return NodeKind::Logic;
+	
+	for (const auto& n : targetCondition->notNodes)
+		if (n.id == id) return NodeKind::Not;
 
 	return NodeKind::Unknown;
 }
@@ -1016,12 +1132,14 @@ void StudioConditionGraph::DrawLinkCreation()
 			// 出力側/入力側を判定する(ドラッグの向きに関わらず正規化する)
 			auto isOutputRole = [](PinRole r)
 				{
-					return r == PinRole::VariableOut || r == PinRole::GetterOut || r == PinRole::OperatorOut || r == PinRole::LogicOut;
+					return r == PinRole::VariableOut || r == PinRole::GetterOut || r == PinRole::OperatorOut || r == PinRole::LogicOut
+						|| r == PinRole::NotOut;
 				};
 			auto isInputRole = [](PinRole r)
 				{
 					return r == PinRole::VariableIn || r == PinRole::OperatorA || r == PinRole::OperatorB
-						|| r == PinRole::LogicA || r == PinRole::LogicB || r == PinRole::ReturnIn;
+						|| r == PinRole::LogicA || r == PinRole::LogicB || r == PinRole::ReturnIn
+						|| r == PinRole::NotIn;
 				};
 
 			PinRole outRole, inRole;
@@ -1044,7 +1162,7 @@ void StudioConditionGraph::DrawLinkCreation()
 			// 出力側が「常にBoolな出力(Operator/Logic)」かどうか
 			auto isBoolOutRole = [](PinRole r)
 				{
-					return r == PinRole::OperatorOut || r == PinRole::LogicOut;
+					return r == PinRole::OperatorOut || r == PinRole::LogicOut || r == PinRole::NotOut;
 				};
 
 			// 許可する組み合わせ:
@@ -1055,6 +1173,7 @@ void StudioConditionGraph::DrawLinkCreation()
 			bool isValid = orderOk && (
 				((outRole == PinRole::GetterOut || outRole == PinRole::VariableOut || isBoolOutRole(outRole)) && (inRole == PinRole::OperatorA || inRole == PinRole::OperatorB)) ||
 				((outRole == PinRole::GetterOut || outRole == PinRole::VariableOut || isBoolOutRole(outRole)) && (inRole == PinRole::LogicA || inRole == PinRole::LogicB)) ||
+				((outRole == PinRole::GetterOut || outRole == PinRole::VariableOut || isBoolOutRole(outRole)) && inRole == PinRole::NotIn) ||
 				(isBoolOutRole(outRole) && inRole == PinRole::ReturnIn) ||
 				((outRole == PinRole::GetterOut || outRole == PinRole::VariableOut) && inRole == PinRole::ReturnIn)
 				);
@@ -1090,6 +1209,7 @@ void StudioConditionGraph::DrawLinkCreation()
 						NodeKind otherKind = GetNodeKind(cl.fromId);
 						otherOutRole = (otherKind == NodeKind::Operator) ? PinRole::OperatorOut
 							: (otherKind == NodeKind::Logic) ? PinRole::LogicOut
+							: (otherKind == NodeKind::Not) ? PinRole::NotOut
 							: (otherKind == NodeKind::Getter) ? PinRole::GetterOut
 							: PinRole::VariableOut;
 						break;
@@ -1104,6 +1224,13 @@ void StudioConditionGraph::DrawLinkCreation()
 
 			// Getter/Variable(bool)/Operator/Logic → LogicのA/Bは、Bool型のみ許可
 			if (isValid && (outRole == PinRole::GetterOut || outRole == PinRole::VariableOut || isBoolOutRole(outRole)) && (inRole == PinRole::LogicA || inRole == PinRole::LogicB))
+			{
+				ValueType srcType = GetOutputValueType(outRole, outNodeId);
+				if (srcType != ValueType::Bool) isValid = false;
+			}
+
+			// Getter/Variable(bool)/Operator/Logic/Not → Notの入力は、Bool型のみ許可
+			if (isValid && inRole == PinRole::NotIn)
 			{
 				ValueType srcType = GetOutputValueType(outRole, outNodeId);
 				if (srcType != ValueType::Bool) isValid = false;
@@ -1176,6 +1303,8 @@ ed::PinId StudioConditionGraph::GetOutputPinIdOf(int nodeId, NodeKind kind) cons
 	case NodeKind::Getter:   return GetGetterOutPinId(nodeId);
 	case NodeKind::Operator: return GetOperatorOutPinId(nodeId);
 	case NodeKind::Logic:    return GetLogicOutPinId(nodeId);
+	case NodeKind::Not:      return GetNotOutPinId(nodeId);
+
 	default:                 return ed::PinId();
 	}
 }
@@ -1186,6 +1315,7 @@ ed::PinId StudioConditionGraph::GetInputPinIdOf(int nodeId, NodeKind kind, bool 
 	case NodeKind::Variable: return GetVariableInPinId(nodeId);
 	case NodeKind::Operator: return toPinB ? GetOperatorPinB(nodeId) : GetOperatorPinA(nodeId);
 	case NodeKind::Logic:    return toPinB ? GetLogicPinB(nodeId) : GetLogicPinA(nodeId);
+	case NodeKind::Not:      return GetNotInPinId(nodeId);
 	case NodeKind::Return:   return GetReturnInPinId(nodeId);
 	default:                 return ed::PinId();
 	}
@@ -1234,6 +1364,8 @@ ValueType StudioConditionGraph::GetOutputValueType(PinRole outRole, int outNodeI
 {
 	if (outRole == PinRole::OperatorOut) return ValueType::Bool; // Operatorの出力は常にBool
 	if (outRole == PinRole::LogicOut)    return ValueType::Bool; // Logicの出力も常にBool
+	if (outRole == PinRole::NotOut)      return ValueType::Bool; // Notの出力も常にBool
+
 	if (outRole == PinRole::GetterOut)   return GetNodeValueType(NodeKind::Getter, outNodeId);
 	return GetNodeValueType(NodeKind::Variable, outNodeId); // VariableOut
 }

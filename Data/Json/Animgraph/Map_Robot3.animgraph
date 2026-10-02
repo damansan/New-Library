@@ -824,7 +824,7 @@
                 {
                     "id": 197,
                     "name": "Sprinting ",
-                    "posX": 256.0,
+                    "posX": 240.0,
                     "posY": 208.0,
                     "type": "Normal",
                     "clipName": "AS_Sprint_Loop",

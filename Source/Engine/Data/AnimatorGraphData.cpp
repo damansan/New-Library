@@ -591,6 +591,16 @@ nlohmann::ordered_json AnimatorGraphData::TransitionLinksToJson() const
 			jc["logicNodes"].push_back(jln);
 		}
 
+		jc["notNodes"] = nlohmann::json::array();
+		for (const auto& n : link.condition.notNodes)
+		{
+			nlohmann::ordered_json jn;
+			jn["id"] = n.id;
+			jn["posX"] = n.posX;
+			jn["posY"] = n.posY;
+			jc["notNodes"].push_back(jn);
+		}
+
 		jc["getterNodes"] = nlohmann::json::array();
 		for (const auto& g : link.condition.getterNodes)
 		{
@@ -691,6 +701,20 @@ void AnimatorGraphData::TransitionLinksFromJson(const nlohmann::json& j)
 					link.condition.logicNodes.push_back(l);
 
 					SyncIdCounter(l.id);
+				}
+			}
+
+			if (jc.contains("notNodes"))
+			{
+				for (const auto& jn : jc["notNodes"])
+				{
+					ConditionNotNode n;
+					n.id = jn.value("id", -1);
+					n.posX = jn.value("posX", 0.0f);
+					n.posY = jn.value("posY", 0.0f);
+					link.condition.notNodes.push_back(n);
+
+					SyncIdCounter(n.id);
 				}
 			}
 
@@ -796,6 +820,16 @@ nlohmann::ordered_json AnimatorGraphData::AnimLinkToJson(const AnimLink& link) c
 		jc["logicNodes"].push_back(jln);
 	}
 
+	jc["notNodes"] = nlohmann::json::array();
+	for (const auto& n : link.condition.notNodes)
+	{
+		nlohmann::ordered_json jn;
+		jn["id"] = n.id;
+		jn["posX"] = n.posX;
+		jn["posY"] = n.posY;
+		jc["notNodes"].push_back(jn);
+	}
+
 	jc["getterNodes"] = nlohmann::json::array();
 	for (const auto& g : link.condition.getterNodes)
 	{
@@ -897,7 +931,21 @@ void AnimatorGraphData::AnimLinkFromJson(AnimLink& link, const nlohmann::json& j
 			}
 		}
 
-		if (jc.contains("getterNodes"))
+		if (jc.contains("notNodes"))
+		{
+			for (const auto& jn : jc["notNodes"])
+			{
+				ConditionNotNode n;
+				n.id = jn.value("id", -1);
+				n.posX = jn.value("posX", 0.0f);
+				n.posY = jn.value("posY", 0.0f);
+				link.condition.notNodes.push_back(n);
+
+				SyncIdCounter(n.id);
+			}
+		}
+
+		if (jc.contains("getterNodes")) 
 		{
 			for (const auto& jg : jc["getterNodes"])
 			{

@@ -250,6 +250,26 @@ HRESULT GpuResourceUtils::SaveToDDS(
 		DirectX::DDS_FLAGS_NONE,
 		wDdsPath.c_str());
 
+	//// ミップマップを生成（0 = 1x1まで全段作る）
+	//DirectX::ScratchImage mipChain;
+	//hr = DirectX::GenerateMipMaps(
+	//	image.GetImages(),
+	//	image.GetImageCount(),
+	//	image.GetMetadata(),
+	//	DirectX::TEX_FILTER_DEFAULT,
+	//	0,
+	//	mipChain);
+	//if (FAILED(hr)) return hr;
+
+	//// DDS形式で保存（ミップ付き）
+	//std::wstring wDdsPath = ToWString(ddsFilename);
+	//hr = DirectX::SaveToDDSFile(
+	//	mipChain.GetImages(),
+	//	mipChain.GetImageCount(),
+	//	mipChain.GetMetadata(),
+	//	DirectX::DDS_FLAGS_NONE,
+	//	wDdsPath.c_str());
+
 	return hr;
 }
 

@@ -49,7 +49,16 @@ void RenderSystem::Initialize(ID3D11Device* device)
 	// 定数バッファ
 	GpuResourceUtils::CreateConstantBuffer(device, sizeof(CbScene), cbScene);
 	GpuResourceUtils::CreateConstantBuffer(device, sizeof(CbObject), cbObject);
-	GpuResourceUtils::CreateConstantBuffer(device, sizeof(CbSkinning), cbSkinning);
+	
+	// スキニング用は毎メッシュ書き換えるのでDYNAMICで作る
+	{
+		D3D11_BUFFER_DESC desc{};
+		desc.ByteWidth = sizeof(CbSkinning);
+		desc.Usage = D3D11_USAGE_DYNAMIC;
+		desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+		desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+		device->CreateBuffer(&desc, nullptr, cbSkinning.GetAddressOf());
+	}
 
 	// サンプラーステート
 	D3D11_SAMPLER_DESC samplerDesc{};
@@ -374,25 +383,31 @@ void RenderSystem::GeometryPass(
 				dc->UpdateSubresource(cbObject.Get(), 0, nullptr, &cbObjectData, 0, 0);
 				dc->PSSetConstantBuffers(2, 1, cbObject.GetAddressOf());
 
-				CbSkinning cbSkinningData{};
+				D3D11_MAPPED_SUBRESOURCE mapped{};
+				if (SUCCEEDED(dc->Map(cbSkinning.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped)))
+				{
+					auto* dst = static_cast<CbSkinning*>(mapped.pData);
 
-				if (m < (int)skinnedMesh.boneTransforms.size() && !skinnedMesh.boneTransforms[m].empty())
-				{
-					const auto& bt = skinnedMesh.boneTransforms[m];
-					size_t boneCount = (std::min)(bt.size(), (size_t)MAX_BONES);
-					for (size_t i = 0; i < boneCount; i++)
-						cbSkinningData.boneTransforms[i] = bt[i];
-				}
-				else
-				{
-					int nodeIndex = mesh.nodeIndex;
-					if (nodeIndex >= 0 && nodeIndex < (int)skinnedMesh.nodeGlobalTransforms.size())
-						cbSkinningData.boneTransforms[0] = skinnedMesh.nodeGlobalTransforms[nodeIndex];
+					if (m < (int)skinnedMesh.boneTransforms.size() && !skinnedMesh.boneTransforms[m].empty())
+					{
+						// 使うボーン分だけ書く
+						const auto& bt = skinnedMesh.boneTransforms[m];
+						size_t boneCount = (std::min)(bt.size(), (size_t)MAX_BONES);
+						for (size_t i = 0; i < boneCount; i++)
+							dst->boneTransforms[i] = bt[i];
+					}
 					else
-						cbSkinningData.boneTransforms[0] = { 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 };
+					{
+						int nodeIndex = mesh.nodeIndex;
+						if (nodeIndex >= 0 && nodeIndex < (int)skinnedMesh.nodeGlobalTransforms.size())
+							dst->boneTransforms[0] = skinnedMesh.nodeGlobalTransforms[nodeIndex];
+						else
+							dst->boneTransforms[0] = { 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 };
+					}
+					dc->Unmap(cbSkinning.Get(), 0);
 				}
-				dc->UpdateSubresource(cbSkinning.Get(), 0, nullptr, &cbSkinningData, 0, 0);
 				dc->VSSetConstantBuffers(2, 1, cbSkinning.GetAddressOf());
+
 
 				UINT stride = sizeof(Model::Vertex), offset = 0;
 				dc->IASetVertexBuffers(0, 1, mesh.vertexBuffer.GetAddressOf(), &stride, &offset);
@@ -568,24 +583,31 @@ void RenderSystem::ForwardTransparentPass(
 					mesh.material->alphaMode == Model::Material::AlphaMode::Blend;
 				if (!isBlend) continue;
 
-				CbSkinning cbSkinningData{};
-				if (m < (int)skinnedMesh.boneTransforms.size() && !skinnedMesh.boneTransforms[m].empty())
+				D3D11_MAPPED_SUBRESOURCE mapped{};
+				if (SUCCEEDED(dc->Map(cbSkinning.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped)))
 				{
-					const auto& bt = skinnedMesh.boneTransforms[m];
-					size_t boneCount = (std::min)(bt.size(), (size_t)MAX_BONES);
-					for (size_t i = 0; i < boneCount; i++)
-						cbSkinningData.boneTransforms[i] = bt[i];
-				}
-				else
-				{
-					int nodeIndex = mesh.nodeIndex;
-					if (nodeIndex >= 0 && nodeIndex < (int)skinnedMesh.nodeGlobalTransforms.size())
-						cbSkinningData.boneTransforms[0] = skinnedMesh.nodeGlobalTransforms[nodeIndex];
+					auto* dst = static_cast<CbSkinning*>(mapped.pData);
+
+					if (m < (int)skinnedMesh.boneTransforms.size() && !skinnedMesh.boneTransforms[m].empty())
+					{
+						// 使うボーン分だけ書く
+						const auto& bt = skinnedMesh.boneTransforms[m];
+						size_t boneCount = (std::min)(bt.size(), (size_t)MAX_BONES);
+						for (size_t i = 0; i < boneCount; i++)
+							dst->boneTransforms[i] = bt[i];
+					}
 					else
-						cbSkinningData.boneTransforms[0] = { 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 };
+					{
+						int nodeIndex = mesh.nodeIndex;
+						if (nodeIndex >= 0 && nodeIndex < (int)skinnedMesh.nodeGlobalTransforms.size())
+							dst->boneTransforms[0] = skinnedMesh.nodeGlobalTransforms[nodeIndex];
+						else
+							dst->boneTransforms[0] = { 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 };
+					}
+					dc->Unmap(cbSkinning.Get(), 0);
 				}
-				dc->UpdateSubresource(cbSkinning.Get(), 0, nullptr, &cbSkinningData, 0, 0);
 				dc->VSSetConstantBuffers(2, 1, cbSkinning.GetAddressOf());
+
 
 				UINT stride = sizeof(Model::Vertex), offset = 0;
 				dc->IASetVertexBuffers(0, 1, mesh.vertexBuffer.GetAddressOf(), &stride, &offset);

@@ -1,0 +1,299 @@
+{
+    "states": [
+        {
+            "id": 1,
+            "name": "Entry",
+            "posX": 192.0,
+            "posY": -336.0,
+            "type": "Entry",
+            "color": [
+                0.27000001072883606,
+                0.3499999940395355,
+                0.4699999988079071
+            ],
+            "children": [],
+            "childLinks": []
+        },
+        {
+            "id": 2,
+            "name": "Idle",
+            "posX": 48.0,
+            "posY": -208.0,
+            "type": "State",
+            "color": [
+                0.27000001072883606,
+                0.3499999940395355,
+                0.4699999988079071
+            ],
+            "children": [
+                {
+                    "id": 3,
+                    "name": "Entry",
+                    "posX": 50.0,
+                    "posY": 200.0,
+                    "type": "Start",
+                    "clipName": "",
+                    "loop": true,
+                    "useRootMotion": false
+                },
+                {
+                    "id": 4,
+                    "name": "Exit",
+                    "posX": 400.0,
+                    "posY": 200.0,
+                    "type": "End",
+                    "clipName": "",
+                    "loop": true,
+                    "useRootMotion": false
+                }
+            ],
+            "childLinks": []
+        },
+        {
+            "id": 9,
+            "name": "Move",
+            "posX": 48.0,
+            "posY": -320.0,
+            "type": "State",
+            "color": [
+                0.27000001072883606,
+                0.3499999940395355,
+                0.4699999988079071
+            ],
+            "children": [
+                {
+                    "id": 10,
+                    "name": "Entry",
+                    "posX": 50.0,
+                    "posY": 200.0,
+                    "type": "Start",
+                    "clipName": "",
+                    "loop": true,
+                    "useRootMotion": false
+                },
+                {
+                    "id": 11,
+                    "name": "Exit",
+                    "posX": 400.0,
+                    "posY": 200.0,
+                    "type": "End",
+                    "clipName": "",
+                    "loop": true,
+                    "useRootMotion": false
+                }
+            ],
+            "childLinks": []
+        }
+    ],
+    "stateLinks": [
+        {
+            "id": 5,
+            "fromId": 1,
+            "toId": 2,
+            "blend": true,
+            "blendDuration": 0.20000000298023224,
+            "condition": {
+                "returnNode": {
+                    "id": 6,
+                    "posX": 500.0,
+                    "posY": 200.0
+                },
+                "variableNodes": [],
+                "operatorNodes": [],
+                "logicNodes": [],
+                "notNodes": [],
+                "getterNodes": [],
+                "links": []
+            }
+        },
+        {
+            "id": 12,
+            "fromId": 2,
+            "toId": 9,
+            "blend": true,
+            "blendDuration": 0.20000000298023224,
+            "condition": {
+                "returnNode": {
+                    "id": 13,
+                    "posX": 450.0,
+                    "posY": 192.0
+                },
+                "variableNodes": [],
+                "operatorNodes": [],
+                "logicNodes": [],
+                "notNodes": [],
+                "getterNodes": [
+                    {
+                        "id": 20,
+                        "posX": 208.0,
+                        "posY": 172.0,
+                        "componentName": "PlayerMoveComponent",
+                        "fieldName": "Is Moving",
+                        "type": "Bool",
+                        "selectedComponent": "None"
+                    }
+                ],
+                "links": [
+                    {
+                        "id": 21,
+                        "fromId": 20,
+                        "toId": 13,
+                        "toPinB": false
+                    }
+                ]
+            }
+        },
+        {
+            "id": 16,
+            "fromId": 9,
+            "toId": 2,
+            "blend": true,
+            "blendDuration": 0.20000000298023224,
+            "condition": {
+                "returnNode": {
+                    "id": 17,
+                    "posX": 466.0,
+                    "posY": 176.0
+                },
+                "variableNodes": [],
+                "operatorNodes": [],
+                "logicNodes": [],
+                "notNodes": [
+                    {
+                        "id": 23,
+                        "posX": 306.0,
+                        "posY": 148.0
+                    }
+                ],
+                "getterNodes": [
+                    {
+                        "id": 22,
+                        "posX": 80.0,
+                        "posY": 156.0,
+                        "componentName": "PlayerMoveComponent",
+                        "fieldName": "Is Moving",
+                        "type": "Bool",
+                        "selectedComponent": "None"
+                    }
+                ],
+                "links": [
+                    {
+                        "id": 24,
+                        "fromId": 22,
+                        "toId": 23,
+                        "toPinB": false
+                    },
+                    {
+                        "id": 25,
+                        "fromId": 23,
+                        "toId": 17,
+                        "toPinB": false
+                    }
+                ]
+            }
+        }
+    ],
+    "transitionLinks": [
+        {
+            "id": 7,
+            "fromId": 1,
+            "toId": 2,
+            "condition": {
+                "returnNode": {
+                    "id": 8,
+                    "posX": 500.0,
+                    "posY": 200.0
+                },
+                "variableNodes": [],
+                "operatorNodes": [],
+                "logicNodes": [],
+                "notNodes": [],
+                "getterNodes": [],
+                "links": []
+            }
+        },
+        {
+            "id": 14,
+            "fromId": 2,
+            "toId": 9,
+            "condition": {
+                "returnNode": {
+                    "id": 15,
+                    "posX": 482.0,
+                    "posY": 192.0
+                },
+                "variableNodes": [],
+                "operatorNodes": [],
+                "logicNodes": [],
+                "notNodes": [],
+                "getterNodes": [
+                    {
+                        "id": 26,
+                        "posX": 258.0,
+                        "posY": 172.0,
+                        "componentName": "GameInputComponent",
+                        "fieldName": "Move Stick.Has Input",
+                        "type": "Bool",
+                        "selectedComponent": "None"
+                    }
+                ],
+                "links": [
+                    {
+                        "id": 27,
+                        "fromId": 26,
+                        "toId": 15,
+                        "toPinB": false
+                    }
+                ]
+            }
+        },
+        {
+            "id": 18,
+            "fromId": 9,
+            "toId": 2,
+            "condition": {
+                "returnNode": {
+                    "id": 19,
+                    "posX": 498.0,
+                    "posY": 224.0
+                },
+                "variableNodes": [],
+                "operatorNodes": [],
+                "logicNodes": [],
+                "notNodes": [
+                    {
+                        "id": 29,
+                        "posX": 338.0,
+                        "posY": 196.0
+                    }
+                ],
+                "getterNodes": [
+                    {
+                        "id": 28,
+                        "posX": 146.0,
+                        "posY": 204.0,
+                        "componentName": "GameInputComponent",
+                        "fieldName": "Move Stick.Has Input",
+                        "type": "Bool",
+                        "selectedComponent": "None"
+                    }
+                ],
+                "links": [
+                    {
+                        "id": 30,
+                        "fromId": 29,
+                        "toId": 19,
+                        "toPinB": false
+                    },
+                    {
+                        "id": 31,
+                        "fromId": 28,
+                        "toId": 29,
+                        "toPinB": false
+                    }
+                ]
+            }
+        }
+    ],
+    "sourceModelPath": "Data/Model/PlayerRobot/Map_Robot3.gltf"
+}

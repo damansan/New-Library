@@ -20,6 +20,9 @@ private:
 	// 論理ノードを演算し結果を返す
 	static bool EvaluateLogic(const ConditionGraph& graph, const ConditionLogicNode& logic, entt::registry& registry, entt::entity entity);
 
+	// 否定ノードを演算し結果を返す
+	static bool EvaluateNot(const ConditionGraph& graph, const ConditionNotNode& notNode, entt::registry& registry, entt::entity entity);
+
 	// ノードIDから入力値をfloatとして解決する
 	static float ResolveInputValue(const ConditionGraph& graph, int nodeId, entt::registry& registry, entt::entity entity);
 };

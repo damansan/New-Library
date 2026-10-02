@@ -1192,7 +1192,7 @@ int framework::run()
 	MSG msg{};
 
 	// ŒÅ’èƒ^ƒCƒ€ƒXƒeƒbƒvİ’èi144fpsj
-	const double fixedTimestep = 1.0 / 144.0;
+	const double fixedTimestep = 1.0 / 60.0;
 	double accumulator = 0.0;
 
 	while (WM_QUIT != msg.message)
@@ -2488,6 +2488,12 @@ struct ConditionLogicNode // ˜_—‰‰Zƒm[ƒh
 
 	LogicOp op = LogicOp::And;
 };
+struct ConditionNotNode // ”Û’èƒm[ƒh
+{
+	int id = -1;
+	float posX = 0.0f;
+	float posY = 0.0f;
+};
 struct ConditionReturnNode // ğŒƒOƒ‰ƒt‚ÌI’…“_
 {
 	int id = -1;
@@ -2509,6 +2515,7 @@ struct ConditionGraph // Link1–{•ª‚ÌğŒƒOƒ‰ƒt
 	std::vector<ConditionGetterNode>   getterNodes;
 	std::vector<ConditionOperatorNode> operatorNodes;
 	std::vector<ConditionLogicNode>    logicNodes;
+	std::vector<ConditionNotNode>      notNodes;
 
 	std::vector<ConditionLink> links;   // Getter/Variable/Operator/Return“¯m‚ğŒq‚®ƒŠƒ“ƒN
 
@@ -3453,6 +3460,16 @@ nlohmann::ordered_json AnimatorGraphData::TransitionLinksToJson() const
 			jc["logicNodes"].push_back(jln);
 		}
 
+		jc["notNodes"] = nlohmann::json::array();
+		for (const auto& n : link.condition.notNodes)
+		{
+			nlohmann::ordered_json jn;
+			jn["id"] = n.id;
+			jn["posX"] = n.posX;
+			jn["posY"] = n.posY;
+			jc["notNodes"].push_back(jn);
+		}
+
 		jc["getterNodes"] = nlohmann::json::array();
 		for (const auto& g : link.condition.getterNodes)
 		{
@@ -3553,6 +3570,20 @@ void AnimatorGraphData::TransitionLinksFromJson(const nlohmann::json& j)
 					link.condition.logicNodes.push_back(l);
 
 					SyncIdCounter(l.id);
+				}
+			}
+
+			if (jc.contains("notNodes"))
+			{
+				for (const auto& jn : jc["notNodes"])
+				{
+					ConditionNotNode n;
+					n.id = jn.value("id", -1);
+					n.posX = jn.value("posX", 0.0f);
+					n.posY = jn.value("posY", 0.0f);
+					link.condition.notNodes.push_back(n);
+
+					SyncIdCounter(n.id);
 				}
 			}
 
@@ -3658,6 +3689,16 @@ nlohmann::ordered_json AnimatorGraphData::AnimLinkToJson(const AnimLink& link) c
 		jc["logicNodes"].push_back(jln);
 	}
 
+	jc["notNodes"] = nlohmann::json::array();
+	for (const auto& n : link.condition.notNodes)
+	{
+		nlohmann::ordered_json jn;
+		jn["id"] = n.id;
+		jn["posX"] = n.posX;
+		jn["posY"] = n.posY;
+		jc["notNodes"].push_back(jn);
+	}
+
 	jc["getterNodes"] = nlohmann::json::array();
 	for (const auto& g : link.condition.getterNodes)
 	{
@@ -3759,7 +3800,21 @@ void AnimatorGraphData::AnimLinkFromJson(AnimLink& link, const nlohmann::json& j
 			}
 		}
 
-		if (jc.contains("getterNodes"))
+		if (jc.contains("notNodes"))
+		{
+			for (const auto& jn : jc["notNodes"])
+			{
+				ConditionNotNode n;
+				n.id = jn.value("id", -1);
+				n.posX = jn.value("posX", 0.0f);
+				n.posY = jn.value("posY", 0.0f);
+				link.condition.notNodes.push_back(n);
+
+				SyncIdCounter(n.id);
+			}
+		}
+
+		if (jc.contains("getterNodes")) 
 		{
 			for (const auto& jg : jc["getterNodes"])
 			{
@@ -4777,6 +4832,9 @@ private:
 
 	// ˜_—ƒm[ƒh‚ğ‰‰Z‚µŒ‹‰Ê‚ğ•Ô‚·
 	static bool EvaluateLogic(const ConditionGraph& graph, const ConditionLogicNode& logic, entt::registry& registry, entt::entity entity);
+
+	// ”Û’èƒm[ƒh‚ğ‰‰Z‚µŒ‹‰Ê‚ğ•Ô‚·
+	static bool EvaluateNot(const ConditionGraph& graph, const ConditionNotNode& notNode, entt::registry& registry, entt::entity entity);
 
 	// ƒm[ƒhID‚©‚ç“ü—Í’l‚ğfloat‚Æ‚µ‚Ä‰ğŒˆ‚·‚é
 	static float ResolveInputValue(const ConditionGraph& graph, int nodeId, entt::registry& registry, entt::entity entity);
@@ -6181,6 +6239,9 @@ bool ConditionGraphEvaluator::Evaluate(const ConditionGraph& graph, entt::regist
 	// Œq‚ª‚Á‚Ä‚¢‚é‚Ì‚ªVariable(BoolŒ^)‚È‚çA0.5‚æ‚èã‚Åtrue‚Æ‚İ‚È‚·
 	for (const auto& v : graph.variableNodes)
 		if (v.id == fromId) return GetVariableValue(v) > 0.5f;
+	// Œq‚ª‚Á‚Ä‚¢‚é‚Ì‚ªNot‚È‚çA‚»‚ÌŒ‹‰Ê‚ğ‚»‚Ì‚Ü‚Ü•Ô‚·
+	for (const auto& n : graph.notNodes)
+		if (n.id == fromId) return EvaluateNot(graph, n, registry, entity);
 
 	return false; // ‚Ç‚ê‚É‚àŠY“–‚µ‚È‚¢ê‡
 }
@@ -6341,6 +6402,26 @@ bool ConditionGraphEvaluator::EvaluateLogic(const ConditionGraph& graph, const C
 	return false;
 }
 
+// ”Û’èƒm[ƒh‚ğ‰‰Z‚µŒ‹‰Ê‚ğ•Ô‚·
+bool ConditionGraphEvaluator::EvaluateNot(const ConditionGraph& graph, const ConditionNotNode& notNode, entt::registry& registry, entt::entity entity)
+{
+	// “ü—Íƒsƒ“(1–{‚Ì‚İ)‚ÉŒq‚ª‚Á‚Ä‚¢‚éƒm[ƒhID‚ğ’T‚·
+	int fromId = -1;
+	for (const auto& link : graph.links)
+	{
+		if (link.toId == notNode.id)
+		{
+			fromId = link.fromId;
+			break;
+		}
+	}
+
+	if (fromId == -1) return false; // –¢Ú‘±‚È‚ç•s¬—§ˆµ‚¢
+
+	bool input = ResolveInputValue(graph, fromId, registry, entity) > 0.5f;
+	return !input;
+}
+
 // ƒm[ƒhID‚©‚ç“ü—Í’l‚ğfloat‚Æ‚µ‚Ä‰ğŒˆ‚·‚é
 float ConditionGraphEvaluator::ResolveInputValue(const ConditionGraph& graph, int nodeId, entt::registry& registry, entt::entity entity)
 {
@@ -6355,6 +6436,10 @@ float ConditionGraphEvaluator::ResolveInputValue(const ConditionGraph& graph, in
 
 	for (const auto& l : graph.logicNodes)
 		if (l.id == nodeId) return EvaluateLogic(graph, l, registry, entity) ? 1.0f : 0.0f;
+
+	for (const auto& n : graph.notNodes)
+		if (n.id == nodeId) return EvaluateNot(graph, n, registry, entity) ? 1.0f : 0.0f;
+
 
 	return 0.0f; // ‚Ç‚Ìƒm[ƒh‚É‚àŠY“–‚µ‚È‚¢ê‡
 }
@@ -7603,7 +7688,16 @@ void RenderSystem::Initialize(ID3D11Device* device)
 	// å®šæ•°ãƒãƒƒãƒ•ã‚¡
 	GpuResourceUtils::CreateConstantBuffer(device, sizeof(CbScene), cbScene);
 	GpuResourceUtils::CreateConstantBuffer(device, sizeof(CbObject), cbObject);
-	GpuResourceUtils::CreateConstantBuffer(device, sizeof(CbSkinning), cbSkinning);
+	
+	// ã‚¹ã‚­ãƒ‹ãƒ³ã‚°ç”¨ã¯æ¯ãƒ¡ãƒƒã‚·ãƒ¥æ›¸ãæ›ãˆã‚‹ã®ã§DYNAMICã§ä½œã‚‹
+	{
+		D3D11_BUFFER_DESC desc{};
+		desc.ByteWidth = sizeof(CbSkinning);
+		desc.Usage = D3D11_USAGE_DYNAMIC;
+		desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+		desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+		device->CreateBuffer(&desc, nullptr, cbSkinning.GetAddressOf());
+	}
 
 	// ã‚µãƒ³ãƒ—ãƒ©ãƒ¼ã‚¹ãƒ†ãƒ¼ãƒˆ
 	D3D11_SAMPLER_DESC samplerDesc{};
@@ -7928,25 +8022,31 @@ void RenderSystem::GeometryPass(
 				dc->UpdateSubresource(cbObject.Get(), 0, nullptr, &cbObjectData, 0, 0);
 				dc->PSSetConstantBuffers(2, 1, cbObject.GetAddressOf());
 
-				CbSkinning cbSkinningData{};
+				D3D11_MAPPED_SUBRESOURCE mapped{};
+				if (SUCCEEDED(dc->Map(cbSkinning.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped)))
+				{
+					auto* dst = static_cast<CbSkinning*>(mapped.pData);
 
-				if (m < (int)skinnedMesh.boneTransforms.size() && !skinnedMesh.boneTransforms[m].empty())
-				{
-					const auto& bt = skinnedMesh.boneTransforms[m];
-					size_t boneCount = (std::min)(bt.size(), (size_t)MAX_BONES);
-					for (size_t i = 0; i < boneCount; i++)
-						cbSkinningData.boneTransforms[i] = bt[i];
-				}
-				else
-				{
-					int nodeIndex = mesh.nodeIndex;
-					if (nodeIndex >= 0 && nodeIndex < (int)skinnedMesh.nodeGlobalTransforms.size())
-						cbSkinningData.boneTransforms[0] = skinnedMesh.nodeGlobalTransforms[nodeIndex];
+					if (m < (int)skinnedMesh.boneTransforms.size() && !skinnedMesh.boneTransforms[m].empty())
+					{
+						// ä½¿ã†ãƒœãƒ¼ãƒ³åˆ†ã ã‘æ›¸ã
+						const auto& bt = skinnedMesh.boneTransforms[m];
+						size_t boneCount = (std::min)(bt.size(), (size_t)MAX_BONES);
+						for (size_t i = 0; i < boneCount; i++)
+							dst->boneTransforms[i] = bt[i];
+					}
 					else
-						cbSkinningData.boneTransforms[0] = { 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 };
+					{
+						int nodeIndex = mesh.nodeIndex;
+						if (nodeIndex >= 0 && nodeIndex < (int)skinnedMesh.nodeGlobalTransforms.size())
+							dst->boneTransforms[0] = skinnedMesh.nodeGlobalTransforms[nodeIndex];
+						else
+							dst->boneTransforms[0] = { 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 };
+					}
+					dc->Unmap(cbSkinning.Get(), 0);
 				}
-				dc->UpdateSubresource(cbSkinning.Get(), 0, nullptr, &cbSkinningData, 0, 0);
 				dc->VSSetConstantBuffers(2, 1, cbSkinning.GetAddressOf());
+
 
 				UINT stride = sizeof(Model::Vertex), offset = 0;
 				dc->IASetVertexBuffers(0, 1, mesh.vertexBuffer.GetAddressOf(), &stride, &offset);
@@ -8122,24 +8222,31 @@ void RenderSystem::ForwardTransparentPass(
 					mesh.material->alphaMode == Model::Material::AlphaMode::Blend;
 				if (!isBlend) continue;
 
-				CbSkinning cbSkinningData{};
-				if (m < (int)skinnedMesh.boneTransforms.size() && !skinnedMesh.boneTransforms[m].empty())
+				D3D11_MAPPED_SUBRESOURCE mapped{};
+				if (SUCCEEDED(dc->Map(cbSkinning.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped)))
 				{
-					const auto& bt = skinnedMesh.boneTransforms[m];
-					size_t boneCount = (std::min)(bt.size(), (size_t)MAX_BONES);
-					for (size_t i = 0; i < boneCount; i++)
-						cbSkinningData.boneTransforms[i] = bt[i];
-				}
-				else
-				{
-					int nodeIndex = mesh.nodeIndex;
-					if (nodeIndex >= 0 && nodeIndex < (int)skinnedMesh.nodeGlobalTransforms.size())
-						cbSkinningData.boneTransforms[0] = skinnedMesh.nodeGlobalTransforms[nodeIndex];
+					auto* dst = static_cast<CbSkinning*>(mapped.pData);
+
+					if (m < (int)skinnedMesh.boneTransforms.size() && !skinnedMesh.boneTransforms[m].empty())
+					{
+						// ä½¿ã†ãƒœãƒ¼ãƒ³åˆ†ã ã‘æ›¸ã
+						const auto& bt = skinnedMesh.boneTransforms[m];
+						size_t boneCount = (std::min)(bt.size(), (size_t)MAX_BONES);
+						for (size_t i = 0; i < boneCount; i++)
+							dst->boneTransforms[i] = bt[i];
+					}
 					else
-						cbSkinningData.boneTransforms[0] = { 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 };
+					{
+						int nodeIndex = mesh.nodeIndex;
+						if (nodeIndex >= 0 && nodeIndex < (int)skinnedMesh.nodeGlobalTransforms.size())
+							dst->boneTransforms[0] = skinnedMesh.nodeGlobalTransforms[nodeIndex];
+						else
+							dst->boneTransforms[0] = { 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 };
+					}
+					dc->Unmap(cbSkinning.Get(), 0);
 				}
-				dc->UpdateSubresource(cbSkinning.Get(), 0, nullptr, &cbSkinningData, 0, 0);
 				dc->VSSetConstantBuffers(2, 1, cbSkinning.GetAddressOf());
+
 
 				UINT stride = sizeof(Model::Vertex), offset = 0;
 				dc->IASetVertexBuffers(0, 1, mesh.vertexBuffer.GetAddressOf(), &stride, &offset);
@@ -12734,6 +12841,26 @@ HRESULT GpuResourceUtils::SaveToDDS(
 		DirectX::DDS_FLAGS_NONE,
 		wDdsPath.c_str());
 
+	//// ƒ~ƒbƒvƒ}ƒbƒv‚ğ¶¬i0 = 1x1‚Ü‚Å‘S’iì‚éj
+	//DirectX::ScratchImage mipChain;
+	//hr = DirectX::GenerateMipMaps(
+	//	image.GetImages(),
+	//	image.GetImageCount(),
+	//	image.GetMetadata(),
+	//	DirectX::TEX_FILTER_DEFAULT,
+	//	0,
+	//	mipChain);
+	//if (FAILED(hr)) return hr;
+
+	//// DDSŒ`®‚Å•Û‘¶iƒ~ƒbƒv•t‚«j
+	//std::wstring wDdsPath = ToWString(ddsFilename);
+	//hr = DirectX::SaveToDDSFile(
+	//	mipChain.GetImages(),
+	//	mipChain.GetImageCount(),
+	//	mipChain.GetMetadata(),
+	//	DirectX::DDS_FLAGS_NONE,
+	//	wDdsPath.c_str());
+
 	return hr;
 }
 
@@ -14998,17 +15125,19 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Project\ECS\Systems\PlayerIdle
 
 #include "Engine/ECS/Components/AnimatorComponent.h"
 #include "Engine/ECS/Components/StateComponent.h"
+#include "Engine/ECS/Components/MovementComponent.h"
 #include "Engine/ECS/Systems/StateGraphUtils.h"
 
 void PlayerIdleSystem::Update(entt::registry& registry, float elapsedTime, const SceneContext& context)
 {
-	auto view = registry.view<AnimatorComponent, StateComponent, PlayerIdleComponent>();
+	auto view = registry.view<AnimatorComponent, StateComponent, PlayerIdleComponent, MovementComponent>();
 
 	view.each(
 		[&](auto entity,
 			AnimatorComponent& animator,
 			StateComponent& state,
-			PlayerIdleComponent& idle)
+			PlayerIdleComponent& idle,
+			MovementComponent& movement) 
 		{
 			// AnimatorGraphPath‚ª‹ó‚È‚çIdle”»’è‚ğfalse‚É‚·‚é
 			if (animator.animatorGraphPath.empty())
@@ -15035,6 +15164,10 @@ void PlayerIdleSystem::Update(entt::registry& registry, float elapsedTime, const
 				idle.isIdling = false;
 				return;
 			}
+
+			// …•½•ûŒü‚ÌˆÚ“®‚ğ~‚ß‚é
+			movement.velocity.x = 0.0f;
+			movement.velocity.z = 0.0f;
 
 			// ƒtƒ‰ƒOXV
 			idle.isIdling = true;
@@ -19459,6 +19592,7 @@ private:
 	ConditionGetterNode* selectedGetter = nullptr;
 	ConditionOperatorNode* selectedOperator = nullptr;
 	ConditionLogicNode* selectedLogic = nullptr;
+	ConditionNotNode* selectedNot = nullptr;
 	ConditionLink* selectedConditionLink = nullptr;
 
 	// == Šeƒm[ƒh•`‰æ == //
@@ -19467,6 +19601,7 @@ private:
 	void DrawOperatorNodes(); // ”äŠr‰‰Zƒm[ƒh•`‰æ
 	void DrawLogicNodes();    // ˜_—‰‰Zƒm[ƒh•`‰æ
 	void DrawGetterNodes();	  // ƒQƒbƒ^[ƒm[ƒh•`‰æ
+	void DrawNotNodes();      // ”Û’èƒm[ƒh•`‰æ
 
 	void DrawUnassignedGetterNode(ConditionGetterNode& g); // –¢İ’èƒQƒbƒ^[ƒm[ƒh
 	void DrawAssignedGetterNode(ConditionGetterNode& g);   // İ’èÏ‚İƒQƒbƒ^[ƒm[ƒh
@@ -19477,11 +19612,12 @@ private:
 		VariableIn, VariableOut,
 		OperatorA, OperatorB, OperatorOut,
 		LogicA, LogicB, LogicOut,
+		NotIn, NotOut,
 		GetterOut,
 		ReturnIn,
 		Unknown
 	};
-	enum class NodeKind { Variable, Getter, Operator, Logic, Return, Unknown }; // ƒm[ƒh‚Ìí—Ş
+	enum class NodeKind { Variable, Getter, Operator, Logic, Not, Return, Unknown }; // ƒm[ƒh‚Ìí—Ş
 
 	// ƒsƒ“IDŒvZ—p‚Ìƒx[ƒXƒIƒtƒZƒbƒg
 	static constexpr int64_t VariableOffset = 1000000;
@@ -19489,6 +19625,7 @@ private:
 	static constexpr int64_t GetterOffset = 3000000;
 	static constexpr int64_t ReturnOffset = 4000000;
 	static constexpr int64_t LogicOffset = 5000000;
+	static constexpr int64_t NotOffset = 6000000;
 
 	static void ResolvePinRole(int64_t rawPinId, PinRole& outRole, int& outNodeId); // ¶‚Ìƒsƒ“ID(int64_t)‚©‚çA–ğŠ„‚Æƒm[ƒhID‚ğ‹tZ‚·‚é
 	NodeKind GetNodeKind(int id) const; // ¶‚Ìƒm[ƒhID(int)‚©‚çA‚±‚ÌLink“à‚Å‚Ç‚Ìí—Ş‚Ìƒm[ƒh‚©‚ğ’²‚×‚é
@@ -19509,6 +19646,7 @@ private:
 	void CreateVariableNode(ValueType type); // •Ï”ƒm[ƒhì¬
 	void CreateOperatorNode(CompareOp op);   // ”äŠr‰‰Zƒm[ƒhì¬
 	void CreateLogicNode(LogicOp op);        // ˜_—‰‰Zƒm[ƒhì¬
+	void CreateNotNode();                    // ”Û’èƒm[ƒhì¬
 	void CreateGetterNode();                 // ƒQƒbƒ^[ƒm[ƒhì¬
 
 	// == ƒm[ƒh‚Ìíœ == //
@@ -19517,6 +19655,7 @@ private:
 	void DeleteGetterNode(int id);    // ƒQƒbƒ^[ƒm[ƒhíœ
 	void DeleteOperatorNode(int id);  // ”äŠr‰‰Zƒm[ƒhíœ
 	void DeleteLogicNode(int id);     // ˜_—‰‰Zƒm[ƒhíœ
+	void DeleteNotNode(int id);       // ”Û’èƒm[ƒhíœ
 	void DeleteConditionLink(int id); // ConditionLinkíœ
 
 	// == ‘I‘ğó‘Ô == //
@@ -19532,16 +19671,18 @@ private:
 	static const char* GetLogicOpSymbol(LogicOp op);               // ˜_—‰‰Zq‚Ì•\¦—p‹L†
 
 	// == ƒsƒ“ID == //
-	static ed::PinId GetVariableInPinId(int nodeId) { return ed::PinId(VariableOffset + (int64_t)nodeId * 2); }
-	static ed::PinId GetVariableOutPinId(int nodeId) { return ed::PinId(VariableOffset + (int64_t)nodeId * 2 + 1); }
-	static ed::PinId GetOperatorPinA(int nodeId) { return ed::PinId(OperatorOffset + (int64_t)nodeId * 3); }
-	static ed::PinId GetOperatorPinB(int nodeId) { return ed::PinId(OperatorOffset + (int64_t)nodeId * 3 + 1); }
-	static ed::PinId GetOperatorOutPinId(int nodeId) { return ed::PinId(OperatorOffset + (int64_t)nodeId * 3 + 2); }
-	static ed::PinId GetGetterOutPinId(int nodeId) { return ed::PinId(GetterOffset + (int64_t)nodeId); }
-	static ed::PinId GetReturnInPinId(int nodeId) { return ed::PinId(ReturnOffset + (int64_t)nodeId); }
-	static ed::PinId GetLogicPinA(int nodeId) { return ed::PinId(LogicOffset + (int64_t)nodeId * 3); }
-	static ed::PinId GetLogicPinB(int nodeId) { return ed::PinId(LogicOffset + (int64_t)nodeId * 3 + 1); }
-	static ed::PinId GetLogicOutPinId(int nodeId) { return ed::PinId(LogicOffset + (int64_t)nodeId * 3 + 2); }
+	static ed::PinId GetVariableInPinId  (int nodeId) { return ed::PinId(VariableOffset + (int64_t)nodeId * 2); }
+	static ed::PinId GetVariableOutPinId (int nodeId) { return ed::PinId(VariableOffset + (int64_t)nodeId * 2 + 1); }
+	static ed::PinId GetOperatorPinA     (int nodeId) { return ed::PinId(OperatorOffset + (int64_t)nodeId * 3); }
+	static ed::PinId GetOperatorPinB     (int nodeId) { return ed::PinId(OperatorOffset + (int64_t)nodeId * 3 + 1); }
+	static ed::PinId GetOperatorOutPinId (int nodeId) { return ed::PinId(OperatorOffset + (int64_t)nodeId * 3 + 2); }
+	static ed::PinId GetGetterOutPinId   (int nodeId) { return ed::PinId(GetterOffset   + (int64_t)nodeId); }
+	static ed::PinId GetReturnInPinId    (int nodeId) { return ed::PinId(ReturnOffset   + (int64_t)nodeId); }
+	static ed::PinId GetLogicPinA        (int nodeId) { return ed::PinId(LogicOffset    + (int64_t)nodeId * 3); }
+	static ed::PinId GetLogicPinB        (int nodeId) { return ed::PinId(LogicOffset    + (int64_t)nodeId * 3 + 1); }
+	static ed::PinId GetLogicOutPinId    (int nodeId) { return ed::PinId(LogicOffset    + (int64_t)nodeId * 3 + 2); }
+	static ed::PinId GetNotInPinId       (int nodeId) { return ed::PinId(NotOffset      + (int64_t)nodeId * 2); }
+	static ed::PinId GetNotOutPinId      (int nodeId) { return ed::PinId(NotOffset      + (int64_t)nodeId * 2 + 1); }
 }; 
  
 ===== StudioContext.h ===== 
@@ -21535,6 +21676,7 @@ void StudioConditionGraph::DrawGUI()
 	DrawOperatorNodes();
 	DrawLogicNodes();
 	DrawGetterNodes();
+	DrawNotNodes();
 
 	ed::PopStyleVar(1);
 
@@ -21705,6 +21847,18 @@ void StudioConditionGraph::DrawInspector()
 		}
 
 		DrawDeleteButton("Delete Logic", selectedLogic->id, [this](int id) { DeleteLogicNode(id); });
+		return;
+	}
+
+	// å¦å®šãƒãƒ¼ãƒ‰é¸æŠ
+	if (selectedNot)
+	{
+		ImGui::Text("Not");
+		ImGui::Separator();
+
+		ImGui::TextDisabled("Inverts the input bool.");
+
+		DrawDeleteButton("Delete Not", selectedNot->id, [this](int id) { DeleteNotNode(id); });
 		return;
 	}
 
@@ -21992,6 +22146,58 @@ void StudioConditionGraph::DrawGetterNodes()
 	}
 }
 
+// å¦å®šãƒãƒ¼ãƒ‰æç”»
+void StudioConditionGraph::DrawNotNodes()
+{
+	const float nodeWidth = 80.0f;
+	const ImColor notBorderColor(200, 80, 80, 255); // èµ¤
+
+	for (auto& n : targetCondition->notNodes)
+	{
+		ed::NodeId nodeId(n.id);
+		if (needsApplyPositions)
+		{
+			ed::SetNodePosition(nodeId, ImVec2(n.posX, n.posY));
+		}
+
+		ed::PushStyleColor(ed::StyleColor_NodeBorder, notBorderColor);
+		ed::PushStyleVar(ed::StyleVar_NodeBorderWidth, 2.0f);
+
+		ed::BeginNode(nodeId);
+		ImGui::PushID(n.id);
+
+		// è¨˜å·(ä¸­å¤®å¯„ã›ã€å°‘ã—å¤§ãã‚ã«è¡¨ç¤º)
+		const char* symbol = "NOT";
+		const float symbolScale = 1.5f;
+
+		ImGui::SetWindowFontScale(symbolScale);
+		float symbolWidth = ImGui::CalcTextSize(symbol).x;
+		CenterNextItem(nodeWidth, symbolWidth);
+		ImGui::Text("%s", symbol);
+		ImGui::SetWindowFontScale(1.0f);
+
+		// å…¥åŠ›ãƒ”ãƒ³ã¨å‡ºåŠ›ãƒ”ãƒ³(åŒã˜è¡Œ)
+		ed::BeginPin(GetNotInPinId(n.id), ed::PinKind::Input);
+		ImGui::Text(u8"â–¶");
+		ed::EndPin();
+
+		ImGui::SameLine(nodeWidth);
+		ed::BeginPin(GetNotOutPinId(n.id), ed::PinKind::Output);
+		ImGui::Text(u8"â–¶");
+		ed::EndPin();
+
+		ImGui::PopID();
+		ed::EndNode();
+
+		ed::PopStyleColor(1);
+		ed::PopStyleVar(1);
+
+		ImVec2 currentPos = ed::GetNodePosition(nodeId);
+		n.posX = currentPos.x;
+		n.posY = currentPos.y;
+	}
+}
+
 // æœªè¨­å®šã‚²ãƒƒã‚¿ãƒ¼ãƒãƒ¼ãƒ‰
 void StudioConditionGraph::DrawUnassignedGetterNode(ConditionGetterNode& g)
 {
@@ -22132,6 +22338,8 @@ void StudioConditionGraph::DrawCreateNodeMenu()
 		{
 			if (ImGui::MenuItem("AND")) CreateLogicNode(LogicOp::And);
 			if (ImGui::MenuItem("OR"))  CreateLogicNode(LogicOp::Or);
+			if (ImGui::MenuItem("NOT")) CreateNotNode();
+
 			ImGui::EndMenu();
 		}
 
@@ -22191,6 +22399,20 @@ void StudioConditionGraph::CreateLogicNode(LogicOp op)
 
 	ed::SetNodePosition(ed::NodeId(l.id), canvasPos);
 }
+// å¦å®šãƒãƒ¼ãƒ‰ä½œæˆ
+void StudioConditionGraph::CreateNotNode()
+{
+	ImVec2 canvasPos = ed::ScreenToCanvas(pendingCreatePos);
+
+	ConditionNotNode n;
+	n.id = targetCondition->GenerateId();
+	n.posX = canvasPos.x;
+	n.posY = canvasPos.y;
+
+	targetCondition->notNodes.push_back(n);
+
+	ed::SetNodePosition(ed::NodeId(n.id), canvasPos);
+}
 // ã‚²ãƒƒã‚¿ãƒ¼ãƒãƒ¼ãƒ‰ä½œæˆ
 void StudioConditionGraph::CreateGetterNode()
 {
@@ -22228,6 +22450,7 @@ void StudioConditionGraph::DrawDeleteButton(const char* label, int targetId, con
 		selectedGetter = nullptr;
 		selectedOperator = nullptr;
 		selectedLogic = nullptr;
+		selectedNot = nullptr;
 		selectedConditionLink = nullptr;
 	}
 }
@@ -22299,6 +22522,23 @@ void StudioConditionGraph::DeleteLogicNode(int id)
 		links.end()
 	);
 }
+// å¦å®šãƒãƒ¼ãƒ‰å‰Šé™¤
+void StudioConditionGraph::DeleteNotNode(int id)
+{
+	auto& nots = targetCondition->notNodes;
+	nots.erase(
+		std::remove_if(nots.begin(), nots.end(),
+			[id](const ConditionNotNode& n) { return n.id == id; }),
+		nots.end()
+	);
+
+	auto& links = targetCondition->links;
+	links.erase(
+		std::remove_if(links.begin(), links.end(),
+			[id](const ConditionLink& cl) { return cl.fromId == id || cl.toId == id; }),
+		links.end()
+	);
+}
 // ConditionLinkå‰Šé™¤
 void StudioConditionGraph::DeleteConditionLink(int id)
 {
@@ -22318,6 +22558,7 @@ void StudioConditionGraph::UpdateSelection()
 	selectedGetter = nullptr;
 	selectedOperator = nullptr;
 	selectedLogic = nullptr;
+	selectedNot = nullptr;
 	selectedConditionLink = nullptr;
 
 	if (ed::GetSelectedObjectCount() == 0) return;
@@ -22341,6 +22582,10 @@ void StudioConditionGraph::UpdateSelection()
 	for (auto& l : targetCondition->logicNodes)
 	{
 		if (l.id == id) { selectedLogic = &l; return; }
+	}
+	for (auto& n : targetCondition->notNodes)
+	{
+		if (n.id == id) { selectedNot = &n; return; }
 	}
 
 	// Linkã®é¸æŠ
@@ -22479,6 +22724,15 @@ void StudioConditionGraph::ResolvePinRole(int64_t rawPinId, PinRole& outRole, in
 		outRole = (rem == 0) ? PinRole::VariableIn : PinRole::VariableOut;
 		return;
 	}
+	if (rawPinId >= NotOffset && rawPinId < NotOffset + 1000000)
+	{
+		int64_t offset = rawPinId - NotOffset;
+		int64_t nodeId = offset / 2;
+		int64_t rem = offset % 2;
+		outNodeId = (int)nodeId;
+		outRole = (rem == 0) ? PinRole::NotIn : PinRole::NotOut;
+		return;
+	}
 
 	outRole = PinRole::Unknown;
 	outNodeId = -1;
@@ -22499,6 +22753,9 @@ StudioConditionGraph::NodeKind StudioConditionGraph::GetNodeKind(int id) const
 
 	for (const auto& l : targetCondition->logicNodes)
 		if (l.id == id) return NodeKind::Logic;
+	
+	for (const auto& n : targetCondition->notNodes)
+		if (n.id == id) return NodeKind::Not;
 
 	return NodeKind::Unknown;
 }
@@ -22518,12 +22775,14 @@ void StudioConditionGraph::DrawLinkCreation()
 			// å‡ºåŠ›å´/å…¥åŠ›å´ã‚’åˆ¤å®šã™ã‚‹(ãƒ‰ãƒ©ãƒƒã‚°ã®å‘ãã«é–¢ã‚ã‚‰ãšæ­£è¦åŒ–ã™ã‚‹)
 			auto isOutputRole = [](PinRole r)
 				{
-					return r == PinRole::VariableOut || r == PinRole::GetterOut || r == PinRole::OperatorOut || r == PinRole::LogicOut;
+					return r == PinRole::VariableOut || r == PinRole::GetterOut || r == PinRole::OperatorOut || r == PinRole::LogicOut
+						|| r == PinRole::NotOut;
 				};
 			auto isInputRole = [](PinRole r)
 				{
 					return r == PinRole::VariableIn || r == PinRole::OperatorA || r == PinRole::OperatorB
-						|| r == PinRole::LogicA || r == PinRole::LogicB || r == PinRole::ReturnIn;
+						|| r == PinRole::LogicA || r == PinRole::LogicB || r == PinRole::ReturnIn
+						|| r == PinRole::NotIn;
 				};
 
 			PinRole outRole, inRole;
@@ -22546,7 +22805,7 @@ void StudioConditionGraph::DrawLinkCreation()
 			// å‡ºåŠ›å´ãŒã€Œå¸¸ã«Boolãªå‡ºåŠ›(Operator/Logic)ã€ã‹ã©ã†ã‹
 			auto isBoolOutRole = [](PinRole r)
 				{
-					return r == PinRole::OperatorOut || r == PinRole::LogicOut;
+					return r == PinRole::OperatorOut || r == PinRole::LogicOut || r == PinRole::NotOut;
 				};
 
 			// è¨±å¯ã™ã‚‹çµ„ã¿åˆã‚ã›:
@@ -22557,6 +22816,7 @@ void StudioConditionGraph::DrawLinkCreation()
 			bool isValid = orderOk && (
 				((outRole == PinRole::GetterOut || outRole == PinRole::VariableOut || isBoolOutRole(outRole)) && (inRole == PinRole::OperatorA || inRole == PinRole::OperatorB)) ||
 				((outRole == PinRole::GetterOut || outRole == PinRole::VariableOut || isBoolOutRole(outRole)) && (inRole == PinRole::LogicA || inRole == PinRole::LogicB)) ||
+				((outRole == PinRole::GetterOut || outRole == PinRole::VariableOut || isBoolOutRole(outRole)) && inRole == PinRole::NotIn) ||
 				(isBoolOutRole(outRole) && inRole == PinRole::ReturnIn) ||
 				((outRole == PinRole::GetterOut || outRole == PinRole::VariableOut) && inRole == PinRole::ReturnIn)
 				);
@@ -22592,6 +22852,7 @@ void StudioConditionGraph::DrawLinkCreation()
 						NodeKind otherKind = GetNodeKind(cl.fromId);
 						otherOutRole = (otherKind == NodeKind::Operator) ? PinRole::OperatorOut
 							: (otherKind == NodeKind::Logic) ? PinRole::LogicOut
+							: (otherKind == NodeKind::Not) ? PinRole::NotOut
 							: (otherKind == NodeKind::Getter) ? PinRole::GetterOut
 							: PinRole::VariableOut;
 						break;
@@ -22606,6 +22867,13 @@ void StudioConditionGraph::DrawLinkCreation()
 
 			// Getter/Variable(bool)/Operator/Logic â†’ Logicã®A/Bã¯ã€Boolå‹ã®ã¿è¨±å¯
 			if (isValid && (outRole == PinRole::GetterOut || outRole == PinRole::VariableOut || isBoolOutRole(outRole)) && (inRole == PinRole::LogicA || inRole == PinRole::LogicB))
+			{
+				ValueType srcType = GetOutputValueType(outRole, outNodeId);
+				if (srcType != ValueType::Bool) isValid = false;
+			}
+
+			// Getter/Variable(bool)/Operator/Logic/Not â†’ Notã®å…¥åŠ›ã¯ã€Boolå‹ã®ã¿è¨±å¯
+			if (isValid && inRole == PinRole::NotIn)
 			{
 				ValueType srcType = GetOutputValueType(outRole, outNodeId);
 				if (srcType != ValueType::Bool) isValid = false;
@@ -22678,6 +22946,8 @@ ed::PinId StudioConditionGraph::GetOutputPinIdOf(int nodeId, NodeKind kind) cons
 	case NodeKind::Getter:   return GetGetterOutPinId(nodeId);
 	case NodeKind::Operator: return GetOperatorOutPinId(nodeId);
 	case NodeKind::Logic:    return GetLogicOutPinId(nodeId);
+	case NodeKind::Not:      return GetNotOutPinId(nodeId);
+
 	default:                 return ed::PinId();
 	}
 }
@@ -22688,6 +22958,7 @@ ed::PinId StudioConditionGraph::GetInputPinIdOf(int nodeId, NodeKind kind, bool 
 	case NodeKind::Variable: return GetVariableInPinId(nodeId);
 	case NodeKind::Operator: return toPinB ? GetOperatorPinB(nodeId) : GetOperatorPinA(nodeId);
 	case NodeKind::Logic:    return toPinB ? GetLogicPinB(nodeId) : GetLogicPinA(nodeId);
+	case NodeKind::Not:      return GetNotInPinId(nodeId);
 	case NodeKind::Return:   return GetReturnInPinId(nodeId);
 	default:                 return ed::PinId();
 	}
@@ -22736,6 +23007,8 @@ ValueType StudioConditionGraph::GetOutputValueType(PinRole outRole, int outNodeI
 {
 	if (outRole == PinRole::OperatorOut) return ValueType::Bool; // Operatorã®å‡ºåŠ›ã¯å¸¸ã«Bool
 	if (outRole == PinRole::LogicOut)    return ValueType::Bool; // Logicã®å‡ºåŠ›ã‚‚å¸¸ã«Bool
+	if (outRole == PinRole::NotOut)      return ValueType::Bool; // Notã®å‡ºåŠ›ã‚‚å¸¸ã«Bool
+
 	if (outRole == PinRole::GetterOut)   return GetNodeValueType(NodeKind::Getter, outNodeId);
 	return GetNodeValueType(NodeKind::Variable, outNodeId); // VariableOut
 } 

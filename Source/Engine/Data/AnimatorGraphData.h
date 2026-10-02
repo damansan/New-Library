@@ -86,6 +86,12 @@ struct ConditionLogicNode // 論理演算ノード
 
 	LogicOp op = LogicOp::And;
 };
+struct ConditionNotNode // 否定ノード
+{
+	int id = -1;
+	float posX = 0.0f;
+	float posY = 0.0f;
+};
 struct ConditionReturnNode // 条件グラフの終着点
 {
 	int id = -1;
@@ -107,6 +113,7 @@ struct ConditionGraph // Link1本分の条件グラフ
 	std::vector<ConditionGetterNode>   getterNodes;
 	std::vector<ConditionOperatorNode> operatorNodes;
 	std::vector<ConditionLogicNode>    logicNodes;
+	std::vector<ConditionNotNode>      notNodes;
 
 	std::vector<ConditionLink> links;   // Getter/Variable/Operator/Return同士を繋ぐリンク
 
