@@ -1025,63 +1025,23 @@
                 },
                 "variableNodes": [],
                 "operatorNodes": [],
-                "logicNodes": [
-                    {
-                        "id": 232,
-                        "posX": 274.0,
-                        "posY": 240.0,
-                        "op": "Or"
-                    }
-                ],
-                "notNodes": [
-                    {
-                        "id": 173,
-                        "posX": 114.0,
-                        "posY": 164.0
-                    }
-                ],
+                "logicNodes": [],
+                "notNodes": [],
                 "getterNodes": [
                     {
-                        "id": 172,
-                        "posX": -66.0,
-                        "posY": 172.0,
-                        "componentName": "PlayerJumpComponent",
-                        "fieldName": "Is Jumping",
-                        "type": "Bool",
-                        "selectedComponent": "None"
-                    },
-                    {
-                        "id": 234,
-                        "posX": 53.0,
-                        "posY": 284.0,
-                        "componentName": "MovementComponent",
-                        "fieldName": "Is Grounded",
+                        "id": 293,
+                        "posX": 264.0,
+                        "posY": 268.0,
+                        "componentName": "PlayerIdleComponent",
+                        "fieldName": "Is Idling",
                         "type": "Bool",
                         "selectedComponent": "None"
                     }
                 ],
                 "links": [
                     {
-                        "id": 174,
-                        "fromId": 172,
-                        "toId": 173,
-                        "toPinB": false
-                    },
-                    {
-                        "id": 233,
-                        "fromId": 173,
-                        "toId": 232,
-                        "toPinB": false
-                    },
-                    {
-                        "id": 235,
-                        "fromId": 234,
-                        "toId": 232,
-                        "toPinB": true
-                    },
-                    {
-                        "id": 236,
-                        "fromId": 232,
+                        "id": 294,
+                        "fromId": 293,
                         "toId": 167,
                         "toPinB": false
                     }
@@ -1240,6 +1200,91 @@
                         "toPinB": false
                     }
                 ]
+            }
+        },
+        {
+            "id": 295,
+            "fromId": 159,
+            "toId": 105,
+            "blend": true,
+            "blendDuration": 0.20000000298023224,
+            "condition": {
+                "returnNode": {
+                    "id": 296,
+                    "posX": 482.0,
+                    "posY": 256.0
+                },
+                "variableNodes": [],
+                "operatorNodes": [],
+                "logicNodes": [
+                    {
+                        "id": 300,
+                        "posX": 306.0,
+                        "posY": 208.0,
+                        "op": "And"
+                    }
+                ],
+                "notNodes": [],
+                "getterNodes": [
+                    {
+                        "id": 299,
+                        "posX": 106.0,
+                        "posY": 156.0,
+                        "componentName": "PlayerSprintComponent",
+                        "fieldName": "Is Sprinting",
+                        "type": "Bool",
+                        "selectedComponent": "None"
+                    },
+                    {
+                        "id": 301,
+                        "posX": 117.0,
+                        "posY": 300.0,
+                        "componentName": "MovementComponent",
+                        "fieldName": "Is Grounded",
+                        "type": "Bool",
+                        "selectedComponent": "None"
+                    }
+                ],
+                "links": [
+                    {
+                        "id": 302,
+                        "fromId": 299,
+                        "toId": 300,
+                        "toPinB": false
+                    },
+                    {
+                        "id": 303,
+                        "fromId": 301,
+                        "toId": 300,
+                        "toPinB": true
+                    },
+                    {
+                        "id": 304,
+                        "fromId": 300,
+                        "toId": 296,
+                        "toPinB": false
+                    }
+                ]
+            }
+        },
+        {
+            "id": 323,
+            "fromId": 159,
+            "toId": 10000368,
+            "blend": true,
+            "blendDuration": 0.20000000298023224,
+            "condition": {
+                "returnNode": {
+                    "id": 324,
+                    "posX": 500.0,
+                    "posY": 200.0
+                },
+                "variableNodes": [],
+                "operatorNodes": [],
+                "logicNodes": [],
+                "notNodes": [],
+                "getterNodes": [],
+                "links": []
             }
         }
     ],
@@ -1847,28 +1892,68 @@
             "condition": {
                 "returnNode": {
                     "id": 169,
-                    "posX": 498.0,
-                    "posY": 192.0
+                    "posX": 546.0,
+                    "posY": 304.0
                 },
                 "variableNodes": [],
                 "operatorNodes": [],
-                "logicNodes": [],
-                "notNodes": [],
+                "logicNodes": [
+                    {
+                        "id": 279,
+                        "posX": 386.0,
+                        "posY": 256.0,
+                        "op": "And"
+                    }
+                ],
+                "notNodes": [
+                    {
+                        "id": 282,
+                        "posX": 247.0,
+                        "posY": 306.0
+                    }
+                ],
                 "getterNodes": [
                     {
                         "id": 178,
-                        "posX": 293.0,
-                        "posY": 172.0,
+                        "posX": 218.0,
+                        "posY": 202.0,
                         "componentName": "MovementComponent",
                         "fieldName": "Is Grounded",
+                        "type": "Bool",
+                        "selectedComponent": "None"
+                    },
+                    {
+                        "id": 281,
+                        "posX": 55.0,
+                        "posY": 314.0,
+                        "componentName": "GameInputComponent",
+                        "fieldName": "Move Stick.Has Input",
                         "type": "Bool",
                         "selectedComponent": "None"
                     }
                 ],
                 "links": [
                     {
-                        "id": 179,
+                        "id": 280,
                         "fromId": 178,
+                        "toId": 279,
+                        "toPinB": false
+                    },
+                    {
+                        "id": 283,
+                        "fromId": 281,
+                        "toId": 282,
+                        "toPinB": false
+                    },
+                    {
+                        "id": 284,
+                        "fromId": 282,
+                        "toId": 279,
+                        "toPinB": true
+                    },
+                    {
+                        "id": 285,
+                        "fromId": 279,
                         "toId": 169,
                         "toPinB": false
                     }
@@ -2023,6 +2108,117 @@
                         "toPinB": false
                     }
                 ]
+            }
+        },
+        {
+            "id": 297,
+            "fromId": 159,
+            "toId": 105,
+            "condition": {
+                "returnNode": {
+                    "id": 298,
+                    "posX": 500.0,
+                    "posY": 200.0
+                },
+                "variableNodes": [
+                    {
+                        "id": 309,
+                        "posX": -154.0,
+                        "posY": 272.0,
+                        "name": "",
+                        "type": "Float",
+                        "intValue": 0,
+                        "floatValue": 10.0,
+                        "boolValue": false
+                    }
+                ],
+                "operatorNodes": [
+                    {
+                        "id": 310,
+                        "posX": 50.0,
+                        "posY": 200.0,
+                        "op": "Greater"
+                    }
+                ],
+                "logicNodes": [
+                    {
+                        "id": 306,
+                        "posX": 254.0,
+                        "posY": 80.0,
+                        "op": "And"
+                    }
+                ],
+                "notNodes": [],
+                "getterNodes": [
+                    {
+                        "id": 305,
+                        "posX": 53.0,
+                        "posY": 28.0,
+                        "componentName": "MovementComponent",
+                        "fieldName": "Is Grounded",
+                        "type": "Bool",
+                        "selectedComponent": "None"
+                    },
+                    {
+                        "id": 308,
+                        "posX": -139.0,
+                        "posY": 156.0,
+                        "componentName": "MovementComponent",
+                        "fieldName": "Planar Speed",
+                        "type": "Float",
+                        "selectedComponent": "None"
+                    }
+                ],
+                "links": [
+                    {
+                        "id": 307,
+                        "fromId": 305,
+                        "toId": 306,
+                        "toPinB": false
+                    },
+                    {
+                        "id": 311,
+                        "fromId": 308,
+                        "toId": 310,
+                        "toPinB": false
+                    },
+                    {
+                        "id": 312,
+                        "fromId": 309,
+                        "toId": 310,
+                        "toPinB": true
+                    },
+                    {
+                        "id": 313,
+                        "fromId": 310,
+                        "toId": 306,
+                        "toPinB": true
+                    },
+                    {
+                        "id": 314,
+                        "fromId": 306,
+                        "toId": 298,
+                        "toPinB": false
+                    }
+                ]
+            }
+        },
+        {
+            "id": 325,
+            "fromId": 159,
+            "toId": 10000368,
+            "condition": {
+                "returnNode": {
+                    "id": 326,
+                    "posX": 500.0,
+                    "posY": 200.0
+                },
+                "variableNodes": [],
+                "operatorNodes": [],
+                "logicNodes": [],
+                "notNodes": [],
+                "getterNodes": [],
+                "links": []
             }
         }
     ],

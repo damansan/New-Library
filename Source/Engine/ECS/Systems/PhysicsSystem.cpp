@@ -350,6 +350,11 @@ void PhysicsSystem::ProcessCharacterControllers(entt::registry& registry, PhysX&
 		// 接地判定をMovementComponentへ反映
 		if (movement)
 		{
+			// このフレームで使った水平速度の大きさ
+			movement->planarSpeed = sqrtf(
+				movement->velocity.x * movement->velocity.x +
+				movement->velocity.z * movement->velocity.z);
+
 			bool grounded = (collisionFlags & PxControllerCollisionFlag::eCOLLISION_DOWN);
 			movement->isGrounded = grounded;
 

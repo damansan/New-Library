@@ -374,8 +374,17 @@ void ComponentRegistryInitializer::Initialize()
 					bool created = (ctrl->controller != nullptr);
 					ImGui::Text(created ? u8"ó‘Ô: ¶¬Ï‚İ" : u8"ó‘Ô: –¢¶¬");
 				}
+
+				// ˆÚ“®‚Ìó‘ÔiCharacter‚Æˆê‚É•t—^‚³‚ê‚éMovementComponentj
+				auto* movement = reg.try_get<MovementComponent>(e);
+				if (movement && ImGui::TreeNode("Movement"))
+				{
+					MetaRegistry::DrawMetaFields(entt::resolve<MovementComponent>(), entt::forward_as_meta(*movement));
+					ImGui::TreePop();
+				}
 				break;
 			}
+
 			default:
 				break;
 			}
