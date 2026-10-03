@@ -646,6 +646,9 @@
     <ClCompile Include="Source\Project\ECS\Systems\PlayerJumpSystem.cpp">
       <Filter>Sources\Project\ECS\Systems\Player\PlayerJumpSystem</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Engine\ECS\Reflection.cpp">
+      <Filter>Sources\Engine\ECS</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="External\json-3.12.0\single_include\nlohmann\json.hpp">
@@ -999,7 +1002,7 @@
     <ClInclude Include="Source\Engine\Resource\ComponentRegistry.h">
       <Filter>Sources\Engine\Resource\ComponentRegistry</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Engine\ECS\Reflect.h">
+    <ClInclude Include="Source\Engine\ECS\Reflection.h">
       <Filter>Sources\Engine\ECS</Filter>
     </ClInclude>
     <ClInclude Include="Source\Engine\ECS\Components\PrefabInstanceComponent.h">

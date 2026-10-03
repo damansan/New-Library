@@ -28,7 +28,6 @@
 #include "Engine/Rendering/SkyBox.h"
 #include "Engine/Rendering/LightManager.h"
 #include "Engine/Rendering/PhysicsDebugRenderer.h"
-#include "Tool/AdaptiveTriggerToolWindow.h"
 
 // ƒfƒ‚
 #include "Unsorted/Demo/WaveDemo.h"
@@ -75,7 +74,6 @@ private:
 	SkyBox                skyBox;
 	LightManager          lightManager;
 	PhysicsDebugRenderer  physicsDebugRenderer;
-	AdaptiveTriggerToolWindow adaptiveTriggerToolWindow;
 
 private:
 	// ƒfƒ‚—p

@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 #include <json.hpp>
+#include "Engine/ECS/Reflection.h"
 
 // == Stateグラフ関連 == //
 enum class ChildStateType // 子階層(ChildState)の種類
@@ -18,16 +19,6 @@ enum class ParentStateType // 親階層(ParentState)の種類
 
 
 // == 条件グラフ関連 == //
-enum class ValueType // 変数ノードが持つ値の型
-{
-	Int,
-	Float,
-	Bool,
-
-	Float2,
-	Float3,
-	Float4,
-};
 enum class FloatComponent // 構造体のどの成分を取り出すか
 {
 	None,

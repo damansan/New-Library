@@ -41,6 +41,7 @@
     <ClCompile Include="Source\Engine\Data\AnimationSpeedData.cpp" />
     <ClCompile Include="Source\Engine\Data\AnimatorGraphData.cpp" />
     <ClCompile Include="Source\Engine\Data\SequencerData.cpp" />
+    <ClCompile Include="Source\Engine\ECS\Reflection.cpp" />
     <ClCompile Include="Source\Engine\ECS\Systems\AnimationSpeedSystem.cpp" />
     <ClCompile Include="Source\Engine\ECS\Systems\AnimationSystem.cpp" />
     <ClCompile Include="Source\Engine\ECS\Systems\AnimatorControllerSystem.cpp" />
@@ -152,7 +153,7 @@
     <ClInclude Include="Source\Engine\ECS\Components\Tags.h" />
     <ClInclude Include="Source\Engine\ECS\Components\TransformComponent.h" />
     <ClInclude Include="Source\Engine\ECS\EntityFinder.h" />
-    <ClInclude Include="Source\Engine\ECS\Reflect.h" />
+    <ClInclude Include="Source\Engine\ECS\Reflection.h" />
     <ClInclude Include="Source\Engine\ECS\Systems\AnimationSpeedSystem.h" />
     <ClInclude Include="Source\Engine\ECS\Systems\AnimationSystem.h" />
     <ClInclude Include="Source\Engine\ECS\Systems\AnimatorControllerSystem.h" />
