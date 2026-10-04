@@ -114,10 +114,10 @@ void SceneGame::Render(const SceneContext& context)
 		cbSceneData.view = context.view;
 		cbSceneData.projection = context.projection;
 
-		// カメラ位置
-		if (context.camera)
+		// カメラ位置(描画に使うカメラから取る)
+		if (context.renderCamera)
 		{
-			const auto& eye = context.camera->GetEye();
+			const auto& eye = context.renderCamera->GetEye();
 			cbSceneData.cameraPosition = { eye.x, eye.y, eye.z, 0.0f };
 		}
 		lightManager.Bind(context.deviceContext);
@@ -145,9 +145,9 @@ void SceneGame::Render(const SceneContext& context)
 	{
 		ZoneScopedN("SkyBox::Render");
 		DirectX::XMFLOAT3 eye = { 0.0f, 0.0f, 0.0f };
-		if (context.camera)
+		if (context.renderCamera)
 		{
-			const auto& e = context.camera->GetEye();
+			const auto& e = context.renderCamera->GetEye();
 			eye = { e.x, e.y, e.z };
 		}
 		skyBox.Render(context.deviceContext, context.view, context.projection, eye);
@@ -204,10 +204,6 @@ void SceneGame::Render(const SceneContext& context)
 			context.projection,
 			lightDir3);
 	}
-}
-
-void SceneGame::RenderImGui()
-{
 }
 
 // ゲームプレイ系
@@ -312,33 +308,8 @@ void SceneGame::UpdateResources(float elapsedTime, const SceneContext& context)
 void SceneGame::UpdateCamera(float elapsedTime, const SceneContext& context)
 {
 	ZoneScopedN("CameraSystem");
-	if (context.cameraMode == CameraMode::Debug)
-	{
-		debugCameraSystem.Update(registry, elapsedTime, context.gameInputActive);
-		debugCameraSystem.ApplyToCamera(registry, *context.camera);
 
-		// スティック入力があればGameモードに戻す
-		if (context.editorContext)
-		{
-			auto inputView = registry.view<GameInputComponent>();
-			for (auto entity : inputView)
-			{
-				auto& input = inputView.get<GameInputComponent>(entity);
-				const float threshold = 0.2f;
-				if (fabsf(input.moveStick.x) > threshold ||
-					fabsf(input.moveStick.y) > threshold ||
-					fabsf(input.cameraStick.x) > threshold ||
-					fabsf(input.cameraStick.y) > threshold)
-				{
-					context.editorContext->cameraMode = CameraMode::Game;
-					break;
-				}
-			}
-		}
-	}
-	else
-	{
-		gameCameraSystem.Update(registry, elapsedTime);
-		gameCameraSystem.ApplyToCamera(registry, *context.camera);
-	}
+	// ゲームカメラは常に更新する(どのカメラで描画するかはApp側が決める)
+	gameCameraSystem.Update(registry, elapsedTime);
+	gameCameraSystem.ApplyToCamera(registry, *context.camera);
 }

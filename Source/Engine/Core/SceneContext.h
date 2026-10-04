@@ -5,8 +5,6 @@
 #include "Camera.h"
 #include "PhysX.h"
 
-#include "Tool/Editor/EditorContext.h"
-
 // Scene系に渡すコンテキスト
 // 必要なものが増えたらここに追加する
 struct SceneContext
@@ -19,15 +17,16 @@ struct SceneContext
 	ID3D11RenderTargetView* renderTargetView = nullptr;
 	ID3D11DepthStencilView* depthStencilView = nullptr;
 
+	// ゲームカメラ。ゲームの処理が書き込み、ゲームの処理が読む
 	Camera* camera = nullptr;
-	DirectX::XMFLOAT4X4 view = {};
-	DirectX::XMFLOAT4X4 projection = {};
+
+	// 描画に使うカメラ。どれを使うかはApp側が決める(ゲームは読むだけ)
+	const Camera* renderCamera = nullptr;
+	DirectX::XMFLOAT4X4 view = {};       // renderCameraのビュー行列
+	DirectX::XMFLOAT4X4 projection = {}; // renderCameraのプロジェクション行列
 
 	UINT screenWidth = 0;
 	UINT screenHeight = 0;
-
-	CameraMode cameraMode = CameraMode::Debug;
-	EditorContext* editorContext = nullptr;
 
 	// Gameへの入力を受け付けてよいか
 	bool gameInputActive = false;

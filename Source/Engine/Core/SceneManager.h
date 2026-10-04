@@ -19,8 +19,6 @@ public:
 	void Update(float elapsedTime, const SceneContext& context);
 	// •`‰æ
 	void Render(const SceneContext& context);
-	// ImGui•`‰æ
-	void RenderImGui();
 
 	// ƒV[ƒ“Ø‚è‘Ö‚¦—\–ñ
 	void ChangeScene(std::unique_ptr<Scene>scene);

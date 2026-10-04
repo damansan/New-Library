@@ -20,7 +20,6 @@
 #include "Engine/ECS/Systems/IKSystem.h"
 #include "Engine/ECS/Systems/MeshLoaderSystem.h"
 #include "Engine/ECS/Systems/PhysicsSystem.h"
-#include "Engine/ECS/Systems/DebugCameraSystem.h"
 #include "Project/ECS/Systems/GameCameraSystem.h"
 
 // ï`âÊån
@@ -30,7 +29,7 @@
 #include "Engine/Rendering/PhysicsDebugRenderer.h"
 
 // ÉfÉÇ
-#include "Unsorted/Demo/WaveDemo.h"
+#include "Project/Demo/WaveDemo.h"
 
 class SceneGame : public Scene
 {
@@ -39,7 +38,6 @@ public:
 	void Finalize()override;
 	void Update(float elapsedTime, const SceneContext& context) override;
 	void Render(const SceneContext& context)override;
-	void RenderImGui() override;
 
 private:
 	void UpdateGameplay(float elapsedTime, const SceneContext& context);  // ÉQÅ[ÉÄÉvÉåÉCån
@@ -66,7 +64,6 @@ private:
 	IKSystem          ikSystem;
 	MeshLoaderSystem  meshLoaderSystem;
 	PhysicsSystem     physicsSystem;
-	DebugCameraSystem debugCameraSystem;
 	GameCameraSystem  gameCameraSystem;
 
 	// ï`âÊån

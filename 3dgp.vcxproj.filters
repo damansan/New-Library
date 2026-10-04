@@ -95,9 +95,6 @@
     <Filter Include="Sources\Engine\Core\Graphics">
       <UniqueIdentifier>{e8287e22-fedc-400d-92d5-fa3d6cc7dfc6}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Sources\Engine\Core\ImGuiManager">
-      <UniqueIdentifier>{ad54d0c2-d686-4e49-9a66-f1c18e4c67a3}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Sources\Engine\Core\JsonFileCache">
       <UniqueIdentifier>{bd6107c1-967d-4430-aa5d-6dcfcc7c1e8d}</UniqueIdentifier>
     </Filter>
@@ -112,9 +109,6 @@
     </Filter>
     <Filter Include="Sources\Engine\Core\SceneManager">
       <UniqueIdentifier>{ebfd552c-2a66-42c3-bd45-840a47ecaaee}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Engine\Core\framework">
-      <UniqueIdentifier>{1ee56292-2a69-4909-8346-7358b5e8563d}</UniqueIdentifier>
     </Filter>
     <Filter Include="Sources\Engine\Data\AnimatorGraphData">
       <UniqueIdentifier>{0037436e-e550-4b31-8612-daa286cfad1a}</UniqueIdentifier>
@@ -181,9 +175,6 @@
     </Filter>
     <Filter Include="Sources\Engine\ECS\Systems\ControllerSystem">
       <UniqueIdentifier>{fc136a6e-3607-4dad-9551-662d13d43f9d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Engine\ECS\Systems\DebugCameraSystem">
-      <UniqueIdentifier>{049738be-4bb2-40b3-9d25-7358d1b8c238}</UniqueIdentifier>
     </Filter>
     <Filter Include="Sources\Engine\ECS\Systems\IKSystem">
       <UniqueIdentifier>{37228b2f-ddbf-4cbd-acf1-9f47cb2ce622}</UniqueIdentifier>
@@ -302,15 +293,6 @@
     <Filter Include="Sources\Tool\NodeEditor">
       <UniqueIdentifier>{1e6bec02-ed0d-41b5-b709-174b02895842}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Sources\Unsorted">
-      <UniqueIdentifier>{573ce6ca-00c7-4788-80b0-acf6c162487a}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Unsorted\Controller">
-      <UniqueIdentifier>{618cd29d-591e-4ad7-b40c-2f0cbcfa416c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Unsorted\Demo">
-      <UniqueIdentifier>{c6b7fce3-f3fa-45f6-b39e-e851c4173f11}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Sources\Project\ECS\Components\Player">
       <UniqueIdentifier>{cb561dc7-1c74-4412-86e3-9abfe4108b14}</UniqueIdentifier>
     </Filter>
@@ -334,9 +316,6 @@
     </Filter>
     <Filter Include="Sources\Tool\Studio\StudioAnimationSpeed">
       <UniqueIdentifier>{6d7b498f-3a65-40c8-8a30-2954e3c4d1b0}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Engine\Core\GameWindow">
-      <UniqueIdentifier>{878c514a-9db6-4b05-9081-878a3d939709}</UniqueIdentifier>
     </Filter>
     <Filter Include="Shader\Present">
       <UniqueIdentifier>{48b067dc-78af-4d04-8c89-105810d04ba8}</UniqueIdentifier>
@@ -382,6 +361,12 @@
     </Filter>
     <Filter Include="Sources\ProjectEditor">
       <UniqueIdentifier>{85bc902b-e54f-412c-beb9-f9cb1a8b4810}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\APP">
+      <UniqueIdentifier>{b2262ded-cf3a-4042-94ae-b1eab9c3e985}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Project\Demo">
+      <UniqueIdentifier>{42029c4e-e9a7-40ac-8627-184452f24907}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -454,9 +439,6 @@
     <ClCompile Include="Source\Engine\Core\Graphics.cpp">
       <Filter>Sources\Engine\Core\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Engine\Core\ImGuiManager.cpp">
-      <Filter>Sources\Engine\Core\ImGuiManager</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Engine\Core\PhysX.cpp">
       <Filter>Sources\Engine\Core\PhysX</Filter>
     </ClCompile>
@@ -465,9 +447,6 @@
     </ClCompile>
     <ClCompile Include="Source\Engine\Core\SceneManager.cpp">
       <Filter>Sources\Engine\Core\SceneManager</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Engine\Core\framework.cpp">
-      <Filter>Sources\Engine\Core\framework</Filter>
     </ClCompile>
     <ClCompile Include="Source\Engine\Data\AnimatorGraphData.cpp">
       <Filter>Sources\Engine\Data\AnimatorGraphData</Filter>
@@ -526,9 +505,6 @@
     <ClCompile Include="Source\Engine\ECS\Systems\ControllerSystem.cpp">
       <Filter>Sources\Engine\ECS\Systems\ControllerSystem</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Engine\ECS\Systems\DebugCameraSystem.cpp">
-      <Filter>Sources\Engine\ECS\Systems\DebugCameraSystem</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Engine\ECS\Systems\IKSystem.cpp">
       <Filter>Sources\Engine\ECS\Systems\IKSystem</Filter>
     </ClCompile>
@@ -583,9 +559,6 @@
     <ClCompile Include="Source\Tool\NodeEditor\NodeEditorCanvas.cpp">
       <Filter>Sources\Tool\NodeEditor</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Unsorted\Demo\WaveDemo.cpp">
-      <Filter>Sources\Unsorted\Demo</Filter>
-    </ClCompile>
     <ClCompile Include="Source\main.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
@@ -606,9 +579,6 @@
     </ClCompile>
     <ClCompile Include="Source\Tool\Studio\StudioAnimationSpeed.cpp">
       <Filter>Sources\Tool\Studio\StudioAnimationSpeed</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Engine\Core\GameWindow.cpp">
-      <Filter>Sources\Engine\Core\GameWindow</Filter>
     </ClCompile>
     <ClCompile Include="Source\Tool\Studio\StudioTransitionGraph.cpp">
       <Filter>Sources\Tool\Studio\StudioAnimatorGraph\StudioTransitionGraph</Filter>
@@ -660,6 +630,30 @@
     </ClCompile>
     <ClCompile Include="Source\ProjectEditor\ProjectInspectors.cpp">
       <Filter>Sources\ProjectEditor</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Engine\Core\GameView.cpp">
+      <Filter>Sources\Engine\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Tool\Editor\ViewportWindow.cpp">
+      <Filter>Sources\Tool\Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Engine\Core\Application.cpp">
+      <Filter>Sources\Engine\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\App\EditorApp.cpp">
+      <Filter>Sources\APP</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\App\GameApp.cpp">
+      <Filter>Sources\APP</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Project\Demo\WaveDemo.cpp">
+      <Filter>Sources\Project\Demo</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Tool\Editor\DebugCameraSystem.cpp">
+      <Filter>Sources\Tool\Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Tool\Editor\ImGuiManager.cpp">
+      <Filter>Sources\Tool\Editor</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -732,9 +726,6 @@
     <ClInclude Include="Source\Engine\Core\Graphics.h">
       <Filter>Sources\Engine\Core\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Engine\Core\ImGuiManager.h">
-      <Filter>Sources\Engine\Core\ImGuiManager</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Engine\Core\JsonFileCache.h">
       <Filter>Sources\Engine\Core\JsonFileCache</Filter>
     </ClInclude>
@@ -755,9 +746,6 @@
     </ClInclude>
     <ClInclude Include="Source\Engine\Core\SceneManager.h">
       <Filter>Sources\Engine\Core\SceneManager</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Engine\Core\framework.h">
-      <Filter>Sources\Engine\Core\framework</Filter>
     </ClInclude>
     <ClInclude Include="Source\Engine\Data\AnimatorGraphData.h">
       <Filter>Sources\Engine\Data\AnimatorGraphData</Filter>
@@ -873,9 +861,6 @@
     <ClInclude Include="Source\Engine\ECS\Systems\ControllerSystem.h">
       <Filter>Sources\Engine\ECS\Systems\ControllerSystem</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Engine\ECS\Systems\DebugCameraSystem.h">
-      <Filter>Sources\Engine\ECS\Systems\DebugCameraSystem</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Engine\ECS\Systems\IKSystem.h">
       <Filter>Sources\Engine\ECS\Systems\IKSystem</Filter>
     </ClInclude>
@@ -936,12 +921,6 @@
     <ClInclude Include="Source\Tool\NodeEditor\NodeEditorCanvas.h">
       <Filter>Sources\Tool\NodeEditor</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Unsorted\Controller\AdaptiveTrigger.h">
-      <Filter>Sources\Unsorted\Controller</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Unsorted\Demo\WaveDemo.h">
-      <Filter>Sources\Unsorted\Demo</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Tool\AdaptiveTriggerToolWindow.h">
       <Filter>Sources\Tool</Filter>
     </ClInclude>
@@ -971,9 +950,6 @@
     </ClInclude>
     <ClInclude Include="Source\Tool\Studio\StudioAnimationSpeed.h">
       <Filter>Sources\Tool\Studio\StudioAnimationSpeed</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Engine\Core\GameWindow.h">
-      <Filter>Sources\Engine\Core\GameWindow</Filter>
     </ClInclude>
     <ClInclude Include="Source\Tool\Studio\StudioTransitionGraph.h">
       <Filter>Sources\Tool\Studio\StudioAnimatorGraph\StudioTransitionGraph</Filter>
@@ -1049,6 +1025,33 @@
     </ClInclude>
     <ClInclude Include="Source\ProjectEditor\ProjectInspectors.h">
       <Filter>Sources\ProjectEditor</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Engine\Core\GameView.h">
+      <Filter>Sources\Engine\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Tool\Editor\ViewportWindow.h">
+      <Filter>Sources\Tool\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Engine\Core\Application.h">
+      <Filter>Sources\Engine\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\App\EditorApp.h">
+      <Filter>Sources\APP</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\App\GameApp.h">
+      <Filter>Sources\APP</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Engine\ECS\Components\AdaptiveTrigger.h">
+      <Filter>Sources\Engine\ECS\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Project\Demo\WaveDemo.h">
+      <Filter>Sources\Project\Demo</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Tool\Editor\DebugCameraSystem.h">
+      <Filter>Sources\Tool\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Tool\Editor\ImGuiManager.h">
+      <Filter>Sources\Tool\Editor</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -2,14 +2,30 @@
 Path: C:\Users\offri\Desktop\New-Library\Source\main.cpp 
 #include <time.h>
 
-#include "Engine/Core/framework.h"
+// ‹N“®‚·‚éApp‚ÌØ‚è‘Ö‚¦(’iŠK3‚ÅAexe‚²‚Æ‚É•ª‚©‚ê‚é‚Ü‚Å‚Ì‰¼‚Ìd‘g‚İ)
+// GameApp‚ğ‹N“®‚µ‚½‚¢‚Æ‚«‚ÍA‚±‚Ìs‚ÌƒRƒƒ“ƒg‚ğŠO‚·
+
+#define RUN_GAME_APP
+
+#ifdef RUN_GAME_APP
+#include "App/GameApp.h"
+using AppType = GameApp;
+#else
+#include "App/EditorApp.h"
+using AppType = EditorApp;
+#endif
+
 
 #define APPLICATION_NAME L"X3DGP"
 
+// ƒEƒBƒ“ƒhƒEƒTƒCƒY
+#define SCREEN_WIDTH 1280
+#define SCREEN_HEIGHT 720
+
 LRESULT CALLBACK window_procedure(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 {
-	framework* p{ reinterpret_cast<framework*>(GetWindowLongPtr(hwnd, GWLP_USERDATA)) };
-	return p ? p->handle_message(hwnd, msg, wparam, lparam) : DefWindowProc(hwnd, msg, wparam, lparam);
+	Application* p{ reinterpret_cast<Application*>(GetWindowLongPtr(hwnd, GWLP_USERDATA)) };
+	return p ? p->HandleMessage(hwnd, msg, wparam, lparam) : DefWindowProc(hwnd, msg, wparam, lparam);
 }
 
 int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_  HINSTANCE prev_instance, _In_ LPSTR cmd_line, _In_ int cmd_show)
@@ -51,11 +67,652 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_  HINSTANCE prev_instance, _
 
 	ShowWindow(hwnd, cmd_show);
 
-	framework framework(hwnd);
-	SetWindowLongPtrW(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(&framework));
-	return framework.run();
+	AppType app(hwnd);
+	app.Initialize();
+	SetWindowLongPtrW(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(&app));
+	return app.Run();
 }
  
+ 
+===== EditorApp.h ===== 
+Path: C:\Users\offri\Desktop\New-Library\Source\App\EditorApp.h 
+#pragma once
+#include <memory>
+#include <string>
+#include <vector>
+#include "Engine/Core/Application.h"
+#include "Tool/Editor/ImGuiManager.h"
+#include "Tool/Editor/DebugCameraSystem.h"
+
+#include "Tool/Editor/EditorContext.h"
+#include "Tool/Editor/ViewportWindow.h"
+#include "Tool/Editor/ProjectWindow.h"
+#include "Tool/Editor/HierarchyWindow.h"
+#include "Tool/Editor/InspectorWindow.h"
+#include "Tool/Editor/PrefabWindow.h"
+#include "Tool/Editor/LogWindow.h"
+#include "Tool/Studio/StudioSharedContext.h"
+#include "Tool/Studio/StudioWindow.h"
+
+// ƒGƒfƒBƒ^‚ÌƒAƒvƒŠƒP[ƒVƒ‡ƒ“
+class EditorApp : public Application
+{
+public:
+	using Application::Application;
+
+protected:
+	void OnInitialize() override;
+	void OnPreUpdate(float elapsedTime) override;
+	void OnPostUpdate(float elapsedTime) override;
+	void OnFrame() override;
+	void OnPresent() override;
+	bool OnMessage(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) override;
+	Camera& GetRenderCamera() override;
+	bool IsGameInputActive() const override;
+
+private:
+	// ƒGƒfƒBƒ^‚ÌUI‚ğ•\¦‚µ‚Ä‚¢‚é‚©
+	bool IsEditorActive() const;
+
+	// ƒfƒoƒbƒOƒJƒƒ‰‚ÌXV‚ÆADebug/Game‚ÌØ‚è‘Ö‚¦
+	void UpdateDebugCamera(float elapsedTime);
+
+	// Studio‚ğŠJ‚­
+	void OpenStudioWindow(const std::string& assetPath = "", const std::string& graphPath = "");
+
+	// ƒƒjƒ…[ƒo[‚Ì’†g
+	void DrawMainMenu();
+
+	// ƒƒjƒ…[‚ª—§‚Ä‚½AƒV[ƒ“‚Ì•Û‘¶E“Ç‚İ‚İƒŠƒNƒGƒXƒg‚ğÀs‚·‚é
+	void ProcessSceneRequest();
+
+	ImGuiManager imguiManager;
+	EditorContext editorContext;
+	ViewportWindow viewportWindow;
+	DebugCameraSystem debugCameraSystem;
+
+	ProjectWindow   projectWindow;
+	HierarchyWindow hierarchyWindow;
+	InspectorWindow inspectorWindow;
+	PrefabWindow    prefabWindow;
+	LogWindow       logWindow;
+
+	StudioSharedContext studioShared;
+	std::vector<std::unique_ptr<StudioWindow>> studioWindows;
+	int nextStudioWindowId = 0;
+
+	// Open‚ÌŠm”Fƒ|ƒbƒvƒAƒbƒv‚ÅŠJ‚­ƒpƒX
+	std::string pendingOpenPath;
+
+	// F1‚ÅƒQ[ƒ€’P‘Ì‚ÌŒ©‚½–Ú‚ğƒvƒŒƒrƒ…[
+	bool previewRelease = false;
+}; 
+ 
+===== GameApp.h ===== 
+Path: C:\Users\offri\Desktop\New-Library\Source\App\GameApp.h 
+#pragma once
+#include <string>
+#include "Engine/Core/Application.h"
+
+// ƒQ[ƒ€’P‘Ì‚ÌƒAƒvƒŠƒP[ƒVƒ‡ƒ“
+class GameApp : public Application
+{
+public:
+	using Application::Application;
+
+protected:
+	void OnInitialize() override;
+	void OnPreUpdate(float elapsedTime) override;
+	void OnPostUpdate(float elapsedTime) override;
+	void OnPresent() override;
+
+private:
+	// ƒvƒƒWƒFƒNƒgİ’è‚©‚çAÅ‰‚É“Ç‚İ‚ŞƒV[ƒ“‚ÌƒpƒX‚ğæ“¾‚·‚é
+	static std::string LoadStartScenePath();
+
+	// Å‰‚ÌƒV[ƒ“ƒtƒ@ƒCƒ‹
+	std::string startScenePath;
+	bool startSceneLoaded = false;
+}; 
+ 
+===== EditorApp.cpp ===== 
+Path: C:\Users\offri\Desktop\New-Library\Source\App\EditorApp.cpp 
+#include "EditorApp.h"
+#include "tracy/Tracy.hpp"
+#include <filesystem>
+#include <algorithm>
+
+#include "Engine/ECS/Components/ControllerComponent.h"
+#include "Engine/Resource/SceneSerializer.h"
+#include "Project/Scene/SceneGame.h"
+#include "Project/ECS/ProjectComponents.h"
+#include "Tool/Editor/ComponentRegistryInitializer.h"
+#include "Tool/Editor/FileDialog.h"
+#include "ProjectEditor/ProjectInspectors.h"
+
+// ‰Šú‰»
+void EditorApp::OnInitialize()
+{
+	// ImGuiManager‰Šú‰»
+	imguiManager.Initialize(hwnd, graphics.GetDevice(), graphics.GetDeviceContext());
+
+	// Viewport‚ÆƒfƒoƒbƒOƒJƒƒ‰
+	viewportWindow.Initialize();
+
+	// Project‚ÌƒRƒ“ƒ|[ƒlƒ“ƒg‚Ì“o˜^(Engine‚Ì‚à‚Ì‚ÍŠî”Õ‚ª“o˜^Ï‚İ)
+	ProjectComponents::Register();
+
+	// ƒCƒ“ƒXƒyƒNƒ^[‚Ì“Æ©•`‰æ‚Ì“o˜^
+	ComponentRegistryInitializer::Initialize();
+	ProjectInspectors::Register();
+
+	sceneManager.ChangeScene(std::make_unique<SceneGame>());
+
+	// ProjectWindow‰Šú‰»
+	projectWindow.Initialize("Data");
+	projectWindow.LoadIcons(graphics.GetDevice());
+	// PrefabWindow‰Šú‰»
+	prefabWindow.Initialize("Data/Prefab");
+
+	// Studio‹¤—LƒŠƒ\[ƒX‰Šú‰»
+	studioShared.Initialize(graphics.GetDevice());
+}
+
+// ƒV[ƒ“XV‚Ì‘O
+void EditorApp::OnPreUpdate(float elapsedTime)
+{
+	// F1‚ÅƒQ[ƒ€’P‘Ì‚ÌŒ©‚½–Ú(ImGui–³‚µ)‚ğƒvƒŒƒrƒ…[Ø‚è‘Ö‚¦
+	static bool prevF1 = false;
+	bool currF1 = (GetAsyncKeyState(VK_F1) & 0x8000) != 0;
+	if (currF1 && !prevF1)
+	{
+		previewRelease = !previewRelease;
+	}
+	prevF1 = currF1;
+
+	// ‰EƒNƒŠƒbƒN‚ğ‰Ÿ‚µ‚½uŠÔAGame‚Ö‚Ì“ü—Í‚ª—LŒø‚Å‚ ‚ê‚ÎDebugƒ‚[ƒh‚ÉØ‚è‘Ö‚¦
+	static bool prevRButton = false;
+	bool currRButton = (GetAsyncKeyState(VK_RBUTTON) & 0x8000) != 0;
+	if (currRButton && !prevRButton && IsGameInputActive())
+	{
+		editorContext.cameraMode = CameraMode::Debug;
+	}
+	prevRButton = currRButton;
+}
+
+// ƒV[ƒ“XV‚ÌŒã
+void EditorApp::OnPostUpdate(float elapsedTime)
+{
+	// ƒfƒoƒbƒOƒJƒƒ‰XV(ƒV[ƒ“‚ÌŒã‚És‚¤)
+	UpdateDebugCamera(elapsedTime);
+
+	// StudioXV
+	for (auto& win : studioWindows)
+	{
+		win->Update(elapsedTime);
+	}
+}
+
+// –ˆƒtƒŒ[ƒ€1‰ñ(ImGui)
+void EditorApp::OnFrame()
+{
+	ZoneScoped;
+
+	// ƒvƒŒƒrƒ…[’†‚ÍImGui©‘Ì‚ğˆêØg‚í‚È‚¢
+	if (!IsEditorActive()) return;
+
+	// ImGuiƒtƒŒ[ƒ€ŠJn
+	imguiManager.BeginFrame();
+
+	// GameƒEƒBƒ“ƒhƒE(Viewport‚ÆƒhƒbƒLƒ“ƒOƒŒƒCƒAƒEƒg)
+	viewportWindow.Draw(gameView, [this]() { DrawMainMenu(); });
+
+	if (auto* scene = sceneManager.GetCurrentScene())
+	{
+		projectWindow.Draw(scene->GetRegistry(), editorContext);
+		hierarchyWindow.Draw(scene->GetRegistry(), editorContext);
+		inspectorWindow.Draw(scene->GetRegistry(), editorContext);
+		prefabWindow.Draw(scene->GetRegistry(), editorContext);
+	}
+	// ƒV[ƒ“‚ª–³‚­‚Ä‚àAƒƒO‚ÍŒ©‚ç‚ê‚é‚æ‚¤‚É‚·‚é
+	logWindow.Draw();
+
+	// StudioOpenRequest‚ğˆ—
+	if (editorContext.studioRequest.pending)
+	{
+		OpenStudioWindow(editorContext.studioRequest.assetPath, editorContext.studioRequest.graphPath);
+		editorContext.studioRequest.pending = false;
+		editorContext.studioRequest.assetPath = "";
+		editorContext.studioRequest.graphPath = "";
+	}
+	for (auto& win : studioWindows)
+	{
+		std::string title = "Studio##" + std::to_string(win->GetWindowId());
+		win->DrawWindow(title.c_str());
+	}
+	// •Â‚¶‚éƒŠƒNƒGƒXƒg‚ªo‚½ƒEƒBƒ“ƒhƒE‚ğíœ
+	studioWindows.erase(
+		std::remove_if(studioWindows.begin(), studioWindows.end(),
+			[](const std::unique_ptr<StudioWindow>& w)
+			{
+				return w->IsCloseRequested();
+			}),
+		studioWindows.end()
+	);
+
+	// ‘S‚Ä‚ÌƒEƒBƒ“ƒhƒE‚Ì•`‰æŒã‚ÉƒV[ƒ“•Û‘¶E“Ç‚İ‚İ‚ğÀs‚·‚é
+	ProcessSceneRequest();
+
+	// Open‚ÌŠm”Fƒ|ƒbƒvƒAƒbƒv
+	if (ImGui::BeginPopupModal("Open Scene##Confirm", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+	{
+		ImGui::Text("Current scene will be discarded.\nAre you sure you want to continue?");
+		ImGui::Spacing();
+
+		if (ImGui::Button("Open", ImVec2(120, 0)))
+		{
+			Scene* scene = sceneManager.GetCurrentScene();
+			if (scene)
+			{
+				// ”jŠü‚·‚éŒÃ‚¢Entity‚Ö‚ÌQÆ‚ªc‚ç‚È‚¢‚æ‚¤A“Ç‚İ‚İ‚Ì‘O‚ÉA‘I‘ğE–¼‘Oƒ}ƒbƒv‚ğƒŠƒZƒbƒg‚·‚é
+				editorContext.Deselect();
+				editorContext.entityNames.clear();
+
+				auto setName = [this](entt::entity e, const std::string& name) { editorContext.SetName(e, name); };
+
+				if (SceneSerializer::LoadFromFile(scene->GetRegistry(), pendingOpenPath, setName))
+				{
+					editorContext.currentScenePath = pendingOpenPath;
+				}
+			}
+			ImGui::CloseCurrentPopup();
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("Cancel", ImVec2(120, 0)))
+		{
+			ImGui::CloseCurrentPopup();
+		}
+		ImGui::EndPopup();
+	}
+}
+
+// GameView‚É•`‚¢‚½ƒQ[ƒ€‚ğA‰æ–Ê‚Öo‚·
+void EditorApp::OnPresent()
+{
+	if (IsEditorActive())
+	{
+		// Studio•`‰æ
+		{
+			ZoneScopedN("Studio::Render");
+			for (auto& win : studioWindows)
+			{
+				win->Render();
+			}
+		}
+
+		// Studio‚ª•`‰ææ‚ğ•Ï‚¦‚é‚Ì‚ÅAƒƒCƒ“RTV‚ğÄƒZƒbƒg
+		graphics.SetRenderTargets();
+
+		// ImGui•`‰æ(GameView‚ÌƒeƒNƒXƒ`ƒƒ‚àA‚±‚±‚ÅViewportŒo—R‚Å•\¦‚³‚ê‚é)
+		{
+			ZoneScopedN("ImGui::EndFrame");
+			imguiManager.EndFrame();
+		}
+	}
+	else
+	{
+		// ƒvƒŒƒrƒ…[’†FƒQ[ƒ€‚ÌƒeƒNƒXƒ`ƒƒ‚ğ‰æ–Ê‘S‘Ì‚É“\‚é
+		ZoneScopedN("PresentTexture");
+		graphics.PresentTexture(gameView.GetSRV());
+	}
+}
+
+// ƒƒbƒZ[ƒW
+bool EditorApp::OnMessage(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
+{
+	// ImGuiƒƒbƒZ[ƒWˆ—
+	return imguiManager.HandleMessage(hwnd, msg, wparam, lparam);
+}
+
+// •`‰æ‚Ég‚¤ƒJƒƒ‰(Debug‚È‚çƒfƒoƒbƒOƒJƒƒ‰AGame‚È‚çƒQ[ƒ€ƒJƒƒ‰)
+Camera& EditorApp::GetRenderCamera()
+{
+	return (editorContext.cameraMode == CameraMode::Debug)
+		? viewportWindow.GetDebugCamera()
+		: gameView.GetCamera();
+}
+
+// Game‚Ö‚Ì“ü—Í‚ğó‚¯•t‚¯‚Ä‚æ‚¢‚©(ƒGƒfƒBƒ^•\¦’†‚ÍViewport‚Éƒ}ƒEƒX‚ª‚ ‚é‚Æ‚«‚¾‚¯)
+bool EditorApp::IsGameInputActive() const
+{
+	return IsEditorActive() ? viewportWindow.IsViewportHovered() : true;
+}
+
+// ƒGƒfƒBƒ^‚ÌUI‚ğ•\¦‚µ‚Ä‚¢‚é‚©
+bool EditorApp::IsEditorActive() const
+{
+	return !previewRelease;
+}
+
+// ƒfƒoƒbƒOƒJƒƒ‰‚ÌXV‚ÆADebug/Game‚ÌØ‚è‘Ö‚¦
+void EditorApp::UpdateDebugCamera(float elapsedTime)
+{
+	if (editorContext.cameraMode != CameraMode::Debug) return;
+
+	Scene* scene = sceneManager.GetCurrentScene();
+	if (!scene) return;
+	entt::registry& registry = scene->GetRegistry();
+
+	debugCameraSystem.Update(registry, elapsedTime, IsGameInputActive());
+	debugCameraSystem.ApplyToCamera(registry, viewportWindow.GetDebugCamera());
+
+	// Game‚Ö‚Ì“ü—Í‚ª—LŒø‚Å‚È‚¯‚ê‚ÎAØ‚è‘Ö‚¦‚Ís‚í‚È‚¢
+	if (!IsGameInputActive()) return;
+
+	// ƒXƒeƒBƒbƒN“ü—Í‚ª‚ ‚ê‚ÎGameƒ‚[ƒh‚É–ß‚·
+	// (Project‚Ì“ü—Í‚Å‚Í‚È‚­AEngine‚ÌƒRƒ“ƒgƒ[ƒ‰[‚Ì¶‚Ì’l‚ğŒ©‚é)
+	const float threshold = 0.2f;
+	auto view = registry.view<ControllerComponent>();
+	for (auto entity : view)
+	{
+		const auto& ctrl = view.get<ControllerComponent>(entity);
+		if (fabsf(ctrl.leftStickX) > threshold ||
+			fabsf(ctrl.leftStickY) > threshold ||
+			fabsf(ctrl.rightStickX) > threshold ||
+			fabsf(ctrl.rightStickY) > threshold)
+		{
+			editorContext.cameraMode = CameraMode::Game;
+			break;
+		}
+	}
+}
+
+// Studio‚ğŠJ‚­
+void EditorApp::OpenStudioWindow(const std::string& assetPath, const std::string& graphPath)
+{
+	auto win = std::make_unique<StudioWindow>();
+	win->Initialize(graphics.GetDevice(), &studioShared);
+	win->GetContext().deviceContext = graphics.GetDeviceContext();
+	win->SetWindowId(nextStudioWindowId++);
+
+	// ƒpƒX‚ªw’è‚³‚ê‚Ä‚¢‚½‚çƒ‚ƒfƒ‹‚ğƒ[ƒh
+	if (!assetPath.empty())
+	{
+		win->LoadAsset(assetPath);
+	}
+
+	// ƒOƒ‰ƒt‚ÌƒpƒX‚ªw’è‚³‚ê‚Ä‚¢‚½‚ç•R•t‚¯ó‘Ô‚É‚·‚é
+	if (!graphPath.empty())
+	{
+		win->GetContext().attachedGraphPath = graphPath;
+	}
+
+	studioWindows.push_back(std::move(win));
+}
+
+// ƒƒjƒ…[ƒo[‚Ì’†g
+void EditorApp::DrawMainMenu()
+{
+	if (ImGui::BeginMenu("File"))
+	{
+		if (ImGui::MenuItem("Save"))
+		{
+			editorContext.sceneRequest = SceneAction::Save;
+		}
+		if (ImGui::MenuItem("Save As..."))
+		{
+			editorContext.sceneRequest = SceneAction::SaveAs;
+		}
+		if (ImGui::MenuItem("Open Scene..."))
+		{
+			editorContext.sceneRequest = SceneAction::Open;
+		}
+
+		ImGui::Separator();
+
+		if (ImGui::BeginMenu("System"))
+		{
+			ImGui::MenuItem("VSync", nullptr, &vsync);
+			ImGui::EndMenu();
+		}
+
+		ImGui::EndMenu();
+	}
+
+	// ¡ŠJ‚¢‚Ä‚¢‚éƒV[ƒ“iSave‚Ìã‘‚«æj
+	std::string sceneName = editorContext.currentScenePath.empty()
+		? "(unsaved)"
+		: std::filesystem::path(editorContext.currentScenePath).filename().string();
+	ImGui::TextDisabled("Scene: %s", sceneName.c_str());
+}
+
+// ƒV[ƒ“‚Ì•Û‘¶E“Ç‚İ‚İƒŠƒNƒGƒXƒg‚ğÀs‚·‚é
+void EditorApp::ProcessSceneRequest()
+{
+	SceneAction action = editorContext.sceneRequest;
+	if (action == SceneAction::None) return;
+	editorContext.sceneRequest = SceneAction::None;
+
+	Scene* scene = sceneManager.GetCurrentScene();
+	if (!scene) return;
+
+	if (action == SceneAction::Open)
+	{
+		timer.stop();
+		std::string path;
+		bool selected = FileDialog::OpenScene(hwnd, path);
+		timer.start();
+
+		if (selected)
+		{
+			// Šù‘¶‚ÌEntity‚ğ”jŠü‚·‚é‚½‚ßAŠm”Fƒ|ƒbƒvƒAƒbƒv‚ğŸ‚ÌƒtƒŒ[ƒ€‚ÅŠJ‚­
+			pendingOpenPath = path;
+			ImGui::OpenPopup("Open Scene##Confirm");
+		}
+		return;
+	}
+
+	std::string path = editorContext.currentScenePath;
+
+	// Save AsA‚Ü‚½‚Í‚Ü‚¾•Û‘¶æ‚ª–³‚¢Save‚ÍAƒ_ƒCƒAƒƒO‚Å•Û‘¶æ‚ğ‘I‚Ô
+	if (action == SceneAction::SaveAs || path.empty())
+	{
+		timer.stop();
+		bool selected = FileDialog::SaveScene(hwnd, path);
+		timer.start();
+
+		if (!selected) return; // ƒLƒƒƒ“ƒZƒ‹
+	}
+
+	auto getName = [this](entt::entity e) { return editorContext.GetName(e); };
+	if (SceneSerializer::SaveToFile(scene->GetRegistry(), path, getName))
+	{
+		editorContext.currentScenePath = path;
+	}
+} 
+ 
+===== GameApp.cpp ===== 
+Path: C:\Users\offri\Desktop\New-Library\Source\App\GameApp.cpp 
+#include "GameApp.h"
+#include "tracy/Tracy.hpp"
+#include <fstream>
+#include <json.hpp>
+
+#include "Engine/Core/Log.h"
+#include "Engine/Resource/SceneSerializer.h"
+#include "Project/Scene/SceneGame.h"
+#include "Project/ECS/ProjectComponents.h"
+
+namespace
+{
+	// ƒvƒƒWƒFƒNƒgİ’èƒtƒ@ƒCƒ‹
+	const char* kProjectSettingsPath = "Data/ProjectSettings.json";
+}
+
+// ‰Šú‰»
+void GameApp::OnInitialize()
+{
+	// Project‚ÌƒRƒ“ƒ|[ƒlƒ“ƒg‚Ì“o˜^(Engine‚Ì‚à‚Ì‚ÍŠî”Õ‚ª“o˜^Ï‚İ)
+	ProjectComponents::Register();
+
+	sceneManager.ChangeScene(std::make_unique<SceneGame>());
+
+	// Å‰‚É“Ç‚İ‚ŞƒV[ƒ“
+	startScenePath = LoadStartScenePath();
+
+#ifndef _DEBUG
+	// ƒŠƒŠ[ƒX‚Íƒ{[ƒ_[ƒŒƒXƒtƒ‹ƒXƒNƒŠ[ƒ“‚Å‹N“®
+	graphics.ToggleFullscreen();
+#endif
+}
+
+// ƒV[ƒ“XV‚Ì‘O
+void GameApp::OnPreUpdate(float elapsedTime)
+{
+	// ƒEƒBƒ“ƒhƒE‚Ìc‰¡”ä‚É‡‚í‚¹‚ÄAƒQ[ƒ€ƒJƒƒ‰‚ÌƒvƒƒWƒFƒNƒVƒ‡ƒ“‚ğXV‚·‚é
+	RECT rc{};
+	GetClientRect(hwnd, &rc);
+	float width = static_cast<float>(rc.right - rc.left);
+	float height = static_cast<float>(rc.bottom - rc.top);
+	if (width > 0.0f && height > 0.0f)
+	{
+		gameView.SetAspect(width / height);
+	}
+}
+
+// ƒV[ƒ“XV‚ÌŒã
+void GameApp::OnPostUpdate(float elapsedTime)
+{
+	// SceneGame‚ÍÅ‰‚ÌƒV[ƒ“XV‚Å‰Šú‰»‚³‚ê‚é‚Ì‚ÅA‚»‚ÌŒã‚É1‰ñ‚¾‚¯“Ç‚İ‚Ş
+	if (startSceneLoaded) return;
+
+	Scene* scene = sceneManager.GetCurrentScene();
+	if (!scene) return;
+
+	startSceneLoaded = true;
+
+	if (startScenePath.empty()) return;
+
+	// ƒGƒ“ƒeƒBƒeƒB‚Ì–¼‘O‚ÍƒGƒfƒBƒ^ê—p‚È‚Ì‚ÅAó‚¯æ‚ç‚È‚¢
+	if (!SceneSerializer::LoadFromFile(scene->GetRegistry(), startScenePath))
+	{
+		Log(u8"Å‰‚ÌƒV[ƒ“‚Ì“Ç‚İ‚İ‚É¸”s‚µ‚Ü‚µ‚½: %s", startScenePath.c_str());
+	}
+}
+
+// GameView‚É•`‚¢‚½ƒQ[ƒ€‚ğA‰æ–Ê‘S‘Ì‚É“\‚é
+void GameApp::OnPresent()
+{
+	ZoneScopedN("PresentTexture");
+	graphics.PresentTexture(gameView.GetSRV());
+}
+
+// ƒvƒƒWƒFƒNƒgİ’è‚©‚çAÅ‰‚É“Ç‚İ‚ŞƒV[ƒ“‚ÌƒpƒX‚ğæ“¾‚·‚é
+std::string GameApp::LoadStartScenePath()
+{
+	std::ifstream file(kProjectSettingsPath);
+	if (!file)
+	{
+		Log(u8"ƒvƒƒWƒFƒNƒgİ’è‚ªŒ©‚Â‚©‚è‚Ü‚¹‚ñ: %s", kProjectSettingsPath);
+		return "";
+	}
+
+	nlohmann::json json = nlohmann::json::parse(file, nullptr, false);
+	if (json.is_discarded() || !json.is_object())
+	{
+		Log(u8"ƒvƒƒWƒFƒNƒgİ’è‚ÌŒ`®‚ª³‚µ‚­‚ ‚è‚Ü‚¹‚ñ: %s", kProjectSettingsPath);
+		return "";
+	}
+
+	std::string path = json.value("startScene", "");
+	if (path.empty())
+	{
+		Log(u8"ƒvƒƒWƒFƒNƒgİ’è‚É startScene ‚ª‚ ‚è‚Ü‚¹‚ñ");
+	}
+	return path;
+} 
+ 
+===== Application.h ===== 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Core\Application.h 
+#pragma once
+#include <windows.h>
+#include "Engine/Utility/high_resolution_timer.h"
+#include "Engine/Core/Graphics.h"
+#include "Engine/Core/SceneManager.h"
+#include "Engine/Core/SceneContext.h"
+#include "Engine/Core/GameView.h"
+#include "Engine/Core/PhysX.h"
+#include "Engine/Resource/ResourceManager.h"
+
+// ƒAƒvƒŠƒP[ƒVƒ‡ƒ“‚ÌŠî”Õ
+// –ˆƒtƒŒ[ƒ€‚Ì—¬‚ê‚ğŒˆ‚ßA”h¶ƒNƒ‰ƒX(EditorApp / GameApp)‚ª’†g‚ğ‘«‚·“ü‚èŒû‚ğ‚Â
+class Application
+{
+public:
+	explicit Application(HWND hwnd);
+	virtual ~Application();
+
+	Application(const Application&) = delete;
+	Application& operator=(const Application&) = delete;
+	Application(Application&&) noexcept = delete;
+	Application& operator=(Application&&) noexcept = delete;
+
+	// ‰Šú‰»
+	void Initialize();
+
+	// ƒAƒvƒŠƒP[ƒVƒ‡ƒ“ƒ‹[ƒvp
+	int Run();
+
+	// ƒƒbƒZ[ƒWƒnƒ“ƒhƒ‰
+	LRESULT HandleMessage(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
+
+protected:
+	// ===== ”h¶ƒNƒ‰ƒX‚ª’†g‚ğ‘«‚·“ü‚èŒû =====
+	virtual void OnInitialize() {}
+	virtual void OnFinalize() {}
+
+	// ƒV[ƒ“XV‚Ì‘OEŒã(ŒÅ’èƒ^ƒCƒ€ƒXƒeƒbƒv‚²‚Æ)
+	virtual void OnPreUpdate(float elapsedTime) {}
+	virtual void OnPostUpdate(float elapsedTime) {}
+
+	// –ˆƒtƒŒ[ƒ€1‰ñ(ImGui‚È‚Ç)
+	virtual void OnFrame() {}
+
+	// GameView‚É•`‚¢‚½ƒQ[ƒ€‚ğA‰æ–Ê‚Öo‚·
+	virtual void OnPresent() = 0;
+
+	// ƒƒbƒZ[ƒW(ˆ—‚µ‚½ê‡‚Ítrue‚ğ•Ô‚·)
+	virtual bool OnMessage(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) { return false; }
+
+	// •`‰æ‚Ég‚¤ƒJƒƒ‰(Šù’è‚ÍƒQ[ƒ€ƒJƒƒ‰)
+	virtual Camera& GetRenderCamera() { return gameView.GetCamera(); }
+
+	// Game‚Ö‚Ì“ü—Í‚ğó‚¯•t‚¯‚Ä‚æ‚¢‚©(Šù’è‚Íí‚Éó‚¯•t‚¯‚é)
+	virtual bool IsGameInputActive() const { return true; }
+
+	// SceneContext‚ğÅVó‘Ô‚ÉXV‚·‚é
+	void UpdateSceneContext();
+
+	// ===== Šî”Õ‚ÌƒT[ƒrƒX =====
+	HWND hwnd;
+	high_resolution_timer timer;
+	Graphics graphics;
+	PhysX physX;
+	ResourceManager resourceManager;
+	SceneManager sceneManager;
+	GameView gameView;
+	SceneContext sceneContext;
+
+	bool vsync = true;
+
+private:
+	void Update(float elapsedTime);
+	void Render();
+	void CalculateFrameStats();
+
+	int updateCount = 0;
+	int updateCountBuf = 0;
+}; 
  
 ===== Camera.h ===== 
 Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Core\Camera.h 
@@ -106,149 +763,23 @@ private:
     float               viewingAngle = 40.0f;
 }; 
  
-===== framework.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Core\framework.h 
-#pragma once
-
-#include <windows.h>
-#include <tchar.h>
-#include <sstream>
-
-#include "Engine/Utility/misc.h"
-#include "Engine/Utility/high_resolution_timer.h"
-
-#include "Engine/Core/Graphics.h"
-#include "Engine/Core/ImGuiManager.h"
-#include "Engine/Core/SceneManager.h"
-#include "Engine/Core/GameWindow.h"
-#include "Engine/Core/PhysX.h"
-
-#include "Engine/Resource/ResourceManager.h"
-
-#include "Tool/Editor/EditorContext.h"
-#include "Tool/Editor/ProjectWindow.h"
-#include "Tool/Editor/HierarchyWindow.h"
-#include "Tool/Editor/InspectorWindow.h"
-#include "Tool/Editor/PrefabWindow.h"
-#include "Tool/Editor/LogWindow.h"
-
-#include "Tool/Studio/StudioSharedContext.h"
-#include "Tool/Studio/StudioWindow.h"
-#include <vector>
-
-// ƒEƒBƒ“ƒhƒEƒTƒCƒY
-#define SCREEN_WIDTH 1280
-#define SCREEN_HEIGHT 720
-
-class framework
-{
-public:
-	framework(HWND hwnd);
-	~framework();
-
-	framework(const framework&) = delete;                // ƒRƒs[ƒRƒ“ƒXƒgƒ‰ƒNƒ^‹Ö~
-	framework& operator=(const framework&) = delete;     // ƒRƒs[‘ã“ü‹Ö~
-	framework(framework&&) noexcept = delete;            // ƒ€[ƒuƒRƒ“ƒXƒgƒ‰ƒNƒ^‹Ö~
-	framework& operator=(framework&&) noexcept = delete; // ƒ€[ƒu‘ã“ü‹Ö~
-
-	void update(float elapsedTime);
-	void updateImGui();
-	void render(float elapsedTime);
-
-	// ƒtƒŒ[ƒ€ŒvZ
-	void calculate_frame_stats();
-
-	//ƒAƒvƒŠƒP[ƒVƒ‡ƒ“ƒ‹[ƒv
-	int run();
-
-	//ƒƒbƒZ[ƒWƒnƒ“ƒhƒ‰
-	LRESULT handle_message(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
-
-private:
-	HWND hwnd;
-	high_resolution_timer timer;
-
-
-	// SceneContext
-	SceneContext sceneContext;
-	// SceneContext ‚ğÅVó‘Ô‚ÉXV‚·‚é
-	void updateSceneContext();
-
-
-	// GraphicsƒNƒ‰ƒX
-	Graphics graphics;
-	// ImGuiManagerƒNƒ‰ƒX
-	ImGuiManager imguiManager;
-
-
-	// SceneManagerƒNƒ‰ƒX
-	SceneManager sceneManager;
-	// ResourceManagerƒNƒ‰ƒX
-	ResourceManager resourceManager;
-	// GameƒEƒBƒ“ƒhƒEi•`‰ææƒeƒNƒXƒ`ƒƒ{ƒJƒƒ‰j
-	GameWindow gameWindow;
-	// PhysXƒNƒ‰ƒX
-	PhysX physX;
-
-
-	// Editor
-	EditorContext   editorContext;
-	ProjectWindow   projectWindow;
-	HierarchyWindow hierarchyWindow;
-	InspectorWindow inspectorWindow;
-	PrefabWindow    prefabWindow;
-	LogWindow       logWindow;
-
-	// Studio
-	StudioSharedContext        studioShared;
-	std::vector<std::unique_ptr<StudioWindow>> studioWindows;
-	void openStudioWindow(const std::string& assetPath = "", const std::string& graphPath = "");
-	int nextStudioWindowId = 0;
-
-	// ƒƒjƒ…[ƒo[‚Ì’†g
-	void drawMainMenu();
-	// ƒƒjƒ…[‚ª—§‚Ä‚½AƒV[ƒ“‚Ì•Û‘¶E“Ç‚İ‚İƒŠƒNƒGƒXƒg‚ğÀs‚·‚é
-	void processSceneRequest();
-
-	// Open‚ÌŠm”Fƒ|ƒbƒvƒAƒbƒv
-	std::string pendingOpenPath;
-
-private:
-	// VSync ON OFF
-	bool vsync = true;
-
-	// UpdateŒv‘ª
-	int updateCount = 0;
-	int updateCountBuf = 0;
-
-
-#ifdef _DEBUG
-	bool previewRelease = false;
-#endif
-	bool IsEditorActive() const;
-	bool IsGameInputActive() const;
-
-}; 
- 
-===== GameWindow.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Core\GameWindow.h 
+===== GameView.h ===== 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Core\GameView.h 
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
-#include <functional>
-
 #include "Camera.h"
 
-class GameWindow
+// ƒQ[ƒ€‚ğ•`‰æ‚·‚é‚½‚ß‚Ìê—pƒeƒNƒXƒ`ƒƒ‚ÆAƒQ[ƒ€ƒJƒƒ‰
+class GameView
 {
 public:
-    GameWindow() = default;
-    ~GameWindow() = default;
-
-    GameWindow(const GameWindow&) = delete;                // ƒRƒs[ƒRƒ“ƒXƒgƒ‰ƒNƒ^‹Ö~
-    GameWindow& operator=(const GameWindow&) = delete;     // ƒRƒs[‘ã“ü‹Ö~
-    GameWindow(GameWindow&&) noexcept = delete;            // ƒ€[ƒuƒRƒ“ƒXƒgƒ‰ƒNƒ^‹Ö~
-    GameWindow& operator=(GameWindow&&) noexcept = delete; // ƒ€[ƒu‘ã“ü‹Ö~
+    GameView() = default;
+    ~GameView() = default;
+    GameView(const GameView&) = delete;
+    GameView& operator=(const GameView&) = delete;
+    GameView(GameView&&) noexcept = delete;
+    GameView& operator=(GameView&&) noexcept = delete;
 
     // ‰Šú‰»
     void Initialize(ID3D11Device* device, UINT width = 1920, UINT height = 1080);
@@ -257,26 +788,21 @@ public:
     void Begin(ID3D11DeviceContext* dc);
     void End(ID3D11DeviceContext* dc);
 
-    // ImGui•`‰æ
-    void DrawWindow(const char* windowName, const std::function<void()>& drawMenus = nullptr);
-
     // ƒeƒNƒXƒ`ƒƒ‚ÌÄ¶¬
     void ResizeRenderTarget(UINT width, UINT height);
 
-    // ƒJƒƒ‰æ“¾
+    // •\¦æ‚Ìc‰¡”ä‚É‡‚í‚¹‚ÄAƒQ[ƒ€ƒJƒƒ‰‚ÌƒvƒƒWƒFƒNƒVƒ‡ƒ“‚ğXV‚·‚é
+    void SetAspect(float aspect);
+
+    // ƒQ[ƒ€ƒJƒƒ‰æ“¾
     Camera& GetCamera() { return camera; }
 
-    // SRVæ“¾
+    // •`‰æŒ‹‰ÊE•`‰ææ‚Ìæ“¾
     ID3D11ShaderResourceView* GetSRV() { return srv.Get(); }
-
-    // SceneContext‚Ö“n‚·‚½‚ß‚Ì•`‰æææ“¾
     ID3D11RenderTargetView* GetRTV() { return rtv.Get(); }
     ID3D11DepthStencilView* GetDSV() { return dsv.Get(); }
     UINT GetRenderWidth()  const { return renderWidth; }
     UINT GetRenderHeight() const { return renderHeight; }
-
-    // ƒrƒ…[ƒ|[ƒg‚ªƒzƒo[‚³‚ê‚Ä‚¢‚é‚©
-    bool IsViewportHovered() const { return viewportHovered; }
 
 private:
     Microsoft::WRL::ComPtr<ID3D11Device>             device;
@@ -286,26 +812,13 @@ private:
     Microsoft::WRL::ComPtr<ID3D11Texture2D>          depthTexture;
     Microsoft::WRL::ComPtr<ID3D11DepthStencilView>   dsv;
 
-    Camera camera;
+    Camera camera; // ƒQ[ƒ€ƒJƒƒ‰
 
     UINT renderWidth = 1920;
     UINT renderHeight = 1080;
 
-    bool viewportHovered = false;
-
     // Begin/EndŠÔ‚Å‚Ìƒrƒ…[ƒ|[ƒg‘Ş”ğ—p
     D3D11_VIEWPORT savedViewport = {};
-
-    // true‚ÌŠÔAŸ‚ÌDrawWindow()‚ÅDockSpace‚ÌƒŒƒCƒAƒEƒg‚ğiÄj\’z‚·‚é
-    bool firstDockSetup = true;
-
-    // ƒhƒbƒLƒ“ƒO”ä—¦
-    float dockRatioLeft = 0.1f;  // Hierarchy
-    float dockRatioRight = 0.15f; // Inspector
-
-    float dockRatioBottom = 0.2f;  // Project / Prefab
-    float dockRatioPrefab = 0.75f; // Prefab / Log
-    float dockRatioLog = 0.5f;    // Log
 }; 
  
 ===== Graphics.h ===== 
@@ -766,8 +1279,6 @@ public:
 	virtual void Update(float elapsedTime, const SceneContext& context) = 0;
 	// •`‰æ
 	virtual void Render(const SceneContext& context) = 0;
-	// ImGui•`‰æ
-	virtual void RenderImGui() = 0;
 
 	// ƒŒƒWƒXƒgƒŠæ“¾
 	entt::registry& GetRegistry() { return registry; }
@@ -802,8 +1313,6 @@ Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Core\SceneContext.h
 #include "Camera.h"
 #include "PhysX.h"
 
-#include "Tool/Editor/EditorContext.h"
-
 // SceneŒn‚É“n‚·ƒRƒ“ƒeƒLƒXƒg
 // •K—v‚È‚à‚Ì‚ª‘‚¦‚½‚ç‚±‚±‚É’Ç‰Á‚·‚é
 struct SceneContext
@@ -816,15 +1325,16 @@ struct SceneContext
 	ID3D11RenderTargetView* renderTargetView = nullptr;
 	ID3D11DepthStencilView* depthStencilView = nullptr;
 
+	// ƒQ[ƒ€ƒJƒƒ‰BƒQ[ƒ€‚Ìˆ—‚ª‘‚«‚İAƒQ[ƒ€‚Ìˆ—‚ª“Ç‚Ş
 	Camera* camera = nullptr;
-	DirectX::XMFLOAT4X4 view = {};
-	DirectX::XMFLOAT4X4 projection = {};
+
+	// •`‰æ‚Ég‚¤ƒJƒƒ‰B‚Ç‚ê‚ğg‚¤‚©‚ÍApp‘¤‚ªŒˆ‚ß‚é(ƒQ[ƒ€‚Í“Ç‚Ş‚¾‚¯)
+	const Camera* renderCamera = nullptr;
+	DirectX::XMFLOAT4X4 view = {};       // renderCamera‚Ìƒrƒ…[s—ñ
+	DirectX::XMFLOAT4X4 projection = {}; // renderCamera‚ÌƒvƒƒWƒFƒNƒVƒ‡ƒ“s—ñ
 
 	UINT screenWidth = 0;
 	UINT screenHeight = 0;
-
-	CameraMode cameraMode = CameraMode::Debug;
-	EditorContext* editorContext = nullptr;
 
 	// Game‚Ö‚Ì“ü—Í‚ğó‚¯•t‚¯‚Ä‚æ‚¢‚©
 	bool gameInputActive = false;
@@ -853,8 +1363,6 @@ public:
 	void Update(float elapsedTime, const SceneContext& context);
 	// •`‰æ
 	void Render(const SceneContext& context);
-	// ImGui•`‰æ
-	void RenderImGui();
 
 	// ƒV[ƒ“Ø‚è‘Ö‚¦—\–ñ
 	void ChangeScene(std::unique_ptr<Scene>scene);
@@ -869,6 +1377,255 @@ private:
 	std::unique_ptr<Scene>currentScene; // Œ»İƒV[ƒ“
 	std::unique_ptr<Scene>nextScene;    // Ÿ‚ÌƒV[ƒ“
 }; 
+ 
+===== Application.cpp ===== 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Core\Application.cpp 
+#include "Application.h"
+#include "tracy/Tracy.hpp"
+#include "Engine/ECS/EngineComponents.h"
+#include <sstream>
+
+Application::Application(HWND hwnd) : hwnd(hwnd)
+{
+}
+
+Application::~Application()
+{
+	// PhysXI—¹ˆ—
+	physX.Cleanup();
+
+	// GraphicsI—¹ˆ—
+	graphics.Cleanup();
+}
+
+// ‰Šú‰»
+void Application::Initialize()
+{
+	// Graphics‰Šú‰»
+	graphics.Initialize(hwnd);
+
+	// PhysX‰Šú‰»
+	physX.Initialize();
+
+	// ƒQ[ƒ€‚Ì•`‰ææ‚ÆƒQ[ƒ€ƒJƒƒ‰
+	gameView.Initialize(graphics.GetDevice());
+
+	// Engine‚ÌƒRƒ“ƒ|[ƒlƒ“ƒg‚Ì“o˜^
+	EngineComponents::Register();
+
+	// ”h¶ƒNƒ‰ƒX‚Ì‰Šú‰»
+	OnInitialize();
+
+	UpdateSceneContext();
+}
+
+// ƒAƒvƒŠƒP[ƒVƒ‡ƒ“ƒ‹[ƒv
+int Application::Run()
+{
+	MSG msg{};
+
+	// ŒÅ’èƒ^ƒCƒ€ƒXƒeƒbƒvİ’è(60fps)
+	const double fixedTimestep = 1.0 / 60.0;
+	double accumulator = 0.0;
+
+	while (WM_QUIT != msg.message)
+	{
+		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+		{
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
+		}
+		else
+		{
+			timer.tick();
+			CalculateFrameStats();
+
+			// Œo‰ßŠÔ‚ğ’~Ï
+			double frameTime = (double)timer.time_interval();
+			if (frameTime > 0.25) frameTime = 0.25;
+			accumulator += frameTime;
+
+			// ŒÅ’èƒ^ƒCƒ€ƒXƒeƒbƒv‚ÅUpdate‚ğÀs
+			while (accumulator >= fixedTimestep)
+			{
+				Update((float)fixedTimestep);
+				accumulator -= fixedTimestep;
+				updateCountBuf++;
+			}
+
+			// –ˆƒtƒŒ[ƒ€1‰ñ
+			OnFrame();
+
+			// •`‰æ‚Í–ˆƒtƒŒ[ƒ€
+			Render();
+		}
+	}
+
+	// I—¹ˆ—(”h¶ƒNƒ‰ƒX ¨ ƒV[ƒ“‚Ì‡)
+	OnFinalize();
+	sceneManager.ClearScene();
+
+	return static_cast<int>(msg.wParam);
+}
+
+// XV
+void Application::Update(float elapsedTime)
+{
+	ZoneScoped;
+
+	OnPreUpdate(elapsedTime);
+
+	// SceneContextXV
+	UpdateSceneContext();
+
+	// ƒV[ƒ“XV
+	sceneManager.Update(elapsedTime, sceneContext);
+
+	OnPostUpdate(elapsedTime);
+
+	// •`‰æ‚Ég‚¤ƒJƒƒ‰‚ÌŒ‹‰Ê‚ğcontext‚É”½‰f
+	Camera& renderCamera = GetRenderCamera();
+	sceneContext.renderCamera = &renderCamera;
+	sceneContext.view = renderCamera.GetView();
+	sceneContext.projection = renderCamera.GetProjection();
+}
+
+// •`‰æ
+void Application::Render()
+{
+	ZoneScoped;
+
+	// ‰æ–ÊƒNƒŠƒA
+	graphics.Clear(0.2f, 0.2f, 0.5f, 1.0f);
+	graphics.SetRenderTargets();
+
+	// ƒQ[ƒ€‚ğGameView‚ÌƒeƒNƒXƒ`ƒƒ‚É•`‚­
+	gameView.Begin(graphics.GetDeviceContext());
+	sceneManager.Render(sceneContext);
+	{
+		ZoneScopedN("GameView::End");
+		gameView.End(graphics.GetDeviceContext());
+	}
+
+	// ƒƒCƒ“RTV‚ğÄƒZƒbƒg‚µ‚Ä‚©‚çA‰æ–Ê‚Öo‚·
+	graphics.SetRenderTargets();
+	OnPresent();
+
+	// ‰æ–Ê”½‰f
+	{
+		ZoneScopedN("Present");
+		graphics.Present(vsync);
+	}
+
+	FrameMark;
+}
+
+// SceneContext‚ğÅVó‘Ô‚ÉXV‚·‚é
+void Application::UpdateSceneContext()
+{
+	sceneContext.device = graphics.GetDevice();
+	sceneContext.deviceContext = graphics.GetDeviceContext();
+	sceneContext.resourceManager = &resourceManager;
+	sceneContext.physX = &physX;
+
+	// GameView‚Ìê—pƒeƒNƒXƒ`ƒƒ‚ğ•`‰ææ‚Æ‚µ‚Ä“n‚·
+	sceneContext.renderTargetView = gameView.GetRTV();
+	sceneContext.depthStencilView = gameView.GetDSV();
+	sceneContext.camera = &gameView.GetCamera();
+
+	Camera& renderCamera = GetRenderCamera();
+	sceneContext.renderCamera = &renderCamera;
+	sceneContext.view = renderCamera.GetView();
+	sceneContext.projection = renderCamera.GetProjection();
+
+	sceneContext.screenWidth = gameView.GetRenderWidth();
+	sceneContext.screenHeight = gameView.GetRenderHeight();
+	sceneContext.gameInputActive = IsGameInputActive();
+}
+
+// ƒtƒŒ[ƒ€ŒvZ
+void Application::CalculateFrameStats()
+{
+	static int frames = 0;
+	static float timeElapsed = 0.0f;
+
+	frames++;
+
+	if ((timer.time_stamp() - timeElapsed) >= 1.0f)
+	{
+		float fps = static_cast<float>(frames);
+		float mspf = 1000.0f / fps;
+
+		updateCount = updateCountBuf;
+		updateCountBuf = 0;
+
+		std::ostringstream outs;
+		outs.precision(6);
+		outs << "FPS : " << fps
+			<< " / Frame Time : " << mspf << " ms"
+			<< " / Update : " << updateCount << " fps";
+		SetWindowTextA(hwnd, outs.str().c_str());
+
+		frames = 0;
+		timeElapsed += 1.0f;
+	}
+}
+
+// ƒƒbƒZ[ƒWƒnƒ“ƒhƒ‰
+LRESULT Application::HandleMessage(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
+{
+	// ”h¶ƒNƒ‰ƒX‚ªˆ—‚µ‚½‚à‚Ì‚ÍA‚±‚±‚ÅI‚í‚è
+	if (OnMessage(hwnd, msg, wparam, lparam)) { return true; }
+
+	switch (msg)
+	{
+	case WM_PAINT:
+	{
+		PAINTSTRUCT ps{};
+		BeginPaint(hwnd, &ps);
+		EndPaint(hwnd, &ps);
+	}
+	break;
+
+	case WM_DESTROY:
+		PostQuitMessage(0);
+		break;
+	case WM_CREATE:
+		break;
+	case WM_KEYDOWN:
+		if (wparam == VK_ESCAPE)
+		{
+			PostMessage(hwnd, WM_CLOSE, 0, 0);
+		}
+		break;
+	case WM_ENTERSIZEMOVE:
+		timer.stop();
+		break;
+	case WM_SIZE:
+		if (wparam == SIZE_MINIMIZED)
+		{
+			// Å¬‰»‚Íƒ^ƒCƒ}[’â~‚Ì‚İ(ƒŠƒTƒCƒY•s—v)
+			timer.stop();
+		}
+		else
+		{
+			// Å‘å‰»/•œŒ³/’ÊíƒŠƒTƒCƒY
+			timer.start();
+			graphics.ResizeBuffers();
+			UpdateSceneContext();
+		}
+		break;
+	case WM_EXITSIZEMOVE:
+		timer.start();
+		// ƒEƒBƒ“ƒhƒEƒTƒCƒY•ÏX‚Éƒoƒbƒtƒ@Ä¶¬
+		graphics.ResizeBuffers();
+		UpdateSceneContext();
+		break;
+	default:
+		return DefWindowProc(hwnd, msg, wparam, lparam);
+	}
+	return 0;
+} 
  
 ===== Camera.cpp ===== 
 Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Core\Camera.cpp 
@@ -929,537 +1686,13 @@ void Camera::SetPerspectiveFov(
     DirectX::XMStoreFloat4x4(&projection, Projection);
 } 
  
-===== framework.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Core\framework.cpp 
-#include "framework.h"
-#include "tracy/Tracy.hpp"
-#include "Project/Scene/SceneGame.h"
-#include "Engine/ECS/EngineComponents.h"
-#include "Project/ECS/ProjectComponents.h"
-#include "Tool/Editor/ComponentRegistryInitializer.h"
-#include "ProjectEditor/ProjectInspectors.h"
-
-#include "Tool/Editor/FileDialog.h"
-
-#include "Engine/Resource/SceneSerializer.h"
-
-#include <filesystem>
-#include <iomanip>
-
-framework::framework(HWND hwnd) : hwnd(hwnd)
-{
-	// Graphics‰Šú‰»
-	graphics.Initialize(hwnd);
-	
-	// PhysX‰Šú‰»
-	physX.Initialize();
-
-	// ImGuiManager‰Šú‰»
-	imguiManager.Initialize(hwnd, graphics.GetDevice(), graphics.GetDeviceContext());
-
-	// GameƒEƒBƒ“ƒhƒE‰Šú‰»
-	gameWindow.Initialize(graphics.GetDevice());
-	
-	// ƒRƒ“ƒ|[ƒlƒ“ƒg‚Ì“o˜^(Às‚É•K—v‚È‚à‚Ì)
-	EngineComponents::Register();
-	ProjectComponents::Register();
-
-	// ƒCƒ“ƒXƒyƒNƒ^[‚Ì“Æ©•`‰æ‚Ì“o˜^(ƒGƒfƒBƒ^‚Ì‚İ)
-	ComponentRegistryInitializer::Initialize();
-	ProjectInspectors::Register();
-
-	sceneManager.ChangeScene(std::make_unique<SceneGame>());
-
-	// ProjectWindow‰Šú‰»
-	projectWindow.Initialize("Data");
-	projectWindow.LoadIcons(graphics.GetDevice());
-	// PrefabWindow‰Šú‰»
-	prefabWindow.Initialize("Data/Prefab");
-
-
-	// Studio‹¤—LƒŠƒ\[ƒX‰Šú‰»
-	studioShared.Initialize(graphics.GetDevice());
-
-#ifndef _DEBUG
-	// ƒŠƒŠ[ƒX‚Íƒ{[ƒ_[ƒŒƒXƒtƒ‹ƒXƒNƒŠ[ƒ“‚Å‹N“®
-	graphics.ToggleFullscreen();
-#endif
-}
-
-framework::~framework()
-{
-	sceneManager.ClearScene();
-	
-	// PhysXI—¹ˆ—
-	physX.Cleanup();
-
-	// GraphicsI—¹ˆ—
-	graphics.Cleanup();
-}
-
-void framework::update(float elapsedTime)
-{
-	ZoneScoped;
-
-#ifdef _DEBUG
-	// F1‚ÅRelease‚Æ“¯‚¶Œ©‚½–ÚiImGui–³‚µj‚ğƒvƒŒƒrƒ…[Ø‚è‘Ö‚¦
-	static bool prevF1 = false;
-	bool currF1 = (GetAsyncKeyState(VK_F1) & 0x8000) != 0;
-	if (currF1 && !prevF1)
-	{
-		previewRelease = !previewRelease;
-	}
-	prevF1 = currF1;
-#endif
-
-	// ‰EƒNƒŠƒbƒN‚ğ‰Ÿ‚µ‚½uŠÔAGame‚Ö‚Ì“ü—Í‚ª—LŒø‚Å‚ ‚ê‚ÎDebugƒ‚[ƒh‚ÉØ‚è‘Ö‚¦
-	static bool prevRButton = false;
-	bool currRButton = (GetAsyncKeyState(VK_RBUTTON) & 0x8000) != 0;
-	if (currRButton && !prevRButton && IsGameInputActive())
-	{
-		editorContext.cameraMode = CameraMode::Debug;
-	}
-	prevRButton = currRButton;
-
-
-	// SceneContext XV
-	updateSceneContext();
-
-	// ƒV[ƒ“XV
-	sceneManager.Update(elapsedTime, sceneContext);
-
-	// StudioXV
-	for (auto& win : studioWindows)
-	{
-		win->Update(elapsedTime);
-	}
-
-	// ƒQ[ƒ€ƒJƒƒ‰‚ÌŒ‹‰Ê‚ğcontext‚É”½‰f
-	sceneContext.view = gameWindow.GetCamera().GetView();
-	sceneContext.projection = gameWindow.GetCamera().GetProjection();
-}
-
-void framework::updateImGui()
-{
-	ZoneScoped;
-
-	// Editor–³Œø‚ÍImGui©‘Ì‚ğˆêØg‚í‚È‚¢
-	if (!IsEditorActive()) return;
-
-	// ImGuiƒtƒŒ[ƒ€ŠJn
-	imguiManager.BeginFrame();
-
-	// ƒV[ƒ“ImGui•`‰æ
-	sceneManager.RenderImGui();
-
-	// GameƒEƒBƒ“ƒhƒEiƒhƒbƒLƒ“ƒO/ƒ^ƒu‰»‘ÎÛjƒƒjƒ…[“à—e
-	gameWindow.DrawWindow("Game", [this]() { drawMainMenu(); });
-#ifdef _DEBUG
-	if (auto* scene = sceneManager.GetCurrentScene())
-	{
-		projectWindow.Draw(scene->GetRegistry(), editorContext);
-		hierarchyWindow.Draw(scene->GetRegistry(), editorContext);
-		inspectorWindow.Draw(scene->GetRegistry(), editorContext);
-		prefabWindow.Draw(scene->GetRegistry(), editorContext);
-	}
-	// ƒV[ƒ“‚ª–³‚­‚Ä‚àAƒƒO‚ÍŒ©‚ç‚ê‚é‚æ‚¤‚É‚·‚é
-	logWindow.Draw();
-
-	// StudioOpenRequest‚ğˆ—
-	if (editorContext.studioRequest.pending)
-	{
-		openStudioWindow(editorContext.studioRequest.assetPath, editorContext.studioRequest.graphPath);
-		editorContext.studioRequest.pending = false;
-		editorContext.studioRequest.assetPath = "";
-		editorContext.studioRequest.graphPath = "";
-	}
-	for (auto& win : studioWindows)
-	{
-		std::string title = "Studio##" + std::to_string(win->GetWindowId());
-		win->DrawWindow(title.c_str());
-	}
-	// •Â‚¶‚éƒŠƒNƒGƒXƒg‚ªo‚½ƒEƒBƒ“ƒhƒE‚ğíœ
-	studioWindows.erase(
-		std::remove_if(studioWindows.begin(), studioWindows.end(),
-			[](const std::unique_ptr<StudioWindow>& w)
-			{
-				return w->IsCloseRequested();
-			}),
-		studioWindows.end()
-	);
-#endif
-	// ‘S‚Ä‚ÌƒEƒBƒ“ƒhƒE‚Ì•`‰æŒã‚ÉƒV[ƒ“•Û‘¶E“Ç‚İ‚İ‚ğÀs‚·‚é
-	processSceneRequest();
-
-	// Open‚ÌŠm”Fƒ|ƒbƒvƒAƒbƒv
-	if (ImGui::BeginPopupModal("Open Scene##Confirm", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
-	{
-		ImGui::Text("Current scene will be discarded.\nAre you sure you want to continue?");
-		ImGui::Spacing();
-
-		if (ImGui::Button("Open", ImVec2(120, 0)))
-		{
-			Scene* scene = sceneManager.GetCurrentScene();
-			if (scene)
-			{
-				// ”jŠü‚·‚éŒÃ‚¢Entity‚Ö‚ÌQÆ‚ªc‚ç‚È‚¢‚æ‚¤A“Ç‚İ‚İ‚Ì‘O‚ÉA‘I‘ğE–¼‘Oƒ}ƒbƒv‚ğƒŠƒZƒbƒg‚·‚é
-				editorContext.Deselect();
-				editorContext.entityNames.clear();
-
-				auto setName = [this](entt::entity e, const std::string& name) { editorContext.SetName(e, name); };
-
-				if (SceneSerializer::LoadFromFile(scene->GetRegistry(), pendingOpenPath, setName))
-				{
-					editorContext.currentScenePath = pendingOpenPath;
-				}
-			}
-			ImGui::CloseCurrentPopup();
-		}
-		ImGui::SameLine();
-		if (ImGui::Button("Cancel", ImVec2(120, 0)))
-		{
-			ImGui::CloseCurrentPopup();
-		}
-		ImGui::EndPopup();
-	}
-}
-
-void framework::render(float elapsedTime)
-{
-	ZoneScoped;
-
-	// ‰æ–ÊƒNƒŠƒA
-	graphics.Clear(0.2f, 0.2f, 0.5f, 1.0f);
-	graphics.SetRenderTargets();
-
-	// Game•`‰ææ‚ğGameWindow—pƒeƒNƒXƒ`ƒƒ‚ÉØ‚è‘Ö‚¦‚Ä•`‰æ
-	gameWindow.Begin(graphics.GetDeviceContext());
-	sceneManager.Render(sceneContext);
-	{
-		ZoneScopedN("GameWindow::End");
-		gameWindow.End(graphics.GetDeviceContext());
-	}
-
-	if (IsEditorActive())
-	{
-		// Studio•`‰æ
-		{
-			ZoneScopedN("Studio::Render");
-			for (auto& win : studioWindows)
-			{
-				win->Render();
-			}
-		}
-
-		// ƒƒCƒ“RTV‚ğÄƒZƒbƒg
-		graphics.SetRenderTargets();
-
-		// ImGui•`‰æiGameƒEƒBƒ“ƒhƒE‚à‚±‚±‚ÅImGui::ImageŒo—R‚Å•\¦‚³‚ê‚éj
-		{
-			ZoneScopedN("ImGui::EndFrame");
-			imguiManager.EndFrame();
-		}
-	}
-	else
-	{
-		// Editor–³ŒøFGame‚ÌƒeƒNƒXƒ`ƒƒ‚ğƒtƒ‹ƒXƒNƒŠ[ƒ“‚ÅƒoƒbƒNƒoƒbƒtƒ@‚Ö
-		graphics.SetRenderTargets();
-		{
-			ZoneScopedN("PresentTexture");
-			graphics.PresentTexture(gameWindow.GetSRV());
-		}
-	}
-
-	// ‰æ–Ê”½‰f
-	{
-		ZoneScopedN("Present");
-		graphics.Present(vsync);
-	}
-
-	FrameMark;
-}
-
-// ƒtƒŒ[ƒ€ŒvZ
-void framework::calculate_frame_stats()
-{
-	static int frames = 0;
-	static float time_tlapsed = 0.0f;
-
-	frames++;
-
-	if ((timer.time_stamp() - time_tlapsed) >= 1.0f)
-	{
-		float fps = static_cast<float>(frames);
-		float mspf = 1000.0f / fps;
-
-		updateCount = updateCountBuf;
-		updateCountBuf = 0;
-
-		std::ostringstream outs;
-		outs.precision(6);
-		//outs << "FPS : " << fps << " / " << "Frame Time : " << mspf << " (ms)";
-		outs << "FPS : " << fps
-			<< " / Frame Time : " << mspf << " ms"
-			<< " / Update : " << updateCount << " fps";
-		SetWindowTextA(hwnd, outs.str().c_str());
-
-		frames = 0;
-		time_tlapsed += 1.0f;
-	}
-}
-
-//ƒAƒvƒŠƒP[ƒVƒ‡ƒ“ƒ‹[ƒv
-int framework::run()
-{
-	MSG msg{};
-
-	// ŒÅ’èƒ^ƒCƒ€ƒXƒeƒbƒvİ’èi144fpsj
-	const double fixedTimestep = 1.0 / 60.0;
-	double accumulator = 0.0;
-
-	while (WM_QUIT != msg.message)
-	{
-		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
-		{
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
-		}
-		else
-		{
-			timer.tick();
-			calculate_frame_stats();
-
-			// Œo‰ßŠÔ‚ğ’~ÏiÅ‘å0.25•b‚ÅƒXƒpƒCƒN–h~j
-			double frameTime = (double)timer.time_interval();
-			if (frameTime > 0.25) frameTime = 0.25;
-			accumulator += frameTime;
-
-			// ŒÅ’èƒ^ƒCƒ€ƒXƒeƒbƒv‚Åupdate‚ğÀs
-			while (accumulator >= fixedTimestep)
-			{
-				update((float)fixedTimestep);
-				accumulator -= fixedTimestep;
-				updateCountBuf++;
-			}
-
-			// ImGui‚Í–ˆƒtƒŒ[ƒ€1‰ñ‚¾‚¯
-			updateImGui();
-
-			// render‚Í–ˆƒtƒŒ[ƒ€Às
-			render((float)timer.time_interval());
-		}
-	}
-	return static_cast<int>(msg.wParam);
-}
-
-//ƒƒbƒZ[ƒWƒnƒ“ƒhƒ‰
-LRESULT framework::handle_message(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
-{
-	// ImGuiƒƒbƒZ[ƒWˆ—
-	if (imguiManager.HandleMessage(hwnd, msg, wparam, lparam)) { return true; }
-
-	switch (msg)
-	{
-	case WM_PAINT:
-	{
-		PAINTSTRUCT ps{};
-		BeginPaint(hwnd, &ps);
-
-		EndPaint(hwnd, &ps);
-	}
-	break;
-
-	case WM_DESTROY:
-		PostQuitMessage(0);
-		break;
-	case WM_CREATE:
-		break;
-	case WM_KEYDOWN:
-		if (wparam == VK_ESCAPE)
-		{
-			PostMessage(hwnd, WM_CLOSE, 0, 0);
-		}
-		break;
-	case WM_ENTERSIZEMOVE:
-		timer.stop();
-		break;
-	case WM_SIZE:
-		if (wparam == SIZE_MINIMIZED)
-		{
-			// Å¬‰»‚Íƒ^ƒCƒ}[’â~‚Ì‚İiƒŠƒTƒCƒY•s—vj
-			timer.stop();
-		}
-		else
-		{
-			// Å‘å‰»/•œŒ³/’ÊíƒŠƒTƒCƒY
-			timer.start();
-			graphics.ResizeBuffers();
-			updateSceneContext();
-		}
-		break;
-	case WM_EXITSIZEMOVE:
-		timer.start();
-		// ƒEƒBƒ“ƒhƒEƒTƒCƒY•ÏX‚Éƒoƒbƒtƒ@Ä¶¬
-		graphics.ResizeBuffers();
-		updateSceneContext();
-		break;
-	default:
-		return DefWindowProc(hwnd, msg, wparam, lparam);
-	}
-	return 0;
-}
-
-// SceneContext ‚ğÅVó‘Ô‚ÉXV‚·‚é
-void framework::updateSceneContext()
-{
-	sceneContext.device = graphics.GetDevice();
-	sceneContext.deviceContext = graphics.GetDeviceContext();
-	sceneContext.resourceManager = &resourceManager;
-	sceneContext.physX = &physX;
-
-	// GameWindow‚ª‚Âê—pƒeƒNƒXƒ`ƒƒ‚ğ•`‰ææ‚Æ‚µ‚Ä“n‚·
-	sceneContext.renderTargetView = gameWindow.GetRTV();
-	sceneContext.depthStencilView = gameWindow.GetDSV();
-	sceneContext.camera = &gameWindow.GetCamera();
-	sceneContext.view = gameWindow.GetCamera().GetView();
-	sceneContext.projection = gameWindow.GetCamera().GetProjection();
-	sceneContext.screenWidth = gameWindow.GetRenderWidth();
-	sceneContext.screenHeight = gameWindow.GetRenderHeight();
-	sceneContext.cameraMode = editorContext.cameraMode;
-	sceneContext.editorContext = &editorContext;
-	sceneContext.cameraMode = editorContext.cameraMode;
-	sceneContext.editorContext = &editorContext;
-	sceneContext.gameInputActive = IsGameInputActive();
-}
-
-// Studio‚ğŠJ‚­
-void framework::openStudioWindow(const std::string& assetPath, const std::string& graphPath)
-{
-	auto win = std::make_unique<StudioWindow>();
-	win->Initialize(graphics.GetDevice(), &studioShared);
-	win->GetContext().deviceContext = graphics.GetDeviceContext();
-	win->SetWindowId(nextStudioWindowId++);
-
-	// ƒpƒX‚ªw’è‚³‚ê‚Ä‚¢‚½‚çƒ‚ƒfƒ‹‚ğƒ[ƒh
-	if (!assetPath.empty())
-	{
-		win->LoadAsset(assetPath);
-	}
-
-	// ƒOƒ‰ƒt‚ÌƒpƒX‚ªw’è‚³‚ê‚Ä‚¢‚½‚ç•R•t‚¯ó‘Ô‚É‚·‚é
-	if (!graphPath.empty())
-	{
-		win->GetContext().attachedGraphPath = graphPath;
-	}
-
-	studioWindows.push_back(std::move(win));
-}
-
-// ƒƒjƒ…[ƒo[‚Ì’†g
-void framework::drawMainMenu()
-{
-	if (ImGui::BeginMenu("File"))
-	{
-		if (ImGui::MenuItem("Save"))
-		{
-			editorContext.sceneRequest = SceneAction::Save;
-		}
-		if (ImGui::MenuItem("Save As..."))
-		{
-			editorContext.sceneRequest = SceneAction::SaveAs;
-		}
-		if (ImGui::MenuItem("Open Scene..."))
-		{
-			editorContext.sceneRequest = SceneAction::Open;
-		}
-
-		ImGui::Separator();
-
-		if (ImGui::BeginMenu("System"))
-		{
-			ImGui::MenuItem("VSync", nullptr, &vsync);
-			ImGui::EndMenu();
-		}
-
-		ImGui::EndMenu();
-	}
-
-	// ¡ŠJ‚¢‚Ä‚¢‚éƒV[ƒ“iSave‚Ìã‘‚«æj
-	std::string sceneName = editorContext.currentScenePath.empty()
-		? "(unsaved)"
-		: std::filesystem::path(editorContext.currentScenePath).filename().string();
-	ImGui::TextDisabled("Scene: %s", sceneName.c_str());
-}
-
-// ƒV[ƒ“‚Ì•Û‘¶E“Ç‚İ‚İƒŠƒNƒGƒXƒg‚ğÀs‚·‚é
-void framework::processSceneRequest()
-{
-	SceneAction action = editorContext.sceneRequest;
-	if (action == SceneAction::None) return;
-	editorContext.sceneRequest = SceneAction::None;
-
-	Scene* scene = sceneManager.GetCurrentScene();
-	if (!scene) return;
-
-	if (action == SceneAction::Open)
-	{
-		timer.stop();
-		std::string path;
-		bool selected = FileDialog::OpenScene(hwnd, path);
-		timer.start();
-
-		if (selected)
-		{
-			// Šù‘¶‚ÌEntity‚ğ”jŠü‚·‚é‚½‚ßAŠm”Fƒ|ƒbƒvƒAƒbƒv‚ğŸ‚ÌƒtƒŒ[ƒ€‚ÅŠJ‚­
-			pendingOpenPath = path;
-			ImGui::OpenPopup("Open Scene##Confirm");
-		}
-		return;
-	}
-
-	std::string path = editorContext.currentScenePath;
-
-	// Save AsA‚Ü‚½‚Í‚Ü‚¾•Û‘¶æ‚ª–³‚¢Save‚ÍAƒ_ƒCƒAƒƒO‚Å•Û‘¶æ‚ğ‘I‚Ô
-	if (action == SceneAction::SaveAs || path.empty())
-	{
-		timer.stop();
-		bool selected = FileDialog::SaveScene(hwnd, path);
-		timer.start();
-
-		if (!selected) return; // ƒLƒƒƒ“ƒZƒ‹
-}
-
-	auto getName = [this](entt::entity e) { return editorContext.GetName(e); };
-	if (SceneSerializer::SaveToFile(scene->GetRegistry(), path, getName))
-	{
-		editorContext.currentScenePath = path;
-	}
-}
-
-bool framework::IsEditorActive() const
-{
-#ifdef _DEBUG
-	return !previewRelease;
-#else
-	return false;
-#endif
-}
-
-bool framework::IsGameInputActive() const
-{
-	return IsEditorActive() ? gameWindow.IsViewportHovered() : true;
-}
- 
- 
-===== GameWindow.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Core\GameWindow.cpp 
-#include "GameWindow.h"
-#include <imgui.h>
-#include <imgui_internal.h>
+===== GameView.cpp ===== 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Core\GameView.cpp 
+#include "GameView.h"
 #include <cassert>
 
 // ‰Šú‰»
-void GameWindow::Initialize(ID3D11Device* dev, UINT width, UINT height)
+void GameView::Initialize(ID3D11Device* dev, UINT width, UINT height)
 {
     device = dev;
 
@@ -1469,8 +1702,10 @@ void GameWindow::Initialize(ID3D11Device* dev, UINT width, UINT height)
     ResizeRenderTarget(width, height);
 }
 
+// iBeginEEndEResizeRenderTarget ‚Í GameWindow.cpp ‚Ì’†g‚ğ‚»‚Ì‚Ü‚Üj
+
 // •`‰ææ‚ÌØ‚è‘Ö‚¦
-void GameWindow::Begin(ID3D11DeviceContext* dc)
+void GameView::Begin(ID3D11DeviceContext* dc)
 {
     if (!dc) return;
 
@@ -1494,7 +1729,7 @@ void GameWindow::Begin(ID3D11DeviceContext* dc)
     dc->ClearRenderTargetView(rtv.Get(), clear);
     dc->ClearDepthStencilView(dsv.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 }
-void GameWindow::End(ID3D11DeviceContext* dc)
+void GameView::End(ID3D11DeviceContext* dc)
 {
     if (!dc) return;
 
@@ -1506,82 +1741,9 @@ void GameWindow::End(ID3D11DeviceContext* dc)
     dc->OMSetRenderTargets(1, &nullRTV, nullptr);
 }
 
-// ImGui•`‰æ
-void GameWindow::DrawWindow(const char* windowName, const std::function<void()>& drawMenus)
-{
-    ImGui::Begin(windowName, nullptr, ImGuiWindowFlags_MenuBar);
-
-    // ƒƒjƒ…[ƒo[
-    if (ImGui::BeginMenuBar())
-    {
-        if (drawMenus)
-        {
-            drawMenus();
-        }
-
-        ImGui::EndMenuBar();
-    }
-
-    // Gameê—p‚ÌDockSpace
-    ImGuiID dockSpaceId = ImGui::GetID("GameDockSpace");
-    ImGui::DockSpace(dockSpaceId, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
-
-    // ‰‰ñƒtƒŒ[ƒ€‚¾‚¯ƒfƒtƒHƒ‹ƒgƒŒƒCƒAƒEƒg‚ğ‘g‚Ş
-    if (firstDockSetup)
-    {
-        firstDockSetup = false;
-
-        ImGui::DockBuilderRemoveNode(dockSpaceId);
-        ImGui::DockBuilderAddNode(dockSpaceId, ImGuiDockNodeFlags_None);
-        ImGui::DockBuilderSetNodeSize(dockSpaceId, ImVec2(1280, 720));
-
-        ImGuiID dockMain = dockSpaceId;
-        ImGuiID dockBottom = ImGui::DockBuilderSplitNode(
-            dockMain, ImGuiDir_Down, dockRatioBottom, nullptr, &dockMain);
-        ImGuiID dockLeft = ImGui::DockBuilderSplitNode(
-            dockMain, ImGuiDir_Left, dockRatioLeft, nullptr, &dockMain);
-        ImGuiID dockRight = ImGui::DockBuilderSplitNode(
-            dockMain, ImGuiDir_Right, dockRatioRight, nullptr, &dockMain);
-        ImGuiID dockBottomRight = ImGui::DockBuilderSplitNode(
-            dockBottom, ImGuiDir_Right, dockRatioPrefab, nullptr, &dockBottom);
-        ImGuiID dockLog = ImGui::DockBuilderSplitNode(
-            dockBottomRight, ImGuiDir_Right, dockRatioLog, nullptr, &dockBottomRight);
-
-        ImGui::DockBuilderDockWindow("Viewport", dockMain);
-        ImGui::DockBuilderDockWindow("Hierarchy", dockLeft);
-        ImGui::DockBuilderDockWindow("Inspector", dockRight);
-        ImGui::DockBuilderDockWindow("Project", dockBottom);
-        ImGui::DockBuilderDockWindow("Prefab", dockBottomRight);
-        ImGui::DockBuilderDockWindow("Log", dockLog);
-        ImGui::DockBuilderFinish(dockSpaceId);
-    }
-
-    // Viewportƒpƒlƒ‹
-    ImGui::Begin("Viewport");
-
-    ImVec2 region = ImGui::GetContentRegionAvail();
-    if (region.x > 1 && region.y > 1)
-    {
-        camera.SetPerspectiveFov(
-            DirectX::XMConvertToRadians(camera.GetViewingAngle()),
-            region.x / region.y,
-            0.1f,
-            1000.0f
-        );
-    }
-
-    ImGui::Image(reinterpret_cast<ImTextureID>(srv.Get()), region);
-
-    // ƒJƒƒ‰‘€ì‚ÌŠJn”»’è‚ÍViewport’P‘Ì‚Ìƒzƒo[‚¾‚¯‚ğŒ©‚é
-    viewportHovered = ImGui::IsWindowHovered();
-
-    ImGui::End(); // Viewport
-
-    ImGui::End(); // Game
-}
 
 // ƒeƒNƒXƒ`ƒƒ‚ÌÄ¶¬
-void GameWindow::ResizeRenderTarget(UINT width, UINT height)
+void GameView::ResizeRenderTarget(UINT width, UINT height)
 {
     if (!device) return;
     if (width == 0 || height == 0) return;
@@ -1635,6 +1797,17 @@ void GameWindow::ResizeRenderTarget(UINT width, UINT height)
         hr = device->CreateDepthStencilView(depthTexture.Get(), nullptr, dsv.GetAddressOf());
         assert(SUCCEEDED(hr));
     }
+}
+
+// •\¦æ‚Ìc‰¡”ä‚É‡‚í‚¹‚ÄAƒQ[ƒ€ƒJƒƒ‰‚ÌƒvƒƒWƒFƒNƒVƒ‡ƒ“‚ğXV‚·‚é
+void GameView::SetAspect(float aspect)
+{
+    camera.SetPerspectiveFov(
+        DirectX::XMConvertToRadians(camera.GetViewingAngle()),
+        aspect,
+        0.1f,
+        1000.0f
+    );
 } 
  
 ===== Graphics.cpp ===== 
@@ -4397,6 +4570,153 @@ int Reflection::GetComponentCount(ValueType type)
 	}
 } 
  
+===== AdaptiveTrigger.h ===== 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Components\AdaptiveTrigger.h 
+#pragma once
+#include <vector>
+#include <cmath>
+#include <algorithm>
+
+namespace AdaptiveTrigger
+{
+    struct CurvePoint
+    {
+        // ‰Ÿ‚µ‚İ—Ê
+        float position = 0.0f; // (0,0`1.0)
+        // ’ïR‚Ì‹­‚³
+        float value = 0.0f;    // (0.0`1.0)
+    };
+
+    struct TriggerEffect
+    {
+        // o—ÍƒŠƒXƒg
+        std::vector<CurvePoint> forcePoints;
+    };
+
+    // Œ»İ’n(‰Ÿ‚µ‚İ—Ê)‚©‚ç‘OŒã‚É‘¶İ‚·‚éƒ|ƒCƒ“ƒg‚ğüŒ`•âŠ®‚µ‚ÄŒ»İ‚Ì’ïR’l‚ğ‹‚ß‚é
+    inline float SampleCurve(const std::vector<CurvePoint>& points, float position)
+    {
+        // –³’ïR
+        if (points.empty())
+        {
+            return 0.0f;
+        }
+        // “_‚ª1‚Â‚¾‚¯A‚Ü‚½‚Í position ‚ªÅ‰‚Ì“_‚æ‚èè‘O‚Ì‚ÍÅ‰‚Ì“_‚Ì’l‚ğ‚»‚Ì‚Ü‚Üg‚¤
+        if (points.size() == 1 || position <= points.front().position)
+        {
+            return points.front().value;
+        }
+        // position ‚ªÅŒã‚Ì“_‚æ‚èŒã‚ë‚È‚çÅŒã‚Ì“_‚Ì’l‚ğ‚»‚Ì‚Ü‚Üg‚¤
+        if (position >= points.back().position)
+        {
+            return points.back().value;
+        }
+
+        // ŠY“–‚·‚é2“_‚ğ’T‚µ‚Ä‚»‚ÌŠÔ‚ğüŒ`•âŠÔ‚·‚é
+        for (size_t i = 0; i + 1 < points.size(); ++i)
+        {
+            const CurvePoint& a = points[i];
+            const CurvePoint& b = points[i + 1];
+            if (position >= a.position && position <= b.position)
+            {
+                float t = (position - a.position) / (b.position - a.position);
+                return a.value + (b.value - a.value) * t;
+            }
+        }
+        return points.back().value;
+    }
+}
+
+namespace AdaptiveTrigger
+{
+    struct Zone
+    {
+        // ‚±‚Ìƒ][ƒ“‚É‘®‚·‚éƒ|ƒCƒ“ƒg‚ÌƒŠƒXƒg
+        std::vector<CurvePoint> points;
+    };
+
+    // ƒŒƒ“ƒW“à‚Ìƒ][ƒ“‚ğŒŸo‚·‚é
+    inline std::vector<Zone> DetectZones(const std::vector<CurvePoint>& points)
+    {
+        // ŒŸo‚µ‚½ƒ][ƒ“‚ÌƒŠƒXƒg
+        std::vector<Zone> zones;
+		// Œ»İ‚Ìƒ][ƒ“
+        Zone current;
+
+        // ƒŒƒ“ƒW“à‚Ìƒ|ƒCƒ“ƒg‚ğæ“ª‚©‚ç‡‚É‘–¸‚·‚é
+        for (const auto& p : points)
+        {
+			// ’ïR’l‚ª0‚æ‚è‘å‚«‚¯‚ê‚ÎŒ»İ‚Ìƒ][ƒ“‚É’Ç‰Á‚·‚é
+            if (p.value > 0.0f)
+            {
+                current.points.push_back(p);
+            }
+            else
+            {
+				// ’ïR’l‚ª0‚È‚ç’ïR‚ª‚È‚¢êŠ‚Ö—ˆ‚½
+                if (!current.points.empty())
+                {
+                    // ˆê‹æØ‚è‚Æ‚·‚é
+                    zones.push_back(current);
+					// Œ»İ‚Ìƒ][ƒ“‚ğƒŠƒZƒbƒg
+                    current.points.clear();
+                }
+            }
+        }
+
+		// ‰Ÿ‚µ‚İØ‚Á‚½‚É’ïR’l0ˆÈã‚ª‚ ‚ê‚Î‚»‚Ì’n“_‚ğÅŒã‚Ìƒ][ƒ“‚Æ‚·‚é
+        if (!current.points.empty())
+        {
+            zones.push_back(current);
+        }
+
+        return zones;
+    }
+}
+
+namespace AdaptiveTrigger
+{
+    // “¯‚¶’l‚Æ‚İ‚È‚·Œë·‚Ì”ÍˆÍ
+    constexpr float ValueEpsilon = 0.05f;
+
+    // ƒ][ƒ“‚Ì”»’èŒ‹‰Ê
+    enum class ResistanceType
+    {
+        Constant, // ˆê’è’ïR
+        Changing, // •Ï‰»’ïR
+        Complex,  // •¡G‚ÈƒJ[ƒu
+    };
+
+    // ƒ][ƒ“‚Ìí—Ş‚ğ”»’è‚·‚é
+    inline ResistanceType ClassifyZone(const Zone& zone)
+    {
+		// ƒ|ƒCƒ“ƒg‚ª‚R“_ˆÈã‚È‚ç•¡G‚ÈƒJ[ƒu‚Æ‚İ‚È‚·
+        if (zone.points.size() >= 3)
+        {
+            return ResistanceType::Complex;
+        }
+
+		// 2“_ˆÈ‰º‚È‚çAÅ‰‚ÆÅŒã‚Ì’l‚Ì·‚ğŒ©‚Äˆê’è’ïR‚©”»’f‚·‚é
+        float diff = std::abs(zone.points.front().value - zone.points.back().value);
+        if (diff < ValueEpsilon)
+        {
+            return ResistanceType::Constant;
+        }
+        return ResistanceType::Changing;
+    }
+}
+
+namespace AdaptiveTrigger
+{
+    inline float ComputeForce(const TriggerEffect& effect, float currentPosition)
+    {
+        // Œ»İ’n‚Ì’ïR’l‚ğæ“¾
+        float force = SampleCurve(effect.forcePoints, currentPosition);
+        // ”ÍˆÍŠO•ÛŒ¯
+        return std::clamp(force, 0.0f, 1.0f); 
+    }
+} 
+ 
 ===== AnimationSpeedComponent.h ===== 
 Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Components\AnimationSpeedComponent.h 
 #pragma once
@@ -4520,7 +4840,7 @@ struct ComponentCategory
 Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Components\ControllerComponent.h 
 ï»¿#pragma once
 #include <cstdint>
-#include "Unsorted/Controller/AdaptiveTrigger.h"
+#include "Engine/ECS/Components/AdaptiveTrigger.h"
 
 // ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ©ãƒ¼ã®ç¨®é¡
 enum class ControllerType
@@ -14133,6 +14453,110 @@ namespace DirectX
     template void serialize(cereal::BinaryInputArchive&, DirectX::XMUINT4&);
 } 
  
+===== WaveDemo.h ===== 
+Path: C:\Users\offri\Desktop\New-Library\Source\Project\Demo\WaveDemo.h 
+#pragma once
+#include <entt.hpp>
+#include <d3d11.h>
+#include <DirectXMath.h>
+#include "Engine/Rendering/ShapeRenderer.h"
+
+class WaveDemo
+{
+public:
+	void Initialize(
+		ID3D11Device* device,
+		entt::registry& registry,
+		int gridSize,
+		float spacing);
+
+	void Update(float elapsedTime) { time += elapsedTime; }
+
+	void Render(
+		entt::registry& registry,
+		ID3D11DeviceContext* dc,
+		const DirectX::XMFLOAT4X4& view,
+		const DirectX::XMFLOAT4X4& projection,
+		const DirectX::XMFLOAT3& lightDirection);
+
+private:
+	struct Tag
+	{
+		float baseX = 0.0f;
+		float baseZ = 0.0f;
+		float phase = 0.0f;
+	};
+
+	ShapeRenderer renderer;
+	float time = 0.0f;
+	float spacing = 1.0f;
+}; 
+ 
+===== WaveDemo.cpp ===== 
+Path: C:\Users\offri\Desktop\New-Library\Source\Project\Demo\WaveDemo.cpp 
+#include "WaveDemo.h"
+
+void WaveDemo::Initialize(
+	ID3D11Device* device,
+	entt::registry& registry,
+	int gridSize,
+	float spacingValue)
+{
+	renderer = ShapeRenderer(device);
+	spacing = spacingValue;
+
+	for (int x = 0; x < gridSize; x++)
+	{
+		for (int z = 0; z < gridSize; z++)
+		{
+			entt::entity e = registry.create();
+
+			Tag tag;
+			tag.baseX = (x - gridSize * 0.5f) * spacing;
+			tag.baseZ = (z - gridSize * 0.5f) * spacing;
+			tag.phase = (tag.baseX + tag.baseZ) * 0.3f;
+
+			registry.emplace<Tag>(e, tag);
+		}
+	}
+}
+
+void WaveDemo::Render(
+	entt::registry& registry,
+	ID3D11DeviceContext* dc,
+	const DirectX::XMFLOAT4X4& view, 
+	const DirectX::XMFLOAT4X4& projection, 
+	const DirectX::XMFLOAT3& lightDirection)
+{
+	auto view_ = registry.view<Tag>();
+	for (auto entity : view_)
+	{
+		auto& tag = view_.get<Tag>(entity);
+
+		float y = sinf(time * 2.0f + tag.phase) * 0.5f;
+
+		DirectX::XMMATRIX m = DirectX::XMMatrixTranslation(tag.baseX, y, tag.baseZ);
+		DirectX::XMFLOAT4X4 transform;
+		DirectX::XMStoreFloat4x4(&transform, m);
+
+		DirectX::XMFLOAT3 size = { spacing, spacing, spacing };
+
+		float seed = sinf(tag.baseX * 12.9898f + tag.baseZ * 78.233f) * 43758.5453f;
+		float variation = seed - floorf(seed);
+
+		DirectX::XMFLOAT4 color = {
+			0.75f + variation * 0.12f,
+			0.88f - variation * 0.06f,
+			1.0f - variation * 0.03f,
+			1.0f
+		};
+
+		renderer.DrawBox(transform, size, color);
+	}
+
+	renderer.Render(dc, view, projection, lightDirection, false);
+} 
+ 
 ===== ProjectComponents.h ===== 
 Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\ProjectComponents.h 
 #pragma once
@@ -15915,7 +16339,6 @@ Path: C:\Users\offri\Desktop\New-Library\Source\Project\Scene\SceneGame.h
 #include "Engine/ECS/Systems/IKSystem.h"
 #include "Engine/ECS/Systems/MeshLoaderSystem.h"
 #include "Engine/ECS/Systems/PhysicsSystem.h"
-#include "Engine/ECS/Systems/DebugCameraSystem.h"
 #include "Project/ECS/Systems/GameCameraSystem.h"
 
 // •`‰æŒn
@@ -15925,7 +16348,7 @@ Path: C:\Users\offri\Desktop\New-Library\Source\Project\Scene\SceneGame.h
 #include "Engine/Rendering/PhysicsDebugRenderer.h"
 
 // ƒfƒ‚
-#include "Unsorted/Demo/WaveDemo.h"
+#include "Project/Demo/WaveDemo.h"
 
 class SceneGame : public Scene
 {
@@ -15961,7 +16384,6 @@ private:
 	IKSystem          ikSystem;
 	MeshLoaderSystem  meshLoaderSystem;
 	PhysicsSystem     physicsSystem;
-	DebugCameraSystem debugCameraSystem;
 	GameCameraSystem  gameCameraSystem;
 
 	// •`‰æŒn
@@ -16097,10 +16519,10 @@ void SceneGame::Render(const SceneContext& context)
 		cbSceneData.view = context.view;
 		cbSceneData.projection = context.projection;
 
-		// ã‚«ãƒ¡ãƒ©ä½ç½®
-		if (context.camera)
+		// ã‚«ãƒ¡ãƒ©ä½ç½®(æç”»ã«ä½¿ã†ã‚«ãƒ¡ãƒ©ã‹ã‚‰å–ã‚‹)
+		if (context.renderCamera)
 		{
-			const auto& eye = context.camera->GetEye();
+			const auto& eye = context.renderCamera->GetEye();
 			cbSceneData.cameraPosition = { eye.x, eye.y, eye.z, 0.0f };
 		}
 		lightManager.Bind(context.deviceContext);
@@ -16128,9 +16550,9 @@ void SceneGame::Render(const SceneContext& context)
 	{
 		ZoneScopedN("SkyBox::Render");
 		DirectX::XMFLOAT3 eye = { 0.0f, 0.0f, 0.0f };
-		if (context.camera)
+		if (context.renderCamera)
 		{
-			const auto& e = context.camera->GetEye();
+			const auto& e = context.renderCamera->GetEye();
 			eye = { e.x, e.y, e.z };
 		}
 		skyBox.Render(context.deviceContext, context.view, context.projection, eye);
@@ -16295,37 +16717,11 @@ void SceneGame::UpdateResources(float elapsedTime, const SceneContext& context)
 void SceneGame::UpdateCamera(float elapsedTime, const SceneContext& context)
 {
 	ZoneScopedN("CameraSystem");
-	if (context.cameraMode == CameraMode::Debug)
-	{
-		debugCameraSystem.Update(registry, elapsedTime, context.gameInputActive);
-		debugCameraSystem.ApplyToCamera(registry, *context.camera);
 
-		// ã‚¹ãƒ†ã‚£ãƒƒã‚¯å…¥åŠ›ãŒã‚ã‚Œã°Gameãƒ¢ãƒ¼ãƒ‰ã«æˆ»ã™
-		if (context.editorContext)
-		{
-			auto inputView = registry.view<GameInputComponent>();
-			for (auto entity : inputView)
-			{
-				auto& input = inputView.get<GameInputComponent>(entity);
-				const float threshold = 0.2f;
-				if (fabsf(input.moveStick.x) > threshold ||
-					fabsf(input.moveStick.y) > threshold ||
-					fabsf(input.cameraStick.x) > threshold ||
-					fabsf(input.cameraStick.y) > threshold)
-				{
-					context.editorContext->cameraMode = CameraMode::Game;
-					break;
-				}
-			}
-		}
-	}
-	else
-	{
-		gameCameraSystem.Update(registry, elapsedTime);
-		gameCameraSystem.ApplyToCamera(registry, *context.camera);
-	}
-}
- 
+	// ã‚²ãƒ¼ãƒ ã‚«ãƒ¡ãƒ©ã¯å¸¸ã«æ›´æ–°ã™ã‚‹(ã©ã®ã‚«ãƒ¡ãƒ©ã§æç”»ã™ã‚‹ã‹ã¯Appå´ãŒæ±ºã‚ã‚‹)
+	gameCameraSystem.Update(registry, elapsedTime);
+	gameCameraSystem.ApplyToCamera(registry, *context.camera);
+} 
  
 ===== ProjectInspectors.h ===== 
 Path: C:\Users\offri\Desktop\New-Library\Source\ProjectEditor\ProjectInspectors.h 
@@ -16902,9 +17298,13 @@ private:
 	static std::unordered_map<std::string, std::function<void(entt::registry&, entt::entity)>> registry;
 };
 
-// Œ^–¼‚ğAƒR[ƒhã‚Ì–¼‘O‚©‚ç©“®‚Å•t‚¯‚Ä“Æ©•`‰æ‚ğ“o˜^‚·‚é
-#define REGISTER_INSPECTOR(Type, DrawFunc) \
-    ComponentInspectorRegistry::Register(#Type, DrawFunc) 
+//// Œ^–¼‚ğAƒR[ƒhã‚Ì–¼‘O‚©‚ç©“®‚Å•t‚¯‚Ä“Æ©•`‰æ‚ğ“o˜^‚·‚é
+//#define REGISTER_INSPECTOR(Type, DrawFunc) \
+//    ComponentInspectorRegistry::Register(#Type, DrawFunc)
+
+// •`‰æŠÖ”(ƒ‰ƒ€ƒ_)‚Ì’†‚É { } ‚ÅˆÍ‚Ü‚ê‚½ƒJƒ“ƒ}‚ª‚ ‚Á‚Ä‚à‚æ‚¢‚æ‚¤‚ÉA‰Â•Ï’·ˆø”‚Åó‚¯æ‚é
+#define REGISTER_INSPECTOR(Type, ...) \
+    ComponentInspectorRegistry::Register(#Type, __VA_ARGS__) 
  
 ===== ComponentRegistryInitializer.h ===== 
 Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Editor\ComponentRegistryInitializer.h 
@@ -17288,6 +17688,46 @@ private:
     Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> modelIconSRV;
 }; 
  
+===== ViewportWindow.h ===== 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Editor\ViewportWindow.h 
+#pragma once
+#include <functional>
+#include "Engine/Core/Camera.h"
+#include "Engine/Core/GameView.h"
+
+// ƒGƒfƒBƒ^‚ÌGameƒEƒBƒ“ƒhƒE(Viewport‚ÆƒhƒbƒLƒ“ƒOƒŒƒCƒAƒEƒg)‚ÆAƒfƒoƒbƒOƒJƒƒ‰
+class ViewportWindow
+{
+public:
+    // ‰Šú‰»
+    void Initialize(UINT width = 1920, UINT height = 1080);
+
+    // ImGui•`‰æ(GameView‚Ì•`‰æŒ‹‰Ê‚ğViewport‚É•\¦‚·‚é)
+    void Draw(GameView& gameView, const std::function<void()>& drawMenus = nullptr);
+
+    // ƒfƒoƒbƒOƒJƒƒ‰æ“¾
+    Camera& GetDebugCamera() { return debugCamera; }
+
+    // ƒrƒ…[ƒ|[ƒg‚ªƒzƒo[‚³‚ê‚Ä‚¢‚é‚©
+    bool IsViewportHovered() const { return viewportHovered; }
+
+private:
+    Camera debugCamera; // ƒfƒoƒbƒOƒJƒƒ‰
+
+    bool viewportHovered = false;
+
+    // true‚ÌŠÔAŸ‚ÌDraw()‚ÅDockSpace‚ÌƒŒƒCƒAƒEƒg‚ğiÄj\’z‚·‚é
+    bool firstDockSetup = true;
+
+    // ƒhƒbƒLƒ“ƒO”ä—¦
+    float dockRatioLeft = 0.1f;   // Hierarchy
+    float dockRatioRight = 0.15f; // Inspector
+
+    float dockRatioBottom = 0.2f;  // Project / Prefab
+    float dockRatioPrefab = 0.75f; // Prefab / Log
+    float dockRatioLog = 0.5f;     // Log
+}; 
+ 
 ===== ComponentInspectorRegistry.cpp ===== 
 Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Editor\ComponentInspectorRegistry.cpp 
 #include "ComponentInspectorRegistry.h"
@@ -17309,7 +17749,6 @@ const std::function<void(entt::registry&, entt::entity)>* ComponentInspectorRegi
 ===== ComponentRegistryInitializer.cpp ===== 
 Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Editor\ComponentRegistryInitializer.cpp 
 #include "ComponentRegistryInitializer.h"
-#include "Engine/Resource/ComponentRegistry.h"
 #include "Tool/Editor/ComponentInspectorRegistry.h"
 
 #include <imgui.h>
@@ -17328,42 +17767,9 @@ Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Editor\ComponentRegistryIni
 
 #include "MetaRegistry.h"
 
-#define REGISTER_COMPONENT(Type, Name, DrawFunc)                            \
-    ComponentRegistry::Register(Name,                                       \
-    {                                                                       \
-        Name,                                                               \
-        [](auto& r, auto e){ if (!r.any_of<Type>(e)) r.emplace<Type>(e); }, \
-        [](auto& r, auto e){ r.remove<Type>(e); },                          \
-        [](auto& r, auto e){ return r.any_of<Type>(e); },                   \
-        [](entt::registry& r, entt::entity e) -> entt::meta_any             \
-        {                                                                   \
-            auto* c = r.try_get<Type>(e);                                   \
-            if (!c) return entt::meta_any{};                                \
-            return entt::forward_as_meta(*c);                               \
-        }                                                                   \
-    });                                                                     \
-    ComponentInspectorRegistry::Register(Name, DrawFunc);                   \
-    ComponentRegistry::RegisterTypeName(#Type, Name)
-
-// “Æ©UI‚ª•s—v‚ÈAƒVƒ“ƒvƒ‹‚ÈƒRƒ“ƒ|[ƒlƒ“ƒg—p
-#define REGISTER_COMPONENT_AUTO(Type, Name)                                 \
-    ComponentRegistry::Register(Name,                                       \
-    {                                                                       \
-        Name,                                                               \
-        [](auto& r, auto e){ if (!r.any_of<Type>(e)) r.emplace<Type>(e); }, \
-        [](auto& r, auto e){ r.remove<Type>(e); },                          \
-        [](auto& r, auto e){ return r.any_of<Type>(e); },                   \
-        [](entt::registry& r, entt::entity e) -> entt::meta_any             \
-        {                                                                   \
-            auto* c = r.try_get<Type>(e);                                   \
-            if (!c) return entt::meta_any{};                                \
-            return entt::forward_as_meta(*c);                               \
-        }                                                                   \
-    });                                                                     \
-    ComponentRegistry::RegisterTypeName(#Type, Name)
-
 #define DRAW_COMPONENT(Type, Label, body)                                   \
-    [](auto& reg, auto e)                                                   \    {                                                                       \
+    [](auto& reg, auto e)                                                   \
+    {                                                                       \
         auto* _c = reg.try_get<Type>(e);                                    \
         if (!_c) return;                                                    \
         if (ImGui::CollapsingHeader(Label, ImGuiTreeNodeFlags_DefaultOpen)) \
@@ -17372,34 +17778,7 @@ Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Editor\ComponentRegistryIni
 
 void ComponentRegistryInitializer::Initialize()
 {
-	// ƒJƒeƒSƒŠƒRƒ“ƒ|[ƒlƒ“ƒg‚Ì“o˜^
-	REGISTER_COMPONENT_AUTO(ComponentCategory, "Category");
-
-	// ƒgƒ‰ƒ“ƒXƒtƒH[ƒ€ƒRƒ“ƒ|[ƒlƒ“ƒg‚Ì“o˜^
-	REGISTER_COMPONENT_AUTO(TransformComponent, "Transform");
-
-	// ƒƒbƒVƒ…ƒRƒ“ƒ|[ƒlƒ“ƒg‚Ì“o˜^
-	REGISTER_COMPONENT_AUTO(MeshComponent, "Mesh");
-
-	// ƒ}ƒeƒŠƒAƒ‹ƒRƒ“ƒ|[ƒlƒ“ƒg‚Ì“o˜^
-	REGISTER_COMPONENT_AUTO(MaterialComponent, "Material");
-
-	// Player‘Ò‹@ƒRƒ“ƒ|[ƒlƒ“ƒg‚Ì“o˜^
-	REGISTER_COMPONENT_AUTO(PlayerIdleComponent, "Player Idle");
-	// PlayerˆÚ“®ƒRƒ“ƒ|[ƒlƒ“ƒg‚Ì“o˜^
-	REGISTER_COMPONENT_AUTO(PlayerMoveComponent, "Player Move");
-	// Player‰ñ”ğƒRƒ“ƒ|[ƒlƒ“ƒg‚Ì“o˜^
-	REGISTER_COMPONENT_AUTO(PlayerDodgeComponent, "Player Dodge");
-	// Playerƒ_ƒbƒVƒ…ƒRƒ“ƒ|[ƒlƒ“ƒg‚Ì“o˜^
-	REGISTER_COMPONENT_AUTO(PlayerSprintComponent, "Player Sprint");
-	// PlayerƒWƒƒƒ“ƒvƒRƒ“ƒ|[ƒlƒ“ƒg‚Ì“o˜^
-	REGISTER_COMPONENT_AUTO(PlayerJumpComponent,"Player Jump");
-
-
-	// ƒCƒ“ƒvƒbƒgƒRƒ“ƒ|[ƒlƒ“ƒg‚Ì“o˜^
-	REGISTER_COMPONENT_AUTO(GameInputComponent, "GameInput");
-
-	// ƒAƒjƒ[ƒ^[ƒRƒ“ƒ|[ƒlƒ“ƒg‚Ì“o˜^
+	// ƒAƒjƒ[ƒ^[
 	REGISTER_INSPECTOR(AnimatorComponent,
 		[](auto& reg, auto e)
 		{
@@ -17449,9 +17828,9 @@ void ComponentRegistryInitializer::Initialize()
 			MetaRegistry::DrawMetaFields(entt::resolve<AnimatorComponent>(), entt::forward_as_meta(*anim));
 		});
 
-	// ƒtƒŠ[ƒJƒƒ‰ƒRƒ“ƒ|[ƒlƒ“ƒg‚Ì“o˜^
+	// ƒtƒŠ[ƒJƒƒ‰
 	REGISTER_INSPECTOR(FreeCameraComponent,
-		DRAW_COMPONENT(FreeCameraComponent, "FreeCamera", 
+		DRAW_COMPONENT(FreeCameraComponent, "FreeCamera",
 			{
 				ImGui::DragFloat("Camera Speed", &_c->cameraSpeed, 0.1f, 0.1f, 100.0f);
 				ImGui::DragFloat("Yaw",          &_c->yaw,         0.01f);
@@ -17461,119 +17840,8 @@ void ComponentRegistryInitializer::Initialize()
 				ImGui::DragFloat3("Target", &_c->base.currentTarget.x, 0.1f);
 			}));
 
-	// ƒQ[ƒ€ƒJƒƒ‰ƒRƒ“ƒ|[ƒlƒ“ƒg‚Ì“o˜^
-	ComponentRegistry::Register("GameCamera",
-		{
-			"GameCamera",
-			[](auto& reg, auto e) { if (!reg.any_of<GameCameraComponent>(e)) reg.emplace<GameCameraComponent>(e); },
-			[](auto& reg, auto e) { reg.remove<GameCameraComponent>(e); },
-			[](auto& reg, auto e) { return reg.any_of<GameCameraComponent>(e); },
-			[](entt::registry& r, entt::entity e) -> entt::meta_any
-			{
-				auto* c = r.try_get<GameCameraComponent>(e);
-				if (!c) return entt::meta_any{};
-				return entt::forward_as_meta(*c);
-			}
-		});
-	ComponentInspectorRegistry::Register("GameCamera",
-		[](auto& reg, auto e)
-		{
-			auto* _c = reg.try_get<GameCameraComponent>(e);
-			if (!_c) return;
-			if (!ImGui::CollapsingHeader("GameCamera", ImGuiTreeNodeFlags_DefaultOpen)) return;
-
-			const char* modeNames[] = { "Follow", "LookAt" };
-			int mode = (int)_c->mode;
-			if (ImGui::Combo("Mode", &mode, modeNames, 2))
-				_c->mode = (Mode)mode;
-
-			// FollowTarget‚Í©“®‚Å’T‚·(Playerƒ^ƒO)
-			std::string followTargetName = "None (auto)";
-			if (_c->followTarget != entt::null && reg.valid(_c->followTarget))
-				followTargetName = "Entity " + std::to_string((uint32_t)_c->followTarget);
-
-			ImGui::Text("Follow Target: %s", followTargetName.c_str());
-
-			// LookAtTarget‚Í©“®‚Å’T‚·(Enemyƒ^ƒO)
-			std::string lookAtTargetName = "None (auto)";
-			if (_c->lookAtTarget != entt::null && reg.valid(_c->lookAtTarget))
-				lookAtTargetName = "Entity " + std::to_string((uint32_t)_c->lookAtTarget);
-
-			ImGui::Text("LookAt Target: %s", lookAtTargetName.c_str());
-
-			ImGui::DragFloat("Yaw", &_c->yaw, 0.01f);
-			ImGui::DragFloat("Pitch", &_c->pitch, 0.01f, -1.5f, 1.5f);
-
-			// --- Follow Camera ---
-			ImGui::Separator();
-			ImGui::Text("Follow Camera");
-			ImGui::DragFloat("Distance", &_c->followCameraDistance, 0.1f, 0.0f, 50.0f);
-			ImGui::DragFloat("Height", &_c->followCameraHeight, 0.1f, 0.0f, 20.0f);
-			ImGui::DragFloat("Target Y Up", &_c->followCameraTargetYUp, 0.1f, 0.0f, 10.0f);
-			ImGui::DragFloat("Eye Speed Ratio", &_c->followCameraEyeSpeedRatio, 0.5f, 0.0f, 100.0f);
-			ImGui::DragFloat("Target Speed Ratio", &_c->followCameraTargetSpeedRatio, 0.5f, 0.0f, 100.0f);
-
-			// --- LockOn Camerai‹¤’Êj ---
-			ImGui::Separator();
-			ImGui::Text("LockOn Camera");
-			ImGui::DragFloat("Eye Speed Ratio##LockOn", &_c->lockOnCameraEyeSpeedRatio, 0.5f, 0.0f, 100.0f);
-			ImGui::DragFloat("Target Speed Ratio##LockOn", &_c->lockOnCameraTargetSpeedRatio, 0.5f, 0.0f, 100.0f);
-			ImGui::DragFloat("Range Switch Distance", &_c->lockOnRangeSwitchDistance, 0.1f, 0.1f, 50.0f);
-
-			// --- ‰~‚Ì’†SO ---
-			ImGui::Separator();
-			ImGui::Text("Center O");
-			ImGui::DragFloat("Center Ratio", &_c->lockOnCenterRatio, 0.01f, 0.0f, 1.0f);
-			ImGui::DragFloat("Far Center Max Distance", &_c->lockOnFarCenterMaxDistance, 0.05f, 0.0f, 20.0f);
-			ImGui::DragFloat("Target Circle Radius Max", &_c->lockOnTargetCircleRadiusMax, 0.1f, 0.0f, 20.0f);
-
-			// --- ‰~üã‚ÌŠp“xEƒXƒeƒBƒbƒN‘€ì ---
-			ImGui::Separator();
-			ImGui::Text("Orbit");
-			ImGui::DragFloat("Orbit Rotate Speed", &_c->lockOnOrbitRotateSpeed, 0.1f, 0.0f, 20.0f);
-			ImGui::DragFloat("Orbit Pitch Rotate Speed", &_c->lockOnOrbitPitchRotateSpeed, 0.1f, 0.0f, 20.0f);
-			ImGui::DragFloat("Orbit Return Speed", &_c->lockOnOrbitReturnSpeed, 0.5f, 0.0f, 50.0f);
-			ImGui::Separator();
-			ImGui::Text("Orbit");
-			ImGui::DragFloat("Orbit Angle", &_c->lockOnOrbitAngle, 0.01f);
-			ImGui::DragFloat("Orbit Pitch", &_c->lockOnOrbitPitch, 0.01f, -0.8f, 0.8f);
-
-			// --- ‚­‚Ìš‚ÌŒü‚« ---
-			ImGui::Separator();
-			ImGui::Text("Side");
-			ImGui::DragFloat("Side Switch Threshold", &_c->lockOnSideSwitchThreshold, 0.01f, 0.0f, 3.14f);
-			ImGui::DragFloat("Side Smooth Speed", &_c->lockOnSideSmoothSpeed, 0.5f, 0.0f, 50.0f);
-			ImGui::Text("Side : %.2f -> %.2f", _c->lockOnSide, _c->lockOnSideSmooth);
-
-			// --- ‹ß‹——£—pƒpƒ‰ƒ[ƒ^ ---
-			ImGui::Separator();
-			ImGui::Text("Near");
-			ImGui::DragFloat("Near Distance", &_c->lockOnNearCameraDistance, 0.1f, 0.0f, 30.0f);
-			ImGui::DragFloat("Near Height", &_c->lockOnNearCameraHeight, 0.1f, 0.0f, 20.0f);
-			ImGui::DragFloat("Near Target Y Up", &_c->lockOnNearCameraTargetYUp, 0.1f, 0.0f, 10.0f);
-			ImGui::DragFloat("Near Angle Offset Max", &_c->lockOnNearAngleOffsetMax, 0.5f, 0.0f, 90.0f);
-
-			// --- ‰“‹——£—pƒpƒ‰ƒ[ƒ^ ---
-			ImGui::Separator();
-			ImGui::Text("Far");
-			ImGui::DragFloat("Far Distance", &_c->lockOnFarCameraDistance, 0.1f, 0.0f, 30.0f);
-			ImGui::DragFloat("Far Height", &_c->lockOnFarCameraHeight, 0.1f, 0.0f, 20.0f);
-			ImGui::DragFloat("Far Target Y Up", &_c->lockOnFarCameraTargetYUp, 0.1f, 0.0f, 10.0f);
-
-			// --- Œ¸Š‚Î‚Ë ---
-			ImGui::Separator();
-			ImGui::Text("Spring");
-			ImGui::DragFloat("Stiffness", &_c->eyeSpringStiffness, 5.0f, 0.0f, 1000.0f);
-			ImGui::DragFloat("Damping", &_c->eyeSpringDamping, 1.0f, 0.0f, 200.0f);
-
-			// --- Œ»İ‚Ìeye/targetiƒfƒoƒbƒO•\¦j ---
-			ImGui::Separator();
-			ImGui::DragFloat3("Eye", &_c->base.currentEye.x, 0.1f);
-			ImGui::DragFloat3("Target", &_c->base.currentTarget.x, 0.1f);
-		});
-
-	// ƒRƒ“ƒgƒ[ƒ‰[ƒRƒ“ƒ|[ƒlƒ“ƒg‚Ì“o˜^
-	REGISTER_COMPONENT(ControllerComponent, "Controller",
+	// ƒRƒ“ƒgƒ[ƒ‰[
+	REGISTER_INSPECTOR(ControllerComponent,
 		DRAW_COMPONENT(ControllerComponent, "Controller",
 			{
 				if (_c->connected)
@@ -17587,42 +17855,7 @@ void ComponentRegistryInitializer::Initialize()
 				}
 			}));
 
-
-	// •¨—ƒ^ƒCƒvƒRƒ“ƒ|[ƒlƒ“ƒg‚Ì“o˜^
-	ComponentRegistry::Register("Physics",
-		{
-			"Physics",
-			// Add: PhysicsBodyTypeComponent‚Ì‚İ•t—^(í•Ê–¢‘I‘ğó‘Ô)
-			[](auto& reg, auto e)
-			{
-				if (!reg.any_of<PhysicsBodyTypeComponent>(e))
-					reg.emplace<PhysicsBodyTypeComponent>(e);
-			},
-		// Remove: ‹¤’ÊƒRƒ“ƒ|[ƒlƒ“ƒg‚Æ•R‚Ã‚¢‚½ŒÂ•Ê‚ÌƒRƒ“ƒ|[ƒlƒ“ƒg‚ğ—¼•ûíœ
-[](auto& reg, auto e)
-		{
-			// À‘Ì(PxActor/PxController)‚Ì”jŠü—\–ñ‚ÍAon_destroy‚Ì’Ê’m‚Å©“®“I‚És‚í‚ê‚é
-			if (reg.any_of<StaticBodyComponent>(e))
-				reg.remove<StaticBodyComponent>(e);
-
-			if (reg.any_of<CharacterControllerComponent>(e))
-				reg.remove<CharacterControllerComponent>(e);
-
-			if (reg.any_of<MovementComponent>(e))
-				reg.remove<MovementComponent>(e);
-
-			reg.remove<PhysicsBodyTypeComponent>(e);
-		},
-		// Has
-		[](auto& reg, auto e) { return reg.any_of<PhysicsBodyTypeComponent>(e); },
-		// GetMeta
-		[](entt::registry& r, entt::entity e) -> entt::meta_any
-		{
-			auto* c = r.try_get<PhysicsBodyTypeComponent>(e);
-			if (!c) return entt::meta_any{};
-			return entt::forward_as_meta(*c);
-		}
-		});
+	// •¨—(Às‚Ì“o˜^‚ÍEngineComponents‚Ås‚¤B‚±‚±‚Í•`‰æ‚Ì‚İ)
 	REGISTER_INSPECTOR(PhysicsBodyTypeComponent,
 		[](auto& reg, auto e)
 		{
@@ -17635,7 +17868,7 @@ void ComponentRegistryInitializer::Initialize()
 			MetaRegistry::DrawMetaFields(entt::resolve<PhysicsBodyTypeComponent>(), entt::forward_as_meta(*body));
 			ImGui::PopID();
 
-			switch (body->type) 
+			switch (body->type)
 			{
 			case PhysicsBodyType::Static:
 			{
@@ -17673,90 +17906,82 @@ void ComponentRegistryInitializer::Initialize()
 			}
 		});
 
-		// IKƒRƒ“ƒ|[ƒlƒ“ƒg‚Ì“o˜^
-		REGISTER_COMPONENT(IKComponent, "IK",
-			[](auto& reg, auto e)
+	// IK
+	REGISTER_INSPECTOR(IKComponent,
+		[](auto& reg, auto e)
+		{
+			auto* ik = reg.try_get<IKComponent>(e);
+			auto* skinned = reg.try_get<SkinnedMeshComponent>(e);
+			if (!ik) return;
+			if (!ImGui::CollapsingHeader("IK", ImGuiTreeNodeFlags_DefaultOpen)) return;
+			if (!skinned || !skinned->model)
 			{
-				auto* ik = reg.try_get<IKComponent>(e);
-				auto* skinned = reg.try_get<SkinnedMeshComponent>(e);
-				if (!ik) return;
-				if (!ImGui::CollapsingHeader("IK", ImGuiTreeNodeFlags_DefaultOpen)) return;
-				if (!skinned || !skinned->model)
+				ImGui::TextColored({ 1, 0.5f, 0, 1 }, "No SkinnedMesh found.");
+				return;
+			}
+			ImGui::Checkbox("Enabled", &ik->enabled);
+			int removeIndex = -1; // ‚±‚ÌƒtƒŒ[ƒ€‚Åíœ‚µ‚½‚¢foot‚ÌƒCƒ“ƒfƒbƒNƒX(-1‚È‚çíœ‚È‚µ)
+			for (size_t i = 0; i < ik->feet.size(); ++i)
+			{
+				ImGui::PushID((int)i);
+				std::string label = "Foot " + std::to_string(i);
+				if (ImGui::TreeNode(label.c_str()))
 				{
-					ImGui::TextColored({ 1, 0.5f, 0, 1 }, "No SkinnedMesh found.");
-					return;
-				}
-				ImGui::Checkbox("Enabled", &ik->enabled);
-				int removeIndex = -1; // ‚±‚ÌƒtƒŒ[ƒ€‚Åíœ‚µ‚½‚¢foot‚ÌƒCƒ“ƒfƒbƒNƒX(-1‚È‚çíœ‚È‚µ)
-				for (size_t i = 0; i < ik->feet.size(); ++i)
-				{
-					ImGui::PushID((int)i);
-					std::string label = "Foot " + std::to_string(i);
-					if (ImGui::TreeNode(label.c_str()))
-					{
-						FootIKSettings& foot = ik->feet[i];
-						auto& nodes = skinned->model->GetNodes();
-						auto drawBoneCombo = [&](const char* comboLabel, int& boneIndex)
+					FootIKSettings& foot = ik->feet[i];
+					auto& nodes = skinned->model->GetNodes();
+					auto drawBoneCombo = [&](const char* comboLabel, int& boneIndex)
+						{
+							const char* previewName = (boneIndex >= 0 && boneIndex < (int)nodes.size())
+								? nodes[boneIndex].name.c_str()
+								: "(Invalid Index)";
+
+							if (ImGui::BeginCombo(comboLabel, previewName))
 							{
-								const char* previewName = (boneIndex >= 0 && boneIndex < (int)nodes.size())
-									? nodes[boneIndex].name.c_str()
-									: "(Invalid Index)";
-
-								if (ImGui::BeginCombo(comboLabel, previewName))
+								for (int n = 0; n < (int)nodes.size(); ++n)
 								{
-									for (int n = 0; n < (int)nodes.size(); ++n)
+									bool isSelected = (boneIndex == n);
+									if (ImGui::Selectable(nodes[n].name.c_str(), isSelected))
 									{
-										bool isSelected = (boneIndex == n);
-										if (ImGui::Selectable(nodes[n].name.c_str(), isSelected))
-										{
-											boneIndex = n;
-										}
-										if (isSelected)
-										{
-											ImGui::SetItemDefaultFocus();
-										}
+										boneIndex = n;
 									}
-									ImGui::EndCombo();
+									if (isSelected)
+									{
+										ImGui::SetItemDefaultFocus();
+									}
 								}
-							};
-						drawBoneCombo("Root Bone", foot.rootBoneIndex);
-						drawBoneCombo("Mid Bone", foot.midBoneIndex);
-						drawBoneCombo("End Bone", foot.endBoneIndex);
-						ImGui::DragFloat("Ray Start Offset", &foot.rayStartOffset, 0.01f);
-						ImGui::DragFloat("Ray Max Distance", &foot.rayMaxDistance, 0.01f);
-						ImGui::DragFloat("Ankle Height", &foot.ankleHeight, 0.01f);
-						ImGui::Checkbox("Pole Vector Forward (Z-)", &foot.poleVectorForward);
-						ImGui::DragFloat3("Target Pos", &foot.targetPos.x, 0.01f);
-						if (ImGui::Button("Reset Target Pos"))
-						{
-							foot.hasInitializedTarget = false;
-						}
-						if (ImGui::Button("Remove This Foot"))
-						{
-							removeIndex = (int)i;
-						}
-						ImGui::TreePop();
+								ImGui::EndCombo();
+							}
+						};
+					drawBoneCombo("Root Bone", foot.rootBoneIndex);
+					drawBoneCombo("Mid Bone", foot.midBoneIndex);
+					drawBoneCombo("End Bone", foot.endBoneIndex);
+					ImGui::DragFloat("Ray Start Offset", &foot.rayStartOffset, 0.01f);
+					ImGui::DragFloat("Ray Max Distance", &foot.rayMaxDistance, 0.01f);
+					ImGui::DragFloat("Ankle Height", &foot.ankleHeight, 0.01f);
+					ImGui::Checkbox("Pole Vector Forward (Z-)", &foot.poleVectorForward);
+					ImGui::DragFloat3("Target Pos", &foot.targetPos.x, 0.01f);
+					if (ImGui::Button("Reset Target Pos"))
+					{
+						foot.hasInitializedTarget = false;
 					}
-					ImGui::PopID();
+					if (ImGui::Button("Remove This Foot"))
+					{
+						removeIndex = (int)i;
+					}
+					ImGui::TreePop();
 				}
-				if (removeIndex >= 0)
-				{
-					ik->feet.erase(ik->feet.begin() + removeIndex);
-				}
-				if (ImGui::Button("Add Foot"))
-				{
-					ik->feet.push_back(FootIKSettings{});
-				}
-			}); 
-
-
-		// ƒV[ƒPƒ“ƒT[ƒRƒ“ƒ|[ƒlƒ“ƒg‚Ì“o˜^
-		REGISTER_COMPONENT_AUTO(SequencerComponent, "Sequencer");
-
-		// ƒAƒjƒ[ƒVƒ‡ƒ“‘¬“xƒRƒ“ƒ|[ƒlƒ“ƒg‚Ì“o˜^
-		REGISTER_COMPONENT_AUTO(AnimationSpeedComponent, "Animation Speed"); 
-}
- 
+				ImGui::PopID();
+			}
+			if (removeIndex >= 0)
+			{
+				ik->feet.erase(ik->feet.begin() + removeIndex);
+			}
+			if (ImGui::Button("Add Foot"))
+			{
+				ik->feet.push_back(FootIKSettings{});
+			}
+		});
+} 
  
 ===== FileDialog.cpp ===== 
 Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Editor\FileDialog.cpp 
@@ -19503,6 +19728,96 @@ void ProjectWindow::CommitRename()
 	itemState.targetPath.clear();
 }
  
+ 
+===== ViewportWindow.cpp ===== 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Editor\ViewportWindow.cpp 
+#include "ViewportWindow.h"
+#include <imgui.h>
+#include <imgui_internal.h>
+
+// ‰Šú‰»
+void ViewportWindow::Initialize(UINT width, UINT height)
+{
+    debugCamera.Initialize(static_cast<float>(width), static_cast<float>(height));
+}
+
+// ImGui•`‰æ
+void ViewportWindow::Draw(GameView& gameView, const std::function<void()>& drawMenus)
+{
+    ImGui::Begin("Game", nullptr, ImGuiWindowFlags_MenuBar);
+
+    // ƒƒjƒ…[ƒo[
+    if (ImGui::BeginMenuBar())
+    {
+        if (drawMenus)
+        {
+            drawMenus();
+        }
+
+        ImGui::EndMenuBar();
+    }
+
+    // Gameê—p‚ÌDockSpace
+    ImGuiID dockSpaceId = ImGui::GetID("GameDockSpace");
+    ImGui::DockSpace(dockSpaceId, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
+
+    // ‰‰ñƒtƒŒ[ƒ€‚¾‚¯ƒfƒtƒHƒ‹ƒgƒŒƒCƒAƒEƒg‚ğ‘g‚Ş
+    if (firstDockSetup)
+    {
+        firstDockSetup = false;
+
+        ImGui::DockBuilderRemoveNode(dockSpaceId);
+        ImGui::DockBuilderAddNode(dockSpaceId, ImGuiDockNodeFlags_None);
+        ImGui::DockBuilderSetNodeSize(dockSpaceId, ImVec2(1280, 720));
+
+        ImGuiID dockMain = dockSpaceId;
+        ImGuiID dockBottom = ImGui::DockBuilderSplitNode(
+            dockMain, ImGuiDir_Down, dockRatioBottom, nullptr, &dockMain);
+        ImGuiID dockLeft = ImGui::DockBuilderSplitNode(
+            dockMain, ImGuiDir_Left, dockRatioLeft, nullptr, &dockMain);
+        ImGuiID dockRight = ImGui::DockBuilderSplitNode(
+            dockMain, ImGuiDir_Right, dockRatioRight, nullptr, &dockMain);
+        ImGuiID dockBottomRight = ImGui::DockBuilderSplitNode(
+            dockBottom, ImGuiDir_Right, dockRatioPrefab, nullptr, &dockBottom);
+        ImGuiID dockLog = ImGui::DockBuilderSplitNode(
+            dockBottomRight, ImGuiDir_Right, dockRatioLog, nullptr, &dockBottomRight);
+
+        ImGui::DockBuilderDockWindow("Viewport", dockMain);
+        ImGui::DockBuilderDockWindow("Hierarchy", dockLeft);
+        ImGui::DockBuilderDockWindow("Inspector", dockRight);
+        ImGui::DockBuilderDockWindow("Project", dockBottom);
+        ImGui::DockBuilderDockWindow("Prefab", dockBottomRight);
+        ImGui::DockBuilderDockWindow("Log", dockLog);
+        ImGui::DockBuilderFinish(dockSpaceId);
+    }
+
+
+    // Viewportƒpƒlƒ‹
+    ImGui::Begin("Viewport");
+
+    ImVec2 region = ImGui::GetContentRegionAvail();
+    if (region.x > 1 && region.y > 1)
+    {
+        // “¯‚¶Viewport‚É•`‚­‚Ì‚ÅA—¼•û‚ÌƒJƒƒ‰‚É“¯‚¶c‰¡”ä‚ğ“–‚Ä‚é
+        float aspect = region.x / region.y;
+        gameView.SetAspect(aspect);
+        debugCamera.SetPerspectiveFov(
+            DirectX::XMConvertToRadians(debugCamera.GetViewingAngle()),
+            aspect,
+            0.1f,
+            1000.0f
+        );
+    }
+
+    ImGui::Image(reinterpret_cast<ImTextureID>(gameView.GetSRV()), region);
+
+    // ƒJƒƒ‰‘€ì‚ÌŠJn”»’è‚ÍViewport’P‘Ì‚Ìƒzƒo[‚¾‚¯‚ğŒ©‚é
+    viewportHovered = ImGui::IsWindowHovered();
+
+    ImGui::End(); // Viewport
+
+    ImGui::End(); // Game
+} 
  
 ===== NodeEditorCanvas.h ===== 
 Path: C:\Users\offri\Desktop\New-Library\Source\Tool\NodeEditor\NodeEditorCanvas.h 
@@ -25470,255 +25785,4 @@ void StudioWindow::ResizeRenderTarget()
 	}
 }
  
- 
-===== AdaptiveTrigger.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Unsorted\Controller\AdaptiveTrigger.h 
-#pragma once
-#include <vector>
-#include <cmath>
-#include <algorithm>
-
-namespace AdaptiveTrigger
-{
-    struct CurvePoint
-    {
-        // ‰Ÿ‚µ‚İ—Ê
-        float position = 0.0f; // (0,0`1.0)
-        // ’ïR‚Ì‹­‚³
-        float value = 0.0f;    // (0.0`1.0)
-    };
-
-    struct TriggerEffect
-    {
-        // o—ÍƒŠƒXƒg
-        std::vector<CurvePoint> forcePoints;
-    };
-
-    // Œ»İ’n(‰Ÿ‚µ‚İ—Ê)‚©‚ç‘OŒã‚É‘¶İ‚·‚éƒ|ƒCƒ“ƒg‚ğüŒ`•âŠ®‚µ‚ÄŒ»İ‚Ì’ïR’l‚ğ‹‚ß‚é
-    inline float SampleCurve(const std::vector<CurvePoint>& points, float position)
-    {
-        // –³’ïR
-        if (points.empty())
-        {
-            return 0.0f;
-        }
-        // “_‚ª1‚Â‚¾‚¯A‚Ü‚½‚Í position ‚ªÅ‰‚Ì“_‚æ‚èè‘O‚Ì‚ÍÅ‰‚Ì“_‚Ì’l‚ğ‚»‚Ì‚Ü‚Üg‚¤
-        if (points.size() == 1 || position <= points.front().position)
-        {
-            return points.front().value;
-        }
-        // position ‚ªÅŒã‚Ì“_‚æ‚èŒã‚ë‚È‚çÅŒã‚Ì“_‚Ì’l‚ğ‚»‚Ì‚Ü‚Üg‚¤
-        if (position >= points.back().position)
-        {
-            return points.back().value;
-        }
-
-        // ŠY“–‚·‚é2“_‚ğ’T‚µ‚Ä‚»‚ÌŠÔ‚ğüŒ`•âŠÔ‚·‚é
-        for (size_t i = 0; i + 1 < points.size(); ++i)
-        {
-            const CurvePoint& a = points[i];
-            const CurvePoint& b = points[i + 1];
-            if (position >= a.position && position <= b.position)
-            {
-                float t = (position - a.position) / (b.position - a.position);
-                return a.value + (b.value - a.value) * t;
-            }
-        }
-        return points.back().value;
-    }
-}
-
-namespace AdaptiveTrigger
-{
-    struct Zone
-    {
-        // ‚±‚Ìƒ][ƒ“‚É‘®‚·‚éƒ|ƒCƒ“ƒg‚ÌƒŠƒXƒg
-        std::vector<CurvePoint> points;
-    };
-
-    // ƒŒƒ“ƒW“à‚Ìƒ][ƒ“‚ğŒŸo‚·‚é
-    inline std::vector<Zone> DetectZones(const std::vector<CurvePoint>& points)
-    {
-        // ŒŸo‚µ‚½ƒ][ƒ“‚ÌƒŠƒXƒg
-        std::vector<Zone> zones;
-		// Œ»İ‚Ìƒ][ƒ“
-        Zone current;
-
-        // ƒŒƒ“ƒW“à‚Ìƒ|ƒCƒ“ƒg‚ğæ“ª‚©‚ç‡‚É‘–¸‚·‚é
-        for (const auto& p : points)
-        {
-			// ’ïR’l‚ª0‚æ‚è‘å‚«‚¯‚ê‚ÎŒ»İ‚Ìƒ][ƒ“‚É’Ç‰Á‚·‚é
-            if (p.value > 0.0f)
-            {
-                current.points.push_back(p);
-            }
-            else
-            {
-				// ’ïR’l‚ª0‚È‚ç’ïR‚ª‚È‚¢êŠ‚Ö—ˆ‚½
-                if (!current.points.empty())
-                {
-                    // ˆê‹æØ‚è‚Æ‚·‚é
-                    zones.push_back(current);
-					// Œ»İ‚Ìƒ][ƒ“‚ğƒŠƒZƒbƒg
-                    current.points.clear();
-                }
-            }
-        }
-
-		// ‰Ÿ‚µ‚İØ‚Á‚½‚É’ïR’l0ˆÈã‚ª‚ ‚ê‚Î‚»‚Ì’n“_‚ğÅŒã‚Ìƒ][ƒ“‚Æ‚·‚é
-        if (!current.points.empty())
-        {
-            zones.push_back(current);
-        }
-
-        return zones;
-    }
-}
-
-namespace AdaptiveTrigger
-{
-    // “¯‚¶’l‚Æ‚İ‚È‚·Œë·‚Ì”ÍˆÍ
-    constexpr float ValueEpsilon = 0.05f;
-
-    // ƒ][ƒ“‚Ì”»’èŒ‹‰Ê
-    enum class ResistanceType
-    {
-        Constant, // ˆê’è’ïR
-        Changing, // •Ï‰»’ïR
-        Complex,  // •¡G‚ÈƒJ[ƒu
-    };
-
-    // ƒ][ƒ“‚Ìí—Ş‚ğ”»’è‚·‚é
-    inline ResistanceType ClassifyZone(const Zone& zone)
-    {
-		// ƒ|ƒCƒ“ƒg‚ª‚R“_ˆÈã‚È‚ç•¡G‚ÈƒJ[ƒu‚Æ‚İ‚È‚·
-        if (zone.points.size() >= 3)
-        {
-            return ResistanceType::Complex;
-        }
-
-		// 2“_ˆÈ‰º‚È‚çAÅ‰‚ÆÅŒã‚Ì’l‚Ì·‚ğŒ©‚Äˆê’è’ïR‚©”»’f‚·‚é
-        float diff = std::abs(zone.points.front().value - zone.points.back().value);
-        if (diff < ValueEpsilon)
-        {
-            return ResistanceType::Constant;
-        }
-        return ResistanceType::Changing;
-    }
-}
-
-namespace AdaptiveTrigger
-{
-    inline float ComputeForce(const TriggerEffect& effect, float currentPosition)
-    {
-        // Œ»İ’n‚Ì’ïR’l‚ğæ“¾
-        float force = SampleCurve(effect.forcePoints, currentPosition);
-        // ”ÍˆÍŠO•ÛŒ¯
-        return std::clamp(force, 0.0f, 1.0f); 
-    }
-} 
- 
-===== WaveDemo.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Unsorted\Demo\WaveDemo.h 
-#pragma once
-#include <entt.hpp>
-#include <d3d11.h>
-#include <DirectXMath.h>
-#include "Engine/Rendering/ShapeRenderer.h"
-
-class WaveDemo
-{
-public:
-	void Initialize(
-		ID3D11Device* device,
-		entt::registry& registry,
-		int gridSize,
-		float spacing);
-
-	void Update(float elapsedTime) { time += elapsedTime; }
-
-	void Render(
-		entt::registry& registry,
-		ID3D11DeviceContext* dc,
-		const DirectX::XMFLOAT4X4& view,
-		const DirectX::XMFLOAT4X4& projection,
-		const DirectX::XMFLOAT3& lightDirection);
-
-private:
-	struct Tag
-	{
-		float baseX = 0.0f;
-		float baseZ = 0.0f;
-		float phase = 0.0f;
-	};
-
-	ShapeRenderer renderer;
-	float time = 0.0f;
-	float spacing = 1.0f;
-}; 
- 
-===== WaveDemo.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Unsorted\Demo\WaveDemo.cpp 
-#include "WaveDemo.h"
-
-void WaveDemo::Initialize(
-	ID3D11Device* device,
-	entt::registry& registry,
-	int gridSize,
-	float spacingValue)
-{
-	renderer = ShapeRenderer(device);
-	spacing = spacingValue;
-
-	for (int x = 0; x < gridSize; x++)
-	{
-		for (int z = 0; z < gridSize; z++)
-		{
-			entt::entity e = registry.create();
-
-			Tag tag;
-			tag.baseX = (x - gridSize * 0.5f) * spacing;
-			tag.baseZ = (z - gridSize * 0.5f) * spacing;
-			tag.phase = (tag.baseX + tag.baseZ) * 0.3f;
-
-			registry.emplace<Tag>(e, tag);
-		}
-	}
-}
-
-void WaveDemo::Render(
-	entt::registry& registry,
-	ID3D11DeviceContext* dc,
-	const DirectX::XMFLOAT4X4& view, 
-	const DirectX::XMFLOAT4X4& projection, 
-	const DirectX::XMFLOAT3& lightDirection)
-{
-	auto view_ = registry.view<Tag>();
-	for (auto entity : view_)
-	{
-		auto& tag = view_.get<Tag>(entity);
-
-		float y = sinf(time * 2.0f + tag.phase) * 0.5f;
-
-		DirectX::XMMATRIX m = DirectX::XMMatrixTranslation(tag.baseX, y, tag.baseZ);
-		DirectX::XMFLOAT4X4 transform;
-		DirectX::XMStoreFloat4x4(&transform, m);
-
-		DirectX::XMFLOAT3 size = { spacing, spacing, spacing };
-
-		float seed = sinf(tag.baseX * 12.9898f + tag.baseZ * 78.233f) * 43758.5453f;
-		float variation = seed - floorf(seed);
-
-		DirectX::XMFLOAT4 color = {
-			0.75f + variation * 0.12f,
-			0.88f - variation * 0.06f,
-			1.0f - variation * 0.03f,
-			1.0f
-		};
-
-		renderer.DrawBox(transform, size, color);
-	}
-
-	renderer.Render(dc, view, projection, lightDirection, false);
-} 
  

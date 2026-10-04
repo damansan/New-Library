@@ -1,17 +1,17 @@
 {
-    "Category": {
+    "ComponentCategory": {
         "category": "Stage"
     },
-    "Material": {
+    "MaterialComponent": {
         "shadingModel": "Default"
     },
-    "Mesh": {
+    "MeshComponent": {
         "modelPath": "Data/Model/Stage/ExampleStage/ExampleStage.gltf"
     },
-    "Physics": {
+    "PhysicsBodyTypeComponent": {
         "type": "Static"
     },
-    "Transform": {
+    "TransformComponent": {
         "position": [
             0.0,
             0.0,

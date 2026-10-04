@@ -1,13 +1,29 @@
 #include <time.h>
 
-#include "Engine/Core/framework.h"
+// 起動するAppの切り替え(段階3で、exeごとに分かれるまでの仮の仕組み)
+// GameAppを起動したいときは、この行のコメントを外す
+
+//#define RUN_GAME_APP
+
+#ifdef RUN_GAME_APP
+#include "App/GameApp.h"
+using AppType = GameApp;
+#else
+#include "App/EditorApp.h"
+using AppType = EditorApp;
+#endif
+
 
 #define APPLICATION_NAME L"X3DGP"
 
+// ウィンドウサイズ
+#define SCREEN_WIDTH 1280
+#define SCREEN_HEIGHT 720
+
 LRESULT CALLBACK window_procedure(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 {
-	framework* p{ reinterpret_cast<framework*>(GetWindowLongPtr(hwnd, GWLP_USERDATA)) };
-	return p ? p->handle_message(hwnd, msg, wparam, lparam) : DefWindowProc(hwnd, msg, wparam, lparam);
+	Application* p{ reinterpret_cast<Application*>(GetWindowLongPtr(hwnd, GWLP_USERDATA)) };
+	return p ? p->HandleMessage(hwnd, msg, wparam, lparam) : DefWindowProc(hwnd, msg, wparam, lparam);
 }
 
 int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_  HINSTANCE prev_instance, _In_ LPSTR cmd_line, _In_ int cmd_show)
@@ -49,7 +65,8 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_  HINSTANCE prev_instance, _
 
 	ShowWindow(hwnd, cmd_show);
 
-	framework framework(hwnd);
-	SetWindowLongPtrW(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(&framework));
-	return framework.run();
+	AppType app(hwnd);
+	app.Initialize();
+	SetWindowLongPtrW(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(&app));
+	return app.Run();
 }

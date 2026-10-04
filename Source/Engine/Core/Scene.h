@@ -23,8 +23,6 @@ public:
 	virtual void Update(float elapsedTime, const SceneContext& context) = 0;
 	// •`‰æ
 	virtual void Render(const SceneContext& context) = 0;
-	// ImGui•`‰æ
-	virtual void RenderImGui() = 0;
 
 	// ƒŒƒWƒXƒgƒŠæ“¾
 	entt::registry& GetRegistry() { return registry; }

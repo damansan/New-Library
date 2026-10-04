@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include <cstdint>
-#include "Unsorted/Controller/AdaptiveTrigger.h"
+#include "Engine/ECS/Components/AdaptiveTrigger.h"
 
 // コントローラーの種類
 enum class ControllerType

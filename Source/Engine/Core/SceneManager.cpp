@@ -35,15 +35,6 @@ void SceneManager::Render(const SceneContext& context)
 	}
 }
 
-// ImGui•`‰æ
-void SceneManager::RenderImGui()
-{
-	if (currentScene)
-	{
-		currentScene->RenderImGui();
-	}
-}
-
 // ƒV[ƒ“Ø‚è‘Ö‚¦—\–ñ
 void SceneManager::ChangeScene(std::unique_ptr<Scene> scene)
 {

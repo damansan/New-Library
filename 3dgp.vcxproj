@@ -30,11 +30,12 @@
     <ClCompile Include="External\imgui-node-editor-master\imgui_node_editor.cpp" />
     <ClCompile Include="External\imgui-node-editor-master\imgui_node_editor_api.cpp" />
     <ClCompile Include="External\tracy-0.13.1\public\TracyClient.cpp" />
+    <ClCompile Include="Source\App\EditorApp.cpp" />
+    <ClCompile Include="Source\App\GameApp.cpp" />
+    <ClCompile Include="Source\Engine\Core\Application.cpp" />
     <ClCompile Include="Source\Engine\Core\Camera.cpp" />
-    <ClCompile Include="Source\Engine\Core\framework.cpp" />
-    <ClCompile Include="Source\Engine\Core\GameWindow.cpp" />
+    <ClCompile Include="Source\Engine\Core\GameView.cpp" />
     <ClCompile Include="Source\Engine\Core\Graphics.cpp" />
-    <ClCompile Include="Source\Engine\Core\ImGuiManager.cpp" />
     <ClCompile Include="Source\Engine\Core\PhysX.cpp" />
     <ClCompile Include="Source\Engine\Core\Scene.cpp" />
     <ClCompile Include="Source\Engine\Core\SceneManager.cpp" />
@@ -48,7 +49,6 @@
     <ClCompile Include="Source\Engine\ECS\Systems\AnimatorControllerSystem.cpp" />
     <ClCompile Include="Source\Engine\ECS\Systems\ConditionGraphEvaluator.cpp" />
     <ClCompile Include="Source\Engine\ECS\Systems\ControllerSystem.cpp" />
-    <ClCompile Include="Source\Engine\ECS\Systems\DebugCameraSystem.cpp" />
     <ClCompile Include="Source\Engine\ECS\Systems\IKSystem.cpp" />
     <ClCompile Include="Source\Engine\ECS\Systems\MeshLoaderSystem.cpp" />
     <ClCompile Include="Source\Engine\ECS\Systems\MovementSystem.cpp" />
@@ -77,6 +77,7 @@
     <ClCompile Include="Source\Engine\Utility\CerealHelper.cpp" />
     <ClCompile Include="Source\main.cpp" />
     <ClCompile Include="Source\ProjectEditor\ProjectInspectors.cpp" />
+    <ClCompile Include="Source\Project\Demo\WaveDemo.cpp" />
     <ClCompile Include="Source\Project\ECS\ProjectComponents.cpp" />
     <ClCompile Include="Source\Project\ECS\Systems\GameCameraSystem.cpp" />
     <ClCompile Include="Source\Project\ECS\Systems\GameInputSystem.cpp" />
@@ -90,13 +91,16 @@
     <ClCompile Include="Source\Tool\AdaptiveTriggerToolWindow.cpp" />
     <ClCompile Include="Source\Tool\Editor\ComponentInspectorRegistry.cpp" />
     <ClCompile Include="Source\Tool\Editor\ComponentRegistryInitializer.cpp" />
+    <ClCompile Include="Source\Tool\Editor\DebugCameraSystem.cpp" />
     <ClCompile Include="Source\Tool\Editor\FileDialog.cpp" />
+    <ClCompile Include="Source\Tool\Editor\ImGuiManager.cpp" />
     <ClCompile Include="Source\Tool\Editor\LogWindow.cpp" />
     <ClCompile Include="Source\Tool\Editor\HierarchyWindow.cpp" />
     <ClCompile Include="Source\Tool\Editor\InspectorWindow.cpp" />
     <ClCompile Include="Source\Tool\Editor\MetaRegistry.cpp" />
     <ClCompile Include="Source\Tool\Editor\PrefabWindow.cpp" />
     <ClCompile Include="Source\Tool\Editor\ProjectWindow.cpp" />
+    <ClCompile Include="Source\Tool\Editor\ViewportWindow.cpp" />
     <ClCompile Include="Source\Tool\NodeEditor\NodeEditorCanvas.cpp" />
     <ClCompile Include="Source\Tool\Studio\StudioAnimationSpeed.cpp" />
     <ClCompile Include="Source\Tool\Studio\StudioAnimator.cpp" />
@@ -110,7 +114,6 @@
     <ClCompile Include="Source\Tool\Studio\StudioTimeline.cpp" />
     <ClCompile Include="Source\Tool\Studio\StudioTransitionGraph.cpp" />
     <ClCompile Include="Source\Tool\Studio\StudioWindow.cpp" />
-    <ClCompile Include="Source\Unsorted\Demo\WaveDemo.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="External\DualSense-Windows-main\VS19_Solution\DualSenseWindows\include\DualSenseWindows\Device.h" />
@@ -120,11 +123,12 @@
     <ClInclude Include="External\DualSense-Windows-main\VS19_Solution\DualSenseWindows\include\DualSenseWindows\IO.h" />
     <ClInclude Include="External\entt-main\single_include\entt\entt.hpp" />
     <ClInclude Include="External\json-3.12.0\single_include\nlohmann\json.hpp" />
+    <ClInclude Include="Source\App\EditorApp.h" />
+    <ClInclude Include="Source\App\GameApp.h" />
+    <ClInclude Include="Source\Engine\Core\Application.h" />
     <ClInclude Include="Source\Engine\Core\Camera.h" />
-    <ClInclude Include="Source\Engine\Core\framework.h" />
-    <ClInclude Include="Source\Engine\Core\GameWindow.h" />
+    <ClInclude Include="Source\Engine\Core\GameView.h" />
     <ClInclude Include="Source\Engine\Core\Graphics.h" />
-    <ClInclude Include="Source\Engine\Core\ImGuiManager.h" />
     <ClInclude Include="Source\Engine\Core\JsonFileCache.h" />
     <ClInclude Include="Source\Engine\Core\Log.h" />
     <ClInclude Include="Source\Engine\Core\PhysicsDestroyQueue.h" />
@@ -136,6 +140,7 @@
     <ClInclude Include="Source\Engine\Data\AnimationSpeedData.h" />
     <ClInclude Include="Source\Engine\Data\AnimatorGraphData.h" />
     <ClInclude Include="Source\Engine\Data\SequencerData.h" />
+    <ClInclude Include="Source\Engine\ECS\Components\AdaptiveTrigger.h" />
     <ClInclude Include="Source\Engine\ECS\Components\AnimationSpeedComponent.h" />
     <ClInclude Include="Source\Engine\ECS\Components\AnimatorComponent.h" />
     <ClInclude Include="Source\Engine\ECS\Components\BaseCameraComponent.h" />
@@ -164,7 +169,6 @@
     <ClInclude Include="Source\Engine\ECS\Systems\AnimatorControllerSystem.h" />
     <ClInclude Include="Source\Engine\ECS\Systems\ConditionGraphEvaluator.h" />
     <ClInclude Include="Source\Engine\ECS\Systems\ControllerSystem.h" />
-    <ClInclude Include="Source\Engine\ECS\Systems\DebugCameraSystem.h" />
     <ClInclude Include="Source\Engine\ECS\Systems\IKSystem.h" />
     <ClInclude Include="Source\Engine\ECS\Systems\MeshLoaderSystem.h" />
     <ClInclude Include="Source\Engine\ECS\Systems\MovementSystem.h" />
@@ -195,6 +199,7 @@
     <ClInclude Include="Source\Engine\Utility\high_resolution_timer.h" />
     <ClInclude Include="Source\Engine\Utility\misc.h" />
     <ClInclude Include="Source\ProjectEditor\ProjectInspectors.h" />
+    <ClInclude Include="Source\Project\Demo\WaveDemo.h" />
     <ClInclude Include="Source\Project\ECS\Components\PlayerDodgeComponent.h" />
     <ClInclude Include="Source\Project\ECS\Components\GameCameraComponent.h" />
     <ClInclude Include="Source\Project\ECS\Components\GameInputComponent.h" />
@@ -215,7 +220,9 @@
     <ClInclude Include="Source\Tool\AdaptiveTriggerToolWindow.h" />
     <ClInclude Include="Source\Tool\Editor\ComponentInspectorRegistry.h" />
     <ClInclude Include="Source\Tool\Editor\ComponentRegistryInitializer.h" />
+    <ClInclude Include="Source\Tool\Editor\DebugCameraSystem.h" />
     <ClInclude Include="Source\Tool\Editor\FileDialog.h" />
+    <ClInclude Include="Source\Tool\Editor\ImGuiManager.h" />
     <ClInclude Include="Source\Tool\Editor\LogWindow.h" />
     <ClInclude Include="Source\Tool\Editor\EditorContext.h" />
     <ClInclude Include="Source\Tool\Editor\HierarchyWindow.h" />
@@ -223,6 +230,7 @@
     <ClInclude Include="Source\Tool\Editor\MetaRegistry.h" />
     <ClInclude Include="Source\Tool\Editor\PrefabWindow.h" />
     <ClInclude Include="Source\Tool\Editor\ProjectWindow.h" />
+    <ClInclude Include="Source\Tool\Editor\ViewportWindow.h" />
     <ClInclude Include="Source\Tool\NodeEditor\NodeEditorCanvas.h" />
     <ClInclude Include="Source\Tool\Studio\AnimatorGraphNavigation.h" />
     <ClInclude Include="Source\Tool\Studio\IStudioAttachment.h" />
@@ -240,8 +248,6 @@
     <ClInclude Include="Source\Tool\Studio\StudioTimeline.h" />
     <ClInclude Include="Source\Tool\Studio\StudioTransitionGraph.h" />
     <ClInclude Include="Source\Tool\Studio\StudioWindow.h" />
-    <ClInclude Include="Source\Unsorted\Controller\AdaptiveTrigger.h" />
-    <ClInclude Include="Source\Unsorted\Demo\WaveDemo.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shader\Gbuffer_Basic_PS.hlsl">
