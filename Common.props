@@ -6,12 +6,14 @@
     <RootDir>$(MSBuildThisFileDirectory)</RootDir>
   </PropertyGroup>
 
-  <!-- 出力先と中間ファイル(プロジェクトごとに分ける) -->
-  <PropertyGroup>
-    <OutDir>$(RootDir)Bin\$(Platform)\$(Configuration)\</OutDir>
-    <IntDir>$(RootDir)Intermediate\$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
-  </PropertyGroup>
-
+	<!-- 出力先と中間ファイル(プロジェクトごとに分ける) -->
+	<PropertyGroup>
+		<OutDir>$(RootDir)Bin\$(Platform)\$(Configuration)\</OutDir>
+		<IntDir>$(RootDir)Intermediate\$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
+		<!-- デバッグ実行時の作業ディレクトリ(Data/... を読めるように) -->
+		<LocalDebuggerWorkingDirectory>$(RootDir)</LocalDebuggerWorkingDirectory>
+	</PropertyGroup>
+	
   <!-- 全構成共通 -->
   <ItemDefinitionGroup>
     <ClCompile>

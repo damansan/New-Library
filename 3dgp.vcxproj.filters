@@ -67,9 +67,6 @@
     <ClCompile Include="Source\App\EditorApp.cpp">
       <Filter>Sources\APP</Filter>
     </ClCompile>
-    <ClCompile Include="Source\App\GameApp.cpp">
-      <Filter>Sources\APP</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="External\json-3.12.0\single_include\nlohmann\json.hpp">
@@ -94,9 +91,6 @@
       <Filter>External\DualSense-Windows</Filter>
     </ClInclude>
     <ClInclude Include="Source\App\EditorApp.h">
-      <Filter>Sources\APP</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\App\GameApp.h">
       <Filter>Sources\APP</Filter>
     </ClInclude>
   </ItemGroup>
