@@ -1,9 +1,8 @@
 #include <time.h>
 
-// 起動するAppの切り替え(段階3で、exeごとに分かれるまでの仮の仕組み)
-// GameAppを起動したいときは、この行のコメントを外す
-
-//#define RUN_GAME_APP
+// 起動するApp
+// RUN_GAME_APP は GameApp のプロジェクト設定(プリプロセッサの定義)で定義される
+// このファイルの中では定義しないこと
 
 #ifdef RUN_GAME_APP
 #include "App/GameApp.h"
