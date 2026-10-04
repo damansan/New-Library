@@ -123,7 +123,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\Source\GameEditor\GameInspectors.cpp" />
     <ClCompile Include="..\..\Source\Game\Demo\WaveDemo.cpp" />
     <ClCompile Include="..\..\Source\Game\ECS\GameComponents.cpp" />
     <ClCompile Include="..\..\Source\Game\ECS\Systems\GameCameraSystem.cpp" />
@@ -137,7 +136,6 @@
     <ClCompile Include="..\..\Source\Game\Scene\SceneGame.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\Source\GameEditor\GameInspectors.h" />
     <ClInclude Include="..\..\Source\Game\Demo\WaveDemo.h" />
     <ClInclude Include="..\..\Source\Game\ECS\Components\GameCameraComponent.h" />
     <ClInclude Include="..\..\Source\Game\ECS\Components\GameInputComponent.h" />

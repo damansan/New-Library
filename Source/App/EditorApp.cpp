@@ -9,7 +9,7 @@
 #include "Game/ECS/GameComponents.h"
 #include "Tool/Editor/ComponentRegistryInitializer.h"
 #include "Tool/Editor/FileDialog.h"
-#include "GameEditor/GameInspectors.h"
+#include "GameTool/GameInspectors.h"
 
 // èâä˙âª
 void EditorApp::OnInitialize()

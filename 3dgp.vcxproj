@@ -160,6 +160,9 @@
     <ProjectReference Include="Projects\Engine\Engine.vcxproj">
       <Project>{5ca61aec-9f61-4178-8c08-2d3d4105b6a6}</Project>
     </ProjectReference>
+    <ProjectReference Include="Projects\GameTool\GameTool.vcxproj">
+      <Project>{3c79dd3a-7bf7-4ce4-a406-db9f52c2cf0b}</Project>
+    </ProjectReference>
     <ProjectReference Include="Projects\Game\Game.vcxproj">
       <Project>{e9839269-3a56-47c3-89f8-d43aee087f90}</Project>
     </ProjectReference>

@@ -39,9 +39,6 @@
     <ClCompile Include="..\..\Source\Game\Scene\SceneGame.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\GameEditor\GameInspectors.cpp">
-      <Filter>Sources</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Source\Game\Demo\WaveDemo.h">
@@ -96,9 +93,6 @@
       <Filter>Sources</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\Game\Scene\SceneGame.h">
-      <Filter>Sources</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\GameEditor\GameInspectors.h">
       <Filter>Sources</Filter>
     </ClInclude>
   </ItemGroup>
