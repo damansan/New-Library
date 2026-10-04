@@ -1,37 +1,23 @@
 #include "ComponentRegistry.h"
 
 std::unordered_map<std::string, ComponentInfo> ComponentRegistry::registry;
-std::vector<std::string> ComponentRegistry::names;
-std::unordered_map<std::string, std::string> ComponentRegistry::typeNameToDisplayName;
+std::vector<std::string> ComponentRegistry::typeNames;
 
-void ComponentRegistry::Register(const std::string& name, ComponentInfo info)
+void ComponentRegistry::Register(ComponentInfo info)
 {
-    if (registry.find(name) != registry.end()) return;
-    info.name = name;
-    registry[name] = info;
-    names.push_back(name);
+    if (registry.find(info.typeName) != registry.end()) return;
+    typeNames.push_back(info.typeName);
+    registry[info.typeName] = std::move(info);
 }
 
-const std::vector<std::string>& ComponentRegistry::GetNames()
+const std::vector<std::string>& ComponentRegistry::GetTypeNames()
 {
-    return names;
+    return typeNames;
 }
 
-const ComponentInfo* ComponentRegistry::Get(const std::string& name)
+const ComponentInfo* ComponentRegistry::Get(const std::string& typeName)
 {
-    auto it = registry.find(name);
+    auto it = registry.find(typeName);
     if (it == registry.end()) return nullptr;
     return &it->second;
-}
-
-void ComponentRegistry::RegisterTypeName(const std::string& typeName, const std::string& displayName)
-{
-    typeNameToDisplayName[typeName] = displayName;
-}
-
-const ComponentInfo* ComponentRegistry::GetByTypeName(const std::string& typeName)
-{
-    auto it = typeNameToDisplayName.find(typeName);
-    if (it == typeNameToDisplayName.end()) return nullptr;
-    return Get(it->second);
 }

@@ -380,6 +380,9 @@
     <Filter Include="Sources\Project\ECS\Systems\Player\PlayerJumpSystem">
       <UniqueIdentifier>{f75b600d-86d0-4397-ae50-8b59a0151875}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\ProjectEditor">
+      <UniqueIdentifier>{85bc902b-e54f-412c-beb9-f9cb1a8b4810}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="External\imgui-docking\imgui.cpp">
@@ -648,6 +651,15 @@
     </ClCompile>
     <ClCompile Include="Source\Engine\ECS\Reflection.cpp">
       <Filter>Sources\Engine\ECS</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Engine\ECS\EngineComponents.cpp">
+      <Filter>Sources\Engine\ECS</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Project\ECS\ProjectComponents.cpp">
+      <Filter>Sources\Project\ECS</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\ProjectEditor\ProjectInspectors.cpp">
+      <Filter>Sources\ProjectEditor</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1028,6 +1040,15 @@
     </ClInclude>
     <ClInclude Include="Source\Engine\ECS\Reflect.h">
       <Filter>Sources\Engine\ECS</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Engine\ECS\EngineComponents.h">
+      <Filter>Sources\Engine\ECS</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Project\ECS\ProjectComponents.h">
+      <Filter>Sources\Project\ECS</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ProjectEditor\ProjectInspectors.h">
+      <Filter>Sources\ProjectEditor</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

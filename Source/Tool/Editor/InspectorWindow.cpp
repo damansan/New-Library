@@ -57,7 +57,7 @@ void InspectorWindow::DrawComponents(entt::registry& registry, EditorContext& co
 {
     entt::entity e = context.selectedEntity;
 
-    for (const auto& name : ComponentRegistry::GetNames())
+    for (const auto& name : ComponentRegistry::GetTypeNames())
     {
         const ComponentInfo* info = ComponentRegistry::Get(name);
         if (!info) continue;
@@ -121,7 +121,7 @@ void InspectorWindow::DrawAddComponent(entt::registry& registry, EditorContext& 
         ImGui::Text("Select Component");
         ImGui::Separator();
 
-        for (const auto& name : ComponentRegistry::GetNames())
+        for (const auto& name : ComponentRegistry::GetTypeNames())
         {
             const ComponentInfo* info = ComponentRegistry::Get(name);
             if (!info) continue;
@@ -129,11 +129,11 @@ void InspectorWindow::DrawAddComponent(entt::registry& registry, EditorContext& 
             // すでに持っているコンポーネントはグレーアウト
             if (info->has(registry, e))
             {
-                ImGui::TextDisabled(name.c_str());
+                ImGui::TextDisabled("%s", info->displayName.c_str());
             }
             else
             {
-                if (ImGui::Selectable(name.c_str()))
+                if (ImGui::Selectable(info->displayName.c_str()))
                 {
                     info->add(registry, e);
                     ImGui::CloseCurrentPopup();

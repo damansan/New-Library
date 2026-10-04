@@ -934,8 +934,11 @@ Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Core\framework.cpp
 #include "framework.h"
 #include "tracy/Tracy.hpp"
 #include "Project/Scene/SceneGame.h"
+#include "Engine/ECS/EngineComponents.h"
+#include "Project/ECS/ProjectComponents.h"
 #include "Tool/Editor/ComponentRegistryInitializer.h"
-#include "Tool/Editor/MetaRegistry.h"
+#include "ProjectEditor/ProjectInspectors.h"
+
 #include "Tool/Editor/FileDialog.h"
 
 #include "Engine/Resource/SceneSerializer.h"
@@ -957,7 +960,14 @@ framework::framework(HWND hwnd) : hwnd(hwnd)
 	// Gameウィンドウ初期化
 	gameWindow.Initialize(graphics.GetDevice());
 	
-	// 最初のシーンセット
+	// コンポーネントの登録(実行時に必要なもの)
+	EngineComponents::Register();
+	ProjectComponents::Register();
+
+	// インスペクターの独自描画の登録(エディタのみ)
+	ComponentRegistryInitializer::Initialize();
+	ProjectInspectors::Register();
+
 	sceneManager.ChangeScene(std::make_unique<SceneGame>());
 
 	// ProjectWindow初期化
@@ -966,8 +976,6 @@ framework::framework(HWND hwnd) : hwnd(hwnd)
 	// PrefabWindow初期化
 	prefabWindow.Initialize("Data/Prefab");
 
-
-	ComponentRegistryInitializer::Initialize();
 
 	// Studio共有リソース初期化
 	studioShared.Initialize(graphics.GetDevice());
@@ -2459,7 +2467,7 @@ struct ConditionGetterNode // コンポーネントの値を取得するノード
 	int id = -1;
 	float posX = 0.0f;
 	float posY = 0.0f;
-	std::string componentName; // MetaRegistryで登録した型名
+	std::string componentName; // Reflectionで登録した型名
 	std::string fieldName;     // entt::meta上のフィールド名
 	ValueType type = ValueType::Float;
 	FloatComponent selectedComponent = FloatComponent::None;
@@ -4023,6 +4031,16 @@ void SequencerData::FromJson(const nlohmann::json& j)
 	}
 } 
  
+===== EngineComponents.h ===== 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\EngineComponents.h 
+#pragma once
+
+namespace EngineComponents
+{
+	// Engineが持つコンポーネントを、ComponentRegistryへ登録する
+	void Register();
+} 
+ 
 ===== EntityFinder.h ===== 
 Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\EntityFinder.h 
 #pragma once
@@ -4211,6 +4229,75 @@ public:
 	// Float2/3/4型の、成分数を返す(それ以外は0)
 	static int GetComponentCount(ValueType type);
 }; 
+ 
+===== EngineComponents.cpp ===== 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\EngineComponents.cpp 
+#include "EngineComponents.h"
+#include "Engine/Resource/ComponentRegistry.h"
+
+#include "Engine/ECS/Components/CategoryComponent.h"
+#include "Engine/ECS/Components/TransformComponent.h"
+#include "Engine/ECS/Components/MeshComponent.h"
+#include "Engine/ECS/Components/MaterialComponent.h"
+#include "Engine/ECS/Components/ControllerComponent.h"
+#include "Engine/ECS/Components/MovementComponent.h"
+#include "Engine/ECS/Components/AnimatorComponent.h"
+#include "Engine/ECS/Components/FreeCameraComponent.h"
+#include "Engine/ECS/Components/PhysicsComponents.h"
+#include "Engine/ECS/Components/IKComponent.h"
+#include "Engine/ECS/Components/SequencerComponent.h"
+#include "Engine/ECS/Components/AnimationSpeedComponent.h"
+
+void EngineComponents::Register()
+{
+	REGISTER_COMPONENT_TYPE(ComponentCategory, "Category");
+	REGISTER_COMPONENT_TYPE(TransformComponent, "Transform");
+	REGISTER_COMPONENT_TYPE(MeshComponent, "Mesh");
+	REGISTER_COMPONENT_TYPE(MaterialComponent, "Material");
+	REGISTER_COMPONENT_TYPE(AnimatorComponent, "Animator");
+	REGISTER_COMPONENT_TYPE(FreeCameraComponent, "FreeCamera");
+	REGISTER_COMPONENT_TYPE(ControllerComponent, "Controller");
+	REGISTER_COMPONENT_TYPE(IKComponent, "IK");
+	REGISTER_COMPONENT_TYPE(SequencerComponent, "Sequencer");
+	REGISTER_COMPONENT_TYPE(AnimationSpeedComponent, "Animation Speed");
+
+	// 物理：種別(PhysicsBodyType)を代表として登録し、
+	// 外すときは種別ごとに付与された個別のコンポーネントもまとめて外す
+	ComponentRegistry::Register({
+		"PhysicsBodyTypeComponent",
+		"Physics",
+		// Add: PhysicsBodyTypeComponentのみ付与(種別未選択状態)
+		[](entt::registry& reg, entt::entity e)
+		{
+			if (!reg.any_of<PhysicsBodyTypeComponent>(e))
+				reg.emplace<PhysicsBodyTypeComponent>(e);
+		},
+		// Remove: 共通コンポーネントと紐づいた個別のコンポーネントを両方削除
+		[](entt::registry& reg, entt::entity e)
+		{
+			// 実体(PxActor/PxController)の破棄予約は、on_destroyの通知で自動的に行われる
+			if (reg.any_of<StaticBodyComponent>(e))
+				reg.remove<StaticBodyComponent>(e);
+
+			if (reg.any_of<CharacterControllerComponent>(e))
+				reg.remove<CharacterControllerComponent>(e);
+
+			if (reg.any_of<MovementComponent>(e))
+				reg.remove<MovementComponent>(e);
+
+			reg.remove<PhysicsBodyTypeComponent>(e);
+		},
+		// Has
+		[](entt::registry& reg, entt::entity e) { return reg.any_of<PhysicsBodyTypeComponent>(e); },
+		// GetMeta
+		[](entt::registry& r, entt::entity e) -> entt::meta_any
+		{
+			auto* c = r.try_get<PhysicsBodyTypeComponent>(e);
+			if (!c) return entt::meta_any{};
+			return entt::forward_as_meta(*c);
+		}
+		});
+} 
  
 ===== Reflection.cpp ===== 
 Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Reflection.cpp 
@@ -6452,7 +6539,7 @@ float ConditionGraphEvaluator::GetGetterValue(const ConditionGetterNode& node, e
 	entt::meta_any instance;
 
 	// ComponentRegistryに登録されていれば、そちらから取得する
-	if (const ComponentInfo* info = ComponentRegistry::GetByTypeName(node.componentName))
+	if (const ComponentInfo* info = ComponentRegistry::Get(node.componentName)) 
 	{
 		instance = info->getMeta(registry, entity);
 	}
@@ -10668,31 +10755,49 @@ Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Resource\ComponentRegistr
 
 struct ComponentInfo
 {
-    std::string name;
+    std::string typeName;    // 識別子(コード上の型名)。保存のキーにも使う
+    std::string displayName; // エディタ上の表示名
     std::function<void(entt::registry&, entt::entity)> add;
     std::function<void(entt::registry&, entt::entity)> remove;
     std::function<bool(entt::registry&, entt::entity)> has;
-
-	// エンティティが持つコンポーネントの実態をmeta_anyとして取得する
+    // エンティティが持つコンポーネントの実態をmeta_anyとして取得する
     std::function<entt::meta_any(entt::registry&, entt::entity)> getMeta;
 };
 
 class ComponentRegistry
 {
 public:
-    static void Register(const std::string& name, ComponentInfo info);
-    static const std::vector<std::string>& GetNames();
-    static const ComponentInfo* Get(const std::string& name);
+    static void Register(ComponentInfo info);
+    static const std::vector<std::string>& GetTypeNames();
+    static const ComponentInfo* Get(const std::string& typeName);
 
-    static void RegisterTypeName(const std::string& typeName, const std::string& displayName);
-    static const ComponentInfo* GetByTypeName(const std::string& typeName);
+    // 型1つ分を、標準の付け外し処理で登録する
+    template<typename T>
+    static void RegisterType(const std::string& typeName, const std::string& displayName)
+    {
+        Register({
+            typeName,
+            displayName,
+            [](entt::registry& r, entt::entity e) { if (!r.any_of<T>(e)) r.emplace<T>(e); },
+            [](entt::registry& r, entt::entity e) { r.remove<T>(e); },
+            [](entt::registry& r, entt::entity e) { return r.any_of<T>(e); },
+            [](entt::registry& r, entt::entity e) -> entt::meta_any
+            {
+                auto* c = r.try_get<T>(e);
+                if (!c) return entt::meta_any{};
+                return entt::forward_as_meta(*c);
+            }
+            });
+    }
 
 private:
     static std::unordered_map<std::string, ComponentInfo> registry;
-    static std::vector<std::string> names;
+    static std::vector<std::string> typeNames;
+};
 
-    static std::unordered_map<std::string, std::string> typeNameToDisplayName;
-}; 
+// 型名を、コード上の名前から自動で付けて登録する
+#define REGISTER_COMPONENT_TYPE(Type, DisplayName) \
+    ComponentRegistry::RegisterType<Type>(#Type, DisplayName) 
  
 ===== EntitySerializer.h ===== 
 Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Resource\EntitySerializer.h 
@@ -11365,39 +11470,25 @@ Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Resource\ComponentRegistr
 #include "ComponentRegistry.h"
 
 std::unordered_map<std::string, ComponentInfo> ComponentRegistry::registry;
-std::vector<std::string> ComponentRegistry::names;
-std::unordered_map<std::string, std::string> ComponentRegistry::typeNameToDisplayName;
+std::vector<std::string> ComponentRegistry::typeNames;
 
-void ComponentRegistry::Register(const std::string& name, ComponentInfo info)
+void ComponentRegistry::Register(ComponentInfo info)
 {
-    if (registry.find(name) != registry.end()) return;
-    info.name = name;
-    registry[name] = info;
-    names.push_back(name);
+    if (registry.find(info.typeName) != registry.end()) return;
+    typeNames.push_back(info.typeName);
+    registry[info.typeName] = std::move(info);
 }
 
-const std::vector<std::string>& ComponentRegistry::GetNames()
+const std::vector<std::string>& ComponentRegistry::GetTypeNames()
 {
-    return names;
+    return typeNames;
 }
 
-const ComponentInfo* ComponentRegistry::Get(const std::string& name)
+const ComponentInfo* ComponentRegistry::Get(const std::string& typeName)
 {
-    auto it = registry.find(name);
+    auto it = registry.find(typeName);
     if (it == registry.end()) return nullptr;
     return &it->second;
-}
-
-void ComponentRegistry::RegisterTypeName(const std::string& typeName, const std::string& displayName)
-{
-    typeNameToDisplayName[typeName] = displayName;
-}
-
-const ComponentInfo* ComponentRegistry::GetByTypeName(const std::string& typeName)
-{
-    auto it = typeNameToDisplayName.find(typeName);
-    if (it == typeNameToDisplayName.end()) return nullptr;
-    return Get(it->second);
 } 
  
 ===== EntitySerializer.cpp ===== 
@@ -11416,7 +11507,7 @@ nlohmann::json EntitySerializer::SerializeEntity(entt::registry& registry, entt:
 {
 	nlohmann::json result = nlohmann::json::object();
 
-	for (const auto& name : ComponentRegistry::GetNames())
+	for (const auto& name : ComponentRegistry::GetTypeNames()) 
 	{
 		const ComponentInfo* info = ComponentRegistry::Get(name);
 		if (!info || !info->has(registry, e)) continue;
@@ -14042,6 +14133,40 @@ namespace DirectX
     template void serialize(cereal::BinaryInputArchive&, DirectX::XMUINT4&);
 } 
  
+===== ProjectComponents.h ===== 
+Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\ProjectComponents.h 
+#pragma once
+
+namespace ProjectComponents
+{
+	// Projectが持つコンポーネントを、ComponentRegistryへ登録する
+	void Register();
+} 
+ 
+===== ProjectComponents.cpp ===== 
+Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\ProjectComponents.cpp 
+#include "ProjectComponents.h"
+#include "Engine/Resource/ComponentRegistry.h"
+
+#include "Project/ECS/Components/GameInputComponent.h"
+#include "Project/ECS/Components/GameCameraComponent.h"
+#include "Project/ECS/Components/PlayerIdleComponent.h"
+#include "Project/ECS/Components/PlayerMoveComponent.h"
+#include "Project/ECS/Components/PlayerDodgeComponent.h"
+#include "Project/ECS/Components/PlayerSprintComponent.h"
+#include "Project/ECS/Components/PlayerJumpComponent.h"
+
+void ProjectComponents::Register()
+{
+	REGISTER_COMPONENT_TYPE(GameInputComponent,    "GameInput");
+	REGISTER_COMPONENT_TYPE(GameCameraComponent,   "GameCamera");
+	REGISTER_COMPONENT_TYPE(PlayerIdleComponent,   "Player Idle");
+	REGISTER_COMPONENT_TYPE(PlayerMoveComponent,   "Player Move");
+	REGISTER_COMPONENT_TYPE(PlayerDodgeComponent,  "Player Dodge");
+	REGISTER_COMPONENT_TYPE(PlayerSprintComponent, "Player Sprint");
+	REGISTER_COMPONENT_TYPE(PlayerJumpComponent,   "Player Jump");
+} 
+ 
 ===== GameCameraComponent.h ===== 
 Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Components\GameCameraComponent.h 
 #pragma once
@@ -16202,6 +16327,126 @@ void SceneGame::UpdateCamera(float elapsedTime, const SceneContext& context)
 }
  
  
+===== ProjectInspectors.h ===== 
+Path: C:\Users\offri\Desktop\New-Library\Source\ProjectEditor\ProjectInspectors.h 
+#pragma once
+
+namespace ProjectInspectors
+{
+	// Projectのコンポーネントの独自インスペクターを登録する
+	void Register();
+} 
+ 
+===== ProjectInspectors.cpp ===== 
+Path: C:\Users\offri\Desktop\New-Library\Source\ProjectEditor\ProjectInspectors.cpp 
+#include "ProjectInspectors.h"
+#include "Tool/Editor/ComponentInspectorRegistry.h"
+#include "Project/ECS/Components/GameCameraComponent.h"
+
+#include <imgui.h>
+#include <string>
+
+void ProjectInspectors::Register()
+{
+	// ゲームカメラ
+	REGISTER_INSPECTOR(GameCameraComponent,
+		[](auto& reg, auto e)
+		{
+			auto* _c = reg.try_get<GameCameraComponent>(e);
+			if (!_c) return;
+			if (!ImGui::CollapsingHeader("GameCamera", ImGuiTreeNodeFlags_DefaultOpen)) return;
+
+			const char* modeNames[] = { "Follow", "LookAt" };
+			int mode = (int)_c->mode;
+			if (ImGui::Combo("Mode", &mode, modeNames, 2))
+				_c->mode = (Mode)mode;
+
+			// FollowTargetは自動で探す(Playerタグ)
+			std::string followTargetName = "None (auto)";
+			if (_c->followTarget != entt::null && reg.valid(_c->followTarget))
+				followTargetName = "Entity " + std::to_string((uint32_t)_c->followTarget);
+
+			ImGui::Text("Follow Target: %s", followTargetName.c_str());
+
+			// LookAtTargetは自動で探す(Enemyタグ)
+			std::string lookAtTargetName = "None (auto)";
+			if (_c->lookAtTarget != entt::null && reg.valid(_c->lookAtTarget))
+				lookAtTargetName = "Entity " + std::to_string((uint32_t)_c->lookAtTarget);
+
+			ImGui::Text("LookAt Target: %s", lookAtTargetName.c_str());
+
+			ImGui::DragFloat("Yaw", &_c->yaw, 0.01f);
+			ImGui::DragFloat("Pitch", &_c->pitch, 0.01f, -1.5f, 1.5f);
+
+			// --- Follow Camera ---
+			ImGui::Separator();
+			ImGui::Text("Follow Camera");
+			ImGui::DragFloat("Distance", &_c->followCameraDistance, 0.1f, 0.0f, 50.0f);
+			ImGui::DragFloat("Height", &_c->followCameraHeight, 0.1f, 0.0f, 20.0f);
+			ImGui::DragFloat("Target Y Up", &_c->followCameraTargetYUp, 0.1f, 0.0f, 10.0f);
+			ImGui::DragFloat("Eye Speed Ratio", &_c->followCameraEyeSpeedRatio, 0.5f, 0.0f, 100.0f);
+			ImGui::DragFloat("Target Speed Ratio", &_c->followCameraTargetSpeedRatio, 0.5f, 0.0f, 100.0f);
+
+			// --- LockOn Camera（共通） ---
+			ImGui::Separator();
+			ImGui::Text("LockOn Camera");
+			ImGui::DragFloat("Eye Speed Ratio##LockOn", &_c->lockOnCameraEyeSpeedRatio, 0.5f, 0.0f, 100.0f);
+			ImGui::DragFloat("Target Speed Ratio##LockOn", &_c->lockOnCameraTargetSpeedRatio, 0.5f, 0.0f, 100.0f);
+			ImGui::DragFloat("Range Switch Distance", &_c->lockOnRangeSwitchDistance, 0.1f, 0.1f, 50.0f);
+
+			// --- 円の中心O ---
+			ImGui::Separator();
+			ImGui::Text("Center O");
+			ImGui::DragFloat("Center Ratio", &_c->lockOnCenterRatio, 0.01f, 0.0f, 1.0f);
+			ImGui::DragFloat("Far Center Max Distance", &_c->lockOnFarCenterMaxDistance, 0.05f, 0.0f, 20.0f);
+			ImGui::DragFloat("Target Circle Radius Max", &_c->lockOnTargetCircleRadiusMax, 0.1f, 0.0f, 20.0f);
+
+			// --- 円周上の角度・スティック操作 ---
+			ImGui::Separator();
+			ImGui::Text("Orbit");
+			ImGui::DragFloat("Orbit Rotate Speed", &_c->lockOnOrbitRotateSpeed, 0.1f, 0.0f, 20.0f);
+			ImGui::DragFloat("Orbit Pitch Rotate Speed", &_c->lockOnOrbitPitchRotateSpeed, 0.1f, 0.0f, 20.0f);
+			ImGui::DragFloat("Orbit Return Speed", &_c->lockOnOrbitReturnSpeed, 0.5f, 0.0f, 50.0f);
+			ImGui::Separator();
+			ImGui::Text("Orbit");
+			ImGui::DragFloat("Orbit Angle", &_c->lockOnOrbitAngle, 0.01f);
+			ImGui::DragFloat("Orbit Pitch", &_c->lockOnOrbitPitch, 0.01f, -0.8f, 0.8f);
+
+			// --- くの字の向き ---
+			ImGui::Separator();
+			ImGui::Text("Side");
+			ImGui::DragFloat("Side Switch Threshold", &_c->lockOnSideSwitchThreshold, 0.01f, 0.0f, 3.14f);
+			ImGui::DragFloat("Side Smooth Speed", &_c->lockOnSideSmoothSpeed, 0.5f, 0.0f, 50.0f);
+			ImGui::Text("Side : %.2f -> %.2f", _c->lockOnSide, _c->lockOnSideSmooth);
+
+			// --- 近距離用パラメータ ---
+			ImGui::Separator();
+			ImGui::Text("Near");
+			ImGui::DragFloat("Near Distance", &_c->lockOnNearCameraDistance, 0.1f, 0.0f, 30.0f);
+			ImGui::DragFloat("Near Height", &_c->lockOnNearCameraHeight, 0.1f, 0.0f, 20.0f);
+			ImGui::DragFloat("Near Target Y Up", &_c->lockOnNearCameraTargetYUp, 0.1f, 0.0f, 10.0f);
+			ImGui::DragFloat("Near Angle Offset Max", &_c->lockOnNearAngleOffsetMax, 0.5f, 0.0f, 90.0f);
+
+			// --- 遠距離用パラメータ ---
+			ImGui::Separator();
+			ImGui::Text("Far");
+			ImGui::DragFloat("Far Distance", &_c->lockOnFarCameraDistance, 0.1f, 0.0f, 30.0f);
+			ImGui::DragFloat("Far Height", &_c->lockOnFarCameraHeight, 0.1f, 0.0f, 20.0f);
+			ImGui::DragFloat("Far Target Y Up", &_c->lockOnFarCameraTargetYUp, 0.1f, 0.0f, 10.0f);
+
+			// --- 減衰ばね ---
+			ImGui::Separator();
+			ImGui::Text("Spring");
+			ImGui::DragFloat("Stiffness", &_c->eyeSpringStiffness, 5.0f, 0.0f, 1000.0f);
+			ImGui::DragFloat("Damping", &_c->eyeSpringDamping, 1.0f, 0.0f, 200.0f);
+
+			// --- 現在のeye/target（デバッグ表示） ---
+			ImGui::Separator();
+			ImGui::DragFloat3("Eye", &_c->base.currentEye.x, 0.1f);
+			ImGui::DragFloat3("Target", &_c->base.currentTarget.x, 0.1f);
+		});
+} 
+ 
 ===== AdaptiveTriggerToolWindow.h ===== 
 Path: C:\Users\offri\Desktop\New-Library\Source\Tool\AdaptiveTriggerToolWindow.h 
 #pragma once
@@ -16650,12 +16895,16 @@ Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Editor\ComponentInspectorRe
 class ComponentInspectorRegistry
 {
 public:
-	static void Register(const std::string& name, std::function<void(entt::registry&, entt::entity)> drawImGui);
-	static const std::function<void(entt::registry&, entt::entity)>* Get(const std::string& name);
+	static void Register(const std::string& typeName, std::function<void(entt::registry&, entt::entity)> drawImGui);
+	static const std::function<void(entt::registry&, entt::entity)>* Get(const std::string& typeName);
 
 private:
 	static std::unordered_map<std::string, std::function<void(entt::registry&, entt::entity)>> registry;
-}; 
+};
+
+// 型名を、コード上の名前から自動で付けて独自描画を登録する
+#define REGISTER_INSPECTOR(Type, DrawFunc) \
+    ComponentInspectorRegistry::Register(#Type, DrawFunc) 
  
 ===== ComponentRegistryInitializer.h ===== 
 Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Editor\ComponentRegistryInitializer.h 
@@ -17069,36 +17318,13 @@ Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Editor\ComponentRegistryIni
 #include <filesystem>
 #include <algorithm>
 
-#include "Engine/ECS/Components/CategoryComponent.h"
-#include "Engine/ECS/Components/TransformComponent.h"
-#include "Engine/ECS/Components/MeshComponent.h"
-#include "Engine/ECS/Components/MaterialComponent.h"
-
-#include "Project/ECS/Components/GameInputComponent.h"
 #include "Engine/ECS/Components/ControllerComponent.h"
 #include "Engine/ECS/Components/MovementComponent.h"
-
-
-#include "Project/ECS/Components/PlayerIdleComponent.h"
-#include "Project/ECS/Components/PlayerMoveComponent.h"
-#include "Project/ECS/Components/PlayerDodgeComponent.h"
-#include "Project/ECS/Components/PlayerSprintComponent.h"
-#include "Project/ECS/Components/PlayerJumpComponent.h"
-
-
 #include "Engine/ECS/Components/AnimatorComponent.h"
 #include "Engine/ECS/Components/SkinnedMeshComponent.h"
-
 #include "Engine/ECS/Components/FreeCameraComponent.h"
-#include "Project/ECS/Components/GameCameraComponent.h"
-
-#include "Engine/Core/PhysicsDestroyQueue.h"
 #include "Engine/ECS/Components/PhysicsComponents.h"
-
 #include "Engine/ECS/Components/IKComponent.h"
-
-#include "Engine/ECS/Components/SequencerComponent.h"
-#include "Engine/ECS/Components/AnimationSpeedComponent.h"
 
 #include "MetaRegistry.h"
 
@@ -17137,11 +17363,7 @@ Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Editor\ComponentRegistryIni
     ComponentRegistry::RegisterTypeName(#Type, Name)
 
 #define DRAW_COMPONENT(Type, Label, body)                                   \
-
-
-#define DRAW_COMPONENT(Type, Label, body)                                   \
-    [](auto& reg, auto e)                                                   \
-    {                                                                       \
+    [](auto& reg, auto e)                                                   \    {                                                                       \
         auto* _c = reg.try_get<Type>(e);                                    \
         if (!_c) return;                                                    \
         if (ImGui::CollapsingHeader(Label, ImGuiTreeNodeFlags_DefaultOpen)) \
@@ -17178,7 +17400,7 @@ void ComponentRegistryInitializer::Initialize()
 	REGISTER_COMPONENT_AUTO(GameInputComponent, "GameInput");
 
 	// アニメーターコンポーネントの登録
-	REGISTER_COMPONENT(AnimatorComponent, "Animator",
+	REGISTER_INSPECTOR(AnimatorComponent,
 		[](auto& reg, auto e)
 		{
 			auto* anim = reg.try_get<AnimatorComponent>(e);
@@ -17228,8 +17450,8 @@ void ComponentRegistryInitializer::Initialize()
 		});
 
 	// フリーカメラコンポーネントの登録
-	REGISTER_COMPONENT(FreeCameraComponent, "FreeCamera",
-		DRAW_COMPONENT(FreeCameraComponent, "FreeCamera",
+	REGISTER_INSPECTOR(FreeCameraComponent,
+		DRAW_COMPONENT(FreeCameraComponent, "FreeCamera", 
 			{
 				ImGui::DragFloat("Camera Speed", &_c->cameraSpeed, 0.1f, 0.1f, 100.0f);
 				ImGui::DragFloat("Yaw",          &_c->yaw,         0.01f);
@@ -17401,7 +17623,7 @@ void ComponentRegistryInitializer::Initialize()
 			return entt::forward_as_meta(*c);
 		}
 		});
-	ComponentInspectorRegistry::Register("Physics",
+	REGISTER_INSPECTOR(PhysicsBodyTypeComponent,
 		[](auto& reg, auto e)
 		{
 			auto* body = reg.try_get<PhysicsBodyTypeComponent>(e);
@@ -17857,7 +18079,7 @@ void InspectorWindow::DrawComponents(entt::registry& registry, EditorContext& co
 {
     entt::entity e = context.selectedEntity;
 
-    for (const auto& name : ComponentRegistry::GetNames())
+    for (const auto& name : ComponentRegistry::GetTypeNames())
     {
         const ComponentInfo* info = ComponentRegistry::Get(name);
         if (!info) continue;
@@ -17921,7 +18143,7 @@ void InspectorWindow::DrawAddComponent(entt::registry& registry, EditorContext& 
         ImGui::Text("Select Component");
         ImGui::Separator();
 
-        for (const auto& name : ComponentRegistry::GetNames())
+        for (const auto& name : ComponentRegistry::GetTypeNames())
         {
             const ComponentInfo* info = ComponentRegistry::Get(name);
             if (!info) continue;
@@ -17929,11 +18151,11 @@ void InspectorWindow::DrawAddComponent(entt::registry& registry, EditorContext& 
             // すでに持っているコンポーネントはグレーアウト
             if (info->has(registry, e))
             {
-                ImGui::TextDisabled(name.c_str());
+                ImGui::TextDisabled("%s", info->displayName.c_str());
             }
             else
             {
-                if (ImGui::Selectable(name.c_str()))
+                if (ImGui::Selectable(info->displayName.c_str()))
                 {
                     info->add(registry, e);
                     ImGui::CloseCurrentPopup();
@@ -18085,7 +18307,7 @@ void MetaRegistry::DrawMetaFields(entt::meta_type metaType, entt::meta_any insta
 					ImGui::EndDragDropTarget();
 				}
 			}
-			if (fieldInfo && HasFlag(fieldInfo->flags, FieldFlags::VisibleOnly)) 
+			else if (fieldInfo && HasFlag(fieldInfo->flags, FieldFlags::VisibleOnly))
 			{
 				ImGui::Text("%s: %s", label.c_str(), s->c_str());
 			}

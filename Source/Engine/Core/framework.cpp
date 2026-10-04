@@ -1,7 +1,11 @@
 #include "framework.h"
 #include "tracy/Tracy.hpp"
 #include "Project/Scene/SceneGame.h"
+#include "Engine/ECS/EngineComponents.h"
+#include "Project/ECS/ProjectComponents.h"
 #include "Tool/Editor/ComponentRegistryInitializer.h"
+#include "ProjectEditor/ProjectInspectors.h"
+
 #include "Tool/Editor/FileDialog.h"
 
 #include "Engine/Resource/SceneSerializer.h"
@@ -23,7 +27,14 @@ framework::framework(HWND hwnd) : hwnd(hwnd)
 	// Gameウィンドウ初期化
 	gameWindow.Initialize(graphics.GetDevice());
 	
-	// 最初のシーンセット
+	// コンポーネントの登録(実行時に必要なもの)
+	EngineComponents::Register();
+	ProjectComponents::Register();
+
+	// インスペクターの独自描画の登録(エディタのみ)
+	ComponentRegistryInitializer::Initialize();
+	ProjectInspectors::Register();
+
 	sceneManager.ChangeScene(std::make_unique<SceneGame>());
 
 	// ProjectWindow初期化
@@ -32,8 +43,6 @@ framework::framework(HWND hwnd) : hwnd(hwnd)
 	// PrefabWindow初期化
 	prefabWindow.Initialize("Data/Prefab");
 
-
-	ComponentRegistryInitializer::Initialize();
 
 	// Studio共有リソース初期化
 	studioShared.Initialize(graphics.GetDevice());

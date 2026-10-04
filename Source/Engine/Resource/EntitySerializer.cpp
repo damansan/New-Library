@@ -12,7 +12,7 @@ nlohmann::json EntitySerializer::SerializeEntity(entt::registry& registry, entt:
 {
 	nlohmann::json result = nlohmann::json::object();
 
-	for (const auto& name : ComponentRegistry::GetNames())
+	for (const auto& name : ComponentRegistry::GetTypeNames()) 
 	{
 		const ComponentInfo* info = ComponentRegistry::Get(name);
 		if (!info || !info->has(registry, e)) continue;

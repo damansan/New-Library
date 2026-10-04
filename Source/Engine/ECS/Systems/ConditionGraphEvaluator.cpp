@@ -56,7 +56,7 @@ float ConditionGraphEvaluator::GetGetterValue(const ConditionGetterNode& node, e
 	entt::meta_any instance;
 
 	// ComponentRegistry‚É“o˜^‚³‚ê‚Ä‚¢‚ê‚ÎA‚»‚¿‚ç‚©‚çæ“¾‚·‚é
-	if (const ComponentInfo* info = ComponentRegistry::GetByTypeName(node.componentName))
+	if (const ComponentInfo* info = ComponentRegistry::Get(node.componentName)) 
 	{
 		instance = info->getMeta(registry, entity);
 	}
