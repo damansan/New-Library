@@ -2,7 +2,6 @@
 #include "tracy/Tracy.hpp"
 #include "Project/Scene/SceneGame.h"
 #include "Tool/Editor/ComponentRegistryInitializer.h"
-#include "Tool/Editor/MetaRegistry.h"
 #include "Tool/Editor/FileDialog.h"
 
 #include "Engine/Resource/SceneSerializer.h"

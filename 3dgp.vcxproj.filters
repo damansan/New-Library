@@ -1026,6 +1026,9 @@
     <ClInclude Include="Source\Project\ECS\Systems\PlayerJumpSystem.h">
       <Filter>Sources\Project\ECS\Systems\Player\PlayerJumpSystem</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Engine\ECS\Reflect.h">
+      <Filter>Sources\Engine\ECS</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shader\Static_VS.hlsl">

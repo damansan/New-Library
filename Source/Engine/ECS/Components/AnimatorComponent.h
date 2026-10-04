@@ -10,12 +10,12 @@ struct AnimatorComponent
         // 再生関連
         REFLECT_FIELD(float, playSpeed, (1.0f),  ("Play Speed", 0.0f, 3.0f))                 // 再生速度
         REFLECT_FIELD(bool,  loop,      (true),  ("Loop"))                                   // ループフラグ
-        REFLECT_FIELD(bool,  isEnd,     (false), ("Is End",     0.0f, 0.0f, 0.1f, "", true)) // 再生終了フラグ
+        REFLECT_FIELD(bool,  isEnd,     (false), ("Is End",     0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // 再生終了フラグ
 
         // ブレンド関連
-        REFLECT_FIELD(std::string, blendAnimation, (""),    ("Blend From (Old Clip)", 0.0f, 0.0f, 0.1f, "", true)) // 旧クリップ名
-        REFLECT_FIELD(float,       blendRate,      (0.0f),  ("Blend Rate",            0.0f, 1.0f, 0.1f, "", true)) // ブレンドの進捗
-        REFLECT_FIELD(bool,        isBlending,     (false), ("Is Blending",           0.0f, 0.0f, 0.1f, "", true)) // ブレンド中フラグ
+        REFLECT_FIELD(std::string, blendAnimation, (""),    ("Blend From (Old Clip)", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // 旧クリップ名
+        REFLECT_FIELD(float,       blendRate,      (0.0f),  ("Blend Rate",            0.0f, 1.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // ブレンドの進捗
+        REFLECT_FIELD(bool,        isBlending,     (false), ("Is Blending",           0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // ブレンド中フラグ
 
         // ルートモーション関連
         REFLECT_FIELD(bool, useRootMotionY,            (false), ("Use Root Motion Y")) // Y軸適応

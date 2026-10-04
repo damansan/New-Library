@@ -43,7 +43,7 @@ struct ConditionGetterNode // コンポーネントの値を取得するノード
 	int id = -1;
 	float posX = 0.0f;
 	float posY = 0.0f;
-	std::string componentName; // MetaRegistryで登録した型名
+	std::string componentName; // Reflectionで登録した型名
 	std::string fieldName;     // entt::meta上のフィールド名
 	ValueType type = ValueType::Float;
 	FloatComponent selectedComponent = FloatComponent::None;

@@ -1,6 +1,6 @@
 #include "ConditionGraphEvaluator.h"
 #include "Engine/Resource/ComponentRegistry.h"
-#include "Tool/Editor/MetaRegistry.h"
+#include "Engine/ECS/Reflection.h"
 #include <DirectXMath.h>
 #include <cmath>
 
@@ -42,7 +42,7 @@ float ConditionGraphEvaluator::GetGetterValue(const ConditionGetterNode& node, e
 {
 	// コンポーネント名とフィールド名から一致するFieldEntryを探す
 	const FieldEntry* found = nullptr;
-	for (const auto& f : MetaRegistry::GetAllFields())
+	for (const auto& f : Reflection::GetAllFields()) 
 	{
 		if (f.componentName == node.componentName && f.fieldLabel == node.fieldName)
 		{

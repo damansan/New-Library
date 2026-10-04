@@ -2,7 +2,7 @@
 #include <algorithm>
 #include <vector>
 
-#include "Tool/Editor/MetaRegistry.h"
+#include "Engine/ECS/Reflection.h"
 
 void StudioConditionGraph::Initialize()
 {
@@ -89,7 +89,7 @@ void StudioConditionGraph::DrawInspector()
 		ImGui::Text("Getter");
 		ImGui::Separator();
 
-		const auto& fields = MetaRegistry::GetAllFields();
+		const auto& fields = Reflection::GetAllFields();
 
 		// 1段目:コンポーネント名の一覧(重複除去)
 		std::vector<std::string> componentNames;
@@ -143,7 +143,7 @@ void StudioConditionGraph::DrawInspector()
 		}
 
 		// 3段目:選択中フィールドがFloat2/3/4の場合のみ、成分選択を表示する
-		int componentCount = MetaRegistry::GetComponentCount(selectedGetter->type);
+		int componentCount = Reflection::GetComponentCount(selectedGetter->type);
 		if (componentCount > 0)
 		{
 			static const char* names[] = { "X", "Y", "Z", "W" };
@@ -602,7 +602,7 @@ void StudioConditionGraph::DrawAssignedGetterNode(ConditionGetterNode& g)
 
 	// 2行目:フィールド名(構造体の場合は「フィールド名.成分」、単純な型ならそのまま)
 	std::string line2;
-	int componentCount = MetaRegistry::GetComponentCount(g.type);
+	int componentCount = Reflection::GetComponentCount(g.type);
 	if (componentCount > 0)
 	{
 		std::string axisName = "?"; // 未選択の場合
@@ -1335,7 +1335,7 @@ ValueType StudioConditionGraph::GetNodeValueType(NodeKind kind, int nodeId) cons
 			if (g.id == nodeId)
 			{
 				// Float2/3/4は、軸(X/Y/Z/W)を選んで初めて「実質Float」として扱う
-				if (MetaRegistry::GetComponentCount(g.type) > 0)
+				if (Reflection::GetComponentCount(g.type) > 0)
 				{
 					return (g.selectedComponent != FloatComponent::None) ? ValueType::Float : g.type;
 				}

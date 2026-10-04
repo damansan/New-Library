@@ -24,9 +24,9 @@ struct SequencerComponent
 		REFLECT_FIELD(std::string, sequencerPath, (""), ("Sequencer File", 0.0f, 0.0f, 0.1f, "SEQUENCER_PATH")) // .sequencerファイルのパス
 
 		// 各フラグ
-		REFLECT_FIELD(bool, animExit,   (false), ("Anim Exit",  0.0f, 0.0f, 0.1f, "", true))
-		REFLECT_FIELD(bool, superArmor, (false), ("SuperArmor", 0.0f, 0.0f, 0.1f, "", true))
-		REFLECT_FIELD(bool, attack,     (false), ("Attack",     0.0f, 0.0f, 0.1f, "", true))
+		REFLECT_FIELD(bool, animExit,   (false), ("Anim Exit",  0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient))
+		REFLECT_FIELD(bool, superArmor, (false), ("SuperArmor", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient))
+		REFLECT_FIELD(bool, attack,     (false), ("Attack",     0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient))
 
 	REFLECT_END()
 

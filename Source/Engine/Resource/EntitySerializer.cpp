@@ -3,7 +3,7 @@
 #include "Engine/ECS/Components/PrefabInstanceComponent.h"
 #include "Engine/Core/Log.h"
 
-#include "Tool/Editor/MetaRegistry.h"
+#include "Engine/ECS/Reflection.h"
 
 #include <DirectXMath.h>
 #include <fstream>
@@ -27,9 +27,9 @@ nlohmann::json EntitySerializer::SerializeEntity(entt::registry& registry, entt:
 
 		for (auto&& [id, metaData] : metaType.data())
 		{
-			// readOnlyの項目は、実行中にSystemが書き換える状態なので、保存しない
+			// Transientの項目は、実行中にSystemが書き換える状態なので、保存しない
 			FieldInfo* fieldInfo = metaData.custom();
-			if (fieldInfo && fieldInfo->readOnly) continue;
+			if (fieldInfo && HasFlag(fieldInfo->flags, FieldFlags::Transient)) continue;
 
 			std::string fieldName(metaData.name());
 			entt::meta_any value = metaData.get(info->getMeta(registry, e));
@@ -100,9 +100,9 @@ void EntitySerializer::DeserializeEntity(entt::registry& registry, entt::entity 
 
 		for (auto&& [id, metaData] : metaType.data())
 		{
-			// readOnlyの項目は、ファイルに入っていても書き戻さない
+			// Transientの項目は、ファイルに入っていても書き戻さない
 			FieldInfo* fieldInfo = metaData.custom();
-			if (fieldInfo && fieldInfo->readOnly) continue;
+			if (fieldInfo && HasFlag(fieldInfo->flags, FieldFlags::Transient)) continue;
 
 			std::string fieldName(metaData.name());
 			if (!fields.contains(fieldName)) continue; // JSONに無いフィールドは初期値のまま

@@ -20,7 +20,7 @@ struct PlayerJumpComponent
 		REFLECT_FIELD(float, jumpPower, (8.0f), ("Jump Power", 0.0f, 50.0f))
 
 		// èÛë‘ÉtÉâÉO
-		REFLECT_FIELD(bool, isJumping, (false), ("Is Jumping", 0.0f, 0.0f, 0.1f, "", true))
+		REFLECT_FIELD(bool, isJumping, (false), ("Is Jumping", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient))
 
 	REFLECT_END()
 };

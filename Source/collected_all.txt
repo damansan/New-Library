@@ -1,5 +1,5 @@
 ===== main.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\main.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\main.cpp 
 #include <time.h>
 
 #include "Engine/Core/framework.h"
@@ -58,7 +58,7 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_  HINSTANCE prev_instance, _
  
  
 ===== Camera.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Core\Camera.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Core\Camera.h 
 #pragma once
 #include <DirectXMath.h>
 
@@ -107,7 +107,7 @@ private:
 }; 
  
 ===== framework.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Core\framework.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Core\framework.h 
 #pragma once
 
 #include <windows.h>
@@ -231,7 +231,7 @@ private:
 }; 
  
 ===== GameWindow.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Core\GameWindow.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Core\GameWindow.h 
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
@@ -309,7 +309,7 @@ private:
 }; 
  
 ===== Graphics.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Core\Graphics.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Core\Graphics.h 
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
@@ -399,7 +399,7 @@ private:
 }; 
  
 ===== ImGuiManager.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Core\ImGuiManager.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Core\ImGuiManager.h 
 #pragma once
 #include <windows.h>
 #include <d3d11.h>
@@ -438,7 +438,7 @@ public:
 }; 
  
 ===== JsonFileCache.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Core\JsonFileCache.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Core\JsonFileCache.h 
 #pragma once
 #include <string>
 #include <unordered_map>
@@ -499,7 +499,7 @@ private:
 }; 
  
 ===== Log.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Core\Log.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Core\Log.h 
 #pragma once
 #include <Windows.h>
 #include <cstdarg>
@@ -598,7 +598,7 @@ inline void Log(const char* format, ...)
 } 
  
 ===== PhysicsDestroyQueue.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Core\PhysicsDestroyQueue.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Core\PhysicsDestroyQueue.h 
 #pragma once
 #include <vector>
 #include <PxPhysicsAPI.h>
@@ -640,7 +640,7 @@ namespace PhysicsDestroyQueue
 } 
  
 ===== PhysicsLayer.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Core\PhysicsLayer.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Core\PhysicsLayer.h 
 #pragma once
 #include <PxPhysicsAPI.h>
 
@@ -693,7 +693,7 @@ private:
 }; 
  
 ===== PhysX.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Core\PhysX.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Core\PhysX.h 
 #pragma once
 #include <PxPhysicsAPI.h>
 
@@ -740,7 +740,7 @@ private:
 }; 
  
 ===== Scene.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Core\Scene.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Core\Scene.h 
 #pragma once
 #include "entt.hpp"
 #include "SceneContext.h"
@@ -794,7 +794,7 @@ protected:
 }; 
  
 ===== SceneContext.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Core\SceneContext.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Core\SceneContext.h 
 #pragma once
 #include <d3d11.h>
 #include <DirectXMath.h>
@@ -831,7 +831,7 @@ struct SceneContext
 }; 
  
 ===== SceneManager.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Core\SceneManager.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Core\SceneManager.h 
 #pragma once
 #include "Scene.h"
 #include <memory>
@@ -871,7 +871,7 @@ private:
 }; 
  
 ===== Camera.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Core\Camera.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Core\Camera.cpp 
 #include "Camera.h"
 
 // èâä˙âª
@@ -930,7 +930,7 @@ void Camera::SetPerspectiveFov(
 } 
  
 ===== framework.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Core\framework.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Core\framework.cpp 
 #include "framework.h"
 #include "tracy/Tracy.hpp"
 #include "Project/Scene/SceneGame.h"
@@ -1127,33 +1127,47 @@ void framework::render(float elapsedTime)
 	// Gameï`âÊêÊÇGameWindowópÉeÉNÉXÉ`ÉÉÇ…êÿÇËë÷Ç¶Çƒï`âÊ
 	gameWindow.Begin(graphics.GetDeviceContext());
 	sceneManager.Render(sceneContext);
-	gameWindow.End(graphics.GetDeviceContext());
-
+	{
+		ZoneScopedN("GameWindow::End");
+		gameWindow.End(graphics.GetDeviceContext());
+	}
 
 	if (IsEditorActive())
 	{
 		// Studioï`âÊ
-		for (auto& win : studioWindows)
 		{
-			win->Render();
+			ZoneScopedN("Studio::Render");
+			for (auto& win : studioWindows)
+			{
+				win->Render();
+			}
 		}
 
 		// ÉÅÉCÉìRTVÇçƒÉZÉbÉg
 		graphics.SetRenderTargets();
 
 		// ImGuiï`âÊÅiGameÉEÉBÉìÉhÉEÇ‡Ç±Ç±Ç≈ImGui::ImageåoóRÇ≈ï\é¶Ç≥ÇÍÇÈÅj
-		imguiManager.EndFrame();
+		{
+			ZoneScopedN("ImGui::EndFrame");
+			imguiManager.EndFrame();
+		}
 	}
 	else
 	{
 		// Editorñ≥å¯éûÅFGameÇÃÉeÉNÉXÉ`ÉÉÇÉtÉãÉXÉNÉäÅ[ÉìÇ≈ÉoÉbÉNÉoÉbÉtÉ@Ç÷
 		graphics.SetRenderTargets();
-		graphics.PresentTexture(gameWindow.GetSRV());
+		{
+			ZoneScopedN("PresentTexture");
+			graphics.PresentTexture(gameWindow.GetSRV());
+		}
 	}
 
 	// âÊñ îΩâf
-	graphics.Present(vsync);
-	
+	{
+		ZoneScopedN("Present");
+		graphics.Present(vsync);
+	}
+
 	FrameMark;
 }
 
@@ -1430,7 +1444,7 @@ bool framework::IsGameInputActive() const
  
  
 ===== GameWindow.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Core\GameWindow.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Core\GameWindow.cpp 
 #include "GameWindow.h"
 #include <imgui.h>
 #include <imgui_internal.h>
@@ -1616,7 +1630,7 @@ void GameWindow::ResizeRenderTarget(UINT width, UINT height)
 } 
  
 ===== Graphics.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Core\Graphics.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Core\Graphics.cpp 
 #include "Graphics.h"
 #include "Engine/Utility/misc.h"
 #include "Engine/Resource/GpuResourceUtils.h"
@@ -2067,7 +2081,7 @@ void Graphics::InitializePresentResources()
 } 
  
 ===== ImGuiManager.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Core\ImGuiManager.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Core\ImGuiManager.cpp 
 #include "ImGuiManager.h"
 
 ImGuiManager::~ImGuiManager()
@@ -2168,7 +2182,7 @@ bool ImGuiManager::HandleMessage(HWND hWnd, UINT msg, WPARAM wparam, LPARAM lpar
  
  
 ===== PhysX.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Core\PhysX.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Core\PhysX.cpp 
 #include "PhysX.h"
 
 using namespace physx;
@@ -2239,7 +2253,7 @@ physx::PxTriangleMesh* PhysX::CreateTriangleMesh(
  
  
 ===== Scene.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Core\Scene.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Core\Scene.cpp 
 #include "Scene.h"
 
 // ï®óùÉVÅ[ÉìÇÃçÏê¨
@@ -2289,7 +2303,7 @@ void Scene::UpdatePhysicsScene(float elapsedTime)
 } 
  
 ===== SceneManager.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Core\SceneManager.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Core\SceneManager.cpp 
 #include "SceneManager.h"
 
 // çXêV
@@ -2356,7 +2370,7 @@ void SceneManager::ClearScene()
  
  
 ===== AnimationSpeedData.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Data\AnimationSpeedData.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Data\AnimationSpeedData.h 
 #pragma once
 #include <string>
 #include <vector>
@@ -2399,11 +2413,12 @@ public:
 }; 
  
 ===== AnimatorGraphData.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Data\AnimatorGraphData.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Data\AnimatorGraphData.h 
 #pragma once
 #include <string>
 #include <vector>
 #include <json.hpp>
+#include "Engine/ECS/Reflection.h"
 
 // == StateÉOÉâÉtä÷òA == //
 enum class ChildStateType // éqäKëw(ChildState)ÇÃéÌóﬁ
@@ -2420,16 +2435,6 @@ enum class ParentStateType // êeäKëw(ParentState)ÇÃéÌóﬁ
 
 
 // == èåèÉOÉâÉtä÷òA == //
-enum class ValueType // ïœêîÉmÅ[ÉhÇ™éùÇ¬ílÇÃå^
-{
-	Int,
-	Float,
-	Bool,
-
-	Float2,
-	Float3,
-	Float4,
-};
 enum class FloatComponent // ç\ë¢ëÃÇÃÇ«ÇÃê¨ï™ÇéÊÇËèoÇ∑Ç©
 {
 	None,
@@ -2689,7 +2694,7 @@ private:
 }; 
  
 ===== SequencerData.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Data\SequencerData.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Data\SequencerData.h 
 #pragma once
 #include <string>
 #include <vector>
@@ -2740,7 +2745,7 @@ public:
 }; 
  
 ===== AnimationSpeedData.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Data\AnimationSpeedData.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Data\AnimationSpeedData.cpp 
 #include "AnimationSpeedData.h"
 #include <algorithm>
 
@@ -2866,7 +2871,7 @@ void AnimationSpeedData::FromJson(const nlohmann::json& j)
 } 
  
 ===== AnimatorGraphData.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Data\AnimatorGraphData.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Data\AnimatorGraphData.cpp 
 #include "AnimatorGraphData.h"
 #include <algorithm>
 
@@ -3896,7 +3901,7 @@ void TransitionGraphData::DeleteLink(int linkId)
 } 
  
 ===== SequencerData.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Data\SequencerData.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Data\SequencerData.cpp 
 #include "SequencerData.h"
 
 namespace
@@ -4019,7 +4024,7 @@ void SequencerData::FromJson(const nlohmann::json& j)
 } 
  
 ===== EntityFinder.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\EntityFinder.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\EntityFinder.h 
 #pragma once
 #include "entt.hpp"
 #include "Engine/ECS/Components/CategoryComponent.h"
@@ -4057,10 +4062,10 @@ inline std::vector<entt::entity> FindAllByCategory(entt::registry& registry, Ent
 } 
  
 ===== Reflect.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Reflect.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Reflect.h 
 #pragma once
 #include "entt.hpp"
-#include "Tool/Editor/MetaRegistry.h"
+#include "Engine/ECS/Reflection.h"
 
 using namespace entt::literals;
 
@@ -4079,14 +4084,14 @@ public:
 
 // FieldInfoÇÅAà íuà¯êîÅ{ÉfÉtÉHÉãÉgà¯êîÇ≈ëgÇ›óßÇƒÇÈÉwÉãÉpÅ[
 inline FieldInfo MakeFieldInfo(
-	std::string label,
-	float minValue = 0.0f,
-	float maxValue = 0.0f,
-	float dragSpeed = 0.1f,
-	std::string dragDropPayload = "",
-	bool readOnly = false)
+    std::string label,
+    float minValue = 0.0f,
+    float maxValue = 0.0f,
+    float dragSpeed = 0.1f,
+    std::string dragDropPayload = "",
+    FieldFlags flags = FieldFlags::None)
 {
-	return FieldInfo{ label, minValue, maxValue, dragSpeed, dragDropPayload, readOnly };
+    return FieldInfo{ label, minValue, maxValue, dragSpeed, dragDropPayload, flags };
 }
 
 // 1ÉtÉBÅ[ÉãÉhï™ÇÃêÈåæÅ{ìoò^
@@ -4124,8 +4129,189 @@ namespace ReflectEnumDetail_##EnumType                  \
 
 #define REFLECT_END() 
  
+===== Reflection.h ===== 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Reflection.h 
+#pragma once
+#include <string>
+#include <vector>
+#include <cstdint>
+#include "entt.hpp"
+
+// ílÇÃå^
+enum class ValueType
+{
+	Int,
+	Float,
+	Bool,
+	Float2,
+	Float3,
+	Float4,
+};
+
+// ÉtÉBÅ[ÉãÉhÇÃàµÇ¢Çï\Ç∑ÉtÉâÉO
+enum class FieldFlags : uint32_t
+{
+	None = 0,
+	VisibleOnly = 1 << 0, // ÉGÉfÉBÉ^Ç≈ï\é¶ÇÃÇ›
+	Transient = 1 << 1,   // ï€ë∂ÇµÇ»Ç¢
+};
+inline FieldFlags operator|(FieldFlags a, FieldFlags b)
+{
+	return static_cast<FieldFlags>(static_cast<uint32_t>(a) | static_cast<uint32_t>(b));
+}
+inline bool HasFlag(FieldFlags value, FieldFlags flag)
+{
+	return (static_cast<uint32_t>(value) & static_cast<uint32_t>(flag)) != 0;
+}
+
+// ÉtÉBÅ[ÉãÉh1Ç¬Ç…ìYïtÇ∑ÇÈïtâ¡èÓïÒ
+struct FieldInfo
+{
+	std::string label;      // ÉGÉfÉBÉ^è„ÇÃï\é¶ñº
+	float minValue = 0.0f;  // â∫å¿íl
+	float maxValue = 0.0f;  // è„å¿íl
+	float dragSpeed = 0.1f; // ÉhÉâÉbÉOéûÇÃïœâªó 
+	std::string dragDropPayload;
+	FieldFlags flags = FieldFlags::None;
+};
+
+// ÉRÉìÉ|Å[ÉlÉìÉg1Ç¬Ç…ìYïtÇ∑ÇÈïtâ¡èÓïÒ
+struct TypeInfo
+{
+	std::string category;
+};
+
+// enumÇÃÅA1Ç¬ÇÃílÇ…ïRÇ√Ç≠ï\é¶ñº
+struct EnumValueInfo
+{
+	std::string label;
+};
+
+
+// ÉtÉBÅ[ÉãÉh1åèï™ÇÃèÓïÒ(èåèÇÃï]âøÇ‚GetterëIëUIÇ≈égÇ§)
+struct FieldEntry
+{
+	entt::meta_type componentType; // ëÆÇ∑ÇÈÉRÉìÉ|Å[ÉlÉìÉgÇÃå^
+	entt::id_type fieldId = 0;     // entt::metaè„ÇÃÉtÉBÅ[ÉãÉhID
+	entt::meta_type nestedType;    // ÉlÉXÉgÇµÇƒÇ¢ÇÈèÍçáÇÃå^
+	entt::id_type subFieldId = 0;  // ÉlÉXÉgÇµÇƒÇ¢ÇÈèÍçáÇÃÉtÉBÅ[ÉãÉhID
+	std::string componentName;     // ÉRÉìÉ|Å[ÉlÉìÉgÇÃå^ñº
+	std::string category;          // ÉJÉeÉSÉä
+	std::string fieldLabel;        // ÉtÉBÅ[ÉãÉhÇÃï\é¶ñº
+	ValueType type = ValueType::Float;
+};
+
+
+class Reflection
+{
+public:
+	// ìoò^çœÇ›ÇÃÉtÉBÅ[ÉãÉhàÍóóÇéÊìæÇ∑ÇÈ
+	static const std::vector<FieldEntry>& GetAllFields();
+
+	// Float2/3/4å^ÇÃÅAê¨ï™êîÇï‘Ç∑(ÇªÇÍà»äOÇÕ0)
+	static int GetComponentCount(ValueType type);
+}; 
+ 
+===== Reflection.cpp ===== 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Reflection.cpp 
+#include "Reflection.h"
+#include <DirectXMath.h>
+
+// ílÇÃå^Çîªï Ç∑ÇÈÉwÉãÉpÅ[
+namespace
+{
+	ValueType ResolveValueType(entt::meta_type type)
+	{
+		if (type == entt::resolve<bool>())              return ValueType::Bool;
+		if (type == entt::resolve<int>())               return ValueType::Int;
+		if (type == entt::resolve<DirectX::XMFLOAT2>()) return ValueType::Float2;
+		if (type == entt::resolve<DirectX::XMFLOAT3>()) return ValueType::Float3;
+		if (type == entt::resolve<DirectX::XMFLOAT4>()) return ValueType::Float4;
+		return ValueType::Float;
+	}
+
+	// leafå^Ç©Ç«Ç§Ç©
+	bool IsLeafType(entt::meta_type type)
+	{
+		return type == entt::resolve<bool>()
+			|| type == entt::resolve<int>()
+			|| type == entt::resolve<float>()
+			|| type == entt::resolve<std::string>()
+			|| type == entt::resolve<DirectX::XMFLOAT2>()
+			|| type == entt::resolve<DirectX::XMFLOAT3>()
+			|| type == entt::resolve<DirectX::XMFLOAT4>();
+	}
+}
+
+// ìoò^çœÇ›ÇÃÉtÉBÅ[ÉãÉhàÍóóÇéÊìæÇ∑ÇÈ
+const std::vector<FieldEntry>& Reflection::GetAllFields()
+{
+	static std::vector<FieldEntry> fieldEntries;
+
+	if (fieldEntries.empty())
+	{
+		for (auto&& [id, metaType] : entt::resolve())
+		{
+			TypeInfo* typeInfo = metaType.custom();
+
+			if (!typeInfo) continue;
+
+			std::string category = typeInfo->category;
+			std::string componentName = std::string(metaType.name());
+
+			if (componentName.empty()) continue;
+
+			for (auto&& [fieldId, metaData] : metaType.data())
+			{
+				FieldInfo* fieldInfo = metaData.custom();
+				std::string label = fieldInfo ? fieldInfo->label : std::string(metaData.name());
+
+				entt::meta_type fieldType = metaData.type();
+
+				if (!IsLeafType(fieldType) && fieldType && !fieldType.is_enum() && fieldType.data().begin() != fieldType.data().end())
+				{
+					// ÉlÉXÉgÇµÇΩÉtÉBÅ[ÉãÉhÅFì‡ë§ÇÃå^Ç™éùÇ¬ÉtÉBÅ[ÉãÉhÇÅA1íiäKÇæÇØå@ÇËâ∫Ç∞Çƒí«â¡Ç∑ÇÈ
+					for (auto&& [subFieldId, subMetaData] : fieldType.data())
+					{
+						FieldInfo* subFieldInfo = subMetaData.custom();
+						std::string subLabel = subFieldInfo ? subFieldInfo->label : std::string(subMetaData.name());
+
+						ValueType valueType = ResolveValueType(subMetaData.type());
+						std::string combinedLabel = label + "." + subLabel;
+
+						fieldEntries.push_back(FieldEntry{
+							metaType, fieldId, fieldType, subFieldId, componentName, category, combinedLabel, valueType
+							});
+					}
+					continue;
+				}
+
+				ValueType valueType = ResolveValueType(fieldType);
+
+				fieldEntries.push_back(FieldEntry{
+					metaType, fieldId, entt::meta_type{}, 0, componentName, category, label, valueType
+					});
+			}
+		}
+	}
+
+	return fieldEntries;
+}
+
+// Float2/3/4å^ÇÃÅAê¨ï™êîÇï‘Ç∑(ÇªÇÍà»äOÇÕ0)
+int Reflection::GetComponentCount(ValueType type)
+{
+	switch (type)
+	{
+	case ValueType::Float2: return 2;
+	case ValueType::Float3: return 3;
+	case ValueType::Float4: return 4;
+	default: return 0;
+	}
+} 
+ 
 ===== AnimationSpeedComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Components\AnimationSpeedComponent.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Components\AnimationSpeedComponent.h 
 #pragma once
 #include <string>
 #include "Engine/ECS/Reflect.h"
@@ -4140,7 +4326,7 @@ struct AnimationSpeedComponent
 }; 
  
 ===== AnimatorComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Components\AnimatorComponent.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Components\AnimatorComponent.h 
 Ôªø#pragma once
 #include <string>
 #include <DirectXMath.h>
@@ -4153,12 +4339,12 @@ struct AnimatorComponent
         // ÂÜçÁîüÈñ¢ÈÄ£
         REFLECT_FIELD(float, playSpeed, (1.0f),  ("Play Speed", 0.0f, 3.0f))                 // ÂÜçÁîüÈÄüÂ∫¶
         REFLECT_FIELD(bool,  loop,      (true),  ("Loop"))                                   // „É´„Éº„Éó„Éï„É©„Ç∞
-        REFLECT_FIELD(bool,  isEnd,     (false), ("Is End",     0.0f, 0.0f, 0.1f, "", true)) // ÂÜçÁîüÁµÇ‰∫Ü„Éï„É©„Ç∞
+        REFLECT_FIELD(bool,  isEnd,     (false), ("Is End",     0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // ÂÜçÁîüÁµÇ‰∫Ü„Éï„É©„Ç∞
 
         // „Éñ„É¨„É≥„ÉâÈñ¢ÈÄ£
-        REFLECT_FIELD(std::string, blendAnimation, (""),    ("Blend From (Old Clip)", 0.0f, 0.0f, 0.1f, "", true)) // Êóß„ÇØ„É™„ÉÉ„ÉóÂêç
-        REFLECT_FIELD(float,       blendRate,      (0.0f),  ("Blend Rate",            0.0f, 1.0f, 0.1f, "", true)) // „Éñ„É¨„É≥„Éâ„ÅÆÈÄ≤Êçó
-        REFLECT_FIELD(bool,        isBlending,     (false), ("Is Blending",           0.0f, 0.0f, 0.1f, "", true)) // „Éñ„É¨„É≥„Éâ‰∏≠„Éï„É©„Ç∞
+        REFLECT_FIELD(std::string, blendAnimation, (""),    ("Blend From (Old Clip)", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // Êóß„ÇØ„É™„ÉÉ„ÉóÂêç
+        REFLECT_FIELD(float,       blendRate,      (0.0f),  ("Blend Rate",            0.0f, 1.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // „Éñ„É¨„É≥„Éâ„ÅÆÈÄ≤Êçó
+        REFLECT_FIELD(bool,        isBlending,     (false), ("Is Blending",           0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // „Éñ„É¨„É≥„Éâ‰∏≠„Éï„É©„Ç∞
 
         // „É´„Éº„Éà„É¢„Éº„Ç∑„Éß„É≥Èñ¢ÈÄ£
         REFLECT_FIELD(bool, useRootMotionY,            (false), ("Use Root Motion Y")) // YËª∏ÈÅ©Âøú
@@ -4200,7 +4386,7 @@ struct AnimatorComponent
 }; 
  
 ===== BaseCameraComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Components\BaseCameraComponent.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Components\BaseCameraComponent.h 
 #pragma once
 #include <DirectXMath.h>
 
@@ -4213,7 +4399,7 @@ struct BaseCameraComponent
  
  
 ===== CategoryComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Components\CategoryComponent.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Components\CategoryComponent.h 
 #pragma once
 #include "Engine/ECS/Reflect.h"
 
@@ -4244,7 +4430,7 @@ struct ComponentCategory
 }; 
  
 ===== ControllerComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Components\ControllerComponent.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Components\ControllerComponent.h 
 Ôªø#pragma once
 #include <cstdint>
 #include "Unsorted/Controller/AdaptiveTrigger.h"
@@ -4313,7 +4499,7 @@ namespace ControllerButtons
 } 
  
 ===== ControllerSettings.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Components\ControllerSettings.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Components\ControllerSettings.h 
 #pragma once
 #include <cstdint>
 
@@ -4336,7 +4522,7 @@ struct ControllerSettings
 }; 
  
 ===== FreeCameraComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Components\FreeCameraComponent.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Components\FreeCameraComponent.h 
 #pragma once
 #include <windows.h>
 #include "BaseCameraComponent.h"
@@ -4354,7 +4540,7 @@ struct FreeCameraComponent
 }; 
  
 ===== IKComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Components\IKComponent.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Components\IKComponent.h 
 #pragma once
 #include <DirectXMath.h>
 #include <vector>
@@ -4391,7 +4577,7 @@ struct IKComponent
 }; 
  
 ===== MaterialComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Components\MaterialComponent.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Components\MaterialComponent.h 
 #pragma once
 #include <cstdint>
 #include "Engine/ECS/Reflect.h"
@@ -4430,7 +4616,7 @@ struct MaterialComponent
 }; 
  
 ===== MeshComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Components\MeshComponent.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Components\MeshComponent.h 
 #pragma once
 #include <string>
 #include "Engine/ECS/Reflect.h"
@@ -4451,7 +4637,7 @@ struct MeshComponent
 }; 
  
 ===== MovementComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Components\MovementComponent.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Components\MovementComponent.h 
 #pragma once
 #include <DirectXMath.h>
 #include "Engine/ECS/Reflect.h"
@@ -4461,9 +4647,10 @@ struct MovementComponent
 	REFLECT_BEGIN(MovementComponent, "Movement")
 
 		// ê›íËíl
-		REFLECT_FIELD(float,             gravity,    (-20.0f),           ("Gravity",   -100.0f, 0.0f         ))  
-		REFLECT_FIELD(DirectX::XMFLOAT3, velocity,   (0.0f, 0.0f, 0.0f), ("Velocity",   0.0f,   0.0f,  0.01f ))
-		REFLECT_FIELD(bool,              isGrounded, (false),            ("Is Grounded"                      ))
+		REFLECT_FIELD(float,             gravity,     (-20.0f),           ("Gravity",   -100.0f, 0.0f         ))  
+		REFLECT_FIELD(DirectX::XMFLOAT3, velocity,    (0.0f, 0.0f, 0.0f), ("Velocity",   0.0f,   0.0f,  0.01f ))
+		REFLECT_FIELD(bool,              isGrounded,  (false),            ("Is Grounded"                      ))
+		REFLECT_FIELD(float,             planarSpeed, (0.0f),             ("Planar Speed", 0.0f, 0.0f, 0.01f, "", FieldFlags::VisibleOnly | FieldFlags::Transient))
 
 	REFLECT_END()
 
@@ -4478,7 +4665,7 @@ struct MovementComponent
 }; 
  
 ===== PhysicsComponents.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Components\PhysicsComponents.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Components\PhysicsComponents.h 
 #pragma once
 #include <PxPhysicsAPI.h>
 #include "Engine/ECS/Reflect.h"
@@ -4528,7 +4715,7 @@ struct CharacterControllerComponent
 }; 
  
 ===== PrefabInstanceComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Components\PrefabInstanceComponent.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Components\PrefabInstanceComponent.h 
 #pragma once
 #include <string>
 
@@ -4539,7 +4726,7 @@ struct PrefabInstanceComponent
 }; 
  
 ===== SequencerComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Components\SequencerComponent.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Components\SequencerComponent.h 
 #pragma once
 #include <string>
 #include "Engine/ECS/Reflect.h"
@@ -4566,9 +4753,9 @@ struct SequencerComponent
 		REFLECT_FIELD(std::string, sequencerPath, (""), ("Sequencer File", 0.0f, 0.0f, 0.1f, "SEQUENCER_PATH")) // .sequencerÉtÉ@ÉCÉãÇÃÉpÉX
 
 		// äeÉtÉâÉO
-		REFLECT_FIELD(bool, animExit,   (false), ("Anim Exit",  0.0f, 0.0f, 0.1f, "", true))
-		REFLECT_FIELD(bool, superArmor, (false), ("SuperArmor", 0.0f, 0.0f, 0.1f, "", true))
-		REFLECT_FIELD(bool, attack,     (false), ("Attack",     0.0f, 0.0f, 0.1f, "", true))
+		REFLECT_FIELD(bool, animExit,   (false), ("Anim Exit",  0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient))
+		REFLECT_FIELD(bool, superArmor, (false), ("SuperArmor", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient))
+		REFLECT_FIELD(bool, attack,     (false), ("Attack",     0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient))
 
 	REFLECT_END()
 
@@ -4576,7 +4763,7 @@ struct SequencerComponent
 }; 
  
 ===== SkinnedMeshComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Components\SkinnedMeshComponent.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Components\SkinnedMeshComponent.h 
 #pragma once
 #include <memory>
 #include <vector>
@@ -4604,7 +4791,7 @@ struct SkinnedMeshComponent
 }; 
  
 ===== StateComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Components\StateComponent.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Components\StateComponent.h 
 #pragma once
 
 // ëJà⁄ÉRÉìÉ|Å[ÉlÉìÉg
@@ -4615,7 +4802,7 @@ struct StateComponent
 }; 
  
 ===== StaticMeshComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Components\StaticMeshComponent.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Components\StaticMeshComponent.h 
 #pragma once
 #include <memory>
 #include "Engine/Resource/Model.h"
@@ -4628,7 +4815,7 @@ struct StaticMeshComponent
 }; 
  
 ===== Tags.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Components\Tags.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Components\Tags.h 
 #pragma once
 
 // ÉçÅ[ÉhçœÇ›ÉtÉâÉO
@@ -4641,7 +4828,7 @@ struct InvisibleTag {};
 struct NoShadowTag {}; 
  
 ===== TransformComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Components\TransformComponent.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Components\TransformComponent.h 
 #pragma once
 #include <DirectXMath.h>
 #include "Engine/ECS/Reflect.h"
@@ -4667,7 +4854,7 @@ struct TransformComponent
 }; 
  
 ===== AnimationSpeedSystem.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\AnimationSpeedSystem.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\AnimationSpeedSystem.h 
 #pragma once
 #include "entt.hpp"
 #include "Engine/Data/AnimationSpeedData.h"
@@ -4684,7 +4871,7 @@ private:
 }; 
  
 ===== AnimationSystem.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\AnimationSystem.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\AnimationSystem.h 
 #pragma once
 #include <d3d11.h>
 #include <algorithm>
@@ -4761,7 +4948,7 @@ private:
 }; 
  
 ===== AnimatorControllerSystem.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\AnimatorControllerSystem.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\AnimatorControllerSystem.h 
 #pragma once
 #include "entt.hpp"
 #include "Engine/Data/AnimatorGraphData.h"
@@ -4810,7 +4997,7 @@ private:
 }; 
  
 ===== ConditionGraphEvaluator.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\ConditionGraphEvaluator.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\ConditionGraphEvaluator.h 
 #pragma once
 #include "entt.hpp"
 #include "Engine/Data/AnimatorGraphData.h"
@@ -4841,7 +5028,7 @@ private:
 }; 
  
 ===== ControllerSystem.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\ControllerSystem.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\ControllerSystem.h 
 #pragma once
 #pragma comment(lib, "Xinput.lib")
 
@@ -4937,7 +5124,7 @@ private:
 }; 
  
 ===== DebugCameraSystem.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\DebugCameraSystem.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\DebugCameraSystem.h 
 #pragma once
 #include "entt.hpp"
 #include "Engine/Core/Camera.h"
@@ -4958,7 +5145,7 @@ private:
 }; 
  
 ===== IKSystem.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\IKSystem.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\IKSystem.h 
 #pragma once
 #include <DirectXMath.h>
 #include "entt.hpp"
@@ -4981,7 +5168,7 @@ private:
 }; 
  
 ===== MeshLoaderSystem.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\MeshLoaderSystem.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\MeshLoaderSystem.h 
 #pragma once
 #include <d3d11.h>
 
@@ -5007,7 +5194,7 @@ public:
 }; 
  
 ===== MovementSystem.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\MovementSystem.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\MovementSystem.h 
 #pragma once
 #include "entt.hpp"
 #include "Engine/Core/SceneContext.h"
@@ -5019,7 +5206,7 @@ public:
 }; 
  
 ===== PhysicsSystem.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\PhysicsSystem.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\PhysicsSystem.h 
 #pragma once
 #include "entt.hpp"
 #include "Engine/Core/PhysX.h"
@@ -5087,7 +5274,7 @@ private:
 }; 
  
 ===== RenderSystem.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\RenderSystem.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\RenderSystem.h 
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
@@ -5285,7 +5472,7 @@ private:
 }; 
  
 ===== SequencerSystem.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\SequencerSystem.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\SequencerSystem.h 
 #pragma once
 #include "entt.hpp"
 #include "Engine/Data/SequencerData.h"
@@ -5305,7 +5492,7 @@ private:
 }; 
  
 ===== StateGraphUtils.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\StateGraphUtils.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\StateGraphUtils.h 
 #pragma once
 #include <string>
 #include "Engine/Data/AnimatorGraphData.h"
@@ -5317,7 +5504,7 @@ namespace StateGraphUtils
 } 
  
 ===== TransitionControllerSystem.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\TransitionControllerSystem.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\TransitionControllerSystem.h 
 #pragma once
 #include "entt.hpp"
 #include "Engine/Core/SceneContext.h"
@@ -5337,7 +5524,7 @@ private:
 }; 
  
 ===== TwoBoneIKSolver.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\TwoBoneIKSolver.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\TwoBoneIKSolver.h 
 #pragma once
 #include <DirectXMath.h>
 
@@ -5371,7 +5558,7 @@ namespace TwoBoneIKSolver
 } 
  
 ===== AnimationSpeedSystem.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\AnimationSpeedSystem.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\AnimationSpeedSystem.cpp 
 #include "AnimationSpeedSystem.h"
 #include "Engine/ECS/Components/SkinnedMeshComponent.h"
 #include "Engine/ECS/Components/AnimatorComponent.h"
@@ -5433,7 +5620,7 @@ void AnimationSpeedSystem::Update(entt::registry& registry)
 } 
  
 ===== AnimationSystem.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\AnimationSystem.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\AnimationSystem.cpp 
 #include "AnimationSystem.h"
 #include "tracy/Tracy.hpp"
 #include "Engine/Resource/SkeletonUtils.h"
@@ -5969,7 +6156,7 @@ DirectX::XMFLOAT3 AnimationSystem::CalcRootMotionDelta(
  
  
 ===== AnimatorControllerSystem.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\AnimatorControllerSystem.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\AnimatorControllerSystem.cpp 
 #include "AnimatorControllerSystem.h"
 #include "Engine/ECS/Components/AnimatorComponent.h"
 #include "ConditionGraphEvaluator.h"
@@ -6206,10 +6393,10 @@ void AnimatorControllerSystem::ApplyChildState(AnimatorComponent& animator, cons
  
  
 ===== ConditionGraphEvaluator.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\ConditionGraphEvaluator.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\ConditionGraphEvaluator.cpp 
 #include "ConditionGraphEvaluator.h"
 #include "Engine/Resource/ComponentRegistry.h"
-#include "Tool/Editor/MetaRegistry.h"
+#include "Engine/ECS/Reflection.h"
 #include <DirectXMath.h>
 #include <cmath>
 
@@ -6251,7 +6438,7 @@ float ConditionGraphEvaluator::GetGetterValue(const ConditionGetterNode& node, e
 {
 	// ÉRÉìÉ|Å[ÉlÉìÉgñºÇ∆ÉtÉBÅ[ÉãÉhñºÇ©ÇÁàÍívÇ∑ÇÈFieldEntryÇíTÇ∑
 	const FieldEntry* found = nullptr;
-	for (const auto& f : MetaRegistry::GetAllFields())
+	for (const auto& f : Reflection::GetAllFields()) 
 	{
 		if (f.componentName == node.componentName && f.fieldLabel == node.fieldName)
 		{
@@ -6446,7 +6633,7 @@ float ConditionGraphEvaluator::ResolveInputValue(const ConditionGraph& graph, in
  
  
 ===== ControllerSystem.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\ControllerSystem.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\ControllerSystem.cpp 
 Ôªø#include "ControllerSystem.h"
 #include <cmath>
 #include <algorithm>
@@ -6842,7 +7029,7 @@ void ControllerSystem::SendPS5Output(const AdaptiveTrigger::TriggerEffect& left,
  
  
 ===== DebugCameraSystem.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\DebugCameraSystem.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\DebugCameraSystem.cpp 
 #include "DebugCameraSystem.h"
 #include <imgui.h>
 #include <algorithm>
@@ -6988,7 +7175,7 @@ void DebugCameraSystem::UpdateFreeCamera(FreeCameraComponent& free, float elapse
 } 
  
 ===== IKSystem.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\IKSystem.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\IKSystem.cpp 
 #include "IKSystem.h"
 #include "Engine/ECS/Systems/TwoBoneIKSolver.h"
 #include "Engine/Resource/SkeletonUtils.h"
@@ -7158,7 +7345,7 @@ void IKSystem::SolveFootIK(FootIKSettings& footSettings, SkinnedMeshComponent& s
 } 
  
 ===== MeshLoaderSystem.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\MeshLoaderSystem.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\MeshLoaderSystem.cpp 
 #include "MeshLoaderSystem.h"
 
 void MeshLoaderSystem::Update(
@@ -7242,7 +7429,7 @@ void MeshLoaderSystem::Update(
 } 
  
 ===== MovementSystem.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\MovementSystem.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\MovementSystem.cpp 
 #include "MovementSystem.h"
 
 #include "Engine/ECS/Components/MovementComponent.h"
@@ -7269,7 +7456,7 @@ void MovementSystem::Update(entt::registry& registry, float elapsedTime, const S
  
  
 ===== PhysicsSystem.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\PhysicsSystem.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\PhysicsSystem.cpp 
 #include "PhysicsSystem.h"
 #include "Engine/Core/PhysicsDestroyQueue.h"
 #include "Engine/Core/PhysicsLayer.h"
@@ -7622,6 +7809,11 @@ void PhysicsSystem::ProcessCharacterControllers(entt::registry& registry, PhysX&
 		// ê⁄ínîªíËÇMovementComponentÇ÷îΩâf
 		if (movement)
 		{
+			// Ç±ÇÃÉtÉåÅ[ÉÄÇ≈égÇ¡ÇΩêÖïΩë¨ìxÇÃëÂÇ´Ç≥
+			movement->planarSpeed = sqrtf(
+				movement->velocity.x * movement->velocity.x +
+				movement->velocity.z * movement->velocity.z);
+
 			bool grounded = (collisionFlags & PxControllerCollisionFlag::eCOLLISION_DOWN);
 			movement->isGrounded = grounded;
 
@@ -7636,7 +7828,7 @@ void PhysicsSystem::ProcessCharacterControllers(entt::registry& registry, PhysX&
  
  
 ===== RenderSystem.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\RenderSystem.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\RenderSystem.cpp 
 Ôªø#include "RenderSystem.h"
 #include "Engine/Resource/GpuResourceUtils.h"
 #include "Engine/Utility/misc.h"
@@ -8309,7 +8501,7 @@ void RenderSystem::ForwardTransparentPass(
  
  
 ===== SequencerSystem.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\SequencerSystem.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\SequencerSystem.cpp 
 #include "SequencerSystem.h"
 #include "Engine/ECS/Components/SkinnedMeshComponent.h"
 #include "Engine/ECS/Components/AnimatorComponent.h"
@@ -8405,7 +8597,7 @@ void SequencerSystem::Update(entt::registry& registry)
 } 
  
 ===== StateGraphUtils.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\StateGraphUtils.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\StateGraphUtils.cpp 
 #include "StateGraphUtils.h"
 
 namespace StateGraphUtils
@@ -8421,7 +8613,7 @@ namespace StateGraphUtils
 } 
  
 ===== TransitionControllerSystem.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\TransitionControllerSystem.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\TransitionControllerSystem.cpp 
 #include "TransitionControllerSystem.h"
 #include "Engine/ECS/Components/AnimatorComponent.h"
 #include "Engine/ECS/Components/StateComponent.h"
@@ -8484,7 +8676,7 @@ int TransitionControllerSystem::FindTransition(const std::vector<TransitionLink>
  
  
 ===== TwoBoneIKSolver.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\ECS\Systems\TwoBoneIKSolver.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\TwoBoneIKSolver.cpp 
 #include "TwoBoneIKSolver.h"
 #include <algorithm>
 #include <cmath>
@@ -8664,7 +8856,7 @@ namespace TwoBoneIKSolver
 } 
  
 ===== GBuffer.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Rendering\GBuffer.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Rendering\GBuffer.h 
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
@@ -8704,7 +8896,7 @@ private:
 }; 
  
 ===== LightManager.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Rendering\LightManager.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Rendering\LightManager.h 
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
@@ -8772,7 +8964,7 @@ private:
 }; 
  
 ===== PhysicsDebugRenderer.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Rendering\PhysicsDebugRenderer.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Rendering\PhysicsDebugRenderer.h 
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
@@ -8826,7 +9018,7 @@ private:
 }; 
  
 ===== PrimitiveRenderer.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Rendering\PrimitiveRenderer.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Rendering\PrimitiveRenderer.h 
 #pragma once
 #include <vector>
 #include <wrl.h>
@@ -8872,7 +9064,7 @@ private:
 }; 
  
 ===== ShapeRenderer.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Rendering\ShapeRenderer.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Rendering\ShapeRenderer.h 
 #pragma once
 #include <vector>
 #include <wrl.h>
@@ -9030,7 +9222,7 @@ private:
 }; 
  
 ===== SkyBox.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Rendering\SkyBox.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Rendering\SkyBox.h 
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
@@ -9099,7 +9291,7 @@ private:
 }; 
  
 ===== GBuffer.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Rendering\GBuffer.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Rendering\GBuffer.cpp 
 #include "GBuffer.h"
 #include "Engine/Utility/misc.h"
 
@@ -9181,7 +9373,7 @@ void GBuffer::EndGeometryPass(ID3D11DeviceContext* dc)
 } 
  
 ===== LightManager.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Rendering\LightManager.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Rendering\LightManager.cpp 
 #include "LightManager.h"
 #include "Engine/Resource/GpuResourceUtils.h"
 #include "Engine/Utility/misc.h"
@@ -9269,7 +9461,7 @@ void LightManager::Bind(ID3D11DeviceContext* dc)
  
  
 ===== PhysicsDebugRenderer.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Rendering\PhysicsDebugRenderer.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Rendering\PhysicsDebugRenderer.cpp 
 #include "PhysicsDebugRenderer.h"
 #include "Engine/ECS/Systems/PhysicsSystem.h"
 #include <string>
@@ -9624,7 +9816,7 @@ PhysicsDebugRenderer::GetOrCreateTriangleMeshCache(
 } 
  
 ===== PrimitiveRenderer.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Rendering\PrimitiveRenderer.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Rendering\PrimitiveRenderer.cpp 
 #include "PrimitiveRenderer.h"
 #include "Engine/Resource/GpuResourceUtils.h"
 
@@ -9716,7 +9908,7 @@ void PrimitiveRenderer::Render(
 } 
  
 ===== ShapeRenderer.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Rendering\ShapeRenderer.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Rendering\ShapeRenderer.cpp 
 #include "ShapeRenderer.h"
 #include "Engine/Resource/GpuResourceUtils.h"
 #include <algorithm>
@@ -10288,7 +10480,7 @@ void ShapeRenderer::CreateSolidCylinderMesh(ID3D11Device* device, int subdivisio
  
  
 ===== SkyBox.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Rendering\SkyBox.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Rendering\SkyBox.cpp 
 #include "SkyBox.h"
 #include "Engine/Resource/GpuResourceUtils.h"
 #include "Engine/Utility/misc.h"
@@ -10466,7 +10658,7 @@ void SkyBox::Render(
  
  
 ===== ComponentRegistry.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Resource\ComponentRegistry.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Resource\ComponentRegistry.h 
 #pragma once
 #include <string>
 #include <vector>
@@ -10503,7 +10695,7 @@ private:
 }; 
  
 ===== EntitySerializer.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Resource\EntitySerializer.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Resource\EntitySerializer.h 
 #pragma once
 #include "entt.hpp"
 #include <json.hpp>
@@ -10534,7 +10726,7 @@ private:
 }; 
  
 ===== GLTFConverter.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Resource\GLTFConverter.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Resource\GLTFConverter.h 
 #pragma once
 #include <memory>
 #include <d3d11.h>
@@ -10583,7 +10775,7 @@ private:
 }; 
  
 ===== GLTFData.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Resource\GLTFData.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Resource\GLTFData.h 
 #pragma once
 #include <string>
 #include <vector>
@@ -10700,7 +10892,7 @@ struct GLTFData
 }; 
  
 ===== GLTFImporter.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Resource\GLTFImporter.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Resource\GLTFImporter.h 
 #pragma once
 #include <memory>
 #include <string>
@@ -10776,7 +10968,7 @@ private:
 }; 
  
 ===== GpuResourceUtils.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Resource\GpuResourceUtils.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Resource\GpuResourceUtils.h 
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
@@ -10854,7 +11046,7 @@ public:
 }; 
  
 ===== Model.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Resource\Model.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Resource\Model.h 
 #pragma once
 
 #include <string>
@@ -11036,7 +11228,7 @@ private:
 }; 
  
 ===== ModelSerializer.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Resource\ModelSerializer.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Resource\ModelSerializer.h 
 #pragma once
 #include <memory>
 #include <string>
@@ -11067,7 +11259,7 @@ public:
 }; 
  
 ===== ResourceManager.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Resource\ResourceManager.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Resource\ResourceManager.h 
 #pragma once
 #include <string>
 #include <memory>
@@ -11106,7 +11298,7 @@ private:
 }; 
  
 ===== SceneSerializer.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Resource\SceneSerializer.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Resource\SceneSerializer.h 
 #pragma once
 #include <functional>
 #include <string>
@@ -11144,7 +11336,7 @@ private:
 }; 
  
 ===== SkeletonUtils.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Resource\SkeletonUtils.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Resource\SkeletonUtils.h 
 #pragma once
 #include <vector>
 #include <DirectXMath.h>
@@ -11169,7 +11361,7 @@ namespace SkeletonUtils
 } 
  
 ===== ComponentRegistry.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Resource\ComponentRegistry.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Resource\ComponentRegistry.cpp 
 #include "ComponentRegistry.h"
 
 std::unordered_map<std::string, ComponentInfo> ComponentRegistry::registry;
@@ -11209,13 +11401,13 @@ const ComponentInfo* ComponentRegistry::GetByTypeName(const std::string& typeNam
 } 
  
 ===== EntitySerializer.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Resource\EntitySerializer.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Resource\EntitySerializer.cpp 
 #include "EntitySerializer.h"
 #include "Engine/Resource/ComponentRegistry.h"
 #include "Engine/ECS/Components/PrefabInstanceComponent.h"
 #include "Engine/Core/Log.h"
 
-#include "Tool/Editor/MetaRegistry.h"
+#include "Engine/ECS/Reflection.h"
 
 #include <DirectXMath.h>
 #include <fstream>
@@ -11239,9 +11431,9 @@ nlohmann::json EntitySerializer::SerializeEntity(entt::registry& registry, entt:
 
 		for (auto&& [id, metaData] : metaType.data())
 		{
-			// readOnlyÇÃçÄñ⁄ÇÕÅAé¿çsíÜÇ…SystemÇ™èëÇ´ä∑Ç¶ÇÈèÛë‘Ç»ÇÃÇ≈ÅAï€ë∂ÇµÇ»Ç¢
+			// TransientÇÃçÄñ⁄ÇÕÅAé¿çsíÜÇ…SystemÇ™èëÇ´ä∑Ç¶ÇÈèÛë‘Ç»ÇÃÇ≈ÅAï€ë∂ÇµÇ»Ç¢
 			FieldInfo* fieldInfo = metaData.custom();
-			if (fieldInfo && fieldInfo->readOnly) continue;
+			if (fieldInfo && HasFlag(fieldInfo->flags, FieldFlags::Transient)) continue;
 
 			std::string fieldName(metaData.name());
 			entt::meta_any value = metaData.get(info->getMeta(registry, e));
@@ -11312,9 +11504,9 @@ void EntitySerializer::DeserializeEntity(entt::registry& registry, entt::entity 
 
 		for (auto&& [id, metaData] : metaType.data())
 		{
-			// readOnlyÇÃçÄñ⁄ÇÕÅAÉtÉ@ÉCÉãÇ…ì¸Ç¡ÇƒÇ¢ÇƒÇ‡èëÇ´ñﬂÇ≥Ç»Ç¢
+			// TransientÇÃçÄñ⁄ÇÕÅAÉtÉ@ÉCÉãÇ…ì¸Ç¡ÇƒÇ¢ÇƒÇ‡èëÇ´ñﬂÇ≥Ç»Ç¢
 			FieldInfo* fieldInfo = metaData.custom();
-			if (fieldInfo && fieldInfo->readOnly) continue;
+			if (fieldInfo && HasFlag(fieldInfo->flags, FieldFlags::Transient)) continue;
 
 			std::string fieldName(metaData.name());
 			if (!fields.contains(fieldName)) continue; // JSONÇ…ñ≥Ç¢ÉtÉBÅ[ÉãÉhÇÕèâä˙ílÇÃÇ‹Ç‹
@@ -11437,7 +11629,7 @@ void EntitySerializer::DeserializeMetaAny(entt::meta_data metaData, entt::meta_a
 } 
  
 ===== GLTFConverter.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Resource\GLTFConverter.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Resource\GLTFConverter.cpp 
 #include "GLTFConverter.h"
 #include "GpuResourceUtils.h"
 #include "Engine/Utility/misc.h"
@@ -11810,7 +12002,7 @@ void GLTFConverter::ConvertAnimations(
  
  
 ===== GLTFImporter.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Resource\GLTFImporter.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Resource\GLTFImporter.cpp 
 #include "GLTFImporter.h"
 #include "Engine/Utility/misc.h"
 #include <filesystem>
@@ -12625,7 +12817,7 @@ void GLTFImporter::CalcGlobalTransform(
  
  
 ===== GpuResourceUtils.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Resource\GpuResourceUtils.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Resource\GpuResourceUtils.cpp 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 #include "GpuResourceUtils.h"
@@ -12869,34 +13061,49 @@ HRESULT GpuResourceUtils::SaveToDDS(
 
 	if (FAILED(hr)) return hr;
 
-	// DDSå`éÆÇ≈ï€ë∂
-	std::wstring wDdsPath = ToWString(ddsFilename);
-	hr = DirectX::SaveToDDSFile(
-		image.GetImages(),
-		image.GetImageCount(),
-		image.GetMetadata(),
-		DirectX::DDS_FLAGS_NONE,
-		wDdsPath.c_str());
-
-	//// É~ÉbÉvÉ}ÉbÉvÇê∂ê¨Åi0 = 1x1Ç‹Ç≈ëSíiçÏÇÈÅj
-	//DirectX::ScratchImage mipChain;
-	//hr = DirectX::GenerateMipMaps(
+	//// DDSå`éÆÇ≈ï€ë∂
+	//std::wstring wDdsPath = ToWString(ddsFilename);
+	//hr = DirectX::SaveToDDSFile(
 	//	image.GetImages(),
 	//	image.GetImageCount(),
 	//	image.GetMetadata(),
-	//	DirectX::TEX_FILTER_DEFAULT,
-	//	0,
-	//	mipChain);
-	//if (FAILED(hr)) return hr;
-
-	//// DDSå`éÆÇ≈ï€ë∂ÅiÉ~ÉbÉvïtÇ´Åj
-	//std::wstring wDdsPath = ToWString(ddsFilename);
-	//hr = DirectX::SaveToDDSFile(
-	//	mipChain.GetImages(),
-	//	mipChain.GetImageCount(),
-	//	mipChain.GetMetadata(),
 	//	DirectX::DDS_FLAGS_NONE,
 	//	wDdsPath.c_str());
+
+	// É~ÉbÉvÉ}ÉbÉvÇê∂ê¨Åi0 = 1x1Ç‹Ç≈ëSíiçÏÇÈÅj
+	DirectX::ScratchImage mipChain;
+	hr = DirectX::GenerateMipMaps(
+		image.GetImages(),
+		image.GetImageCount(),
+		image.GetMetadata(),
+		DirectX::TEX_FILTER_DEFAULT,
+		0,
+		mipChain);
+
+	if (FAILED(hr)) return hr;
+
+	// BC3à≥èkÅiVRAMégópó Ç1/4Ç…Åj
+	DirectX::ScratchImage compressed;
+	HRESULT compHr = DirectX::Compress(
+		mipChain.GetImages(),
+		mipChain.GetImageCount(),
+		mipChain.GetMetadata(),
+		DXGI_FORMAT_BC3_UNORM,
+		DirectX::TEX_COMPRESS_DEFAULT | DirectX::TEX_COMPRESS_PARALLEL,
+		DirectX::TEX_THRESHOLD_DEFAULT,
+		compressed);
+
+	// à≥èkÇ≈Ç´Ç»Ç©Ç¡ÇΩèÍçáÅiÉTÉCÉYÇ™4ÇÃî{êîÇ≈Ç»Ç¢ìôÅjÇÕîÒà≥èkÇÃÇ‹Ç‹ï€ë∂
+	const DirectX::ScratchImage& src = SUCCEEDED(compHr) ? compressed : mipChain;
+
+	// DDSå`éÆÇ≈ï€ë∂ÅiÉ~ÉbÉvïtÇ´Åj
+	std::wstring wDdsPath = ToWString(ddsFilename);
+	hr = DirectX::SaveToDDSFile(
+		src.GetImages(),
+		src.GetImageCount(),
+		src.GetMetadata(),
+		DirectX::DDS_FLAGS_NONE,
+		wDdsPath.c_str());
 
 	return hr;
 }
@@ -12967,7 +13174,7 @@ HRESULT GpuResourceUtils::CreateConstantBuffer(
  
  
 ===== Model.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Resource\Model.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Resource\Model.cpp 
 #include "Model.h"
 
 // ì¸óÕÉåÉCÉAÉEÉgíËã`
@@ -12982,7 +13189,7 @@ const std::vector<D3D11_INPUT_ELEMENT_DESC> Model::InputElementDescs =
 }; 
  
 ===== ModelSerializer.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Resource\ModelSerializer.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Resource\ModelSerializer.cpp 
 #include "ModelSerializer.h"
 #include "Model.h"
 #include "Engine/Utility/CerealHelper.h"
@@ -13142,7 +13349,7 @@ std::string ModelSerializer::ToCerealPath(const std::string& gltfPath)
 } 
  
 ===== ResourceManager.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Resource\ResourceManager.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Resource\ResourceManager.cpp 
 #include "ResourceManager.h"
 #include "GLTFImporter.h"
 #include "GLTFConverter.h" 
@@ -13211,7 +13418,7 @@ void ResourceManager::ReleaseAll()
  
  
 ===== SceneSerializer.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Resource\SceneSerializer.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Resource\SceneSerializer.cpp 
 #include "SceneSerializer.h"
 #include "Engine/Resource/EntitySerializer.h"
 #include "Engine/ECS/Components/PrefabInstanceComponent.h"
@@ -13423,7 +13630,7 @@ nlohmann::json SceneSerializer::DiffAgainstPrefab(const nlohmann::json& current,
  
  
 ===== SkeletonUtils.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Resource\SkeletonUtils.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Resource\SkeletonUtils.cpp 
 #include "SkeletonUtils.h"
 #include <functional>
 
@@ -13518,7 +13725,7 @@ namespace SkeletonUtils
 } 
  
 ===== CerealHelper.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Utility\CerealHelper.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Utility\CerealHelper.h 
 #pragma once
 #include <DirectXMath.h>
 
@@ -13552,7 +13759,7 @@ namespace DirectX
 } 
  
 ===== high_resolution_timer.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Utility\high_resolution_timer.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Utility\high_resolution_timer.h 
 #pragma once
 
 #include <windows.h>
@@ -13691,7 +13898,7 @@ private:
  
  
 ===== misc.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Utility\misc.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Utility\misc.h 
 #pragma once
 
 #include <windows.h>
@@ -13755,7 +13962,7 @@ public:
  
  
 ===== CerealHelper.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Engine\Utility\CerealHelper.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Utility\CerealHelper.cpp 
 #include "CerealHelper.h"
 #include <cereal/archives/binary.hpp>
 
@@ -13836,7 +14043,7 @@ namespace DirectX
 } 
  
 ===== GameCameraComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Project\ECS\Components\GameCameraComponent.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Components\GameCameraComponent.h 
 #pragma once
 #include <DirectXMath.h>
 #include "entt.hpp"
@@ -13936,7 +14143,7 @@ struct GameCameraComponent
 }; 
  
 ===== GameInputComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Project\ECS\Components\GameInputComponent.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Components\GameInputComponent.h 
 #pragma once
 #include "Engine/ECS/Reflect.h"
 
@@ -13945,9 +14152,9 @@ struct StickState
 {
     REFLECT_BEGIN(StickState, "Stick State")
     
-        REFLECT_FIELD(float, x,        (0.0f),  ("X",         0.0f, 0.0f, 0.1f, "", true))
-        REFLECT_FIELD(float, y,        (0.0f),  ("Y",         0.0f, 0.0f, 0.1f, "", true))
-        REFLECT_FIELD(bool,  hasInput, (false), ("Has Input", 0.0f, 0.0f, 0.1f, "", true)) // ì¸óÕÇ™Ç†Ç¡ÇΩÇ©Ç«Ç§Ç©
+        REFLECT_FIELD(float, x,        (0.0f),  ("X",         0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient))
+        REFLECT_FIELD(float, y,        (0.0f),  ("Y",         0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient))
+        REFLECT_FIELD(bool,  hasInput, (false), ("Has Input", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // ì¸óÕÇ™Ç†Ç¡ÇΩÇ©Ç«Ç§Ç©
 
     REFLECT_END()
 };
@@ -13957,9 +14164,9 @@ struct ButtonState
 {
     REFLECT_BEGIN(ButtonState, "Button State")
         
-        REFLECT_FIELD(bool, pressed,  (false), ("Pressed",  0.0f, 0.0f, 0.1f, "", true)) // ì¸óÕÇ™Ç†Ç¡ÇΩÇ©Ç«Ç§Ç©
-        REFLECT_FIELD(bool, held,     (false), ("Held",     0.0f, 0.0f, 0.1f, "", true)) // âüÇµÇ¡ÇœÇ»ÇµíÜ
-        REFLECT_FIELD(bool, released, (false), ("Released", 0.0f, 0.0f, 0.1f, "", true)) // ç°ÉtÉåÅ[ÉÄó£Ç≥ÇÍÇΩ
+        REFLECT_FIELD(bool, pressed,  (false), ("Pressed",  0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // ì¸óÕÇ™Ç†Ç¡ÇΩÇ©Ç«Ç§Ç©
+        REFLECT_FIELD(bool, held,     (false), ("Held",     0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // âüÇµÇ¡ÇœÇ»ÇµíÜ
+        REFLECT_FIELD(bool, released, (false), ("Released", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // ç°ÉtÉåÅ[ÉÄó£Ç≥ÇÍÇΩ
         
     REFLECT_END()
 
@@ -13972,10 +14179,10 @@ struct TriggerState
 {
     REFLECT_BEGIN(TriggerState, "Trigger State")
 
-        REFLECT_FIELD(float, value,    (0.0f),  ("Value",    0.0f, 0.0f, 0.1f, "", true)) // ì¸óÕíl(0.0Å`1.0)
-        REFLECT_FIELD(bool,  pressed,  (false), ("Pressed",  0.0f, 0.0f, 0.1f, "", true)) // ç°ÉtÉåÅ[ÉÄêVÇµÇ≠âüÇ≥ÇÍÇΩ
-        REFLECT_FIELD(bool,  held,     (false), ("Held",     0.0f, 0.0f, 0.1f, "", true)) // âüÇµÇ¡ÇœÇ»ÇµíÜ
-        REFLECT_FIELD(bool,  released, (false), ("Released", 0.0f, 0.0f, 0.1f, "", true)) // ç°ÉtÉåÅ[ÉÄó£Ç≥ÇÍÇΩ
+        REFLECT_FIELD(float, value,    (0.0f),  ("Value",    0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // ì¸óÕíl(0.0Å`1.0)
+        REFLECT_FIELD(bool,  pressed,  (false), ("Pressed",  0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // ç°ÉtÉåÅ[ÉÄêVÇµÇ≠âüÇ≥ÇÍÇΩ
+        REFLECT_FIELD(bool,  held,     (false), ("Held",     0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // âüÇµÇ¡ÇœÇ»ÇµíÜ
+        REFLECT_FIELD(bool,  released, (false), ("Released", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // ç°ÉtÉåÅ[ÉÄó£Ç≥ÇÍÇΩ
         
     REFLECT_END()
 
@@ -13997,13 +14204,13 @@ struct GameInputComponent
 
         // É{É^Éì
         REFLECT_FIELD(ButtonState, jump, (), ("Jump"))
-        REFLECT_FIELD(bool, attack, (false), ("Attack", 0.0f, 0.0f, 0.1f, "", true))
+        REFLECT_FIELD(bool, attack, (false), ("Attack", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient))
         
     REFLECT_END()
 }; 
  
 ===== PlayerDodgeComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Project\ECS\Components\PlayerDodgeComponent.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Components\PlayerDodgeComponent.h 
 #pragma once
 #include "Engine/ECS/Reflect.h"
 
@@ -14029,12 +14236,12 @@ struct PlayerDodgeComponent
 		REFLECT_FIELD(float, directionBufferTime, (0.12f), ("Direction Buffer Time", 0.0f, 1.0f))
 
 		// èÛë‘ÉtÉâÉO
-		REFLECT_FIELD(bool, isDodging,    (false), ("Is Dodging",     0.0f, 0.0f, 0.1f, "", true))
-		REFLECT_FIELD(bool, isNoneInput,  (false), ("Is None Input",  0.0f, 0.0f, 0.1f, "", true))
-		REFLECT_FIELD(bool, isFrontInput, (false), ("Is Front Input", 0.0f, 0.0f, 0.1f, "", true))
-		REFLECT_FIELD(bool, isBackInput,  (false), ("Is Back Input",  0.0f, 0.0f, 0.1f, "", true))
-		REFLECT_FIELD(bool, isLeftInput,  (false), ("Is Left Input",  0.0f, 0.0f, 0.1f, "", true))
-		REFLECT_FIELD(bool, isRightInput, (false), ("Is Right Input", 0.0f, 0.0f, 0.1f, "", true))
+		REFLECT_FIELD(bool, isDodging,    (false), ("Is Dodging",     0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient))
+		REFLECT_FIELD(bool, isNoneInput,  (false), ("Is None Input",  0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient))
+		REFLECT_FIELD(bool, isFrontInput, (false), ("Is Front Input", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient))
+		REFLECT_FIELD(bool, isBackInput,  (false), ("Is Back Input",  0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient))
+		REFLECT_FIELD(bool, isLeftInput,  (false), ("Is Left Input",  0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient))
+		REFLECT_FIELD(bool, isRightInput, (false), ("Is Right Input", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient))
 
 	REFLECT_END()
 
@@ -14043,7 +14250,7 @@ struct PlayerDodgeComponent
 }; 
  
 ===== PlayerIdleComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Project\ECS\Components\PlayerIdleComponent.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Components\PlayerIdleComponent.h 
 #pragma once
 #include "Engine/ECS/Reflect.h"
 
@@ -14061,13 +14268,13 @@ struct PlayerIdleComponent
 	REFLECT_BEGIN(PlayerIdleComponent, "Player Idle")
 
 		// èÛë‘ÉtÉâÉO
-		REFLECT_FIELD(bool, isIdling, (false), ("Is Idling", 0.0f, 0.0f, 0.1f, "", true))
+		REFLECT_FIELD(bool, isIdling, (false), ("Is Idling", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient))
 
 	REFLECT_END()
 }; 
  
 ===== PlayerJumpComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Project\ECS\Components\PlayerJumpComponent.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Components\PlayerJumpComponent.h 
 #pragma once
 #include "Engine/ECS/Reflect.h"
 
@@ -14090,13 +14297,13 @@ struct PlayerJumpComponent
 		REFLECT_FIELD(float, jumpPower, (8.0f), ("Jump Power", 0.0f, 50.0f))
 
 		// èÛë‘ÉtÉâÉO
-		REFLECT_FIELD(bool, isJumping, (false), ("Is Jumping", 0.0f, 0.0f, 0.1f, "", true))
+		REFLECT_FIELD(bool, isJumping, (false), ("Is Jumping", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient))
 
 	REFLECT_END()
 }; 
  
 ===== PlayerMoveComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Project\ECS\Components\PlayerMoveComponent.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Components\PlayerMoveComponent.h 
 #pragma once
 #include "Engine/ECS/Reflect.h"
 
@@ -14121,9 +14328,9 @@ struct PlayerMoveComponent
 		REFLECT_FIELD(float, turnSpeed,    (10.0f), ("Turn Speed",    0.0f, 30.0f))
 
 		// èÛë‘ÉtÉâÉO
-		REFLECT_FIELD(bool, isWalking, (false), ("Is Walking", 0.0f, 0.0f, 0.1f, "", true))
-		REFLECT_FIELD(bool, isJogging, (false), ("Is Jogging", 0.0f, 0.0f, 0.1f, "", true))
-		REFLECT_FIELD(bool, isMoving, (false),  ("Is Moving",  0.0f, 0.0f, 0.1f, "", true))
+		REFLECT_FIELD(bool, isWalking, (false), ("Is Walking", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient))
+		REFLECT_FIELD(bool, isJogging, (false), ("Is Jogging", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient))
+		REFLECT_FIELD(bool, isMoving, (false),  ("Is Moving",  0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient))
 
 	REFLECT_END()
 
@@ -14133,7 +14340,7 @@ struct PlayerMoveComponent
 }; 
  
 ===== PlayerSprintComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Project\ECS\Components\PlayerSprintComponent.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Components\PlayerSprintComponent.h 
 #pragma once
 #include "Engine/ECS/Reflect.h"
 
@@ -14155,13 +14362,13 @@ struct PlayerSprintComponent
 		REFLECT_FIELD(float, turnSpeed,   (15.0f), ("Turn Speed",   0.0f, 30.0f))
 
 		// èÛë‘ÉtÉâÉO
-		REFLECT_FIELD(bool, isSprinting, (false), ("Is Sprinting", 0.0f, 0.0f, 0.1f, "", true))
+		REFLECT_FIELD(bool, isSprinting, (false), ("Is Sprinting", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient))
 
 	REFLECT_END()
 }; 
  
 ===== GameCameraSystem.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Project\ECS\Systems\GameCameraSystem.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Systems\GameCameraSystem.h 
 #pragma once
 #include "entt.hpp"
 #include "Engine/Core/Camera.h"
@@ -14205,7 +14412,7 @@ private:
 }; 
  
 ===== GameInputSystem.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Project\ECS\Systems\GameInputSystem.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Systems\GameInputSystem.h 
 #pragma once
 #include "entt.hpp"
 #include "Project/ECS/Components/GameInputComponent.h"
@@ -14240,7 +14447,7 @@ private:
 }; 
  
 ===== PlayerDodgeSystem.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Project\ECS\Systems\PlayerDodgeSystem.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Systems\PlayerDodgeSystem.h 
 #pragma once
 #include "entt.hpp"
 #include "Engine/Core/SceneContext.h"
@@ -14259,7 +14466,7 @@ private:
 }; 
  
 ===== PlayerIdleSystem.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Project\ECS\Systems\PlayerIdleSystem.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Systems\PlayerIdleSystem.h 
 #pragma once
 #include "entt.hpp"
 #include "Engine/Core/SceneContext.h"
@@ -14278,7 +14485,7 @@ private:
 }; 
  
 ===== PlayerJumpSystem.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Project\ECS\Systems\PlayerJumpSystem.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Systems\PlayerJumpSystem.h 
 #pragma once
 #include "Engine/Core/SceneContext.h"
 #include "Engine/Core/JsonFileCache.h"
@@ -14297,7 +14504,7 @@ private:
 }; 
  
 ===== PlayerMovementUtils.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Project\ECS\Systems\PlayerMovementUtils.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Systems\PlayerMovementUtils.h 
 #pragma once
 #include <DirectXMath.h>
 
@@ -14334,7 +14541,7 @@ namespace PlayerMovementUtils
 } 
  
 ===== PlayerMoveSystem.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Project\ECS\Systems\PlayerMoveSystem.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Systems\PlayerMoveSystem.h 
 #pragma once
 #include "entt.hpp"
 #include "Engine/Core/SceneContext.h"
@@ -14353,7 +14560,7 @@ private:
 }; 
  
 ===== PlayerSprintSystem.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Project\ECS\Systems\PlayerSprintSystem.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Systems\PlayerSprintSystem.h 
 #pragma once
 #include "entt.hpp"
 #include "Engine/Core/SceneContext.h"
@@ -14372,7 +14579,7 @@ private:
 }; 
  
 ===== GameCameraSystem.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Project\ECS\Systems\GameCameraSystem.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Systems\GameCameraSystem.cpp 
 Ôªø#include "GameCameraSystem.h"
 #include "Engine/ECS/EntityFinder.h"
 
@@ -14912,7 +15119,7 @@ void GameCameraSystem::UpdateLockOnEye(GameCameraComponent& cam, entt::registry&
  
  
 ===== GameInputSystem.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Project\ECS\Systems\GameInputSystem.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Systems\GameInputSystem.cpp 
 Ôªø#include "GameInputSystem.h"
 #include <cmath>
 #include <algorithm>
@@ -15026,7 +15233,7 @@ void GameInputSystem::UpdateButtonState(ButtonState& state, bool isHeldNow)
  
  
 ===== PlayerDodgeSystem.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Project\ECS\Systems\PlayerDodgeSystem.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Systems\PlayerDodgeSystem.cpp 
 #include "PlayerDodgeSystem.h"
 #include "Project/ECS/Components/GameInputComponent.h"
 #include "Project/ECS/Components/PlayerDodgeComponent.h"
@@ -15156,7 +15363,7 @@ void PlayerDodgeSystem::Update(entt::registry& registry, float elapsedTime, cons
 } 
  
 ===== PlayerIdleSystem.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Project\ECS\Systems\PlayerIdleSystem.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Systems\PlayerIdleSystem.cpp 
 #include "PlayerIdleSystem.h"
 #include "Project/ECS/Components/PlayerIdleComponent.h"
 
@@ -15212,7 +15419,7 @@ void PlayerIdleSystem::Update(entt::registry& registry, float elapsedTime, const
 } 
  
 ===== PlayerJumpSystem.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Project\ECS\Systems\PlayerJumpSystem.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Systems\PlayerJumpSystem.cpp 
 #include "PlayerJumpSystem.h"
 #include "Project/ECS/Components/PlayerJumpComponent.h"
 
@@ -15288,7 +15495,7 @@ void PlayerJumpSystem::Update(entt::registry& registry, float elapsedTime, const
 } 
  
 ===== PlayerMovementUtils.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Project\ECS\Systems\PlayerMovementUtils.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Systems\PlayerMovementUtils.cpp 
 #include "PlayerMovementUtils.h"
 #include <cmath>
 
@@ -15363,7 +15570,7 @@ namespace PlayerMovementUtils
 } 
  
 ===== PlayerMoveSystem.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Project\ECS\Systems\PlayerMoveSystem.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Systems\PlayerMoveSystem.cpp 
 #include "PlayerMoveSystem.h"
 #include "Project/ECS/Components/GameInputComponent.h"
 #include "Project/ECS/Components/PlayerMoveComponent.h"
@@ -15479,7 +15686,7 @@ void PlayerMoveSystem::Update(entt::registry& registry, float elapsedTime, const
 } 
  
 ===== PlayerSprintSystem.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Project\ECS\Systems\PlayerSprintSystem.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Systems\PlayerSprintSystem.cpp 
 #include "PlayerSprintSystem.h"
 #include "Project/ECS/Components/GameInputComponent.h"
 #include "Project/ECS/Components/PlayerSprintComponent.h"
@@ -15560,7 +15767,7 @@ void PlayerSprintSystem::Update(entt::registry& registry, float elapsedTime, con
 } 
  
 ===== SceneGame.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Project\Scene\SceneGame.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Project\Scene\SceneGame.h 
 #pragma once
 #include "Engine/Core/Scene.h"
 
@@ -15591,7 +15798,6 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Project\Scene\SceneGame.h
 #include "Engine/Rendering/SkyBox.h"
 #include "Engine/Rendering/LightManager.h"
 #include "Engine/Rendering/PhysicsDebugRenderer.h"
-#include "Tool/AdaptiveTriggerToolWindow.h"
 
 // ÉfÉÇ
 #include "Unsorted/Demo/WaveDemo.h"
@@ -15638,7 +15844,6 @@ private:
 	SkyBox                skyBox;
 	LightManager          lightManager;
 	PhysicsDebugRenderer  physicsDebugRenderer;
-	AdaptiveTriggerToolWindow adaptiveTriggerToolWindow;
 
 private:
 	// ÉfÉÇóp
@@ -15650,7 +15855,7 @@ private:
  
  
 ===== SceneGame.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Project\Scene\SceneGame.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Project\Scene\SceneGame.cpp 
 Ôªø#include "SceneGame.h"
 #include <imgui.h>
 
@@ -15861,15 +16066,6 @@ void SceneGame::Render(const SceneContext& context)
 
 void SceneGame::RenderImGui()
 {
-#ifdef _DEBUG
-	//auto view = registry.view<ControllerComponent>();
-	//for (auto entity : view)
-	//{
-	//	auto& ctrl = view.get<ControllerComponent>(entity);
-	//	adaptiveTriggerToolWindow.Draw(ctrl);
-	//	break;
-	//}
-#endif
 }
 
 // „Ç≤„Éº„É†„Éó„É¨„Ç§Á≥ª
@@ -16007,7 +16203,7 @@ void SceneGame::UpdateCamera(float elapsedTime, const SceneContext& context)
  
  
 ===== AdaptiveTriggerToolWindow.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\AdaptiveTriggerToolWindow.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\AdaptiveTriggerToolWindow.h 
 #pragma once
 #include <vector>
 #include "Engine/ECS/Components/ControllerComponent.h"
@@ -16049,7 +16245,7 @@ private:
 }; 
  
 ===== AdaptiveTriggerToolWindow.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\AdaptiveTriggerToolWindow.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\AdaptiveTriggerToolWindow.cpp 
 #include "AdaptiveTriggerToolWindow.h"
 #include <imgui.h>
 #include <algorithm>
@@ -16444,7 +16640,7 @@ void AdaptiveTriggerToolWindow::DrawSelectedPointPanel(std::vector<AdaptiveTrigg
 } 
  
 ===== ComponentInspectorRegistry.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Editor\ComponentInspectorRegistry.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Editor\ComponentInspectorRegistry.h 
 #pragma once
 #include <string>
 #include <unordered_map>
@@ -16462,7 +16658,7 @@ private:
 }; 
  
 ===== ComponentRegistryInitializer.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Editor\ComponentRegistryInitializer.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Editor\ComponentRegistryInitializer.h 
 #pragma once
 
 class ComponentRegistryInitializer
@@ -16473,7 +16669,7 @@ public:
 }; 
  
 ===== EditorContext.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Editor\EditorContext.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Editor\EditorContext.h 
 #pragma once
 #include <string>
 #include <unordered_map>
@@ -16545,7 +16741,7 @@ struct EditorContext
  
  
 ===== FileDialog.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Editor\FileDialog.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Editor\FileDialog.h 
 #pragma once
 #include <string>
 #include <Windows.h>
@@ -16559,7 +16755,7 @@ namespace FileDialog
 } 
  
 ===== HierarchyWindow.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Editor\HierarchyWindow.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Editor\HierarchyWindow.h 
 #pragma once
 #include "entt.hpp"
 #include "Tool/Editor/EditorContext.h"
@@ -16572,7 +16768,7 @@ public:
 }; 
  
 ===== InspectorWindow.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Editor\InspectorWindow.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Editor\InspectorWindow.h 
 #pragma once
 #include "entt.hpp"
 #include "EditorContext.h"
@@ -16595,7 +16791,7 @@ private:
 }; 
  
 ===== LogWindow.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Editor\LogWindow.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Editor\LogWindow.h 
 #pragma once
 #include <imgui.h>
 #include <vector>
@@ -16614,67 +16810,20 @@ private:
 }; 
  
 ===== MetaRegistry.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Editor\MetaRegistry.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Editor\MetaRegistry.h 
 #pragma once
-#include <string>
-#include <vector>
 #include "entt.hpp"
-
-#include "Engine/Data/AnimatorGraphData.h"
-
-// ÉtÉBÅ[ÉãÉh1Ç¬Ç…ìYïtÇ∑ÇÈïtâ¡èÓïÒ
-struct FieldInfo
-{
-	std::string label;       // Inspectorè„ÇÃï\é¶ñº
-	float minValue  = 0.0f;  // â∫å¿íl
-	float maxValue  = 0.0f;  // è„å¿íl
-	float dragSpeed = 0.1f;  // 
-	std::string dragDropPayload;
-	bool readOnly = false;
-};
-
-// GetterëIëUIÇ»Ç«Ç≈égÇ§ÅAÉtÉBÅ[ÉãÉh1åèï™ÇÃèÓïÒ
-struct FieldEntry
-{
-	entt::meta_type componentType; // ëÆÇ∑ÇÈÉRÉìÉ|Å[ÉlÉìÉgÇÃå^
-	entt::id_type fieldId = 0;     // entt::metaè„ÇÃÉtÉBÅ[ÉãÉhID(éÊìæÅEî‰ärÇ…égÇ§)
-
-	entt::meta_type nestedType;    // ÉlÉXÉgÇµÇƒÇ¢ÇÈèÍçáÇÃå^
-	entt::id_type subFieldId = 0;  // ÉlÉXÉgÇµÇƒÇ¢ÇÈÇŒÇ¢Ç¢ÇÃÉtÉBÅ[ÉãÉhID
-
-	std::string componentName;     // ï\é¶óp:ÉRÉìÉ|Å[ÉlÉìÉgñº
-	std::string category;          // ï\é¶óp:ÉJÉeÉSÉä
-	std::string fieldLabel;        // ï\é¶óp:ÉtÉBÅ[ÉãÉhñº
-	ValueType type = ValueType::Float;
-};
-
-// ÉRÉìÉ|Å[ÉlÉìÉg1Ç¬Ç…ìYïtÇ∑ÇÈïtâ¡èÓïÒ
-struct TypeInfo
-{
-	std::string category;
-};
-
-// enumÇÃÅA1Ç¬ÇÃílÇ…ïRÇ√Ç≠ï\é¶ñº
-struct EnumValueInfo
-{
-	std::string label;
-};
+#include "Engine/ECS/Reflection.h"
 
 class MetaRegistry
 {
 public:
 	// ìoò^çœÇ›ÉÅÉ^èÓïÒÇ©ÇÁInspectorUIÇé©ìÆï`âÊ
 	static void DrawMetaFields(entt::meta_type metaType, entt::meta_any instance);
-
-	// ìoò^çœÇ›ÇÃÉtÉBÅ[ÉhàÍóóÇéÊìæÇ∑ÇÈ
-	static const std::vector<FieldEntry>& GetAllFields();
-
-	// Float2/3/4å^ÇÃÅAê¨ï™êîÇï‘Ç∑(ÇªÇÍà»äOÇÕ0)
-	static int GetComponentCount(ValueType type);
 }; 
  
 ===== PrefabWindow.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Editor\PrefabWindow.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Editor\PrefabWindow.h 
 #pragma once
 #include "EditorContext.h"
 #include "entt.hpp"
@@ -16771,7 +16920,7 @@ private:
 }; 
  
 ===== ProjectWindow.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Editor\ProjectWindow.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Editor\ProjectWindow.h 
 #pragma once
 #include <string>
 #include <vector>
@@ -16891,7 +17040,7 @@ private:
 }; 
  
 ===== ComponentInspectorRegistry.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Editor\ComponentInspectorRegistry.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Editor\ComponentInspectorRegistry.cpp 
 #include "ComponentInspectorRegistry.h"
 
 std::unordered_map<std::string, std::function<void(entt::registry&, entt::entity)>> ComponentInspectorRegistry::registry;
@@ -16909,7 +17058,7 @@ const std::function<void(entt::registry&, entt::entity)>* ComponentInspectorRegi
 } 
  
 ===== ComponentRegistryInitializer.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Editor\ComponentRegistryInitializer.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Editor\ComponentRegistryInitializer.cpp 
 #include "ComponentRegistryInitializer.h"
 #include "Engine/Resource/ComponentRegistry.h"
 #include "Tool/Editor/ComponentInspectorRegistry.h"
@@ -17286,8 +17435,17 @@ void ComponentRegistryInitializer::Initialize()
 					bool created = (ctrl->controller != nullptr);
 					ImGui::Text(created ? u8"èÛë‘: ê∂ê¨çœÇ›" : u8"èÛë‘: ñ¢ê∂ê¨");
 				}
+
+				// à⁄ìÆÇÃèÛë‘ÅiCharacterÇ∆àÍèèÇ…ïtó^Ç≥ÇÍÇÈMovementComponentÅj
+				auto* movement = reg.try_get<MovementComponent>(e);
+				if (movement && ImGui::TreeNode("Movement"))
+				{
+					MetaRegistry::DrawMetaFields(entt::resolve<MovementComponent>(), entt::forward_as_meta(*movement));
+					ImGui::TreePop();
+				}
 				break;
 			}
+
 			default:
 				break;
 			}
@@ -17379,7 +17537,7 @@ void ComponentRegistryInitializer::Initialize()
  
  
 ===== FileDialog.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Editor\FileDialog.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Editor\FileDialog.cpp 
 #include "FileDialog.h"
 #include <commdlg.h>
 #include <filesystem>
@@ -17472,7 +17630,7 @@ namespace FileDialog
 } 
  
 ===== HierarchyWindow.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Editor\HierarchyWindow.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Editor\HierarchyWindow.cpp 
 #include "HierarchyWindow.h"
 #include "imgui_internal.h"
 #include <imgui.h>
@@ -17639,7 +17797,7 @@ void HierarchyWindow::Draw(entt::registry& registry, EditorContext& context)
 } 
  
 ===== InspectorWindow.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Editor\InspectorWindow.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Editor\InspectorWindow.cpp 
 #include "InspectorWindow.h"
 #include <imgui.h>
 #include "imgui_internal.h"
@@ -17788,7 +17946,7 @@ void InspectorWindow::DrawAddComponent(entt::registry& registry, EditorContext& 
  
  
 ===== LogWindow.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Editor\LogWindow.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Editor\LogWindow.cpp 
 #include "LogWindow.h"
 
 void LogWindow::Draw()
@@ -17843,7 +18001,7 @@ void LogWindow::Draw()
 } 
  
 ===== MetaRegistry.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Editor\MetaRegistry.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Editor\MetaRegistry.cpp 
 #include "MetaRegistry.h"
 #include <DirectXMath.h>
 #include <filesystem>
@@ -17852,20 +18010,6 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Editor\MetaRegistry.cpp
 #include <utility>
 
 using namespace entt::literals;
-
-#include "Engine/ECS/Components/TransformComponent.h"
-#include "Engine/ECS/Components/MeshComponent.h"
-#include "Engine/ECS/Components/MovementComponent.h"
-
-#include "Project/ECS/Components/PlayerIdleComponent.h"
-#include "Project/ECS/Components/PlayerMoveComponent.h"
-#include "Project/ECS/Components/PlayerDodgeComponent.h"
-#include "Project/ECS/Components/PlayerSprintComponent.h"
-
-#include "Project/ECS/Components/GameInputComponent.h"
-#include "Engine/ECS/Components/AnimatorComponent.h"
-#include "Engine/ECS/Components/SequencerComponent.h"
-#include "Engine/ECS/Components/AnimationSpeedComponent.h"
 
 // ìoò^çœÇ›ÉÅÉ^èÓïÒÇ©ÇÁInspectorUIÇé©ìÆï`âÊ
 void MetaRegistry::DrawMetaFields(entt::meta_type metaType, entt::meta_any instance)
@@ -17881,7 +18025,7 @@ void MetaRegistry::DrawMetaFields(entt::meta_type metaType, entt::meta_any insta
 
 		if (float* f = value.try_cast<float>())
 		{
-			if (fieldInfo && fieldInfo->readOnly)
+			if (fieldInfo && HasFlag(fieldInfo->flags, FieldFlags::VisibleOnly)) 
 			{
 				ImGui::Text("%s: %.2f", label.c_str(), *f);
 			}
@@ -17908,7 +18052,7 @@ void MetaRegistry::DrawMetaFields(entt::meta_type metaType, entt::meta_any insta
 		}
 		else if (bool* b = value.try_cast<bool>())
 		{
-			if (fieldInfo && fieldInfo->readOnly)
+			if (fieldInfo && HasFlag(fieldInfo->flags, FieldFlags::VisibleOnly)) 
 			{
 				ImGui::Text("%s: %s", label.c_str(), *b ? "true" : "false");
 			}
@@ -17941,7 +18085,7 @@ void MetaRegistry::DrawMetaFields(entt::meta_type metaType, entt::meta_any insta
 					ImGui::EndDragDropTarget();
 				}
 			}
-			else if (fieldInfo && fieldInfo->readOnly)
+			if (fieldInfo && HasFlag(fieldInfo->flags, FieldFlags::VisibleOnly)) 
 			{
 				ImGui::Text("%s: %s", label.c_str(), s->c_str());
 			}
@@ -18034,77 +18178,10 @@ namespace
 			|| type == entt::resolve<DirectX::XMFLOAT3>()
 			|| type == entt::resolve<DirectX::XMFLOAT4>();
 	}
-}
-
-// ìoò^çœÇ›ÇÃÉtÉBÅ[ÉhàÍóóÇéÊìæÇ∑ÇÈ
-const std::vector<FieldEntry>& MetaRegistry::GetAllFields()
-{
-	static std::vector<FieldEntry> fieldEntries;
-
-	if (fieldEntries.empty())
-	{
-		for (auto&& [id, metaType] : entt::resolve())
-		{
-			TypeInfo* typeInfo = metaType.custom();
-
-			if (!typeInfo) continue;
-
-			std::string category = typeInfo->category;
-			std::string componentName = std::string(metaType.name());
-
-			if (componentName.empty()) continue;
-
-			for (auto&& [fieldId, metaData] : metaType.data())
-			{
-				FieldInfo* fieldInfo = metaData.custom();
-				std::string label = fieldInfo ? fieldInfo->label : std::string(metaData.name());
-
-				entt::meta_type fieldType = metaData.type();
-
-				if (!IsLeafType(fieldType) && fieldType && !fieldType.is_enum() && fieldType.data().begin() != fieldType.data().end())
-				{
-					// ÉlÉXÉgÇµÇΩÉtÉBÅ[ÉãÉhÅFì‡ë§ÇÃå^Ç™éùÇ¬ÉtÉBÅ[ÉãÉhÇÅA1íiäKÇæÇØå@ÇËâ∫Ç∞Çƒí«â¡Ç∑ÇÈ
-					for (auto&& [subFieldId, subMetaData] : fieldType.data())
-					{
-						FieldInfo* subFieldInfo = subMetaData.custom();
-						std::string subLabel = subFieldInfo ? subFieldInfo->label : std::string(subMetaData.name());
-
-						ValueType valueType = ResolveValueType(subMetaData.type());
-						std::string combinedLabel = label + "." + subLabel;
-
-						fieldEntries.push_back(FieldEntry{
-							metaType, fieldId, fieldType, subFieldId, componentName, category, combinedLabel, valueType
-							});
-					}
-					continue;
-				}
-
-				ValueType valueType = ResolveValueType(fieldType);
-
-				fieldEntries.push_back(FieldEntry{
-					metaType, fieldId, entt::meta_type{}, 0, componentName, category, label, valueType
-					});
-			}
-		}
-	}
-
-	return fieldEntries;
-}
-
-// Float2/3/4å^ÇÃÅAê¨ï™êîÇï‘Ç∑(ÇªÇÍà»äOÇÕ0)
-int MetaRegistry::GetComponentCount(ValueType type)
-{
-	switch (type)
-	{
-	case ValueType::Float2: return 2;
-	case ValueType::Float3: return 3;
-	case ValueType::Float4: return 4;
-	default: return 0;
-	}
 } 
  
 ===== PrefabWindow.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Editor\PrefabWindow.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Editor\PrefabWindow.cpp 
 #include "PrefabWindow.h"
 #include <imgui.h>
 #include <algorithm>
@@ -18615,7 +18692,7 @@ void PrefabWindow::CommitRename()
 } 
  
 ===== ProjectWindow.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Editor\ProjectWindow.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Editor\ProjectWindow.cpp 
 #include "ProjectWindow.h"
 #include <imgui.h>
 
@@ -19206,7 +19283,7 @@ void ProjectWindow::CommitRename()
  
  
 ===== NodeEditorCanvas.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\NodeEditor\NodeEditorCanvas.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\NodeEditor\NodeEditorCanvas.h 
 #pragma once
 #include <imgui_node_editor.h>
 
@@ -19229,7 +19306,7 @@ private:
 }; 
  
 ===== NodeEditorCanvas.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\NodeEditor\NodeEditorCanvas.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\NodeEditor\NodeEditorCanvas.cpp 
 #include "NodeEditorCanvas.h"
 
 NodeEditorCanvas::~NodeEditorCanvas()
@@ -19261,7 +19338,7 @@ void NodeEditorCanvas::End()
 } 
  
 ===== AnimatorGraphNavigation.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\AnimatorGraphNavigation.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\AnimatorGraphNavigation.h 
 #pragma once
 
 // ÉAÉjÉÅÅ[É^Å[ÉOÉâÉtï“èWíÜÇÃâÊñ ëJà⁄óvãÅ
@@ -19273,7 +19350,7 @@ enum class NavigationRequest
 }; 
  
 ===== IStudioAttachment.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\IStudioAttachment.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\IStudioAttachment.h 
 #pragma once
 #include <d3d11.h>
 #include <DirectXMath.h>
@@ -19305,7 +19382,7 @@ public:
 }; 
  
 ===== StudioAnimationSpeed.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioAnimationSpeed.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioAnimationSpeed.h 
 #pragma once
 #include "IStudioAttachment.h"
 #include "Engine/Data/AnimationSpeedData.h"
@@ -19358,7 +19435,7 @@ private:
 }; 
  
 ===== StudioAnimator.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioAnimator.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioAnimator.h 
 #pragma once
 #include "IStudioAttachment.h"
 #include "Engine/ECS/Components/AnimatorComponent.h"
@@ -19382,7 +19459,7 @@ private:
 }; 
  
 ===== StudioAnimatorGraph.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioAnimatorGraph.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioAnimatorGraph.h 
 #pragma once
 #include "IStudioAttachment.h"
 #include "Engine/Data/AnimatorGraphData.h"
@@ -19463,7 +19540,7 @@ private:
 }; 
  
 ===== StudioCamera.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioCamera.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioCamera.h 
 #pragma once
 #include <DirectXMath.h>
 
@@ -19512,7 +19589,7 @@ private:
 }; 
  
 ===== StudioChildStateGraph.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioChildStateGraph.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioChildStateGraph.h 
 #pragma once
 #include "Engine/Data/AnimatorGraphData.h"
 #include "Tool/NodeEditor/NodeEditorCanvas.h"
@@ -19592,7 +19669,7 @@ private:
 }; 
  
 ===== StudioConditionGraph.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioConditionGraph.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioConditionGraph.h 
 #pragma once
 #include "Engine/Data/AnimatorGraphData.h"
 #include "Tool/NodeEditor/NodeEditorCanvas.h"
@@ -19723,7 +19800,7 @@ private:
 }; 
  
 ===== StudioContext.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioContext.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioContext.h 
 #pragma once
 #include <d3d11.h>
 #include <string>
@@ -19756,7 +19833,7 @@ struct StudioContext
 }; 
  
 ===== StudioModelViewer.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioModelViewer.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioModelViewer.h 
 #pragma once
 #include <string>
 #include <d3d11.h>
@@ -19817,7 +19894,7 @@ private:
 }; 
  
 ===== StudioParentStateGraph.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioParentStateGraph.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioParentStateGraph.h 
 #include "Engine/Data/AnimatorGraphData.h"
 #include "Tool/NodeEditor/NodeEditorCanvas.h"
 #include "Tool/Studio/AnimatorGraphNavigation.h"
@@ -19894,7 +19971,7 @@ private:
 }; 
  
 ===== StudioSequencer.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioSequencer.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioSequencer.h 
 #pragma once
 #include "IStudioAttachment.h"
 #include "Engine/Data/SequencerData.h"
@@ -19952,7 +20029,7 @@ private:
 };  
  
 ===== StudioSharedContext.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioSharedContext.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioSharedContext.h 
 #pragma once
 #include <d3d11.h>
 #include "Engine/Rendering/SkyBox.h"
@@ -19974,7 +20051,7 @@ struct StudioSharedContext
 }; 
  
 ===== StudioTimeline.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioTimeline.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioTimeline.h 
 #pragma once
 #include "IStudioAttachment.h"
 #include "Engine/ECS/Components/AnimatorComponent.h"
@@ -19997,7 +20074,7 @@ private:
 }; 
  
 ===== StudioTransitionGraph.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioTransitionGraph.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioTransitionGraph.h 
 #pragma once
 #include "Engine/Data/AnimatorGraphData.h"
 #include "Tool/NodeEditor/NodeEditorCanvas.h"
@@ -20070,7 +20147,7 @@ private:
 }; 
  
 ===== StudioWindow.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioWindow.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioWindow.h 
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
@@ -20188,7 +20265,7 @@ private:
 }; 
  
 ===== StudioAnimationSpeed.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioAnimationSpeed.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioAnimationSpeed.cpp 
 #include "StudioAnimationSpeed.h"
 #include "Engine/ECS/Components/SkinnedMeshComponent.h"
 #include "Engine/ECS/Components/AnimatorComponent.h"
@@ -20564,7 +20641,7 @@ void StudioAnimationSpeed::RefreshAvailableAnimations(entt::registry& registry)
 } 
  
 ===== StudioAnimator.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioAnimator.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioAnimator.cpp 
 #include "Tool/Studio/StudioAnimator.h"
 #include <imgui.h>
 
@@ -20636,7 +20713,7 @@ void StudioAnimator::DrawGUI(
 } 
  
 ===== StudioAnimatorGraph.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioAnimatorGraph.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioAnimatorGraph.cpp 
 #include "StudioAnimatorGraph.h"
 #include "Engine/ECS/Components/SkinnedMeshComponent.h"
 #include "Tool/Editor/ProjectWindow.h"
@@ -20985,7 +21062,7 @@ std::string StudioAnimatorGraph::BuildNewSavePath(StudioContext& context)
  
  
 ===== StudioCamera.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioCamera.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioCamera.cpp 
 #include "StudioCamera.h"
 #include <imgui.h>
 #include <Windows.h>
@@ -21141,7 +21218,7 @@ DirectX::XMFLOAT3 StudioCamera::GetRight() const
 } 
  
 ===== StudioChildStateGraph.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioChildStateGraph.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioChildStateGraph.cpp 
 Ôªø#include "StudioChildStateGraph.h"
 
 void StudioChildStateGraph::Initialize()
@@ -21677,12 +21754,12 @@ void StudioChildStateGraph::DrawDeleteButton(const char* label, const std::funct
 } 
  
 ===== StudioConditionGraph.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioConditionGraph.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioConditionGraph.cpp 
 Ôªø#include "StudioConditionGraph.h"
 #include <algorithm>
 #include <vector>
 
-#include "Tool/Editor/MetaRegistry.h"
+#include "Engine/ECS/Reflection.h"
 
 void StudioConditionGraph::Initialize()
 {
@@ -21769,7 +21846,7 @@ void StudioConditionGraph::DrawInspector()
 		ImGui::Text("Getter");
 		ImGui::Separator();
 
-		const auto& fields = MetaRegistry::GetAllFields();
+		const auto& fields = Reflection::GetAllFields();
 
 		// 1ÊÆµÁõÆ:„Ç≥„É≥„Éù„Éº„Éç„É≥„ÉàÂêç„ÅÆ‰∏ÄË¶ß(ÈáçË§áÈô§Âéª)
 		std::vector<std::string> componentNames;
@@ -21823,7 +21900,7 @@ void StudioConditionGraph::DrawInspector()
 		}
 
 		// 3ÊÆµÁõÆ:ÈÅ∏Êäû‰∏≠„Éï„Ç£„Éº„É´„Éâ„ÅåFloat2/3/4„ÅÆÂ†¥Âêà„ÅÆ„Åø„ÄÅÊàêÂàÜÈÅ∏Êäû„ÇíË°®Á§∫„Åô„Çã
-		int componentCount = MetaRegistry::GetComponentCount(selectedGetter->type);
+		int componentCount = Reflection::GetComponentCount(selectedGetter->type);
 		if (componentCount > 0)
 		{
 			static const char* names[] = { "X", "Y", "Z", "W" };
@@ -22282,7 +22359,7 @@ void StudioConditionGraph::DrawAssignedGetterNode(ConditionGetterNode& g)
 
 	// 2Ë°åÁõÆ:„Éï„Ç£„Éº„É´„ÉâÂêç(ÊßãÈÄ†‰Ωì„ÅÆÂ†¥Âêà„ÅØ„Äå„Éï„Ç£„Éº„É´„ÉâÂêç.ÊàêÂàÜ„Äç„ÄÅÂçòÁ¥î„Å™Âûã„Å™„Çâ„Åù„ÅÆ„Åæ„Åæ)
 	std::string line2;
-	int componentCount = MetaRegistry::GetComponentCount(g.type);
+	int componentCount = Reflection::GetComponentCount(g.type);
 	if (componentCount > 0)
 	{
 		std::string axisName = "?"; // Êú™ÈÅ∏Êäû„ÅÆÂ†¥Âêà
@@ -23015,7 +23092,7 @@ ValueType StudioConditionGraph::GetNodeValueType(NodeKind kind, int nodeId) cons
 			if (g.id == nodeId)
 			{
 				// Float2/3/4„ÅØ„ÄÅËª∏(X/Y/Z/W)„ÇíÈÅ∏„Çì„ÅßÂàù„ÇÅ„Å¶„ÄåÂÆüË≥™Float„Äç„Å®„Åó„Å¶Êâ±„ÅÜ
-				if (MetaRegistry::GetComponentCount(g.type) > 0)
+				if (Reflection::GetComponentCount(g.type) > 0)
 				{
 					return (g.selectedComponent != FloatComponent::None) ? ValueType::Float : g.type;
 				}
@@ -23051,7 +23128,7 @@ ValueType StudioConditionGraph::GetOutputValueType(PinRole outRole, int outNodeI
 } 
  
 ===== StudioModelViewer.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioModelViewer.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioModelViewer.cpp 
 #include "StudioModelViewer.h"
 
 #include <windows.h>
@@ -23206,7 +23283,7 @@ void StudioModelViewer::LoadModel(
  
  
 ===== StudioParentStateGraph.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioParentStateGraph.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioParentStateGraph.cpp 
 #include "StudioParentStateGraph.h"
 #include <algorithm>
 
@@ -23755,7 +23832,7 @@ void StudioParentStateGraph::DrawDeleteButton(const char* label, const std::func
 } 
  
 ===== StudioSequencer.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioSequencer.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioSequencer.cpp 
 #include "StudioSequencer.h"
 #include "Engine/ECS/Components/SkinnedMeshComponent.h"
 #include "Engine/ECS/Components/AnimatorComponent.h"
@@ -24254,7 +24331,7 @@ const char* StudioSequencer::GetSequencerFlagName(SequencerFlag flag)
  
  
 ===== StudioTimeline.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioTimeline.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioTimeline.cpp 
 Ôªø#include "StudioTimeline.h"
 #include <imgui.h>
 #include <string>
@@ -24354,7 +24431,7 @@ void StudioTimeline::DrawGUI(entt::registry& registry, StudioContext& context)
  
  
 ===== StudioTransitionGraph.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioTransitionGraph.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioTransitionGraph.cpp 
 #include "StudioTransitionGraph.h"
 
 void StudioTransitionGraph::Initialize()
@@ -24795,7 +24872,7 @@ void StudioTransitionGraph::DrawDeleteButton(const char* label, const std::funct
 } 
  
 ===== StudioWindow.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Tool\Studio\StudioWindow.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Studio\StudioWindow.cpp 
 #include "StudioWindow.h"
 #include <imgui.h>
 #include <imgui_internal.h>
@@ -25173,7 +25250,7 @@ void StudioWindow::ResizeRenderTarget()
  
  
 ===== AdaptiveTrigger.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Unsorted\Controller\AdaptiveTrigger.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Unsorted\Controller\AdaptiveTrigger.h 
 #pragma once
 #include <vector>
 #include <cmath>
@@ -25320,7 +25397,7 @@ namespace AdaptiveTrigger
 } 
  
 ===== WaveDemo.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Unsorted\Demo\WaveDemo.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Unsorted\Demo\WaveDemo.h 
 #pragma once
 #include <entt.hpp>
 #include <d3d11.h>
@@ -25359,7 +25436,7 @@ private:
 }; 
  
 ===== WaveDemo.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Unsorted\Demo\WaveDemo.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Unsorted\Demo\WaveDemo.cpp 
 #include "WaveDemo.h"
 
 void WaveDemo::Initialize(

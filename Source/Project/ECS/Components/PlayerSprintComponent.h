@@ -19,7 +19,7 @@ struct PlayerSprintComponent
 		REFLECT_FIELD(float, turnSpeed,   (15.0f), ("Turn Speed",   0.0f, 30.0f))
 
 		// èÛë‘ÉtÉâÉO
-		REFLECT_FIELD(bool, isSprinting, (false), ("Is Sprinting", 0.0f, 0.0f, 0.1f, "", true))
+		REFLECT_FIELD(bool, isSprinting, (false), ("Is Sprinting", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient))
 
 	REFLECT_END()
 };

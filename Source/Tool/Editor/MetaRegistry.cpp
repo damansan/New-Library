@@ -7,20 +7,6 @@
 
 using namespace entt::literals;
 
-#include "Engine/ECS/Components/TransformComponent.h"
-#include "Engine/ECS/Components/MeshComponent.h"
-#include "Engine/ECS/Components/MovementComponent.h"
-
-#include "Project/ECS/Components/PlayerIdleComponent.h"
-#include "Project/ECS/Components/PlayerMoveComponent.h"
-#include "Project/ECS/Components/PlayerDodgeComponent.h"
-#include "Project/ECS/Components/PlayerSprintComponent.h"
-
-#include "Project/ECS/Components/GameInputComponent.h"
-#include "Engine/ECS/Components/AnimatorComponent.h"
-#include "Engine/ECS/Components/SequencerComponent.h"
-#include "Engine/ECS/Components/AnimationSpeedComponent.h"
-
 // 登録済みメタ情報からInspectorUIを自動描画
 void MetaRegistry::DrawMetaFields(entt::meta_type metaType, entt::meta_any instance)
 {
@@ -35,7 +21,7 @@ void MetaRegistry::DrawMetaFields(entt::meta_type metaType, entt::meta_any insta
 
 		if (float* f = value.try_cast<float>())
 		{
-			if (fieldInfo && fieldInfo->readOnly)
+			if (fieldInfo && HasFlag(fieldInfo->flags, FieldFlags::VisibleOnly)) 
 			{
 				ImGui::Text("%s: %.2f", label.c_str(), *f);
 			}
@@ -62,7 +48,7 @@ void MetaRegistry::DrawMetaFields(entt::meta_type metaType, entt::meta_any insta
 		}
 		else if (bool* b = value.try_cast<bool>())
 		{
-			if (fieldInfo && fieldInfo->readOnly)
+			if (fieldInfo && HasFlag(fieldInfo->flags, FieldFlags::VisibleOnly)) 
 			{
 				ImGui::Text("%s: %s", label.c_str(), *b ? "true" : "false");
 			}
@@ -95,7 +81,7 @@ void MetaRegistry::DrawMetaFields(entt::meta_type metaType, entt::meta_any insta
 					ImGui::EndDragDropTarget();
 				}
 			}
-			else if (fieldInfo && fieldInfo->readOnly)
+			else if (fieldInfo && HasFlag(fieldInfo->flags, FieldFlags::VisibleOnly))
 			{
 				ImGui::Text("%s: %s", label.c_str(), s->c_str());
 			}
@@ -187,72 +173,5 @@ namespace
 			|| type == entt::resolve<DirectX::XMFLOAT2>()
 			|| type == entt::resolve<DirectX::XMFLOAT3>()
 			|| type == entt::resolve<DirectX::XMFLOAT4>();
-	}
-}
-
-// 登録済みのフィード一覧を取得する
-const std::vector<FieldEntry>& MetaRegistry::GetAllFields()
-{
-	static std::vector<FieldEntry> fieldEntries;
-
-	if (fieldEntries.empty())
-	{
-		for (auto&& [id, metaType] : entt::resolve())
-		{
-			TypeInfo* typeInfo = metaType.custom();
-
-			if (!typeInfo) continue;
-
-			std::string category = typeInfo->category;
-			std::string componentName = std::string(metaType.name());
-
-			if (componentName.empty()) continue;
-
-			for (auto&& [fieldId, metaData] : metaType.data())
-			{
-				FieldInfo* fieldInfo = metaData.custom();
-				std::string label = fieldInfo ? fieldInfo->label : std::string(metaData.name());
-
-				entt::meta_type fieldType = metaData.type();
-
-				if (!IsLeafType(fieldType) && fieldType && !fieldType.is_enum() && fieldType.data().begin() != fieldType.data().end())
-				{
-					// ネストしたフィールド：内側の型が持つフィールドを、1段階だけ掘り下げて追加する
-					for (auto&& [subFieldId, subMetaData] : fieldType.data())
-					{
-						FieldInfo* subFieldInfo = subMetaData.custom();
-						std::string subLabel = subFieldInfo ? subFieldInfo->label : std::string(subMetaData.name());
-
-						ValueType valueType = ResolveValueType(subMetaData.type());
-						std::string combinedLabel = label + "." + subLabel;
-
-						fieldEntries.push_back(FieldEntry{
-							metaType, fieldId, fieldType, subFieldId, componentName, category, combinedLabel, valueType
-							});
-					}
-					continue;
-				}
-
-				ValueType valueType = ResolveValueType(fieldType);
-
-				fieldEntries.push_back(FieldEntry{
-					metaType, fieldId, entt::meta_type{}, 0, componentName, category, label, valueType
-					});
-			}
-		}
-	}
-
-	return fieldEntries;
-}
-
-// Float2/3/4型の、成分数を返す(それ以外は0)
-int MetaRegistry::GetComponentCount(ValueType type)
-{
-	switch (type)
-	{
-	case ValueType::Float2: return 2;
-	case ValueType::Float3: return 3;
-	case ValueType::Float4: return 4;
-	default: return 0;
 	}
 }

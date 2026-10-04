@@ -23,12 +23,12 @@ struct PlayerDodgeComponent
 		REFLECT_FIELD(float, directionBufferTime, (0.12f), ("Direction Buffer Time", 0.0f, 1.0f))
 
 		// èÛë‘ÉtÉâÉO
-		REFLECT_FIELD(bool, isDodging,    (false), ("Is Dodging",     0.0f, 0.0f, 0.1f, "", true))
-		REFLECT_FIELD(bool, isNoneInput,  (false), ("Is None Input",  0.0f, 0.0f, 0.1f, "", true))
-		REFLECT_FIELD(bool, isFrontInput, (false), ("Is Front Input", 0.0f, 0.0f, 0.1f, "", true))
-		REFLECT_FIELD(bool, isBackInput,  (false), ("Is Back Input",  0.0f, 0.0f, 0.1f, "", true))
-		REFLECT_FIELD(bool, isLeftInput,  (false), ("Is Left Input",  0.0f, 0.0f, 0.1f, "", true))
-		REFLECT_FIELD(bool, isRightInput, (false), ("Is Right Input", 0.0f, 0.0f, 0.1f, "", true))
+		REFLECT_FIELD(bool, isDodging,    (false), ("Is Dodging",     0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient))
+		REFLECT_FIELD(bool, isNoneInput,  (false), ("Is None Input",  0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient))
+		REFLECT_FIELD(bool, isFrontInput, (false), ("Is Front Input", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient))
+		REFLECT_FIELD(bool, isBackInput,  (false), ("Is Back Input",  0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient))
+		REFLECT_FIELD(bool, isLeftInput,  (false), ("Is Left Input",  0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient))
+		REFLECT_FIELD(bool, isRightInput, (false), ("Is Right Input", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient))
 
 	REFLECT_END()
 

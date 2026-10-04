@@ -15,7 +15,7 @@ struct PlayerIdleComponent
 	REFLECT_BEGIN(PlayerIdleComponent, "Player Idle")
 
 		// èÛë‘ÉtÉâÉO
-		REFLECT_FIELD(bool, isIdling, (false), ("Is Idling", 0.0f, 0.0f, 0.1f, "", true))
+		REFLECT_FIELD(bool, isIdling, (false), ("Is Idling", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient))
 
 	REFLECT_END()
 };
