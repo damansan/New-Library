@@ -65,138 +65,6 @@
     <Filter Include="External\imgui-node-editor">
       <UniqueIdentifier>{7f346661-3b9b-4835-be73-9c1b34c9f0ed}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Sources\Engine">
-      <UniqueIdentifier>{4d7fbc4d-5e50-4fe3-8408-778976156706}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Engine\Core">
-      <UniqueIdentifier>{d12e9f03-3f01-4ba6-9e63-44ab99413a17}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Engine\Data">
-      <UniqueIdentifier>{7b834e06-34fb-43c2-9a6a-7e976a13c5a8}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Engine\Resource">
-      <UniqueIdentifier>{ef966537-2b08-4233-8eea-39230abf7c58}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Engine\Utility">
-      <UniqueIdentifier>{3d8dd4f2-3716-4f6f-b73a-40fee4e3e0ad}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Engine\ECS">
-      <UniqueIdentifier>{e93a87f6-fdc9-4ec2-bfb7-ca9f5115183d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Engine\ECS\Components">
-      <UniqueIdentifier>{5fb2698b-1b0d-4696-ab48-9fb8be4ae9ae}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Engine\ECS\Systems">
-      <UniqueIdentifier>{4593dc18-6f36-414e-afc6-eb94ed7e57db}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Engine\Core\Camera">
-      <UniqueIdentifier>{cab047e8-c092-49fa-8924-97d80476a619}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Engine\Core\Graphics">
-      <UniqueIdentifier>{e8287e22-fedc-400d-92d5-fa3d6cc7dfc6}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Engine\Core\JsonFileCache">
-      <UniqueIdentifier>{bd6107c1-967d-4430-aa5d-6dcfcc7c1e8d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Engine\Core\PhysX">
-      <UniqueIdentifier>{ff7f02b3-29f0-46cc-adb5-fd519af790e8}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Engine\Core\Scene">
-      <UniqueIdentifier>{c344a1d8-73fc-4bf9-991d-a7e423be9913}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Engine\Core\SceneContext">
-      <UniqueIdentifier>{0681ecf7-3242-4d68-8301-3ca6add65802}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Engine\Core\SceneManager">
-      <UniqueIdentifier>{ebfd552c-2a66-42c3-bd45-840a47ecaaee}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Engine\Data\AnimatorGraphData">
-      <UniqueIdentifier>{0037436e-e550-4b31-8612-daa286cfad1a}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Engine\Data\SequencerData">
-      <UniqueIdentifier>{80960241-8600-4ce7-8325-04725dcd216c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Engine\Resource\GLTFConverter">
-      <UniqueIdentifier>{a1d80a41-0cc0-4705-8dea-1ae1d2897127}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Engine\Resource\GLTFData">
-      <UniqueIdentifier>{31152fc8-6d4f-4bd0-b3a5-35f19ba35315}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Engine\Resource\GLTFImporter">
-      <UniqueIdentifier>{f94560d5-09df-4b7c-8e1d-887bd7f57ad1}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Engine\Resource\GpuResourceUtils">
-      <UniqueIdentifier>{be1c6753-cd52-40ac-8452-dcd9c6b6bebd}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Engine\Resource\Model">
-      <UniqueIdentifier>{df2049da-8257-4fdd-b0c8-ad7b0874dd84}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Engine\Resource\ModelSerializer">
-      <UniqueIdentifier>{75dcf95f-3bc8-4b40-b351-fa0406cc82b7}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Engine\Resource\ResourceManager">
-      <UniqueIdentifier>{05c1e3b1-1252-41f6-a047-20c8632982b7}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Engine\Resource\SkeletonUtils">
-      <UniqueIdentifier>{d2a14a1b-b44e-435d-9916-86f6f6e368ed}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Engine\Rendering">
-      <UniqueIdentifier>{73c4be26-903a-4e1e-824d-5f54d990610f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Engine\Rendering\GBuffer">
-      <UniqueIdentifier>{057288ea-7e63-4954-9dd5-fd5a4cc543c6}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Engine\Rendering\LightManager">
-      <UniqueIdentifier>{9624ce05-d8f9-48bf-b4cc-78d2d65b6e09}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Engine\Rendering\PhysicsDebugRenderer">
-      <UniqueIdentifier>{01031851-ae02-438d-9c0c-17e3398f6f8e}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Engine\Rendering\PrimitiveRenderer">
-      <UniqueIdentifier>{047cf292-3896-4a28-80c2-9c6a52a7200d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Engine\Rendering\ShapeRenderer">
-      <UniqueIdentifier>{78afd276-21ae-4fc4-a069-c7a931371fef}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Engine\Rendering\SkyBox">
-      <UniqueIdentifier>{e869530b-72f4-48e7-b6d4-0ffa603647d8}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Engine\Utility\CerealHelper">
-      <UniqueIdentifier>{89ca9c6f-8fba-4788-8ad8-e0beb9bbc7a1}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Engine\ECS\Systems\AnimationSystem">
-      <UniqueIdentifier>{f69091ad-2d57-4fbd-90a7-62ed12e4dd6d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Engine\ECS\Systems\AnimatorControllerSystem">
-      <UniqueIdentifier>{1db4bbc0-5c16-4f98-b2f6-653a1bcd629e}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Engine\ECS\Systems\ConditionGraphEvaluator">
-      <UniqueIdentifier>{a0da15e5-e20f-4819-96b5-73b08ee77a6d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Engine\ECS\Systems\ControllerSystem">
-      <UniqueIdentifier>{fc136a6e-3607-4dad-9551-662d13d43f9d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Engine\ECS\Systems\IKSystem">
-      <UniqueIdentifier>{37228b2f-ddbf-4cbd-acf1-9f47cb2ce622}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Engine\ECS\Systems\MeshLoaderSystem">
-      <UniqueIdentifier>{d686bea7-1c91-4218-a01f-dab93363fa8b}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Engine\ECS\Systems\MovementSystem">
-      <UniqueIdentifier>{77e7d549-9af1-481a-8f6b-2e856b088df3}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Engine\ECS\Systems\PhysicsSystem">
-      <UniqueIdentifier>{1a22d318-ae1b-4738-8bbd-f7f7ad2d19cb}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Engine\ECS\Systems\RenderSystem">
-      <UniqueIdentifier>{3f4fe08d-d0dd-4ac2-b19c-2bc85a6328ee}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Engine\ECS\Systems\SequencerSystem">
-      <UniqueIdentifier>{0dba5680-07e7-4be4-a931-55d178436de6}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Engine\ECS\Systems\TwoBoneIKSolver">
-      <UniqueIdentifier>{5249677a-2140-4d64-9247-256197ffd656}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Sources\Project">
       <UniqueIdentifier>{6a0f5ed5-0237-415d-8801-9c85f40ece45}</UniqueIdentifier>
     </Filter>
@@ -308,12 +176,6 @@
     <Filter Include="Sources\Project\ECS\Systems\Player\PlayerDodgeSystem">
       <UniqueIdentifier>{ecfdec2d-98cc-4fd3-9551-945365d16ee0}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Sources\Engine\Data\AnimationSpeedData">
-      <UniqueIdentifier>{9271f0cf-f548-4631-a56b-125081008057}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Engine\ECS\Systems\AnimationSpeedSystem">
-      <UniqueIdentifier>{492596de-2a02-4d6e-ab22-ca35ee300dba}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Sources\Tool\Studio\StudioAnimationSpeed">
       <UniqueIdentifier>{6d7b498f-3a65-40c8-8a30-2954e3c4d1b0}</UniqueIdentifier>
     </Filter>
@@ -322,12 +184,6 @@
     </Filter>
     <Filter Include="Sources\Tool\Studio\StudioAnimatorGraph\StudioTransitionGraph">
       <UniqueIdentifier>{9e117e4a-a6fc-4c6b-b55f-deeda6a4595f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Engine\ECS\Systems\TransitionControllerSystem">
-      <UniqueIdentifier>{e4f93651-bde9-482a-bace-2fe8d851a9b1}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Engine\ECS\Systems\StateGraphUtils">
-      <UniqueIdentifier>{4b1ffcb6-7472-4d5e-ac48-bf52f33a009d}</UniqueIdentifier>
     </Filter>
     <Filter Include="Sources\Project\ECS\Systems\Player\PlayerIdleSystem">
       <UniqueIdentifier>{434056a7-fdc5-42ac-a5cf-5c55a1510fed}</UniqueIdentifier>
@@ -338,20 +194,8 @@
     <Filter Include="Sources\Tool\Editor\PrefabWindow">
       <UniqueIdentifier>{ba0aded9-53a6-4137-a09a-a0c6a3d171fd}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Sources\Engine\Resource\EntitySerializer">
-      <UniqueIdentifier>{114efd14-bbc8-4f60-bbf0-bca2f1a610f7}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Engine\Resource\ComponentRegistry">
-      <UniqueIdentifier>{d112c1fd-5bbf-4f83-82dc-83b74a90f577}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Engine\Core\Log">
-      <UniqueIdentifier>{041409d7-abac-4e5c-bd5c-b86161549fa8}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Sources\Tool\Editor\LogWindow">
       <UniqueIdentifier>{dc2ab9fc-e149-4c3c-92cb-7db055a85218}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Engine\Resource\SceneSerializer">
-      <UniqueIdentifier>{acdf4300-305b-45c3-a5c3-591daaa6dde2}</UniqueIdentifier>
     </Filter>
     <Filter Include="Sources\Tool\Editor\FileDialog">
       <UniqueIdentifier>{dcbf0678-b62b-4ded-9a08-1bedec1a8e44}</UniqueIdentifier>
@@ -433,102 +277,6 @@
     <ClCompile Include="Source\Tool\Studio\StudioChildStateGraph.cpp">
       <Filter>Sources\Tool\Studio\StudioAnimatorGraph\StudioChildGraph</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Engine\Core\Camera.cpp">
-      <Filter>Sources\Engine\Core\Camera</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Engine\Core\Graphics.cpp">
-      <Filter>Sources\Engine\Core\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Engine\Core\PhysX.cpp">
-      <Filter>Sources\Engine\Core\PhysX</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Engine\Core\Scene.cpp">
-      <Filter>Sources\Engine\Core\Scene</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Engine\Core\SceneManager.cpp">
-      <Filter>Sources\Engine\Core\SceneManager</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Engine\Data\AnimatorGraphData.cpp">
-      <Filter>Sources\Engine\Data\AnimatorGraphData</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Engine\Data\SequencerData.cpp">
-      <Filter>Sources\Engine\Data\SequencerData</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Engine\Resource\GLTFConverter.cpp">
-      <Filter>Sources\Engine\Resource\GLTFConverter</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Engine\Resource\GLTFImporter.cpp">
-      <Filter>Sources\Engine\Resource\GLTFImporter</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Engine\Resource\GpuResourceUtils.cpp">
-      <Filter>Sources\Engine\Resource\GpuResourceUtils</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Engine\Resource\Model.cpp">
-      <Filter>Sources\Engine\Resource\Model</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Engine\Resource\ModelSerializer.cpp">
-      <Filter>Sources\Engine\Resource\ModelSerializer</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Engine\Resource\ResourceManager.cpp">
-      <Filter>Sources\Engine\Resource\ResourceManager</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Engine\Resource\SkeletonUtils.cpp">
-      <Filter>Sources\Engine\Resource\SkeletonUtils</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Engine\Rendering\GBuffer.cpp">
-      <Filter>Sources\Engine\Rendering\GBuffer</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Engine\Rendering\LightManager.cpp">
-      <Filter>Sources\Engine\Rendering\LightManager</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Engine\Rendering\PhysicsDebugRenderer.cpp">
-      <Filter>Sources\Engine\Rendering\PhysicsDebugRenderer</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Engine\Rendering\PrimitiveRenderer.cpp">
-      <Filter>Sources\Engine\Rendering\PrimitiveRenderer</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Engine\Rendering\ShapeRenderer.cpp">
-      <Filter>Sources\Engine\Rendering\ShapeRenderer</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Engine\Rendering\SkyBox.cpp">
-      <Filter>Sources\Engine\Rendering\SkyBox</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Engine\ECS\Systems\AnimationSystem.cpp">
-      <Filter>Sources\Engine\ECS\Systems\AnimationSystem</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Engine\ECS\Systems\AnimatorControllerSystem.cpp">
-      <Filter>Sources\Engine\ECS\Systems\AnimatorControllerSystem</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Engine\ECS\Systems\ConditionGraphEvaluator.cpp">
-      <Filter>Sources\Engine\ECS\Systems\ConditionGraphEvaluator</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Engine\ECS\Systems\ControllerSystem.cpp">
-      <Filter>Sources\Engine\ECS\Systems\ControllerSystem</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Engine\ECS\Systems\IKSystem.cpp">
-      <Filter>Sources\Engine\ECS\Systems\IKSystem</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Engine\ECS\Systems\MeshLoaderSystem.cpp">
-      <Filter>Sources\Engine\ECS\Systems\MeshLoaderSystem</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Engine\ECS\Systems\MovementSystem.cpp">
-      <Filter>Sources\Engine\ECS\Systems\MovementSystem</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Engine\ECS\Systems\PhysicsSystem.cpp">
-      <Filter>Sources\Engine\ECS\Systems\PhysicsSystem</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Engine\ECS\Systems\RenderSystem.cpp">
-      <Filter>Sources\Engine\ECS\Systems\RenderSystem</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Engine\ECS\Systems\SequencerSystem.cpp">
-      <Filter>Sources\Engine\ECS\Systems\SequencerSystem</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Engine\ECS\Systems\TwoBoneIKSolver.cpp">
-      <Filter>Sources\Engine\ECS\Systems\TwoBoneIKSolver</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Engine\Utility\CerealHelper.cpp">
-      <Filter>Sources\Engine\Utility\CerealHelper</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Project\Scene\SceneGame.cpp">
       <Filter>Sources\Project\Scene\SceneGame</Filter>
     </ClCompile>
@@ -571,23 +319,11 @@
     <ClCompile Include="Source\Project\ECS\Systems\PlayerDodgeSystem.cpp">
       <Filter>Sources\Project\ECS\Systems\Player\PlayerDodgeSystem</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Engine\Data\AnimationSpeedData.cpp">
-      <Filter>Sources\Engine\Data\AnimationSpeedData</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Engine\ECS\Systems\AnimationSpeedSystem.cpp">
-      <Filter>Sources\Engine\ECS\Systems\AnimationSpeedSystem</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Tool\Studio\StudioAnimationSpeed.cpp">
       <Filter>Sources\Tool\Studio\StudioAnimationSpeed</Filter>
     </ClCompile>
     <ClCompile Include="Source\Tool\Studio\StudioTransitionGraph.cpp">
       <Filter>Sources\Tool\Studio\StudioAnimatorGraph\StudioTransitionGraph</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Engine\ECS\Systems\TransitionControllerSystem.cpp">
-      <Filter>Sources\Engine\ECS\Systems\TransitionControllerSystem</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Engine\ECS\Systems\StateGraphUtils.cpp">
-      <Filter>Sources\Engine\ECS\Systems\StateGraphUtils</Filter>
     </ClCompile>
     <ClCompile Include="Source\Project\ECS\Systems\PlayerIdleSystem.cpp">
       <Filter>Sources\Project\ECS\Systems\Player\PlayerIdleSystem</Filter>
@@ -598,20 +334,11 @@
     <ClCompile Include="Source\Tool\Editor\PrefabWindow.cpp">
       <Filter>Sources\Tool\Editor\PrefabWindow</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Engine\Resource\EntitySerializer.cpp">
-      <Filter>Sources\Engine\Resource\EntitySerializer</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Tool\Editor\ComponentInspectorRegistry.cpp">
       <Filter>Sources\Tool\Editor\ComponentRegistry</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Engine\Resource\ComponentRegistry.cpp">
-      <Filter>Sources\Engine\Resource\ComponentRegistry</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Tool\Editor\LogWindow.cpp">
       <Filter>Sources\Tool\Editor\LogWindow</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Engine\Resource\SceneSerializer.cpp">
-      <Filter>Sources\Engine\Resource\SceneSerializer</Filter>
     </ClCompile>
     <ClCompile Include="Source\Tool\Editor\FileDialog.cpp">
       <Filter>Sources\Tool\Editor\FileDialog</Filter>
@@ -619,26 +346,14 @@
     <ClCompile Include="Source\Project\ECS\Systems\PlayerJumpSystem.cpp">
       <Filter>Sources\Project\ECS\Systems\Player\PlayerJumpSystem</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Engine\ECS\Reflection.cpp">
-      <Filter>Sources\Engine\ECS</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Engine\ECS\EngineComponents.cpp">
-      <Filter>Sources\Engine\ECS</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Project\ECS\ProjectComponents.cpp">
       <Filter>Sources\Project\ECS</Filter>
     </ClCompile>
     <ClCompile Include="Source\ProjectEditor\ProjectInspectors.cpp">
       <Filter>Sources\ProjectEditor</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Engine\Core\GameView.cpp">
-      <Filter>Sources\Engine\Core</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Tool\Editor\ViewportWindow.cpp">
       <Filter>Sources\Tool\Editor</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Engine\Core\Application.cpp">
-      <Filter>Sources\Engine\Core</Filter>
     </ClCompile>
     <ClCompile Include="Source\App\EditorApp.cpp">
       <Filter>Sources\APP</Filter>
@@ -720,168 +435,6 @@
     <ClInclude Include="Source\Tool\Studio\AnimatorGraphNavigation.h">
       <Filter>Sources\Tool\Studio\StudioAnimatorGraph\AnimatorGraphNavigation</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Engine\Core\Camera.h">
-      <Filter>Sources\Engine\Core\Camera</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Engine\Core\Graphics.h">
-      <Filter>Sources\Engine\Core\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Engine\Core\JsonFileCache.h">
-      <Filter>Sources\Engine\Core\JsonFileCache</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Engine\Core\PhysicsDestroyQueue.h">
-      <Filter>Sources\Engine\Core\PhysX</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Engine\Core\PhysX.h">
-      <Filter>Sources\Engine\Core\PhysX</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Engine\Core\PhysicsLayer.h">
-      <Filter>Sources\Engine\Core\PhysX</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Engine\Core\Scene.h">
-      <Filter>Sources\Engine\Core\Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Engine\Core\SceneContext.h">
-      <Filter>Sources\Engine\Core\SceneContext</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Engine\Core\SceneManager.h">
-      <Filter>Sources\Engine\Core\SceneManager</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Engine\Data\AnimatorGraphData.h">
-      <Filter>Sources\Engine\Data\AnimatorGraphData</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Engine\Data\SequencerData.h">
-      <Filter>Sources\Engine\Data\SequencerData</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Engine\Resource\GLTFConverter.h">
-      <Filter>Sources\Engine\Resource\GLTFConverter</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Engine\Resource\GLTFData.h">
-      <Filter>Sources\Engine\Resource\GLTFData</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Engine\Resource\GLTFImporter.h">
-      <Filter>Sources\Engine\Resource\GLTFImporter</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Engine\Resource\GpuResourceUtils.h">
-      <Filter>Sources\Engine\Resource\GpuResourceUtils</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Engine\Resource\Model.h">
-      <Filter>Sources\Engine\Resource\Model</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Engine\Resource\ModelSerializer.h">
-      <Filter>Sources\Engine\Resource\ModelSerializer</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Engine\Resource\ResourceManager.h">
-      <Filter>Sources\Engine\Resource\ResourceManager</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Engine\Resource\SkeletonUtils.h">
-      <Filter>Sources\Engine\Resource\SkeletonUtils</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Engine\Rendering\GBuffer.h">
-      <Filter>Sources\Engine\Rendering\GBuffer</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Engine\Rendering\LightManager.h">
-      <Filter>Sources\Engine\Rendering\LightManager</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Engine\Rendering\PhysicsDebugRenderer.h">
-      <Filter>Sources\Engine\Rendering\PhysicsDebugRenderer</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Engine\Rendering\PrimitiveRenderer.h">
-      <Filter>Sources\Engine\Rendering\PrimitiveRenderer</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Engine\Rendering\ShapeRenderer.h">
-      <Filter>Sources\Engine\Rendering\ShapeRenderer</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Engine\Rendering\SkyBox.h">
-      <Filter>Sources\Engine\Rendering\SkyBox</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Engine\Utility\high_resolution_timer.h">
-      <Filter>Sources\Engine\Utility</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Engine\Utility\misc.h">
-      <Filter>Sources\Engine\Utility</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Engine\Utility\CerealHelper.h">
-      <Filter>Sources\Engine\Utility\CerealHelper</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Engine\ECS\Components\AnimatorComponent.h">
-      <Filter>Sources\Engine\ECS\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Engine\ECS\Components\BaseCameraComponent.h">
-      <Filter>Sources\Engine\ECS\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Engine\ECS\Components\ControllerComponent.h">
-      <Filter>Sources\Engine\ECS\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Engine\ECS\Components\ControllerSettings.h">
-      <Filter>Sources\Engine\ECS\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Engine\ECS\Components\FreeCameraComponent.h">
-      <Filter>Sources\Engine\ECS\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Engine\ECS\Components\IKComponent.h">
-      <Filter>Sources\Engine\ECS\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Engine\ECS\Components\MaterialComponent.h">
-      <Filter>Sources\Engine\ECS\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Engine\ECS\Components\MeshComponent.h">
-      <Filter>Sources\Engine\ECS\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Engine\ECS\Components\MovementComponent.h">
-      <Filter>Sources\Engine\ECS\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Engine\ECS\Components\PhysicsComponents.h">
-      <Filter>Sources\Engine\ECS\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Engine\ECS\Components\SequencerComponent.h">
-      <Filter>Sources\Engine\ECS\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Engine\ECS\Components\SkinnedMeshComponent.h">
-      <Filter>Sources\Engine\ECS\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Engine\ECS\Components\StaticMeshComponent.h">
-      <Filter>Sources\Engine\ECS\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Engine\ECS\Components\Tags.h">
-      <Filter>Sources\Engine\ECS\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Engine\ECS\Components\TransformComponent.h">
-      <Filter>Sources\Engine\ECS\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Engine\ECS\Systems\AnimationSystem.h">
-      <Filter>Sources\Engine\ECS\Systems\AnimationSystem</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Engine\ECS\Systems\AnimatorControllerSystem.h">
-      <Filter>Sources\Engine\ECS\Systems\AnimatorControllerSystem</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Engine\ECS\Systems\ConditionGraphEvaluator.h">
-      <Filter>Sources\Engine\ECS\Systems\ConditionGraphEvaluator</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Engine\ECS\Systems\ControllerSystem.h">
-      <Filter>Sources\Engine\ECS\Systems\ControllerSystem</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Engine\ECS\Systems\IKSystem.h">
-      <Filter>Sources\Engine\ECS\Systems\IKSystem</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Engine\ECS\Systems\MeshLoaderSystem.h">
-      <Filter>Sources\Engine\ECS\Systems\MeshLoaderSystem</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Engine\ECS\Systems\MovementSystem.h">
-      <Filter>Sources\Engine\ECS\Systems\MovementSystem</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Engine\ECS\Systems\PhysicsSystem.h">
-      <Filter>Sources\Engine\ECS\Systems\PhysicsSystem</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Engine\ECS\Systems\RenderSystem.h">
-      <Filter>Sources\Engine\ECS\Systems\RenderSystem</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Engine\ECS\Systems\SequencerSystem.h">
-      <Filter>Sources\Engine\ECS\Systems\SequencerSystem</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Engine\ECS\Systems\TwoBoneIKSolver.h">
-      <Filter>Sources\Engine\ECS\Systems\TwoBoneIKSolver</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Project\Scene\SceneGame.h">
       <Filter>Sources\Project\Scene\SceneGame</Filter>
     </ClInclude>
@@ -939,29 +492,11 @@
     <ClInclude Include="Source\Project\ECS\Systems\PlayerDodgeSystem.h">
       <Filter>Sources\Project\ECS\Systems\Player\PlayerDodgeSystem</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Engine\Data\AnimationSpeedData.h">
-      <Filter>Sources\Engine\Data\AnimationSpeedData</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Engine\ECS\Components\AnimationSpeedComponent.h">
-      <Filter>Sources\Engine\ECS\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Engine\ECS\Systems\AnimationSpeedSystem.h">
-      <Filter>Sources\Engine\ECS\Systems\AnimationSpeedSystem</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Tool\Studio\StudioAnimationSpeed.h">
       <Filter>Sources\Tool\Studio\StudioAnimationSpeed</Filter>
     </ClInclude>
     <ClInclude Include="Source\Tool\Studio\StudioTransitionGraph.h">
       <Filter>Sources\Tool\Studio\StudioAnimatorGraph\StudioTransitionGraph</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Engine\ECS\Components\StateComponent.h">
-      <Filter>Sources\Engine\ECS\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Engine\ECS\Systems\TransitionControllerSystem.h">
-      <Filter>Sources\Engine\ECS\Systems\TransitionControllerSystem</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Engine\ECS\Systems\StateGraphUtils.h">
-      <Filter>Sources\Engine\ECS\Systems\StateGraphUtils</Filter>
     </ClInclude>
     <ClInclude Include="Source\Project\ECS\Components\PlayerIdleComponent.h">
       <Filter>Sources\Project\ECS\Components\Player</Filter>
@@ -972,38 +507,14 @@
     <ClInclude Include="Source\Project\ECS\Systems\PlayerSprintSystem.h">
       <Filter>Sources\Project\ECS\Systems\Player\PlayerSprintSystem</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Engine\ECS\Components\CategoryComponent.h">
-      <Filter>Sources\Engine\ECS\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Engine\ECS\EntityFinder.h">
-      <Filter>Sources\Engine\ECS</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Tool\Editor\PrefabWindow.h">
       <Filter>Sources\Tool\Editor\PrefabWindow</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Engine\Resource\EntitySerializer.h">
-      <Filter>Sources\Engine\Resource\EntitySerializer</Filter>
     </ClInclude>
     <ClInclude Include="Source\Tool\Editor\ComponentInspectorRegistry.h">
       <Filter>Sources\Tool\Editor\ComponentRegistry</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Engine\Resource\ComponentRegistry.h">
-      <Filter>Sources\Engine\Resource\ComponentRegistry</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Engine\ECS\Reflection.h">
-      <Filter>Sources\Engine\ECS</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Engine\ECS\Components\PrefabInstanceComponent.h">
-      <Filter>Sources\Engine\ECS\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Engine\Core\Log.h">
-      <Filter>Sources\Engine\Core\Log</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Tool\Editor\LogWindow.h">
       <Filter>Sources\Tool\Editor\LogWindow</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Engine\Resource\SceneSerializer.h">
-      <Filter>Sources\Engine\Resource\SceneSerializer</Filter>
     </ClInclude>
     <ClInclude Include="Source\Tool\Editor\FileDialog.h">
       <Filter>Sources\Tool\Editor\FileDialog</Filter>
@@ -1014,35 +525,20 @@
     <ClInclude Include="Source\Project\ECS\Systems\PlayerJumpSystem.h">
       <Filter>Sources\Project\ECS\Systems\Player\PlayerJumpSystem</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Engine\ECS\Reflect.h">
-      <Filter>Sources\Engine\ECS</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Engine\ECS\EngineComponents.h">
-      <Filter>Sources\Engine\ECS</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Project\ECS\ProjectComponents.h">
       <Filter>Sources\Project\ECS</Filter>
     </ClInclude>
     <ClInclude Include="Source\ProjectEditor\ProjectInspectors.h">
       <Filter>Sources\ProjectEditor</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Engine\Core\GameView.h">
-      <Filter>Sources\Engine\Core</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Tool\Editor\ViewportWindow.h">
       <Filter>Sources\Tool\Editor</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Engine\Core\Application.h">
-      <Filter>Sources\Engine\Core</Filter>
     </ClInclude>
     <ClInclude Include="Source\App\EditorApp.h">
       <Filter>Sources\APP</Filter>
     </ClInclude>
     <ClInclude Include="Source\App\GameApp.h">
       <Filter>Sources\APP</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Engine\ECS\Components\AdaptiveTrigger.h">
-      <Filter>Sources\Engine\ECS\Components</Filter>
     </ClInclude>
     <ClInclude Include="Source\Project\Demo\WaveDemo.h">
       <Filter>Sources\Project\Demo</Filter>

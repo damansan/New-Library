@@ -3,7 +3,7 @@
 // 起動するAppの切り替え(段階3で、exeごとに分かれるまでの仮の仕組み)
 // GameAppを起動したいときは、この行のコメントを外す
 
-//#define RUN_GAME_APP
+#define RUN_GAME_APP
 
 #ifdef RUN_GAME_APP
 #include "App/GameApp.h"
