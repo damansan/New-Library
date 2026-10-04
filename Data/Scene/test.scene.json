@@ -6,11 +6,6 @@
         },
         {
             "name": "ExampleStage",
-            "overrides": {
-                "ComponentCategory": {
-                    "category": "Player"
-                }
-            },
             "prefab": "Data/Prefab/Stage/ExampleStage.prefab.json"
         },
         {

@@ -1,7 +1,7 @@
 #include "PlayerSprintSystem.h"
-#include "Project/ECS/Components/GameInputComponent.h"
-#include "Project/ECS/Components/PlayerSprintComponent.h"
-#include "Project/ECS/Systems/PlayerMovementUtils.h"
+#include "Game/ECS/Components/GameInputComponent.h"
+#include "Game/ECS/Components/PlayerSprintComponent.h"
+#include "Game/ECS/Systems/PlayerMovementUtils.h"
 
 #include "Engine/ECS/Components/AnimatorComponent.h"
 #include "Engine/ECS/Components/StateComponent.h"

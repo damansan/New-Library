@@ -5,11 +5,11 @@
 
 #include "Engine/ECS/Components/ControllerComponent.h"
 #include "Engine/Resource/SceneSerializer.h"
-#include "Project/Scene/SceneGame.h"
-#include "Project/ECS/ProjectComponents.h"
+#include "Game/Scene/SceneGame.h"
+#include "Game/ECS/GameComponents.h"
 #include "Tool/Editor/ComponentRegistryInitializer.h"
 #include "Tool/Editor/FileDialog.h"
-#include "ProjectEditor/ProjectInspectors.h"
+#include "GameEditor/GameInspectors.h"
 
 // 初期化
 void EditorApp::OnInitialize()
@@ -21,11 +21,11 @@ void EditorApp::OnInitialize()
 	viewportWindow.Initialize();
 
 	// Projectのコンポーネントの登録(Engineのものは基盤が登録済み)
-	ProjectComponents::Register();
+	GameComponents::Register();
 
 	// インスペクターの独自描画の登録
 	ComponentRegistryInitializer::Initialize();
-	ProjectInspectors::Register();
+	GameInspectors::Register();
 
 	sceneManager.ChangeScene(std::make_unique<SceneGame>());
 

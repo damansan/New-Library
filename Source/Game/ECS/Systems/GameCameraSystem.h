@@ -1,9 +1,9 @@
 #pragma once
 #include "entt.hpp"
 #include "Engine/Core/Camera.h"
-#include "Project/ECS/Components/GameCameraComponent.h"
+#include "Game/ECS/Components/GameCameraComponent.h"
 #include "Engine/ECS/Components/TransformComponent.h"
-#include "Project/ECS/Components/GameInputComponent.h"
+#include "Game/ECS/Components/GameInputComponent.h"
 
 #include "Engine/Rendering/ShapeRenderer.h"
 

@@ -19,58 +19,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="External\imgui-docking\backends\imgui_impl_dx11.cpp" />
-    <ClCompile Include="External\imgui-docking\backends\imgui_impl_win32.cpp" />
-    <ClCompile Include="External\imgui-docking\imgui.cpp" />
-    <ClCompile Include="External\imgui-docking\imgui_draw.cpp" />
-    <ClCompile Include="External\imgui-docking\imgui_tables.cpp" />
-    <ClCompile Include="External\imgui-docking\imgui_widgets.cpp" />
-    <ClCompile Include="External\imgui-node-editor-master\crude_json.cpp" />
-    <ClCompile Include="External\imgui-node-editor-master\imgui_canvas.cpp" />
-    <ClCompile Include="External\imgui-node-editor-master\imgui_node_editor.cpp" />
-    <ClCompile Include="External\imgui-node-editor-master\imgui_node_editor_api.cpp" />
-    <ClCompile Include="External\tracy-0.13.1\public\TracyClient.cpp" />
     <ClCompile Include="Source\App\EditorApp.cpp" />
     <ClCompile Include="Source\App\GameApp.cpp" />
     <ClCompile Include="Source\main.cpp" />
-    <ClCompile Include="Source\ProjectEditor\ProjectInspectors.cpp" />
-    <ClCompile Include="Source\Project\Demo\WaveDemo.cpp" />
-    <ClCompile Include="Source\Project\ECS\ProjectComponents.cpp" />
-    <ClCompile Include="Source\Project\ECS\Systems\GameCameraSystem.cpp" />
-    <ClCompile Include="Source\Project\ECS\Systems\GameInputSystem.cpp" />
-    <ClCompile Include="Source\Project\ECS\Systems\PlayerDodgeSystem.cpp" />
-    <ClCompile Include="Source\Project\ECS\Systems\PlayerIdleSystem.cpp" />
-    <ClCompile Include="Source\Project\ECS\Systems\PlayerJumpSystem.cpp" />
-    <ClCompile Include="Source\Project\ECS\Systems\PlayerMovementUtils.cpp" />
-    <ClCompile Include="Source\Project\ECS\Systems\PlayerMoveSystem.cpp" />
-    <ClCompile Include="Source\Project\ECS\Systems\PlayerSprintSystem.cpp" />
-    <ClCompile Include="Source\Project\Scene\SceneGame.cpp" />
-    <ClCompile Include="Source\Tool\AdaptiveTriggerToolWindow.cpp" />
-    <ClCompile Include="Source\Tool\Editor\ComponentInspectorRegistry.cpp" />
-    <ClCompile Include="Source\Tool\Editor\ComponentRegistryInitializer.cpp" />
-    <ClCompile Include="Source\Tool\Editor\DebugCameraSystem.cpp" />
-    <ClCompile Include="Source\Tool\Editor\FileDialog.cpp" />
-    <ClCompile Include="Source\Tool\Editor\ImGuiManager.cpp" />
-    <ClCompile Include="Source\Tool\Editor\LogWindow.cpp" />
-    <ClCompile Include="Source\Tool\Editor\HierarchyWindow.cpp" />
-    <ClCompile Include="Source\Tool\Editor\InspectorWindow.cpp" />
-    <ClCompile Include="Source\Tool\Editor\MetaRegistry.cpp" />
-    <ClCompile Include="Source\Tool\Editor\PrefabWindow.cpp" />
-    <ClCompile Include="Source\Tool\Editor\ProjectWindow.cpp" />
-    <ClCompile Include="Source\Tool\Editor\ViewportWindow.cpp" />
-    <ClCompile Include="Source\Tool\NodeEditor\NodeEditorCanvas.cpp" />
-    <ClCompile Include="Source\Tool\Studio\StudioAnimationSpeed.cpp" />
-    <ClCompile Include="Source\Tool\Studio\StudioAnimator.cpp" />
-    <ClCompile Include="Source\Tool\Studio\StudioAnimatorGraph.cpp" />
-    <ClCompile Include="Source\Tool\Studio\StudioCamera.cpp" />
-    <ClCompile Include="Source\Tool\Studio\StudioChildStateGraph.cpp" />
-    <ClCompile Include="Source\Tool\Studio\StudioConditionGraph.cpp" />
-    <ClCompile Include="Source\Tool\Studio\StudioModelViewer.cpp" />
-    <ClCompile Include="Source\Tool\Studio\StudioParentStateGraph.cpp" />
-    <ClCompile Include="Source\Tool\Studio\StudioSequencer.cpp" />
-    <ClCompile Include="Source\Tool\Studio\StudioTimeline.cpp" />
-    <ClCompile Include="Source\Tool\Studio\StudioTransitionGraph.cpp" />
-    <ClCompile Include="Source\Tool\Studio\StudioWindow.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="External\DualSense-Windows-main\VS19_Solution\DualSenseWindows\include\DualSenseWindows\Device.h" />
@@ -82,56 +33,6 @@
     <ClInclude Include="External\json-3.12.0\single_include\nlohmann\json.hpp" />
     <ClInclude Include="Source\App\EditorApp.h" />
     <ClInclude Include="Source\App\GameApp.h" />
-    <ClInclude Include="Source\ProjectEditor\ProjectInspectors.h" />
-    <ClInclude Include="Source\Project\Demo\WaveDemo.h" />
-    <ClInclude Include="Source\Project\ECS\Components\PlayerDodgeComponent.h" />
-    <ClInclude Include="Source\Project\ECS\Components\GameCameraComponent.h" />
-    <ClInclude Include="Source\Project\ECS\Components\GameInputComponent.h" />
-    <ClInclude Include="Source\Project\ECS\Components\PlayerIdleComponent.h" />
-    <ClInclude Include="Source\Project\ECS\Components\PlayerJumpComponent.h" />
-    <ClInclude Include="Source\Project\ECS\Components\PlayerMoveComponent.h" />
-    <ClInclude Include="Source\Project\ECS\Components\PlayerSprintComponent.h" />
-    <ClInclude Include="Source\Project\ECS\ProjectComponents.h" />
-    <ClInclude Include="Source\Project\ECS\Systems\GameCameraSystem.h" />
-    <ClInclude Include="Source\Project\ECS\Systems\GameInputSystem.h" />
-    <ClInclude Include="Source\Project\ECS\Systems\PlayerDodgeSystem.h" />
-    <ClInclude Include="Source\Project\ECS\Systems\PlayerIdleSystem.h" />
-    <ClInclude Include="Source\Project\ECS\Systems\PlayerJumpSystem.h" />
-    <ClInclude Include="Source\Project\ECS\Systems\PlayerMovementUtils.h" />
-    <ClInclude Include="Source\Project\ECS\Systems\PlayerMoveSystem.h" />
-    <ClInclude Include="Source\Project\ECS\Systems\PlayerSprintSystem.h" />
-    <ClInclude Include="Source\Project\Scene\SceneGame.h" />
-    <ClInclude Include="Source\Tool\AdaptiveTriggerToolWindow.h" />
-    <ClInclude Include="Source\Tool\Editor\ComponentInspectorRegistry.h" />
-    <ClInclude Include="Source\Tool\Editor\ComponentRegistryInitializer.h" />
-    <ClInclude Include="Source\Tool\Editor\DebugCameraSystem.h" />
-    <ClInclude Include="Source\Tool\Editor\FileDialog.h" />
-    <ClInclude Include="Source\Tool\Editor\ImGuiManager.h" />
-    <ClInclude Include="Source\Tool\Editor\LogWindow.h" />
-    <ClInclude Include="Source\Tool\Editor\EditorContext.h" />
-    <ClInclude Include="Source\Tool\Editor\HierarchyWindow.h" />
-    <ClInclude Include="Source\Tool\Editor\InspectorWindow.h" />
-    <ClInclude Include="Source\Tool\Editor\MetaRegistry.h" />
-    <ClInclude Include="Source\Tool\Editor\PrefabWindow.h" />
-    <ClInclude Include="Source\Tool\Editor\ProjectWindow.h" />
-    <ClInclude Include="Source\Tool\Editor\ViewportWindow.h" />
-    <ClInclude Include="Source\Tool\NodeEditor\NodeEditorCanvas.h" />
-    <ClInclude Include="Source\Tool\Studio\AnimatorGraphNavigation.h" />
-    <ClInclude Include="Source\Tool\Studio\IStudioAttachment.h" />
-    <ClInclude Include="Source\Tool\Studio\StudioAnimationSpeed.h" />
-    <ClInclude Include="Source\Tool\Studio\StudioAnimator.h" />
-    <ClInclude Include="Source\Tool\Studio\StudioAnimatorGraph.h" />
-    <ClInclude Include="Source\Tool\Studio\StudioCamera.h" />
-    <ClInclude Include="Source\Tool\Studio\StudioChildStateGraph.h" />
-    <ClInclude Include="Source\Tool\Studio\StudioConditionGraph.h" />
-    <ClInclude Include="Source\Tool\Studio\StudioContext.h" />
-    <ClInclude Include="Source\Tool\Studio\StudioModelViewer.h" />
-    <ClInclude Include="Source\Tool\Studio\StudioParentStateGraph.h" />
-    <ClInclude Include="Source\Tool\Studio\StudioSequencer.h" />
-    <ClInclude Include="Source\Tool\Studio\StudioSharedContext.h" />
-    <ClInclude Include="Source\Tool\Studio\StudioTimeline.h" />
-    <ClInclude Include="Source\Tool\Studio\StudioTransitionGraph.h" />
-    <ClInclude Include="Source\Tool\Studio\StudioWindow.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shader\Gbuffer_Basic_PS.hlsl">
@@ -259,6 +160,12 @@
     <ProjectReference Include="Projects\Engine\Engine.vcxproj">
       <Project>{5ca61aec-9f61-4178-8c08-2d3d4105b6a6}</Project>
     </ProjectReference>
+    <ProjectReference Include="Projects\Game\Game.vcxproj">
+      <Project>{e9839269-3a56-47c3-89f8-d43aee087f90}</Project>
+    </ProjectReference>
+    <ProjectReference Include="Projects\Tool\Tool.vcxproj">
+      <Project>{6ac54d73-155b-4004-8cdc-e8fde8da8a81}</Project>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{0DDBE550-8551-4506-9A5A-4DD100C00C48}</ProjectGuid>
@@ -292,6 +199,8 @@
     <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
+    <VCToolsVersion>
+    </VCToolsVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">

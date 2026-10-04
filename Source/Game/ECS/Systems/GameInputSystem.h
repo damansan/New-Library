@@ -1,6 +1,6 @@
 #pragma once
 #include "entt.hpp"
-#include "Project/ECS/Components/GameInputComponent.h"
+#include "Game/ECS/Components/GameInputComponent.h"
 #include "Engine/ECS/Components/ControllerComponent.h"
 #include "Engine/ECS/Components/ControllerSettings.h"
 

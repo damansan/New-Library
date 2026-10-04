@@ -1,5 +1,5 @@
 #include "PlayerIdleSystem.h"
-#include "Project/ECS/Components/PlayerIdleComponent.h"
+#include "Game/ECS/Components/PlayerIdleComponent.h"
 
 #include "Engine/ECS/Components/AnimatorComponent.h"
 #include "Engine/ECS/Components/StateComponent.h"

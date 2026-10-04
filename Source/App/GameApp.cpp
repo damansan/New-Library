@@ -5,8 +5,8 @@
 
 #include "Engine/Core/Log.h"
 #include "Engine/Resource/SceneSerializer.h"
-#include "Project/Scene/SceneGame.h"
-#include "Project/ECS/ProjectComponents.h"
+#include "Game/Scene/SceneGame.h"
+#include "Game/ECS/GameComponents.h"
 
 namespace
 {
@@ -18,7 +18,7 @@ namespace
 void GameApp::OnInitialize()
 {
 	// Project‚ÌƒRƒ“ƒ|[ƒlƒ“ƒg‚Ì“o˜^(Engine‚Ì‚à‚Ì‚ÍŠî”Õ‚ª“o˜^Ï‚İ)
-	ProjectComponents::Register();
+	GameComponents::Register();
 
 	sceneManager.ChangeScene(std::make_unique<SceneGame>());
 

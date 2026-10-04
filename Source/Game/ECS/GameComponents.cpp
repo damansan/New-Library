@@ -1,15 +1,15 @@
-#include "ProjectComponents.h"
+#include "GameComponents.h"
 #include "Engine/Resource/ComponentRegistry.h"
 
-#include "Project/ECS/Components/GameInputComponent.h"
-#include "Project/ECS/Components/GameCameraComponent.h"
-#include "Project/ECS/Components/PlayerIdleComponent.h"
-#include "Project/ECS/Components/PlayerMoveComponent.h"
-#include "Project/ECS/Components/PlayerDodgeComponent.h"
-#include "Project/ECS/Components/PlayerSprintComponent.h"
-#include "Project/ECS/Components/PlayerJumpComponent.h"
+#include "Game/ECS/Components/GameInputComponent.h"
+#include "Game/ECS/Components/GameCameraComponent.h"
+#include "Game/ECS/Components/PlayerIdleComponent.h"
+#include "Game/ECS/Components/PlayerMoveComponent.h"
+#include "Game/ECS/Components/PlayerDodgeComponent.h"
+#include "Game/ECS/Components/PlayerSprintComponent.h"
+#include "Game/ECS/Components/PlayerJumpComponent.h"
 
-void ProjectComponents::Register()
+void GameComponents::Register() 
 {
 	REGISTER_COMPONENT_TYPE(GameInputComponent,    "GameInput");
 	REGISTER_COMPONENT_TYPE(GameCameraComponent,   "GameCamera");

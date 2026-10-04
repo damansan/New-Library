@@ -8,12 +8,6 @@
     <Filter Include="External">
       <UniqueIdentifier>{1788a1af-73ea-481f-b3fe-0a450fd90d64}</UniqueIdentifier>
     </Filter>
-    <Filter Include="External\imgui-docking">
-      <UniqueIdentifier>{e5be45de-3dc9-46cc-9e73-6c4c60d21fe4}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="External\imgui-docking\backends">
-      <UniqueIdentifier>{b67ded63-317b-429c-bab8-0ec5491ff767}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Shader">
       <UniqueIdentifier>{c2dc3734-b94f-4533-90fb-cd70336ef861}</UniqueIdentifier>
     </Filter>
@@ -28,9 +22,6 @@
     </Filter>
     <Filter Include="Shader\Debug">
       <UniqueIdentifier>{384dfe56-abfb-492f-9fd3-ffba750579fd}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="External\tracy-0.13.1">
-      <UniqueIdentifier>{054ca6fc-d2f6-4f82-9ad5-f6505e353961}</UniqueIdentifier>
     </Filter>
     <Filter Include="Shader\PBR">
       <UniqueIdentifier>{11761a69-1d93-470c-a31f-08939903ff40}</UniqueIdentifier>
@@ -62,313 +53,22 @@
     <Filter Include="Shader\WiredShape">
       <UniqueIdentifier>{a178dacc-07f0-4c69-997f-72920c2a5185}</UniqueIdentifier>
     </Filter>
-    <Filter Include="External\imgui-node-editor">
-      <UniqueIdentifier>{7f346661-3b9b-4835-be73-9c1b34c9f0ed}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Project">
-      <UniqueIdentifier>{6a0f5ed5-0237-415d-8801-9c85f40ece45}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Project\Scene">
-      <UniqueIdentifier>{767a3eaa-ef59-4be1-993b-e2f8d96a773e}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Project\Scene\SceneGame">
-      <UniqueIdentifier>{6ab9239c-2cbe-4197-b608-2cf4aec60a75}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Project\ECS">
-      <UniqueIdentifier>{12046767-ec3b-4166-9a13-f4230aef8748}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Project\ECS\Systems">
-      <UniqueIdentifier>{34b40661-0762-41cc-9b8c-089280b222c8}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Project\ECS\Components">
-      <UniqueIdentifier>{764d3f1a-a0b9-4d8a-8055-2c4613f6c2f9}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Project\ECS\Systems\GameInputSystem">
-      <UniqueIdentifier>{1c29e3c3-daa4-46f8-b1cb-952f3787701c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Project\ECS\Systems\GameCameraSystem">
-      <UniqueIdentifier>{913db32d-c45c-42f4-9e15-73025ebfcc70}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Tool">
-      <UniqueIdentifier>{3c870b85-b668-4d77-9fa8-109cf33b7670}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Tool\Editor">
-      <UniqueIdentifier>{2056686f-274e-4486-9d5b-5c6c5813702e}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Tool\Editor\ProjectWindow">
-      <UniqueIdentifier>{ae186463-3a03-4397-828d-1e2bbc6201b9}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Tool\Editor\EditorContext">
-      <UniqueIdentifier>{1b3722c7-6ab5-4eb4-a603-1a6961a5ca5c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Tool\Editor\HierarchyWindow">
-      <UniqueIdentifier>{cb8c5499-42b7-4649-9e40-52be04a873d2}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Tool\Editor\InspectorWindow">
-      <UniqueIdentifier>{8f919397-1970-48ac-bce8-3e0ae6d02a96}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Tool\Editor\ComponentRegistry">
-      <UniqueIdentifier>{0284df2a-6828-42c8-96ed-1fa09f18d31a}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Tool\Editor\MetaRegistry">
-      <UniqueIdentifier>{38e775c4-e2df-4716-a917-43a4d843c549}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Tool\Studio">
-      <UniqueIdentifier>{21076735-99c0-40a6-a825-56b47ffbeba3}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Tool\Studio\StudioCamera">
-      <UniqueIdentifier>{5f433240-d923-4a85-96fe-a1aa1f3dd2a5}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Tool\Studio\StudioContext">
-      <UniqueIdentifier>{c403652a-f411-49a1-8725-f18b04f749dd}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Tool\Studio\IStudioAttachment">
-      <UniqueIdentifier>{4f33eebb-58ea-4140-9491-5a4c2e634ed0}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Tool\Studio\StudioWindow">
-      <UniqueIdentifier>{95ef4beb-a82d-4bbb-a310-00525aa9dc09}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Tool\Studio\StudioModelViewer">
-      <UniqueIdentifier>{fab950c5-da0a-4b40-8600-27a987cc85cf}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Tool\Studio\StudioSharedContext">
-      <UniqueIdentifier>{a345db3a-4eb5-4140-bd44-403a18595211}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Tool\Studio\StudioAnimator">
-      <UniqueIdentifier>{eefaf2c0-a7b4-4579-a7ca-15af4f8228b1}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Tool\Studio\StudioTimeline">
-      <UniqueIdentifier>{a416fbb5-b919-48e7-8ec9-4231c54beaad}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Tool\Studio\StudioSequencer">
-      <UniqueIdentifier>{d6e1a9c2-f7fc-4144-ae4f-627fe3784c08}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Tool\Studio\StudioAnimatorGraph">
-      <UniqueIdentifier>{c9bcc1cb-f344-4d94-9efd-1fbc9e13d3db}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Tool\Studio\StudioAnimatorGraph\StudioChildGraph">
-      <UniqueIdentifier>{4d2d7650-5e90-404c-9990-7e0685c66d17}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Tool\Studio\StudioAnimatorGraph\StudioConditionGraph">
-      <UniqueIdentifier>{260c5d2b-5dec-46b7-bc51-bfba29954be0}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Tool\Studio\StudioAnimatorGraph\StudioParentStateGraph">
-      <UniqueIdentifier>{a99d813c-307c-40ce-a556-30687976b257}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Tool\Studio\StudioAnimatorGraph\AnimatorGraphNavigation">
-      <UniqueIdentifier>{c84edd8f-efe1-43ef-b0d8-5df1f673520e}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Tool\NodeEditor">
-      <UniqueIdentifier>{1e6bec02-ed0d-41b5-b709-174b02895842}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Project\ECS\Components\Player">
-      <UniqueIdentifier>{cb561dc7-1c74-4412-86e3-9abfe4108b14}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Project\ECS\Systems\Player">
-      <UniqueIdentifier>{b1f4c0cc-68cf-447d-88e8-4ea98edfd9eb}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Project\ECS\Systems\Player\PlayerMoveSystem">
-      <UniqueIdentifier>{5e66f5c9-df36-47c2-baf9-a760e7d161cc}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Project\ECS\Systems\Player\PlayerMovementUtils">
-      <UniqueIdentifier>{d98687da-bb63-4a0a-b525-5eb3e28392ea}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Project\ECS\Systems\Player\PlayerDodgeSystem">
-      <UniqueIdentifier>{ecfdec2d-98cc-4fd3-9551-945365d16ee0}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Tool\Studio\StudioAnimationSpeed">
-      <UniqueIdentifier>{6d7b498f-3a65-40c8-8a30-2954e3c4d1b0}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Shader\Present">
       <UniqueIdentifier>{48b067dc-78af-4d04-8c89-105810d04ba8}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Tool\Studio\StudioAnimatorGraph\StudioTransitionGraph">
-      <UniqueIdentifier>{9e117e4a-a6fc-4c6b-b55f-deeda6a4595f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Project\ECS\Systems\Player\PlayerIdleSystem">
-      <UniqueIdentifier>{434056a7-fdc5-42ac-a5cf-5c55a1510fed}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Project\ECS\Systems\Player\PlayerSprintSystem">
-      <UniqueIdentifier>{3842680e-5e2f-44d3-b351-c518b08af1c4}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Tool\Editor\PrefabWindow">
-      <UniqueIdentifier>{ba0aded9-53a6-4137-a09a-a0c6a3d171fd}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Tool\Editor\LogWindow">
-      <UniqueIdentifier>{dc2ab9fc-e149-4c3c-92cb-7db055a85218}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Tool\Editor\FileDialog">
-      <UniqueIdentifier>{dcbf0678-b62b-4ded-9a08-1bedec1a8e44}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Project\ECS\Systems\Player\PlayerJumpSystem">
-      <UniqueIdentifier>{f75b600d-86d0-4397-ae50-8b59a0151875}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\ProjectEditor">
-      <UniqueIdentifier>{85bc902b-e54f-412c-beb9-f9cb1a8b4810}</UniqueIdentifier>
     </Filter>
     <Filter Include="Sources\APP">
       <UniqueIdentifier>{b2262ded-cf3a-4042-94ae-b1eab9c3e985}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Sources\Project\Demo">
-      <UniqueIdentifier>{42029c4e-e9a7-40ac-8627-184452f24907}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="External\imgui-docking\imgui.cpp">
-      <Filter>External\imgui-docking</Filter>
-    </ClCompile>
-    <ClCompile Include="External\imgui-docking\imgui_draw.cpp">
-      <Filter>External\imgui-docking</Filter>
-    </ClCompile>
-    <ClCompile Include="External\imgui-docking\imgui_tables.cpp">
-      <Filter>External\imgui-docking</Filter>
-    </ClCompile>
-    <ClCompile Include="External\imgui-docking\imgui_widgets.cpp">
-      <Filter>External\imgui-docking</Filter>
-    </ClCompile>
-    <ClCompile Include="External\imgui-docking\backends\imgui_impl_dx11.cpp">
-      <Filter>External\imgui-docking\backends</Filter>
-    </ClCompile>
-    <ClCompile Include="External\imgui-docking\backends\imgui_impl_win32.cpp">
-      <Filter>External\imgui-docking\backends</Filter>
-    </ClCompile>
-    <ClCompile Include="External\tracy-0.13.1\public\TracyClient.cpp">
-      <Filter>External\tracy-0.13.1</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Tool\Studio\StudioCamera.cpp">
-      <Filter>Sources\Tool\Studio\StudioCamera</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Tool\Studio\StudioWindow.cpp">
-      <Filter>Sources\Tool\Studio\StudioWindow</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Tool\Studio\StudioModelViewer.cpp">
-      <Filter>Sources\Tool\Studio\StudioModelViewer</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Tool\Studio\StudioAnimator.cpp">
-      <Filter>Sources\Tool\Studio\StudioAnimator</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Tool\Studio\StudioTimeline.cpp">
-      <Filter>Sources\Tool\Studio\StudioTimeline</Filter>
-    </ClCompile>
-    <ClCompile Include="External\imgui-node-editor-master\crude_json.cpp">
-      <Filter>External\imgui-node-editor</Filter>
-    </ClCompile>
-    <ClCompile Include="External\imgui-node-editor-master\imgui_canvas.cpp">
-      <Filter>External\imgui-node-editor</Filter>
-    </ClCompile>
-    <ClCompile Include="External\imgui-node-editor-master\imgui_node_editor.cpp">
-      <Filter>External\imgui-node-editor</Filter>
-    </ClCompile>
-    <ClCompile Include="External\imgui-node-editor-master\imgui_node_editor_api.cpp">
-      <Filter>External\imgui-node-editor</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Tool\Studio\StudioConditionGraph.cpp">
-      <Filter>Sources\Tool\Studio\StudioAnimatorGraph\StudioConditionGraph</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Tool\Studio\StudioParentStateGraph.cpp">
-      <Filter>Sources\Tool\Studio\StudioAnimatorGraph\StudioParentStateGraph</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Tool\Studio\StudioSequencer.cpp">
-      <Filter>Sources\Tool\Studio\StudioSequencer</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Tool\Studio\StudioAnimatorGraph.cpp">
-      <Filter>Sources\Tool\Studio\StudioAnimatorGraph</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Tool\Studio\StudioChildStateGraph.cpp">
-      <Filter>Sources\Tool\Studio\StudioAnimatorGraph\StudioChildGraph</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Project\Scene\SceneGame.cpp">
-      <Filter>Sources\Project\Scene\SceneGame</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Project\ECS\Systems\PlayerMoveSystem.cpp">
-      <Filter>Sources\Project\ECS\Systems\Player\PlayerMoveSystem</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Project\ECS\Systems\GameInputSystem.cpp">
-      <Filter>Sources\Project\ECS\Systems\GameInputSystem</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Project\ECS\Systems\GameCameraSystem.cpp">
-      <Filter>Sources\Project\ECS\Systems\GameCameraSystem</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Tool\Editor\ComponentRegistryInitializer.cpp">
-      <Filter>Sources\Tool\Editor\ComponentRegistry</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Tool\Editor\HierarchyWindow.cpp">
-      <Filter>Sources\Tool\Editor\HierarchyWindow</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Tool\Editor\InspectorWindow.cpp">
-      <Filter>Sources\Tool\Editor\InspectorWindow</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Tool\Editor\MetaRegistry.cpp">
-      <Filter>Sources\Tool\Editor\MetaRegistry</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Tool\Editor\ProjectWindow.cpp">
-      <Filter>Sources\Tool\Editor\ProjectWindow</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Tool\NodeEditor\NodeEditorCanvas.cpp">
-      <Filter>Sources\Tool\NodeEditor</Filter>
-    </ClCompile>
     <ClCompile Include="Source\main.cpp">
       <Filter>Sources</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Tool\AdaptiveTriggerToolWindow.cpp">
-      <Filter>Sources\Tool</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Project\ECS\Systems\PlayerMovementUtils.cpp">
-      <Filter>Sources\Project\ECS\Systems\Player\PlayerMovementUtils</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Project\ECS\Systems\PlayerDodgeSystem.cpp">
-      <Filter>Sources\Project\ECS\Systems\Player\PlayerDodgeSystem</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Tool\Studio\StudioAnimationSpeed.cpp">
-      <Filter>Sources\Tool\Studio\StudioAnimationSpeed</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Tool\Studio\StudioTransitionGraph.cpp">
-      <Filter>Sources\Tool\Studio\StudioAnimatorGraph\StudioTransitionGraph</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Project\ECS\Systems\PlayerIdleSystem.cpp">
-      <Filter>Sources\Project\ECS\Systems\Player\PlayerIdleSystem</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Project\ECS\Systems\PlayerSprintSystem.cpp">
-      <Filter>Sources\Project\ECS\Systems\Player\PlayerSprintSystem</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Tool\Editor\PrefabWindow.cpp">
-      <Filter>Sources\Tool\Editor\PrefabWindow</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Tool\Editor\ComponentInspectorRegistry.cpp">
-      <Filter>Sources\Tool\Editor\ComponentRegistry</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Tool\Editor\LogWindow.cpp">
-      <Filter>Sources\Tool\Editor\LogWindow</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Tool\Editor\FileDialog.cpp">
-      <Filter>Sources\Tool\Editor\FileDialog</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Project\ECS\Systems\PlayerJumpSystem.cpp">
-      <Filter>Sources\Project\ECS\Systems\Player\PlayerJumpSystem</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Project\ECS\ProjectComponents.cpp">
-      <Filter>Sources\Project\ECS</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\ProjectEditor\ProjectInspectors.cpp">
-      <Filter>Sources\ProjectEditor</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Tool\Editor\ViewportWindow.cpp">
-      <Filter>Sources\Tool\Editor</Filter>
     </ClCompile>
     <ClCompile Include="Source\App\EditorApp.cpp">
       <Filter>Sources\APP</Filter>
     </ClCompile>
     <ClCompile Include="Source\App\GameApp.cpp">
       <Filter>Sources\APP</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Project\Demo\WaveDemo.cpp">
-      <Filter>Sources\Project\Demo</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Tool\Editor\DebugCameraSystem.cpp">
-      <Filter>Sources\Tool\Editor</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Tool\Editor\ImGuiManager.cpp">
-      <Filter>Sources\Tool\Editor</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -377,30 +77,6 @@
     </ClInclude>
     <ClInclude Include="External\entt-main\single_include\entt\entt.hpp">
       <Filter>External\entt</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Tool\Studio\StudioCamera.h">
-      <Filter>Sources\Tool\Studio\StudioCamera</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Tool\Studio\StudioContext.h">
-      <Filter>Sources\Tool\Studio\StudioContext</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Tool\Studio\IStudioAttachment.h">
-      <Filter>Sources\Tool\Studio\IStudioAttachment</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Tool\Studio\StudioWindow.h">
-      <Filter>Sources\Tool\Studio\StudioWindow</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Tool\Studio\StudioModelViewer.h">
-      <Filter>Sources\Tool\Studio\StudioModelViewer</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Tool\Studio\StudioSharedContext.h">
-      <Filter>Sources\Tool\Studio\StudioSharedContext</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Tool\Studio\StudioAnimator.h">
-      <Filter>Sources\Tool\Studio\StudioAnimator</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Tool\Studio\StudioTimeline.h">
-      <Filter>Sources\Tool\Studio\StudioTimeline</Filter>
     </ClInclude>
     <ClInclude Include="External\DualSense-Windows-main\VS19_Solution\DualSenseWindows\include\DualSenseWindows\Device.h">
       <Filter>External\DualSense-Windows</Filter>
@@ -417,137 +93,11 @@
     <ClInclude Include="External\DualSense-Windows-main\VS19_Solution\DualSenseWindows\include\DualSenseWindows\IO.h">
       <Filter>External\DualSense-Windows</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Tool\Studio\StudioConditionGraph.h">
-      <Filter>Sources\Tool\Studio\StudioAnimatorGraph\StudioConditionGraph</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Tool\Studio\StudioParentStateGraph.h">
-      <Filter>Sources\Tool\Studio\StudioAnimatorGraph\StudioParentStateGraph</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Tool\Studio\StudioSequencer.h">
-      <Filter>Sources\Tool\Studio\StudioSequencer</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Tool\Studio\StudioAnimatorGraph.h">
-      <Filter>Sources\Tool\Studio\StudioAnimatorGraph</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Tool\Studio\StudioChildStateGraph.h">
-      <Filter>Sources\Tool\Studio\StudioAnimatorGraph\StudioChildGraph</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Tool\Studio\AnimatorGraphNavigation.h">
-      <Filter>Sources\Tool\Studio\StudioAnimatorGraph\AnimatorGraphNavigation</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Project\Scene\SceneGame.h">
-      <Filter>Sources\Project\Scene\SceneGame</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Project\ECS\Components\GameInputComponent.h">
-      <Filter>Sources\Project\ECS\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Project\ECS\Systems\PlayerMoveSystem.h">
-      <Filter>Sources\Project\ECS\Systems\Player\PlayerMoveSystem</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Project\ECS\Systems\GameInputSystem.h">
-      <Filter>Sources\Project\ECS\Systems\GameInputSystem</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Project\ECS\Components\GameCameraComponent.h">
-      <Filter>Sources\Project\ECS\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Project\ECS\Systems\GameCameraSystem.h">
-      <Filter>Sources\Project\ECS\Systems\GameCameraSystem</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Tool\Editor\ComponentRegistryInitializer.h">
-      <Filter>Sources\Tool\Editor\ComponentRegistry</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Tool\Editor\EditorContext.h">
-      <Filter>Sources\Tool\Editor\EditorContext</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Tool\Editor\HierarchyWindow.h">
-      <Filter>Sources\Tool\Editor\HierarchyWindow</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Tool\Editor\InspectorWindow.h">
-      <Filter>Sources\Tool\Editor\InspectorWindow</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Tool\Editor\MetaRegistry.h">
-      <Filter>Sources\Tool\Editor\MetaRegistry</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Tool\Editor\ProjectWindow.h">
-      <Filter>Sources\Tool\Editor\ProjectWindow</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Tool\NodeEditor\NodeEditorCanvas.h">
-      <Filter>Sources\Tool\NodeEditor</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Tool\AdaptiveTriggerToolWindow.h">
-      <Filter>Sources\Tool</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Project\ECS\Components\PlayerDodgeComponent.h">
-      <Filter>Sources\Project\ECS\Components\Player</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Project\ECS\Components\PlayerMoveComponent.h">
-      <Filter>Sources\Project\ECS\Components\Player</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Project\ECS\Components\PlayerSprintComponent.h">
-      <Filter>Sources\Project\ECS\Components\Player</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Project\ECS\Systems\PlayerMovementUtils.h">
-      <Filter>Sources\Project\ECS\Systems\Player\PlayerMovementUtils</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Project\ECS\Systems\PlayerDodgeSystem.h">
-      <Filter>Sources\Project\ECS\Systems\Player\PlayerDodgeSystem</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Tool\Studio\StudioAnimationSpeed.h">
-      <Filter>Sources\Tool\Studio\StudioAnimationSpeed</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Tool\Studio\StudioTransitionGraph.h">
-      <Filter>Sources\Tool\Studio\StudioAnimatorGraph\StudioTransitionGraph</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Project\ECS\Components\PlayerIdleComponent.h">
-      <Filter>Sources\Project\ECS\Components\Player</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Project\ECS\Systems\PlayerIdleSystem.h">
-      <Filter>Sources\Project\ECS\Systems\Player\PlayerIdleSystem</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Project\ECS\Systems\PlayerSprintSystem.h">
-      <Filter>Sources\Project\ECS\Systems\Player\PlayerSprintSystem</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Tool\Editor\PrefabWindow.h">
-      <Filter>Sources\Tool\Editor\PrefabWindow</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Tool\Editor\ComponentInspectorRegistry.h">
-      <Filter>Sources\Tool\Editor\ComponentRegistry</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Tool\Editor\LogWindow.h">
-      <Filter>Sources\Tool\Editor\LogWindow</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Tool\Editor\FileDialog.h">
-      <Filter>Sources\Tool\Editor\FileDialog</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Project\ECS\Components\PlayerJumpComponent.h">
-      <Filter>Sources\Project\ECS\Components\Player</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Project\ECS\Systems\PlayerJumpSystem.h">
-      <Filter>Sources\Project\ECS\Systems\Player\PlayerJumpSystem</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Project\ECS\ProjectComponents.h">
-      <Filter>Sources\Project\ECS</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\ProjectEditor\ProjectInspectors.h">
-      <Filter>Sources\ProjectEditor</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Tool\Editor\ViewportWindow.h">
-      <Filter>Sources\Tool\Editor</Filter>
-    </ClInclude>
     <ClInclude Include="Source\App\EditorApp.h">
       <Filter>Sources\APP</Filter>
     </ClInclude>
     <ClInclude Include="Source\App\GameApp.h">
       <Filter>Sources\APP</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Project\Demo\WaveDemo.h">
-      <Filter>Sources\Project\Demo</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Tool\Editor\DebugCameraSystem.h">
-      <Filter>Sources\Tool\Editor</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Tool\Editor\ImGuiManager.h">
-      <Filter>Sources\Tool\Editor</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

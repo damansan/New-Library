@@ -184,11 +184,11 @@ Path: C:\Users\offri\Desktop\New-Library\Source\App\EditorApp.cpp
 
 #include "Engine/ECS/Components/ControllerComponent.h"
 #include "Engine/Resource/SceneSerializer.h"
-#include "Project/Scene/SceneGame.h"
-#include "Project/ECS/ProjectComponents.h"
+#include "Game/Scene/SceneGame.h"
+#include "Game/ECS/GameComponents.h"
 #include "Tool/Editor/ComponentRegistryInitializer.h"
 #include "Tool/Editor/FileDialog.h"
-#include "ProjectEditor/ProjectInspectors.h"
+#include "ProjectEditor/GameInspectors.h"
 
 // èâä˙âª
 void EditorApp::OnInitialize()
@@ -540,8 +540,8 @@ Path: C:\Users\offri\Desktop\New-Library\Source\App\GameApp.cpp
 
 #include "Engine/Core/Log.h"
 #include "Engine/Resource/SceneSerializer.h"
-#include "Project/Scene/SceneGame.h"
-#include "Project/ECS/ProjectComponents.h"
+#include "Game/Scene/SceneGame.h"
+#include "Game/ECS/ProjectComponents.h"
 
 namespace
 {
@@ -909,45 +909,6 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11PixelShader>     presentPS;
 	Microsoft::WRL::ComPtr<ID3D11SamplerState>    presentSampler;
 	Microsoft::WRL::ComPtr<ID3D11RasterizerState> presentRasterizer;
-}; 
- 
-===== ImGuiManager.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Core\ImGuiManager.h 
-#pragma once
-#include <windows.h>
-#include <d3d11.h>
-
-#include <imgui.h>
-#include <imgui_internal.h>
-#include <imgui_impl_dx11.h>
-#include <imgui_impl_win32.h>
-
-extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
-extern ImWchar glyphRangesJapanese[];
-
-
-class ImGuiManager
-{
-public:
-	ImGuiManager() = default;
-	~ImGuiManager();
-
-	ImGuiManager(const ImGuiManager&) = delete;				   // ÉRÉsÅ[ÉRÉìÉXÉgÉâÉNÉ^ã÷é~
-	ImGuiManager& operator=(const ImGuiManager&) = delete;	   // ÉRÉsÅ[ë„ì¸ã÷é~
-	ImGuiManager(ImGuiManager&&) noexcept = delete;			   // ÉÄÅ[ÉuÉRÉìÉXÉgÉâÉNÉ^ã÷é~
-	ImGuiManager& operator=(ImGuiManager&&) noexcept = delete; // ÉÄÅ[Éuë„ì¸ã÷é~
-
-    // èâä˙âª
-    void Initialize(HWND hWnd, ID3D11Device* device, ID3D11DeviceContext* dc);
-    // ÉtÉåÅ[ÉÄäJén
-    void BeginFrame();
-    // ÉtÉåÅ[ÉÄèIóπ/ï`âÊ
-    void EndFrame();
-    // èIóπâª
-    void Shutdown();
-
-    // ÉEÉBÉìÉhÉEÉÅÉbÉZÅ[ÉWèàóù
-    bool HandleMessage(HWND hWnd, UINT msg, WPARAM wparam, LPARAM lparam);
 }; 
  
 ===== JsonFileCache.h ===== 
@@ -2261,107 +2222,6 @@ void Graphics::InitializePresentResources()
 	device->CreateRasterizerState(&rasterizerDesc, presentRasterizer.GetAddressOf());
 } 
  
-===== ImGuiManager.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Core\ImGuiManager.cpp 
-#include "ImGuiManager.h"
-
-ImGuiManager::~ImGuiManager()
-{
-	// èIóπâª
-	Shutdown();
-}
-
-// èâä˙âª
-void ImGuiManager::Initialize(HWND hWnd, ID3D11Device* device, ID3D11DeviceContext* dc)
-{
-	IMGUI_CHECKVERSION();
-	ImGui::CreateContext();
-
-	ImGuiIO& io = ImGui::GetIO();
-
-	// ÉhÉbÉLÉìÉOóLå¯âª
-	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-	//É}ÉãÉ`ÉrÉÖÅ[É|Å[ÉgóLå¯âª
-	io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
-
-	// ì˙ñ{åÍÉtÉHÉìÉgê›íË
-	io.Fonts->AddFontFromFileTTF(
-		"SystemData/Fonts/NotoSansJP-Regular.ttf",
-		16.0f, nullptr, io.Fonts->GetGlyphRangesJapanese());
-
-	ImGui_ImplWin32_Init(hWnd);
-	ImGui_ImplDX11_Init(device, dc);
-
-	ImGui::StyleColorsClassic(); // ÉNÉâÉVÉbÉN
-}
-
-// ÉtÉåÅ[ÉÄäJén
-void ImGuiManager::BeginFrame()
-{
-	ImGui_ImplDX11_NewFrame();
-	ImGui_ImplWin32_NewFrame();
-	ImGui::NewFrame();
-
-	// ÉhÉbÉLÉìÉOÉXÉyÅ[ÉXÅiâÊñ ëSëÃÅj
-	ImGuiWindowFlags dockFlags =
-		ImGuiWindowFlags_NoDocking |
-		ImGuiWindowFlags_NoTitleBar |
-		ImGuiWindowFlags_NoCollapse |
-		ImGuiWindowFlags_NoResize |
-		ImGuiWindowFlags_NoMove |
-		ImGuiWindowFlags_NoBringToFrontOnFocus |
-		ImGuiWindowFlags_NoNavFocus |
-		ImGuiWindowFlags_NoBackground;
-
-	ImGuiViewport* viewport = ImGui::GetMainViewport();
-	ImGui::SetNextWindowPos(viewport->Pos);
-	ImGui::SetNextWindowSize(viewport->Size);
-	ImGui::SetNextWindowViewport(viewport->ID);
-
-	ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-	ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-
-	ImGui::Begin("DockSpace", nullptr, dockFlags);
-	ImGui::PopStyleVar(3);
-
-	// ÉhÉbÉLÉìÉOÉXÉyÅ[ÉXIDê∂ê¨
-	ImGuiID dockSpaceId = ImGui::GetID("MainDockSpace");
-	ImGui::DockSpace(dockSpaceId, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_PassthruCentralNode);
-
-	ImGui::End();
-}
-
-// ÉtÉåÅ[ÉÄèIóπ/ï`âÊ
-void ImGuiManager::EndFrame()
-{
-	ImGui::Render();
-	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
-
-	// É}ÉãÉ`ÉrÉÖÅ[É|Å[ÉgçXêV
-	ImGuiIO& io = ImGui::GetIO();
-	if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-	{
-		ImGui::UpdatePlatformWindows();
-		ImGui::RenderPlatformWindowsDefault();
-	}
-}
-
-// èIóπâª
-void ImGuiManager::Shutdown()
-{
-	ImGui_ImplDX11_Shutdown();
-	ImGui_ImplWin32_Shutdown();
-	ImGui::DestroyContext();
-}
-
-// ÉEÉBÉìÉhÉEÉÅÉbÉZÅ[ÉWèàóù
-bool ImGuiManager::HandleMessage(HWND hWnd, UINT msg, WPARAM wparam, LPARAM lparam)
-{
-	return ImGui_ImplWin32_WndProcHandler(hWnd, msg, wparam, lparam);
-}
- 
- 
 ===== PhysX.cpp ===== 
 Path: C:\Users\offri\Desktop\New-Library\Source\Engine\Core\PhysX.cpp 
 #include "PhysX.h"
@@ -2519,15 +2379,6 @@ void SceneManager::Render(const SceneContext& context)
 	if (currentScene)
 	{
 		currentScene->Render(context);
-	}
-}
-
-// ImGuiï`âÊ
-void SceneManager::RenderImGui()
-{
-	if (currentScene)
-	{
-		currentScene->RenderImGui();
 	}
 }
 
@@ -5296,7 +5147,7 @@ public:
 		float elapsedTime);
 
 	// éûä‘ÇêiÇﬂÇ∏Ç…ÅAéwíËÇµÇΩéûçèÇÃÉ|Å[ÉYÇæÇØåvéZÇ∑ÇÈ
-	void AnimationSystem::EvaluatePose(entt::registry& registry);
+	void EvaluatePose(entt::registry& registry);
 
 private:
 	// ÉLÅ[ÉtÉåÅ[ÉÄï‚ä‘Åià íuÅj
@@ -5528,27 +5379,6 @@ private:
     // ê›íËíl
     ControllerSettings settings;
 
-}; 
- 
-===== DebugCameraSystem.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\DebugCameraSystem.h 
-#pragma once
-#include "entt.hpp"
-#include "Engine/Core/Camera.h"
-#include "Engine/ECS/Components/FreeCameraComponent.h"
-
-class DebugCameraSystem
-{
-public:
-    // ÉtÉäÅ[ÉJÉÅÉâÇÃçXêV
-    void Update(entt::registry& registry, float elapsedTime, bool viewportHovered);
-
-    // Camera ÉNÉâÉXÇ…åãâ ÇîΩâf
-    void ApplyToCamera(entt::registry& registry, Camera& camera);
-
-private:
-    // ÉtÉäÅ[ÉJÉÅÉâçXêVèàóù
-    void UpdateFreeCamera(FreeCameraComponent& free, float elapsedTime, bool viewportHovered);
 }; 
  
 ===== IKSystem.h ===== 
@@ -7434,152 +7264,6 @@ void ControllerSystem::SendPS5Output(const AdaptiveTrigger::TriggerEffect& left,
 }
 
  
- 
-===== DebugCameraSystem.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\DebugCameraSystem.cpp 
-#include "DebugCameraSystem.h"
-#include <imgui.h>
-#include <algorithm>
-#include <cmath>
-
-void DebugCameraSystem::Update(entt::registry& registry, float elapsedTime, bool viewportHovered)
-{
-    auto view = registry.view<FreeCameraComponent>();
-    view.each([&](auto entity, FreeCameraComponent& free)
-        {
-            UpdateFreeCamera(free, elapsedTime, viewportHovered);
-        });
-}
-
-void DebugCameraSystem::ApplyToCamera(entt::registry& registry, Camera& camera)
-{
-    auto view = registry.view<FreeCameraComponent>();
-    for (auto entity : view)
-    {
-        auto& free = view.get<FreeCameraComponent>(entity);
-        camera.SetLookAt(
-            free.base.currentEye,
-            free.base.currentTarget,
-            { 0.0f, 1.0f, 0.0f }
-        );
-        // ç≈èâÇÃ1Ç¬ÇæÇØîΩâf
-        break;
-    }
-}
-
-void DebugCameraSystem::UpdateFreeCamera(FreeCameraComponent& free, float elapsedTime, bool viewportHovered)
-{
-    // GameÉrÉÖÅ[É|Å[Égè„Ç…É}ÉEÉXÇ™ñ≥Ç¢éûÇÕèàóùÇµÇ»Ç¢
-    if (!viewportHovered) return;
-
-    // âEÉNÉäÉbÉNíÜÇæÇØëÄçÏÇéÛÇØïtÇØÇÈ
-    if (!(GetAsyncKeyState(VK_RBUTTON) & 0x8000))
-    {
-        free.firstMouse = true;
-        return;
-    }
-
-    // ÉzÉCÅ[ÉãÇ≈ë¨ìxïœçX
-    float wheel = ImGui::GetIO().MouseWheel;
-    if (wheel != 0.0f)
-    {
-        free.cameraSpeed += wheel * 2.0f;
-        free.cameraSpeed = std::clamp(free.cameraSpeed, 0.1f, 100.0f);
-    }
-
-    float move = free.cameraSpeed * elapsedTime;
-
-    // currentEye / currentTarget Ç©ÇÁëOå„ç∂âEÇåvéZ
-    DirectX::XMVECTOR eyeV = DirectX::XMLoadFloat3(&free.base.currentEye);
-    DirectX::XMVECTOR targetV = DirectX::XMLoadFloat3(&free.base.currentTarget);
-    DirectX::XMVECTOR frontV = DirectX::XMVector3Normalize(
-        DirectX::XMVectorSubtract(targetV, eyeV));
-    DirectX::XMVECTOR upV = DirectX::XMVectorSet(0, 1, 0, 0);
-    DirectX::XMVECTOR rightV = DirectX::XMVector3Normalize(
-        DirectX::XMVector3Cross(frontV, upV));
-
-    DirectX::XMFLOAT3 front, right;
-    DirectX::XMStoreFloat3(&front, frontV);
-    DirectX::XMStoreFloat3(&right, rightV);
-
-    DirectX::XMFLOAT3 eye = free.base.currentEye;
-    DirectX::XMFLOAT3 target = free.base.currentTarget;
-
-    // WASD ëOå„ç∂âEà⁄ìÆ
-    if (GetAsyncKeyState('W') & 0x8000)
-    {
-        eye.x += front.x * move; eye.y += front.y * move; eye.z += front.z * move;
-        target.x += front.x * move; target.y += front.y * move; target.z += front.z * move;
-    }
-    if (GetAsyncKeyState('S') & 0x8000)
-    {
-        eye.x -= front.x * move; eye.y -= front.y * move; eye.z -= front.z * move;
-        target.x -= front.x * move; target.y -= front.y * move; target.z -= front.z * move;
-    }
-    if (GetAsyncKeyState('D') & 0x8000)
-    {
-        eye.x -= right.x * move; eye.y -= right.y * move; eye.z -= right.z * move;
-        target.x -= right.x * move; target.y -= right.y * move; target.z -= right.z * move;
-    }
-    if (GetAsyncKeyState('A') & 0x8000)
-    {
-        eye.x += right.x * move; eye.y += right.y * move; eye.z += right.z * move;
-        target.x += right.x * move; target.y += right.y * move; target.z += right.z * move;
-    }
-
-    // QE è„â∫à⁄ìÆ
-    if (GetAsyncKeyState('E') & 0x8000) { eye.y += move; target.y += move; }
-    if (GetAsyncKeyState('Q') & 0x8000) { eye.y -= move; target.y -= move; }
-
-    // É}ÉEÉXÇ≈éãì_âÒì]
-    POINT mousePos;
-    GetCursorPos(&mousePos);
-
-    if (free.firstMouse)
-    {
-        free.lastMousePos = mousePos;
-        free.firstMouse = false;
-
-        // åªç›ÇÃå¸Ç´Ç©ÇÁ yaw / pitch Çïúå≥
-        DirectX::XMFLOAT3 dir =
-        {
-            target.x - eye.x,
-            target.y - eye.y,
-            target.z - eye.z
-        };
-        float len = sqrtf(dir.x * dir.x + dir.y * dir.y + dir.z * dir.z);
-        if (len > 0.0f)
-        {
-            dir.x /= len; dir.y /= len; dir.z /= len;
-        }
-        free.pitch = asinf(dir.y);
-        free.yaw = atan2f(dir.x, dir.z);
-    }
-
-    float dx = static_cast<float>(mousePos.x - free.lastMousePos.x) * 0.005f;
-    float dy = static_cast<float>(mousePos.y - free.lastMousePos.y) * 0.005f;
-
-    free.yaw += dx;
-    free.pitch -= dy;
-    free.pitch = std::clamp(free.pitch,
-        -DirectX::XM_PIDIV2 + 0.1f,
-        DirectX::XM_PIDIV2 - 0.1f);
-
-    free.lastMousePos = mousePos;
-
-    // ëOï˚å¸ÉxÉNÉgÉãÇ©ÇÁ target ÇçXêV
-    DirectX::XMFLOAT3 direction;
-    direction.x = cosf(free.pitch) * sinf(free.yaw);
-    direction.y = sinf(free.pitch);
-    direction.z = cosf(free.pitch) * cosf(free.yaw);
-
-    target.x = eye.x + direction.x;
-    target.y = eye.y + direction.y;
-    target.z = eye.z + direction.z;
-
-    free.base.currentEye = eye;
-    free.base.currentTarget = target;
-} 
  
 ===== IKSystem.cpp ===== 
 Path: C:\Users\offri\Desktop\New-Library\Source\Engine\ECS\Systems\IKSystem.cpp 
@@ -14454,7 +14138,7 @@ namespace DirectX
 } 
  
 ===== WaveDemo.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Project\Demo\WaveDemo.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Game\Demo\WaveDemo.h 
 #pragma once
 #include <entt.hpp>
 #include <d3d11.h>
@@ -14493,7 +14177,7 @@ private:
 }; 
  
 ===== WaveDemo.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Project\Demo\WaveDemo.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Game\Demo\WaveDemo.cpp 
 #include "WaveDemo.h"
 
 void WaveDemo::Initialize(
@@ -14557,8 +14241,8 @@ void WaveDemo::Render(
 	renderer.Render(dc, view, projection, lightDirection, false);
 } 
  
-===== ProjectComponents.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\ProjectComponents.h 
+===== GameComponents.h ===== 
+Path: C:\Users\offri\Desktop\New-Library\Source\Game\ECS\GameComponents.h 
 #pragma once
 
 namespace ProjectComponents
@@ -14567,18 +14251,18 @@ namespace ProjectComponents
 	void Register();
 } 
  
-===== ProjectComponents.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\ProjectComponents.cpp 
+===== GameComponents.cpp ===== 
+Path: C:\Users\offri\Desktop\New-Library\Source\Game\ECS\GameComponents.cpp 
 #include "ProjectComponents.h"
 #include "Engine/Resource/ComponentRegistry.h"
 
-#include "Project/ECS/Components/GameInputComponent.h"
-#include "Project/ECS/Components/GameCameraComponent.h"
-#include "Project/ECS/Components/PlayerIdleComponent.h"
-#include "Project/ECS/Components/PlayerMoveComponent.h"
-#include "Project/ECS/Components/PlayerDodgeComponent.h"
-#include "Project/ECS/Components/PlayerSprintComponent.h"
-#include "Project/ECS/Components/PlayerJumpComponent.h"
+#include "Game/ECS/Components/GameInputComponent.h"
+#include "Game/ECS/Components/GameCameraComponent.h"
+#include "Game/ECS/Components/PlayerIdleComponent.h"
+#include "Game/ECS/Components/PlayerMoveComponent.h"
+#include "Game/ECS/Components/PlayerDodgeComponent.h"
+#include "Game/ECS/Components/PlayerSprintComponent.h"
+#include "Game/ECS/Components/PlayerJumpComponent.h"
 
 void ProjectComponents::Register()
 {
@@ -14592,7 +14276,7 @@ void ProjectComponents::Register()
 } 
  
 ===== GameCameraComponent.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Components\GameCameraComponent.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Game\ECS\Components\GameCameraComponent.h 
 #pragma once
 #include <DirectXMath.h>
 #include "entt.hpp"
@@ -14692,7 +14376,7 @@ struct GameCameraComponent
 }; 
  
 ===== GameInputComponent.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Components\GameInputComponent.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Game\ECS\Components\GameInputComponent.h 
 #pragma once
 #include "Engine/ECS/Reflect.h"
 
@@ -14759,7 +14443,7 @@ struct GameInputComponent
 }; 
  
 ===== PlayerDodgeComponent.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Components\PlayerDodgeComponent.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Game\ECS\Components\PlayerDodgeComponent.h 
 #pragma once
 #include "Engine/ECS/Reflect.h"
 
@@ -14799,7 +14483,7 @@ struct PlayerDodgeComponent
 }; 
  
 ===== PlayerIdleComponent.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Components\PlayerIdleComponent.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Game\ECS\Components\PlayerIdleComponent.h 
 #pragma once
 #include "Engine/ECS/Reflect.h"
 
@@ -14823,7 +14507,7 @@ struct PlayerIdleComponent
 }; 
  
 ===== PlayerJumpComponent.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Components\PlayerJumpComponent.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Game\ECS\Components\PlayerJumpComponent.h 
 #pragma once
 #include "Engine/ECS/Reflect.h"
 
@@ -14852,7 +14536,7 @@ struct PlayerJumpComponent
 }; 
  
 ===== PlayerMoveComponent.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Components\PlayerMoveComponent.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Game\ECS\Components\PlayerMoveComponent.h 
 #pragma once
 #include "Engine/ECS/Reflect.h"
 
@@ -14889,7 +14573,7 @@ struct PlayerMoveComponent
 }; 
  
 ===== PlayerSprintComponent.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Components\PlayerSprintComponent.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Game\ECS\Components\PlayerSprintComponent.h 
 #pragma once
 #include "Engine/ECS/Reflect.h"
 
@@ -14917,13 +14601,13 @@ struct PlayerSprintComponent
 }; 
  
 ===== GameCameraSystem.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Systems\GameCameraSystem.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Game\ECS\Systems\GameCameraSystem.h 
 #pragma once
 #include "entt.hpp"
 #include "Engine/Core/Camera.h"
-#include "Project/ECS/Components/GameCameraComponent.h"
+#include "Game/ECS/Components/GameCameraComponent.h"
 #include "Engine/ECS/Components/TransformComponent.h"
-#include "Project/ECS/Components/GameInputComponent.h"
+#include "Game/ECS/Components/GameInputComponent.h"
 
 #include "Engine/Rendering/ShapeRenderer.h"
 
@@ -14961,10 +14645,10 @@ private:
 }; 
  
 ===== GameInputSystem.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Systems\GameInputSystem.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Game\ECS\Systems\GameInputSystem.h 
 #pragma once
 #include "entt.hpp"
-#include "Project/ECS/Components/GameInputComponent.h"
+#include "Game/ECS/Components/GameInputComponent.h"
 #include "Engine/ECS/Components/ControllerComponent.h"
 #include "Engine/ECS/Components/ControllerSettings.h"
 
@@ -14996,7 +14680,7 @@ private:
 }; 
  
 ===== PlayerDodgeSystem.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Systems\PlayerDodgeSystem.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Game\ECS\Systems\PlayerDodgeSystem.h 
 #pragma once
 #include "entt.hpp"
 #include "Engine/Core/SceneContext.h"
@@ -15015,7 +14699,7 @@ private:
 }; 
  
 ===== PlayerIdleSystem.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Systems\PlayerIdleSystem.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Game\ECS\Systems\PlayerIdleSystem.h 
 #pragma once
 #include "entt.hpp"
 #include "Engine/Core/SceneContext.h"
@@ -15034,7 +14718,7 @@ private:
 }; 
  
 ===== PlayerJumpSystem.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Systems\PlayerJumpSystem.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Game\ECS\Systems\PlayerJumpSystem.h 
 #pragma once
 #include "Engine/Core/SceneContext.h"
 #include "Engine/Core/JsonFileCache.h"
@@ -15053,7 +14737,7 @@ private:
 }; 
  
 ===== PlayerMovementUtils.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Systems\PlayerMovementUtils.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Game\ECS\Systems\PlayerMovementUtils.h 
 #pragma once
 #include <DirectXMath.h>
 
@@ -15090,7 +14774,7 @@ namespace PlayerMovementUtils
 } 
  
 ===== PlayerMoveSystem.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Systems\PlayerMoveSystem.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Game\ECS\Systems\PlayerMoveSystem.h 
 #pragma once
 #include "entt.hpp"
 #include "Engine/Core/SceneContext.h"
@@ -15109,7 +14793,7 @@ private:
 }; 
  
 ===== PlayerSprintSystem.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Systems\PlayerSprintSystem.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Game\ECS\Systems\PlayerSprintSystem.h 
 #pragma once
 #include "entt.hpp"
 #include "Engine/Core/SceneContext.h"
@@ -15128,7 +14812,7 @@ private:
 }; 
  
 ===== GameCameraSystem.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Systems\GameCameraSystem.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Game\ECS\Systems\GameCameraSystem.cpp 
 Ôªø#include "GameCameraSystem.h"
 #include "Engine/ECS/EntityFinder.h"
 
@@ -15668,7 +15352,7 @@ void GameCameraSystem::UpdateLockOnEye(GameCameraComponent& cam, entt::registry&
  
  
 ===== GameInputSystem.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Systems\GameInputSystem.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Game\ECS\Systems\GameInputSystem.cpp 
 Ôªø#include "GameInputSystem.h"
 #include <cmath>
 #include <algorithm>
@@ -15782,11 +15466,11 @@ void GameInputSystem::UpdateButtonState(ButtonState& state, bool isHeldNow)
  
  
 ===== PlayerDodgeSystem.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Systems\PlayerDodgeSystem.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Game\ECS\Systems\PlayerDodgeSystem.cpp 
 #include "PlayerDodgeSystem.h"
-#include "Project/ECS/Components/GameInputComponent.h"
-#include "Project/ECS/Components/PlayerDodgeComponent.h"
-#include "Project/ECS/Systems/PlayerMovementUtils.h"
+#include "Game/ECS/Components/GameInputComponent.h"
+#include "Game/ECS/Components/PlayerDodgeComponent.h"
+#include "Game/ECS/Systems/PlayerMovementUtils.h"
 
 #include "Engine/ECS/Components/AnimatorComponent.h"
 #include "Engine/ECS/Components/StateComponent.h"
@@ -15912,9 +15596,9 @@ void PlayerDodgeSystem::Update(entt::registry& registry, float elapsedTime, cons
 } 
  
 ===== PlayerIdleSystem.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Systems\PlayerIdleSystem.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Game\ECS\Systems\PlayerIdleSystem.cpp 
 #include "PlayerIdleSystem.h"
-#include "Project/ECS/Components/PlayerIdleComponent.h"
+#include "Game/ECS/Components/PlayerIdleComponent.h"
 
 #include "Engine/ECS/Components/AnimatorComponent.h"
 #include "Engine/ECS/Components/StateComponent.h"
@@ -15968,9 +15652,9 @@ void PlayerIdleSystem::Update(entt::registry& registry, float elapsedTime, const
 } 
  
 ===== PlayerJumpSystem.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Systems\PlayerJumpSystem.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Game\ECS\Systems\PlayerJumpSystem.cpp 
 #include "PlayerJumpSystem.h"
-#include "Project/ECS/Components/PlayerJumpComponent.h"
+#include "Game/ECS/Components/PlayerJumpComponent.h"
 
 #include "Engine/ECS/Components/AnimatorComponent.h"
 #include "Engine/ECS/Components/StateComponent.h"
@@ -16044,7 +15728,7 @@ void PlayerJumpSystem::Update(entt::registry& registry, float elapsedTime, const
 } 
  
 ===== PlayerMovementUtils.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Systems\PlayerMovementUtils.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Game\ECS\Systems\PlayerMovementUtils.cpp 
 #include "PlayerMovementUtils.h"
 #include <cmath>
 
@@ -16119,11 +15803,11 @@ namespace PlayerMovementUtils
 } 
  
 ===== PlayerMoveSystem.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Systems\PlayerMoveSystem.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Game\ECS\Systems\PlayerMoveSystem.cpp 
 #include "PlayerMoveSystem.h"
-#include "Project/ECS/Components/GameInputComponent.h"
-#include "Project/ECS/Components/PlayerMoveComponent.h"
-#include "Project/ECS/Systems/PlayerMovementUtils.h"
+#include "Game/ECS/Components/GameInputComponent.h"
+#include "Game/ECS/Components/PlayerMoveComponent.h"
+#include "Game/ECS/Systems/PlayerMovementUtils.h"
 
 #include "Engine/ECS/Components/AnimatorComponent.h"
 #include "Engine/ECS/Components/StateComponent.h"
@@ -16235,11 +15919,11 @@ void PlayerMoveSystem::Update(entt::registry& registry, float elapsedTime, const
 } 
  
 ===== PlayerSprintSystem.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Project\ECS\Systems\PlayerSprintSystem.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Game\ECS\Systems\PlayerSprintSystem.cpp 
 #include "PlayerSprintSystem.h"
-#include "Project/ECS/Components/GameInputComponent.h"
-#include "Project/ECS/Components/PlayerSprintComponent.h"
-#include "Project/ECS/Systems/PlayerMovementUtils.h"
+#include "Game/ECS/Components/GameInputComponent.h"
+#include "Game/ECS/Components/PlayerSprintComponent.h"
+#include "Game/ECS/Systems/PlayerMovementUtils.h"
 
 #include "Engine/ECS/Components/AnimatorComponent.h"
 #include "Engine/ECS/Components/StateComponent.h"
@@ -16316,20 +16000,20 @@ void PlayerSprintSystem::Update(entt::registry& registry, float elapsedTime, con
 } 
  
 ===== SceneGame.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Project\Scene\SceneGame.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Game\Scene\SceneGame.h 
 #pragma once
 #include "Engine/Core/Scene.h"
 
 // ÉQÅ[ÉÄÉvÉåÉCån
 #include "Engine/ECS/Systems/ControllerSystem.h"
-#include "Project/ECS/Systems/GameInputSystem.h"
+#include "Game/ECS/Systems/GameInputSystem.h"
 #include "Engine/ECS/Systems/TransitionControllerSystem.h"
 
-#include "Project/ECS/Systems/PlayerIdleSystem.h"
-#include "Project/ECS/Systems/PlayerMoveSystem.h"
-#include "Project/ECS/Systems/PlayerDodgeSystem.h"
-#include "Project/ECS/Systems/PlayerSprintSystem.h"
-#include "Project/ECS/Systems/PlayerJumpSystem.h"
+#include "Game/ECS/Systems/PlayerIdleSystem.h"
+#include "Game/ECS/Systems/PlayerMoveSystem.h"
+#include "Game/ECS/Systems/PlayerDodgeSystem.h"
+#include "Game/ECS/Systems/PlayerSprintSystem.h"
+#include "Game/ECS/Systems/PlayerJumpSystem.h"
 
 #include "Engine/ECS/Systems/MovementSystem.h"
 #include "Engine/ECS/Systems/AnimatorControllerSystem.h"
@@ -16339,7 +16023,7 @@ Path: C:\Users\offri\Desktop\New-Library\Source\Project\Scene\SceneGame.h
 #include "Engine/ECS/Systems/IKSystem.h"
 #include "Engine/ECS/Systems/MeshLoaderSystem.h"
 #include "Engine/ECS/Systems/PhysicsSystem.h"
-#include "Project/ECS/Systems/GameCameraSystem.h"
+#include "Game/ECS/Systems/GameCameraSystem.h"
 
 // ï`âÊån
 #include "Engine/ECS/Systems/RenderSystem.h"
@@ -16348,7 +16032,7 @@ Path: C:\Users\offri\Desktop\New-Library\Source\Project\Scene\SceneGame.h
 #include "Engine/Rendering/PhysicsDebugRenderer.h"
 
 // ÉfÉÇ
-#include "Project/Demo/WaveDemo.h"
+#include "Game/Demo/WaveDemo.h"
 
 class SceneGame : public Scene
 {
@@ -16357,7 +16041,6 @@ public:
 	void Finalize()override;
 	void Update(float elapsedTime, const SceneContext& context) override;
 	void Render(const SceneContext& context)override;
-	void RenderImGui() override;
 
 private:
 	void UpdateGameplay(float elapsedTime, const SceneContext& context);  // ÉQÅ[ÉÄÉvÉåÉCån
@@ -16402,7 +16085,7 @@ private:
  
  
 ===== SceneGame.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\Project\Scene\SceneGame.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Game\Scene\SceneGame.cpp 
 Ôªø#include "SceneGame.h"
 #include <imgui.h>
 
@@ -16611,10 +16294,6 @@ void SceneGame::Render(const SceneContext& context)
 	}
 }
 
-void SceneGame::RenderImGui()
-{
-}
-
 // „Ç≤„Éº„É†„Éó„É¨„Ç§Á≥ª
 void SceneGame::UpdateGameplay(float elapsedTime, const SceneContext& context)
 {
@@ -16723,8 +16402,8 @@ void SceneGame::UpdateCamera(float elapsedTime, const SceneContext& context)
 	gameCameraSystem.ApplyToCamera(registry, *context.camera);
 } 
  
-===== ProjectInspectors.h ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\ProjectEditor\ProjectInspectors.h 
+===== GameInspectors.h ===== 
+Path: C:\Users\offri\Desktop\New-Library\Source\GameEditor\GameInspectors.h 
 #pragma once
 
 namespace ProjectInspectors
@@ -16733,11 +16412,11 @@ namespace ProjectInspectors
 	void Register();
 } 
  
-===== ProjectInspectors.cpp ===== 
-Path: C:\Users\offri\Desktop\New-Library\Source\ProjectEditor\ProjectInspectors.cpp 
+===== GameInspectors.cpp ===== 
+Path: C:\Users\offri\Desktop\New-Library\Source\GameEditor\GameInspectors.cpp 
 #include "ProjectInspectors.h"
 #include "Tool/Editor/ComponentInspectorRegistry.h"
-#include "Project/ECS/Components/GameCameraComponent.h"
+#include "Game/ECS/Components/GameCameraComponent.h"
 
 #include <imgui.h>
 #include <string>
@@ -17317,6 +16996,27 @@ public:
     static void Initialize();
 }; 
  
+===== DebugCameraSystem.h ===== 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Editor\DebugCameraSystem.h 
+#pragma once
+#include "entt.hpp"
+#include "Engine/Core/Camera.h"
+#include "Engine/ECS/Components/FreeCameraComponent.h"
+
+class DebugCameraSystem
+{
+public:
+    // ÉtÉäÅ[ÉJÉÅÉâÇÃçXêV
+    void Update(entt::registry& registry, float elapsedTime, bool viewportHovered);
+
+    // Camera ÉNÉâÉXÇ…åãâ ÇîΩâf
+    void ApplyToCamera(entt::registry& registry, Camera& camera);
+
+private:
+    // ÉtÉäÅ[ÉJÉÅÉâçXêVèàóù
+    void UpdateFreeCamera(FreeCameraComponent& free, float elapsedTime, bool viewportHovered);
+}; 
+ 
 ===== EditorContext.h ===== 
 Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Editor\EditorContext.h 
 #pragma once
@@ -17414,6 +17114,45 @@ class HierarchyWindow
 public:
     // ï`âÊ
     void Draw(entt::registry& registry, EditorContext& context);
+}; 
+ 
+===== ImGuiManager.h ===== 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Editor\ImGuiManager.h 
+#pragma once
+#include <windows.h>
+#include <d3d11.h>
+
+#include <imgui.h>
+#include <imgui_internal.h>
+#include <imgui_impl_dx11.h>
+#include <imgui_impl_win32.h>
+
+extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+extern ImWchar glyphRangesJapanese[];
+
+
+class ImGuiManager
+{
+public:
+	ImGuiManager() = default;
+	~ImGuiManager();
+
+	ImGuiManager(const ImGuiManager&) = delete;				   // ÉRÉsÅ[ÉRÉìÉXÉgÉâÉNÉ^ã÷é~
+	ImGuiManager& operator=(const ImGuiManager&) = delete;	   // ÉRÉsÅ[ë„ì¸ã÷é~
+	ImGuiManager(ImGuiManager&&) noexcept = delete;			   // ÉÄÅ[ÉuÉRÉìÉXÉgÉâÉNÉ^ã÷é~
+	ImGuiManager& operator=(ImGuiManager&&) noexcept = delete; // ÉÄÅ[Éuë„ì¸ã÷é~
+
+    // èâä˙âª
+    void Initialize(HWND hWnd, ID3D11Device* device, ID3D11DeviceContext* dc);
+    // ÉtÉåÅ[ÉÄäJén
+    void BeginFrame();
+    // ÉtÉåÅ[ÉÄèIóπ/ï`âÊ
+    void EndFrame();
+    // èIóπâª
+    void Shutdown();
+
+    // ÉEÉBÉìÉhÉEÉÅÉbÉZÅ[ÉWèàóù
+    bool HandleMessage(HWND hWnd, UINT msg, WPARAM wparam, LPARAM lparam);
 }; 
  
 ===== InspectorWindow.h ===== 
@@ -17983,6 +17722,152 @@ void ComponentRegistryInitializer::Initialize()
 		});
 } 
  
+===== DebugCameraSystem.cpp ===== 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Editor\DebugCameraSystem.cpp 
+#include "DebugCameraSystem.h"
+#include <imgui.h>
+#include <algorithm>
+#include <cmath>
+
+void DebugCameraSystem::Update(entt::registry& registry, float elapsedTime, bool viewportHovered)
+{
+    auto view = registry.view<FreeCameraComponent>();
+    view.each([&](auto entity, FreeCameraComponent& free)
+        {
+            UpdateFreeCamera(free, elapsedTime, viewportHovered);
+        });
+}
+
+void DebugCameraSystem::ApplyToCamera(entt::registry& registry, Camera& camera)
+{
+    auto view = registry.view<FreeCameraComponent>();
+    for (auto entity : view)
+    {
+        auto& free = view.get<FreeCameraComponent>(entity);
+        camera.SetLookAt(
+            free.base.currentEye,
+            free.base.currentTarget,
+            { 0.0f, 1.0f, 0.0f }
+        );
+        // ç≈èâÇÃ1Ç¬ÇæÇØîΩâf
+        break;
+    }
+}
+
+void DebugCameraSystem::UpdateFreeCamera(FreeCameraComponent& free, float elapsedTime, bool viewportHovered)
+{
+    // GameÉrÉÖÅ[É|Å[Égè„Ç…É}ÉEÉXÇ™ñ≥Ç¢éûÇÕèàóùÇµÇ»Ç¢
+    if (!viewportHovered) return;
+
+    // âEÉNÉäÉbÉNíÜÇæÇØëÄçÏÇéÛÇØïtÇØÇÈ
+    if (!(GetAsyncKeyState(VK_RBUTTON) & 0x8000))
+    {
+        free.firstMouse = true;
+        return;
+    }
+
+    // ÉzÉCÅ[ÉãÇ≈ë¨ìxïœçX
+    float wheel = ImGui::GetIO().MouseWheel;
+    if (wheel != 0.0f)
+    {
+        free.cameraSpeed += wheel * 2.0f;
+        free.cameraSpeed = std::clamp(free.cameraSpeed, 0.1f, 100.0f);
+    }
+
+    float move = free.cameraSpeed * elapsedTime;
+
+    // currentEye / currentTarget Ç©ÇÁëOå„ç∂âEÇåvéZ
+    DirectX::XMVECTOR eyeV = DirectX::XMLoadFloat3(&free.base.currentEye);
+    DirectX::XMVECTOR targetV = DirectX::XMLoadFloat3(&free.base.currentTarget);
+    DirectX::XMVECTOR frontV = DirectX::XMVector3Normalize(
+        DirectX::XMVectorSubtract(targetV, eyeV));
+    DirectX::XMVECTOR upV = DirectX::XMVectorSet(0, 1, 0, 0);
+    DirectX::XMVECTOR rightV = DirectX::XMVector3Normalize(
+        DirectX::XMVector3Cross(frontV, upV));
+
+    DirectX::XMFLOAT3 front, right;
+    DirectX::XMStoreFloat3(&front, frontV);
+    DirectX::XMStoreFloat3(&right, rightV);
+
+    DirectX::XMFLOAT3 eye = free.base.currentEye;
+    DirectX::XMFLOAT3 target = free.base.currentTarget;
+
+    // WASD ëOå„ç∂âEà⁄ìÆ
+    if (GetAsyncKeyState('W') & 0x8000)
+    {
+        eye.x += front.x * move; eye.y += front.y * move; eye.z += front.z * move;
+        target.x += front.x * move; target.y += front.y * move; target.z += front.z * move;
+    }
+    if (GetAsyncKeyState('S') & 0x8000)
+    {
+        eye.x -= front.x * move; eye.y -= front.y * move; eye.z -= front.z * move;
+        target.x -= front.x * move; target.y -= front.y * move; target.z -= front.z * move;
+    }
+    if (GetAsyncKeyState('D') & 0x8000)
+    {
+        eye.x -= right.x * move; eye.y -= right.y * move; eye.z -= right.z * move;
+        target.x -= right.x * move; target.y -= right.y * move; target.z -= right.z * move;
+    }
+    if (GetAsyncKeyState('A') & 0x8000)
+    {
+        eye.x += right.x * move; eye.y += right.y * move; eye.z += right.z * move;
+        target.x += right.x * move; target.y += right.y * move; target.z += right.z * move;
+    }
+
+    // QE è„â∫à⁄ìÆ
+    if (GetAsyncKeyState('E') & 0x8000) { eye.y += move; target.y += move; }
+    if (GetAsyncKeyState('Q') & 0x8000) { eye.y -= move; target.y -= move; }
+
+    // É}ÉEÉXÇ≈éãì_âÒì]
+    POINT mousePos;
+    GetCursorPos(&mousePos);
+
+    if (free.firstMouse)
+    {
+        free.lastMousePos = mousePos;
+        free.firstMouse = false;
+
+        // åªç›ÇÃå¸Ç´Ç©ÇÁ yaw / pitch Çïúå≥
+        DirectX::XMFLOAT3 dir =
+        {
+            target.x - eye.x,
+            target.y - eye.y,
+            target.z - eye.z
+        };
+        float len = sqrtf(dir.x * dir.x + dir.y * dir.y + dir.z * dir.z);
+        if (len > 0.0f)
+        {
+            dir.x /= len; dir.y /= len; dir.z /= len;
+        }
+        free.pitch = asinf(dir.y);
+        free.yaw = atan2f(dir.x, dir.z);
+    }
+
+    float dx = static_cast<float>(mousePos.x - free.lastMousePos.x) * 0.005f;
+    float dy = static_cast<float>(mousePos.y - free.lastMousePos.y) * 0.005f;
+
+    free.yaw += dx;
+    free.pitch -= dy;
+    free.pitch = std::clamp(free.pitch,
+        -DirectX::XM_PIDIV2 + 0.1f,
+        DirectX::XM_PIDIV2 - 0.1f);
+
+    free.lastMousePos = mousePos;
+
+    // ëOï˚å¸ÉxÉNÉgÉãÇ©ÇÁ target ÇçXêV
+    DirectX::XMFLOAT3 direction;
+    direction.x = cosf(free.pitch) * sinf(free.yaw);
+    direction.y = sinf(free.pitch);
+    direction.z = cosf(free.pitch) * cosf(free.yaw);
+
+    target.x = eye.x + direction.x;
+    target.y = eye.y + direction.y;
+    target.z = eye.z + direction.z;
+
+    free.base.currentEye = eye;
+    free.base.currentTarget = target;
+} 
+ 
 ===== FileDialog.cpp ===== 
 Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Editor\FileDialog.cpp 
 #include "FileDialog.h"
@@ -18242,6 +18127,107 @@ void HierarchyWindow::Draw(entt::registry& registry, EditorContext& context)
     }
     ImGui::End();
 } 
+ 
+===== ImGuiManager.cpp ===== 
+Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Editor\ImGuiManager.cpp 
+#include "ImGuiManager.h"
+
+ImGuiManager::~ImGuiManager()
+{
+	// èIóπâª
+	Shutdown();
+}
+
+// èâä˙âª
+void ImGuiManager::Initialize(HWND hWnd, ID3D11Device* device, ID3D11DeviceContext* dc)
+{
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+
+	ImGuiIO& io = ImGui::GetIO();
+
+	// ÉhÉbÉLÉìÉOóLå¯âª
+	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+	//É}ÉãÉ`ÉrÉÖÅ[É|Å[ÉgóLå¯âª
+	io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+
+	// ì˙ñ{åÍÉtÉHÉìÉgê›íË
+	io.Fonts->AddFontFromFileTTF(
+		"SystemData/Fonts/NotoSansJP-Regular.ttf",
+		16.0f, nullptr, io.Fonts->GetGlyphRangesJapanese());
+
+	ImGui_ImplWin32_Init(hWnd);
+	ImGui_ImplDX11_Init(device, dc);
+
+	ImGui::StyleColorsClassic(); // ÉNÉâÉVÉbÉN
+}
+
+// ÉtÉåÅ[ÉÄäJén
+void ImGuiManager::BeginFrame()
+{
+	ImGui_ImplDX11_NewFrame();
+	ImGui_ImplWin32_NewFrame();
+	ImGui::NewFrame();
+
+	// ÉhÉbÉLÉìÉOÉXÉyÅ[ÉXÅiâÊñ ëSëÃÅj
+	ImGuiWindowFlags dockFlags =
+		ImGuiWindowFlags_NoDocking |
+		ImGuiWindowFlags_NoTitleBar |
+		ImGuiWindowFlags_NoCollapse |
+		ImGuiWindowFlags_NoResize |
+		ImGuiWindowFlags_NoMove |
+		ImGuiWindowFlags_NoBringToFrontOnFocus |
+		ImGuiWindowFlags_NoNavFocus |
+		ImGuiWindowFlags_NoBackground;
+
+	ImGuiViewport* viewport = ImGui::GetMainViewport();
+	ImGui::SetNextWindowPos(viewport->Pos);
+	ImGui::SetNextWindowSize(viewport->Size);
+	ImGui::SetNextWindowViewport(viewport->ID);
+
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+
+	ImGui::Begin("DockSpace", nullptr, dockFlags);
+	ImGui::PopStyleVar(3);
+
+	// ÉhÉbÉLÉìÉOÉXÉyÅ[ÉXIDê∂ê¨
+	ImGuiID dockSpaceId = ImGui::GetID("MainDockSpace");
+	ImGui::DockSpace(dockSpaceId, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_PassthruCentralNode);
+
+	ImGui::End();
+}
+
+// ÉtÉåÅ[ÉÄèIóπ/ï`âÊ
+void ImGuiManager::EndFrame()
+{
+	ImGui::Render();
+	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+
+	// É}ÉãÉ`ÉrÉÖÅ[É|Å[ÉgçXêV
+	ImGuiIO& io = ImGui::GetIO();
+	if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+	{
+		ImGui::UpdatePlatformWindows();
+		ImGui::RenderPlatformWindowsDefault();
+	}
+}
+
+// èIóπâª
+void ImGuiManager::Shutdown()
+{
+	ImGui_ImplDX11_Shutdown();
+	ImGui_ImplWin32_Shutdown();
+	ImGui::DestroyContext();
+}
+
+// ÉEÉBÉìÉhÉEÉÅÉbÉZÅ[ÉWèàóù
+bool ImGuiManager::HandleMessage(HWND hWnd, UINT msg, WPARAM wparam, LPARAM lparam)
+{
+	return ImGui_ImplWin32_WndProcHandler(hWnd, msg, wparam, lparam);
+}
+ 
  
 ===== InspectorWindow.cpp ===== 
 Path: C:\Users\offri\Desktop\New-Library\Source\Tool\Editor\InspectorWindow.cpp 

@@ -1,11 +1,11 @@
-#include "ProjectInspectors.h"
+#include "GameInspectors.h"
 #include "Tool/Editor/ComponentInspectorRegistry.h"
-#include "Project/ECS/Components/GameCameraComponent.h"
+#include "Game/ECS/Components/GameCameraComponent.h"
 
 #include <imgui.h>
 #include <string>
 
-void ProjectInspectors::Register()
+void GameInspectors::Register() 
 {
 	// ÉQÅ[ÉÄÉJÉÅÉâ
 	REGISTER_INSPECTOR(GameCameraComponent,

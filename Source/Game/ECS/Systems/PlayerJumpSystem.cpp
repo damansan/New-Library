@@ -1,5 +1,5 @@
 #include "PlayerJumpSystem.h"
-#include "Project/ECS/Components/PlayerJumpComponent.h"
+#include "Game/ECS/Components/PlayerJumpComponent.h"
 
 #include "Engine/ECS/Components/AnimatorComponent.h"
 #include "Engine/ECS/Components/StateComponent.h"

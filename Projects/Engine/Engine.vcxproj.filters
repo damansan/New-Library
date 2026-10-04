@@ -161,6 +161,12 @@
     <Filter Include="Sources\Engine\Rendering\SkyBox">
       <UniqueIdentifier>{baaad84d-67b6-4ee2-a9c8-47777a392265}</UniqueIdentifier>
     </Filter>
+    <Filter Include="External">
+      <UniqueIdentifier>{b123c042-8ee7-47af-8693-acfcdccd9bae}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="External\tracy-0.13.1">
+      <UniqueIdentifier>{8451d30c-c014-456b-95c9-571a4e63996b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Source\Engine\Core\Application.cpp">
@@ -291,6 +297,9 @@
     </ClCompile>
     <ClCompile Include="..\..\Source\Engine\Rendering\SkyBox.cpp">
       <Filter>Sources\Engine\Rendering\SkyBox</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\External\tracy-0.13.1\public\TracyClient.cpp">
+      <Filter>External\tracy-0.13.1</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

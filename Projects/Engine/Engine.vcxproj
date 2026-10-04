@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\External\tracy-0.13.1\public\TracyClient.cpp" />
     <ClCompile Include="..\..\Source\Engine\Core\Application.cpp" />
     <ClCompile Include="..\..\Source\Engine\Core\Camera.cpp" />
     <ClCompile Include="..\..\Source\Engine\Core\GameView.cpp" />

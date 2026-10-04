@@ -1,6 +1,6 @@
 #pragma once
 
-namespace ProjectInspectors
+namespace GameInspectors 
 {
 	// Projectのコンポーネントの独自インスペクターを登録する
 	void Register();

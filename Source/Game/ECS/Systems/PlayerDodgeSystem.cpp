@@ -1,7 +1,7 @@
 #include "PlayerDodgeSystem.h"
-#include "Project/ECS/Components/GameInputComponent.h"
-#include "Project/ECS/Components/PlayerDodgeComponent.h"
-#include "Project/ECS/Systems/PlayerMovementUtils.h"
+#include "Game/ECS/Components/GameInputComponent.h"
+#include "Game/ECS/Components/PlayerDodgeComponent.h"
+#include "Game/ECS/Systems/PlayerMovementUtils.h"
 
 #include "Engine/ECS/Components/AnimatorComponent.h"
 #include "Engine/ECS/Components/StateComponent.h"

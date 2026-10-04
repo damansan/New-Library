@@ -3,14 +3,14 @@
 
 // ÉQÅ[ÉÄÉvÉåÉCån
 #include "Engine/ECS/Systems/ControllerSystem.h"
-#include "Project/ECS/Systems/GameInputSystem.h"
+#include "Game/ECS/Systems/GameInputSystem.h"
 #include "Engine/ECS/Systems/TransitionControllerSystem.h"
 
-#include "Project/ECS/Systems/PlayerIdleSystem.h"
-#include "Project/ECS/Systems/PlayerMoveSystem.h"
-#include "Project/ECS/Systems/PlayerDodgeSystem.h"
-#include "Project/ECS/Systems/PlayerSprintSystem.h"
-#include "Project/ECS/Systems/PlayerJumpSystem.h"
+#include "Game/ECS/Systems/PlayerIdleSystem.h"
+#include "Game/ECS/Systems/PlayerMoveSystem.h"
+#include "Game/ECS/Systems/PlayerDodgeSystem.h"
+#include "Game/ECS/Systems/PlayerSprintSystem.h"
+#include "Game/ECS/Systems/PlayerJumpSystem.h"
 
 #include "Engine/ECS/Systems/MovementSystem.h"
 #include "Engine/ECS/Systems/AnimatorControllerSystem.h"
@@ -20,7 +20,7 @@
 #include "Engine/ECS/Systems/IKSystem.h"
 #include "Engine/ECS/Systems/MeshLoaderSystem.h"
 #include "Engine/ECS/Systems/PhysicsSystem.h"
-#include "Project/ECS/Systems/GameCameraSystem.h"
+#include "Game/ECS/Systems/GameCameraSystem.h"
 
 // ï`âÊån
 #include "Engine/ECS/Systems/RenderSystem.h"
@@ -29,7 +29,7 @@
 #include "Engine/Rendering/PhysicsDebugRenderer.h"
 
 // ÉfÉÇ
-#include "Project/Demo/WaveDemo.h"
+#include "Game/Demo/WaveDemo.h"
 
 class SceneGame : public Scene
 {
