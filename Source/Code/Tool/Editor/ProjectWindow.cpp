@@ -278,8 +278,10 @@ void ProjectWindow::DrawFileGrid(entt::registry& registry, EditorContext& contex
 			}
 			else if (isAnimGraph)
 			{
+				// 新しい形式(.stategraph)と古い形式(.animgraph)で、受け取り先を分ける
+				bool isStateGraph = std::filesystem::path(modelPath).extension() == ".stategraph";
 				ImGui::SetDragDropPayload(
-					"ANIMGRAPH_PATH",
+					isStateGraph ? "STATEGRAPH_PATH" : "ANIMGRAPH_PATH",
 					modelPath.c_str(),
 					modelPath.size() + 1
 				);
@@ -478,7 +480,7 @@ bool ProjectWindow::IsAnimGraphFile(const std::filesystem::path& path)
 	std::string ext = path.extension().string();
 	std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
 
-	return ext == ".animgraph";
+	return ext == ".animgraph" || ext == ".stategraph";
 }
 // ファイルがシーケンサーファイルか判定
 bool ProjectWindow::IsSequencerFile(const std::filesystem::path& path)

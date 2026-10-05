@@ -1,44 +1,27 @@
 #include "PlayerJumpSystem.h"
 #include "Game/ECS/Components/PlayerJumpComponent.h"
 
-#include "Engine/ECS/Components/AnimatorComponent.h"
-#include "Engine/ECS/Components/StateComponent.h"
+#include "Engine/ECS/Components/StateMachineComponent.h"
 #include "Engine/ECS/Components/MovementComponent.h"
-#include "Engine/ECS/Systems/StateGraphUtils.h"
 
+#include "Engine/ECS/Systems/StateMachineSystem.h"
+
+PlayerJumpSystem::PlayerJumpSystem()
+{
+	StateMachineSystem::RequireState("Jump", "PlayerJumpSystem");
+}
 
 void PlayerJumpSystem::Update(entt::registry& registry, float elapsedTime, const SceneContext& context)
 {
-	auto view = registry.view<PlayerJumpComponent, AnimatorComponent, StateComponent, MovementComponent>();
+	auto view = registry.view<PlayerJumpComponent, StateMachineComponent, MovementComponent>();
 
 	view.each(
 		[&](PlayerJumpComponent& jump,
-			AnimatorComponent& animator,
-			StateComponent& state,
+			StateMachineComponent& stateMachine,
 			MovementComponent& movement)
 		{
-			// AnimatorGraphPathが空ならJump判定をfalseにする
-			if (animator.animatorGraphPath.empty())
-			{
-				jump.isJumping = false;
-				jump.jumpSub = PlayerJumpSubState::None;
-				return;
-			}
-
-			AnimatorGraphData& data = graphCache.GetOrLoad(animator.animatorGraphPath,
-				[](AnimatorGraphData& data, const nlohmann::json& j) { data.FromJson(j); });
-
-			// "Jump"のIDをキャッシュするまで検索する
-			if (jumpStateId == -1)
-			{
-				jumpStateId = StateGraphUtils::FindStateIdByName(data.parentGraph, "Jump");
-			}
-
-			// 現在がJumpかどうかを判定する
-			bool isMyState = (state.currentStateId == jumpStateId);
-
 			// Jumpでなければ、以降の処理は行わない
-			if (!isMyState)
+			if (!stateMachine.IsIn("Jump"))
 			{
 				jump.isJumping = false;
 				jump.jumpSub = PlayerJumpSubState::None;

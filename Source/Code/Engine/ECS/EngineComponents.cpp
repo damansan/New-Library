@@ -13,6 +13,7 @@
 #include "Engine/ECS/Components/IKComponent.h"
 #include "Engine/ECS/Components/SequencerComponent.h"
 #include "Engine/ECS/Components/AnimationSpeedComponent.h"
+#include "Engine/ECS/Components/StateMachineComponent.h"
 
 void EngineComponents::Register()
 {
@@ -26,6 +27,7 @@ void EngineComponents::Register()
 	REGISTER_COMPONENT_TYPE(IKComponent, "IK");
 	REGISTER_COMPONENT_TYPE(SequencerComponent, "Sequencer");
 	REGISTER_COMPONENT_TYPE(AnimationSpeedComponent, "Animation Speed");
+	REGISTER_COMPONENT_TYPE(StateMachineComponent, "State Machine");
 
 	// 物理：種別(PhysicsBodyType)を代表として登録し、
 	// 外すときは種別ごとに付与された個別のコンポーネントもまとめて外す

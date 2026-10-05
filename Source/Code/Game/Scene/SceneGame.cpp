@@ -224,6 +224,11 @@ void SceneGame::UpdateGameplay(float elapsedTime, const SceneContext& context)
 		ZoneScopedN("TransitionControllerSystem");
 		transitionControllerSystem.Update(registry, elapsedTime, context);
 	}
+	// Stateマシン：Stateの遷移
+	{
+		ZoneScopedN("StateMachineSystem::UpdateState");
+		stateMachineSystem.UpdateState(registry);
+	}
 
 	// プレイヤー待機処理
 	{
@@ -265,6 +270,11 @@ void SceneGame::UpdateAnimation(float elapsedTime, const SceneContext& context)
 	{
 		ZoneScopedN("AnimatorControllerSystem");
 		animatorControllerSystem.Update(registry);
+	}
+	// Stateマシン：再生するクリップ
+	{
+		ZoneScopedN("StateMachineSystem::UpdateAnimation");
+		stateMachineSystem.UpdateAnimation(registry);
 	}
 	// アニメーション速度更新
 	{

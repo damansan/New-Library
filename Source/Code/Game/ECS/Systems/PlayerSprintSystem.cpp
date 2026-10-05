@@ -3,46 +3,33 @@
 #include "Game/ECS/Components/PlayerSprintComponent.h"
 #include "Game/ECS/Systems/PlayerMovementUtils.h"
 
-#include "Engine/ECS/Components/AnimatorComponent.h"
-#include "Engine/ECS/Components/StateComponent.h"
+#include "Engine/ECS/Components/StateMachineComponent.h"
 #include "Engine/ECS/Components/MovementComponent.h"
 #include "Engine/ECS/Components/TransformComponent.h"
-#include "Engine/ECS/Systems/StateGraphUtils.h"
+
+#include "Engine/ECS/Systems/StateMachineSystem.h"
+
 #include <DirectXMath.h>
+
+PlayerSprintSystem::PlayerSprintSystem()
+{
+	StateMachineSystem::RequireState("Sprint", "PlayerSprintSystem");
+}
 
 void PlayerSprintSystem::Update(entt::registry& registry, float elapsedTime, const SceneContext& context)
 {
-	auto view = registry.view<GameInputComponent, PlayerSprintComponent, AnimatorComponent, StateComponent, MovementComponent, TransformComponent>();
+	auto view = registry.view<GameInputComponent, PlayerSprintComponent, StateMachineComponent, MovementComponent, TransformComponent>();
 
 	view.each(
 		[&](auto entity,
 			GameInputComponent& input,
 			PlayerSprintComponent& sprint,
-			AnimatorComponent& animator,
-			StateComponent& state,
+			StateMachineComponent& stateMachine,
 			MovementComponent& movement,
 			TransformComponent& transform)
 		{
-			if (animator.animatorGraphPath.empty())
-			{
-				sprint.isSprinting = false;
-				return;
-			}
-
-			AnimatorGraphData& data = graphCache.GetOrLoad(animator.animatorGraphPath,
-				[](AnimatorGraphData& data, const nlohmann::json& j) { data.FromJson(j); });
-
-			// "Sprint"のIDをキャッシュするまで検索する
-			if (sprintStateId == -1)
-			{
-				sprintStateId = StateGraphUtils::FindStateIdByName(data.parentGraph, "Sprint");
-			}
-
-			// 現在がSprintかどうかを判定する
-			bool isMyState = (state.currentStateId == sprintStateId);
-
 			// Sprintでなければ、以降の処理は行わない
-			if (!isMyState)
+			if (!stateMachine.IsIn("Sprint"))
 			{
 				sprint.isSprinting = false;
 

@@ -3,48 +3,30 @@
 #include "Game/ECS/Components/PlayerMoveComponent.h"
 #include "Game/ECS/Systems/PlayerMovementUtils.h"
 
-#include "Engine/ECS/Components/AnimatorComponent.h"
-#include "Engine/ECS/Components/StateComponent.h"
+#include "Engine/ECS/Components/StateMachineComponent.h"
 #include "Engine/ECS/Components/MovementComponent.h"
 #include "Engine/ECS/Components/TransformComponent.h"
-#include "Engine/ECS/Systems/StateGraphUtils.h"
+#include "Engine/ECS/Systems/StateMachineSystem.h"
+
+PlayerMoveSystem::PlayerMoveSystem()
+{
+	StateMachineSystem::RequireState("Move", "PlayerMoveSystem");
+}
 
 void PlayerMoveSystem::Update(entt::registry& registry, float elapsedTime, const SceneContext& context)
 {
-	auto view = registry.view<GameInputComponent, PlayerMoveComponent, AnimatorComponent, StateComponent, MovementComponent, TransformComponent>();
+	auto view = registry.view<GameInputComponent, PlayerMoveComponent, StateMachineComponent, MovementComponent, TransformComponent>();
 
 	view.each(
 		[&](auto entity,
 			GameInputComponent& input,
 			PlayerMoveComponent& playerMove,
-			AnimatorComponent& animator,
-			StateComponent& state,
+			StateMachineComponent& stateMachine,
 			MovementComponent& movement,
 			TransformComponent& transform)
 		{
-			// AnimatorGraphPathが空ならMove判定をfalseにする
-			if (animator.animatorGraphPath.empty())
-			{
-				playerMove.isMoving = false;
-				playerMove.isWalking = false;
-				playerMove.isJogging = false;
-				return;
-			}
-
-			AnimatorGraphData& data = graphCache.GetOrLoad(animator.animatorGraphPath,
-				[](AnimatorGraphData& data, const nlohmann::json& j) { data.FromJson(j); });
-
-			// "Move"のIDをキャッシュするまで検索する
-			if (moveStateId == -1)
-			{
-				moveStateId = StateGraphUtils::FindStateIdByName(data.parentGraph, "Move");
-			}
-
-			// 現在がMoveかどうかを判定する
-			bool isMyState = (state.currentStateId == moveStateId);
-
 			// Moveでなければ、以降の処理は行わない
-			if (!isMyState)
+			if (!stateMachine.IsIn("Move"))
 			{
 				playerMove.isMoving = false;
 				playerMove.isWalking = false;

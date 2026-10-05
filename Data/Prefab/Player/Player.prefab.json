@@ -1,0 +1,63 @@
+{
+    "AnimationSpeedComponent": {
+        "animationSpeedPath": ""
+    },
+    "AnimatorComponent": {
+        "animatorGraphPath": "Data/Json/Animgraph/Map_Robot3 (2).animgraph",
+        "loop": true,
+        "playSpeed": 1.0,
+        "rootMotionNodeName": "root",
+        "useRootMotion": false,
+        "useRootMotionY": false
+    },
+    "ComponentCategory": {
+        "category": "Player"
+    },
+    "GameInputComponent": {},
+    "MaterialComponent": {
+        "shadingModel": "Default"
+    },
+    "MeshComponent": {
+        "modelPath": "Data/Model/PlayerRobot/Map_Robot3.gltf"
+    },
+    "PhysicsBodyTypeComponent": {
+        "type": "Character"
+    },
+    "PlayerDodgeComponent": {
+        "directionBufferTime": 0.11999999731779099
+    },
+    "PlayerIdleComponent": {},
+    "PlayerJumpComponent": {
+        "jumpPower": 8.0
+    },
+    "PlayerMoveComponent": {
+        "jogSpeed": 4.0,
+        "jogThreshold": 0.8999999761581421,
+        "turnSpeed": 10.0,
+        "walkSpeed": 2.0
+    },
+    "PlayerSprintComponent": {
+        "sprintSpeed": 15.0,
+        "turnSpeed": 15.0
+    },
+    "SequencerComponent": {
+        "sequencerPath": "Data/Json/Sequencer/Map_Robot3.sequencer"
+    },
+    "TransformComponent": {
+        "position": [
+            0.0,
+            -6.705522537231445e-08,
+            0.0
+        ],
+        "rotation": [
+            0.0,
+            0.0,
+            0.0
+        ],
+        "scale": [
+            1.0,
+            1.0,
+            1.0
+        ]
+    }
+}

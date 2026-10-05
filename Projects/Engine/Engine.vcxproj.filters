@@ -206,6 +206,15 @@
     <Filter Include="Sources\Shader\WiredShape">
       <UniqueIdentifier>{b431c496-dd05-45af-9383-7561c08c120e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\Engine\Data\ConditionGraphData">
+      <UniqueIdentifier>{b9e6525e-8254-4912-9428-bdb8dddcea2c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Engine\Data\StateMachineData">
+      <UniqueIdentifier>{cec77339-acd7-4d60-b161-349e51191ef7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Engine\ECS\Systems\StateMachineSystem">
+      <UniqueIdentifier>{9a905bd8-deb7-4ca7-a9d0-408d7a9f73ac}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Source\Code\Engine\Core\Application.cpp">
@@ -339,6 +348,15 @@
     </ClCompile>
     <ClCompile Include="..\..\External\tracy-0.13.1\public\TracyClient.cpp">
       <Filter>External\tracy-0.13.1</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Code\Engine\Data\ConditionGraphData.cpp">
+      <Filter>Sources\Engine\Data\ConditionGraphData</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Code\Engine\Data\StateMachineData.cpp">
+      <Filter>Sources\Engine\Data\StateMachineData</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Code\Engine\ECS\Systems\StateMachineSystem.cpp">
+      <Filter>Sources\Engine\ECS\Systems\StateMachineSystem</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -560,6 +578,18 @@
     </ClInclude>
     <ClInclude Include="..\..\Source\Code\Engine\Rendering\SkyBox.h">
       <Filter>Sources\Engine\Rendering\SkyBox</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Code\Engine\Data\ConditionGraphData.h">
+      <Filter>Sources\Engine\Data\ConditionGraphData</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Code\Engine\Data\StateMachineData.h">
+      <Filter>Sources\Engine\Data\StateMachineData</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Code\Engine\ECS\Components\StateMachineComponent.h">
+      <Filter>Sources\Engine\ECS\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Code\Engine\ECS\Systems\StateMachineSystem.h">
+      <Filter>Sources\Engine\ECS\Systems\StateMachineSystem</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

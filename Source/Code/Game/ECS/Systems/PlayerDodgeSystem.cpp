@@ -3,47 +3,33 @@
 #include "Game/ECS/Components/PlayerDodgeComponent.h"
 #include "Game/ECS/Systems/PlayerMovementUtils.h"
 
-#include "Engine/ECS/Components/AnimatorComponent.h"
-#include "Engine/ECS/Components/StateComponent.h"
+#include "Engine/ECS/Components/StateMachineComponent.h"
 #include "Engine/ECS/Components/MovementComponent.h"
 #include "Engine/ECS/Components/TransformComponent.h"
-#include "Engine/ECS/Systems/StateGraphUtils.h"
+
+#include "Engine/ECS/Systems/StateMachineSystem.h"
+
 #include <DirectXMath.h>
+
+PlayerDodgeSystem::PlayerDodgeSystem()
+{
+	StateMachineSystem::RequireState("Dodge", "PlayerDodgeSystem");
+}
 
 void PlayerDodgeSystem::Update(entt::registry& registry, float elapsedTime, const SceneContext& context)
 {
-	auto view = registry.view<GameInputComponent, PlayerDodgeComponent, AnimatorComponent, StateComponent, MovementComponent, TransformComponent>();
+	auto view = registry.view<GameInputComponent, PlayerDodgeComponent, StateMachineComponent, MovementComponent, TransformComponent>();
 
 	view.each(
 		[&](auto entity,
 			GameInputComponent& input,
 			PlayerDodgeComponent& dodge,
-			AnimatorComponent& animator,
-			StateComponent& state,
+			StateMachineComponent& stateMachine,
 			MovementComponent& movement,
 			TransformComponent& transform)
 		{
-			// AnimatorGraphPathが空ならDodge判定をfalseにする
-			if (animator.animatorGraphPath.empty())
-			{
-				dodge.isDodging = false;
-				return;
-			}
-
-			AnimatorGraphData& data = graphCache.GetOrLoad(animator.animatorGraphPath,
-				[](AnimatorGraphData& data, const nlohmann::json& j) { data.FromJson(j); });
-
-			// "Dodge"のIDをキャッシュするまで検索する
-			if (dodgeStateId == -1)
-			{
-				dodgeStateId = StateGraphUtils::FindStateIdByName(data.parentGraph, "Dodge");
-			}
-
-			// 現在がDodgeかどうかを判定する
-			bool isMyState = (state.currentStateId == dodgeStateId);
-
 			// Dodgeでなければ、以降の処理は行わない
-			if (!isMyState)
+			if (!stateMachine.IsIn("Dodge"))
 			{
 				dodge.isDodging = false;
 				dodge.bufferTimer = 0.0f;

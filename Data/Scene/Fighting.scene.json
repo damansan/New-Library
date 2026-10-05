@@ -1,0 +1,40 @@
+{
+    "entities": [
+        {
+            "name": "Controller",
+            "prefab": "Data/Prefab/System/Controller.prefab.json"
+        },
+        {
+            "name": "Fighting Stage",
+            "prefab": "Data/Prefab/Stage/Fighting Stage.prefab.json"
+        },
+        {
+            "name": "Player",
+            "overrides": {
+                "TransformComponent": {
+                    "position": [
+                        -0.11420373618602753,
+                        -2.2351741790771484e-08,
+                        -5.395957946777344
+                    ],
+                    "rotation": [
+                        0.0,
+                        3.0,
+                        0.0
+                    ]
+                }
+            },
+            "prefab": "Data/Prefab/Player/Player.prefab.json"
+        },
+        {
+            "name": "Enemy",
+            "prefab": "Data/Prefab/Enemy/Enemy.prefab.json"
+        },
+        {
+            "name": "GameCamera",
+            "prefab": "Data/Prefab/Camera/GameCamera.prefab.json"
+        }
+    ],
+    "settings": {},
+    "version": 1
+}

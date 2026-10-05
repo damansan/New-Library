@@ -29,7 +29,9 @@
     <ClCompile Include="..\..\Source\Code\Engine\Core\SceneManager.cpp" />
     <ClCompile Include="..\..\Source\Code\Engine\Data\AnimationSpeedData.cpp" />
     <ClCompile Include="..\..\Source\Code\Engine\Data\AnimatorGraphData.cpp" />
+    <ClCompile Include="..\..\Source\Code\Engine\Data\ConditionGraphData.cpp" />
     <ClCompile Include="..\..\Source\Code\Engine\Data\SequencerData.cpp" />
+    <ClCompile Include="..\..\Source\Code\Engine\Data\StateMachineData.cpp" />
     <ClCompile Include="..\..\Source\Code\Engine\ECS\EngineComponents.cpp" />
     <ClCompile Include="..\..\Source\Code\Engine\ECS\Reflection.cpp" />
     <ClCompile Include="..\..\Source\Code\Engine\ECS\Systems\AnimationSpeedSystem.cpp" />
@@ -44,6 +46,7 @@
     <ClCompile Include="..\..\Source\Code\Engine\ECS\Systems\RenderSystem.cpp" />
     <ClCompile Include="..\..\Source\Code\Engine\ECS\Systems\SequencerSystem.cpp" />
     <ClCompile Include="..\..\Source\Code\Engine\ECS\Systems\StateGraphUtils.cpp" />
+    <ClCompile Include="..\..\Source\Code\Engine\ECS\Systems\StateMachineSystem.cpp" />
     <ClCompile Include="..\..\Source\Code\Engine\ECS\Systems\TransitionControllerSystem.cpp" />
     <ClCompile Include="..\..\Source\Code\Engine\ECS\Systems\TwoBoneIKSolver.cpp" />
     <ClCompile Include="..\..\Source\Code\Engine\Rendering\GBuffer.cpp" />
@@ -79,7 +82,9 @@
     <ClInclude Include="..\..\Source\Code\Engine\Core\SceneManager.h" />
     <ClInclude Include="..\..\Source\Code\Engine\Data\AnimationSpeedData.h" />
     <ClInclude Include="..\..\Source\Code\Engine\Data\AnimatorGraphData.h" />
+    <ClInclude Include="..\..\Source\Code\Engine\Data\ConditionGraphData.h" />
     <ClInclude Include="..\..\Source\Code\Engine\Data\SequencerData.h" />
+    <ClInclude Include="..\..\Source\Code\Engine\Data\StateMachineData.h" />
     <ClInclude Include="..\..\Source\Code\Engine\ECS\Components\AdaptiveTrigger.h" />
     <ClInclude Include="..\..\Source\Code\Engine\ECS\Components\AnimationSpeedComponent.h" />
     <ClInclude Include="..\..\Source\Code\Engine\ECS\Components\AnimatorComponent.h" />
@@ -97,6 +102,7 @@
     <ClInclude Include="..\..\Source\Code\Engine\ECS\Components\SequencerComponent.h" />
     <ClInclude Include="..\..\Source\Code\Engine\ECS\Components\SkinnedMeshComponent.h" />
     <ClInclude Include="..\..\Source\Code\Engine\ECS\Components\StateComponent.h" />
+    <ClInclude Include="..\..\Source\Code\Engine\ECS\Components\StateMachineComponent.h" />
     <ClInclude Include="..\..\Source\Code\Engine\ECS\Components\StaticMeshComponent.h" />
     <ClInclude Include="..\..\Source\Code\Engine\ECS\Components\Tags.h" />
     <ClInclude Include="..\..\Source\Code\Engine\ECS\Components\TransformComponent.h" />
@@ -116,6 +122,7 @@
     <ClInclude Include="..\..\Source\Code\Engine\ECS\Systems\RenderSystem.h" />
     <ClInclude Include="..\..\Source\Code\Engine\ECS\Systems\SequencerSystem.h" />
     <ClInclude Include="..\..\Source\Code\Engine\ECS\Systems\StateGraphUtils.h" />
+    <ClInclude Include="..\..\Source\Code\Engine\ECS\Systems\StateMachineSystem.h" />
     <ClInclude Include="..\..\Source\Code\Engine\ECS\Systems\TransitionControllerSystem.h" />
     <ClInclude Include="..\..\Source\Code\Engine\ECS\Systems\TwoBoneIKSolver.h" />
     <ClInclude Include="..\..\Source\Code\Engine\Rendering\GBuffer.h" />
@@ -241,65 +248,65 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
-	<ItemGroup>
-		<FxCompile Include="..\..\Source\Shader\Gbuffer_Basic_PS.hlsl">
-			<ShaderType>Pixel</ShaderType>
-		</FxCompile>
-		<FxCompile Include="..\..\Source\Shader\Present_PS.hlsl">
-			<ShaderType>Pixel</ShaderType>
-		</FxCompile>
-		<FxCompile Include="..\..\Source\Shader\SolidShapeDepth_VS.hlsl">
-			<ShaderType>Vertex</ShaderType>
-		</FxCompile>
-		<FxCompile Include="..\..\Source\Shader\SolidShape_PS.hlsl">
-			<ShaderType>Pixel</ShaderType>
-		</FxCompile>
-		<FxCompile Include="..\..\Source\Shader\SolidShape_VS.hlsl">
-			<ShaderType>Vertex</ShaderType>
-		</FxCompile>
-		<FxCompile Include="..\..\Source\Shader\Static_VS.hlsl">
-			<ShaderType>Vertex</ShaderType>
-		</FxCompile>
-		<FxCompile Include="..\..\Source\Shader\Basic_PS.hlsl">
-			<ShaderType>Pixel</ShaderType>
-		</FxCompile>
-		<FxCompile Include="..\..\Source\Shader\Debug_PS.hlsl">
-			<ShaderType>Pixel</ShaderType>
-		</FxCompile>
-		<FxCompile Include="..\..\Source\Shader\Debug_VS.hlsl">
-			<ShaderType>Vertex</ShaderType>
-		</FxCompile>
-		<FxCompile Include="..\..\Source\Shader\Gbuffer_PS.hlsl">
-			<ShaderType>Pixel</ShaderType>
-		</FxCompile>
-		<FxCompile Include="..\..\Source\Shader\Lambert_PS.hlsl">
-			<ShaderType>Pixel</ShaderType>
-		</FxCompile>
-		<FxCompile Include="..\..\Source\Shader\Lighting_PS.hlsl">
-			<ShaderType>Pixel</ShaderType>
-		</FxCompile>
-		<FxCompile Include="..\..\Source\Shader\Lighting_VS.hlsl">
-			<ShaderType>Vertex</ShaderType>
-		</FxCompile>
-		<FxCompile Include="..\..\Source\Shader\PBR_PS.hlsl">
-			<ShaderType>Pixel</ShaderType>
-		</FxCompile>
-		<FxCompile Include="..\..\Source\Shader\Skinning_VS.hlsl">
-			<ShaderType>Vertex</ShaderType>
-		</FxCompile>
-		<FxCompile Include="..\..\Source\Shader\SkyBox_PS.hlsl">
-			<ShaderType>Pixel</ShaderType>
-		</FxCompile>
-		<FxCompile Include="..\..\Source\Shader\SkyBox_VS.hlsl">
-			<ShaderType>Vertex</ShaderType>
-		</FxCompile>
-		<FxCompile Include="..\..\Source\Shader\WiredShape_PS.hlsl">
-			<ShaderType>Pixel</ShaderType>
-		</FxCompile>
-		<FxCompile Include="..\..\Source\Shader\WiredShape_VS.hlsl">
-			<ShaderType>Vertex</ShaderType>
-		</FxCompile>
-	</ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="..\..\Source\Shader\Gbuffer_Basic_PS.hlsl">
+      <ShaderType>Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="..\..\Source\Shader\Present_PS.hlsl">
+      <ShaderType>Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="..\..\Source\Shader\SolidShapeDepth_VS.hlsl">
+      <ShaderType>Vertex</ShaderType>
+    </FxCompile>
+    <FxCompile Include="..\..\Source\Shader\SolidShape_PS.hlsl">
+      <ShaderType>Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="..\..\Source\Shader\SolidShape_VS.hlsl">
+      <ShaderType>Vertex</ShaderType>
+    </FxCompile>
+    <FxCompile Include="..\..\Source\Shader\Static_VS.hlsl">
+      <ShaderType>Vertex</ShaderType>
+    </FxCompile>
+    <FxCompile Include="..\..\Source\Shader\Basic_PS.hlsl">
+      <ShaderType>Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="..\..\Source\Shader\Debug_PS.hlsl">
+      <ShaderType>Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="..\..\Source\Shader\Debug_VS.hlsl">
+      <ShaderType>Vertex</ShaderType>
+    </FxCompile>
+    <FxCompile Include="..\..\Source\Shader\Gbuffer_PS.hlsl">
+      <ShaderType>Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="..\..\Source\Shader\Lambert_PS.hlsl">
+      <ShaderType>Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="..\..\Source\Shader\Lighting_PS.hlsl">
+      <ShaderType>Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="..\..\Source\Shader\Lighting_VS.hlsl">
+      <ShaderType>Vertex</ShaderType>
+    </FxCompile>
+    <FxCompile Include="..\..\Source\Shader\PBR_PS.hlsl">
+      <ShaderType>Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="..\..\Source\Shader\Skinning_VS.hlsl">
+      <ShaderType>Vertex</ShaderType>
+    </FxCompile>
+    <FxCompile Include="..\..\Source\Shader\SkyBox_PS.hlsl">
+      <ShaderType>Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="..\..\Source\Shader\SkyBox_VS.hlsl">
+      <ShaderType>Vertex</ShaderType>
+    </FxCompile>
+    <FxCompile Include="..\..\Source\Shader\WiredShape_PS.hlsl">
+      <ShaderType>Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="..\..\Source\Shader\WiredShape_VS.hlsl">
+      <ShaderType>Vertex</ShaderType>
+    </FxCompile>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

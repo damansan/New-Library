@@ -3,6 +3,7 @@
 #include <vector>
 #include <json.hpp>
 #include "Engine/ECS/Reflection.h"
+#include "Engine/Data/ConditionGraphData.h"
 
 // == Stateグラフ関連 == //
 enum class ChildStateType // 子階層(ChildState)の種類
@@ -16,103 +17,6 @@ enum class ParentStateType // 親階層(ParentState)の種類
 	Entry, // 開始点
 	State, // ノード
 };
-
-
-// == 条件グラフ関連 == //
-enum class FloatComponent // 構造体のどの成分を取り出すか
-{
-	None,
-	X, Y, Z, W,
-};
-enum class CompareOp // 比較演算子の種類
-{
-	Greater,      // >
-	Less,         // <
-	Equal,        // ==
-	NotEqual,     // !=
-	GreaterEqual, // >=
-	LessEqual,    // <=
-};
-enum class LogicOp // 論理演算子の種類
-{
-	And, // かつ
-	Or,  // または
-};
-struct ConditionGetterNode // コンポーネントの値を取得するノード
-{
-	int id = -1;
-	float posX = 0.0f;
-	float posY = 0.0f;
-	std::string componentName; // Reflectionで登録した型名
-	std::string fieldName;     // entt::meta上のフィールド名
-	ValueType type = ValueType::Float;
-	FloatComponent selectedComponent = FloatComponent::None;
-};  
-struct ConditionVariableNode // 変数ノード
-{
-	int id = -1;
-	float posX = 0.0f;
-	float posY = 0.0f;
-	std::string name; // 空の間は"Variable"と表示
-	ValueType type = ValueType::Float;
-	
-	// 変数型に応じて以下のどれかを使用する
-	int intValue = 0;
-	float floatValue = 0.0f;
-	bool boolValue = false;
-};
-struct ConditionOperatorNode // 比較ノード
-{
-	int id = -1;
-	float posX = 0.0f;
-	float posY = 0.0f;
-
-	CompareOp op = CompareOp::Greater;
-};
-struct ConditionLogicNode // 論理演算ノード
-{
-	int id = -1;
-	float posX = 0.0f;
-	float posY = 0.0f;
-
-	LogicOp op = LogicOp::And;
-};
-struct ConditionNotNode // 否定ノード
-{
-	int id = -1;
-	float posX = 0.0f;
-	float posY = 0.0f;
-};
-struct ConditionReturnNode // 条件グラフの終着点
-{
-	int id = -1;
-	float posX = 0.0f;
-	float posY = 0.0f;
-};
-struct ConditionLink // 条件グラフ内のリンク
-{
-	int id = -1;
-	int fromId = -1;
-	int toId = -1;
-	bool toPinB = false;
-};
-struct ConditionGraph // Link1本分の条件グラフ
-{
-	ConditionReturnNode returnNode;
-
-	std::vector<ConditionVariableNode> variableNodes;
-	std::vector<ConditionGetterNode>   getterNodes;
-	std::vector<ConditionOperatorNode> operatorNodes;
-	std::vector<ConditionLogicNode>    logicNodes;
-	std::vector<ConditionNotNode>      notNodes;
-
-	std::vector<ConditionLink> links;   // Getter/Variable/Operator/Return同士を繋ぐリンク
-
-	// ID採番カウンター
-	int* idCounter = nullptr;
-	int GenerateId() { return (*idCounter)++; }
-};
-
 
 // == Stateグラグ本体 == //
 struct AnimLink // リンク

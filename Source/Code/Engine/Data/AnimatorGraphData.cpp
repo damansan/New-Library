@@ -163,13 +163,6 @@ int ParentStateGraph::CreateParentLink(int fromId, int toId)
 	link.fromId = fromId;
 	link.toId = toId;
 
-	// 条件グラフにも案内板を配線してから使う
-	link.condition.idCounter = this->idCounter;
-	// このLink専用の条件グラフに、固定のReturnノードを1つ配置しておく
-	link.condition.returnNode.id = link.condition.GenerateId();
-	link.condition.returnNode.posX = 500.0f;
-	link.condition.returnNode.posY = 200.0f;
-
 	stateLinks.push_back(link);
 	return link.id;
 }
@@ -259,13 +252,6 @@ int ChildStateGraph::CreateChildLink(int fromId, int toId)
 	link.id = GenerateId();
 	link.fromId = fromId;
 	link.toId = toId;
-
-	// 条件グラフにも案内板を配線してから使う
-	link.condition.idCounter = this->idCounter;
-	// このLink専用の条件グラフに、固定のReturnノードを1つ配置しておく
-	link.condition.returnNode.id = link.condition.GenerateId();
-	link.condition.returnNode.posX = 500.0f;
-	link.condition.returnNode.posY = 200.0f;
 
 	childLinks.push_back(link);
 
@@ -642,8 +628,6 @@ void AnimatorGraphData::TransitionLinksFromJson(const nlohmann::json& j)
 		link.fromId = jl.value("fromId", -1);
 		link.toId = jl.value("toId", -1);
 
-		link.condition.idCounter = &idCounter;
-
 		if (jl.contains("condition"))
 		{
 			const auto& jc = jl["condition"];
@@ -760,6 +744,9 @@ void AnimatorGraphData::TransitionLinksFromJson(const nlohmann::json& j)
 		}
 		SyncIdCounter(link.condition.returnNode.id);
 
+		// 読み込んだ条件グラフのIDの続きから採番する
+		link.condition.RecalculateNextId();
+
 		SyncIdCounter(link.id);
 
 		transitionGraph.links.push_back(link);
@@ -868,8 +855,6 @@ void AnimatorGraphData::AnimLinkFromJson(AnimLink& link, const nlohmann::json& j
 	link.blend = jl.value("blend", true);
 	link.blendDuration = jl.value("blendDuration", 0.2f);
 
-	// 条件グラフに案内板を配線してから使う
-	link.condition.idCounter = &idCounter;
 
 	if (jl.contains("condition"))
 	{
@@ -988,6 +973,9 @@ void AnimatorGraphData::AnimLinkFromJson(AnimLink& link, const nlohmann::json& j
 	}
 	SyncIdCounter(link.condition.returnNode.id);
 
+	// 読み込んだ条件グラフのIDの続きから採番する
+	link.condition.RecalculateNextId();
+
 	SyncIdCounter(link.id);
 }
 
@@ -1005,13 +993,6 @@ int TransitionGraphData::CreateLink(int fromId, int toId)
 	link.id = GenerateId();
 	link.fromId = fromId;
 	link.toId = toId;
-
-	// 条件グラフにも案内板を配線してから使う
-	link.condition.idCounter = this->idCounter;
-	// このLink専用の条件グラフに、固定のReturnノードを1つ配置しておく
-	link.condition.returnNode.id = link.condition.GenerateId();
-	link.condition.returnNode.posX = 500.0f;
-	link.condition.returnNode.posY = 200.0f;
 
 	links.push_back(link);
 	return link.id;

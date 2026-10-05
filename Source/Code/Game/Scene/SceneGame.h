@@ -22,6 +22,8 @@
 #include "Engine/ECS/Systems/PhysicsSystem.h"
 #include "Game/ECS/Systems/GameCameraSystem.h"
 
+#include "Engine/ECS/Systems/StateMachineSystem.h"
+
 // •`‰æŒn
 #include "Engine/ECS/Systems/RenderSystem.h"
 #include "Engine/Rendering/SkyBox.h"
@@ -65,6 +67,8 @@ private:
 	MeshLoaderSystem  meshLoaderSystem;
 	PhysicsSystem     physicsSystem;
 	GameCameraSystem  gameCameraSystem;
+
+	StateMachineSystem stateMachineSystem;
 
 	// •`‰æŒn
 	RenderSystem         renderSystem;

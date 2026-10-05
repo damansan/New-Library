@@ -1,0 +1,39 @@
+{
+    "AnimatorComponent": {
+        "animatorGraphPath": "Data/Json/Animgraph/SK_SteamPunkBoss.animgraph",
+        "loop": true,
+        "playSpeed": 1.0,
+        "rootMotionNodeName": "root",
+        "useRootMotion": false,
+        "useRootMotionY": false
+    },
+    "ComponentCategory": {
+        "category": "Enemy"
+    },
+    "MaterialComponent": {
+        "shadingModel": "Default"
+    },
+    "MeshComponent": {
+        "modelPath": "Data/Model/EnemyRobot/SK_SteamPunkBoss.gltf"
+    },
+    "PhysicsBodyTypeComponent": {
+        "type": "Character"
+    },
+    "TransformComponent": {
+        "position": [
+            0.0,
+            -6.705522537231445e-08,
+            0.0
+        ],
+        "rotation": [
+            0.0,
+            0.0,
+            0.0
+        ],
+        "scale": [
+            1.0,
+            1.0,
+            1.0
+        ]
+    }
+}
