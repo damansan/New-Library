@@ -19,6 +19,99 @@
     <Filter Include="Sources\Tool">
       <UniqueIdentifier>{a249fe8d-903c-41cc-94a2-34a3c198f1b5}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\Tool\NodeEditor">
+      <UniqueIdentifier>{edd47082-0368-49e2-b899-a4f6b2e96564}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Tool\Studio">
+      <UniqueIdentifier>{bb55bb66-b1f8-4982-abac-49ec4daa2690}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Tool\Studio\StudioAnimationSpeed">
+      <UniqueIdentifier>{24bbff4e-fe44-4bfb-938a-5417520c5d4e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Tool\Studio\StudioAnimator">
+      <UniqueIdentifier>{1b0cb239-9f5e-403e-adc8-b0d980212467}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Tool\Studio\StudioAnimatorGraph">
+      <UniqueIdentifier>{b1e419f6-523b-4713-91cd-1d2f5318f3dd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Tool\Studio\StudioCamera">
+      <UniqueIdentifier>{8ca02f52-44a8-4080-b780-b5dea2319689}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Tool\Studio\StudioChildStateGraph">
+      <UniqueIdentifier>{10ecb607-34d1-4869-ac63-d1a29fe4f4c7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Tool\Studio\StudioConditionGraph">
+      <UniqueIdentifier>{c46cd755-ed7f-47e9-b542-705229100202}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Tool\Studio\StudioContext">
+      <UniqueIdentifier>{0592aa32-da15-46bd-9b66-51c4c7da141b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Tool\Studio\StudioModelViewer">
+      <UniqueIdentifier>{bbfdef7b-e3e9-418c-a594-901d7d4fedc6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Tool\Studio\StudioParentStateGraph">
+      <UniqueIdentifier>{b7b2e46b-eb3e-4b53-9e34-902be61ff80e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Tool\Studio\StudioSequencer">
+      <UniqueIdentifier>{a6b7793e-9392-449c-bccc-d4c5284cda1c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Tool\Studio\StudioSharedContext">
+      <UniqueIdentifier>{a8bf8731-43a0-47d1-b0ff-0577f6142dca}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Tool\Studio\StudioTimeline">
+      <UniqueIdentifier>{c63959fd-78f2-4be0-8448-85e2dd22d9f6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Tool\Studio\StudioTransitionGraph">
+      <UniqueIdentifier>{cb39e994-254c-4010-8845-52babc041f97}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Tool\Studio\StudioWindow">
+      <UniqueIdentifier>{506274c9-84b5-4410-bfdf-4cd4d52dbaa2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Tool\Editor">
+      <UniqueIdentifier>{9abfe846-9ca8-4a91-b8c6-571f1d1b074d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Tool\Editor\ComponentInspectorRegistry">
+      <UniqueIdentifier>{19fb19fc-c587-40f0-8ddb-43e63f8fe1e3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Tool\Editor\ComponentRegistryInitializer">
+      <UniqueIdentifier>{81a94b56-62da-4ad6-9891-e592d5150a7d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Tool\Editor\DebugCameraSystem">
+      <UniqueIdentifier>{8373dedc-db69-4fd2-a21c-45ca51c3ee8a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Tool\Editor\EditorContext">
+      <UniqueIdentifier>{a4ab43dc-5a0a-4517-bd0f-dc1dfc829b3b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Tool\Editor\FileDialog">
+      <UniqueIdentifier>{01899385-6633-4a37-8b46-470eed8befb3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Tool\Editor\HierarchyWindow">
+      <UniqueIdentifier>{7d5bfae2-0c08-4132-aedf-5896b4d67621}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Tool\Editor\ImGuiManager">
+      <UniqueIdentifier>{429e4179-420d-4294-9311-9cfd9ce6dd87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Tool\Editor\InspectorWindow">
+      <UniqueIdentifier>{53f2e439-806b-4434-9213-afbe96ccfc36}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Tool\Editor\IStudioAttachment">
+      <UniqueIdentifier>{162f24d6-47a7-47af-9a42-419e2500ca3e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Tool\Editor\LogWindow">
+      <UniqueIdentifier>{ba57423d-a302-44dd-b928-ded8a0b9cd34}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Tool\Editor\MetaRegistry">
+      <UniqueIdentifier>{1b45e932-dc05-4379-bf97-d0260674c095}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Tool\Editor\PrefabWindow">
+      <UniqueIdentifier>{2935ef8a-5606-4110-8c26-6d8b5e6cb620}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Tool\Editor\ProjectWindow">
+      <UniqueIdentifier>{3ad23a87-32d2-4652-a86c-b74202175006}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Tool\Editor\ViewportWindow">
+      <UniqueIdentifier>{506fd60b-a7ad-416f-a217-1b4bb77d2e6c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\External\imgui-docking\imgui.cpp">
@@ -51,178 +144,178 @@
     <ClCompile Include="..\..\External\imgui-node-editor-master\imgui_node_editor_api.cpp">
       <Filter>External\imgui-node-editor-master</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\Code\Tool\AdaptiveTriggerToolWindow.cpp">
-      <Filter>Sources\Tool</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\Code\Tool\Editor\ComponentInspectorRegistry.cpp">
-      <Filter>Sources\Tool</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\Code\Tool\Editor\ComponentRegistryInitializer.cpp">
-      <Filter>Sources\Tool</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\Code\Tool\Editor\DebugCameraSystem.cpp">
-      <Filter>Sources\Tool</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\Code\Tool\Editor\FileDialog.cpp">
-      <Filter>Sources\Tool</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\Code\Tool\Editor\HierarchyWindow.cpp">
-      <Filter>Sources\Tool</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\Code\Tool\Editor\ImGuiManager.cpp">
-      <Filter>Sources\Tool</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\Code\Tool\Editor\InspectorWindow.cpp">
-      <Filter>Sources\Tool</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\Code\Tool\Editor\LogWindow.cpp">
-      <Filter>Sources\Tool</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\Code\Tool\Editor\MetaRegistry.cpp">
-      <Filter>Sources\Tool</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Source\Code\Tool\NodeEditor\NodeEditorCanvas.cpp">
-      <Filter>Sources\Tool</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\Code\Tool\Editor\PrefabWindow.cpp">
-      <Filter>Sources\Tool</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\Code\Tool\Editor\ProjectWindow.cpp">
-      <Filter>Sources\Tool</Filter>
+      <Filter>Sources\Tool\NodeEditor</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\Code\Tool\Studio\StudioAnimationSpeed.cpp">
-      <Filter>Sources\Tool</Filter>
+      <Filter>Sources\Tool\Studio\StudioAnimationSpeed</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\Code\Tool\Studio\StudioAnimator.cpp">
-      <Filter>Sources\Tool</Filter>
+      <Filter>Sources\Tool\Studio\StudioAnimator</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\Code\Tool\Studio\StudioAnimatorGraph.cpp">
-      <Filter>Sources\Tool</Filter>
+      <Filter>Sources\Tool\Studio\StudioAnimatorGraph</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\Code\Tool\Studio\StudioCamera.cpp">
-      <Filter>Sources\Tool</Filter>
+      <Filter>Sources\Tool\Studio\StudioCamera</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\Code\Tool\Studio\StudioChildStateGraph.cpp">
-      <Filter>Sources\Tool</Filter>
+      <Filter>Sources\Tool\Studio\StudioChildStateGraph</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\Code\Tool\Studio\StudioConditionGraph.cpp">
-      <Filter>Sources\Tool</Filter>
+      <Filter>Sources\Tool\Studio\StudioConditionGraph</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\Code\Tool\Studio\StudioModelViewer.cpp">
-      <Filter>Sources\Tool</Filter>
+      <Filter>Sources\Tool\Studio\StudioModelViewer</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\Code\Tool\Studio\StudioParentStateGraph.cpp">
-      <Filter>Sources\Tool</Filter>
+      <Filter>Sources\Tool\Studio\StudioParentStateGraph</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\Code\Tool\Studio\StudioSequencer.cpp">
-      <Filter>Sources\Tool</Filter>
+      <Filter>Sources\Tool\Studio\StudioSequencer</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\Code\Tool\Studio\StudioTimeline.cpp">
-      <Filter>Sources\Tool</Filter>
+      <Filter>Sources\Tool\Studio\StudioTimeline</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\Code\Tool\Studio\StudioTransitionGraph.cpp">
-      <Filter>Sources\Tool</Filter>
+      <Filter>Sources\Tool\Studio\StudioTransitionGraph</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\Code\Tool\Studio\StudioWindow.cpp">
-      <Filter>Sources\Tool</Filter>
+      <Filter>Sources\Tool\Studio\StudioWindow</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Code\Tool\AdaptiveTriggerToolWindow.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Code\Tool\Editor\ComponentInspectorRegistry.cpp">
+      <Filter>Sources\Tool\Editor\ComponentInspectorRegistry</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Code\Tool\Editor\ComponentRegistryInitializer.cpp">
+      <Filter>Sources\Tool\Editor\ComponentRegistryInitializer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Code\Tool\Editor\DebugCameraSystem.cpp">
+      <Filter>Sources\Tool\Editor\DebugCameraSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Code\Tool\Editor\FileDialog.cpp">
+      <Filter>Sources\Tool\Editor\FileDialog</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Code\Tool\Editor\HierarchyWindow.cpp">
+      <Filter>Sources\Tool\Editor\HierarchyWindow</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Code\Tool\Editor\ImGuiManager.cpp">
+      <Filter>Sources\Tool\Editor\ImGuiManager</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Code\Tool\Editor\InspectorWindow.cpp">
+      <Filter>Sources\Tool\Editor\InspectorWindow</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Code\Tool\Editor\LogWindow.cpp">
+      <Filter>Sources\Tool\Editor\LogWindow</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Code\Tool\Editor\MetaRegistry.cpp">
+      <Filter>Sources\Tool\Editor\MetaRegistry</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Code\Tool\Editor\PrefabWindow.cpp">
+      <Filter>Sources\Tool\Editor\PrefabWindow</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Code\Tool\Editor\ProjectWindow.cpp">
+      <Filter>Sources\Tool\Editor\ProjectWindow</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\Code\Tool\Editor\ViewportWindow.cpp">
-      <Filter>Sources\Tool</Filter>
+      <Filter>Sources\Tool\Editor\ViewportWindow</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\Source\Code\Tool\AdaptiveTriggerToolWindow.h">
-      <Filter>Sources\Tool</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\Code\Tool\Studio\AnimatorGraphNavigation.h">
-      <Filter>Sources\Tool</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\Code\Tool\Editor\ComponentInspectorRegistry.h">
-      <Filter>Sources\Tool</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\Code\Tool\Editor\ComponentRegistryInitializer.h">
-      <Filter>Sources\Tool</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\Code\Tool\Editor\DebugCameraSystem.h">
-      <Filter>Sources\Tool</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\Code\Tool\Editor\EditorContext.h">
-      <Filter>Sources\Tool</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\Code\Tool\Editor\FileDialog.h">
-      <Filter>Sources\Tool</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\Code\Tool\Editor\HierarchyWindow.h">
-      <Filter>Sources\Tool</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\Code\Tool\Editor\ImGuiManager.h">
-      <Filter>Sources\Tool</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\Code\Tool\Editor\InspectorWindow.h">
-      <Filter>Sources\Tool</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\Code\Tool\Studio\IStudioAttachment.h">
-      <Filter>Sources\Tool</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\Code\Tool\Editor\LogWindow.h">
-      <Filter>Sources\Tool</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\Code\Tool\Editor\MetaRegistry.h">
-      <Filter>Sources\Tool</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Source\Code\Tool\NodeEditor\NodeEditorCanvas.h">
-      <Filter>Sources\Tool</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\Code\Tool\Editor\PrefabWindow.h">
-      <Filter>Sources\Tool</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\Code\Tool\Editor\ProjectWindow.h">
-      <Filter>Sources\Tool</Filter>
+      <Filter>Sources\Tool\NodeEditor</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\Code\Tool\Studio\StudioAnimationSpeed.h">
-      <Filter>Sources\Tool</Filter>
+      <Filter>Sources\Tool\Studio\StudioAnimationSpeed</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\Code\Tool\Studio\StudioAnimator.h">
-      <Filter>Sources\Tool</Filter>
+      <Filter>Sources\Tool\Studio\StudioAnimator</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\Code\Tool\Studio\StudioAnimatorGraph.h">
-      <Filter>Sources\Tool</Filter>
+      <Filter>Sources\Tool\Studio\StudioAnimatorGraph</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\Code\Tool\Studio\StudioCamera.h">
-      <Filter>Sources\Tool</Filter>
+      <Filter>Sources\Tool\Studio\StudioCamera</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\Code\Tool\Studio\StudioChildStateGraph.h">
-      <Filter>Sources\Tool</Filter>
+      <Filter>Sources\Tool\Studio\StudioChildStateGraph</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\Code\Tool\Studio\StudioConditionGraph.h">
-      <Filter>Sources\Tool</Filter>
+      <Filter>Sources\Tool\Studio\StudioConditionGraph</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\Code\Tool\Studio\StudioContext.h">
-      <Filter>Sources\Tool</Filter>
+      <Filter>Sources\Tool\Studio\StudioContext</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\Code\Tool\Studio\StudioModelViewer.h">
-      <Filter>Sources\Tool</Filter>
+      <Filter>Sources\Tool\Studio\StudioModelViewer</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\Code\Tool\Studio\StudioParentStateGraph.h">
-      <Filter>Sources\Tool</Filter>
+      <Filter>Sources\Tool\Studio\StudioParentStateGraph</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\Code\Tool\Studio\StudioSequencer.h">
-      <Filter>Sources\Tool</Filter>
+      <Filter>Sources\Tool\Studio\StudioSequencer</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\Code\Tool\Studio\StudioSharedContext.h">
-      <Filter>Sources\Tool</Filter>
+      <Filter>Sources\Tool\Studio\StudioSharedContext</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\Code\Tool\Studio\StudioTimeline.h">
-      <Filter>Sources\Tool</Filter>
+      <Filter>Sources\Tool\Studio\StudioTimeline</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\Code\Tool\Studio\StudioTransitionGraph.h">
-      <Filter>Sources\Tool</Filter>
+      <Filter>Sources\Tool\Studio\StudioTransitionGraph</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\Code\Tool\Studio\StudioWindow.h">
-      <Filter>Sources\Tool</Filter>
+      <Filter>Sources\Tool\Studio\StudioWindow</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Code\Tool\AdaptiveTriggerToolWindow.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Code\Tool\Studio\AnimatorGraphNavigation.h">
+      <Filter>Sources\Tool\Studio</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Code\Tool\Editor\ComponentInspectorRegistry.h">
+      <Filter>Sources\Tool\Editor\ComponentInspectorRegistry</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Code\Tool\Editor\ComponentRegistryInitializer.h">
+      <Filter>Sources\Tool\Editor\ComponentRegistryInitializer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Code\Tool\Editor\DebugCameraSystem.h">
+      <Filter>Sources\Tool\Editor\DebugCameraSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Code\Tool\Editor\EditorContext.h">
+      <Filter>Sources\Tool\Editor\EditorContext</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Code\Tool\Editor\FileDialog.h">
+      <Filter>Sources\Tool\Editor\FileDialog</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Code\Tool\Editor\HierarchyWindow.h">
+      <Filter>Sources\Tool\Editor\HierarchyWindow</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Code\Tool\Editor\ImGuiManager.h">
+      <Filter>Sources\Tool\Editor\ImGuiManager</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Code\Tool\Editor\InspectorWindow.h">
+      <Filter>Sources\Tool\Editor\InspectorWindow</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Code\Tool\Studio\IStudioAttachment.h">
+      <Filter>Sources\Tool\Editor\IStudioAttachment</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Code\Tool\Editor\LogWindow.h">
+      <Filter>Sources\Tool\Editor\LogWindow</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Code\Tool\Editor\MetaRegistry.h">
+      <Filter>Sources\Tool\Editor\MetaRegistry</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Code\Tool\Editor\PrefabWindow.h">
+      <Filter>Sources\Tool\Editor\PrefabWindow</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Code\Tool\Editor\ProjectWindow.h">
+      <Filter>Sources\Tool\Editor\ProjectWindow</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\Code\Tool\Editor\ViewportWindow.h">
-      <Filter>Sources\Tool</Filter>
+      <Filter>Sources\Tool\Editor\ViewportWindow</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

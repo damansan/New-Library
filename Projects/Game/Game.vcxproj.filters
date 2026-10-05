@@ -4,96 +4,141 @@
     <Filter Include="Sources">
       <UniqueIdentifier>{4c560a32-e074-4ae3-8428-c1419afabfe4}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\Demo">
+      <UniqueIdentifier>{5f597ac0-7bb0-40d2-b85f-91fabfeae67f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\ECS">
+      <UniqueIdentifier>{c8aeec30-e607-4476-ba35-de9fcfde1ce6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Scene">
+      <UniqueIdentifier>{159ee36a-7d37-4848-991d-1a0c786e55fc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\ECS\Components">
+      <UniqueIdentifier>{8fc89f11-24da-465e-9b62-136ed11e1962}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\ECS\System">
+      <UniqueIdentifier>{499bc0e5-fd7a-4593-81dc-ab45900b069a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\ECS\System\GameCameraSystem">
+      <UniqueIdentifier>{75984a88-2e23-41da-92fa-aa80a6eb061f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\ECS\System\GameInputSystem">
+      <UniqueIdentifier>{fd656baf-1d5b-4aee-9079-21e7ca4d98c3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\ECS\Components\Player">
+      <UniqueIdentifier>{9ca98b09-32c8-4e6e-a7b2-7b15220b3f3e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\ECS\System\Player">
+      <UniqueIdentifier>{e7fbbaa5-1628-43c5-be82-ec16e63999dc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\ECS\System\Player\PlayerDodgeSystem">
+      <UniqueIdentifier>{370fa848-a06c-4830-89cf-cb22de35060d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\ECS\System\Player\PlayerIdleSystem">
+      <UniqueIdentifier>{5ef56113-c2e7-4939-8866-eb0e91a73ea2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\ECS\System\Player\PlayerJumpSystem">
+      <UniqueIdentifier>{0e2e7921-e809-4c80-a74f-feef0e620b32}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\ECS\System\Player\PlayerMovementUtils">
+      <UniqueIdentifier>{03b9a65b-664f-4233-bfdb-a65232e2c860}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\ECS\System\Player\PlayerMoveSystem">
+      <UniqueIdentifier>{16f668e2-6047-48f1-a0d0-9fa9076a975e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\ECS\System\Player\PlayerSprintSystem">
+      <UniqueIdentifier>{35716ebb-7a34-4dc0-9e57-03bb431afd6c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\Source\Code\Game\Demo\WaveDemo.cpp">
-      <Filter>Sources</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Source\Code\Game\ECS\GameComponents.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Source\Code\Game\Scene\SceneGame.cpp">
+      <Filter>Sources\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Code\Game\Demo\WaveDemo.cpp">
+      <Filter>Sources\Demo</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Source\Code\Game\ECS\Systems\GameCameraSystem.cpp">
-      <Filter>Sources</Filter>
+      <Filter>Sources\ECS\System\GameCameraSystem</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\Code\Game\ECS\Systems\GameInputSystem.cpp">
-      <Filter>Sources</Filter>
+      <Filter>Sources\ECS\System\GameInputSystem</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\Code\Game\ECS\Systems\PlayerDodgeSystem.cpp">
-      <Filter>Sources</Filter>
+      <Filter>Sources\ECS\System\Player\PlayerDodgeSystem</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\Code\Game\ECS\Systems\PlayerIdleSystem.cpp">
-      <Filter>Sources</Filter>
+      <Filter>Sources\ECS\System\Player\PlayerIdleSystem</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\Code\Game\ECS\Systems\PlayerJumpSystem.cpp">
-      <Filter>Sources</Filter>
+      <Filter>Sources\ECS\System\Player\PlayerJumpSystem</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\Code\Game\ECS\Systems\PlayerMovementUtils.cpp">
-      <Filter>Sources</Filter>
+      <Filter>Sources\ECS\System\Player\PlayerMovementUtils</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\Code\Game\ECS\Systems\PlayerMoveSystem.cpp">
-      <Filter>Sources</Filter>
+      <Filter>Sources\ECS\System\Player\PlayerMoveSystem</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\Code\Game\ECS\Systems\PlayerSprintSystem.cpp">
-      <Filter>Sources</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\Code\Game\Scene\SceneGame.cpp">
-      <Filter>Sources</Filter>
+      <Filter>Sources\ECS\System\Player\PlayerSprintSystem</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\Source\Code\Game\Demo\WaveDemo.h">
-      <Filter>Sources</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\Code\Game\ECS\Components\GameCameraComponent.h">
-      <Filter>Sources</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\Code\Game\ECS\Components\GameInputComponent.h">
-      <Filter>Sources</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\Code\Game\ECS\Components\PlayerDodgeComponent.h">
-      <Filter>Sources</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\Code\Game\ECS\Components\PlayerIdleComponent.h">
-      <Filter>Sources</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\Code\Game\ECS\Components\PlayerJumpComponent.h">
-      <Filter>Sources</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\Code\Game\ECS\Components\PlayerMoveComponent.h">
-      <Filter>Sources</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\Code\Game\ECS\Components\PlayerSprintComponent.h">
-      <Filter>Sources</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Source\Code\Game\ECS\GameComponents.h">
       <Filter>Sources</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Source\Code\Game\Scene\SceneGame.h">
+      <Filter>Sources\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Code\Game\Demo\WaveDemo.h">
+      <Filter>Sources\Demo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Code\Game\ECS\Components\GameCameraComponent.h">
+      <Filter>Sources\ECS\Components</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\Source\Code\Game\ECS\Systems\GameCameraSystem.h">
-      <Filter>Sources</Filter>
+      <Filter>Sources\ECS\System\GameCameraSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Code\Game\ECS\Components\GameInputComponent.h">
+      <Filter>Sources\ECS\Components</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\Code\Game\ECS\Systems\GameInputSystem.h">
-      <Filter>Sources</Filter>
+      <Filter>Sources\ECS\System\GameInputSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Code\Game\ECS\Components\PlayerDodgeComponent.h">
+      <Filter>Sources\ECS\Components\Player</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\Code\Game\ECS\Systems\PlayerDodgeSystem.h">
-      <Filter>Sources</Filter>
+      <Filter>Sources\ECS\System\Player\PlayerDodgeSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Code\Game\ECS\Components\PlayerIdleComponent.h">
+      <Filter>Sources\ECS\Components\Player</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\Code\Game\ECS\Systems\PlayerIdleSystem.h">
-      <Filter>Sources</Filter>
+      <Filter>Sources\ECS\System\Player\PlayerIdleSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Code\Game\ECS\Components\PlayerJumpComponent.h">
+      <Filter>Sources\ECS\Components\Player</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\Code\Game\ECS\Systems\PlayerJumpSystem.h">
-      <Filter>Sources</Filter>
+      <Filter>Sources\ECS\System\Player\PlayerJumpSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Code\Game\ECS\Components\PlayerMoveComponent.h">
+      <Filter>Sources\ECS\Components\Player</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\Code\Game\ECS\Systems\PlayerMovementUtils.h">
-      <Filter>Sources</Filter>
+      <Filter>Sources\ECS\System\Player\PlayerMovementUtils</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\Code\Game\ECS\Systems\PlayerMoveSystem.h">
-      <Filter>Sources</Filter>
+      <Filter>Sources\ECS\System\Player\PlayerMoveSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Code\Game\ECS\Components\PlayerSprintComponent.h">
+      <Filter>Sources\ECS\Components\Player</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\Code\Game\ECS\Systems\PlayerSprintSystem.h">
-      <Filter>Sources</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\Code\Game\Scene\SceneGame.h">
-      <Filter>Sources</Filter>
+      <Filter>Sources\ECS\System\Player\PlayerSprintSystem</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
