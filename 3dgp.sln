@@ -17,6 +17,12 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GameApp", "Projects\GameApp
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "EditorApp", "Projects\EditorApp\EditorApp.vcxproj", "{B2AF5BBD-A51E-49E8-B467-5F42C85D5C05}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Launcher", "Projects\Launcher\Launcher.vcxproj", "{083C7027-F693-4686-8CBA-788603F73754}"
+	ProjectSection(ProjectDependencies) = postProject
+		{7DB9A29D-8396-471C-A44A-321EDDB89CA1} = {7DB9A29D-8396-471C-A44A-321EDDB89CA1}
+		{B2AF5BBD-A51E-49E8-B467-5F42C85D5C05} = {B2AF5BBD-A51E-49E8-B467-5F42C85D5C05}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -81,6 +87,14 @@ Global
 		{B2AF5BBD-A51E-49E8-B467-5F42C85D5C05}.Release|x64.Build.0 = Release|x64
 		{B2AF5BBD-A51E-49E8-B467-5F42C85D5C05}.Release|x86.ActiveCfg = Release|Win32
 		{B2AF5BBD-A51E-49E8-B467-5F42C85D5C05}.Release|x86.Build.0 = Release|Win32
+		{083C7027-F693-4686-8CBA-788603F73754}.Debug|x64.ActiveCfg = Debug|x64
+		{083C7027-F693-4686-8CBA-788603F73754}.Debug|x64.Build.0 = Debug|x64
+		{083C7027-F693-4686-8CBA-788603F73754}.Debug|x86.ActiveCfg = Debug|Win32
+		{083C7027-F693-4686-8CBA-788603F73754}.Debug|x86.Build.0 = Debug|Win32
+		{083C7027-F693-4686-8CBA-788603F73754}.Release|x64.ActiveCfg = Release|x64
+		{083C7027-F693-4686-8CBA-788603F73754}.Release|x64.Build.0 = Release|x64
+		{083C7027-F693-4686-8CBA-788603F73754}.Release|x86.ActiveCfg = Release|Win32
+		{083C7027-F693-4686-8CBA-788603F73754}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

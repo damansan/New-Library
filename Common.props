@@ -30,12 +30,17 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>d3d11.lib;dxgi.lib;user32.lib;gdi32.lib;DirectXTK.lib;DirectXTex.lib;ds5w_x64.lib;hid.lib;setupapi.lib;PhysX_static_64.lib;PhysXCharacterKinematic_static_64.lib;PhysXCommon_static_64.lib;PhysXCooking_static_64.lib;PhysXExtensions_static_64.lib;PhysXFoundation_static_64.lib;PhysXPvdSDK_static_64.lib;PVDRuntime_64.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
-    <FxCompile>
-      <ShaderModel>5.0</ShaderModel>
-      <ObjectFileOutput>$(RootDir)Data\Shader\%(Filename).cso</ObjectFileOutput>
-    </FxCompile>
+	  <FxCompile>
+		  <ShaderModel>5.0</ShaderModel>
+		  <ObjectFileOutput>$(RootDir)Data\Shader\%(Filename).cso</ObjectFileOutput>
+	  </FxCompile>
+	  <!-- ビルド前に include の層ルールを検査する -->
+	  <PreBuildEvent>
+		  <Command>powershell -NoProfile -ExecutionPolicy Bypass -File "$(RootDir)Projects\Scripts\CheckIncludes.ps1" -Root "$(RootDir)." -Project "$(ProjectName)"</Command>
+		  <Message>include の層ルールを検査しています</Message>
+	  </PreBuildEvent>
   </ItemDefinitionGroup>
-
+	
   <!-- Debug -->
   <ItemDefinitionGroup Condition="'$(Configuration)'=='Debug'">
     <ClCompile>
