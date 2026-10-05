@@ -3,7 +3,7 @@
 
   <!-- 全プロジェクト共通の基準フォルダ(このファイルの場所) -->
   <PropertyGroup Label="UserMacros">
-    <RootDir>$(MSBuildThisFileDirectory)</RootDir>
+	  <RootDir>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\'))</RootDir>
   </PropertyGroup>
 
 	<!-- 出力先と中間ファイル(プロジェクトごとに分ける) -->
