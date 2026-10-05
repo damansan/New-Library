@@ -9,15 +9,15 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\Source\main.cpp">
+    <ClCompile Include="..\..\Source\Code\main.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\App\GameApp.cpp">
+    <ClCompile Include="..\..\Source\Code\App\GameApp.cpp">
       <Filter>Sources\GameApp</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\Source\App\GameApp.h">
+    <ClInclude Include="..\..\Source\Code\App\GameApp.h">
       <Filter>Sources\GameApp</Filter>
     </ClInclude>
   </ItemGroup>

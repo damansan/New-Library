@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -121,37 +121,37 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\Source\Game\Demo\WaveDemo.cpp" />
-    <ClCompile Include="..\..\Source\Game\ECS\GameComponents.cpp" />
-    <ClCompile Include="..\..\Source\Game\ECS\Systems\GameCameraSystem.cpp" />
-    <ClCompile Include="..\..\Source\Game\ECS\Systems\GameInputSystem.cpp" />
-    <ClCompile Include="..\..\Source\Game\ECS\Systems\PlayerDodgeSystem.cpp" />
-    <ClCompile Include="..\..\Source\Game\ECS\Systems\PlayerIdleSystem.cpp" />
-    <ClCompile Include="..\..\Source\Game\ECS\Systems\PlayerJumpSystem.cpp" />
-    <ClCompile Include="..\..\Source\Game\ECS\Systems\PlayerMovementUtils.cpp" />
-    <ClCompile Include="..\..\Source\Game\ECS\Systems\PlayerMoveSystem.cpp" />
-    <ClCompile Include="..\..\Source\Game\ECS\Systems\PlayerSprintSystem.cpp" />
-    <ClCompile Include="..\..\Source\Game\Scene\SceneGame.cpp" />
+    <ClCompile Include="..\..\Source\Code\Game\Demo\WaveDemo.cpp" />
+    <ClCompile Include="..\..\Source\Code\Game\ECS\GameComponents.cpp" />
+    <ClCompile Include="..\..\Source\Code\Game\ECS\Systems\GameCameraSystem.cpp" />
+    <ClCompile Include="..\..\Source\Code\Game\ECS\Systems\GameInputSystem.cpp" />
+    <ClCompile Include="..\..\Source\Code\Game\ECS\Systems\PlayerDodgeSystem.cpp" />
+    <ClCompile Include="..\..\Source\Code\Game\ECS\Systems\PlayerIdleSystem.cpp" />
+    <ClCompile Include="..\..\Source\Code\Game\ECS\Systems\PlayerJumpSystem.cpp" />
+    <ClCompile Include="..\..\Source\Code\Game\ECS\Systems\PlayerMovementUtils.cpp" />
+    <ClCompile Include="..\..\Source\Code\Game\ECS\Systems\PlayerMoveSystem.cpp" />
+    <ClCompile Include="..\..\Source\Code\Game\ECS\Systems\PlayerSprintSystem.cpp" />
+    <ClCompile Include="..\..\Source\Code\Game\Scene\SceneGame.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\Source\Game\Demo\WaveDemo.h" />
-    <ClInclude Include="..\..\Source\Game\ECS\Components\GameCameraComponent.h" />
-    <ClInclude Include="..\..\Source\Game\ECS\Components\GameInputComponent.h" />
-    <ClInclude Include="..\..\Source\Game\ECS\Components\PlayerDodgeComponent.h" />
-    <ClInclude Include="..\..\Source\Game\ECS\Components\PlayerIdleComponent.h" />
-    <ClInclude Include="..\..\Source\Game\ECS\Components\PlayerJumpComponent.h" />
-    <ClInclude Include="..\..\Source\Game\ECS\Components\PlayerMoveComponent.h" />
-    <ClInclude Include="..\..\Source\Game\ECS\Components\PlayerSprintComponent.h" />
-    <ClInclude Include="..\..\Source\Game\ECS\GameComponents.h" />
-    <ClInclude Include="..\..\Source\Game\ECS\Systems\GameCameraSystem.h" />
-    <ClInclude Include="..\..\Source\Game\ECS\Systems\GameInputSystem.h" />
-    <ClInclude Include="..\..\Source\Game\ECS\Systems\PlayerDodgeSystem.h" />
-    <ClInclude Include="..\..\Source\Game\ECS\Systems\PlayerIdleSystem.h" />
-    <ClInclude Include="..\..\Source\Game\ECS\Systems\PlayerJumpSystem.h" />
-    <ClInclude Include="..\..\Source\Game\ECS\Systems\PlayerMovementUtils.h" />
-    <ClInclude Include="..\..\Source\Game\ECS\Systems\PlayerMoveSystem.h" />
-    <ClInclude Include="..\..\Source\Game\ECS\Systems\PlayerSprintSystem.h" />
-    <ClInclude Include="..\..\Source\Game\Scene\SceneGame.h" />
+    <ClInclude Include="..\..\Source\Code\Game\Demo\WaveDemo.h" />
+    <ClInclude Include="..\..\Source\Code\Game\ECS\Components\GameCameraComponent.h" />
+    <ClInclude Include="..\..\Source\Code\Game\ECS\Components\GameInputComponent.h" />
+    <ClInclude Include="..\..\Source\Code\Game\ECS\Components\PlayerDodgeComponent.h" />
+    <ClInclude Include="..\..\Source\Code\Game\ECS\Components\PlayerIdleComponent.h" />
+    <ClInclude Include="..\..\Source\Code\Game\ECS\Components\PlayerJumpComponent.h" />
+    <ClInclude Include="..\..\Source\Code\Game\ECS\Components\PlayerMoveComponent.h" />
+    <ClInclude Include="..\..\Source\Code\Game\ECS\Components\PlayerSprintComponent.h" />
+    <ClInclude Include="..\..\Source\Code\Game\ECS\GameComponents.h" />
+    <ClInclude Include="..\..\Source\Code\Game\ECS\Systems\GameCameraSystem.h" />
+    <ClInclude Include="..\..\Source\Code\Game\ECS\Systems\GameInputSystem.h" />
+    <ClInclude Include="..\..\Source\Code\Game\ECS\Systems\PlayerDodgeSystem.h" />
+    <ClInclude Include="..\..\Source\Code\Game\ECS\Systems\PlayerIdleSystem.h" />
+    <ClInclude Include="..\..\Source\Code\Game\ECS\Systems\PlayerJumpSystem.h" />
+    <ClInclude Include="..\..\Source\Code\Game\ECS\Systems\PlayerMovementUtils.h" />
+    <ClInclude Include="..\..\Source\Code\Game\ECS\Systems\PlayerMoveSystem.h" />
+    <ClInclude Include="..\..\Source\Code\Game\ECS\Systems\PlayerSprintSystem.h" />
+    <ClInclude Include="..\..\Source\Code\Game\Scene\SceneGame.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Engine\Engine.vcxproj">

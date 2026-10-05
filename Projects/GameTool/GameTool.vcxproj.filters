@@ -9,12 +9,12 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\Source\GameTool\GameInspectors.cpp">
+    <ClCompile Include="..\..\Source\Code\GameTool\GameInspectors.cpp">
       <Filter>Sources\GameTool</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\Source\GameTool\GameInspectors.h">
+    <ClInclude Include="..\..\Source\Code\GameTool\GameInspectors.h">
       <Filter>Sources\GameTool</Filter>
     </ClInclude>
   </ItemGroup>

@@ -167,135 +167,138 @@
     <Filter Include="External\tracy-0.13.1">
       <UniqueIdentifier>{8451d30c-c014-456b-95c9-571a4e63996b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\Shader">
+      <UniqueIdentifier>{1a7c7769-3d14-4952-a39a-a4fa2eafb33b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\Source\Engine\Core\Application.cpp">
+    <ClCompile Include="..\..\Source\Code\Engine\Core\Application.cpp">
       <Filter>Sources\Engine\Core</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\Engine\Core\GameView.cpp">
+    <ClCompile Include="..\..\Source\Code\Engine\Core\GameView.cpp">
       <Filter>Sources\Engine\Core</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\Engine\Core\Camera.cpp">
+    <ClCompile Include="..\..\Source\Code\Engine\Core\Camera.cpp">
       <Filter>Sources\Engine\Core\Camera</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\Engine\Core\Graphics.cpp">
+    <ClCompile Include="..\..\Source\Code\Engine\Core\Graphics.cpp">
       <Filter>Sources\Engine\Core\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\Engine\Core\PhysX.cpp">
+    <ClCompile Include="..\..\Source\Code\Engine\Core\PhysX.cpp">
       <Filter>Sources\Engine\Core\PhysX</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\Engine\Core\Scene.cpp">
+    <ClCompile Include="..\..\Source\Code\Engine\Core\Scene.cpp">
       <Filter>Sources\Engine\Core\Scene</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\Engine\Core\SceneManager.cpp">
+    <ClCompile Include="..\..\Source\Code\Engine\Core\SceneManager.cpp">
       <Filter>Sources\Engine\Core\SceneManager</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\Engine\Data\AnimatorGraphData.cpp">
+    <ClCompile Include="..\..\Source\Code\Engine\Data\AnimatorGraphData.cpp">
       <Filter>Sources\Engine\Data\AnimatorGraphData</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\Engine\Data\SequencerData.cpp">
+    <ClCompile Include="..\..\Source\Code\Engine\Data\SequencerData.cpp">
       <Filter>Sources\Engine\Data\SequencerData</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\Engine\Data\AnimationSpeedData.cpp">
+    <ClCompile Include="..\..\Source\Code\Engine\Data\AnimationSpeedData.cpp">
       <Filter>Sources\Engine\Data\AnimationSpeedData</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\Engine\Resource\GLTFConverter.cpp">
+    <ClCompile Include="..\..\Source\Code\Engine\Resource\GLTFConverter.cpp">
       <Filter>Sources\Engine\Resource\GLTFConverter</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\Engine\Resource\GLTFImporter.cpp">
+    <ClCompile Include="..\..\Source\Code\Engine\Resource\GLTFImporter.cpp">
       <Filter>Sources\Engine\Resource\GLTFImporter</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\Engine\Resource\GpuResourceUtils.cpp">
+    <ClCompile Include="..\..\Source\Code\Engine\Resource\GpuResourceUtils.cpp">
       <Filter>Sources\Engine\Resource\GpuResourceUtils</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\Engine\Resource\Model.cpp">
+    <ClCompile Include="..\..\Source\Code\Engine\Resource\Model.cpp">
       <Filter>Sources\Engine\Resource\Model</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\Engine\Resource\ModelSerializer.cpp">
+    <ClCompile Include="..\..\Source\Code\Engine\Resource\ModelSerializer.cpp">
       <Filter>Sources\Engine\Resource\ModelSerializer</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\Engine\Resource\ResourceManager.cpp">
+    <ClCompile Include="..\..\Source\Code\Engine\Resource\ResourceManager.cpp">
       <Filter>Sources\Engine\Resource\ResourceManager</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\Engine\Resource\SkeletonUtils.cpp">
+    <ClCompile Include="..\..\Source\Code\Engine\Resource\SkeletonUtils.cpp">
       <Filter>Sources\Engine\Resource\SkeletonUtils</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\Engine\Resource\EntitySerializer.cpp">
+    <ClCompile Include="..\..\Source\Code\Engine\Resource\EntitySerializer.cpp">
       <Filter>Sources\Engine\Resource\EntitySerializer</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\Engine\Resource\ComponentRegistry.cpp">
+    <ClCompile Include="..\..\Source\Code\Engine\Resource\ComponentRegistry.cpp">
       <Filter>Sources\Engine\Resource\ComponentRegistry</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\Engine\Resource\SceneSerializer.cpp">
+    <ClCompile Include="..\..\Source\Code\Engine\Resource\SceneSerializer.cpp">
       <Filter>Sources\Engine\Resource\SceneSerializer</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\Engine\Utility\CerealHelper.cpp">
+    <ClCompile Include="..\..\Source\Code\Engine\Utility\CerealHelper.cpp">
       <Filter>Sources\Engine\Utility\CerealHelper</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\Engine\ECS\EngineComponents.cpp">
+    <ClCompile Include="..\..\Source\Code\Engine\ECS\EngineComponents.cpp">
       <Filter>Sources\Engine\ECS</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\Engine\ECS\Reflection.cpp">
+    <ClCompile Include="..\..\Source\Code\Engine\ECS\Reflection.cpp">
       <Filter>Sources\Engine\ECS</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\Engine\ECS\Systems\AnimationSystem.cpp">
+    <ClCompile Include="..\..\Source\Code\Engine\ECS\Systems\AnimationSystem.cpp">
       <Filter>Sources\Engine\ECS\Systems\AnimationSystem</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\Engine\ECS\Systems\AnimatorControllerSystem.cpp">
+    <ClCompile Include="..\..\Source\Code\Engine\ECS\Systems\AnimatorControllerSystem.cpp">
       <Filter>Sources\Engine\ECS\Systems\AnimatorControllerSystem</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\Engine\ECS\Systems\ConditionGraphEvaluator.cpp">
+    <ClCompile Include="..\..\Source\Code\Engine\ECS\Systems\ConditionGraphEvaluator.cpp">
       <Filter>Sources\Engine\ECS\Systems\ConditionGraphEvaluator</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\Engine\ECS\Systems\ControllerSystem.cpp">
+    <ClCompile Include="..\..\Source\Code\Engine\ECS\Systems\ControllerSystem.cpp">
       <Filter>Sources\Engine\ECS\Systems\ControllerSystem</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\Engine\ECS\Systems\IKSystem.cpp">
+    <ClCompile Include="..\..\Source\Code\Engine\ECS\Systems\IKSystem.cpp">
       <Filter>Sources\Engine\ECS\Systems\IKSystem</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\Engine\ECS\Systems\MeshLoaderSystem.cpp">
+    <ClCompile Include="..\..\Source\Code\Engine\ECS\Systems\MeshLoaderSystem.cpp">
       <Filter>Sources\Engine\ECS\Systems\MeshLoaderSystem</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\Engine\ECS\Systems\MovementSystem.cpp">
+    <ClCompile Include="..\..\Source\Code\Engine\ECS\Systems\MovementSystem.cpp">
       <Filter>Sources\Engine\ECS\Systems\MovementSystem</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\Engine\ECS\Systems\PhysicsSystem.cpp">
+    <ClCompile Include="..\..\Source\Code\Engine\ECS\Systems\PhysicsSystem.cpp">
       <Filter>Sources\Engine\ECS\Systems\PhysicsSystem</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\Engine\ECS\Systems\RenderSystem.cpp">
+    <ClCompile Include="..\..\Source\Code\Engine\ECS\Systems\RenderSystem.cpp">
       <Filter>Sources\Engine\ECS\Systems\RenderSystem</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\Engine\ECS\Systems\SequencerSystem.cpp">
+    <ClCompile Include="..\..\Source\Code\Engine\ECS\Systems\SequencerSystem.cpp">
       <Filter>Sources\Engine\ECS\Systems\SequencerSystem</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\Engine\ECS\Systems\TwoBoneIKSolver.cpp">
+    <ClCompile Include="..\..\Source\Code\Engine\ECS\Systems\TwoBoneIKSolver.cpp">
       <Filter>Sources\Engine\ECS\Systems\TwoBoneIKSolver</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\Engine\ECS\Systems\AnimationSpeedSystem.cpp">
+    <ClCompile Include="..\..\Source\Code\Engine\ECS\Systems\AnimationSpeedSystem.cpp">
       <Filter>Sources\Engine\ECS\Systems\AnimationSpeedSystem</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\Engine\ECS\Systems\TransitionControllerSystem.cpp">
+    <ClCompile Include="..\..\Source\Code\Engine\ECS\Systems\TransitionControllerSystem.cpp">
       <Filter>Sources\Engine\ECS\Systems\TransitionControllerSystem</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\Engine\ECS\Systems\StateGraphUtils.cpp">
+    <ClCompile Include="..\..\Source\Code\Engine\ECS\Systems\StateGraphUtils.cpp">
       <Filter>Sources\Engine\ECS\Systems\StateGraphUtils</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\Engine\Rendering\GBuffer.cpp">
+    <ClCompile Include="..\..\Source\Code\Engine\Rendering\GBuffer.cpp">
       <Filter>Sources\Engine\Rendering\GBuffer</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\Engine\Rendering\LightManager.cpp">
+    <ClCompile Include="..\..\Source\Code\Engine\Rendering\LightManager.cpp">
       <Filter>Sources\Engine\Rendering\LightManager</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\Engine\Rendering\PhysicsDebugRenderer.cpp">
+    <ClCompile Include="..\..\Source\Code\Engine\Rendering\PhysicsDebugRenderer.cpp">
       <Filter>Sources\Engine\Rendering\PhysicsDebugRenderer</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\Engine\Rendering\PrimitiveRenderer.cpp">
+    <ClCompile Include="..\..\Source\Code\Engine\Rendering\PrimitiveRenderer.cpp">
       <Filter>Sources\Engine\Rendering\PrimitiveRenderer</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\Engine\Rendering\ShapeRenderer.cpp">
+    <ClCompile Include="..\..\Source\Code\Engine\Rendering\ShapeRenderer.cpp">
       <Filter>Sources\Engine\Rendering\ShapeRenderer</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\Engine\Rendering\SkyBox.cpp">
+    <ClCompile Include="..\..\Source\Code\Engine\Rendering\SkyBox.cpp">
       <Filter>Sources\Engine\Rendering\SkyBox</Filter>
     </ClCompile>
     <ClCompile Include="..\..\External\tracy-0.13.1\public\TracyClient.cpp">
@@ -303,224 +306,283 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\Source\Engine\Core\Application.h">
+    <ClInclude Include="..\..\Source\Code\Engine\Core\Application.h">
       <Filter>Sources\Engine\Core</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Engine\Core\GameView.h">
+    <ClInclude Include="..\..\Source\Code\Engine\Core\GameView.h">
       <Filter>Sources\Engine\Core</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Engine\Core\Camera.h">
+    <ClInclude Include="..\..\Source\Code\Engine\Core\Camera.h">
       <Filter>Sources\Engine\Core\Camera</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Engine\Core\Graphics.h">
+    <ClInclude Include="..\..\Source\Code\Engine\Core\Graphics.h">
       <Filter>Sources\Engine\Core\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Engine\Core\JsonFileCache.h">
+    <ClInclude Include="..\..\Source\Code\Engine\Core\JsonFileCache.h">
       <Filter>Sources\Engine\Core\JsonFileCache</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Engine\Core\PhysicsDestroyQueue.h">
+    <ClInclude Include="..\..\Source\Code\Engine\Core\PhysicsDestroyQueue.h">
       <Filter>Sources\Engine\Core\PhysX</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Engine\Core\PhysicsLayer.h">
+    <ClInclude Include="..\..\Source\Code\Engine\Core\PhysicsLayer.h">
       <Filter>Sources\Engine\Core\PhysX</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Engine\Core\PhysX.h">
+    <ClInclude Include="..\..\Source\Code\Engine\Core\PhysX.h">
       <Filter>Sources\Engine\Core\PhysX</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Engine\Core\Scene.h">
+    <ClInclude Include="..\..\Source\Code\Engine\Core\Scene.h">
       <Filter>Sources\Engine\Core\Scene</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Engine\Core\SceneContext.h">
+    <ClInclude Include="..\..\Source\Code\Engine\Core\SceneContext.h">
       <Filter>Sources\Engine\Core\SceneContext</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Engine\Core\SceneManager.h">
+    <ClInclude Include="..\..\Source\Code\Engine\Core\SceneManager.h">
       <Filter>Sources\Engine\Core\SceneManager</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Engine\Core\Log.h">
+    <ClInclude Include="..\..\Source\Code\Engine\Core\Log.h">
       <Filter>Sources\Engine\Core\Log</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Engine\Data\AnimatorGraphData.h">
+    <ClInclude Include="..\..\Source\Code\Engine\Data\AnimatorGraphData.h">
       <Filter>Sources\Engine\Data\AnimatorGraphData</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Engine\Data\SequencerData.h">
+    <ClInclude Include="..\..\Source\Code\Engine\Data\SequencerData.h">
       <Filter>Sources\Engine\Data\SequencerData</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Engine\Data\AnimationSpeedData.h">
+    <ClInclude Include="..\..\Source\Code\Engine\Data\AnimationSpeedData.h">
       <Filter>Sources\Engine\Data\AnimationSpeedData</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Engine\Resource\GLTFConverter.h">
+    <ClInclude Include="..\..\Source\Code\Engine\Resource\GLTFConverter.h">
       <Filter>Sources\Engine\Resource\GLTFConverter</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Engine\Resource\GLTFData.h">
+    <ClInclude Include="..\..\Source\Code\Engine\Resource\GLTFData.h">
       <Filter>Sources\Engine\Resource\GLTFData</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Engine\Resource\GLTFImporter.h">
+    <ClInclude Include="..\..\Source\Code\Engine\Resource\GLTFImporter.h">
       <Filter>Sources\Engine\Resource\GLTFImporter</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Engine\Resource\GpuResourceUtils.h">
+    <ClInclude Include="..\..\Source\Code\Engine\Resource\GpuResourceUtils.h">
       <Filter>Sources\Engine\Resource\GpuResourceUtils</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Engine\Resource\Model.h">
+    <ClInclude Include="..\..\Source\Code\Engine\Resource\Model.h">
       <Filter>Sources\Engine\Resource\Model</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Engine\Resource\ModelSerializer.h">
+    <ClInclude Include="..\..\Source\Code\Engine\Resource\ModelSerializer.h">
       <Filter>Sources\Engine\Resource\ModelSerializer</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Engine\Resource\ResourceManager.h">
+    <ClInclude Include="..\..\Source\Code\Engine\Resource\ResourceManager.h">
       <Filter>Sources\Engine\Resource\ResourceManager</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Engine\Resource\SkeletonUtils.h">
+    <ClInclude Include="..\..\Source\Code\Engine\Resource\SkeletonUtils.h">
       <Filter>Sources\Engine\Resource\SkeletonUtils</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Engine\Resource\EntitySerializer.h">
+    <ClInclude Include="..\..\Source\Code\Engine\Resource\EntitySerializer.h">
       <Filter>Sources\Engine\Resource\EntitySerializer</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Engine\Resource\ComponentRegistry.h">
+    <ClInclude Include="..\..\Source\Code\Engine\Resource\ComponentRegistry.h">
       <Filter>Sources\Engine\Resource\ComponentRegistry</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Engine\Resource\SceneSerializer.h">
+    <ClInclude Include="..\..\Source\Code\Engine\Resource\SceneSerializer.h">
       <Filter>Sources\Engine\Resource\SceneSerializer</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Engine\Utility\high_resolution_timer.h">
+    <ClInclude Include="..\..\Source\Code\Engine\Utility\high_resolution_timer.h">
       <Filter>Sources\Engine\Utility</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Engine\Utility\misc.h">
+    <ClInclude Include="..\..\Source\Code\Engine\Utility\misc.h">
       <Filter>Sources\Engine\Utility</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Engine\Utility\CerealHelper.h">
+    <ClInclude Include="..\..\Source\Code\Engine\Utility\CerealHelper.h">
       <Filter>Sources\Engine\Utility\CerealHelper</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Engine\ECS\EngineComponents.h">
+    <ClInclude Include="..\..\Source\Code\Engine\ECS\EngineComponents.h">
       <Filter>Sources\Engine\ECS</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Engine\ECS\EntityFinder.h">
+    <ClInclude Include="..\..\Source\Code\Engine\ECS\EntityFinder.h">
       <Filter>Sources\Engine\ECS</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Engine\ECS\Reflect.h">
+    <ClInclude Include="..\..\Source\Code\Engine\ECS\Reflect.h">
       <Filter>Sources\Engine\ECS</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Engine\ECS\Reflection.h">
+    <ClInclude Include="..\..\Source\Code\Engine\ECS\Reflection.h">
       <Filter>Sources\Engine\ECS</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Engine\ECS\Components\AdaptiveTrigger.h">
+    <ClInclude Include="..\..\Source\Code\Engine\ECS\Components\AdaptiveTrigger.h">
       <Filter>Sources\Engine\ECS\Components</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Engine\ECS\Components\AnimationSpeedComponent.h">
+    <ClInclude Include="..\..\Source\Code\Engine\ECS\Components\AnimationSpeedComponent.h">
       <Filter>Sources\Engine\ECS\Components</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Engine\ECS\Components\AnimatorComponent.h">
+    <ClInclude Include="..\..\Source\Code\Engine\ECS\Components\AnimatorComponent.h">
       <Filter>Sources\Engine\ECS\Components</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Engine\ECS\Components\BaseCameraComponent.h">
+    <ClInclude Include="..\..\Source\Code\Engine\ECS\Components\BaseCameraComponent.h">
       <Filter>Sources\Engine\ECS\Components</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Engine\ECS\Components\CategoryComponent.h">
+    <ClInclude Include="..\..\Source\Code\Engine\ECS\Components\CategoryComponent.h">
       <Filter>Sources\Engine\ECS\Components</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Engine\ECS\Components\ControllerComponent.h">
+    <ClInclude Include="..\..\Source\Code\Engine\ECS\Components\ControllerComponent.h">
       <Filter>Sources\Engine\ECS\Components</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Engine\ECS\Components\ControllerSettings.h">
+    <ClInclude Include="..\..\Source\Code\Engine\ECS\Components\ControllerSettings.h">
       <Filter>Sources\Engine\ECS\Components</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Engine\ECS\Components\FreeCameraComponent.h">
+    <ClInclude Include="..\..\Source\Code\Engine\ECS\Components\FreeCameraComponent.h">
       <Filter>Sources\Engine\ECS\Components</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Engine\ECS\Components\IKComponent.h">
+    <ClInclude Include="..\..\Source\Code\Engine\ECS\Components\IKComponent.h">
       <Filter>Sources\Engine\ECS\Components</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Engine\ECS\Components\PrefabInstanceComponent.h">
+    <ClInclude Include="..\..\Source\Code\Engine\ECS\Components\PrefabInstanceComponent.h">
       <Filter>Sources\Engine\ECS\Components</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Engine\ECS\Components\StateComponent.h">
+    <ClInclude Include="..\..\Source\Code\Engine\ECS\Components\StateComponent.h">
       <Filter>Sources\Engine\ECS\Components</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Engine\ECS\Components\MaterialComponent.h">
+    <ClInclude Include="..\..\Source\Code\Engine\ECS\Components\MaterialComponent.h">
       <Filter>Sources\Engine\ECS\Components</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Engine\ECS\Components\MeshComponent.h">
+    <ClInclude Include="..\..\Source\Code\Engine\ECS\Components\MeshComponent.h">
       <Filter>Sources\Engine\ECS\Components</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Engine\ECS\Components\MovementComponent.h">
+    <ClInclude Include="..\..\Source\Code\Engine\ECS\Components\MovementComponent.h">
       <Filter>Sources\Engine\ECS\Components</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Engine\ECS\Components\PhysicsComponents.h">
+    <ClInclude Include="..\..\Source\Code\Engine\ECS\Components\PhysicsComponents.h">
       <Filter>Sources\Engine\ECS\Components</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Engine\ECS\Components\SequencerComponent.h">
+    <ClInclude Include="..\..\Source\Code\Engine\ECS\Components\SequencerComponent.h">
       <Filter>Sources\Engine\ECS\Components</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Engine\ECS\Components\SkinnedMeshComponent.h">
+    <ClInclude Include="..\..\Source\Code\Engine\ECS\Components\SkinnedMeshComponent.h">
       <Filter>Sources\Engine\ECS\Components</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Engine\ECS\Components\StaticMeshComponent.h">
+    <ClInclude Include="..\..\Source\Code\Engine\ECS\Components\StaticMeshComponent.h">
       <Filter>Sources\Engine\ECS\Components</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Engine\ECS\Components\Tags.h">
+    <ClInclude Include="..\..\Source\Code\Engine\ECS\Components\Tags.h">
       <Filter>Sources\Engine\ECS\Components</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Engine\ECS\Components\TransformComponent.h">
+    <ClInclude Include="..\..\Source\Code\Engine\ECS\Components\TransformComponent.h">
       <Filter>Sources\Engine\ECS\Components</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Engine\ECS\Systems\AnimationSystem.h">
+    <ClInclude Include="..\..\Source\Code\Engine\ECS\Systems\AnimationSystem.h">
       <Filter>Sources\Engine\ECS\Systems\AnimationSystem</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Engine\ECS\Systems\AnimatorControllerSystem.h">
+    <ClInclude Include="..\..\Source\Code\Engine\ECS\Systems\AnimatorControllerSystem.h">
       <Filter>Sources\Engine\ECS\Systems\AnimatorControllerSystem</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Engine\ECS\Systems\ConditionGraphEvaluator.h">
+    <ClInclude Include="..\..\Source\Code\Engine\ECS\Systems\ConditionGraphEvaluator.h">
       <Filter>Sources\Engine\ECS\Systems\ConditionGraphEvaluator</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Engine\ECS\Systems\ControllerSystem.h">
+    <ClInclude Include="..\..\Source\Code\Engine\ECS\Systems\ControllerSystem.h">
       <Filter>Sources\Engine\ECS\Systems\ControllerSystem</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Engine\ECS\Systems\IKSystem.h">
+    <ClInclude Include="..\..\Source\Code\Engine\ECS\Systems\IKSystem.h">
       <Filter>Sources\Engine\ECS\Systems\IKSystem</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Engine\ECS\Systems\MeshLoaderSystem.h">
+    <ClInclude Include="..\..\Source\Code\Engine\ECS\Systems\MeshLoaderSystem.h">
       <Filter>Sources\Engine\ECS\Systems\MeshLoaderSystem</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Engine\ECS\Systems\MovementSystem.h">
+    <ClInclude Include="..\..\Source\Code\Engine\ECS\Systems\MovementSystem.h">
       <Filter>Sources\Engine\ECS\Systems\MovementSystem</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Engine\ECS\Systems\PhysicsSystem.h">
+    <ClInclude Include="..\..\Source\Code\Engine\ECS\Systems\PhysicsSystem.h">
       <Filter>Sources\Engine\ECS\Systems\PhysicsSystem</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Engine\ECS\Systems\RenderSystem.h">
+    <ClInclude Include="..\..\Source\Code\Engine\ECS\Systems\RenderSystem.h">
       <Filter>Sources\Engine\ECS\Systems\RenderSystem</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Engine\ECS\Systems\SequencerSystem.h">
+    <ClInclude Include="..\..\Source\Code\Engine\ECS\Systems\SequencerSystem.h">
       <Filter>Sources\Engine\ECS\Systems\SequencerSystem</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Engine\ECS\Systems\TwoBoneIKSolver.h">
+    <ClInclude Include="..\..\Source\Code\Engine\ECS\Systems\TwoBoneIKSolver.h">
       <Filter>Sources\Engine\ECS\Systems\TwoBoneIKSolver</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Engine\ECS\Systems\AnimationSpeedSystem.h">
+    <ClInclude Include="..\..\Source\Code\Engine\ECS\Systems\AnimationSpeedSystem.h">
       <Filter>Sources\Engine\ECS\Systems\AnimationSpeedSystem</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Engine\ECS\Systems\TransitionControllerSystem.h">
+    <ClInclude Include="..\..\Source\Code\Engine\ECS\Systems\TransitionControllerSystem.h">
       <Filter>Sources\Engine\ECS\Systems\TransitionControllerSystem</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Engine\ECS\Systems\StateGraphUtils.h">
+    <ClInclude Include="..\..\Source\Code\Engine\ECS\Systems\StateGraphUtils.h">
       <Filter>Sources\Engine\ECS\Systems\StateGraphUtils</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Engine\Rendering\GBuffer.h">
+    <ClInclude Include="..\..\Source\Code\Engine\Rendering\GBuffer.h">
       <Filter>Sources\Engine\Rendering\GBuffer</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Engine\Rendering\LightManager.h">
+    <ClInclude Include="..\..\Source\Code\Engine\Rendering\LightManager.h">
       <Filter>Sources\Engine\Rendering\LightManager</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Engine\Rendering\PhysicsDebugRenderer.h">
+    <ClInclude Include="..\..\Source\Code\Engine\Rendering\PhysicsDebugRenderer.h">
       <Filter>Sources\Engine\Rendering\PhysicsDebugRenderer</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Engine\Rendering\PrimitiveRenderer.h">
+    <ClInclude Include="..\..\Source\Code\Engine\Rendering\PrimitiveRenderer.h">
       <Filter>Sources\Engine\Rendering\PrimitiveRenderer</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Engine\Rendering\ShapeRenderer.h">
+    <ClInclude Include="..\..\Source\Code\Engine\Rendering\ShapeRenderer.h">
       <Filter>Sources\Engine\Rendering\ShapeRenderer</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Engine\Rendering\SkyBox.h">
+    <ClInclude Include="..\..\Source\Code\Engine\Rendering\SkyBox.h">
       <Filter>Sources\Engine\Rendering\SkyBox</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="..\..\Source\Shader\Basic_PS.hlsl">
+      <Filter>Sources\Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="..\..\Source\Shader\Debug_PS.hlsl">
+      <Filter>Sources\Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="..\..\Source\Shader\Debug_VS.hlsl">
+      <Filter>Sources\Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="..\..\Source\Shader\Gbuffer_Basic_PS.hlsl">
+      <Filter>Sources\Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="..\..\Source\Shader\Gbuffer_PS.hlsl">
+      <Filter>Sources\Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="..\..\Source\Shader\Lambert_PS.hlsl">
+      <Filter>Sources\Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="..\..\Source\Shader\Lighting_PS.hlsl">
+      <Filter>Sources\Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="..\..\Source\Shader\Lighting_VS.hlsl">
+      <Filter>Sources\Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="..\..\Source\Shader\PBR_PS.hlsl">
+      <Filter>Sources\Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="..\..\Source\Shader\Present_PS.hlsl">
+      <Filter>Sources\Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="..\..\Source\Shader\Skinning_VS.hlsl">
+      <Filter>Sources\Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="..\..\Source\Shader\SkyBox_PS.hlsl">
+      <Filter>Sources\Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="..\..\Source\Shader\SkyBox_VS.hlsl">
+      <Filter>Sources\Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="..\..\Source\Shader\SolidShape_PS.hlsl">
+      <Filter>Sources\Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="..\..\Source\Shader\SolidShape_VS.hlsl">
+      <Filter>Sources\Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="..\..\Source\Shader\SolidShapeDepth_VS.hlsl">
+      <Filter>Sources\Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="..\..\Source\Shader\Static_VS.hlsl">
+      <Filter>Sources\Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="..\..\Source\Shader\WiredShape_PS.hlsl">
+      <Filter>Sources\Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="..\..\Source\Shader\WiredShape_VS.hlsl">
+      <Filter>Sources\Shader</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>
