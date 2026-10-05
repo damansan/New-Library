@@ -19,7 +19,6 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Source\Code\App\EditorApp.cpp" />
     <ClCompile Include="Source\Code\main.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -30,7 +29,6 @@
     <ClInclude Include="External\DualSense-Windows-main\VS19_Solution\DualSenseWindows\include\DualSenseWindows\IO.h" />
     <ClInclude Include="External\entt-main\single_include\entt\entt.hpp" />
     <ClInclude Include="External\json-3.12.0\single_include\nlohmann\json.hpp" />
-    <ClInclude Include="Source\Code\App\EditorApp.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="Projects\Engine\Engine.vcxproj">

@@ -8,9 +8,6 @@
     <Filter Include="External">
       <UniqueIdentifier>{1788a1af-73ea-481f-b3fe-0a450fd90d64}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Shader">
-      <UniqueIdentifier>{c2dc3734-b94f-4533-90fb-cd70336ef861}</UniqueIdentifier>
-    </Filter>
     <Filter Include="External\json-3.12.0">
       <UniqueIdentifier>{21e8e830-d41f-441f-a456-7efbeae5c971}</UniqueIdentifier>
     </Filter>
@@ -20,16 +17,10 @@
     <Filter Include="External\entt">
       <UniqueIdentifier>{55738d4a-41b7-4726-ba78-e0ba6e927136}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Sources\APP">
-      <UniqueIdentifier>{b2262ded-cf3a-4042-94ae-b1eab9c3e985}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Code\main.cpp">
       <Filter>Sources</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Code\App\EditorApp.cpp">
-      <Filter>Sources\APP</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -53,9 +44,6 @@
     </ClInclude>
     <ClInclude Include="External\DualSense-Windows-main\VS19_Solution\DualSenseWindows\include\DualSenseWindows\IO.h">
       <Filter>External\DualSense-Windows</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Code\App\EditorApp.h">
-      <Filter>Sources\APP</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
