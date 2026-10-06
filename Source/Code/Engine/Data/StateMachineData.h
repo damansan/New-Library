@@ -110,6 +110,45 @@ public:
 	const StateNode* FindStateByName(const std::string& name) const;
 	const StateTransition* FindTransition(int transitionId) const; // Entryの遷移も含む
 
+	// 遷移元にEntryを指定するときのID
+	static constexpr int kEntryId = 0;
+
+	
+	
+	// 空のグラフにする
+	void Clear();
+
+	// State
+	int  AddState(const std::string& baseName, const EditorPosition& pos); // 作成
+	bool RenameState(int stateId, const std::string& newName);             // 名前変更
+	void RemoveState(int stateId);                                         // 削除
+
+	// 遷移
+	int  AddTransition(int fromStateId, int toStateId); // 作成
+	void RemoveTransition(int transitionId);            // 削除
+	bool MoveTransition(int transitionId, int offset);  // 優先度の入れ替え
+
+	// 子階層：クリップ
+	int  AddClip(int stateId, const std::string& name, const EditorPosition& pos); // 作成
+	void RemoveClip(int stateId, int clipId);                                      // 削除
+
+	// 子階層：(エントリー → クリップ)
+	int  AddEntryLink(int stateId, int transitionId, int toClipId); // 作成
+	void RemoveEntryLink(int stateId, int linkId);                  // 削除
+	
+	// 子階層：(クリップ → クリップ)
+	int  AddClipLink(int stateId, int fromClipId, int toClipId); // 作成
+	void RemoveClipLink(int stateId, int linkId);                // 削除
+
+	// 編集用の検索
+	StateNode* FindState(int stateId);
+	StateTransition* FindTransition(int transitionId);
+
+	// 他のStateと重複しない名前を作る
+	std::string MakeUniqueStateName(const std::string& baseName) const;
+
+
+
 	// 整合性チェック
 	bool Validate(const std::string& sourceName) const;
 
@@ -119,4 +158,7 @@ public:
 
 private:
 	int nextId = 1;
+
+	// 遷移を持っているリスト(Entry、またはどれかのState)を探す
+	std::vector<StateTransition>* FindTransitionOwner(int transitionId);
 };

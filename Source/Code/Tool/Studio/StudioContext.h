@@ -18,7 +18,7 @@ struct StudioContext
     // パネル表示フラグ
     bool showAnimator      = false;
     bool showTimeline      = false;
-    bool showAnimatorGraph = false;
+    bool showStateGraph = false;
     bool showSequencer = false;
     bool showAnimationSpeed = false;
 

@@ -21,6 +21,7 @@ void StudioWindow::Initialize(ID3D11Device* device, StudioSharedContext* shared,
 	);
 
 	stadoiModelViewer.Initialize(device, &shared->resourceManager);
+	stateGraph.Initialize();
 
 	ResizeRenderTarget();
 }
@@ -150,7 +151,7 @@ void StudioWindow::DrawWindow(const char* windowName)
 			ImGui::MenuItem("Animator", nullptr, &context.showAnimator);
 			ImGui::MenuItem("Timeline", nullptr, &context.showTimeline);
 			ImGui::MenuItem("Sequencer", nullptr, &context.showSequencer);
-			ImGui::MenuItem("AnimatorGraph", nullptr, &context.showAnimatorGraph);
+			ImGui::MenuItem("State Graph", nullptr, &context.showStateGraph);
 			ImGui::MenuItem("AnimationSpeed", nullptr, &context.showAnimationSpeed);
 
 			ImGui::EndMenu();
@@ -186,14 +187,14 @@ void StudioWindow::DrawWindow(const char* windowName)
 		std::string animatorName = "Animator##" + std::to_string(windowId);
 		std::string timelineName = "Timeline##" + std::to_string(windowId);
 		std::string sequencerName = "Sequencer##" + std::to_string(windowId);
-		std::string animatorGraphName = "AnimatorGraph##" + std::to_string(windowId);
+		std::string stateGraphName = "StateGraph##" + std::to_string(windowId);
 		std::string animationSpeedName = "Animation Speed##" + std::to_string(windowId);
 
 		ImGui::DockBuilderDockWindow(viewportName.c_str(), dockMain);
 		ImGui::DockBuilderDockWindow(animatorName.c_str(), dockLeft);
 		ImGui::DockBuilderDockWindow(timelineName.c_str(), dockBottom);
 		ImGui::DockBuilderDockWindow(sequencerName.c_str(), dockSequencer);
-		ImGui::DockBuilderDockWindow(animatorGraphName.c_str(), dockRight);
+		ImGui::DockBuilderDockWindow(stateGraphName.c_str(), dockRight);
 		ImGui::DockBuilderDockWindow(animationSpeedName.c_str(), dockSequencer);
 
 		ImGui::DockBuilderFinish(dockSpaceId);
@@ -246,6 +247,12 @@ void StudioWindow::DrawWindow(const char* windowName)
 	if (context.showSequencer)
 	{
 		studioSequencer.DrawGUI(studioRegistry, context);
+	}
+
+	// State Graphパネル
+	if (context.showStateGraph)
+	{
+		stateGraph.DrawGUI(studioRegistry, context);
 	}
 
 	// AnimationSpeedパネル

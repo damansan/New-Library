@@ -1,0 +1,13 @@
+{
+    "version": 2,
+    "nextId": 1,
+    "entry": {
+        "transitions": [],
+        "editor": {
+            "x": 0.0,
+            "y": 0.0
+        }
+    },
+    "states": [],
+    "sourceModelPath": "Data/Model/PlayerRobot/Map_Robot3.gltf"
+}

@@ -2443,191 +2443,6 @@ public:
 	void FromJson(const nlohmann::json& j);
 }; 
  
-===== AnimatorGraphData.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Data\AnimatorGraphData.h 
-#pragma once
-#include <string>
-#include <vector>
-#include <json.hpp>
-#include "Engine/ECS/Reflection.h"
-#include "Engine/Data/ConditionGraphData.h"
-
-// == StateƒOƒ‰ƒtŠÖ˜A == //
-enum class ChildStateType // qŠK‘w(ChildState)‚Ìí—Ş
-{
-	Normal, // ƒAƒjƒ[ƒVƒ‡ƒ“ƒm[ƒh
-	Start,  // ŠJn“_
-	End,    // I—¹“_
-};
-enum class ParentStateType // eŠK‘w(ParentState)‚Ìí—Ş
-{
-	Entry, // ŠJn“_
-	State, // ƒm[ƒh
-};
-
-// == StateƒOƒ‰ƒO–{‘Ì == //
-struct AnimLink // ƒŠƒ“ƒN
-{
-	int id = -1;     // ‚±‚ÌƒŠƒ“ƒN‚ÌID
-	int fromId = -1; // ‘JˆÚŒ³‚ÌID
-	int toId = -1;   // ‘JˆÚæ‚ÌID
-
-	bool blend = true;         // ‘JˆÚ‚ÉƒuƒŒƒ“ƒh‚·‚é‚©
-	float blendDuration = 0.2f; // ƒuƒŒƒ“ƒh‚É‚©‚¯‚é•b”
-
-	ConditionGraph condition; // ‚±‚ÌLink‚Ì‘JˆÚğŒƒOƒ‰ƒt
-};
-
-struct ChildState  // qŠK‘wState
-{
-	int id = -1;
-	std::string name;
-
-	float posX = 0.0f;
-	float posY = 0.0f;
-
-	ChildStateType type = ChildStateType::Normal;
-
-	std::string clipName;       // Ä¶‚·‚éƒAƒjƒ[ƒVƒ‡ƒ“–¼
-	bool loop = true;           // ƒ‹[ƒvÄ¶‚·‚é‚©
-	bool useRootMotion = false; // ƒ‹[ƒgƒ‚[ƒVƒ‡ƒ“‚Ìg—p
-};
-struct ChildStateGraph // qŠK‘wƒOƒ‰ƒt
-{
-	std::vector<ChildState> children;
-	std::vector<AnimLink> childLinks;
-
-	// IDÌ”ÔƒJƒEƒ“ƒ^[
-	int* idCounter = nullptr;
-	int GenerateId() { return (*idCounter)++; }
-
-	// qŠK‘w‚ÌState‚ğì¬‚·‚é
-	int CreateChildState(const std::string& name, float posX, float posY);
-	// qŠK‘w‚ÌLink‚ğì¬‚·‚é
-	int CreateChildLink(int fromId, int toId);
-
-	// qŠK‘w‚ÌState‚ğíœ‚·‚é
-	void DeleteChildState(int stateId);
-	// qŠK‘w‚ÌLink‚ğíœ‚·‚é
-	void DeleteChildLink(int linkId);
-
-	// Start/End‚ª‚È‚¯‚ê‚Îì¬‚·‚é(ŒÃ‚¢•Û‘¶ƒf[ƒ^‚Ì•œŒ³‚É‚àg‚¤)
-	void EnsureStartAndEndExist();
-};
-
-struct ParentState  // eŠK‘wState
-{
-	int id = -1;
-	std::string name;
-
-	float posX = 0.0f;
-	float posY = 0.0f;
-
-	ParentStateType type = ParentStateType::State;
-
-	float color[3] = { 0.27f, 0.35f, 0.47f };
-
-	ChildStateGraph childGraph; // eŠK‘w‚ÍqŠK‘wƒOƒ‰ƒt‚ğ‚Â
-};
-struct ParentStateGraph // eŠK‘wƒOƒ‰ƒt
-{
-	std::vector<ParentState> states;
-	std::vector<AnimLink> stateLinks;
-
-	// IDÌ”ÔƒJƒEƒ“ƒ^[
-	int* idCounter = nullptr;
-	int GenerateId() { return (*idCounter)++; }
-
-	// eŠK‘w‚ÌState‚ğì¬‚·‚é
-	int CreateParentState(const std::string& name, float posX, float posY);
-	// eŠK‘w‚ÌLink‚ğì¬‚·‚é
-	int CreateParentLink(int fromId, int toId);
-
-	// eŠK‘w‚ÌState‚ğíœ‚·‚é
-	void DeleteParentState(int stateId);
-	// eŠK‘w‚ÌLink‚ğíœ‚·‚é
-	void DeleteParentLink(int linkId);
-
-	// Entry‚ª‚È‚¯‚ê‚Îì¬‚·‚é(ŒÃ‚¢•Û‘¶ƒf[ƒ^‚Ì•œŒ³‚É‚àg‚¤)
-	void EnsureEntryExists();
-};
-
-
-struct TransitionLink // ‘JˆÚ—pƒŠƒ“ƒN1–{•ª
-{
-	int id = -1;
-	int fromId = -1;
-	int toId = -1;  
-
-	ConditionGraph condition;
-};
-struct TransitionGraphData // ‘JˆÚ—pƒOƒ‰ƒt–{‘Ì
-{
-	std::vector<TransitionLink> links;
-
-	// IDÌ”ÔƒJƒEƒ“ƒ^[
-	int* idCounter = nullptr;
-	int GenerateId() { return (*idCounter)++; }
-
-	// Linkì¬
-	int CreateLink(int fromId, int toId);
-	// Linkíœ
-	void DeleteLink(int linkId);
-};
-
-
-
-class AnimatorGraphData
-{
-public:
-	AnimatorGraphData();
-
-	// ƒRƒs[‹Ö~
-	AnimatorGraphData(const AnimatorGraphData&) = delete;
-	AnimatorGraphData& operator=(const AnimatorGraphData&) = delete;
-	// ƒ€[ƒu‹Ö~
-	AnimatorGraphData(AnimatorGraphData&&) = delete;
-	AnimatorGraphData& operator=(AnimatorGraphData&&) = delete;
-
-	ParentStateGraph parentGraph; // eŠK‘wƒOƒ‰ƒt–{‘Ì
-	TransitionGraphData transitionGraph; // ‘JˆÚ—pƒOƒ‰ƒt–{‘Ì
-
-	// ƒOƒ‰ƒt“à—e‚ğJson‚É•ÏŠ·‚·‚é
-	nlohmann::ordered_json ToJson() const;
-	// Json‚©‚ç’†g‚ğ•ÏŠ·‚·‚é
-	void FromJson(const nlohmann::json& j);
-
-	// ParentState‚ğíœ‚·‚é
-	void DeleteParentState(int stateId);
-	void SyncTransitionLinks();
-private:
-	// States‚ğ•Û‘¶“à—e‚Ö•ÏŠ·
-	nlohmann::ordered_json StatesToJson() const;
-	// States‚ğ•Û‘¶“à—e‚©‚ç•œŒ³‚·‚é
-	void StatesFromJson(const nlohmann::json& j);
-
-	// StateLinks‚ğ•Û‘¶“à—e‚Ö•ÏŠ·
-	nlohmann::ordered_json StateLinksToJson() const;
-	// StateLinks‚ğ•Û‘¶“à—e‚©‚ç•œŒ³‚·‚é
-	void StateLinksFromJson(const nlohmann::json& j);
-
-	// TransitionLinks‚Ì•Û‘¶“à—e‚Ö•ÏŠ·
-	nlohmann::ordered_json TransitionLinksToJson() const;
-	// TransitionLinks‚Ì•Û‘¶“à—e‚©‚ç•œŒ³
-	void TransitionLinksFromJson(const nlohmann::json& j);
-
-	// AnimLink1–{•ª‚ğJson‚É•ÏŠ·‚·‚é(eLinkEqLink‹¤’Ê)
-	nlohmann::ordered_json AnimLinkToJson(const AnimLink& link) const;
-	// AnimLink1–{•ª‚ğJson‚©‚ç•œŒ³‚·‚é(eLinkEqLink‹¤’Ê)
-	void AnimLinkFromJson(AnimLink& link, const nlohmann::json& jl);
-
-	// “Ç‚İ‚ñ‚¾ID‚ÉƒJƒEƒ“ƒ^‚ğ’Ç]‚³‚¹‚é
-	void SyncIdCounter(int id);
-
-	// IDÌ”ÔƒJƒEƒ“ƒ^[‚ÌÀ‘Ì
-	int idCounter = 1;
-}; 
- 
 ===== ConditionGraphData.h ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Data\ConditionGraphData.h 
 #pragma once
@@ -2924,6 +2739,45 @@ public:
 	const StateNode* FindStateByName(const std::string& name) const;
 	const StateTransition* FindTransition(int transitionId) const; // Entry‚Ì‘JˆÚ‚àŠÜ‚Ş
 
+	// ‘JˆÚŒ³‚ÉEntry‚ğw’è‚·‚é‚Æ‚«‚ÌID
+	static constexpr int kEntryId = 0;
+
+	
+	
+	// ‹ó‚ÌƒOƒ‰ƒt‚É‚·‚é
+	void Clear();
+
+	// State
+	int  AddState(const std::string& baseName, const EditorPosition& pos); // ì¬
+	bool RenameState(int stateId, const std::string& newName);             // –¼‘O•ÏX
+	void RemoveState(int stateId);                                         // íœ
+
+	// ‘JˆÚ
+	int  AddTransition(int fromStateId, int toStateId); // ì¬
+	void RemoveTransition(int transitionId);            // íœ
+	bool MoveTransition(int transitionId, int offset);  // —Dæ“x‚Ì“ü‚ê‘Ö‚¦
+
+	// qŠK‘wFƒNƒŠƒbƒv
+	int  AddClip(int stateId, const std::string& name, const EditorPosition& pos); // ì¬
+	void RemoveClip(int stateId, int clipId);                                      // íœ
+
+	// qŠK‘wF(ƒGƒ“ƒgƒŠ[ ¨ ƒNƒŠƒbƒv)
+	int  AddEntryLink(int stateId, int transitionId, int toClipId); // ì¬
+	void RemoveEntryLink(int stateId, int linkId);                  // íœ
+	
+	// qŠK‘wF(ƒNƒŠƒbƒv ¨ ƒNƒŠƒbƒv)
+	int  AddClipLink(int stateId, int fromClipId, int toClipId); // ì¬
+	void RemoveClipLink(int stateId, int linkId);                // íœ
+
+	// •ÒW—p‚ÌŒŸõ
+	StateNode* FindState(int stateId);
+	StateTransition* FindTransition(int transitionId);
+
+	// ‘¼‚ÌState‚Æd•¡‚µ‚È‚¢–¼‘O‚ğì‚é
+	std::string MakeUniqueStateName(const std::string& baseName) const;
+
+
+
 	// ®‡«ƒ`ƒFƒbƒN
 	bool Validate(const std::string& sourceName) const;
 
@@ -2933,6 +2787,9 @@ public:
 
 private:
 	int nextId = 1;
+
+	// ‘JˆÚ‚ğ‚Á‚Ä‚¢‚éƒŠƒXƒg(EntryA‚Ü‚½‚Í‚Ç‚ê‚©‚ÌState)‚ğ’T‚·
+	std::vector<StateTransition>* FindTransitionOwner(int transitionId);
 }; 
  
 ===== AnimationSpeedData.cpp ===== 
@@ -3059,1017 +2916,6 @@ void AnimationSpeedData::FromJson(const nlohmann::json& j)
 
 		clips.push_back(clip);
 	}
-} 
- 
-===== AnimatorGraphData.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Data\AnimatorGraphData.cpp 
-#include "AnimatorGraphData.h"
-#include <algorithm>
-
-// == enum‚Ì•¶š•ÏŠ· == //
-namespace
-{
-	// ===== enum‚Ì•¶š•ÏŠ·(StateƒOƒ‰ƒtŠÖ˜A) =====
-
-	// ChildStateType(qŠK‘w‚Ìí—Ş)
-	std::string ToString(ChildStateType type)
-	{
-		switch (type)
-		{
-		case ChildStateType::Normal: return "Normal";
-		case ChildStateType::Start:  return "Start";
-		case ChildStateType::End:    return "End";
-		}
-		return "Normal";
-	}
-	ChildStateType ToChildStateType(const std::string& s)
-	{
-		if (s == "Start") return ChildStateType::Start;
-		if (s == "End")   return ChildStateType::End;
-		return ChildStateType::Normal;
-	}
-
-
-	// ParentStateType(eŠK‘w‚Ìí—Ş)
-	std::string ToString(ParentStateType type)
-	{
-		switch (type)
-		{
-		case ParentStateType::Entry: return "Entry";
-		case ParentStateType::State: return "State";
-		}
-		return "State";
-	}
-	ParentStateType ToParentStateType(const std::string& s)
-	{
-		if (s == "Entry")
-		{
-			return ParentStateType::Entry;
-		}
-		return ParentStateType::State;
-	}
-
-
-	// ===== enum‚Ì•¶š•ÏŠ·(ğŒƒOƒ‰ƒtŠÖ˜A) =====
-
-	// ValueType(•Ï”ƒm[ƒh‚ª‚Â’l‚ÌŒ^)
-	std::string ToString(ValueType type)
-	{
-		switch (type)
-		{
-		case ValueType::Int:    return "Int";
-		case ValueType::Float:  return "Float";
-		case ValueType::Bool:   return "Bool";
-
-		case ValueType::Float2: return "Float2";
-		case ValueType::Float3: return "Float3";
-		case ValueType::Float4: return "Float4";
-		default:                return "Float";
-		}
-	}
-	ValueType ToValueType(const std::string& s)
-	{
-		if (s == "Int")    return ValueType::Int;
-		if (s == "Bool")   return ValueType::Bool;
-		if (s == "Float2") return ValueType::Float2;
-		if (s == "Float3") return ValueType::Float3;
-		if (s == "Float4") return ValueType::Float4;
-		return ValueType::Float;
-	}
-
-
-	// FloatComponent(\‘¢‘Ì‚Ì‚Ç‚Ì¬•ª‚ğæ‚èo‚·‚©)
-	std::string ToString(FloatComponent c)
-	{
-		switch (c)
-		{
-		case FloatComponent::X: return "X";
-		case FloatComponent::Y: return "Y";
-		case FloatComponent::Z: return "Z";
-		case FloatComponent::W: return "W";
-		default:                return "None";
-		}
-	}
-	FloatComponent ToFloatComponent(const std::string& s)
-	{
-		if (s == "X") return FloatComponent::X;
-		if (s == "Y") return FloatComponent::Y;
-		if (s == "Z") return FloatComponent::Z;
-		if (s == "W") return FloatComponent::W;
-		return FloatComponent::None;
-	}
-
-	// CompareOp(”äŠr‰‰Zq‚Ìí—Ş)
-	std::string ToString(CompareOp op)
-	{
-		switch (op)
-		{
-		case CompareOp::Greater:      return "Greater";
-		case CompareOp::Less:         return "Less";
-		case CompareOp::Equal:        return "Equal";
-		case CompareOp::NotEqual:     return "NotEqual";
-		case CompareOp::GreaterEqual: return "GreaterEqual";
-		case CompareOp::LessEqual:    return "LessEqual";
-		default:                      return "Greater";
-		}
-	}
-	CompareOp ToCompareOp(const std::string& s)
-	{
-		if (s == "Less")         return CompareOp::Less;
-		if (s == "Equal")        return CompareOp::Equal;
-		if (s == "NotEqual")     return CompareOp::NotEqual;
-		if (s == "GreaterEqual") return CompareOp::GreaterEqual;
-		if (s == "LessEqual")    return CompareOp::LessEqual;
-		return CompareOp::Greater;
-	}
-
-	// LogicOp(˜_—‰‰Zq‚Ìí—Ş)
-	std::string ToString(LogicOp op)
-	{
-		switch (op)
-		{
-		case LogicOp::And: return "And";
-		case LogicOp::Or:  return "Or";
-		default:           return "And";
-		}
-	}
-	LogicOp ToLogicOp(const std::string& s)
-	{
-		if (s == "Or") return LogicOp::Or;
-		return LogicOp::And;
-	}
-}
-
-
-// eŠK‘w‚ÌState‚ğì¬‚·‚é
-int ParentStateGraph::CreateParentState(const std::string& name, float posX, float posY)
-{
-	ParentState state;
-	state.id = GenerateId();
-	state.name = name;
-	state.posX = posX;
-	state.posY = posY;
-	state.type = ParentStateType::State;
-
-	// V‚µ‚­ì‚Á‚½State‚ÌqŠK‘wƒOƒ‰ƒt‚ÉAˆÄ“à”Â‚ğ”zü‚·‚é
-	state.childGraph.idCounter = this->idCounter;
-	// ”zü‚ªI‚í‚Á‚Ä‚©‚çAStart/End‚ğ•ÛØ‚·‚é
-	state.childGraph.EnsureStartAndEndExist();
-
-	states.push_back(state);
-
-	return state.id;
-}
-// eŠK‘w‚ÌLink‚ğì¬‚·‚é
-int ParentStateGraph::CreateParentLink(int fromId, int toId)
-{
-	AnimLink link;
-	link.id = GenerateId();
-	link.fromId = fromId;
-	link.toId = toId;
-
-	stateLinks.push_back(link);
-	return link.id;
-}
-
-// eŠK‘w‚ÌState‚ğíœ‚·‚é
-void ParentStateGraph::DeleteParentState(int stateId)
-{
-	states.erase(
-		std::remove_if(states.begin(), states.end(),
-			[stateId](const ParentState& s)
-			{
-				// Entry‚Ííœ‚³‚¹‚È‚¢
-				if (s.type == ParentStateType::Entry) return false;
-				return s.id == stateId;
-			}),
-		states.end()
-	);
-
-	// ‚±‚ÌState‚ÉŒq‚ª‚Á‚Ä‚¢‚½ƒŠƒ“ƒN‚àˆê‚Éíœ‚·‚é
-	stateLinks.erase(
-		std::remove_if(stateLinks.begin(), stateLinks.end(),
-			[stateId](const AnimLink& l)
-			{
-				return l.fromId == stateId || l.toId == stateId;
-			}),
-		stateLinks.end()
-	);
-}
-// eŠK‘w‚ÌLink‚ğíœ‚·‚é
-void ParentStateGraph::DeleteParentLink(int linkId)
-{
-	stateLinks.erase(
-		std::remove_if(stateLinks.begin(), stateLinks.end(),
-			[linkId](const AnimLink& l) { return l.id == linkId; }),
-		stateLinks.end()
-	);
-}
-
-// Entry‚ª‚È‚¯‚ê‚Îì¬‚·‚é
-void ParentStateGraph::EnsureEntryExists()
-{
-	bool hasEntry = false;
-	for (const auto& s : states)
-	{
-		if (s.type == ParentStateType::Entry)
-		{
-			hasEntry = true;
-			break;
-		}
-	}
-
-	if (!hasEntry)
-	{
-		ParentState entry;
-		entry.id = GenerateId();
-		entry.name = "Entry";
-		entry.posX = 50.0f;
-		entry.posY = 200.0f;
-		entry.type = ParentStateType::Entry;
-
-		// Entry‚ÌqŠK‘wƒOƒ‰ƒt‚É‚àˆÄ“à”Â‚¾‚¯‚Í”zü‚µ‚Ä‚¨‚­(Start/End‚Í•ÛØ‚µ‚È‚¢)
-		entry.childGraph.idCounter = this->idCounter;
-
-		states.push_back(entry);
-	}
-}
-
-
-// qŠK‘w‚ÌState‚ğì¬‚·‚é
-int ChildStateGraph::CreateChildState(const std::string& name, float posX, float posY)
-{
-	ChildState state;
-	state.id = GenerateId();
-	state.name = name;
-	state.posX = posX;
-	state.posY = posY;
-	state.type = ChildStateType::Normal;
-
-	children.push_back(state);
-
-	return state.id;
-}
-// qŠK‘w‚ÌLink‚ğì¬‚·‚é
-int ChildStateGraph::CreateChildLink(int fromId, int toId)
-{
-	AnimLink link;
-	link.id = GenerateId();
-	link.fromId = fromId;
-	link.toId = toId;
-
-	childLinks.push_back(link);
-
-	return link.id;
-}
-
-// qŠK‘w‚ÌState‚ğíœ‚·‚é
-void ChildStateGraph::DeleteChildState(int stateId)
-{
-	children.erase(
-		std::remove_if(children.begin(), children.end(),
-			[stateId](const ChildState& s)
-			{
-				// Start/End‚Ííœ‚³‚¹‚È‚¢
-				if (s.type == ChildStateType::Start || s.type == ChildStateType::End) return false;
-				return s.id == stateId;
-			}),
-		children.end()
-	);
-
-	// ‚±‚ÌState‚ÉŒq‚ª‚Á‚Ä‚¢‚½Link‚àˆê‚Éíœ‚·‚é
-	childLinks.erase(
-		std::remove_if(childLinks.begin(), childLinks.end(),
-			[stateId](const AnimLink& l)
-			{
-				return l.fromId == stateId || l.toId == stateId;
-			}),
-		childLinks.end()
-	);
-}
-// qŠK‘w‚ÌLink‚ğíœ‚·‚é
-void ChildStateGraph::DeleteChildLink(int linkId)
-{
-	childLinks.erase(
-		std::remove_if(childLinks.begin(), childLinks.end(),
-			[linkId](const AnimLink& l) { return l.id == linkId; }),
-		childLinks.end()
-	);
-}
-
-// Start/End‚ª‚È‚¯‚ê‚Îì¬‚·‚é
-void ChildStateGraph::EnsureStartAndEndExist()
-{
-	bool hasStart = false;
-	bool hasEnd = false;
-
-	for (const auto& child : children)
-	{
-		if (child.type == ChildStateType::Start) hasStart = true;
-		if (child.type == ChildStateType::End)   hasEnd = true;
-	}
-
-	if (!hasStart)
-	{
-		CreateChildState("Entry", 50.0f, 200.0f);
-		children.back().type = ChildStateType::Start;
-	}
-
-	if (!hasEnd)
-	{
-		CreateChildState("Exit", 400.0f, 200.0f);
-		children.back().type = ChildStateType::End;
-	}
-}
-
-
-// ƒRƒ“ƒXƒgƒ‰ƒNƒ^
-AnimatorGraphData::AnimatorGraphData()
-{
-	// idCounter‚ÌÀ‘Ì‚ğAparentGraph‚ÌˆÄ“à”Â‚É”zü‚·‚é
-	parentGraph.idCounter = &idCounter;
-	// “¯‚¶idCounter‚ğAtransitionGraph‘¤‚É‚à”z•z
-	transitionGraph.idCounter = &idCounter;
-
-	// ”zü‚ªI‚í‚Á‚Ä‚©‚çAEntry‚Ì•ÛØ‚ğs‚¤
-	parentGraph.EnsureEntryExists();
-}
-
-
-// ƒOƒ‰ƒt“à—e‚ğJson‚É•ÏŠ·‚·‚é
-nlohmann::ordered_json AnimatorGraphData::ToJson() const
-{
-	nlohmann::ordered_json j;
-	j["states"] = StatesToJson();
-	j["stateLinks"] = StateLinksToJson();
-	j["transitionLinks"] = TransitionLinksToJson();
-	return j;
-}
-// Json‚©‚ç’†g‚ğ•ÏŠ·‚·‚é
-void AnimatorGraphData::FromJson(const nlohmann::json& j)
-{
-	parentGraph.states.clear();
-	parentGraph.stateLinks.clear();
-	transitionGraph.links.clear();
-
-	if (j.contains("states")) StatesFromJson(j["states"]);
-	if (j.contains("stateLinks")) StateLinksFromJson(j["stateLinks"]);
-	if (j.contains("transitionLinks")) TransitionLinksFromJson(j["transitionLinks"]);
-
-	// “Ç‚İ‚ñ‚¾Œ‹‰ÊEntry‚ª–³‚©‚Á‚½ê‡‚Ì•ÛŒ¯
-	parentGraph.EnsureEntryExists();
-	//SyncTransitionLinks();
-
-}
-
-// ParentState‚ğíœ‚·‚é
-void AnimatorGraphData::DeleteParentState(int stateId)
-{
-	// eŠK‘w‚ÌState‚ğíœ‚·‚é
-	parentGraph.DeleteParentState(stateId);
-
-	// ‘JˆÚ—pƒOƒ‰ƒt‚ÌLink‚àíœ‚·‚é
-	transitionGraph.links.erase(
-		std::remove_if(transitionGraph.links.begin(), transitionGraph.links.end(),
-			[stateId](const TransitionLink& l)
-			{
-				return l.fromId == stateId || l.toId == stateId;
-			}),
-		transitionGraph.links.end()
-	);
-}
-
-void AnimatorGraphData::SyncTransitionLinks()
-{
-	for (const auto& link : parentGraph.stateLinks)
-	{
-		bool exists = false;
-		for (const auto& tLink : transitionGraph.links)
-		{
-			if (tLink.fromId == link.fromId && tLink.toId == link.toId)
-			{
-				exists = true;
-				break;
-			}
-		}
-
-		if (!exists)
-		{
-			transitionGraph.CreateLink(link.fromId, link.toId);
-		}
-	}
-}
-
-// States‚ğ•Û‘¶“à—e‚Ö•ÏŠ·
-nlohmann::ordered_json AnimatorGraphData::StatesToJson() const
-{
-	nlohmann::ordered_json jStates = nlohmann::json::array();
-
-	for (const auto& state : parentGraph.states)
-	{
-		nlohmann::ordered_json js;
-		js["id"] = state.id;
-		js["name"] = state.name;
-		js["posX"] = state.posX;
-		js["posY"] = state.posY;
-		js["type"] = ToString(state.type);
-		js["color"] = { state.color[0], state.color[1], state.color[2] };
-
-		js["children"] = nlohmann::json::array();
-		for (const auto& node : state.childGraph.children)
-		{
-			nlohmann::ordered_json jn;
-			jn["id"] = node.id;
-			jn["name"] = node.name;
-			jn["posX"] = node.posX;
-			jn["posY"] = node.posY;
-			jn["type"] = ToString(node.type);
-			jn["clipName"] = node.clipName;
-			jn["loop"] = node.loop;
-			jn["useRootMotion"] = node.useRootMotion;
-			js["children"].push_back(jn);
-		}
-
-		js["childLinks"] = nlohmann::json::array();
-		for (const auto& link : state.childGraph.childLinks)
-		{
-			js["childLinks"].push_back(AnimLinkToJson(link));
-		}
-
-		jStates.push_back(js);
-	}
-
-	return jStates;
-}
-// States‚ğ•Û‘¶“à—e‚©‚ç•œŒ³‚·‚é
-void AnimatorGraphData::StatesFromJson(const nlohmann::json& j)
-{
-	for (const auto& js : j)
-	{
-		ParentState state;
-		state.id = js.value("id", -1);
-		state.name = js.value("name", "");
-		state.posX = js.value("posX", 0.0f);
-		state.posY = js.value("posY", 0.0f);
-		state.type = ToParentStateType(js.value("type", "State"));
-
-		if (js.contains("color") && js["color"].is_array() && js["color"].size() == 3)
-		{
-			state.color[0] = js["color"][0].get<float>();
-			state.color[1] = js["color"][1].get<float>();
-			state.color[2] = js["color"][2].get<float>();
-		}
-
-		// qŠK‘wƒOƒ‰ƒt‚ÉˆÄ“à”Â‚ğ”zü‚µ‚Ä‚©‚çAJSON‚Ì“à—e‚ğ“Ç‚İ‚Ş
-		state.childGraph.idCounter = &idCounter;
-		// state.childGraph ‚ÌƒRƒ“ƒXƒgƒ‰ƒNƒ^‚ª©“®¶¬‚µ‚½Start/End‚ğA
-		// JSON“Ç‚İ‚İ‘O‚Éˆê’Uæ‚èœ‚¢‚Ä‚¨‚­(“ñd¶¬–h~)
-		state.childGraph.children.clear();
-		state.childGraph.childLinks.clear();
-
-		if (js.contains("children"))
-		{
-			for (const auto& jn : js["children"])
-			{
-				ChildState node;
-				node.id = jn.value("id", -1);
-				node.name = jn.value("name", "");
-				node.posX = jn.value("posX", 0.0f);
-				node.posY = jn.value("posY", 0.0f);
-				node.type = ToChildStateType(jn.value("type", "Normal"));
-				node.clipName = jn.value("clipName", "");
-				node.loop = jn.value("loop", true);
-				node.useRootMotion = jn.value("useRootMotion", false);
-				state.childGraph.children.push_back(node);
-
-				SyncIdCounter(node.id);
-			}
-		}
-
-		if (js.contains("childLinks"))
-		{
-			for (const auto& jl : js["childLinks"])
-			{
-				AnimLink link;
-				AnimLinkFromJson(link, jl);
-				state.childGraph.childLinks.push_back(link);
-			}
-		}
-
-		// ŒÃ‚¢•Û‘¶ƒf[ƒ^‚ÉAqŠK‘w‚ÌStart/End‚ª–³‚©‚Á‚½ê‡‚Ì•ÛŒ¯
-		state.childGraph.EnsureStartAndEndExist();
-
-		SyncIdCounter(state.id);
-
-		parentGraph.states.push_back(state);
-	}
-}
-
-// StateLinks‚ğ•Û‘¶“à—e‚Ö•ÏŠ·
-nlohmann::ordered_json AnimatorGraphData::StateLinksToJson() const
-{
-	nlohmann::ordered_json jLinks = nlohmann::json::array();
-
-	for (const auto& link : parentGraph.stateLinks)
-	{
-		jLinks.push_back(AnimLinkToJson(link));
-	}
-
-	return jLinks;
-}
-// StateLinks‚ğ•Û‘¶“à—e‚©‚ç•œŒ³‚·‚é
-void AnimatorGraphData::StateLinksFromJson(const nlohmann::json& j)
-{
-	for (const auto& jl : j)
-	{
-		AnimLink link;
-		AnimLinkFromJson(link, jl);
-		parentGraph.stateLinks.push_back(link);
-	}
-}
-
-// TransitionLinks‚Ì•Û‘¶“à—e‚Ö•ÏŠ·
-nlohmann::ordered_json AnimatorGraphData::TransitionLinksToJson() const
-{
-	nlohmann::ordered_json jLinks = nlohmann::json::array();
-
-	for (const auto& link : transitionGraph.links)
-	{
-		nlohmann::ordered_json jl;
-		jl["id"] = link.id;
-		jl["fromId"] = link.fromId;
-		jl["toId"] = link.toId;
-
-		nlohmann::ordered_json jc;
-		jc["returnNode"]["id"] = link.condition.returnNode.id;
-		jc["returnNode"]["posX"] = link.condition.returnNode.posX;
-		jc["returnNode"]["posY"] = link.condition.returnNode.posY;
-
-		jc["variableNodes"] = nlohmann::json::array();
-		for (const auto& v : link.condition.variableNodes)
-		{
-			nlohmann::ordered_json jv;
-			jv["id"] = v.id;
-			jv["posX"] = v.posX;
-			jv["posY"] = v.posY;
-			jv["name"] = v.name;
-			jv["type"] = ToString(v.type);
-			jv["intValue"] = v.intValue;
-			jv["floatValue"] = v.floatValue;
-			jv["boolValue"] = v.boolValue;
-			jc["variableNodes"].push_back(jv);
-		}
-
-		jc["operatorNodes"] = nlohmann::json::array();
-		for (const auto& o : link.condition.operatorNodes)
-		{
-			nlohmann::ordered_json jo;
-			jo["id"] = o.id;
-			jo["posX"] = o.posX;
-			jo["posY"] = o.posY;
-			jo["op"] = ToString(o.op);
-			jc["operatorNodes"].push_back(jo);
-		}
-
-		jc["logicNodes"] = nlohmann::json::array();
-		for (const auto& l : link.condition.logicNodes)
-		{
-			nlohmann::ordered_json jln;
-			jln["id"] = l.id;
-			jln["posX"] = l.posX;
-			jln["posY"] = l.posY;
-			jln["op"] = ToString(l.op);
-			jc["logicNodes"].push_back(jln);
-		}
-
-		jc["notNodes"] = nlohmann::json::array();
-		for (const auto& n : link.condition.notNodes)
-		{
-			nlohmann::ordered_json jn;
-			jn["id"] = n.id;
-			jn["posX"] = n.posX;
-			jn["posY"] = n.posY;
-			jc["notNodes"].push_back(jn);
-		}
-
-		jc["getterNodes"] = nlohmann::json::array();
-		for (const auto& g : link.condition.getterNodes)
-		{
-			nlohmann::ordered_json jg;
-			jg["id"] = g.id;
-			jg["posX"] = g.posX;
-			jg["posY"] = g.posY;
-			jg["componentName"] = g.componentName;
-			jg["fieldName"] = g.fieldName;
-			jg["type"] = ToString(g.type);
-			jg["selectedComponent"] = ToString(g.selectedComponent);
-			jc["getterNodes"].push_back(jg);
-		}
-
-		jc["links"] = nlohmann::json::array();
-		for (const auto& cl : link.condition.links)
-		{
-			nlohmann::ordered_json jcl;
-			jcl["id"] = cl.id;
-			jcl["fromId"] = cl.fromId;
-			jcl["toId"] = cl.toId;
-			jcl["toPinB"] = cl.toPinB;
-			jc["links"].push_back(jcl);
-		}
-
-		jl["condition"] = jc;
-		jLinks.push_back(jl);
-	}
-
-	return jLinks;
-}
-// TransitionLinks‚Ì•Û‘¶“à—e‚©‚ç•œŒ³
-void AnimatorGraphData::TransitionLinksFromJson(const nlohmann::json& j)
-{
-	for (const auto& jl : j)
-	{
-		TransitionLink link;
-		link.id = jl.value("id", -1);
-		link.fromId = jl.value("fromId", -1);
-		link.toId = jl.value("toId", -1);
-
-		if (jl.contains("condition"))
-		{
-			const auto& jc = jl["condition"];
-
-			if (jc.contains("returnNode"))
-			{
-				link.condition.returnNode.id = jc["returnNode"].value("id", -1);
-				link.condition.returnNode.posX = jc["returnNode"].value("posX", 500.0f);
-				link.condition.returnNode.posY = jc["returnNode"].value("posY", 200.0f);
-			}
-
-			if (jc.contains("variableNodes"))
-			{
-				for (const auto& jv : jc["variableNodes"])
-				{
-					ConditionVariableNode v;
-					v.id = jv.value("id", -1);
-					v.posX = jv.value("posX", 0.0f);
-					v.posY = jv.value("posY", 0.0f);
-					v.name = jv.value("name", "");
-					v.type = ToValueType(jv.value("type", "Float"));
-					v.intValue = jv.value("intValue", 0);
-					v.floatValue = jv.value("floatValue", 0.0f);
-					v.boolValue = jv.value("boolValue", false);
-					link.condition.variableNodes.push_back(v);
-
-					SyncIdCounter(v.id);
-				}
-			}
-
-			if (jc.contains("operatorNodes"))
-			{
-				for (const auto& jo : jc["operatorNodes"])
-				{
-					ConditionOperatorNode o;
-					o.id = jo.value("id", -1);
-					o.posX = jo.value("posX", 0.0f);
-					o.posY = jo.value("posY", 0.0f);
-					o.op = ToCompareOp(jo.value("op", "Greater"));
-					link.condition.operatorNodes.push_back(o);
-
-					SyncIdCounter(o.id);
-				}
-			}
-
-			if (jc.contains("logicNodes"))
-			{
-				for (const auto& jln : jc["logicNodes"])
-				{
-					ConditionLogicNode l;
-					l.id = jln.value("id", -1);
-					l.posX = jln.value("posX", 0.0f);
-					l.posY = jln.value("posY", 0.0f);
-					l.op = ToLogicOp(jln.value("op", "And"));
-					link.condition.logicNodes.push_back(l);
-
-					SyncIdCounter(l.id);
-				}
-			}
-
-			if (jc.contains("notNodes"))
-			{
-				for (const auto& jn : jc["notNodes"])
-				{
-					ConditionNotNode n;
-					n.id = jn.value("id", -1);
-					n.posX = jn.value("posX", 0.0f);
-					n.posY = jn.value("posY", 0.0f);
-					link.condition.notNodes.push_back(n);
-
-					SyncIdCounter(n.id);
-				}
-			}
-
-			if (jc.contains("getterNodes"))
-			{
-				for (const auto& jg : jc["getterNodes"])
-				{
-					ConditionGetterNode g;
-					g.id = jg.value("id", -1);
-					g.posX = jg.value("posX", 0.0f);
-					g.posY = jg.value("posY", 0.0f);
-					g.componentName = jg.value("componentName", "");
-					g.fieldName = jg.value("fieldName", "");
-					g.type = ToValueType(jg.value("type", "Float"));
-					g.selectedComponent = ToFloatComponent(jg.value("selectedComponent", "None"));
-					link.condition.getterNodes.push_back(g);
-
-					SyncIdCounter(g.id);
-				}
-			}
-
-			if (jc.contains("links"))
-			{
-				for (const auto& jcl : jc["links"])
-				{
-					ConditionLink cl;
-					cl.id = jcl.value("id", -1);
-					cl.fromId = jcl.value("fromId", -1);
-					cl.toId = jcl.value("toId", -1);
-					cl.toPinB = jcl.value("toPinB", false);
-					link.condition.links.push_back(cl);
-
-					SyncIdCounter(cl.id);
-				}
-			}
-		}
-
-		if (link.condition.returnNode.id < 0)
-		{
-			link.condition.returnNode.id = link.condition.GenerateId();
-			link.condition.returnNode.posX = 500.0f;
-			link.condition.returnNode.posY = 200.0f;
-		}
-		SyncIdCounter(link.condition.returnNode.id);
-
-		// “Ç‚İ‚ñ‚¾ğŒƒOƒ‰ƒt‚ÌID‚Ì‘±‚«‚©‚çÌ”Ô‚·‚é
-		link.condition.RecalculateNextId();
-
-		SyncIdCounter(link.id);
-
-		transitionGraph.links.push_back(link);
-	}
-}
-
-
-// AnimLink1–{•ª‚ğJson‚É•ÏŠ·‚·‚é
-nlohmann::ordered_json AnimatorGraphData::AnimLinkToJson(const AnimLink& link) const
-{
-	nlohmann::ordered_json jl;
-	jl["id"] = link.id;
-	jl["fromId"] = link.fromId;
-	jl["toId"] = link.toId;
-	jl["blend"] = link.blend;
-	jl["blendDuration"] = link.blendDuration;
-
-	nlohmann::ordered_json jc;
-
-	jc["returnNode"]["id"] = link.condition.returnNode.id;
-	jc["returnNode"]["posX"] = link.condition.returnNode.posX;
-	jc["returnNode"]["posY"] = link.condition.returnNode.posY;
-
-	jc["variableNodes"] = nlohmann::json::array();
-	for (const auto& v : link.condition.variableNodes)
-	{
-		nlohmann::ordered_json jv;
-		jv["id"] = v.id;
-		jv["posX"] = v.posX;
-		jv["posY"] = v.posY;
-		jv["name"] = v.name;
-		jv["type"] = ToString(v.type);
-		jv["intValue"] = v.intValue;
-		jv["floatValue"] = v.floatValue;
-		jv["boolValue"] = v.boolValue;
-		jc["variableNodes"].push_back(jv);
-	}
-
-	jc["operatorNodes"] = nlohmann::json::array();
-	for (const auto& o : link.condition.operatorNodes)
-	{
-		nlohmann::ordered_json jo;
-		jo["id"] = o.id;
-		jo["posX"] = o.posX;
-		jo["posY"] = o.posY;
-		jo["op"] = ToString(o.op);
-		jc["operatorNodes"].push_back(jo);
-	}
-
-	jc["logicNodes"] = nlohmann::json::array();
-	for (const auto& l : link.condition.logicNodes)
-	{
-		nlohmann::ordered_json jln;
-		jln["id"] = l.id;
-		jln["posX"] = l.posX;
-		jln["posY"] = l.posY;
-		jln["op"] = ToString(l.op);
-		jc["logicNodes"].push_back(jln);
-	}
-
-	jc["notNodes"] = nlohmann::json::array();
-	for (const auto& n : link.condition.notNodes)
-	{
-		nlohmann::ordered_json jn;
-		jn["id"] = n.id;
-		jn["posX"] = n.posX;
-		jn["posY"] = n.posY;
-		jc["notNodes"].push_back(jn);
-	}
-
-	jc["getterNodes"] = nlohmann::json::array();
-	for (const auto& g : link.condition.getterNodes)
-	{
-		nlohmann::ordered_json jg;
-		jg["id"] = g.id;
-		jg["posX"] = g.posX;
-		jg["posY"] = g.posY;
-		jg["componentName"] = g.componentName;
-		jg["fieldName"] = g.fieldName;
-		jg["type"] = ToString(g.type);
-		jg["selectedComponent"] = ToString(g.selectedComponent);
-		jc["getterNodes"].push_back(jg);
-	}
-
-	jc["links"] = nlohmann::json::array();
-	for (const auto& cl : link.condition.links)
-	{
-		nlohmann::ordered_json jcl;
-		jcl["id"] = cl.id;
-		jcl["fromId"] = cl.fromId;
-		jcl["toId"] = cl.toId;
-		jcl["toPinB"] = cl.toPinB;
-		jc["links"].push_back(jcl);
-	}
-
-	jl["condition"] = jc;
-
-	return jl;
-}
-// AnimLink1–{•ª‚ğJson‚©‚ç•œŒ³‚·‚é
-void AnimatorGraphData::AnimLinkFromJson(AnimLink& link, const nlohmann::json& jl)
-{
-	link.id = jl.value("id", -1);
-	link.fromId = jl.value("fromId", -1);
-	link.toId = jl.value("toId", -1);
-	link.blend = jl.value("blend", true);
-	link.blendDuration = jl.value("blendDuration", 0.2f);
-
-
-	if (jl.contains("condition"))
-	{
-		const auto& jc = jl["condition"];
-
-		if (jc.contains("returnNode"))
-		{
-			link.condition.returnNode.id = jc["returnNode"].value("id", -1);
-			link.condition.returnNode.posX = jc["returnNode"].value("posX", 500.0f);
-			link.condition.returnNode.posY = jc["returnNode"].value("posY", 200.0f);
-		}
-
-		if (jc.contains("variableNodes"))
-		{
-			for (const auto& jv : jc["variableNodes"])
-			{
-				ConditionVariableNode v;
-				v.id = jv.value("id", -1);
-				v.posX = jv.value("posX", 0.0f);
-				v.posY = jv.value("posY", 0.0f);
-				v.name = jv.value("name", "");
-				v.type = ToValueType(jv.value("type", "Float"));
-				v.intValue = jv.value("intValue", 0);
-				v.floatValue = jv.value("floatValue", 0.0f);
-				v.boolValue = jv.value("boolValue", false);
-				link.condition.variableNodes.push_back(v);
-
-				SyncIdCounter(v.id);
-			}
-		}
-
-		if (jc.contains("operatorNodes"))
-		{
-			for (const auto& jo : jc["operatorNodes"])
-			{
-				ConditionOperatorNode o;
-				o.id = jo.value("id", -1);
-				o.posX = jo.value("posX", 0.0f);
-				o.posY = jo.value("posY", 0.0f);
-				o.op = ToCompareOp(jo.value("op", "Greater"));
-				link.condition.operatorNodes.push_back(o);
-
-				SyncIdCounter(o.id);
-			}
-		}
-
-		if (jc.contains("logicNodes"))
-		{
-			for (const auto& jln : jc["logicNodes"])
-			{
-				ConditionLogicNode l;
-				l.id = jln.value("id", -1);
-				l.posX = jln.value("posX", 0.0f);
-				l.posY = jln.value("posY", 0.0f);
-				l.op = ToLogicOp(jln.value("op", "And"));
-				link.condition.logicNodes.push_back(l);
-
-				SyncIdCounter(l.id);
-			}
-		}
-
-		if (jc.contains("notNodes"))
-		{
-			for (const auto& jn : jc["notNodes"])
-			{
-				ConditionNotNode n;
-				n.id = jn.value("id", -1);
-				n.posX = jn.value("posX", 0.0f);
-				n.posY = jn.value("posY", 0.0f);
-				link.condition.notNodes.push_back(n);
-
-				SyncIdCounter(n.id);
-			}
-		}
-
-		if (jc.contains("getterNodes")) 
-		{
-			for (const auto& jg : jc["getterNodes"])
-			{
-				ConditionGetterNode g;
-				g.id = jg.value("id", -1);
-				g.posX = jg.value("posX", 0.0f);
-				g.posY = jg.value("posY", 0.0f);
-				g.componentName = jg.value("componentName", "");
-				g.fieldName = jg.value("fieldName", "");
-				g.type = ToValueType(jg.value("type", "Float"));
-				g.selectedComponent = ToFloatComponent(jg.value("selectedComponent", "None"));
-				link.condition.getterNodes.push_back(g);
-
-				SyncIdCounter(g.id);
-			}
-		}
-
-		if (jc.contains("links"))
-		{
-			for (const auto& jcl : jc["links"])
-			{
-				ConditionLink cl;
-				cl.id = jcl.value("id", -1);
-				cl.fromId = jcl.value("fromId", -1);
-				cl.toId = jcl.value("toId", -1);
-				cl.toPinB = jcl.value("toPinB", false);
-				link.condition.links.push_back(cl);
-
-				SyncIdCounter(cl.id);
-			}
-		}
-	}
-
-	// ŒÃ‚¢•Û‘¶ƒf[ƒ^A‚ ‚é‚¢‚Í"condition"ƒL[©‘Ì‚ª–³‚©‚Á‚½ê‡‚Ì•ÛŒ¯
-	if (link.condition.returnNode.id < 0)
-	{
-		link.condition.returnNode.id = link.condition.GenerateId();
-		link.condition.returnNode.posX = 500.0f;
-		link.condition.returnNode.posY = 200.0f;
-	}
-	SyncIdCounter(link.condition.returnNode.id);
-
-	// “Ç‚İ‚ñ‚¾ğŒƒOƒ‰ƒt‚ÌID‚Ì‘±‚«‚©‚çÌ”Ô‚·‚é
-	link.condition.RecalculateNextId();
-
-	SyncIdCounter(link.id);
-}
-
-// “Ç‚İ‚ñ‚¾ID‚ÉƒJƒEƒ“ƒ^‚ğ’Ç]‚³‚¹‚é
-void AnimatorGraphData::SyncIdCounter(int id)
-{
-	if (id >= idCounter) idCounter = id + 1;
-}
-
-
-// ‘JˆÚ—pLinkì¬
-int TransitionGraphData::CreateLink(int fromId, int toId)
-{
-	TransitionLink link;
-	link.id = GenerateId();
-	link.fromId = fromId;
-	link.toId = toId;
-
-	links.push_back(link);
-	return link.id;
-}
-// ‘JˆÚ—pLinkíœ
-void TransitionGraphData::DeleteLink(int linkId)
-{
-	links.erase(
-		std::remove_if(links.begin(), links.end(),
-			[linkId](const TransitionLink& l) { return l.id == linkId; }),
-		links.end()
-	);
 } 
  
 ===== ConditionGraphData.cpp ===== 
@@ -4499,6 +3345,8 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Data\StateMachineD
 #include "StateMachineData.h"
 #include <algorithm>
 #include <unordered_set>
+#include <utility>
+
 #include "Engine/Core/Log.h"
 
 namespace
@@ -4607,6 +3455,230 @@ const StateTransition* StateMachineData::FindTransition(int transitionId) const
 	}
 	return nullptr;
 }
+
+
+
+// ‹ó‚ÌƒOƒ‰ƒt‚É‚·‚é
+void StateMachineData::Clear()
+{
+	entry = StateMachineEntry{};
+	entry.editorPos = { 50.0f, 200.0f };
+	states.clear();
+	nextId = 1;
+}
+
+
+// State
+int StateMachineData::AddState(const std::string& baseName, const EditorPosition& pos)
+{
+	return 0;
+}
+bool StateMachineData::RenameState(int stateId, const std::string& newName)
+{
+	StateNode* s = FindState(stateId);
+	if (!s || newName.empty()) return false;
+	if (s->name == newName) return true;
+
+	// ‘¼‚ÌState‚Æd•¡‚·‚é–¼‘O‚Í•t‚¯‚ç‚ê‚È‚¢
+	if (FindStateByName(newName)) return false;
+
+	s->name = newName;
+	return true;
+}
+void StateMachineData::RemoveState(int stateId)
+{
+	// Á‚¦‚é‘JˆÚF‚±‚ÌState‚©‚ço‚é‘JˆÚ‚ÆA‚±‚ÌState‚É“ü‚Á‚Ä‚­‚é‘JˆÚ
+	std::vector<int> removedTransitions;
+	for (const auto& t : entry.transitions)
+	{
+		if (t.toStateId == stateId) removedTransitions.push_back(t.id);
+	}
+	for (const auto& s : states)
+	{
+		for (const auto& t : s.transitions)
+		{
+			if (s.id == stateId || t.toStateId == stateId) removedTransitions.push_back(t.id);
+		}
+	}
+
+	// ‘JˆÚ‚Ìíœ(s‚«æ‚ÌƒGƒ“ƒgƒŠ[‚àˆê‚ÉÁ‚¦‚é)
+	for (int transitionId : removedTransitions)
+	{
+		RemoveTransition(transitionId);
+	}
+
+	// State–{‘Ì‚Ìíœ
+	states.erase(
+		std::remove_if(states.begin(), states.end(),
+			[stateId](const StateNode& s) { return s.id == stateId; }),
+		states.end());
+}
+
+// ‘JˆÚ
+int StateMachineData::AddTransition(int fromStateId, int toStateId)
+{
+	if (!FindState(toStateId)) return -1;
+
+	std::vector<StateTransition>* owner = nullptr;
+	if (fromStateId == kEntryId)
+	{
+		owner = &entry.transitions;
+	}
+	else if (StateNode* from = FindState(fromStateId))
+	{
+		owner = &from->transitions;
+	}
+	if (!owner) return -1;
+
+	StateTransition t;
+	t.id = GenerateId();
+	t.toStateId = toStateId;
+	owner->push_back(t); // ÅŒã‚É’Ç‰Á(—Dæ“x‚Íˆê”Ô‰º)
+
+	// s‚«æ‚ÌState‚É‚ÍA‚±‚Ì‘JˆÚ‚ÌƒGƒ“ƒgƒŠ[‚ª©“®‚Å‘¶İ‚·‚é
+	return t.id;
+}
+void StateMachineData::RemoveTransition(int transitionId)
+{
+	std::vector<StateTransition>* owner = FindTransitionOwner(transitionId);
+	if (!owner) return;
+
+	// s‚«æ‚ÌState‚©‚çA‚±‚Ì‘JˆÚ‚ÌƒGƒ“ƒgƒŠ[‚ÉŠÖ‚·‚é‚à‚Ì‚ğÁ‚·
+	int toStateId = -1;
+	for (const auto& t : *owner)
+	{
+		if (t.id == transitionId) toStateId = t.toStateId;
+	}
+	if (StateNode* to = FindState(toStateId))
+	{
+		auto& links = to->child.entryLinks;
+		links.erase(
+			std::remove_if(links.begin(), links.end(),
+				[transitionId](const EntryLink& l) { return l.entryTransitionId == transitionId; }),
+			links.end());
+		to->child.entryEditorPos.erase(transitionId);
+	}
+
+	// ‘JˆÚ–{‘Ì‚Ìíœ
+	owner->erase(
+		std::remove_if(owner->begin(), owner->end(),
+			[transitionId](const StateTransition& t) { return t.id == transitionId; }),
+		owner->end());
+}
+bool StateMachineData::MoveTransition(int transitionId, int offset)
+{
+	std::vector<StateTransition>* owner = FindTransitionOwner(transitionId);
+	if (!owner) return false;
+
+	int index = -1;
+	for (int i = 0; i < static_cast<int>(owner->size()); ++i)
+	{
+		if ((*owner)[i].id == transitionId) index = i;
+	}
+
+	int newIndex = index + offset;
+	if (index < 0 || newIndex < 0 || newIndex >= static_cast<int>(owner->size())) return false;
+
+	std::swap((*owner)[index], (*owner)[newIndex]);
+	return true;
+}
+
+// qŠK‘wFƒNƒŠƒbƒv
+int StateMachineData::AddClip(int stateId, const std::string& name, const EditorPosition& pos)
+{
+	StateNode* s = FindState(stateId);
+	if (!s) return -1;
+
+	ClipNode c;
+	c.id = GenerateId();
+	c.name = name;
+	c.editorPos = pos;
+	s->child.clips.push_back(c);
+	return c.id;
+}
+void StateMachineData::RemoveClip(int stateId, int clipId)
+{
+	StateNode* s = FindState(stateId);
+	if (!s) return;
+
+	// ‚±‚ÌƒNƒŠƒbƒv‚É‚Â‚È‚ª‚Á‚Ä‚¢‚½‚à‚Ì‚ğÁ‚·
+	auto& entryLinks = s->child.entryLinks;
+	entryLinks.erase(
+		std::remove_if(entryLinks.begin(), entryLinks.end(),
+			[clipId](const EntryLink& l) { return l.toClipId == clipId; }),
+		entryLinks.end());
+
+	auto& clipLinks = s->child.clipLinks;
+	clipLinks.erase(
+		std::remove_if(clipLinks.begin(), clipLinks.end(),
+			[clipId](const ClipLink& l) { return l.fromClipId == clipId || l.toClipId == clipId; }),
+		clipLinks.end());
+
+	// ƒNƒŠƒbƒv–{‘Ì‚Ìíœ
+	auto& clips = s->child.clips;
+	clips.erase(
+		std::remove_if(clips.begin(), clips.end(),
+			[clipId](const ClipNode& c) { return c.id == clipId; }),
+		clips.end());
+}
+
+// qŠK‘wF(ƒGƒ“ƒgƒŠ[ ¨ ƒNƒŠƒbƒv)
+int StateMachineData::AddEntryLink(int stateId, int transitionId, int toClipId)
+{
+	StateNode* s = FindState(stateId);
+	if (!s || !s->child.FindClip(toClipId)) return -1;
+
+	// ‚±‚ÌState‚É“ü‚Á‚Ä‚­‚é‘JˆÚ‚Å‚È‚¯‚ê‚ÎAƒGƒ“ƒgƒŠ[‚Í‘¶İ‚µ‚È‚¢
+	const StateTransition* t = FindTransition(transitionId);
+	if (!t || t->toStateId != stateId) return -1;
+
+	EntryLink l;
+	l.id = GenerateId();
+	l.entryTransitionId = transitionId;
+	l.toClipId = toClipId;
+	s->child.entryLinks.push_back(l);
+	return l.id;
+}
+void StateMachineData::RemoveEntryLink(int stateId, int linkId)
+{
+	StateNode* s = FindState(stateId);
+	if (!s) return;
+
+	auto& links = s->child.entryLinks;
+	links.erase(
+		std::remove_if(links.begin(), links.end(),
+			[linkId](const EntryLink& l) { return l.id == linkId; }),
+		links.end());
+}
+
+// qŠK‘wF(ƒNƒŠƒbƒv ¨ ƒNƒŠƒbƒv)
+int StateMachineData::AddClipLink(int stateId, int fromClipId, int toClipId)
+{
+	StateNode* s = FindState(stateId);
+	if (!s) return -1;
+	if (fromClipId == toClipId) return -1; // ©•ª©g‚Ö‚Ì‚Â‚È‚ª‚è‚Íì‚ç‚È‚¢
+	if (!s->child.FindClip(fromClipId) || !s->child.FindClip(toClipId)) return -1;
+
+	ClipLink l;
+	l.id = GenerateId();
+	l.fromClipId = fromClipId;
+	l.toClipId = toClipId;
+	s->child.clipLinks.push_back(l);
+	return l.id;
+}
+void StateMachineData::RemoveClipLink(int stateId, int linkId)
+{
+	StateNode* s = FindState(stateId);
+	if (!s) return;
+
+	auto& links = s->child.clipLinks;
+	links.erase(
+		std::remove_if(links.begin(), links.end(),
+			[linkId](const ClipLink& l) { return l.id == linkId; }),
+		links.end());
+}
+
+
 
 // ®‡«ƒ`ƒFƒbƒN
 bool StateMachineData::Validate(const std::string& sourceName) const
@@ -4826,7 +3898,7 @@ nlohmann::ordered_json StateMachineData::ToJson() const
 			jc["clipLinks"].push_back(jl);
 		}
 
-		// ƒGƒ“ƒgƒŠ[‚ÌƒGƒfƒBƒ^ã‚ÌˆÊ’u
+		// ƒGƒ“ƒgƒŠ[‚ÌƒGƒfƒBƒ^ã‚ÌˆÊ’u (ƒL[‚ÍA“ü‚Á‚Ä‚­‚é‘JˆÚ‚ÌID)
 		nlohmann::ordered_json jentries = nlohmann::json::array();
 		for (const auto& [transitionId, pos] : s.child.entryEditorPos)
 		{
@@ -4970,7 +4042,41 @@ bool StateMachineData::FromJson(const nlohmann::json& j, const std::string& sour
 	nextId = (std::max)(j.value("nextId", 1), maxId + 1);
 
 	return Validate(sourceName);
-} 
+}
+
+// •ÒW—p‚ÌŒŸõ
+StateNode* StateMachineData::FindState(int stateId)
+{
+	return const_cast<StateNode*>(std::as_const(*this).FindState(stateId));
+}
+StateTransition* StateMachineData::FindTransition(int transitionId)
+{
+	return const_cast<StateTransition*>(std::as_const(*this).FindTransition(transitionId));
+}
+
+// ‘¼‚ÌState‚Æd•¡‚µ‚È‚¢–¼‘O‚ğì‚é
+std::string StateMachineData::MakeUniqueStateName(const std::string& baseName) const
+{
+	return std::string();
+}
+
+// ‘JˆÚ‚ğ‚Á‚Ä‚¢‚éƒŠƒXƒg(EntryA‚Ü‚½‚Í‚Ç‚ê‚©‚ÌState)‚ğ’T‚·
+std::vector<StateTransition>* StateMachineData::FindTransitionOwner(int transitionId)
+{
+	for (const auto& t : entry.transitions)
+	{
+		if (t.id == transitionId) return &entry.transitions;
+	}
+	for (auto& s : states)
+	{
+		for (const auto& t : s.transitions)
+		{
+			if (t.id == transitionId) return &s.transitions;
+		}
+	}
+	return nullptr;
+}
+ 
  
 ===== EngineComponents.h ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\ECS\EngineComponents.h 
@@ -5527,9 +4633,6 @@ struct AnimatorComponent
         REFLECT_FIELD(bool, useRootMotionY,            (false), ("Use Root Motion Y")) // Yè»¸é©å¿œ
         REFLECT_FIELD(bool, useRootMotion,             (false), ("Use Root Motion"))   // ãƒ«ãƒ¼ãƒˆãƒ¢ãƒ¼ã‚·ãƒ§ãƒ³ä½¿ç”¨
         REFLECT_FIELD(std::string, rootMotionNodeName, (""),    ("Root Motion Node"))  // ãƒ«ãƒ¼ãƒˆãƒãƒ¼ãƒ‰å
-
-        // ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã‚°ãƒ©ãƒ•
-        REFLECT_FIELD(std::string, animatorGraphPath, (""), ("Animator Graph", 0.0f, 0.0f, 0.1f, "ANIMGRAPH_PATH")) // .animatorãƒ•ã‚¡ã‚¤ãƒ«ã®ãƒ‘ã‚¹
       
     REFLECT_END()
 
@@ -5967,17 +5070,6 @@ struct SkinnedMeshComponent
     std::vector<DirectX::XMFLOAT3> localScales;
 }; 
  
-===== StateComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\ECS\Components\StateComponent.h 
-#pragma once
-
-// ‘JˆÚƒRƒ“ƒ|[ƒlƒ“ƒg
-struct StateComponent
-{
-	// Œ»İ‚ÌStateID
-	int currentStateId = -1;
-}; 
- 
 ===== StateMachineComponent.h ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\ECS\Components\StateMachineComponent.h 
 #pragma once
@@ -6152,60 +5244,11 @@ private:
 		float rangeEnd = -1.0f);
 }; 
  
-===== AnimatorControllerSystem.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\ECS\Systems\AnimatorControllerSystem.h 
-#pragma once
-#include "entt.hpp"
-#include "Engine/Data/AnimatorGraphData.h"
-#include "Engine/ECS/Components/AnimatorComponent.h"
-#include "Engine/Core/JsonFileCache.h"
-#include "Engine/Data/SequencerData.h"
-#include "Engine/ECS/Components/SequencerComponent.h"
-
-#include <unordered_map>
-#include <string>
-
-class AnimatorControllerSystem
-{
-public:
-	void Update(entt::registry& registry);
-
-private:
-	JsonFileCache<AnimatorGraphData> graphCache;
-	JsonFileCache<SequencerData> trimDataCache;
-
-
-	// ‘JˆÚæ‚ÌƒuƒŒƒ“ƒhŠÔ‚ğ•Ô‚·
-	int FindTransition(const std::vector<AnimLink>& links, int fromId, entt::registry& registry, entt::entity entity, float& outBlendDuration);
-
-	// ParentStateGraph‚Ì’†‚©‚çAEntry‚Ìid‚ğ’T‚·
-	static int FindEntryParentState(const ParentStateGraph& parentGraph);
-	// ChildStateGraph‚Ì’†‚©‚çAStart/End‚ğ’T‚·
-	static int FindChildStateByType(const ChildStateGraph& childGraph, ChildStateType type);
-
-	// id‚©‚çÀ‘Ì‚ğ’T‚·
-	static ParentState* FindParentStateById(ParentStateGraph& parentGraph, int id);
-	static ChildState* FindChildStateById(ChildStateGraph& childGraph, int id);
-
-
-	// ParentState‚ÌqŠK‘w‚ÌStart‚©‚çÅ‰‚ÌChildState‚Ü‚Å’H‚Á‚Ä“K—p‚·‚é
-	void EnterParentState(AnimatorComponent& animator, AnimatorGraphData& data, int parentId, entt::registry& registry, entt::entity entity);
-	// Parent‚ÌqŠK‘w‚ÌStart‚©‚çÅ‰‚ÌChildState‚Ü‚Å’H‚Á‚Ä“K—p‚·‚é
-	void EnterChildGraphFromStart(AnimatorComponent& animator, ParentState& parent, entt::registry& registry, entt::entity entity);
-	// ‰‰ñ‚Ì‰Šúó‘Ô‚ğŒˆ‚ß‚é
-	void InitializeState(AnimatorComponent& animator, AnimatorGraphData& data, entt::registry& registry, entt::entity entity);
-	// ChildState‚Ì“à—e‚ğAnimatorComponent‚Ö”½‰f‚·‚é
-	void ApplyChildState(AnimatorComponent& animator, const ChildState& child, float blendDuration, SequencerComponent* sequencer);
-
-	static bool FindTrimmingRange(SequencerData& data, const std::string& clipName, float& outStart, float& outEnd);
-
-}; 
- 
 ===== ConditionGraphEvaluator.h ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\ECS\Systems\ConditionGraphEvaluator.h 
 #pragma once
 #include "entt.hpp"
-#include "Engine/Data/AnimatorGraphData.h"
+#include "Engine/Data/ConditionGraphData.h"
 
 class ConditionGraphEvaluator
 {
@@ -6675,18 +5718,6 @@ private:
 	void UpdateFlags(SequencerComponent& seq, const SequencerClipData* clip, float normalizedTime);
 }; 
  
-===== StateGraphUtils.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\ECS\Systems\StateGraphUtils.h 
-#pragma once
-#include <string>
-#include "Engine/Data/AnimatorGraphData.h"
-
-namespace StateGraphUtils
-{
-	// State–¼‚©‚çid‚ğ’T‚·
-	int FindStateIdByName(const ParentStateGraph& parentGraph, const std::string& name);
-} 
- 
 ===== StateMachineSystem.h ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\ECS\Systems\StateMachineSystem.h 
 #pragma once
@@ -6713,14 +5744,29 @@ struct LoadedStateMachine
 class StateMachineSystem
 {
 public:
-	// State‚Ì‘JˆÚ‚ğŒˆ‚ß‚é
+	// State‚Ì‘JˆÚ‚ğŒˆ‚ß‚é (ƒQ[ƒ€ƒvƒŒƒC‚ÌŠeSystem‚æ‚è‘O‚ÉŒÄ‚Ô)
 	void UpdateState(entt::registry& registry);
 
-	// Ä¶‚·‚éƒNƒŠƒbƒv‚ğŒˆ‚ß‚é
+	// Ä¶‚·‚éƒNƒŠƒbƒv‚ğŒˆ‚ß‚é (ƒQ[ƒ€ƒvƒŒƒC‚ÌŠeSystem‚æ‚è‘O‚ÉŒÄ‚Ô)
 	void UpdateAnimation(entt::registry& registry);
 
+	// g—p‚·‚éState–¼‚ğ\‚·‚é(ƒOƒ‰ƒt‚Ì“Ç‚İ‚İ‚ÉA‘¶İ‚·‚é‚©‚ğŠm‚©‚ß‚é)
+	static void RequireState(const std::string& stateName, const std::string& user);
+
 private:
-	// ƒOƒ‰ƒt‚ğæ“¾‚·‚é
+	
+	// \‚³‚ê‚½State–¼‚ÆA\‚µ‚½‘¤‚Ì–¼‘O
+	struct RequiredState
+	{
+		std::string stateName;
+		std::string user;
+	};
+	static std::vector<RequiredState>& GetRequiredStates();
+
+	// \‚³‚ê‚½State–¼‚ªAƒOƒ‰ƒt‚É‚ ‚é‚©‚ğŠm‚©‚ß‚é(–³‚¯‚ê‚ÎŒx)
+	static void CheckRequiredStates(const StateMachineData& data, const std::string& path);
+
+	// ƒOƒ‰ƒt‚ğæ“¾‚·‚é (“Ç‚İ‚ß‚È‚¢EŒŸØƒGƒ‰[‚Ìê‡‚Ínullptr)
 	const StateMachineData* Load(const std::string& path);
 
 	// ğŒ‚ª¬—§‚µ‚½Å‰‚Ì‘JˆÚ‚ğ•Ô‚·(—Dæ“x‡)
@@ -6740,26 +5786,6 @@ private:
 
 	// g‚¦‚È‚¢‚±‚Æ‚ğLog‚É•ñÏ‚İ‚ÌƒpƒX
 	std::set<std::string> reportedPaths;
-}; 
- 
-===== TransitionControllerSystem.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\ECS\Systems\TransitionControllerSystem.h 
-#pragma once
-#include "entt.hpp"
-#include "Engine/Core/SceneContext.h"
-#include "Engine/Core/JsonFileCache.h"
-#include "Engine/Data/AnimatorGraphData.h"
-
-class TransitionControllerSystem
-{
-public:
-	void Update(entt::registry& registry, float elapsedTime, const SceneContext& context);
-
-private:
-	JsonFileCache<AnimatorGraphData> graphCache;
-
-	// Œ»İState‚©‚ç‘JˆÚ‰Â”\‚ÈLink‚ğ’T‚·
-	int FindTransition(const std::vector<TransitionLink>& links, int fromId, entt::registry& registry, entt::entity entity);
 }; 
  
 ===== TwoBoneIKSolver.h ===== 
@@ -7391,243 +6417,6 @@ DirectX::XMFLOAT3 AnimationSystem::CalcRootMotionDelta(
 	}
 
 	return delta;
-}
- 
- 
-===== AnimatorControllerSystem.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\ECS\Systems\AnimatorControllerSystem.cpp 
-#include "AnimatorControllerSystem.h"
-#include "Engine/ECS/Components/AnimatorComponent.h"
-#include "ConditionGraphEvaluator.h"
-#include <fstream>
-
-void AnimatorControllerSystem::Update(entt::registry& registry)
-{
-	auto view = registry.view<AnimatorComponent>();
-
-	for (auto entity : view)
-	{
-		auto& animator = view.get<AnimatorComponent>(entity);
-
-		if (animator.animatorGraphPath.empty())
-		{
-			continue;
-		}
-
-		AnimatorGraphData& data = graphCache.GetOrLoad(animator.animatorGraphPath,
-			[](AnimatorGraphData& data, const nlohmann::json& j) { data.FromJson(j); });
-
-		if (animator.currentParentStateId == -1)
-		{
-			InitializeState(animator, data, registry, entity);
-			continue;
-		}
-
-
-		// eŠK‘w: –ˆƒtƒŒ[ƒ€Aq‚Ìó‘Ô‚ÉŠÖ‚í‚ç‚¸Å—Dæ‚Åƒ`ƒFƒbƒN‚·‚é
-		float parentBlendDuration = 0.0f;
-		int newParentId = FindTransition(data.parentGraph.stateLinks, animator.currentParentStateId, registry, entity, parentBlendDuration);
-		if (newParentId != -1)
-		{
-			EnterParentState(animator, data, newParentId, registry, entity);
-			continue;
-		}
-
-		// qŠK‘w: e‚Ì‘JˆÚ‚ª–³‚©‚Á‚½ê‡‚Ì‚İƒ`ƒFƒbƒN‚·‚é
-		ParentState* parent = FindParentStateById(data.parentGraph, animator.currentParentStateId);
-		if (!parent)
-		{
-			animator.currentParentStateId = -1;
-			continue;
-		}
-
-		float childBlendDuration = 0.0f;
-		int newChildId = FindTransition(parent->childGraph.childLinks, animator.currentChildStateId, registry, entity, childBlendDuration);
-		if (newChildId == -1) continue;
-
-		ChildState* newChild = FindChildStateById(parent->childGraph, newChildId);
-		if (!newChild) continue;
-
-		if (newChild->type == ChildStateType::End)
-		{
-			// “¯‚¶qŠK‘w‚ÌStart‚Ö–ß‚Á‚Ä‚â‚è’¼‚·
-			EnterChildGraphFromStart(animator, *parent, registry, entity);
-		}
-		else
-		{
-			SequencerComponent* sequencer = registry.try_get<SequencerComponent>(entity);
-
-			animator.currentChildStateId = newChildId;
-			ApplyChildState(animator, *newChild, childBlendDuration, sequencer);
-		}
-	}
-}
-
-// ‘JˆÚæ‚ÌƒuƒŒƒ“ƒhŠÔ‚ğ•Ô‚·
-int AnimatorControllerSystem::FindTransition(const std::vector<AnimLink>& links, int fromId, entt::registry& registry, entt::entity entity, float& outBlendDuration)
-{
-	int result = -1;
-	outBlendDuration = 0.0f;
-
-	for (const auto& link : links)
-	{
-		if (link.fromId != fromId) continue;
-		if (!ConditionGraphEvaluator::Evaluate(link.condition, registry, entity)) continue;
-
-		if (result == -1)
-		{
-			result = link.toId;
-			outBlendDuration = link.blend ? link.blendDuration : 0.0f;
-		}
-		else
-		{
-			// Šù‚ÉŒó•â‚ª‚ ‚ê‚ÎŒx
-		}
-	}
-	return result;
-}
-
-// ParentStateGraph‚Ì’†‚©‚çAEntry‚Ìid‚ğ’T‚·
-int AnimatorControllerSystem::FindEntryParentState(const ParentStateGraph& parentGraph)
-{
-	for (const auto& s : parentGraph.states)
-		if (s.type == ParentStateType::Entry) return s.id;
-	return -1;
-}
-// ChildStateGraph‚Ì’†‚©‚çAStart/End‚ğ’T‚·
-int AnimatorControllerSystem::FindChildStateByType(const ChildStateGraph& childGraph, ChildStateType type)
-{
-	for (const auto& c : childGraph.children)
-		if (c.type == type) return c.id;
-	return -1;
-}
-
-// id‚©‚çÀ‘Ì‚ğ’T‚·
-ParentState* AnimatorControllerSystem::FindParentStateById(ParentStateGraph& parentGraph, int id)
-{
-	for (auto& s : parentGraph.states)
-		if (s.id == id) return &s;
-	return nullptr;
-}
-// id‚©‚çÀ‘Ì‚ğ’T‚·
-ChildState* AnimatorControllerSystem::FindChildStateById(ChildStateGraph& childGraph, int id)
-{
-	for (auto& c : childGraph.children)
-		if (c.id == id) return &c;
-	return nullptr;
-}
-
-// ParentState‚ÌqŠK‘w‚ÌStart‚©‚çÅ‰‚ÌChildState‚Ü‚Å’H‚Á‚Ä“K—p‚·‚é
-void AnimatorControllerSystem::EnterParentState(AnimatorComponent& animator, AnimatorGraphData& data, int parentId, entt::registry& registry, entt::entity entity)
-{
-	ParentState* parent = FindParentStateById(data.parentGraph, parentId);
-	if (!parent) return;
-
-	animator.currentParentStateId = parentId;
-	EnterChildGraphFromStart(animator, *parent, registry, entity);
-}
-// Parent‚ÌqŠK‘w‚ÌStart‚©‚çÅ‰‚ÌChildState‚Ü‚Å’H‚Á‚Ä“K—p‚·‚é
-void AnimatorControllerSystem::EnterChildGraphFromStart(AnimatorComponent& animator, ParentState& parent, entt::registry& registry, entt::entity entity)
-{
-	int startId = FindChildStateByType(parent.childGraph, ChildStateType::Start);
-	if (startId == -1) return;
-
-	float blendDuration = 0.0f;
-	int childId = FindTransition(parent.childGraph.childLinks, startId, registry, entity, blendDuration);
-	if (childId == -1) return;
-
-	ChildState* child = FindChildStateById(parent.childGraph, childId);
-	if (!child) return;
-
-	SequencerComponent* sequencer = registry.try_get<SequencerComponent>(entity);
-
-	animator.currentChildStateId = childId;
-	ApplyChildState(animator, *child, blendDuration, sequencer);
-}
-// ‰‰ñ‚Ì‰Šúó‘Ô‚ğŒˆ‚ß‚é
-void AnimatorControllerSystem::InitializeState(AnimatorComponent& animator, AnimatorGraphData& data, entt::registry& registry, entt::entity entity)
-{
-	int entryId = FindEntryParentState(data.parentGraph);
-	if (entryId == -1) return;
-
-	float blendDuration = 0.0f; // Entry‚©‚ç‚ÌÅ‰‚Ì‘JˆÚ‚ÍƒuƒŒƒ“ƒh•s—v‚Ì‚½‚ßg‚í‚È‚¢
-	int parentId = FindTransition(data.parentGraph.stateLinks, entryId, registry, entity, blendDuration);
-	if (parentId == -1) return;
-
-	EnterParentState(animator, data, parentId, registry, entity);
-}
-bool AnimatorControllerSystem::FindTrimmingRange(SequencerData& data, const std::string& clipName, float& outStart, float& outEnd)
-{
-	for (auto& clip : data.clips)
-	{
-		if (clip.clipName != clipName) continue;
-
-		for (auto& range : clip.ranges)
-		{
-			if (range.flag == SequencerFlag::Trimming)
-			{
-				outStart = range.start;
-				outEnd = range.end;
-				return true;
-			}
-		}
-		break;
-	}
-	return false;
-}
-// ChildState‚Ì“à—e‚ğAnimatorComponent‚Ö”½‰f‚·‚é
-void AnimatorControllerSystem::ApplyChildState(AnimatorComponent& animator, const ChildState& child, float blendDuration, SequencerComponent* sequencer)
-{
-	// ƒgƒŠƒ~ƒ“ƒO”ÍˆÍ‚ğ’²‚×‚é
-	float trimStart = 0.0f;
-	float trimEnd = -1.0f;
-	if (sequencer && !sequencer->sequencerPath.empty())
-	{
-		SequencerData& data = trimDataCache.GetOrLoad(sequencer->sequencerPath,
-			[](SequencerData& data, const nlohmann::json& j) { data.FromJson(j); });
-
-		float normStart = 0.0f, normEnd = 1.0f;
-		if (FindTrimmingRange(data, child.clipName, normStart, normEnd))
-		{
-			trimStart = normStart;
-			trimEnd = normEnd;
-		}
-	}
-
-	if (animator.currentAnimation.empty() || blendDuration <= 0.0f)
-	{
-		animator.currentAnimation = child.clipName;
-		animator.trimStart = trimStart;
-		animator.trimEnd = trimEnd;
-		animator.trimResolved = false;
-		animator.animationTime = 0.0f;
-		animator.isPlaying = true;
-		animator.isEnd = false;
-		animator.useRootMotion = child.useRootMotion;
-		animator.loop = child.loop;
-		animator.isBlending = false;
-		return;
-	}
-
-	// ‹ŒƒNƒŠƒbƒv‚Ìî•ñ‚ğ‘Ş”ğ‚µ‚Ä‚©‚çƒuƒŒƒ“ƒhŠJn
-	animator.blendAnimation = animator.currentAnimation;
-	animator.blendAnimationTime = animator.animationTime;
-	animator.blendUseRootMotion = animator.useRootMotion;
-	animator.blendUseRootMotionY = animator.useRootMotionY;
-	animator.blendTrimEnd = animator.trimEnd; 
-	animator.blendTime = blendDuration;
-	animator.blendRate = 0.0f;
-	animator.isBlending = true;
-
-	animator.currentAnimation = child.clipName;
-	animator.trimStart = trimStart;
-	animator.trimEnd = trimEnd;
-	animator.trimResolved = false;
-	animator.animationTime = 0.0f;
-	animator.isPlaying = true;
-	animator.isEnd = false;
-	animator.useRootMotion = child.useRootMotion;
-	animator.loop = child.loop;
 }
  
  
@@ -9689,22 +8478,6 @@ void SequencerSystem::Update(entt::registry& registry)
 	}
 } 
  
-===== StateGraphUtils.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\ECS\Systems\StateGraphUtils.cpp 
-#include "StateGraphUtils.h"
-
-namespace StateGraphUtils
-{
-	int FindStateIdByName(const ParentStateGraph& parentGraph, const std::string& name)
-	{
-		for (const auto& s : parentGraph.states)
-		{
-			if (s.name == name) return s.id;
-		}
-		return -1;
-	}
-} 
- 
 ===== StateMachineSystem.cpp ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\ECS\Systems\StateMachineSystem.cpp 
 #include "StateMachineSystem.h"
@@ -9722,6 +8495,9 @@ const StateMachineData* StateMachineSystem::Load(const std::string& path)
 		{
 			l.loaded = true;
 			l.valid = l.data.FromJson(j, path);
+
+			// “Ç‚İ‚ñ‚¾‚Æ‚«‚É1‰ñ‚¾‚¯A\‚³‚ê‚½State–¼‚ª‚ ‚é‚©‚ğŠm‚©‚ß‚é
+			if (l.valid) CheckRequiredStates(l.data, path);
 		});
 
 	if (!loaded.loaded || !loaded.valid)
@@ -9870,6 +8646,37 @@ void StateMachineSystem::UpdateAnimation(entt::registry& registry)
 	}
 }
 
+// \‚³‚ê‚½State–¼‚Ìˆê——
+std::vector<StateMachineSystem::RequiredState>& StateMachineSystem::GetRequiredStates()
+{
+	static std::vector<RequiredState> requiredStates;
+	return requiredStates;
+}
+
+// \‚³‚ê‚½State–¼‚ªAƒOƒ‰ƒt‚É‚ ‚é‚©‚ğŠm‚©‚ß‚é
+void StateMachineSystem::CheckRequiredStates(const StateMachineData& data, const std::string& path)
+{
+	for (const auto& r : GetRequiredStates())
+	{
+		if (!data.FindStateByName(r.stateName))
+		{
+			Log(u8"[StateMachine] Œx(%s): Stateu%sv‚ªƒOƒ‰ƒt‚É‚ ‚è‚Ü‚¹‚ñ(%s ‚ªg—p)",
+				path.c_str(), r.stateName.c_str(), r.user.c_str());
+		}
+	}
+}
+
+// g—p‚·‚éState–¼‚ğ\‚·‚é
+void StateMachineSystem::RequireState(const std::string& stateName, const std::string& user)
+{
+	auto& list = GetRequiredStates();
+	for (const auto& r : list)
+	{
+		if (r.stateName == stateName && r.user == user) return; // \Ï‚İ
+	}
+	list.push_back({ stateName, user });
+}
+
 // ƒgƒŠƒ~ƒ“ƒO”ÍˆÍ‚ğ’T‚·
 bool StateMachineSystem::FindTrimmingRange(SequencerData& data, const std::string& clipName, float& outStart, float& outEnd)
 {
@@ -9947,69 +8754,6 @@ void StateMachineSystem::PlayClip(AnimatorComponent& animator, const ClipNode& c
 	animator.useRootMotion = clip.rootMotion;
 	animator.loop = clip.loop;
 } 
- 
-===== TransitionControllerSystem.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\ECS\Systems\TransitionControllerSystem.cpp 
-#include "TransitionControllerSystem.h"
-#include "Engine/ECS/Components/AnimatorComponent.h"
-#include "Engine/ECS/Components/StateComponent.h"
-#include "ConditionGraphEvaluator.h"
-#include "StateGraphUtils.h"
-
-void TransitionControllerSystem::Update(entt::registry& registry, float elapsedTime, const SceneContext& context)
-{
-	auto view = registry.view<AnimatorComponent>();
-
-	for (auto entity : view)
-	{
-		auto& animator = view.get<AnimatorComponent>(entity);
-
-		if (animator.animatorGraphPath.empty())
-		{
-			continue;
-		}
-
-		auto& state = registry.get_or_emplace<StateComponent>(entity);
-
-		AnimatorGraphData& data = graphCache.GetOrLoad(animator.animatorGraphPath,
-			[](AnimatorGraphData& data, const nlohmann::json& j) { data.FromJson(j); });
-
-		// –¢‰Šú‰»‚Ìê‡AEntry‚©‚ço‚Ä‚¢‚éƒŠƒ“ƒN‚Ì‘JˆÚæ‚ğ‰Šúó‘Ô‚Æ‚·‚é
-		if (state.currentStateId == -1)
-		{
-			int entryId = StateGraphUtils::FindStateIdByName(data.parentGraph, "Entry");
-			if (entryId == -1) continue;
-
-			int initialId = FindTransition(data.transitionGraph.links, entryId, registry, entity);
-			if (initialId == -1) continue;
-
-			state.currentStateId = initialId;
-			continue; // ‘JˆÚ‚µ‚½Å‰‚ÌƒtƒŒ[ƒ€‚ÍA‚»‚êˆÈã‚Ì”»’è‚ğs‚í‚È‚¢
-		}
-
-		// Œ»İ’n‚©‚ço‚Ä‚¢‚éƒŠƒ“ƒN‚ğ‡”Ô‚Éƒ`ƒFƒbƒN
-		int newStateId = FindTransition(data.transitionGraph.links, state.currentStateId, registry, entity);
-		if (newStateId != -1)
-		{
-			state.currentStateId = newStateId;
-		}
-
-	}
-}
-
-// Œ»İState‚©‚ç‘JˆÚ‰Â”\‚ÈLink‚ğ’T‚·
-int TransitionControllerSystem::FindTransition(const std::vector<TransitionLink>& links, int fromId, entt::registry& registry, entt::entity entity)
-{
-	for (const auto& link : links)
-	{
-		if (link.fromId != fromId) continue;
-		if (!ConditionGraphEvaluator::Evaluate(link.condition, registry, entity)) continue;
-
-		return link.toId; // Å‰‚ÉğŒ‚ª¬—§‚µ‚½‚à‚Ì‚ğÌ—p‚·‚é(•¡”ŠY“–‚ÍæŸ‚¿)
-	}
-	return -1;
-}
- 
  
 ===== TwoBoneIKSolver.cpp ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\ECS\Systems\TwoBoneIKSolver.cpp 
@@ -15929,18 +14673,12 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Game\ECS\Systems\PlayerDo
 #pragma once
 #include "entt.hpp"
 #include "Engine/Core/SceneContext.h"
-#include "Engine/Core/JsonFileCache.h"
-#include "Engine/Data/AnimatorGraphData.h"
 
 class PlayerDodgeSystem
 {
 public:
+	PlayerDodgeSystem();
 	void Update(entt::registry& registry, float elapsedTime, const SceneContext& context);
-
-private:
-	// "Dodge"‚Æ‚¢‚¤State‚Ì–¼‘O‚ğƒLƒƒƒbƒVƒ…‚·‚é
-	JsonFileCache<AnimatorGraphData> graphCache;
-	int dodgeStateId = -1; 
 }; 
  
 ===== PlayerIdleSystem.h ===== 
@@ -15948,37 +14686,25 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Game\ECS\Systems\PlayerId
 #pragma once
 #include "entt.hpp"
 #include "Engine/Core/SceneContext.h"
-#include "Engine/Core/JsonFileCache.h"
-#include "Engine/Data/AnimatorGraphData.h"
 
 class PlayerIdleSystem
 {
 public:
+	PlayerIdleSystem();
 	void Update(entt::registry& registry, float elapsedTime, const SceneContext& context);
-
-private:
-	// "Idle"‚Æ‚¢‚¤State‚Ì–¼‘O‚ğƒLƒƒƒbƒVƒ…‚·‚é
-	JsonFileCache<AnimatorGraphData> graphCache;
-	int idleStateId = -1;
 }; 
  
 ===== PlayerJumpSystem.h ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Game\ECS\Systems\PlayerJumpSystem.h 
 #pragma once
+#include "entt.hpp"
 #include "Engine/Core/SceneContext.h"
-#include "Engine/Core/JsonFileCache.h"
-#include "Engine/Data/AnimatorGraphData.h"
 
 class PlayerJumpSystem
 {
 public:
+	PlayerJumpSystem();
 	void Update(entt::registry& registry, float elapsedTime, const SceneContext& context);
-
-private:
-	// "Jump"‚Æ‚¢‚¤State‚Ì–¼‘O‚ğƒLƒƒƒbƒVƒ…‚·‚é
-	JsonFileCache<AnimatorGraphData> graphCache;
-	int jumpStateId = -1;
-
 }; 
  
 ===== PlayerMovementUtils.h ===== 
@@ -16023,18 +14749,12 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Game\ECS\Systems\PlayerMo
 #pragma once
 #include "entt.hpp"
 #include "Engine/Core/SceneContext.h"
-#include "Engine/Core/JsonFileCache.h"
-#include "Engine/Data/AnimatorGraphData.h"
 
 class PlayerMoveSystem
 {
 public:
+	PlayerMoveSystem();
 	void Update(entt::registry& registry, float elapsedTime, const SceneContext& context);
-
-private:
-	// "Move"‚Æ‚¢‚¤State‚Ì–¼‘O‚ğƒLƒƒƒbƒVƒ…‚·‚é
-	JsonFileCache<AnimatorGraphData> graphCache;
-	int moveStateId = -1;
 }; 
  
 ===== PlayerSprintSystem.h ===== 
@@ -16042,18 +14762,12 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Game\ECS\Systems\PlayerSp
 #pragma once
 #include "entt.hpp"
 #include "Engine/Core/SceneContext.h"
-#include "Engine/Core/JsonFileCache.h"
-#include "Engine/Data/AnimatorGraphData.h"
 
 class PlayerSprintSystem
 {
 public:
+	PlayerSprintSystem();
 	void Update(entt::registry& registry, float elapsedTime, const SceneContext& context);
-
-private:
-	// "Sprint"‚Æ‚¢‚¤State‚Ì–¼‘O‚ğƒLƒƒƒbƒVƒ…‚·‚é
-	JsonFileCache<AnimatorGraphData> graphCache;
-	int sprintStateId = -1;
 }; 
  
 ===== GameCameraSystem.cpp ===== 
@@ -16717,47 +15431,33 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Game\ECS\Systems\PlayerDo
 #include "Game/ECS/Components/PlayerDodgeComponent.h"
 #include "Game/ECS/Systems/PlayerMovementUtils.h"
 
-#include "Engine/ECS/Components/AnimatorComponent.h"
-#include "Engine/ECS/Components/StateComponent.h"
+#include "Engine/ECS/Components/StateMachineComponent.h"
 #include "Engine/ECS/Components/MovementComponent.h"
 #include "Engine/ECS/Components/TransformComponent.h"
-#include "Engine/ECS/Systems/StateGraphUtils.h"
+
+#include "Engine/ECS/Systems/StateMachineSystem.h"
+
 #include <DirectXMath.h>
+
+PlayerDodgeSystem::PlayerDodgeSystem()
+{
+	StateMachineSystem::RequireState("Dodge", "PlayerDodgeSystem");
+}
 
 void PlayerDodgeSystem::Update(entt::registry& registry, float elapsedTime, const SceneContext& context)
 {
-	auto view = registry.view<GameInputComponent, PlayerDodgeComponent, AnimatorComponent, StateComponent, MovementComponent, TransformComponent>();
+	auto view = registry.view<GameInputComponent, PlayerDodgeComponent, StateMachineComponent, MovementComponent, TransformComponent>();
 
 	view.each(
 		[&](auto entity,
 			GameInputComponent& input,
 			PlayerDodgeComponent& dodge,
-			AnimatorComponent& animator,
-			StateComponent& state,
+			StateMachineComponent& stateMachine,
 			MovementComponent& movement,
 			TransformComponent& transform)
 		{
-			// AnimatorGraphPath‚ª‹ó‚È‚çDodge”»’è‚ğfalse‚É‚·‚é
-			if (animator.animatorGraphPath.empty())
-			{
-				dodge.isDodging = false;
-				return;
-			}
-
-			AnimatorGraphData& data = graphCache.GetOrLoad(animator.animatorGraphPath,
-				[](AnimatorGraphData& data, const nlohmann::json& j) { data.FromJson(j); });
-
-			// "Dodge"‚ÌID‚ğƒLƒƒƒbƒVƒ…‚·‚é‚Ü‚ÅŒŸõ‚·‚é
-			if (dodgeStateId == -1)
-			{
-				dodgeStateId = StateGraphUtils::FindStateIdByName(data.parentGraph, "Dodge");
-			}
-
-			// Œ»İ‚ªDodge‚©‚Ç‚¤‚©‚ğ”»’è‚·‚é
-			bool isMyState = (state.currentStateId == dodgeStateId);
-
 			// Dodge‚Å‚È‚¯‚ê‚ÎAˆÈ~‚Ìˆ—‚Ís‚í‚È‚¢
-			if (!isMyState)
+			if (!stateMachine.IsIn("Dodge"))
 			{
 				dodge.isDodging = false;
 				dodge.bufferTimer = 0.0f;
@@ -16845,43 +15545,28 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Game\ECS\Systems\PlayerId
 #include "PlayerIdleSystem.h"
 #include "Game/ECS/Components/PlayerIdleComponent.h"
 
-#include "Engine/ECS/Components/AnimatorComponent.h"
-#include "Engine/ECS/Components/StateComponent.h"
+#include "Engine/ECS/Components/StateMachineComponent.h"
 #include "Engine/ECS/Components/MovementComponent.h"
-#include "Engine/ECS/Systems/StateGraphUtils.h"
+
+#include "Engine/ECS/Systems/StateMachineSystem.h"
+
+PlayerIdleSystem::PlayerIdleSystem()
+{
+	StateMachineSystem::RequireState("Idle", "PlayerIdleSystem");
+}
 
 void PlayerIdleSystem::Update(entt::registry& registry, float elapsedTime, const SceneContext& context)
 {
-	auto view = registry.view<AnimatorComponent, StateComponent, PlayerIdleComponent, MovementComponent>();
+	auto view = registry.view<StateMachineComponent, PlayerIdleComponent, MovementComponent>();
 
 	view.each(
 		[&](auto entity,
-			AnimatorComponent& animator,
-			StateComponent& state,
+			StateMachineComponent& stateMachine,
 			PlayerIdleComponent& idle,
 			MovementComponent& movement) 
 		{
-			// AnimatorGraphPath‚ª‹ó‚È‚çIdle”»’è‚ğfalse‚É‚·‚é
-			if (animator.animatorGraphPath.empty())
-			{
-				idle.isIdling = false;
-				return;
-			}
-
-			AnimatorGraphData& data = graphCache.GetOrLoad(animator.animatorGraphPath,
-				[](AnimatorGraphData& data, const nlohmann::json& j) { data.FromJson(j); });
-
-			// "Idle"‚ÌID‚ğƒLƒƒƒbƒVƒ…‚·‚é‚Ü‚ÅŒŸõ‚·‚é
-			if (idleStateId == -1)
-			{
-				idleStateId = StateGraphUtils::FindStateIdByName(data.parentGraph, "Idle");
-			}
-
-			// Œ»İ‚ªIdle‚©‚Ç‚¤‚©‚ğ”»’è‚·‚é
-			bool isMyState = (state.currentStateId == idleStateId);
-
 			// Idle‚Å‚È‚¯‚ê‚ÎAˆÈ~‚Ìˆ—‚Ís‚í‚È‚¢
-			if (!isMyState)
+			if (!stateMachine.IsIn("Idle"))
 			{
 				idle.isIdling = false;
 				return;
@@ -16901,44 +15586,27 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Game\ECS\Systems\PlayerJu
 #include "PlayerJumpSystem.h"
 #include "Game/ECS/Components/PlayerJumpComponent.h"
 
-#include "Engine/ECS/Components/AnimatorComponent.h"
-#include "Engine/ECS/Components/StateComponent.h"
+#include "Engine/ECS/Components/StateMachineComponent.h"
 #include "Engine/ECS/Components/MovementComponent.h"
-#include "Engine/ECS/Systems/StateGraphUtils.h"
 
+#include "Engine/ECS/Systems/StateMachineSystem.h"
+
+PlayerJumpSystem::PlayerJumpSystem()
+{
+	StateMachineSystem::RequireState("Jump", "PlayerJumpSystem");
+}
 
 void PlayerJumpSystem::Update(entt::registry& registry, float elapsedTime, const SceneContext& context)
 {
-	auto view = registry.view<PlayerJumpComponent, AnimatorComponent, StateComponent, MovementComponent>();
+	auto view = registry.view<PlayerJumpComponent, StateMachineComponent, MovementComponent>();
 
 	view.each(
 		[&](PlayerJumpComponent& jump,
-			AnimatorComponent& animator,
-			StateComponent& state,
+			StateMachineComponent& stateMachine,
 			MovementComponent& movement)
 		{
-			// AnimatorGraphPath‚ª‹ó‚È‚çJump”»’è‚ğfalse‚É‚·‚é
-			if (animator.animatorGraphPath.empty())
-			{
-				jump.isJumping = false;
-				jump.jumpSub = PlayerJumpSubState::None;
-				return;
-			}
-
-			AnimatorGraphData& data = graphCache.GetOrLoad(animator.animatorGraphPath,
-				[](AnimatorGraphData& data, const nlohmann::json& j) { data.FromJson(j); });
-
-			// "Jump"‚ÌID‚ğƒLƒƒƒbƒVƒ…‚·‚é‚Ü‚ÅŒŸõ‚·‚é
-			if (jumpStateId == -1)
-			{
-				jumpStateId = StateGraphUtils::FindStateIdByName(data.parentGraph, "Jump");
-			}
-
-			// Œ»İ‚ªJump‚©‚Ç‚¤‚©‚ğ”»’è‚·‚é
-			bool isMyState = (state.currentStateId == jumpStateId);
-
 			// Jump‚Å‚È‚¯‚ê‚ÎAˆÈ~‚Ìˆ—‚Ís‚í‚È‚¢
-			if (!isMyState)
+			if (!stateMachine.IsIn("Jump"))
 			{
 				jump.isJumping = false;
 				jump.jumpSub = PlayerJumpSubState::None;
@@ -17054,48 +15722,30 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Game\ECS\Systems\PlayerMo
 #include "Game/ECS/Components/PlayerMoveComponent.h"
 #include "Game/ECS/Systems/PlayerMovementUtils.h"
 
-#include "Engine/ECS/Components/AnimatorComponent.h"
-#include "Engine/ECS/Components/StateComponent.h"
+#include "Engine/ECS/Components/StateMachineComponent.h"
 #include "Engine/ECS/Components/MovementComponent.h"
 #include "Engine/ECS/Components/TransformComponent.h"
-#include "Engine/ECS/Systems/StateGraphUtils.h"
+#include "Engine/ECS/Systems/StateMachineSystem.h"
+
+PlayerMoveSystem::PlayerMoveSystem()
+{
+	StateMachineSystem::RequireState("Move", "PlayerMoveSystem");
+}
 
 void PlayerMoveSystem::Update(entt::registry& registry, float elapsedTime, const SceneContext& context)
 {
-	auto view = registry.view<GameInputComponent, PlayerMoveComponent, AnimatorComponent, StateComponent, MovementComponent, TransformComponent>();
+	auto view = registry.view<GameInputComponent, PlayerMoveComponent, StateMachineComponent, MovementComponent, TransformComponent>();
 
 	view.each(
 		[&](auto entity,
 			GameInputComponent& input,
 			PlayerMoveComponent& playerMove,
-			AnimatorComponent& animator,
-			StateComponent& state,
+			StateMachineComponent& stateMachine,
 			MovementComponent& movement,
 			TransformComponent& transform)
 		{
-			// AnimatorGraphPath‚ª‹ó‚È‚çMove”»’è‚ğfalse‚É‚·‚é
-			if (animator.animatorGraphPath.empty())
-			{
-				playerMove.isMoving = false;
-				playerMove.isWalking = false;
-				playerMove.isJogging = false;
-				return;
-			}
-
-			AnimatorGraphData& data = graphCache.GetOrLoad(animator.animatorGraphPath,
-				[](AnimatorGraphData& data, const nlohmann::json& j) { data.FromJson(j); });
-
-			// "Move"‚ÌID‚ğƒLƒƒƒbƒVƒ…‚·‚é‚Ü‚ÅŒŸõ‚·‚é
-			if (moveStateId == -1)
-			{
-				moveStateId = StateGraphUtils::FindStateIdByName(data.parentGraph, "Move");
-			}
-
-			// Œ»İ‚ªMove‚©‚Ç‚¤‚©‚ğ”»’è‚·‚é
-			bool isMyState = (state.currentStateId == moveStateId);
-
 			// Move‚Å‚È‚¯‚ê‚ÎAˆÈ~‚Ìˆ—‚Ís‚í‚È‚¢
-			if (!isMyState)
+			if (!stateMachine.IsIn("Move"))
 			{
 				playerMove.isMoving = false;
 				playerMove.isWalking = false;
@@ -17170,46 +15820,33 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Game\ECS\Systems\PlayerSp
 #include "Game/ECS/Components/PlayerSprintComponent.h"
 #include "Game/ECS/Systems/PlayerMovementUtils.h"
 
-#include "Engine/ECS/Components/AnimatorComponent.h"
-#include "Engine/ECS/Components/StateComponent.h"
+#include "Engine/ECS/Components/StateMachineComponent.h"
 #include "Engine/ECS/Components/MovementComponent.h"
 #include "Engine/ECS/Components/TransformComponent.h"
-#include "Engine/ECS/Systems/StateGraphUtils.h"
+
+#include "Engine/ECS/Systems/StateMachineSystem.h"
+
 #include <DirectXMath.h>
+
+PlayerSprintSystem::PlayerSprintSystem()
+{
+	StateMachineSystem::RequireState("Sprint", "PlayerSprintSystem");
+}
 
 void PlayerSprintSystem::Update(entt::registry& registry, float elapsedTime, const SceneContext& context)
 {
-	auto view = registry.view<GameInputComponent, PlayerSprintComponent, AnimatorComponent, StateComponent, MovementComponent, TransformComponent>();
+	auto view = registry.view<GameInputComponent, PlayerSprintComponent, StateMachineComponent, MovementComponent, TransformComponent>();
 
 	view.each(
 		[&](auto entity,
 			GameInputComponent& input,
 			PlayerSprintComponent& sprint,
-			AnimatorComponent& animator,
-			StateComponent& state,
+			StateMachineComponent& stateMachine,
 			MovementComponent& movement,
 			TransformComponent& transform)
 		{
-			if (animator.animatorGraphPath.empty())
-			{
-				sprint.isSprinting = false;
-				return;
-			}
-
-			AnimatorGraphData& data = graphCache.GetOrLoad(animator.animatorGraphPath,
-				[](AnimatorGraphData& data, const nlohmann::json& j) { data.FromJson(j); });
-
-			// "Sprint"‚ÌID‚ğƒLƒƒƒbƒVƒ…‚·‚é‚Ü‚ÅŒŸõ‚·‚é
-			if (sprintStateId == -1)
-			{
-				sprintStateId = StateGraphUtils::FindStateIdByName(data.parentGraph, "Sprint");
-			}
-
-			// Œ»İ‚ªSprint‚©‚Ç‚¤‚©‚ğ”»’è‚·‚é
-			bool isMyState = (state.currentStateId == sprintStateId);
-
 			// Sprint‚Å‚È‚¯‚ê‚ÎAˆÈ~‚Ìˆ—‚Ís‚í‚È‚¢
-			if (!isMyState)
+			if (!stateMachine.IsIn("Sprint"))
 			{
 				sprint.isSprinting = false;
 
@@ -17252,7 +15889,6 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Game\Scene\SceneGame.h
 // ƒQ[ƒ€ƒvƒŒƒCŒn
 #include "Engine/ECS/Systems/ControllerSystem.h"
 #include "Game/ECS/Systems/GameInputSystem.h"
-#include "Engine/ECS/Systems/TransitionControllerSystem.h"
 
 #include "Game/ECS/Systems/PlayerIdleSystem.h"
 #include "Game/ECS/Systems/PlayerMoveSystem.h"
@@ -17261,7 +15897,6 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Game\Scene\SceneGame.h
 #include "Game/ECS/Systems/PlayerJumpSystem.h"
 
 #include "Engine/ECS/Systems/MovementSystem.h"
-#include "Engine/ECS/Systems/AnimatorControllerSystem.h"
 #include "Engine/ECS/Systems/AnimationSpeedSystem.h"
 #include "Engine/ECS/Systems/AnimationSystem.h"
 #include "Engine/ECS/Systems/SequencerSystem.h"
@@ -17298,7 +15933,6 @@ private:
 	// ƒQ[ƒ€ƒvƒŒƒCŒn
 	ControllerSystem  controllerSystem;
 	GameInputSystem   gameInputSystem;
-	TransitionControllerSystem transitionControllerSystem;
 	 
 	PlayerIdleSystem   playerIdleSystem;
 	PlayerMoveSystem   playerMoveSystem;
@@ -17307,7 +15941,6 @@ private:
 	PlayerJumpSystem   playerJumpSystem;
 
 	MovementSystem    movementSystem;
-	AnimatorControllerSystem animatorControllerSystem;
 	AnimationSpeedSystem     animationSpeedSystem;
 	AnimationSystem   animationSystem;
 	SequencerSystem   sequencerSystem;
@@ -17556,11 +16189,6 @@ void SceneGame::UpdateGameplay(float elapsedTime, const SceneContext& context)
 		ZoneScopedN("InputSystem");
 		gameInputSystem.Update(registry, controllerSystem.GetSettings());
 	}
-	// é·ç§»ã‚°ãƒ©ãƒ•ã®è©•ä¾¡
-	{
-		ZoneScopedN("TransitionControllerSystem");
-		transitionControllerSystem.Update(registry, elapsedTime, context);
-	}
 	// Stateãƒã‚·ãƒ³ï¼šStateã®é·ç§»
 	{
 		ZoneScopedN("StateMachineSystem::UpdateState");
@@ -17603,11 +16231,6 @@ void SceneGame::UpdateGameplay(float elapsedTime, const SceneContext& context)
 // ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ç³»
 void SceneGame::UpdateAnimation(float elapsedTime, const SceneContext& context)
 {
-	// Stateé·ç§»åˆ¤å®š
-	{
-		ZoneScopedN("AnimatorControllerSystem");
-		animatorControllerSystem.Update(registry);
-	}
 	// Stateãƒã‚·ãƒ³ï¼šå†ç”Ÿã™ã‚‹ã‚¯ãƒªãƒƒãƒ—
 	{
 		ZoneScopedN("StateMachineSystem::UpdateAnimation");
@@ -18716,7 +17339,7 @@ private:
         std::filesystem::path path;
         std::string filename; // Šg’£q‚ğœ‚¢‚½ƒtƒ@ƒCƒ‹–¼i•\¦—pj
         bool isModel = false;
-        bool isAnimGraph = false;
+        bool isStateGraph = false;
         bool isSequencer = false;
         bool isAnimSpeed = false;
     };
@@ -18739,8 +17362,8 @@ private:
 
     // ƒtƒ@ƒCƒ‹‚ªƒ‚ƒfƒ‹ƒtƒ@ƒCƒ‹‚©”»’è
     bool IsModelFile(const std::filesystem::path& path);
-    // ƒtƒ@ƒCƒ‹‚ªƒAƒjƒ[ƒVƒ‡ƒ“ƒOƒ‰ƒtƒtƒ@ƒCƒ‹‚©”»’è
-    bool IsAnimGraphFile(const std::filesystem::path& path);
+    // ƒtƒ@ƒCƒ‹‚ªƒXƒe[ƒgƒOƒ‰ƒtƒtƒ@ƒCƒ‹‚©”»’è
+    bool IsStateGraphFile(const std::filesystem::path& path);
 	// ƒtƒ@ƒCƒ‹‚ªƒV[ƒPƒ“ƒT[ƒtƒ@ƒCƒ‹‚©”»’è
     static bool IsSequencerFile(const std::filesystem::path& path);
     // ƒtƒ@ƒCƒ‹‚ªƒAƒjƒ[ƒVƒ‡ƒ“‘¬“xƒtƒ@ƒCƒ‹‚©”»’è
@@ -20686,7 +19309,7 @@ void ProjectWindow::DrawFileGrid(entt::registry& registry, EditorContext& contex
 	for (auto& file : fileGridCache)
 	{
 		bool isModel = file.isModel;
-		bool isAnimGraph = file.isAnimGraph;
+		bool isAnimGraph = file.isStateGraph;
 		bool isSequencer = file.isSequencer;
 		bool isAnimSpeed = file.isAnimSpeed;
 
@@ -20757,10 +19380,8 @@ void ProjectWindow::DrawFileGrid(entt::registry& registry, EditorContext& contex
 			}
 			else if (isAnimGraph)
 			{
-				// V‚µ‚¢Œ`®(.stategraph)‚ÆŒÃ‚¢Œ`®(.animgraph)‚ÅAó‚¯æ‚èæ‚ğ•ª‚¯‚é
-				bool isStateGraph = std::filesystem::path(modelPath).extension() == ".stategraph";
 				ImGui::SetDragDropPayload(
-					isStateGraph ? "STATEGRAPH_PATH" : "ANIMGRAPH_PATH",
+					"STATEGRAPH_PATH",
 					modelPath.c_str(),
 					modelPath.size() + 1
 				);
@@ -20924,7 +19545,7 @@ std::vector<ProjectWindow::FileEntry> ProjectWindow::BuildFileGrid(const std::fi
 		if (!entry.is_regular_file()) continue;
 
 		bool isModel = IsModelFile(entry.path());
-		bool isAnimGraph = IsAnimGraphFile(entry.path());
+		bool isAnimGraph = IsStateGraphFile(entry.path());
 		bool isSequencer = IsSequencerFile(entry.path());
 		bool isAnimSpeed = IsAnimSpeedFile(entry.path());
 		if (!isModel && !isAnimGraph && !isSequencer && !isAnimSpeed) continue;
@@ -20933,7 +19554,7 @@ std::vector<ProjectWindow::FileEntry> ProjectWindow::BuildFileGrid(const std::fi
 		file.path = entry.path();
 		file.filename = entry.path().stem().string();
 		file.isModel = isModel;
-		file.isAnimGraph = isAnimGraph;
+		file.isStateGraph = isAnimGraph;
 		file.isSequencer = isSequencer;
 		file.isAnimSpeed = isAnimSpeed;
 
@@ -20954,12 +19575,12 @@ bool ProjectWindow::IsModelFile(const std::filesystem::path& path)
 	return ext == ".gltf" || ext == ".glb";
 }
 // ƒtƒ@ƒCƒ‹‚ªƒAƒjƒ[ƒVƒ‡ƒ“ƒOƒ‰ƒtƒtƒ@ƒCƒ‹‚©”»’è
-bool ProjectWindow::IsAnimGraphFile(const std::filesystem::path& path)
+bool ProjectWindow::IsStateGraphFile(const std::filesystem::path& path)
 {
 	std::string ext = path.extension().string();
 	std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
 
-	return ext == ".animgraph" || ext == ".stategraph";
+	return ext == ".stategraph";
 }
 // ƒtƒ@ƒCƒ‹‚ªƒV[ƒPƒ“ƒT[ƒtƒ@ƒCƒ‹‚©”»’è
 bool ProjectWindow::IsSequencerFile(const std::filesystem::path& path)
@@ -21213,18 +19834,6 @@ void NodeEditorCanvas::End()
     ed::SetCurrentEditor(nullptr);
 } 
  
-===== AnimatorGraphNavigation.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Studio\AnimatorGraphNavigation.h 
-#pragma once
-
-// ƒAƒjƒ[ƒ^[ƒOƒ‰ƒt•ÒW’†‚Ì‰æ–Ê‘JˆÚ—v‹
-enum class NavigationRequest
-{
-	None,
-	EditCondition,  // ‘I‘ğ’†‚ÌLink‚ÌğŒƒOƒ‰ƒt‚Ö
-	EditChildGraph, // ‘I‘ğ’†‚ÌState‚ÌqŠK‘w‚Ö
-}; 
- 
 ===== IStudioAttachment.h ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Studio\IStudioAttachment.h 
 #pragma once
@@ -21334,87 +19943,6 @@ private:
     int windowId = 0;
 }; 
  
-===== StudioAnimatorGraph.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Studio\StudioAnimatorGraph.h 
-#pragma once
-#include "IStudioAttachment.h"
-#include "Engine/Data/AnimatorGraphData.h"
-#include "StudioParentStateGraph.h"
-#include "StudioChildStateGraph.h"
-#include "StudioConditionGraph.h"
-#include "StudioTransitionGraph.h"
-
-#include <vector>
-#include <string>
-#include <fstream>
-
-namespace ed = ax::NodeEditor;
-
-// Œ»İ‚Ç‚ÌƒLƒƒƒ“ƒoƒX‚ğ•\¦‚µ‚Ä‚¢‚é‚©
-enum class AnimatorGraphView
-{
-	ParentGraph,
-	ChildGraph,
-	ConditionGraph,
-	TransitionGraph,
-};
-
-class StudioAnimatorGraph : public IStudioAttachment
-{
-public:
-	StudioAnimatorGraph() = default;
-	~StudioAnimatorGraph() = default;
-
-	void Initialize();
-	void SetWindowId(int id) { windowId = id; }
-
-	// ImGui•`‰æ
-	void DrawGUI(entt::registry& registry, StudioContext& context) override;
-
-private:
-	// == “à•”ó‘Ô == //
-	AnimatorGraphData graphData;
-
-	StudioParentStateGraph parentStateGraph;     // eŠK‘wƒLƒƒƒ“ƒoƒX
-	StudioChildStateGraph childStateGraph;       // qŠK‘wƒLƒƒƒ“ƒoƒX
-	StudioConditionGraph conditionGraph;         // ğŒ•ÒWƒLƒƒƒ“ƒoƒX
-	StudioTransitionGraph transitionStateGraph;  // ‘JˆÚ—pƒLƒƒƒ“ƒoƒX
-
-	AnimatorGraphView currentView = AnimatorGraphView::ParentGraph;  // Œ»İ•\¦’†‚ÌƒLƒƒƒ“ƒoƒX
-	AnimatorGraphView previousView = AnimatorGraphView::ParentGraph; // ğŒƒOƒ‰ƒt‚©‚ç–ß‚éæ
-	ParentState* editingParent = nullptr; // qŠK‘w•ÒW’†‚Ì‘ÎÛ
-
-	int windowId = 0; // ƒEƒBƒ“ƒhƒE”Ô†
-	std::vector<std::string> availableAnimations; // ƒAƒjƒ[ƒVƒ‡ƒ“ˆê——
-
-	bool loaded = false;                 // “Ç‚İ‚İÏ‚İƒtƒ‰ƒO
-	bool columnWidthInitialized = false; // ‰E‘¤ƒƒjƒ…[‰Šú•
-	std::string attachError;             // •R‚Ã‚¯ƒGƒ‰[ƒƒbƒZ[ƒW
-
-	// == ŠeƒLƒƒƒ“ƒoƒX•`‰æ == //
-	void DrawParentCanvas(StudioContext& context); // eŠK‘wƒLƒƒƒ“ƒoƒX
-	void DrawChildCanvas();                        // qŠK‘wƒLƒƒƒ“ƒoƒX
-	void DrawConditionCanvas();                    // ğŒ‘JˆÚƒLƒƒƒ“ƒoƒX
-	void DrawTransitionCanvas();                   // ‘JˆÚ—pƒLƒƒƒ“ƒoƒX
-
-	// == ‰æ–Ê‘JˆÚ == //
-	void GoToCondition();                    // ğŒƒOƒ‰ƒt‚ÖˆÚ“®‚·‚é(–ß‚èæ‚ğ‹L˜^‚·‚é)
-	void GoToChildGraph(ParentState* state); // qŠK‘wƒOƒ‰ƒt‚ÖˆÚ“®‚·‚é
-
-	// == ã‘¤ƒc[ƒ‹ƒo[ == //
-	void DrawToolbar(StudioContext& context);
-	void DrawDropTarget(StudioContext& context); // .animgraph‚ÌD&Dó‚¯Œû
-	void TryAttachGraph(const std::string& path, StudioContext& context); // ƒhƒƒbƒv‚³‚ê‚½ƒpƒX‚ğ•R‚Ã‚¯‰Â”\‚©ŒŸØ‚·‚é
-
-	// == ‚»‚Ì‘¼ == //
-	void RefreshAvailableAnimations(entt::registry& registry); // ƒ‚ƒfƒ‹‚ª‚ÂƒAƒjƒ[ƒVƒ‡ƒ“ˆê——‚ğXV‚·‚é
-	void Save(StudioContext& context); // .animgraph‚Ö‚Ì•Û‘¶
-	void Load(StudioContext& context); // .animgraph‚Ì“Ç‚İ‚İ
-
-	// V‹K•Û‘¶æ‚ÌƒpƒX‚ğŒˆ’è‚·‚é
-	std::string BuildNewSavePath(StudioContext& context);
-}; 
- 
 ===== StudioCamera.h ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Studio\StudioCamera.h 
 #pragma once
@@ -21464,90 +19992,10 @@ private:
     bool isControlling = false;
 }; 
  
-===== StudioChildStateGraph.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Studio\StudioChildStateGraph.h 
-#pragma once
-#include "Engine/Data/AnimatorGraphData.h"
-#include "Tool/NodeEditor/NodeEditorCanvas.h"
-#include "Tool/Studio/AnimatorGraphNavigation.h"
-#include <unordered_map>
-#include <functional>
-#include <imgui.h>
-#include <imgui_node_editor.h>
-
-namespace ed = ax::NodeEditor;
-
-class StudioChildStateGraph
-{
-public:
-	StudioChildStateGraph() = default;
-	~StudioChildStateGraph() = default;
-
-	void Initialize();
-
-	// ImGui•`‰æ
-	void DrawGUI(ChildStateGraph& childGraph, const std::vector<std::string>& availableAnimations);
-	void DrawInspector();
-	
-	// ‰æ–Ê‘JˆÚ‚ª—v‹‚³‚ê‚Ä‚¢‚ê‚Îæ‚èo‚·
-	NavigationRequest ConsumeNavigationRequest(AnimLink*& outLink);
-
-	// •Û‘¶/“Ç‚İ‚İ’¼Œã‚È‚ÇAÀ•W‚ğ‹­§“I‚É”½‰f‚³‚¹‚½‚¢‚ÉŒÄ‚Ô
-	void RequestApplyPositions() { needsApplyPositions = true; }
-
-private:
-	// == “à•”ó‘Ô == //
-	NodeEditorCanvas canvas;
-	ChildStateGraph* graph = nullptr;
-	const std::vector<std::string>* availableAnimations = nullptr; // ‘I‘ğ‰Â”\‚ÈƒAƒjƒ[ƒVƒ‡ƒ“–¼ˆê——
-
-	ImVec2 pendingCreatePos{};
-	int pendingLinkFromId = -1;
-	bool needsApplyPositions = false;
-
-	std::unordered_map<int, std::pair<ImVec2, ImVec2>> stateScreenRects; // ChildState‚Ì‹éŒ`•Û‘¶
-
-	ChildState* selectedState = nullptr;
-	AnimLink* selectedLink = nullptr;
-
-	NavigationRequest pendingNavigation = NavigationRequest::None; // ‰æ–Ê‘JˆÚ‚Ì—v‹
-
-	// == State•`‰æ == //
-	void DrawStates(); // State•`‰æ
-	void PushStateStyle(const ChildState& state); // State‚Ìí—Ş‚É‰‚¶‚½Œ©‚½–Ú‚ÌƒXƒ^ƒCƒ‹‚ğ“K—p‚·‚é
-	void PopStateStyle(const ChildState& state);  // PushStateStyle‚Å“K—p‚µ‚½ƒXƒ^ƒCƒ‹‚ğ‰ğœ‚·‚é
-
-	// == Link•`‰æ == //
-	void DrawLinks(); // Link•`‰æ
-	void CalcLinkPoints(const AnimLink& link, ImVec2& outStart, ImVec2& outEnd);             // ƒŠƒ“ƒN1–{•ª‚ÌÚ‘±“_‚ğŒvZ‚·‚é
-	void DrawLinkPins(const AnimLink& link, const ImVec2& start, const ImVec2& end);		 // ŒvZÏ‚İ‚ÌÀ•W‚Éƒsƒ“‚ğ”z’u‚·‚é
-	ImVec2 GetEdgePoint(const ImVec2& rectMin, const ImVec2& rectMax, const ImVec2& target); // •Ó‚©‚çƒŠƒ“ƒN‚ğL‚Î‚·
-	bool HasReverseLink(int fromId, int toId) const;										 // ‘o•ûŒü‚ÌLink‚ª‚ ‚é‚©Šm”F‚·‚é
-	void DrawArrowHead(ImDrawList* drawList, const ImVec2& start, const ImVec2& end, ImU32 color); // –îˆó•`‰æ
-
-	// == ì¬ == //
-	void DrawCreateStateMenu();  // ‰EƒNƒŠƒbƒNƒƒjƒ…[
-	void DrawStateContextMenu(); // Linkì¬‚Ì‹N“_‘I‘ğ(State‰EƒNƒŠƒbƒN)
-	void UpdateLinkCreation();	 // Linkì¬ƒ‚[ƒh’†‚Ì“ü—Íˆ—
-	void DrawPendingLink();		 // Linkì¬’†‚ÌƒvƒŒƒrƒ…[ü•`‰æ
-
-	// == ‘I‘ğó‘Ô‚ÆƒCƒ“ƒXƒyƒNƒ^[ == //
-	void UpdateSelection();  // ‘I‘ğó‘Ô‚ğXV
-	void DrawStateInspector(ChildState* state); // State‘I‘ğ‚ÌInspector
-	void DrawLinkInspector(AnimLink* link);     // Link‘I‘ğ‚Ì Inspector
-
-	// == •\¦—pƒwƒ‹ƒp[ == //
-	static void CenterNextItem(float totalWidth, float itemWidth);					 // ƒm[ƒh“à‚Å’†‰›Šñ‚¹‚É‚·‚é
-	void DrawDeleteButton(const char* label, const std::function<void()>& onDelete); // ‹¤’Ê‚Ìíœƒ{ƒ^ƒ“
-
-	// == “®“Iƒsƒ“ID == //
-	static ed::PinId GetPinId(int linkId, bool isOutput) { return ed::PinId((int64_t)30000000 + (int64_t)linkId * 2 + (isOutput ? 0 : 1)); }
-}; 
- 
 ===== StudioConditionGraph.h ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Studio\StudioConditionGraph.h 
 #pragma once
-#include "Engine/Data/AnimatorGraphData.h"
+#include "Engine/Data/ConditionGraphData.h"
 #include "Tool/NodeEditor/NodeEditorCanvas.h"
 #include <imgui.h>
 #include <functional>
@@ -21697,7 +20145,7 @@ struct StudioContext
     // ƒpƒlƒ‹•\¦ƒtƒ‰ƒO
     bool showAnimator      = false;
     bool showTimeline      = false;
-    bool showAnimatorGraph = false;
+    bool showStateGraph = false;
     bool showSequencer = false;
     bool showAnimationSpeed = false;
 
@@ -21767,83 +20215,6 @@ private:
     // ƒfƒoƒCƒX‚ÆƒŠƒ\[ƒXƒ}ƒl[ƒWƒƒ
     ID3D11Device* device = nullptr;
     ResourceManager* resourceManager = nullptr;
-}; 
- 
-===== StudioParentStateGraph.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Studio\StudioParentStateGraph.h 
-#include "Engine/Data/AnimatorGraphData.h"
-#include "Tool/NodeEditor/NodeEditorCanvas.h"
-#include "Tool/Studio/AnimatorGraphNavigation.h"
-#include <unordered_map>
-#include <functional>
-#include <imgui.h>
-#include <imgui_node_editor.h>
-
-namespace ed = ax::NodeEditor;
-
-class StudioParentStateGraph
-{
-public:
-	StudioParentStateGraph() = default;
-	~StudioParentStateGraph() = default;
-
-	void Initialize();
-
-	// ImGui•`‰æ
-	void DrawGUI(AnimatorGraphData& graph);
-	void DrawInspector();
-
-	// ‰æ–Ê‘JˆÚ‚ª—v‹‚³‚ê‚Ä‚¢‚ê‚Îæ‚èo‚·
-	NavigationRequest ConsumeNavigationRequest(AnimLink*& outLink, ParentState*& outState);
-
-	// •Û‘¶/“Ç‚İ‚İ’¼Œã‚È‚ÇAÀ•W‚ğ‹­§“I‚É”½‰f‚³‚¹‚½‚¢‚ÉŒÄ‚Ô
-	void RequestApplyPositions() { needsApplyPositions = true; }
-private:
-	// == “à•”ó‘Ô == //
-	NodeEditorCanvas canvas;
-	AnimatorGraphData* graph = nullptr;
-
-	ImVec2 pendingCreatePos{};
-	int pendingLinkFromId = -1;
-	bool needsApplyPositions = false;
-
-	std::unordered_map<int, std::pair<ImVec2, ImVec2>> stateScreenRects; // State‚Ì‹éŒ`•Û‘¶
-
-	ParentState* selectedState = nullptr;
-	AnimLink* selectedLink = nullptr;
-
-	NavigationRequest pendingNavigation = NavigationRequest::None; // ‰æ–Ê‘JˆÚ‚Ì—v‹
-
-	// == State•`‰æ == //
-	void DrawStates(); // State•`‰æ
-	void PushStateStyle(const ParentState& state); // State‚Ìí—Ş‚É‰‚¶‚½Œ©‚½–Ú‚ÌƒXƒ^ƒCƒ‹‚ğ“K—p‚·‚é
-	void PopStateStyle(const ParentState& state);  // PushStateStyle‚Å“K—p‚µ‚½ƒXƒ^ƒCƒ‹‚ğ‰ğœ‚·‚é 
-
-	// == Link•`‰æ == //
-	void DrawLinks(); // Link•`‰æ
-	void CalcLinkPoints(const AnimLink& link, ImVec2& outStart, ImVec2& outEnd);			 // ƒŠƒ“ƒN1–{•ª‚ÌÚ‘±“_‚ğŒvZ‚·‚é
-	void DrawLinkPins(const AnimLink& link, const ImVec2& start, const ImVec2& end);		 // ŒvZÏ‚İ‚ÌÀ•W‚Éƒsƒ“‚ğ”z’u‚·‚é
-	ImVec2 GetEdgePoint(const ImVec2& rectMin, const ImVec2& rectMax, const ImVec2& target); // •Ó‚©‚çƒŠƒ“ƒN‚ğL‚Î‚·
-	bool HasReverseLink(int fromId, int toId) const;										 // ‘o•ûŒü‚ÌLink‚ª‚ ‚é‚©Šm”F‚·‚é
-	void DrawArrowHead(ImDrawList* drawList, const ImVec2& start, const ImVec2& end, ImU32 color); // –îˆó•`‰æ
-
-	// == ì¬ == //
-	void DrawCreateStateMenu();	 // ‰EƒNƒŠƒbƒNƒƒjƒ…[
-	void DrawStateContextMenu(); // Linkì¬‚Ì‹N“_‘I‘ğ(State‰EƒNƒŠƒbƒN)
-	void UpdateLinkCreation();	 // Linkì¬ƒ‚[ƒh’†‚Ì“ü—Íˆ—
-	void DrawPendingLink();		 // Linkì¬’†‚ÌƒvƒŒƒrƒ…[ü•`‰æ
-
-	// == ‘I‘ğó‘Ô‚ÆƒCƒ“ƒXƒyƒNƒ^[ == //
-	void UpdateSelection(); // ‘I‘ğó‘Ô‚ğXV
-	void DrawStateInspector(ParentState* state); // State‘I‘ğ‚ÌInspector
-	void DrawLinkInspector(AnimLink* link);      // Link‘I‘ğ‚Ì Inspector
-
-	// == •\¦—pƒwƒ‹ƒp[ == //
-	static void CenterNextItem(float totalWidth, float itemWidth);					 // ƒm[ƒh“à‚Å’†‰›Šñ‚¹‚É‚·‚é
-	void DrawDeleteButton(const char* label, const std::function<void()>& onDelete); // ‹¤’Ê‚Ìíœƒ{ƒ^ƒ“
-
-	// == “®“Iƒsƒ“ID == //
-	static ed::PinId GetPinId(int linkId, bool isOutput) { return ed::PinId((int64_t)20000000 + (int64_t)linkId * 2 + (isOutput ? 0 : 1)); }
 }; 
  
 ===== StudioSequencer.h ===== 
@@ -21926,6 +20297,179 @@ struct StudioSharedContext
     }
 }; 
  
+===== StudioStateGraph.h ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Studio\StudioStateGraph.h 
+#pragma once
+#include <string>
+
+#include "IStudioAttachment.h"
+#include "Engine/Data/StateMachineData.h"
+#include "Tool/NodeEditor/NodeEditorCanvas.h"
+
+#include "StudioStateParentCanvas.h"
+
+// StateƒOƒ‰ƒt‚Ì•ÒWƒpƒlƒ‹
+class StudioStateGraph : public IStudioAttachment
+{
+public:
+	void Initialize();
+	void SetWindowId(int id) { windowId = id; }
+	void DrawGUI(entt::registry& registry, StudioContext& context) override;
+
+private:
+	// --- ƒtƒ@ƒCƒ‹ŠÖŒW --- //
+
+	// ƒc[ƒ‹ƒo[
+	void DrawToolbar(StudioContext& context);
+	// .stategraph‚Ìƒhƒƒbƒvó‚¯Œû
+	void DrawDropTarget(StudioContext& context);
+	// ƒhƒƒbƒv‚³‚ê‚½ƒtƒ@ƒCƒ‹‚ªŠJ‚¯‚é‚©Šm”F
+	void TryOpen(const std::string& path, StudioContext& context);
+
+	// •Û‘¶ / “Ç‚İ‚İ
+	void Save(StudioContext& context);
+	void Load(StudioContext& context);
+
+	// V‹Kì¬
+	void NewGraph(StudioContext& context);
+
+	// •Û‘¶æ‚ÌƒpƒX‚ğŒˆ‚ß‚é
+	std::string BuildNewSavePath(const StudioContext& context) const;
+
+
+	// --- ƒf[ƒ^ --- //
+
+	StateMachineData data;
+
+	// --- ƒpƒlƒ‹‚Ìó‘Ô --- //
+
+	int windowId = 0;
+
+	// attachedGraphPath‚Ì“à—e‚ğ“Ç‚İ‚İÏ‚İ‚©
+	bool loaded = false;
+	// ÅŒã‚ÌŒŸØ‚ÅƒGƒ‰[‚ª‚ ‚Á‚½‚©
+	bool hasErrors = false;
+	// ƒc[ƒ‹ƒo[‚Éo‚·ƒƒbƒZ[ƒW
+	std::string message;
+
+	bool columnWidthInitialized = false;
+
+
+	// --- ƒLƒƒƒ“ƒoƒX --- //
+
+	// eŠK‘wƒLƒƒƒ“ƒoƒX
+	StudioStateParentCanvas parentCanvas;
+}; 
+ 
+===== StudioStateParentCanvas.h ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Studio\StudioStateParentCanvas.h 
+#pragma once
+#include <unordered_map>
+#include <utility>
+#include <vector>
+
+#include "Engine/Data/StateMachineData.h"
+#include "Tool/NodeEditor/NodeEditorCanvas.h"
+
+// StateƒOƒ‰ƒt‚Ìe‚ÌƒLƒƒƒ“ƒoƒX
+class StudioStateParentCanvas
+{
+public:
+	void Initialize();
+
+	// ƒLƒƒƒ“ƒoƒX‚ğ•`‚­
+	void Draw(StateMachineData& data);
+	// ‘I‘ğ‚µ‚Ä‚¢‚é•¨‚ğíœ
+	void DeleteSelection(StateMachineData& data);
+	// “Ç‚İ‚İEV‹Kì¬‚Ì‚Æ‚«‚ÉA‘I‘ğ‚È‚Ç‚ğ–ß‚·
+	void Reset();
+
+	// ‘I‘ğ’†‚Ìƒm[ƒh‚ÆLink
+	int GetSelectedNodeKey() const { return selectedNodeKey; }
+	int GetSelectedLinkId() const { return selectedLinkId; }
+
+private:
+	// --- •`‰æ --- //
+
+	// ƒm[ƒh•`‰æ
+	void DrawEntryNode();
+	void DrawStateNodes();
+
+	// ƒŠƒ“ƒN•`‰æ
+	void DrawLinks();
+	// ì¬’†‚ÌƒŠƒ“ƒN•`‰æ
+	void DrawPendingLink();
+
+	// ”wŒi‰EƒNƒŠƒbƒN‚Ìƒƒjƒ…[
+	void DrawBackgroundMenu();
+	// ƒm[ƒh‰EƒNƒŠƒbƒN‚Ìƒƒjƒ…[
+	void DrawNodeMenu();
+
+	// --- “ü—Í --- //
+
+	// ƒŠƒ“ƒNì¬’†‚Ì“ü—Í
+	void UpdateLinkCreation();
+	// ‘I‘ğ‚ÌXV
+	void UpdateSelection();
+
+
+	// --- ƒŠƒ“ƒN‚ÌŒvZ --- //
+
+	// fromKey‚©‚çtoStateId‚Ö‚ÌƒŠƒ“ƒN‚ª‚ ‚é‚©
+	bool HasLink(int fromKey, int toStateId) const;
+	// ü‚Ìn“_‚ÆI“_‚ğ‹‚ß‚é
+	bool CalcLinkPoints(int fromKey, int toStateId, int lane, ImVec2& outStart, ImVec2& outEnd) const;
+	// ‹éŒ`‚Ì’†S‚©‚çtarget‚ÖL‚Î‚µ‚½ü‚ªA‹éŒ`‚Ì‰‚ÆŒğ‚í‚é“_
+	static ImVec2 GetEdgePoint(const ImVec2& rectMin, const ImVec2& rectMax, const ImVec2& target);
+	// –îˆó•`‰æ
+	static void DrawArrow(ImDrawList* drawList, const ImVec2& start, const ImVec2& end, ImU32 color, float thickness);
+	// “_‚Æü•ª‚Ì‹——£
+	static float DistanceToSegment(const ImVec2& p, const ImVec2& a, const ImVec2& b);
+
+
+	// --- ƒm[ƒh‚ÌID --- //
+
+	// Entry‚Íƒf[ƒ^‚ÌID‚Æ”í‚ç‚È‚¢”ÍˆÍ‚Ì’l‚ğg‚¤
+	static constexpr int64_t kEntryNodeId = 1ll << 40;
+	// ƒm[ƒh‚ÌƒL[ <-> ƒm[ƒhƒGƒfƒBƒ^‚ÌID
+	static ed::NodeId ToNodeId(int key);
+	static int ToNodeKey(ed::NodeId nodeId);
+
+
+	// --- ƒf[ƒ^ --- //
+
+	StateMachineData* data = nullptr;
+
+	// --- ƒLƒƒƒ“ƒoƒX‚Ìó‘Ô --- //
+
+	NodeEditorCanvas canvas;
+	// ƒf[ƒ^‚ÌˆÊ’u‚ğƒm[ƒh‚É”½‰f‚·‚é‚©
+	bool needsApplyPositions = true;
+	// ƒm[ƒh‚Ì‹éŒ`
+	std::unordered_map<int, std::pair<ImVec2, ImVec2>> nodeRects;
+
+	// •`‚¢‚½ƒŠƒ“ƒN‚Ìü
+	struct LinkSegment
+	{
+		int linkId;
+		ImVec2 start;
+		ImVec2 end;
+	};
+	std::vector<LinkSegment> linkSegments;
+
+	// ‘I‘ğ’†‚Ìƒm[ƒh‚ÆLink
+	int selectedNodeKey = -1;
+	int selectedLinkId = -1;
+
+	// ƒŠƒ“ƒN‚Ìì¬’†‚Ì‘JˆÚŒ³
+	int pendingFromKey = -1;
+
+	// ”wŒi‚Ì‰EƒNƒŠƒbƒN‚ÌˆÊ’u
+	ImVec2 pendingCreatePos{};
+	// ƒm[ƒh‚Ì‰EƒNƒŠƒbƒN‚Ì‘ÎÛ
+	int contextNodeKey = -1;
+}; 
+ 
 ===== StudioTimeline.h ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Studio\StudioTimeline.h 
 #pragma once
@@ -21947,79 +20491,6 @@ public:
 
 private:
     int windowId = 0;
-}; 
- 
-===== StudioTransitionGraph.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Studio\StudioTransitionGraph.h 
-#pragma once
-#include "Engine/Data/AnimatorGraphData.h"
-#include "Tool/NodeEditor/NodeEditorCanvas.h"
-#include <unordered_map>
-#include <functional>
-#include <imgui.h>
-#include <imgui_node_editor.h>
-
-namespace ed = ax::NodeEditor;
-
-class StudioTransitionGraph
-{
-public:
-	StudioTransitionGraph() = default;
-	~StudioTransitionGraph() = default;
-
-	void Initialize();
-
-	// ImGui•`‰æ
-	void DrawGUI(AnimatorGraphData& graph);
-	void DrawInspector();
-
-	// ğŒ®•ÒW‰æ–Ê‚Ö‚Ì‘JˆÚ—v‹
-	bool ConsumeConditionEditRequest(TransitionLink*& outLink);
-
-	// •Û‘¶/“Ç‚İ‚İ’¼Œã‚È‚ÇAÀ•W‚ğ‹­§”½‰f‚µ‚½‚¢‚ÉŒÄ‚Ô
-	void RequestApplyPositions() { needsApplyPositions = true; }
-
-private:
-	// == ó‘Ô == //
-	NodeEditorCanvas canvas;
-	AnimatorGraphData* graph = nullptr;
-
-	int pendingLinkFromId = -1;
-	bool needsApplyPositions = false;
-
-	std::unordered_map<int, std::pair<ImVec2, ImVec2>> stateScreenRects; // State‚Ì‹éŒ`‚ğ•Û‘¶(parentGraph.states—R—ˆ)
-
-	ParentState* selectedState = nullptr;     // ‘I‘ğ’†‚ÌState
-	TransitionLink* selectedLink = nullptr;   // ‘I‘ğ’†‚ÌLink
-
-	bool pendingConditionEdit = false; // ğŒ®•ÒW‰æ–Ê‚Ö‚Ì‘JˆÚ—v‹ƒtƒ‰ƒO
-
-	// == State•`‰æ == //
-	void DrawStates();
-
-	// == Link•`‰æ == //
-	void DrawLinks();
-	void CalcLinkPoints(const TransitionLink& link, ImVec2& outStart, ImVec2& outEnd);
-	void DrawLinkPins(const TransitionLink& link, const ImVec2& start, const ImVec2& end);
-	ImVec2 GetEdgePoint(const ImVec2& rectMin, const ImVec2& rectMax, const ImVec2& target);
-	bool HasReverseLink(int fromId, int toId) const;
-	void DrawArrowHead(ImDrawList* drawList, const ImVec2& start, const ImVec2& end, ImU32 color);
-
-	// == ì¬ == //
-	void DrawStateContextMenu(); // Linkì¬‚Ì‹N“_‘I‘ğ
-	void UpdateLinkCreation();   // Linkì¬ƒ‚[ƒh‚Ì“ü—Íˆ—
-	void DrawPendingLink();      // Linkì¬’†‚ÌƒvƒŒƒrƒ…[•`‰æ
-
-	// == ‘I‘ğ‚ÆƒCƒ“ƒXƒyƒNƒ^[ == //
-	void UpdateSelection();
-	void DrawLinkInspector(TransitionLink* link);
-
-	// == •\¦—pƒwƒ‹ƒp[ == //
-	static void CenterNextItem(float totalWidth, float itemWidth);
-	void DrawDeleteButton(const char* label, const std::function<void()>& onDelete);
-
-	// == PinID == //
-	static ed::PinId GetPinId(int linkId, bool isOutput) { return ed::PinId((int64_t)30000000 + (int64_t)linkId * 2 + (isOutput ? 0 : 1)); }
 }; 
  
 ===== StudioWindow.h ===== 
@@ -22047,7 +20518,7 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Studio\StudioWindow.
 #include "StudioAnimator.h"
 #include "StudioTimeline.h"
 #include "StudioSequencer.h"
-#include "StudioAnimatorGraph.h"
+#include "StudioStateGraph.h"
 #include "StudioAnimationSpeed.h"
 
 class StudioWindow
@@ -22081,7 +20552,7 @@ public:
         studioAnimator.SetWindowId(id);
         studioTimeline.SetWindowId(id);
         studioSequencer.SetWindowId(id);
-        animatorGraph.SetWindowId(id);
+        stateGraph.SetWindowId(id);
         studioAnimationSpeed.SetWindowId(id);
 
     }
@@ -22122,7 +20593,7 @@ private:
     StudioAnimator    studioAnimator;
     StudioTimeline    studioTimeline;
     StudioSequencer   studioSequencer;
-    StudioAnimatorGraph animatorGraph;
+    StudioStateGraph  stateGraph;
     StudioAnimationSpeed studioAnimationSpeed;
 
     // ƒEƒBƒ“ƒhƒEó‘Ô
@@ -22588,355 +21059,6 @@ void StudioAnimator::DrawGUI(
     ImGui::End();
 } 
  
-===== StudioAnimatorGraph.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Studio\StudioAnimatorGraph.cpp 
-#include "StudioAnimatorGraph.h"
-#include "Engine/ECS/Components/SkinnedMeshComponent.h"
-#include "Tool/Editor/ProjectWindow.h"
-#include "Tool/Studio/AnimatorGraphNavigation.h"
-#include <json.hpp>
-#include <filesystem>
-#include <algorithm>
-
-void StudioAnimatorGraph::Initialize()
-{
-	parentStateGraph.Initialize();
-	childStateGraph.Initialize();
-	conditionGraph.Initialize();
-	transitionStateGraph.Initialize();
-}
-
-// ImGui•`‰æ
-void StudioAnimatorGraph::DrawGUI(entt::registry& registry, StudioContext& context)
-{
-	if (!context.showAnimatorGraph) return;
-
-	if (!loaded && !context.attachedGraphPath.empty())
-	{
-		Load(context);
-		loaded = true;
-		parentStateGraph.RequestApplyPositions();
-	}
-
-	RefreshAvailableAnimations(registry);
-
-	std::string panelName = "AnimatorGraph##" + std::to_string(windowId);
-	ImGui::Begin(panelName.c_str());
-
-	DrawToolbar(context);
-
-	ImGui::Columns(2, "AnimatorGraphColumns", true);
-
-	if (!columnWidthInitialized)
-	{
-		ImGui::SetColumnWidth(0, ImGui::GetWindowWidth() * (3.0f / 4.0f));
-		columnWidthInitialized = true;
-	}
-
-	if (ImGui::GetColumnWidth(0) > ImGui::GetWindowWidth() - 200.0f)
-	{
-		ImGui::SetColumnWidth(0, ImGui::GetWindowWidth() - 220.0f);
-	}
-
-	switch (currentView)
-	{
-	case AnimatorGraphView::ChildGraph:
-		DrawChildCanvas();
-		break;
-	case AnimatorGraphView::ConditionGraph:
-		DrawConditionCanvas();
-		break;
-	case AnimatorGraphView::TransitionGraph:
-		DrawTransitionCanvas();
-		break;
-	case AnimatorGraphView::ParentGraph:
-	default:
-		DrawParentCanvas(context);
-		break;
-	}
-
-	ImGui::Columns(1);
-
-	ImGui::End();
-}
-
-// eŠK‘w(State)ƒLƒƒƒ“ƒoƒX
-void StudioAnimatorGraph::DrawParentCanvas(StudioContext& context)
-{
-	parentStateGraph.DrawGUI(graphData);
-
-	// ƒhƒƒbƒv‘ÎÛ‚Æ‚µ‚Ä•R‚Ã‚¯‚é
-	DrawDropTarget(context);
-
-	ImGui::NextColumn();
-
-	parentStateGraph.DrawInspector();
-	transitionStateGraph.RequestApplyPositions();
-
-	// ‰æ–Ê‘JˆÚ‚Ì—v‹‚ğŠm”F‚·‚é
-	AnimLink* navLink = nullptr;
-	ParentState* navState = nullptr;
-	NavigationRequest request = parentStateGraph.ConsumeNavigationRequest(navLink, navState);
-
-	if (request == NavigationRequest::EditCondition && navLink)
-	{
-		conditionGraph.SetTarget(&navLink->condition);
-		GoToCondition();
-	}
-	else if (request == NavigationRequest::EditChildGraph && navState)
-	{
-		GoToChildGraph(navState);
-	}
-}
-// qŠK‘wƒLƒƒƒ“ƒoƒX
-void StudioAnimatorGraph::DrawChildCanvas()
-{
-	if (ImGui::Button("< Back to Parent"))
-	{
-		currentView = AnimatorGraphView::ParentGraph;
-		editingParent = nullptr;
-	}
-
-	if (!editingParent)
-	{
-		// ‘ÎÛ‚ğŒ©¸‚Á‚½ê‡(–ß‚éƒ{ƒ^ƒ“‰Ÿ‰º’¼ŒãŠÜ‚Ş)Ae‰æ–Ê‚Ö
-		currentView = AnimatorGraphView::ParentGraph;
-		ImGui::NextColumn();
-		return;
-	}
-
-	ImGui::SameLine();
-	ImGui::TextDisabled("Editing: %s", editingParent->name.c_str());
-
-	childStateGraph.DrawGUI(editingParent->childGraph, availableAnimations);
-
-	ImGui::NextColumn();
-
-	childStateGraph.DrawInspector();
-
-	AnimLink* navLink = nullptr;
-	NavigationRequest request = childStateGraph.ConsumeNavigationRequest(navLink);
-
-	if (request == NavigationRequest::EditCondition && navLink)
-	{
-		conditionGraph.SetTarget(&navLink->condition);
-		GoToCondition();
-	}
-}
-// ğŒ‘JˆÚƒLƒƒƒ“ƒoƒX
-void StudioAnimatorGraph::DrawConditionCanvas()
-{
-	if (ImGui::Button("< Back"))
-	{
-		currentView = previousView;
-	}
-
-	conditionGraph.DrawGUI();
-
-	ImGui::NextColumn();
-
-	conditionGraph.DrawInspector();
-}
-// ‘JˆÚ—pƒLƒƒƒ“ƒoƒX
-void StudioAnimatorGraph::DrawTransitionCanvas()
-{
-	transitionStateGraph.DrawGUI(graphData);
-
-	ImGui::NextColumn();
-
-	transitionStateGraph.DrawInspector();
-
-	// ğŒ®•ÒW‰æ–Ê‚Ö‚Ì‘JˆÚ—v‹‚ğŠm”F
-	TransitionLink* navLink = nullptr;
-	if (transitionStateGraph.ConsumeConditionEditRequest(navLink) && navLink)
-	{
-		conditionGraph.SetTarget(&navLink->condition);
-		GoToCondition();
-	}
-
-	parentStateGraph.RequestApplyPositions();
-}
-
-// ğŒƒOƒ‰ƒt‚ÖˆÚ“®‚·‚é
-void StudioAnimatorGraph::GoToCondition()
-{
-	previousView = currentView;
-	currentView = AnimatorGraphView::ConditionGraph;
-}
-// qŠK‘wƒOƒ‰ƒt‚ÖˆÚ“®‚·‚é
-void StudioAnimatorGraph::GoToChildGraph(ParentState* state)
-{
-	editingParent = state;
-	currentView = AnimatorGraphView::ChildGraph;
-
-	childStateGraph.RequestApplyPositions();
-}
-
-// ã‘¤ƒc[ƒ‹ƒo[
-void StudioAnimatorGraph::DrawToolbar(StudioContext& context)
-{
-	// ƒGƒ‰[ƒƒbƒZ[ƒW
-	if (!attachError.empty())
-	{
-		ImGui::TextColored(ImVec4(1, 0.4f, 0.4f, 1), "%s", attachError.c_str());
-	}
-
-	// •Û‘¶ƒ{ƒ^ƒ“
-	if (ImGui::Button("Save"))
-	{
-		Save(context);
-	}
-	ImGui::SameLine();
-	if (!context.attachedGraphPath.empty())
-	{
-		ImGui::TextDisabled("%s", context.attachedGraphPath.c_str());
-	}
-	else
-	{
-		ImGui::TextDisabled("Not saved yet.");
-	}
-
-	// eŠK‘w‚Æ‘JˆÚƒOƒ‰ƒt‚ÌØ‚è‘Ö‚¦ƒ{ƒ^ƒ“
-	if (currentView == AnimatorGraphView::ParentGraph)
-	{
-		ImGui::SameLine();
-		if (ImGui::Button("Transition Graph >"))
-		{
-			currentView = AnimatorGraphView::TransitionGraph;
-		}
-	}
-	else if (currentView == AnimatorGraphView::TransitionGraph)
-	{
-		ImGui::SameLine();
-		if (ImGui::Button("< Animator Graph"))
-		{
-			currentView = AnimatorGraphView::ParentGraph;
-		}
-	}
-	ImGui::Separator();
-}
-
-// .animgraph‚ÌD&Dó‚¯Œû
-void StudioAnimatorGraph::DrawDropTarget(StudioContext& context)
-{
-	// ƒpƒlƒ‹‘S‘Ì‚ğ.animgraph‚Ìƒhƒƒbƒv‘ÎÛ‚É‚·‚é
-	if (ImGui::BeginDragDropTarget())
-	{
-		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ANIMGRAPH_PATH"))
-		{
-			std::string droppedPath(static_cast<const char*>(payload->Data));
-			TryAttachGraph(droppedPath, context);
-		}
-		ImGui::EndDragDropTarget();
-	}
-}
-// ƒhƒƒbƒv‚³‚ê‚½ƒpƒX‚ğ•R‚Ã‚¯‰Â”\‚©ŒŸØ‚·‚é
-void StudioAnimatorGraph::TryAttachGraph(const std::string& path, StudioContext& context)
-{
-	std::ifstream ifs(path);
-	if (!ifs.is_open())
-	{
-		attachError = "Failed to open file.";
-		return;
-	}
-
-	std::string sourceModelPath;
-	try
-	{
-		nlohmann::json j;
-		ifs >> j;
-		sourceModelPath = j.value("sourceModelPath", "");
-	}
-	catch (const std::exception&)
-	{
-		attachError = "Invalid json.";
-		return;
-	}
-
-	// •Êƒ‚ƒfƒ‹—p‚ÌƒOƒ‰ƒt‚Í•R‚Ã‚¯‚³‚¹‚È‚¢
-	if (sourceModelPath != context.currentModelPath)
-	{
-		attachError = "This graph belongs to a different model.";
-		return;
-	}
-
-	attachError.clear();
-	context.attachedGraphPath = path;
-	loaded = false;
-}
-
-void StudioAnimatorGraph::RefreshAvailableAnimations(entt::registry& registry)
-{
-	availableAnimations.clear();
-
-	auto view = registry.view<SkinnedMeshComponent>();
-	if (view.begin() == view.end()) return;
-
-	auto entity = *view.begin();
-	auto& skinned = view.get<SkinnedMeshComponent>(entity);
-
-	if (!skinned.model) return;
-
-	for (const auto& anim : skinned.model->GetAnimations())
-	{
-		availableAnimations.push_back(anim.name);
-	}
-}
-
-// •Û‘¶
-void StudioAnimatorGraph::Save(StudioContext& context)
-{
-	// –¢•R‚Ã‚¯‚È‚çA•Û‘¶æ‚ğ©“®‚ÅŒˆ’è‚·‚é
-	if (context.attachedGraphPath.empty())
-	{
-		context.attachedGraphPath = BuildNewSavePath(context);
-		loaded = true;
-	}
-
-	nlohmann::ordered_json j = graphData.ToJson();
-	j["sourceModelPath"] = context.currentModelPath;
-
-	std::ofstream ofs(context.attachedGraphPath);
-	if (ofs.is_open())
-	{
-		ofs << j.dump(4);
-	}
-}
-// “Ç‚İ‚İ
-void StudioAnimatorGraph::Load(StudioContext& context)
-{
-	std::ifstream ifs(context.attachedGraphPath);
-	if (!ifs.is_open()) return;
-
-	try
-	{
-		nlohmann::json j;
-		ifs >> j;
-		graphData.FromJson(j);
-	}
-	catch (const std::exception&)
-	{
-		// ‰ó‚ê‚Ä‚¢‚é‚©‹ó‚Ìjson‚Ìê‡‚È‚É‚à‚µ‚È‚¢
-	}
-}
-
-// V‹K•Û‘¶æ‚ÌƒpƒX‚ğŒˆ’è‚·‚é
-std::string StudioAnimatorGraph::BuildNewSavePath(StudioContext& context)
-{
-	std::filesystem::path saveDir = "Data/Json/Animgraph";
-	std::filesystem::create_directories(saveDir); // ƒtƒHƒ‹ƒ_‚ª–³‚¯‚ê‚Îì‚é
-
-	std::string modelName = std::filesystem::path(context.currentModelPath).stem().string();
-	std::string baseName = modelName + ".animgraph";
-
-	std::string uniqueName = ProjectWindow::GenerateUniqueName(saveDir, baseName);
-
-	std::string result = (saveDir / uniqueName).string();
-	std::replace(result.begin(), result.end(), '\\', '/');
-	return result;
-}
- 
- 
 ===== StudioCamera.cpp ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Studio\StudioCamera.cpp 
 #include "StudioCamera.h"
@@ -23091,542 +21213,6 @@ DirectX::XMFLOAT3 StudioCamera::GetRight() const
 	DirectX::XMFLOAT3 right;
 	DirectX::XMStoreFloat3(&right, DirectX::XMVector3Normalize(DirectX::XMVector3Cross(Up, Front)));
 	return right;
-} 
- 
-===== StudioChildStateGraph.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Studio\StudioChildStateGraph.cpp 
-ï»¿#include "StudioChildStateGraph.h"
-
-void StudioChildStateGraph::Initialize()
-{
-	canvas.Initialize();
-}
-
-// ImGuiæç”»
-void StudioChildStateGraph::DrawGUI(ChildStateGraph& childGraph, const std::vector<std::string>& animations)
-{
-	graph = &childGraph;
-	availableAnimations = &animations;
-
-	canvas.Begin("ChildStateCanvas");
-
-	DrawStates();
-	DrawLinks();
-
-	DrawCreateStateMenu();
-	DrawStateContextMenu();
-	UpdateLinkCreation();
-	DrawPendingLink();
-
-	UpdateSelection();
-
-	canvas.End();
-}
-
-// å³å´ãƒ¡ãƒ‹ãƒ¥ãƒ¼
-void StudioChildStateGraph::DrawInspector()
-{
-	if (selectedState)
-	{
-		DrawStateInspector(selectedState);
-		return;
-	}
-
-	if (selectedLink)
-	{
-		DrawLinkInspector(selectedLink);
-		return;
-	}
-
-	// ã©ã¡ã‚‰ã‚‚é¸æŠã•ã‚Œã¦ã„ãªã„å ´åˆ
-	ImGui::TextDisabled("No state selected.");
-}
-
-// ç”»é¢é·ç§»ãŒè¦æ±‚ã•ã‚Œã¦ã„ã‚Œã°å–ã‚Šå‡ºã™
-NavigationRequest StudioChildStateGraph::ConsumeNavigationRequest(AnimLink*& outLink)
-{
-	NavigationRequest request = pendingNavigation;
-	outLink = (request == NavigationRequest::EditCondition) ? selectedLink : nullptr;
-
-	pendingNavigation = NavigationRequest::None;
-	return request;
-}
-
-// Stateæç”»
-void StudioChildStateGraph::DrawStates()
-{
-	stateScreenRects.clear();
-
-	for (auto& state : graph->children)
-	{
-		ed::NodeId nodeId(state.id);
-
-		if (needsApplyPositions)
-		{
-			ed::SetNodePosition(nodeId, ImVec2(state.posX, state.posY));
-		}
-
-		PushStateStyle(state);
-
-		ed::BeginNode(nodeId);
-
-		float nodeWidth = (state.type != ChildStateType::Normal) ? 100.0f : ImGui::CalcTextSize("New State").x;
-		float textWidth = ImGui::CalcTextSize(state.name.c_str()).x;
-
-		CenterNextItem(nodeWidth, textWidth);
-		ImGui::Text("%s", state.name.c_str());
-
-		ImGui::SameLine(nodeWidth);
-		ImGui::Dummy(ImVec2(0.0f, 0.0f));
-
-		ed::EndNode();
-
-		stateScreenRects[state.id] = { ImGui::GetItemRectMin(), ImGui::GetItemRectMax() };
-
-		PopStateStyle(state);
-
-		ImVec2 currentPos = ed::GetNodePosition(nodeId);
-		state.posX = currentPos.x;
-		state.posY = currentPos.y;
-	}
-	needsApplyPositions = false;
-}
-// Stateã®ç¨®é¡ã«å¿œã˜ãŸè¦‹ãŸç›®ã®ã‚¹ã‚¿ã‚¤ãƒ«ã‚’é©ç”¨ã™ã‚‹
-void StudioChildStateGraph::PushStateStyle(const ChildState& state)
-{
-	switch (state.type)
-	{
-	case ChildStateType::Start:
-		ed::PushStyleColor(ed::StyleColor_NodeBg, ImColor(46, 125, 50, 255));
-		ed::PushStyleColor(ed::StyleColor_NodeBorder, ImColor(27, 94, 32, 255));
-		ed::PushStyleVar(ed::StyleVar_NodeRounding, 4.0f);
-		break;
-
-	case ChildStateType::End:
-		ed::PushStyleColor(ed::StyleColor_NodeBg, ImColor(197, 134, 192, 255));
-		ed::PushStyleColor(ed::StyleColor_NodeBorder, ImColor(140, 90, 137, 255));
-		ed::PushStyleVar(ed::StyleVar_NodeRounding, 4.0f);
-		break;
-
-	case ChildStateType::Normal:
-		ed::PushStyleColor(ed::StyleColor_NodeBg, ImColor(70, 90, 110, 255));
-		ed::PushStyleColor(ed::StyleColor_NodeBorder, ImColor(42, 54, 66, 255));
-		ed::PushStyleVar(ed::StyleVar_NodeRounding, 4.0f);
-		break;
-	}
-}
-// PushStateStyleã§é©ç”¨ã—ãŸã‚¹ã‚¿ã‚¤ãƒ«ã‚’è§£é™¤ã™ã‚‹
-void StudioChildStateGraph::PopStateStyle(const ChildState& state)
-{
-	// ã©ã®ç¨®é¡ã§ã‚‚ã€ç©ã‚“ã æ•°(ã‚¹ã‚¿ã‚¤ãƒ«1ã¤+è‰²2ã¤)ã¯å…±é€šãªã®ã§åˆ†å²ä¸è¦
-	ed::PopStyleVar(1);
-	ed::PopStyleColor(2);
-}
-
-
-// Linkæç”»
-void StudioChildStateGraph::DrawLinks()
-{
-	const float arrowTrim = 10.0f; // çŸ¢å°ã®åº•è¾ºã®ä½ç½®ã¾ã§ã€ç·šã‚’æ‰‹å‰ã«å¼•ãé‡
-
-	for (const auto& link : graph->childLinks)
-	{
-		ImVec2 startPoint, endPoint;
-		CalcLinkPoints(link, startPoint, endPoint);
-
-		if (startPoint.x == 0.0f && startPoint.y == 0.0f &&
-			endPoint.x == 0.0f && endPoint.y == 0.0f)
-		{
-			continue;
-		}
-
-		ImVec2 dir(endPoint.x - startPoint.x, endPoint.y - startPoint.y);
-		float len = sqrtf(dir.x * dir.x + dir.y * dir.y);
-		ImVec2 trimmedEnd = endPoint;
-		if (len > arrowTrim)
-		{
-			trimmedEnd.x = endPoint.x - dir.x / len * arrowTrim;
-			trimmedEnd.y = endPoint.y - dir.y / len * arrowTrim;
-		}
-
-		DrawLinkPins(link, startPoint, trimmedEnd);
-
-		ImDrawList* drawList = ed::GetNodeBackgroundDrawList(ed::NodeId(link.fromId));
-		if (drawList)
-		{
-			const ImU32 linkColor = IM_COL32(210, 210, 210, 255);
-			DrawArrowHead(drawList, startPoint, endPoint, linkColor);
-		}
-	}
-}
-// ãƒªãƒ³ã‚¯1æœ¬åˆ†ã®æ¥ç¶šç‚¹ã‚’è¨ˆç®—ã™ã‚‹
-void StudioChildStateGraph::CalcLinkPoints(const AnimLink& link, ImVec2& outStart, ImVec2& outEnd)
-{
-	auto fromIt = stateScreenRects.find(link.fromId);
-	auto toIt = stateScreenRects.find(link.toId);
-	if (fromIt == stateScreenRects.end() || toIt == stateScreenRects.end())
-	{
-		outStart = ImVec2();
-		outEnd = ImVec2();
-		return;
-	}
-
-	const ImVec2& fromMin = fromIt->second.first;
-	const ImVec2& fromMax = fromIt->second.second;
-	const ImVec2& toMin = toIt->second.first;
-	const ImVec2& toMax = toIt->second.second;
-
-	ImVec2 fromCenter((fromMin.x + fromMax.x) * 0.5f, (fromMin.y + fromMax.y) * 0.5f);
-	ImVec2 toCenter((toMin.x + toMax.x) * 0.5f, (toMin.y + toMax.y) * 0.5f);
-
-	ImVec2 startPoint = GetEdgePoint(fromMin, fromMax, toCenter);
-	ImVec2 endPoint = GetEdgePoint(toMin, toMax, fromCenter);
-
-	if (HasReverseLink(link.fromId, link.toId))
-	{
-		bool fromIsSmaller = link.fromId < link.toId;
-		const ImVec2& baseCenter = fromIsSmaller ? fromCenter : toCenter;
-		const ImVec2& otherCenter = fromIsSmaller ? toCenter : fromCenter;
-
-		ImVec2 dir(otherCenter.x - baseCenter.x, otherCenter.y - baseCenter.y);
-		float len = sqrtf(dir.x * dir.x + dir.y * dir.y);
-		if (len > 0.0001f)
-		{
-			ImVec2 perp(-dir.y / len, dir.x / len);
-
-			const float offsetAmount = 8.0f;
-			float sign = fromIsSmaller ? 1.0f : -1.0f;
-
-			ImVec2 offset(perp.x * offsetAmount * sign, perp.y * offsetAmount * sign);
-
-			startPoint.x += offset.x;
-			startPoint.y += offset.y;
-			endPoint.x += offset.x;
-			endPoint.y += offset.y;
-		}
-	}
-
-	outStart = startPoint;
-	outEnd = endPoint;
-}
-// è¨ˆç®—æ¸ˆã¿ã®åº§æ¨™ã«ãƒ”ãƒ³ã‚’é…ç½®ã™ã‚‹
-void StudioChildStateGraph::DrawLinkPins(const AnimLink& link, const ImVec2& start, const ImVec2& end)
-{
-	const int64_t idOffset = 40000000; // è¦ª(10,000,000)ãƒ»æ¡ä»¶(1Mã€œ4M)ãƒ»è‡ªèº«ã®GetPinId(30,000,000)ã¨è¢«ã‚‰ãªã„å€¤
-	ed::NodeId outNodeId(idOffset + (int64_t)link.id * 2);
-	ed::NodeId inNodeId(idOffset + (int64_t)link.id * 2 + 1);
-
-	ed::PinId outPinId = GetPinId(link.id, true);
-	ed::PinId inPinId = GetPinId(link.id, false);
-
-	ed::PushStyleVar(ed::StyleVar_NodePadding, ImVec4(0, 0, 0, 0));
-	ed::PushStyleColor(ed::StyleColor_NodeBg, ImColor(0, 0, 0, 0));
-	ed::PushStyleColor(ed::StyleColor_NodeBorder, ImColor(0, 0, 0, 0));
-
-	ed::PushStyleVar(ed::StyleVar_LinkStrength, 0.0f);
-
-	ed::SetNodePosition(outNodeId, start);
-	ed::BeginNode(outNodeId);
-	ed::BeginPin(outPinId, ed::PinKind::Output);
-	ImGui::Dummy(ImVec2(1, 1));
-	ed::EndPin();
-	ed::EndNode();
-
-	ed::SetNodePosition(inNodeId, end);
-	ed::BeginNode(inNodeId);
-	ed::BeginPin(inPinId, ed::PinKind::Input);
-	ImGui::Dummy(ImVec2(1, 1));
-	ed::EndPin();
-	ed::EndNode();
-
-	ed::PopStyleVar(2);
-	ed::PopStyleColor(2);
-
-	ed::Link(ed::LinkId(link.id), outPinId, inPinId);
-}
-// è¾ºã‹ã‚‰ãƒªãƒ³ã‚¯ã‚’ä¼¸ã°ã™
-ImVec2 StudioChildStateGraph::GetEdgePoint(const ImVec2& rectMin, const ImVec2& rectMax, const ImVec2& target)
-{
-	ImVec2 center((rectMin.x + rectMax.x) * 0.5f, (rectMin.y + rectMax.y) * 0.5f);
-	float halfW = (rectMax.x - rectMin.x) * 0.5f;
-	float halfH = (rectMax.y - rectMin.y) * 0.5f;
-
-	ImVec2 dir(target.x - center.x, target.y - center.y);
-	if (dir.x == 0.0f && dir.y == 0.0f) return center;
-
-	float scaleX = (dir.x != 0.0f) ? halfW / fabsf(dir.x) : FLT_MAX;
-	float scaleY = (dir.y != 0.0f) ? halfH / fabsf(dir.y) : FLT_MAX;
-	float scale = (scaleX < scaleY) ? scaleX : scaleY;
-
-	return ImVec2(center.x + dir.x * scale, center.y + dir.y * scale);
-}
-// åŒæ–¹å‘ã®LinkãŒã‚ã‚‹ã‹ç¢ºèªã™ã‚‹
-bool StudioChildStateGraph::HasReverseLink(int fromId, int toId) const
-{
-	for (const auto& link : graph->childLinks)
-	{
-		if (link.fromId == toId && link.toId == fromId)
-		{
-			return true;
-		}
-	}
-	return false;
-}
-// çŸ¢å°æç”»
-void StudioChildStateGraph::DrawArrowHead(ImDrawList* drawList, const ImVec2& start, const ImVec2& end, ImU32 color)
-{
-	ImVec2 dir(end.x - start.x, end.y - start.y);
-	float len = sqrtf(dir.x * dir.x + dir.y * dir.y);
-	if (len < 0.0001f) return;
-
-	dir.x /= len;
-	dir.y /= len;
-
-	ImVec2 perp(-dir.y, dir.x);
-
-	const float arrowLength = 18.0f;
-	const float arrowWidth = 13.0f;
-
-	ImVec2 tip = end;
-	ImVec2 baseCenter(end.x - dir.x * arrowLength, end.y - dir.y * arrowLength);
-	ImVec2 baseLeft(baseCenter.x + perp.x * arrowWidth * 0.5f, baseCenter.y + perp.y * arrowWidth * 0.5f);
-	ImVec2 baseRight(baseCenter.x - perp.x * arrowWidth * 0.5f, baseCenter.y - perp.y * arrowWidth * 0.5f);
-
-	drawList->AddTriangleFilled(tip, baseLeft, baseRight, color);
-}
-
-
-// å³ã‚¯ãƒªãƒƒã‚¯ãƒ¡ãƒ‹ãƒ¥ãƒ¼
-void StudioChildStateGraph::DrawCreateStateMenu()
-{
-	ed::Suspend();
-	if (ed::ShowBackgroundContextMenu())
-	{
-		pendingCreatePos = ImGui::GetMousePos();
-		ImGui::OpenPopup("CreateNewChildState");
-	}
-	if (ImGui::BeginPopup("CreateNewChildState"))
-	{
-		if (ImGui::MenuItem(u8"State"))
-		{
-			ImVec2 canvasPos = ed::ScreenToCanvas(pendingCreatePos);
-			int newId = graph->CreateChildState("New State", canvasPos.x, canvasPos.y);
-			ed::SetNodePosition(ed::NodeId(newId), canvasPos);
-		}
-		ImGui::EndPopup();
-	}
-	ed::Resume();
-}
-// Linkä½œæˆã®èµ·ç‚¹é¸æŠ(Stateå³ã‚¯ãƒªãƒƒã‚¯)
-void StudioChildStateGraph::DrawStateContextMenu()
-{
-	static ed::NodeId contextNodeId;
-
-	ed::Suspend();
-	if (ed::ShowNodeContextMenu(&contextNodeId))
-	{
-		ImGui::OpenPopup("ChildNodeContextMenu");
-	}
-	if (ImGui::BeginPopup("ChildNodeContextMenu"))
-	{
-		if (ImGui::MenuItem(u8"Link"))
-		{
-			pendingLinkFromId = (int)contextNodeId.Get();
-		}
-		ImGui::EndPopup();
-	}
-	ed::Resume();
-}
-// Linkä½œæˆãƒ¢ãƒ¼ãƒ‰ä¸­ã®å…¥åŠ›å‡¦ç†
-void StudioChildStateGraph::UpdateLinkCreation()
-{
-	if (pendingLinkFromId == -1) return;
-
-	if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
-	{
-		ed::NodeId hovered = ed::GetHoveredNode();
-
-		if (hovered && (int)hovered.Get() != pendingLinkFromId)
-		{
-			int targetId = (int)hovered.Get();
-
-			// Startã«ã¯ä»–ã®Stateã‹ã‚‰é·ç§»ã•ã›ã‚‰ã‚Œãªã„(å¸¸ã«å§‹ç‚¹ã§ã‚ã‚‹ã¹ããªã®ã§)
-			bool targetIsStart = false;
-			for (const auto& state : graph->children)
-			{
-				if (state.id == targetId && state.type == ChildStateType::Start)
-				{
-					targetIsStart = true;
-					break;
-				}
-			}
-
-			if (!targetIsStart)
-			{
-				graph->CreateChildLink(pendingLinkFromId, targetId);
-			}
-		}
-
-		pendingLinkFromId = -1;
-	}
-}
-// Linkä½œæˆä¸­ã®ãƒ—ãƒ¬ãƒ“ãƒ¥ãƒ¼ç·šæç”»
-void StudioChildStateGraph::DrawPendingLink()
-{
-	if (pendingLinkFromId == -1) return;
-
-	auto it = stateScreenRects.find(pendingLinkFromId);
-	if (it == stateScreenRects.end()) return;
-
-	ImVec2 mousePos = ImGui::GetMousePos();
-	ImVec2 startPoint = GetEdgePoint(it->second.first, it->second.second, mousePos);
-
-	ImDrawList* drawList = ed::GetNodeBackgroundDrawList(ed::NodeId(pendingLinkFromId));
-	if (!drawList) return;
-
-	const ImU32 previewColor = IM_COL32(255, 200, 80, 255);
-
-	drawList->AddLine(startPoint, mousePos, previewColor, 2.0f);
-}
-
-
-// é¸æŠçŠ¶æ…‹ã‚’æ›´æ–°
-void StudioChildStateGraph::UpdateSelection()
-{
-	selectedState = nullptr;
-	selectedLink = nullptr;
-
-	if (ed::GetSelectedObjectCount() == 0) return;
-
-	ed::NodeId selectedNodeId;
-	if (ed::GetSelectedNodes(&selectedNodeId, 1) > 0)
-	{
-		for (auto& state : graph->children)
-		{
-			if (state.id == (int)selectedNodeId.Get())
-			{
-				selectedState = &state;
-				return;
-			}
-		}
-	}
-
-	ed::LinkId selectedLinkId;
-	if (ed::GetSelectedLinks(&selectedLinkId, 1) > 0)
-	{
-		for (auto& link : graph->childLinks)
-		{
-			if (link.id == (int)selectedLinkId.Get())
-			{
-				selectedLink = &link;
-				return;
-			}
-		}
-	}
-}
-
-
-// Stateé¸æŠæ™‚ã®Inspector
-void StudioChildStateGraph::DrawStateInspector(ChildState* state)
-{
-	if (state->type != ChildStateType::Normal)
-	{
-		ImGui::Text(state->type == ChildStateType::Start ? "Start" : "End");
-		ImGui::TextDisabled("This is a unique node and cannot be edited.");
-		return;
-	}
-
-	char nameBuf[256];
-	strncpy_s(nameBuf, state->name.c_str(), sizeof(nameBuf) - 1);
-	if (ImGui::InputText("Name", nameBuf, sizeof(nameBuf)))
-	{
-		state->name = nameBuf;
-	}
-
-	// å†ç”Ÿã™ã‚‹ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã®é¸æŠ
-	const char* previewName = state->clipName.empty() ? "(None)" : state->clipName.c_str();
-	if (availableAnimations && ImGui::BeginCombo("Animation", previewName))
-	{
-		for (const auto& animName : *availableAnimations)
-		{
-			bool isSelected = (state->clipName == animName);
-			if (ImGui::Selectable(animName.c_str(), isSelected))
-			{
-				state->clipName = animName;
-			}
-			if (isSelected)
-			{
-				ImGui::SetItemDefaultFocus();
-			}
-		}
-		ImGui::EndCombo();
-	}
-
-	ImGui::Checkbox("Use Root Motion", &state->useRootMotion);
-	ImGui::Checkbox("Loop", &state->loop);
-
-	int stateId = state->id;
-	DrawDeleteButton("Delete State", [this, stateId]() { graph->DeleteChildState(stateId); });
-}
-// Linké¸æŠæ™‚ã®Inspector
-void StudioChildStateGraph::DrawLinkInspector(AnimLink* link)
-{
-	const ChildState* fromState = nullptr;
-	const ChildState* toState = nullptr;
-	for (const auto& state : graph->children)
-	{
-		if (state.id == link->fromId) fromState = &state;
-		if (state.id == link->toId)   toState = &state;
-	}
-
-	std::string fromName = fromState ? fromState->name : "?";
-	std::string toName = toState ? toState->name : "?";
-
-	ImGui::TextWrapped("%s -> %s", fromName.c_str(), toName.c_str());
-
-	ImGui::Checkbox("Blend", &link->blend);
-	if (link->blend)
-	{
-		ImGui::DragFloat("Blend Duration", &link->blendDuration, 0.01f, 0.0f, 5.0f, "%.2f s");
-	}
-
-	if (ImGui::Button("Edit Condition", ImVec2(-1.0f, 0.0f)))
-	{
-		pendingNavigation = NavigationRequest::EditCondition;
-	}
-
-	int linkId = link->id;
-	DrawDeleteButton("Delete Link", [this, linkId]() { graph->DeleteChildLink(linkId); });
-}
-
-// ãƒãƒ¼ãƒ‰å†…ã§ä¸­å¤®å¯„ã›ã«ã™ã‚‹
-void StudioChildStateGraph::CenterNextItem(float totalWidth, float itemWidth)
-{
-	float pad = (totalWidth - itemWidth) * 0.5f;
-	if (pad > 0.0f)
-	{
-		ImGui::Dummy(ImVec2(pad, 0.0f));
-		ImGui::SameLine(0.0f, 0.0f);
-	}
-}
-// å…±é€šã®å‰Šé™¤ãƒœã‚¿ãƒ³
-void StudioChildStateGraph::DrawDeleteButton(const char* label, const std::function<void()>& onDelete)
-{
-	ImGui::Spacing();
-	ImGui::Spacing();
-
-	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.15f, 0.15f, 1.0f));
-	ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.85f, 0.2f, 0.2f, 1.0f));
-	ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.6f, 0.1f, 0.1f, 1.0f));
-
-	bool pressed = ImGui::Button(label, ImVec2(-1.0f, 0.0f));
-
-	ImGui::PopStyleColor(3);
-
-	if (pressed)
-	{
-		onDelete();
-	}
 } 
  
 ===== StudioConditionGraph.cpp ===== 
@@ -25158,555 +22744,6 @@ void StudioModelViewer::LoadModel(
 }
  
  
-===== StudioParentStateGraph.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Studio\StudioParentStateGraph.cpp 
-#include "StudioParentStateGraph.h"
-#include <algorithm>
-
-void StudioParentStateGraph::Initialize()
-{
-	canvas.Initialize();
-}
-
-
-// ImGui•`‰æ(StateƒLƒƒƒ“ƒoƒX–{‘Ì)
-void StudioParentStateGraph::DrawGUI(AnimatorGraphData& g)
-{
-	graph = &g;
-
-	canvas.Begin("AnimatorCanvas");
-
-	DrawStates();
-	DrawLinks();
-
-	DrawCreateStateMenu();
-	DrawStateContextMenu();
-	UpdateLinkCreation();
-	DrawPendingLink();
-
-	UpdateSelection();
-
-	canvas.End();
-}
-
-
-// ‰E‘¤ƒƒjƒ…[
-void StudioParentStateGraph::DrawInspector()
-{
-	if (selectedState)
-	{
-		DrawStateInspector(selectedState);
-		return;
-	}
-
-	if (selectedLink)
-	{
-		DrawLinkInspector(selectedLink);
-		return;
-	}
-
-	// ‚Ç‚¿‚ç‚à‘I‘ğ‚³‚ê‚Ä‚¢‚È‚¢ê‡
-	ImGui::TextDisabled("No state selected.");
-}
-
-// ‰æ–Ê‘JˆÚ‚ª—v‹‚³‚ê‚Ä‚¢‚ê‚Îæ‚èo‚·
-NavigationRequest StudioParentStateGraph::ConsumeNavigationRequest(AnimLink*& outLink, ParentState*& outState)
-{
-	NavigationRequest request = pendingNavigation;
-	outLink = (request == NavigationRequest::EditCondition) ? selectedLink : nullptr;
-	outState = (request == NavigationRequest::EditChildGraph) ? selectedState : nullptr;
-
-	pendingNavigation = NavigationRequest::None;
-	return request;
-}
-
-
-// State•`‰æ
-void StudioParentStateGraph::DrawStates()
-{
-	stateScreenRects.clear();
-
-	for (auto& state : graph->parentGraph.states) 
-	{
-		ed::NodeId nodeId(state.id);
-
-		if (needsApplyPositions)
-		{
-			ed::SetNodePosition(nodeId, ImVec2(state.posX, state.posY));
-		}
-
-		PushStateStyle(state);
-
-		ed::BeginNode(nodeId);
-
-		float nodeWidth = (state.type == ParentStateType::Entry) ? 100.0f : ImGui::CalcTextSize("New State").x;
-		float textWidth = ImGui::CalcTextSize(state.name.c_str()).x;
-
-		CenterNextItem(nodeWidth, textWidth);
-		ImGui::Text("%s", state.name.c_str());
-
-		ImGui::SameLine(nodeWidth);
-		ImGui::Dummy(ImVec2(0.0f, 0.0f));
-
-		ed::EndNode();
-
-		stateScreenRects[state.id] = { ImGui::GetItemRectMin(), ImGui::GetItemRectMax() };
-
-		PopStateStyle(state);
-
-		ImVec2 currentPos = ed::GetNodePosition(nodeId);
-		state.posX = currentPos.x;
-		state.posY = currentPos.y;
-	}
-	needsApplyPositions = false;
-}
-// State‚Ìí—Ş‚É‰‚¶‚½Œ©‚½–Ú‚ÌƒXƒ^ƒCƒ‹‚ğ“K—p‚·‚é
-void StudioParentStateGraph::PushStateStyle(const ParentState& state)
-{
-	switch (state.type)
-	{
-	case ParentStateType::Entry:
-		ed::PushStyleColor(ed::StyleColor_NodeBg, ImColor(46, 125, 50, 255));
-		ed::PushStyleColor(ed::StyleColor_NodeBorder, ImColor(27, 94, 32, 255));
-		ed::PushStyleVar(ed::StyleVar_NodeRounding, 4.0f);
-		break;
-
-	case ParentStateType::State:
-		ed::PushStyleColor(ed::StyleColor_NodeBg, ImColor(state.color[0], state.color[1], state.color[2], 1.0f));
-		ed::PushStyleColor(ed::StyleColor_NodeBorder, ImColor(state.color[0] * 0.6f, state.color[1] * 0.6f, state.color[2] * 0.6f, 1.0f));
-		ed::PushStyleVar(ed::StyleVar_NodeRounding, 4.0f);
-		break;
-
-	default:
-		break;
-	}
-}
-// PushStateStyle‚Å“K—p‚µ‚½ƒXƒ^ƒCƒ‹‚ğ‰ğœ‚·‚é
-void StudioParentStateGraph::PopStateStyle(const ParentState& state)
-{
-	switch (state.type)
-	{
-	case ParentStateType::Entry:
-		ed::PopStyleVar(1);
-		ed::PopStyleColor(2);
-		break;
-
-	case ParentStateType::State:
-		ed::PopStyleVar(1);
-		ed::PopStyleColor(2);
-		break;
-
-	default:
-		break;
-	}
-}
-
-
-// Link•`‰æ
-void StudioParentStateGraph::DrawLinks()
-{
-	const float arrowTrim = 10.0f; // –îˆó‚Ì’ê•Ó‚ÌˆÊ’u‚Ü‚ÅAü‚ğè‘O‚Éˆø‚­—Ê
-
-	for (const auto& link : graph->parentGraph.stateLinks) 
-	{
-		ImVec2 startPoint, endPoint;
-		CalcLinkPoints(link, startPoint, endPoint);
-
-		if (startPoint.x == 0.0f && startPoint.y == 0.0f &&
-			endPoint.x == 0.0f && endPoint.y == 0.0f)
-		{
-			continue;
-		}
-
-		ImVec2 dir(endPoint.x - startPoint.x, endPoint.y - startPoint.y);
-		float len = sqrtf(dir.x * dir.x + dir.y * dir.y);
-		ImVec2 trimmedEnd = endPoint;
-		if (len > arrowTrim)
-		{
-			trimmedEnd.x = endPoint.x - dir.x / len * arrowTrim;
-			trimmedEnd.y = endPoint.y - dir.y / len * arrowTrim;
-		}
-
-		DrawLinkPins(link, startPoint, trimmedEnd);
-
-		ImDrawList* drawList = ed::GetNodeBackgroundDrawList(ed::NodeId(link.fromId));
-		if (drawList)
-		{
-			const ImU32 linkColor = IM_COL32(210, 210, 210, 255);
-			DrawArrowHead(drawList, startPoint, endPoint, linkColor);
-		}
-	}
-}
-// ƒŠƒ“ƒN1–{•ª‚ÌÚ‘±“_‚ğŒvZ‚·‚é
-void StudioParentStateGraph::CalcLinkPoints(const AnimLink& link, ImVec2& outStart, ImVec2& outEnd)
-{
-	auto fromIt = stateScreenRects.find(link.fromId);
-	auto toIt = stateScreenRects.find(link.toId);
-	if (fromIt == stateScreenRects.end() || toIt == stateScreenRects.end())
-	{
-		outStart = ImVec2();
-		outEnd = ImVec2();
-		return;
-	}
-
-	const ImVec2& fromMin = fromIt->second.first;
-	const ImVec2& fromMax = fromIt->second.second;
-	const ImVec2& toMin = toIt->second.first;
-	const ImVec2& toMax = toIt->second.second;
-
-	ImVec2 fromCenter((fromMin.x + fromMax.x) * 0.5f, (fromMin.y + fromMax.y) * 0.5f);
-	ImVec2 toCenter((toMin.x + toMax.x) * 0.5f, (toMin.y + toMax.y) * 0.5f);
-
-	ImVec2 startPoint = GetEdgePoint(fromMin, fromMax, toCenter);
-	ImVec2 endPoint = GetEdgePoint(toMin, toMax, fromCenter);
-
-	if (HasReverseLink(link.fromId, link.toId))
-	{
-		bool fromIsSmaller = link.fromId < link.toId;
-		const ImVec2& baseCenter = fromIsSmaller ? fromCenter : toCenter;
-		const ImVec2& otherCenter = fromIsSmaller ? toCenter : fromCenter;
-
-		ImVec2 dir(otherCenter.x - baseCenter.x, otherCenter.y - baseCenter.y);
-		float len = sqrtf(dir.x * dir.x + dir.y * dir.y);
-		if (len > 0.0001f)
-		{
-			ImVec2 perp(-dir.y / len, dir.x / len);
-
-			const float offsetAmount = 8.0f;
-			float sign = fromIsSmaller ? 1.0f : -1.0f;
-
-			ImVec2 offset(perp.x * offsetAmount * sign, perp.y * offsetAmount * sign);
-
-			startPoint.x += offset.x;
-			startPoint.y += offset.y;
-			endPoint.x += offset.x;
-			endPoint.y += offset.y;
-		}
-	}
-
-	outStart = startPoint;
-	outEnd = endPoint;
-}
-// ŒvZÏ‚İ‚ÌÀ•W‚Éƒsƒ“‚ğ”z’u‚·‚é
-void StudioParentStateGraph::DrawLinkPins(const AnimLink& link, const ImVec2& start, const ImVec2& end)
-{
-	const int64_t idOffset = 10000000;
-	ed::NodeId outNodeId(idOffset + (int64_t)link.id * 2);
-	ed::NodeId inNodeId(idOffset + (int64_t)link.id * 2 + 1);
-
-	ed::PinId outPinId = GetPinId(link.id, true);
-	ed::PinId inPinId = GetPinId(link.id, false);
-
-	ed::PushStyleVar(ed::StyleVar_NodePadding, ImVec4(0, 0, 0, 0));
-	ed::PushStyleColor(ed::StyleColor_NodeBg, ImColor(0, 0, 0, 0));
-	ed::PushStyleColor(ed::StyleColor_NodeBorder, ImColor(0, 0, 0, 0));
-
-	ed::PushStyleVar(ed::StyleVar_LinkStrength, 0.0f);
-
-	ed::SetNodePosition(outNodeId, start);
-	ed::BeginNode(outNodeId);
-	ed::BeginPin(outPinId, ed::PinKind::Output);
-	ImGui::Dummy(ImVec2(1, 1));
-	ed::EndPin();
-	ed::EndNode();
-
-	ed::SetNodePosition(inNodeId, end);
-	ed::BeginNode(inNodeId);
-	ed::BeginPin(inPinId, ed::PinKind::Input);
-	ImGui::Dummy(ImVec2(1, 1));
-	ed::EndPin();
-	ed::EndNode();
-
-	ed::PopStyleVar(2);
-	ed::PopStyleColor(2);
-
-	ed::Link(ed::LinkId(link.id), outPinId, inPinId);
-}
-// •Ó‚©‚çƒŠƒ“ƒN‚ğL‚Î‚·
-ImVec2 StudioParentStateGraph::GetEdgePoint(const ImVec2& rectMin, const ImVec2& rectMax, const ImVec2& target)
-{
-	ImVec2 center((rectMin.x + rectMax.x) * 0.5f, (rectMin.y + rectMax.y) * 0.5f);
-	float halfW = (rectMax.x - rectMin.x) * 0.5f;
-	float halfH = (rectMax.y - rectMin.y) * 0.5f;
-
-	ImVec2 dir(target.x - center.x, target.y - center.y);
-	if (dir.x == 0.0f && dir.y == 0.0f) return center;
-
-	float scaleX = (dir.x != 0.0f) ? halfW / fabsf(dir.x) : FLT_MAX;
-	float scaleY = (dir.y != 0.0f) ? halfH / fabsf(dir.y) : FLT_MAX;
-	float scale = (scaleX < scaleY) ? scaleX : scaleY;
-
-	return ImVec2(center.x + dir.x * scale, center.y + dir.y * scale);
-}
-// ‘o•ûŒü‚ÌLink‚ª‚ ‚é‚©Šm”F‚·‚é
-bool StudioParentStateGraph::HasReverseLink(int fromId, int toId) const
-{
-	for (const auto& link : graph->parentGraph.stateLinks) 
-	{
-		if (link.fromId == toId && link.toId == fromId)
-		{
-			return true;
-		}
-	}
-	return false;
-}
-// –îˆó•`‰æ
-void StudioParentStateGraph::DrawArrowHead(ImDrawList* drawList, const ImVec2& start, const ImVec2& end, ImU32 color)
-{
-	ImVec2 dir(end.x - start.x, end.y - start.y);
-	float len = sqrtf(dir.x * dir.x + dir.y * dir.y);
-	if (len < 0.0001f) return;
-
-	dir.x /= len;
-	dir.y /= len;
-
-	ImVec2 perp(-dir.y, dir.x);
-
-	const float arrowLength = 18.0f;
-	const float arrowWidth = 13.0f;
-
-	ImVec2 tip = end;
-	ImVec2 baseCenter(end.x - dir.x * arrowLength, end.y - dir.y * arrowLength);
-	ImVec2 baseLeft(baseCenter.x + perp.x * arrowWidth * 0.5f, baseCenter.y + perp.y * arrowWidth * 0.5f);
-	ImVec2 baseRight(baseCenter.x - perp.x * arrowWidth * 0.5f, baseCenter.y - perp.y * arrowWidth * 0.5f);
-
-	drawList->AddTriangleFilled(tip, baseLeft, baseRight, color);
-}
-
-
-// ‰EƒNƒŠƒbƒNƒƒjƒ…[
-void StudioParentStateGraph::DrawCreateStateMenu()
-{
-	ed::Suspend();
-	if (ed::ShowBackgroundContextMenu())
-	{
-		pendingCreatePos = ImGui::GetMousePos();
-		ImGui::OpenPopup("CreateNewState");
-	}
-	if (ImGui::BeginPopup("CreateNewState"))
-	{
-		if (ImGui::MenuItem(u8"State"))
-		{
-			ImVec2 canvasPos = ed::ScreenToCanvas(pendingCreatePos);
-			int newId = graph->parentGraph.CreateParentState("New State", canvasPos.x, canvasPos.y);
-			ed::SetNodePosition(ed::NodeId(newId), canvasPos);
-		}
-		ImGui::EndPopup();
-	}
-	ed::Resume();
-}
-// Linkì¬‚Ì‹N“_‘I‘ğ(State‰EƒNƒŠƒbƒN)
-void StudioParentStateGraph::DrawStateContextMenu()
-{
-	static ed::NodeId contextNodeId;
-
-	ed::Suspend();
-	if (ed::ShowNodeContextMenu(&contextNodeId))
-	{
-		ImGui::OpenPopup("NodeContextMenu");
-	}
-	if (ImGui::BeginPopup("NodeContextMenu"))
-	{
-		if (ImGui::MenuItem(u8"Link"))
-		{
-			pendingLinkFromId = (int)contextNodeId.Get();
-		}
-		ImGui::EndPopup();
-	}
-	ed::Resume();
-}
-// Linkì¬ƒ‚[ƒh’†‚Ì“ü—Íˆ—
-void StudioParentStateGraph::UpdateLinkCreation()
-{
-	if (pendingLinkFromId == -1) return;
-
-	if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
-	{
-		ed::NodeId hovered = ed::GetHoveredNode();
-
-		if (hovered && (int)hovered.Get() != pendingLinkFromId)
-		{
-			int targetId = (int)hovered.Get();
-
-			bool targetIsEntry = false;
-			for (const auto& state : graph->parentGraph.states)
-			{
-				if (state.id == targetId && state.type == ParentStateType::Entry)
-				{
-					targetIsEntry = true;
-					break;
-				}
-			}
-
-			if (!targetIsEntry)
-			{
-				graph->parentGraph.CreateParentLink(pendingLinkFromId, targetId);
-				graph->transitionGraph.CreateLink(pendingLinkFromId, targetId);
-			}
-		}
-
-		pendingLinkFromId = -1;
-	}
-}
-// Linkì¬’†‚ÌƒvƒŒƒrƒ…[ü•`‰æ
-void StudioParentStateGraph::DrawPendingLink()
-{
-	if (pendingLinkFromId == -1) return;
-
-	auto it = stateScreenRects.find(pendingLinkFromId);
-	if (it == stateScreenRects.end()) return;
-
-	ImVec2 mousePos = ImGui::GetMousePos();
-	ImVec2 startPoint = GetEdgePoint(it->second.first, it->second.second, mousePos);
-
-	ImDrawList* drawList = ed::GetNodeBackgroundDrawList(ed::NodeId(pendingLinkFromId));
-	if (!drawList) return;
-
-	const ImU32 previewColor = IM_COL32(255, 200, 80, 255);
-
-	drawList->AddLine(startPoint, mousePos, previewColor, 2.0f);
-}
-
-// ‘I‘ğó‘Ô‚ğXV
-void StudioParentStateGraph::UpdateSelection()
-{
-	selectedState = nullptr;
-	selectedLink = nullptr;
-
-	if (ed::GetSelectedObjectCount() == 0) return;
-
-	ed::NodeId selectedNodeId;
-	if (ed::GetSelectedNodes(&selectedNodeId, 1) > 0)
-	{
-		for (auto& state : graph->parentGraph.states)
-		{
-			if (state.id == (int)selectedNodeId.Get())
-			{
-				selectedState = &state;
-				return;
-			}
-		}
-	}
-
-	ed::LinkId selectedLinkId;
-	if (ed::GetSelectedLinks(&selectedLinkId, 1) > 0)
-	{
-		for (auto& link : graph->parentGraph.stateLinks)
-		{
-			if (link.id == (int)selectedLinkId.Get())
-			{
-				selectedLink = &link;
-				return;
-			}
-		}
-	}
-}
-
-// State‘I‘ğ‚ÌInspector
-void StudioParentStateGraph::DrawStateInspector(ParentState* state)
-{
-	if (state->type == ParentStateType::Entry)
-	{
-		ImGui::Text("Entry");
-		ImGui::TextDisabled("This is a unique node and cannot be edited.");
-		return;
-	}
-
-	char nameBuf[256];
-	strncpy_s(nameBuf, state->name.c_str(), sizeof(nameBuf) - 1);
-	if (ImGui::InputText("Name", nameBuf, sizeof(nameBuf)))
-	{
-		state->name = nameBuf;
-	}
-
-	ImGui::ColorEdit3("Color", state->color);
-
-	// qŠK‘w‚ğ•ÒW‚·‚é‰æ–Ê‚Ö
-	if (ImGui::Button("Edit Child States", ImVec2(-1.0f, 0.0f)))
-	{
-		pendingNavigation = NavigationRequest::EditChildGraph;
-	}
-
-	int stateId = state->id;
-	DrawDeleteButton("Delete State", [this, stateId]() { graph->DeleteParentState(stateId); });
-}
-// Link‘I‘ğ‚ÌInspector
-void StudioParentStateGraph::DrawLinkInspector(AnimLink* link)
-{
-	const ParentState* fromState = nullptr;
-	const ParentState* toState = nullptr;
-	for (const auto& state : graph->parentGraph.states)
-	{
-		if (state.id == link->fromId) fromState = &state;
-		if (state.id == link->toId)   toState = &state;
-	}
-
-	std::string fromName = fromState ? fromState->name : "?";
-	std::string toName = toState ? toState->name : "?";
-
-	ImGui::TextWrapped("%s -> %s", fromName.c_str(), toName.c_str());
-
-	ImGui::Checkbox("Blend", &link->blend);
-	if (link->blend)
-	{
-		ImGui::DragFloat("Blend Duration", &link->blendDuration, 0.01f, 0.0f, 5.0f, "%.2f s");
-	}
-
-	if (ImGui::Button("Edit Condition", ImVec2(-1.0f, 0.0f)))
-	{
-		pendingNavigation = NavigationRequest::EditCondition;
-	}
-
-	int linkId = link->id;
-	int fromId = link->fromId;
-	int toId = link->toId;
-	DrawDeleteButton("Delete Link", [this, linkId, fromId, toId]()
-		{
-			graph->parentGraph.DeleteParentLink(linkId);
-
-			// “¯‚¶fromId/toId‚Ì‘g‚Åì‚ç‚ê‚½‘JˆÚ—pƒŠƒ“ƒN‚àˆê‚ÉÁ‚·
-			auto& tLinks = graph->transitionGraph.links;
-			tLinks.erase(
-				std::remove_if(tLinks.begin(), tLinks.end(),
-					[fromId, toId](const TransitionLink& l)
-					{
-						return l.fromId == fromId && l.toId == toId;
-					}),
-				tLinks.end()
-			);
-		});
-}
-
-// ƒm[ƒh“à‚Å’†‰›Šñ‚¹‚É‚·‚é
-void StudioParentStateGraph::CenterNextItem(float totalWidth, float itemWidth)
-{
-	float pad = (totalWidth - itemWidth) * 0.5f;
-	if (pad > 0.0f)
-	{
-		ImGui::Dummy(ImVec2(pad, 0.0f));
-		ImGui::SameLine(0.0f, 0.0f);
-	}
-}
-// ‹¤’Ê‚Ìíœƒ{ƒ^ƒ“
-void StudioParentStateGraph::DrawDeleteButton(const char* label, const std::function<void()>& onDelete)
-{
-	ImGui::Spacing();
-	ImGui::Spacing();
-
-	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.15f, 0.15f, 1.0f));
-	ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.85f, 0.2f, 0.2f, 1.0f));
-	ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.6f, 0.1f, 0.1f, 1.0f));
-
-	bool pressed = ImGui::Button(label, ImVec2(-1.0f, 0.0f));
-
-	ImGui::PopStyleColor(3);
-
-	if (pressed)
-	{
-		onDelete();
-	}
-} 
- 
 ===== StudioSequencer.cpp ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Studio\StudioSequencer.cpp 
 #include "StudioSequencer.h"
@@ -26206,6 +23243,732 @@ const char* StudioSequencer::GetSequencerFlagName(SequencerFlag flag)
 }
  
  
+===== StudioStateGraph.cpp ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Studio\StudioStateGraph.cpp 
+#include "StudioStateGraph.h"
+#include <fstream>
+#include <filesystem>
+#include <algorithm>
+#include <imgui.h>
+#include <json.hpp>
+#include <cmath>
+#include <cfloat>
+
+#include "Tool/Editor/ProjectWindow.h"
+
+void StudioStateGraph::Initialize()
+{
+	// eŠK‘wƒLƒƒƒ“ƒoƒX‰Šú‰»
+	parentCanvas.Initialize();
+}
+
+void StudioStateGraph::DrawGUI(entt::registry& registry, StudioContext& context)
+{
+	// •R‚Ã‚¢‚½ƒtƒ@ƒCƒ‹‚ª•Ï‚í‚Á‚½‚ç“Ç‚İ‚Ş
+	if (!loaded && !context.attachedGraphPath.empty())
+	{
+		Load(context);
+		loaded = true;
+	}
+
+	std::string panelName = "StateGraph##" + std::to_string(windowId);
+	bool open = ImGui::Begin(panelName.c_str());
+	if (open)
+	{
+		DrawToolbar(context);
+
+		ImGui::Columns(2, "StateGraphColumns", true);
+		if (!columnWidthInitialized)
+		{
+			ImGui::SetColumnWidth(0, ImGui::GetWindowWidth() * 0.75f);
+			columnWidthInitialized = true;
+		}
+
+		// ¶FƒOƒ‰ƒt
+		parentCanvas.Draw(data);
+		DrawDropTarget(context);
+
+		ImGui::NextColumn();
+
+		// ‰EFƒCƒ“ƒXƒyƒNƒ^[(c-2‚Åì‚éB¡‚Í‘I‘ğ‚ÌŠm”F—p)
+		int linkId = parentCanvas.GetSelectedLinkId();
+		int stateId = parentCanvas.GetSelectedNodeKey();
+		if (linkId != -1)
+		{
+			ImGui::Text("Link: %d", linkId);
+		}
+		else if (stateId == StateMachineData::kEntryId)
+		{
+			ImGui::Text("Entry");
+		}
+		else if (const StateNode* s = std::as_const(data).FindState(stateId))
+		{
+			ImGui::Text("State: %s", s->name.c_str());
+		}
+		else
+		{
+			ImGui::TextDisabled("Nothing selected.");
+		}
+
+		// ‘I‘ğ‚µ‚Ä‚¢‚é•¨‚Ìíœ(•¶š‚ğ“ü—Í’†‚ÍADeleteƒL[‚ğ•¶š‚Ìíœ‚Ég‚¤‚Ì‚Åœ‚­)
+		if (ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows) &&
+			!ImGui::GetIO().WantTextInput &&
+			ImGui::IsKeyPressed(ImGuiKey_Delete))
+		{
+			parentCanvas.DeleteSelection(data);
+		}
+
+		ImGui::Columns(1);
+	}
+
+	ImGui::End(); 
+}
+
+// ƒc[ƒ‹ƒo[
+void StudioStateGraph::DrawToolbar(StudioContext& context)
+{
+	if (ImGui::Button("New"))
+	{
+		NewGraph(context);
+	}
+	ImGui::SameLine();
+	if (ImGui::Button("Save"))
+	{
+		Save(context);
+	}
+	ImGui::SameLine();
+	if (!context.attachedGraphPath.empty())
+	{
+		ImGui::TextDisabled("%s", context.attachedGraphPath.c_str());
+	}
+	else
+	{
+		ImGui::TextDisabled("Not saved yet.");
+	}
+
+	// ƒtƒ@ƒCƒ‹‚Ì“Ç‚İ‘‚«‚Ì¸”s‚È‚Ç
+	if (!message.empty())
+	{
+		ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f), "%s", message.c_str());
+	}
+	// ŒŸØƒGƒ‰[
+	if (hasErrors)
+	{
+		ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.3f, 1.0f), "Validation errors. See Log.");
+	}
+
+	ImGui::Separator();
+}
+
+// .stategraph‚Ìƒhƒƒbƒvó‚¯Œû
+void StudioStateGraph::DrawDropTarget(StudioContext& context)
+{
+	if (ImGui::BeginDragDropTarget())
+	{
+		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("STATEGRAPH_PATH"))
+		{
+			std::string path(static_cast<const char*>(payload->Data));
+			TryOpen(path, context);
+		}
+		ImGui::EndDragDropTarget();
+	}
+}
+
+// ƒhƒƒbƒv‚³‚ê‚½ƒtƒ@ƒCƒ‹‚ªŠJ‚¯‚é‚©Šm”F
+void StudioStateGraph::TryOpen(const std::string& path, StudioContext& context)
+{
+	std::ifstream ifs(path);
+	if (!ifs.is_open())
+	{
+		message = "Failed to open file.";
+		return;
+	}
+
+	std::string sourceModelPath;
+	try
+	{
+		nlohmann::json j;
+		ifs >> j;
+		sourceModelPath = j.value("sourceModelPath", "");
+	}
+	catch (const std::exception&)
+	{
+		message = "Invalid json.";
+		return;
+	}
+
+	// •Ê‚Ìƒ‚ƒfƒ‹—p‚ÌƒOƒ‰ƒt‚ÍŠJ‚©‚È‚¢
+	if (!sourceModelPath.empty() && sourceModelPath != context.currentModelPath)
+	{
+		message = "This graph belongs to a different model.";
+		return;
+	}
+
+	message.clear();
+	context.attachedGraphPath = path;
+	loaded = false; // Ÿ‚ÌƒtƒŒ[ƒ€‚Å“Ç‚İ‚Ş
+}
+
+// •Û‘¶
+void StudioStateGraph::Save(StudioContext& context)
+{
+	// ‚Ü‚¾•Û‘¶æ‚ª–³‚¯‚ê‚Î ©“®‚ÅŒˆ‚ß‚é
+	if (context.attachedGraphPath.empty())
+	{
+		context.attachedGraphPath = BuildNewSavePath(context);
+		loaded = true; // ¡‚Ìƒf[ƒ^‚ª‚»‚Ì‚Ü‚Ü•Û‘¶æ‚Ì“à—e‚É‚È‚é‚Ì‚ÅA“Ç‚İ’¼‚³‚È‚¢
+	}
+
+	// ì‚è‚©‚¯‚Å‚à•Û‘¶‚Í‚Å‚«‚éAƒGƒ‰[‚Ì—L–³‚Íƒc[ƒ‹ƒo[‚É•\¦‚·‚é
+	hasErrors = !data.Validate(context.attachedGraphPath);
+
+	nlohmann::ordered_json j = data.ToJson();
+	j["sourceModelPath"] = context.currentModelPath;
+
+	std::ofstream ofs(context.attachedGraphPath);
+	if (!ofs.is_open())
+	{
+		message = "Failed to save file.";
+		return;
+	}
+	ofs << j.dump(4);
+	message.clear();
+}
+// “Ç‚İ‚İ
+void StudioStateGraph::Load(StudioContext& context)
+{
+	std::ifstream ifs(context.attachedGraphPath);
+	if (!ifs.is_open())
+	{
+		message = "Failed to open file.";
+		return;
+	}
+
+	try
+	{
+		nlohmann::json j;
+		ifs >> j;
+
+		// ŒŸØ‚ÅƒGƒ‰[‚ª‚ ‚Á‚Ä‚àA’¼‚·‚½‚ß‚É“Ç‚İ‚ñ‚¾ó‘Ô‚ÅŠJ‚­
+		hasErrors = !data.FromJson(j, context.attachedGraphPath);
+	
+		// ‘I‘ğ‚È‚Ç‚ğ–ß‚·
+		parentCanvas.Reset();
+
+		message.clear();
+	}
+	catch (const std::exception&)
+	{
+		message = "Invalid json.";
+	}
+}
+
+// V‹Kì¬
+void StudioStateGraph::NewGraph(StudioContext& context)
+{
+	data.Clear();
+
+	// ‘I‘ğ‚È‚Ç‚ğ–ß‚·
+	parentCanvas.Reset();
+
+	context.attachedGraphPath.clear();
+	loaded = true;     // ‹ó‚ÌƒOƒ‰ƒt‚ğA“Ç‚İ‚İÏ‚İ‚Æ‚µ‚Äˆµ‚¤
+	hasErrors = false; // ì‚èn‚ß‚È‚Ì‚ÅAŒŸØ‚Í•Û‘¶‚És‚¤
+	message.clear();
+}
+
+// •Û‘¶æ‚ÌƒpƒX‚ğŒˆ‚ß‚é
+std::string StudioStateGraph::BuildNewSavePath(const StudioContext& context) const
+{
+	std::filesystem::path saveDir = "Data/Json/StateGraph";
+	std::filesystem::create_directories(saveDir);
+
+	std::string modelName = std::filesystem::path(context.currentModelPath).stem().string();
+	if (modelName.empty()) modelName = "NewStateGraph";
+
+	std::string uniqueName = ProjectWindow::GenerateUniqueName(saveDir, modelName + ".stategraph");
+	std::string result = (saveDir / uniqueName).string();
+	std::replace(result.begin(), result.end(), '\\', '/');
+	return result;
+} 
+ 
+===== StudioStateParentCanvas.cpp ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Studio\StudioStateParentCanvas.cpp 
+#include "StudioStateParentCanvas.h"
+#include <cmath>
+#include <cfloat>
+#include <imgui.h>
+
+void StudioStateParentCanvas::Initialize()
+{
+	// ƒm[ƒhƒGƒfƒBƒ^‚ÌƒRƒ“ƒeƒLƒXƒg‚ğì¬
+	canvas.Initialize();
+}
+
+// ƒLƒƒƒ“ƒoƒX‚ğ•`‚­
+void StudioStateParentCanvas::Draw(StateMachineData& graph)
+{
+	data = &graph;
+
+	// ƒLƒƒƒ“ƒoƒXì¬
+	canvas.Begin("StateParentCanvas");
+
+	// ƒm[ƒh‚Ì‹éŒ`‚Í–ˆƒtƒŒ[ƒ€ì‚è’¼‚·
+	nodeRects.clear();
+
+	// ƒm[ƒh•`‰æ
+	DrawEntryNode();
+	DrawStateNodes();
+
+	// ˆÊ’u‚Ì”½‰f‚ÍA“Ç‚İ‚İ’¼Œã‚Ì1ƒtƒŒ[ƒ€‚¾‚¯
+	needsApplyPositions = false; 
+
+	// ƒŠƒ“ƒN•`‰æ
+	DrawLinks();
+	DrawPendingLink();
+
+	// ƒƒjƒ…[•`‰æ
+	DrawBackgroundMenu();
+	DrawNodeMenu();
+
+	// “ü—ÍXV
+	UpdateLinkCreation();
+	UpdateSelection();
+
+	// ƒLƒƒƒ“ƒoƒXI—¹
+	canvas.End();
+}
+
+// ‘I‘ğ‚µ‚Ä‚¢‚é•¨‚ğíœ
+void StudioStateParentCanvas::DeleteSelection(StateMachineData& graph)
+{
+	// ‘I‘ğ’†‚ÌƒŠƒ“ƒN‚Æ‘JˆÚæ‚ÌƒGƒ“ƒgƒŠ[‚ğíœ
+	if (selectedLinkId != -1)
+	{
+		graph.RemoveTransition(selectedLinkId);
+		selectedLinkId = -1;
+		return;
+	}
+
+	// ‘I‘ğ’†‚ÌƒXƒe[ƒgíœ (Entry‚Ííœ•s‰Â)
+	if (selectedNodeKey != -1 && selectedNodeKey != StateMachineData::kEntryId)
+	{
+		graph.RemoveState(selectedNodeKey);
+		selectedNodeKey = -1;
+	}
+}
+
+// “Ç‚İ‚İEV‹Kì¬‚Ì‚Æ‚«‚ÉA‘I‘ğ‚È‚Ç‚ğ–ß‚·
+void StudioStateParentCanvas::Reset()
+{
+	needsApplyPositions = true;
+	selectedNodeKey = -1;
+	selectedLinkId = -1;
+	pendingFromKey = -1;
+	contextNodeKey = -1;
+}
+
+// ƒGƒ“ƒgƒŠ[ƒm[ƒh•`‰æ
+void StudioStateParentCanvas::DrawEntryNode()
+{
+	ed::NodeId nodeId = ToNodeId(StateMachineData::kEntryId);
+	
+	// “Ç‚İ‚İ’¼Œã‚Íƒf[ƒ^‚ÌˆÊ’u‚Éƒm[ƒh‚ğ”½‰f
+	if (needsApplyPositions)
+	{
+		ed::SetNodePosition(nodeId, ImVec2(data->entry.editorPos.x, data->entry.editorPos.y));
+	}
+
+	// Entry‚Í—Î‚Å•`‰æ
+	ed::PushStyleColor(ed::StyleColor_NodeBg, ImColor(46, 125, 50, 255));
+	ed::PushStyleColor(ed::StyleColor_NodeBorder, ImColor(27, 94, 32, 255));
+	ed::BeginNode(nodeId);
+	ImGui::Text("Entry");
+	ImGui::Dummy(ImVec2(80.0f, 0.0f));
+	ed::EndNode();
+	ed::PopStyleColor(2);
+
+	// ƒŠƒ“ƒN‚ÌŒvZ‚Ég‚¤‹éŒ`‚ğ‹L˜^
+	nodeRects[StateMachineData::kEntryId] = { ImGui::GetItemRectMin(), ImGui::GetItemRectMax() };
+
+	// ƒm[ƒh‚ğ“®‚©‚µ‚½‚çAƒf[ƒ^‚ÌˆÊ’u‚É‘‚«–ß‚·
+	ImVec2 pos = ed::GetNodePosition(nodeId);
+	data->entry.editorPos = { pos.x, pos.y };
+}
+
+// ƒXƒe[ƒg•`‰æ
+void StudioStateParentCanvas::DrawStateNodes()
+{
+	for (auto& s : data->states)
+	{
+		ed::NodeId nodeId = ToNodeId(s.id);
+
+		// “Ç‚İ‚İ’¼Œã‚Íƒf[ƒ^‚ÌˆÊ’u‚Éƒm[ƒh‚ğ”½‰f
+		if (needsApplyPositions)
+		{
+			ed::SetNodePosition(nodeId, ImVec2(s.editorPos.x, s.editorPos.y));
+		}
+
+		// State–ˆ‚ÌF‚ğ‘‚­
+		const float* c = s.editorColor;
+		ed::PushStyleColor(ed::StyleColor_NodeBg, ImColor(c[0], c[1], c[2], 1.0f));
+		ed::PushStyleColor(ed::StyleColor_NodeBorder, ImColor(c[0] * 0.6f, c[1] * 0.6f, c[2] * 0.6f, 1.0f));
+		ed::BeginNode(nodeId);
+		ImGui::Text("%s", s.name.c_str());
+		ImGui::Dummy(ImVec2(80.0f, 0.0f));
+		ed::EndNode();
+		ed::PopStyleColor(2);
+
+		// ƒŠƒ“ƒN‚ÌŒvZ‚Ég‚¤‹éŒ`‚ğ‹L˜^
+		nodeRects[s.id] = { ImGui::GetItemRectMin(), ImGui::GetItemRectMax() };
+
+		// ƒm[ƒh‚ğ“®‚©‚µ‚½‚çAƒf[ƒ^‚ÌˆÊ’u‚É‘‚«–ß‚·
+		ImVec2 pos = ed::GetNodePosition(nodeId);
+		s.editorPos = { pos.x, pos.y };
+	}
+}
+
+// ƒŠƒ“ƒN•`‰æ
+void StudioStateParentCanvas::DrawLinks()
+{
+	ImDrawList* drawList = ImGui::GetWindowDrawList();
+
+	// ƒNƒŠƒbƒN”»’è—p‚Ìü‚Í–ˆƒtƒŒ[ƒ€ì‚è’¼‚·
+	linkSegments.clear();
+
+	// 2ŒÂ‚Ìƒm[ƒh‚ÌŠÔ‚É•¡”ƒŠƒ“ƒN‚ª‚ ‚é‚Æ‚«‰½–{–Ú‚©‹L˜^‚·‚é
+	std::unordered_map<int64_t, int> laneCounts;
+
+	// ƒŠƒ“ƒN1–{•ª‚ğ•`‰æ
+	auto drawOne = [&](int fromKey, const StateTransition& t)
+		{
+			// ‘JˆÚŒ³‚Æ‘JˆÚæ‚Ì‘g‚İ‡‚í‚¹‚ğ1‚Â‚Ì’l‚É‚Ü‚Æ‚ß‚Ä‰½–{–Ú‚©‚ğ”‚¦‚é
+			int64_t pairKey = (static_cast<int64_t>(fromKey) << 32) | static_cast<uint32_t>(t.toStateId);
+			int lane = laneCounts[pairKey]++;
+
+			ImVec2 start, end;
+			if (!CalcLinkPoints(fromKey, t.toStateId, lane, start, end)) return;
+
+			bool selected = (t.id == selectedLinkId);
+			bool invalid = (!t.always && t.condition.IsEmpty());
+
+			// ³í(”’F) ğŒ‚È‚µ(ÔF) ‘I‘ğ’†(‰©F)
+			ImU32 color = IM_COL32(210, 210, 210, 255);
+			if (invalid)  color = IM_COL32(230, 90, 90, 255);   // ğŒ‚Ìİ’è˜R‚ê
+			if (selected) color = IM_COL32(255, 200, 80, 255);  // ‘I‘ğ’†
+
+			DrawArrow(drawList, start, end, color, selected ? 3.0f : 2.0f);
+
+			// ƒNƒŠƒbƒN”»’è‚Ì‚½‚ß‚É•`‚¢‚½ƒŠƒ“ƒN‚ğ‹L˜^
+			linkSegments.push_back({ t.id, start, end });
+		};
+
+	// Entry‚©‚ço‚éƒŠƒ“ƒN
+	for (const auto& t : data->entry.transitions) drawOne(StateMachineData::kEntryId, t);
+	
+	// ‘‚­State‚©‚ço‚éƒŠƒ“ƒN
+	for (const auto& s : data->states)
+	{
+		for (const auto& t : s.transitions) drawOne(s.id, t);
+	}
+}
+
+// ì¬’†‚ÌƒŠƒ“ƒN•`‰æ
+void StudioStateParentCanvas::DrawPendingLink()
+{
+	if (pendingFromKey == -1) return;
+
+	auto it = nodeRects.find(pendingFromKey);
+	if (it == nodeRects.end()) return;
+
+	// ‘JˆÚŒ³‚Ìƒm[ƒh‚Ì‰‚©‚çAƒ}ƒEƒX‚ÌˆÊ’u‚Ü‚Åü‚ğˆø‚­
+	ImVec2 mouse = ImGui::GetMousePos();
+	ImVec2 start = GetEdgePoint(it->second.first, it->second.second, mouse);
+	DrawArrow(ImGui::GetWindowDrawList(), start, mouse, IM_COL32(255, 200, 80, 255), 2.0f);
+}
+
+// ”wŒi‰EƒNƒŠƒbƒN‚Ìƒƒjƒ…[
+void StudioStateParentCanvas::DrawBackgroundMenu()
+{
+	ed::Suspend();
+
+	// ƒ|ƒbƒv‚ğŠJ‚­ƒŠƒNƒGƒXƒg
+	if (ed::ShowBackgroundContextMenu())
+	{
+		pendingCreatePos = ImGui::GetMousePos(); // ƒ}ƒEƒXˆÊ’u•Û‘¶
+		ImGui::OpenPopup("StateParentBackgroundMenu");
+	}
+
+	// ƒ|ƒbƒv“à—e
+	if (ImGui::BeginPopup("StateParentBackgroundMenu"))
+	{
+		// ‰EƒNƒŠƒbƒN‚µ‚½ˆÊ’u‚ÉState‚ğì‚é
+		if (ImGui::MenuItem("Create State"))
+		{
+			ImVec2 canvasPos = ed::ScreenToCanvas(pendingCreatePos);
+			int newId = data->AddState("New State", { canvasPos.x, canvasPos.y });
+			ed::SetNodePosition(ToNodeId(newId), canvasPos);
+		}
+		ImGui::EndPopup();
+	}
+
+	ed::Resume();
+}
+
+// ƒm[ƒh‰EƒNƒŠƒbƒN‚Ìƒƒjƒ…[
+void StudioStateParentCanvas::DrawNodeMenu()
+{
+	ed::Suspend();
+
+	ed::NodeId nodeId;
+	if (ed::ShowNodeContextMenu(&nodeId))
+	{
+		// ƒƒjƒ…[‚ğ•Â‚¶‚é‚Ü‚Å‚Ç‚Ìƒm[ƒh‚Ìƒƒjƒ…[‚©‚ğ‹L˜^
+		contextNodeKey = ToNodeKey(nodeId);
+
+		// ƒ|ƒbƒv‚ğŠJ‚­ƒŠƒNƒGƒXƒg
+		ImGui::OpenPopup("StateParentNodeMenu");
+	}
+
+	// ƒ|ƒbƒv“à—e
+	if (ImGui::BeginPopup("StateParentNodeMenu"))
+	{
+		// ƒŠƒ“ƒNì¬ŠJn
+		if (ImGui::MenuItem("Make Link"))
+		{
+			pendingFromKey = contextNodeKey;
+		}
+
+		// Entry‚Ííœ‚Å‚«‚È‚¢
+		if (contextNodeKey != StateMachineData::kEntryId && ImGui::MenuItem("Delete"))
+		{
+			data->RemoveState(contextNodeKey);
+			if (selectedNodeKey == contextNodeKey) selectedNodeKey = -1;
+			selectedLinkId = -1;
+		}
+		ImGui::EndPopup();
+	}
+
+	ed::Resume();
+}
+
+// ƒŠƒ“ƒNì¬’†‚Ì“ü—Í
+void StudioStateParentCanvas::UpdateLinkCreation()
+{
+	if (pendingFromKey == -1) return;
+
+	// Esc‚Åæ‚èÁ‚µ
+	if (ImGui::IsKeyPressed(ImGuiKey_Escape))
+	{
+		pendingFromKey = -1;
+		return;
+	}
+
+	// 
+	if (!ImGui::IsMouseClicked(ImGuiMouseButton_Left)) return;
+
+	// ƒNƒŠƒbƒN‚µ‚½ˆÊ’u‚Éƒm[ƒh‚ª‚ ‚ê‚Î‚»‚±‚ğs‚«æ‚É‚·‚é
+	ed::NodeId hovered = ed::GetHoveredNode();
+	if (hovered)
+	{
+		int toKey = ToNodeKey(hovered);
+
+		// Entry‚Ö‚ÌƒŠƒ“ƒN‚ÆA©•ª©g‚Ö‚ÌƒŠƒ“ƒN‚Íì‚ç‚È‚¢
+		if (toKey != StateMachineData::kEntryId && toKey != pendingFromKey)
+		{
+			int newId = data->AddTransition(pendingFromKey, toKey);
+			if (newId != -1)
+			{
+				// ì‚Á‚½ƒŠƒ“ƒN‚ğ‘I‘ğó‘Ô‚É‚·‚é
+				selectedLinkId = newId;
+				selectedNodeKey = -1;
+				ed::ClearSelection();
+			}
+		}
+	}
+
+	pendingFromKey = -1;
+}
+
+// ‘I‘ğ‚ÌXV
+void StudioStateParentCanvas::UpdateSelection()
+{
+	// ƒm[ƒh‚Ì‘I‘ğ
+	ed::NodeId selectedNode;
+	if (ed::GetSelectedNodes(&selectedNode, 1) > 0)
+	{
+		selectedNodeKey = ToNodeKey(selectedNode);
+		selectedLinkId = -1;
+	}
+	else if (selectedLinkId == -1)
+	{
+		// ƒm[ƒh‚àƒŠƒ“ƒN‚à‘I‚Î‚ê‚Ä‚¢‚È‚¢
+		selectedNodeKey = -1;
+	}
+
+	// ƒŠƒ“ƒN‚Ì”»’è
+	if (pendingFromKey != -1) return;
+	if (!ImGui::IsMouseClicked(ImGuiMouseButton_Left)) return;
+	if (!ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows)) return;
+	if (ed::GetHoveredNode()) return;
+
+	// ƒm[ƒhƒGƒfƒBƒ^‚Ì’†‚Å‚ÍAƒ}ƒEƒX‚ÌˆÊ’u‚ÍƒLƒƒƒ“ƒoƒX‚ÌÀ•W‚Å•Ô‚é(ü‚ÌÀ•W‚Æ“¯‚¶)
+	ImVec2 mouse = ImGui::GetMousePos();
+	const float hitDistance = 6.0f;
+
+	// ƒNƒŠƒbƒN‚µ‚½ˆÊ’u‚©‚çˆê”Ô‹ß‚¢ƒŠƒ“ƒN‚ğ’T‚·(‰“‚·‚¬‚éê‡‚Í‘I‚Î‚È‚¢)
+	int hitId = -1;
+	float best = hitDistance;
+	for (const auto& seg : linkSegments)
+	{
+		float d = DistanceToSegment(mouse, seg.start, seg.end);
+		if (d < best)
+		{
+			best = d;
+			hitId = seg.linkId;
+		}
+	}
+
+	// ü‚Ì‚È‚¢‚Æ‚±‚ë‚ğƒNƒŠƒbƒN‚µ‚½‚ç‘I‘ğ‰ğœ
+	selectedLinkId = hitId;
+	if (hitId != -1)
+	{
+		selectedNodeKey = -1;
+		ed::ClearSelection();
+	}
+}
+
+// fromKey‚©‚çtoStateId‚Ö‚ÌƒŠƒ“ƒN‚ª‚ ‚é‚©
+bool StudioStateParentCanvas::HasLink(int fromKey, int toStateId) const
+{
+	// ‘JˆÚŒ³‚ÌƒŠƒ“ƒN‚Ìˆê——
+	const std::vector<StateTransition>* list = nullptr;
+	if (fromKey == StateMachineData::kEntryId)
+	{
+		list = &data->entry.transitions;
+	}
+	else if (const StateNode* s = std::as_const(*data).FindState(fromKey))
+	{
+		list = &s->transitions;
+	}
+	if (!list) return false;
+
+	for (const auto& t : *list)
+	{
+		if (t.toStateId == toStateId) return true;
+	}
+	return false;
+}
+
+// ü‚Ìn“_‚ÆI“_‚ğ‹‚ß‚é
+bool StudioStateParentCanvas::CalcLinkPoints(int fromKey, int toStateId, int lane, ImVec2& outStart, ImVec2& outEnd) const
+{
+	auto fromIt = nodeRects.find(fromKey);
+	auto toIt = nodeRects.find(toStateId);
+	if (fromIt == nodeRects.end() || toIt == nodeRects.end()) return false;
+
+	const auto& [fromMin, fromMax] = fromIt->second;
+	const auto& [toMin, toMax] = toIt->second;
+	ImVec2 fromCenter((fromMin.x + fromMax.x) * 0.5f, (fromMin.y + fromMax.y) * 0.5f);
+	ImVec2 toCenter((toMin.x + toMax.x) * 0.5f, (toMin.y + toMax.y) * 0.5f);
+
+	// ƒm[ƒh‚Ì’†S“¯m‚ğŒ‹‚Ôü‚ª‚»‚ê‚¼‚ê‚Ì‰‚ÆŒğ‚í‚é“_‚ğn“_‚ÆI“_‚É‚·‚é
+	outStart = GetEdgePoint(fromMin, fromMax, toCenter);
+	outEnd = GetEdgePoint(toMin, toMax, fromCenter);
+
+	// ‹tŒü‚«‚Ìü‚ª‚ ‚éê‡‚âA“¯‚¶Œü‚«‚É•¡”‚ ‚éê‡‚ÍAü‚ğ‰¡‚É‚¸‚ç‚·
+	bool hasReverse = HasLink(toStateId, fromKey);
+	float offset = (hasReverse ? 8.0f : 0.0f) + lane * 10.0f;
+	if (offset <= 0.0f) return true;
+
+	// ‰•œ‚Ìü‚ª”½‘Î‘¤‚É‚¸‚ê‚é‚æ‚¤‚ÉAID‚Ì¬‚³‚¢‚Ù‚¤‚©‚çŒ©‚½Œü‚«‚ğŠî€‚É‚·‚é
+	bool fromIsSmaller = fromKey < toStateId;
+	ImVec2 baseFrom = fromIsSmaller ? fromCenter : toCenter;
+	ImVec2 baseTo = fromIsSmaller ? toCenter : fromCenter;
+	ImVec2 dir(baseTo.x - baseFrom.x, baseTo.y - baseFrom.y);
+	float len = sqrtf(dir.x * dir.x + dir.y * dir.y);
+	if (len < 0.0001f) return true;
+
+	// Šî€‚ÌŒü‚«‚É‚’¼‚È•ûŒü‚Ö‚¸‚ç‚·
+	float sign = (hasReverse && !fromIsSmaller) ? -1.0f : 1.0f;
+	ImVec2 perp(-dir.y / len * offset * sign, dir.x / len * offset * sign);
+	outStart = ImVec2(outStart.x + perp.x, outStart.y + perp.y);
+	outEnd = ImVec2(outEnd.x + perp.x, outEnd.y + perp.y);
+	return true;
+}
+
+// –Ú“I’n‚ÖL‚Î‚·ƒŠƒ“ƒN‚ª‹éŒ`‚Ì‰‚ÆŒğ‚í‚é“_
+ImVec2 StudioStateParentCanvas::GetEdgePoint(const ImVec2& rectMin, const ImVec2& rectMax, const ImVec2& target)
+{
+	ImVec2 center((rectMin.x + rectMax.x) * 0.5f, (rectMin.y + rectMax.y) * 0.5f);
+	float halfW = (rectMax.x - rectMin.x) * 0.5f;
+	float halfH = (rectMax.y - rectMin.y) * 0.5f;
+
+	ImVec2 dir(target.x - center.x, target.y - center.y);
+	if (dir.x == 0.0f && dir.y == 0.0f) return center;
+
+	// ‰¡‚Ì•Ó‚Æc‚Ì•Ó‚Ì‚¤‚¿Aæ‚É‚Ô‚Â‚©‚é‚Ù‚¤‚Ì”{—¦‚ğg‚¤
+	float scaleX = (dir.x != 0.0f) ? halfW / fabsf(dir.x) : FLT_MAX;
+	float scaleY = (dir.y != 0.0f) ? halfH / fabsf(dir.y) : FLT_MAX;
+	float scale = (scaleX < scaleY) ? scaleX : scaleY;
+	return ImVec2(center.x + dir.x * scale, center.y + dir.y * scale);
+}
+
+// –îˆó•`‰æ
+void StudioStateParentCanvas::DrawArrow(ImDrawList* drawList, const ImVec2& start, const ImVec2& end, ImU32 color, float thickness)
+{
+	ImVec2 dir(end.x - start.x, end.y - start.y);
+	float len = sqrtf(dir.x * dir.x + dir.y * dir.y);
+	if (len < 0.0001f) return;
+	dir.x /= len;
+	dir.y /= len;
+
+	const float arrowLength = 14.0f;
+	const float arrowWidth = 11.0f;
+
+	// ü‚Í–îˆó‚ÌªŒ³‚Ü‚Å
+	ImVec2 base(end.x - dir.x * arrowLength, end.y - dir.y * arrowLength);
+	drawList->AddLine(start, base, color, thickness);
+
+	// –îˆó‚ÌOŠpŒ`
+	ImVec2 perp(-dir.y, dir.x);
+	ImVec2 left(base.x + perp.x * arrowWidth * 0.5f, base.y + perp.y * arrowWidth * 0.5f);
+	ImVec2 right(base.x - perp.x * arrowWidth * 0.5f, base.y - perp.y * arrowWidth * 0.5f);
+	drawList->AddTriangleFilled(end, left, right, color);
+}
+
+// “_‚Æü•ª‚Ì‹——£
+float StudioStateParentCanvas::DistanceToSegment(const ImVec2& p, const ImVec2& a, const ImVec2& b)
+{
+	ImVec2 ab(b.x - a.x, b.y - a.y);
+	ImVec2 ap(p.x - a.x, p.y - a.y);
+	float lenSq = ab.x * ab.x + ab.y * ab.y;
+	
+	// “_p‚ğü•ªab‚É“Š‰e‚µ‚½ˆÊ’uBü•ª‚ÌŠO‚Éo‚½‚ç’[‚ÉŠñ‚¹‚é
+	float t = (lenSq > 0.0f) ? (ap.x * ab.x + ap.y * ab.y) / lenSq : 0.0f;
+	t = (t < 0.0f) ? 0.0f : (t > 1.0f ? 1.0f : t);
+	
+	// ü•ªã‚Åˆê”Ô‹ß‚¢“_‚Æ‚Ì‹——£
+	ImVec2 closest(a.x + ab.x * t, a.y + ab.y * t);
+	float dx = p.x - closest.x;
+	float dy = p.y - closest.y;
+	return sqrtf(dx * dx + dy * dy);
+}
+
+// ƒm[ƒh‚ÌƒL[ ¨ ƒm[ƒhƒGƒfƒBƒ^‚ÌID
+ed::NodeId StudioStateParentCanvas::ToNodeId(int key)
+{
+	if (key == StateMachineData::kEntryId) return ed::NodeId(static_cast<uint64_t>(kEntryNodeId));
+	return ed::NodeId(static_cast<uint64_t>(key));
+}
+
+// ƒm[ƒhƒGƒfƒBƒ^‚ÌID ¨ ƒm[ƒh‚ÌƒL[
+int StudioStateParentCanvas::ToNodeKey(ed::NodeId nodeId)
+{
+	if (nodeId.Get() == static_cast<uint64_t>(kEntryNodeId)) return StateMachineData::kEntryId;
+	return static_cast<int>(nodeId.Get());
+} 
+ 
 ===== StudioTimeline.cpp ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Studio\StudioTimeline.cpp 
 ï»¿#include "StudioTimeline.h"
@@ -26306,447 +24069,6 @@ void StudioTimeline::DrawGUI(entt::registry& registry, StudioContext& context)
 }
  
  
-===== StudioTransitionGraph.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Studio\StudioTransitionGraph.cpp 
-#include "StudioTransitionGraph.h"
-
-void StudioTransitionGraph::Initialize()
-{
-	canvas.Initialize();
-}
-
-// ImGui•`‰æ(State+Link‚Ì•`‰æ–{‘Ì)
-void StudioTransitionGraph::DrawGUI(AnimatorGraphData& g)
-{
-	graph = &g;
-
-	canvas.Begin("TransitionCanvas");
-
-	DrawStates();
-	DrawLinks();
-
-	DrawStateContextMenu();
-	UpdateLinkCreation();
-	DrawPendingLink();
-
-	UpdateSelection();
-
-	canvas.End();
-}
-
-// ‰E‘¤ƒƒjƒ…[
-void StudioTransitionGraph::DrawInspector()
-{
-	if (selectedState)
-	{
-		// State‚Í“Ç‚İæ‚èê—p(–¼‘OEF‚Ì•ÒWAíœƒ{ƒ^ƒ“‚Í‚½‚È‚¢)
-		ImGui::Text("%s", selectedState->name.c_str());
-		ImGui::TextDisabled("State name/color can only be edited from the Animator Graph.");
-		return;
-	}
-
-	if (selectedLink)
-	{
-		DrawLinkInspector(selectedLink);
-		return;
-	}
-
-	ImGui::TextDisabled("No link selected.");
-}
-
-// ğŒ®•ÒW‰æ–Ê‚Ö‚Ì‘JˆÚ—v‹
-bool StudioTransitionGraph::ConsumeConditionEditRequest(TransitionLink*& outLink)
-{
-	if (!pendingConditionEdit)
-	{
-		outLink = nullptr;
-		return false;
-	}
-
-	outLink = selectedLink;
-	pendingConditionEdit = false;
-	return true;
-}
-
-// State•`‰æ
-void StudioTransitionGraph::DrawStates()
-{
-	stateScreenRects.clear();
-
-	// ‡Šî’²‚ÌƒXƒ^ƒCƒ‹
-	const ImColor bgColor(90, 60, 110, 255);
-	const ImColor borderColor(140, 90, 170, 255);
-
-	for (auto& state : graph->parentGraph.states)
-	{
-		ed::NodeId nodeId(state.id);
-
-		if (needsApplyPositions)
-		{
-			ed::SetNodePosition(nodeId, ImVec2(state.posX, state.posY));
-		}
-
-		ed::PushStyleColor(ed::StyleColor_NodeBg, bgColor);
-		ed::PushStyleColor(ed::StyleColor_NodeBorder, borderColor);
-		ed::PushStyleVar(ed::StyleVar_NodeRounding, 4.0f);
-
-		ed::BeginNode(nodeId);
-
-		float nodeWidth = (state.type == ParentStateType::Entry) ? 100.0f : ImGui::CalcTextSize("New State").x;
-		float textWidth = ImGui::CalcTextSize(state.name.c_str()).x;
-
-		CenterNextItem(nodeWidth, textWidth);
-		ImGui::Text("%s", state.name.c_str());
-
-		ImGui::SameLine(nodeWidth);
-		ImGui::Dummy(ImVec2(0.0f, 0.0f));
-
-		ed::EndNode();
-
-		stateScreenRects[state.id] = { ImGui::GetItemRectMin(), ImGui::GetItemRectMax() };
-
-		ed::PopStyleVar(1);
-		ed::PopStyleColor(2);
-
-		ImVec2 currentPos = ed::GetNodePosition(nodeId);
-		state.posX = currentPos.x;
-		state.posY = currentPos.y;
-	}
-	needsApplyPositions = false;
-}
-
-// Link•`‰æ
-void StudioTransitionGraph::DrawLinks()
-{
-	const float arrowTrim = 10.0f;
-
-	for (const auto& link : graph->transitionGraph.links)
-	{
-		ImVec2 startPoint, endPoint;
-		CalcLinkPoints(link, startPoint, endPoint);
-
-		if (startPoint.x == 0.0f && startPoint.y == 0.0f &&
-			endPoint.x == 0.0f && endPoint.y == 0.0f)
-		{
-			continue;
-		}
-
-		ImVec2 dir(endPoint.x - startPoint.x, endPoint.y - startPoint.y);
-		float len = sqrtf(dir.x * dir.x + dir.y * dir.y);
-		ImVec2 trimmedEnd = endPoint;
-		if (len > arrowTrim)
-		{
-			trimmedEnd.x = endPoint.x - dir.x / len * arrowTrim;
-			trimmedEnd.y = endPoint.y - dir.y / len * arrowTrim;
-		}
-
-		DrawLinkPins(link, startPoint, trimmedEnd);
-
-		ImDrawList* drawList = ed::GetNodeBackgroundDrawList(ed::NodeId(link.fromId));
-		if (drawList)
-		{
-			// ‘JˆÚ—pƒŠƒ“ƒN‚Í‡F‚Å•`‰æ‚·‚é
-			const ImU32 linkColor = IM_COL32(180, 130, 220, 255);
-			DrawArrowHead(drawList, startPoint, endPoint, linkColor);
-		}
-	}
-}
-// ƒŠƒ“ƒN1–{‚ÌÚ‘±“_‚ğŒvZ
-void StudioTransitionGraph::CalcLinkPoints(const TransitionLink& link, ImVec2& outStart, ImVec2& outEnd)
-{
-	auto fromIt = stateScreenRects.find(link.fromId);
-	auto toIt = stateScreenRects.find(link.toId);
-	if (fromIt == stateScreenRects.end() || toIt == stateScreenRects.end())
-	{
-		outStart = ImVec2();
-		outEnd = ImVec2();
-		return;
-	}
-
-	const ImVec2& fromMin = fromIt->second.first;
-	const ImVec2& fromMax = fromIt->second.second;
-	const ImVec2& toMin = toIt->second.first;
-	const ImVec2& toMax = toIt->second.second;
-
-	ImVec2 fromCenter((fromMin.x + fromMax.x) * 0.5f, (fromMin.y + fromMax.y) * 0.5f);
-	ImVec2 toCenter((toMin.x + toMax.x) * 0.5f, (toMin.y + toMax.y) * 0.5f);
-
-	ImVec2 startPoint = GetEdgePoint(fromMin, fromMax, toCenter);
-	ImVec2 endPoint = GetEdgePoint(toMin, toMax, fromCenter);
-
-	if (HasReverseLink(link.fromId, link.toId))
-	{
-		bool fromIsSmaller = link.fromId < link.toId;
-		const ImVec2& baseCenter = fromIsSmaller ? fromCenter : toCenter;
-		const ImVec2& otherCenter = fromIsSmaller ? toCenter : fromCenter;
-
-		ImVec2 dir(otherCenter.x - baseCenter.x, otherCenter.y - baseCenter.y);
-		float len = sqrtf(dir.x * dir.x + dir.y * dir.y);
-		if (len > 0.0001f)
-		{
-			ImVec2 perp(-dir.y / len, dir.x / len);
-
-			const float offsetAmount = 8.0f;
-			float sign = fromIsSmaller ? 1.0f : -1.0f;
-
-			ImVec2 offset(perp.x * offsetAmount * sign, perp.y * offsetAmount * sign);
-
-			startPoint.x += offset.x;
-			startPoint.y += offset.y;
-			endPoint.x += offset.x;
-			endPoint.y += offset.y;
-		}
-	}
-
-	outStart = startPoint;
-	outEnd = endPoint;
-}
-// ŒvZÏ‚İ‚ÌÀ•W‚Éƒsƒ“‚ğ”z’u
-void StudioTransitionGraph::DrawLinkPins(const TransitionLink& link, const ImVec2& start, const ImVec2& end)
-{
-	const int64_t idOffset = 10000000;
-	ed::NodeId outNodeId(idOffset + (int64_t)link.id * 2);
-	ed::NodeId inNodeId(idOffset + (int64_t)link.id * 2 + 1);
-
-	ed::PinId outPinId = GetPinId(link.id, true);
-	ed::PinId inPinId = GetPinId(link.id, false);
-
-	ed::PushStyleVar(ed::StyleVar_NodePadding, ImVec4(0, 0, 0, 0));
-	ed::PushStyleColor(ed::StyleColor_NodeBg, ImColor(0, 0, 0, 0));
-	ed::PushStyleColor(ed::StyleColor_NodeBorder, ImColor(0, 0, 0, 0));
-
-	ed::PushStyleVar(ed::StyleVar_LinkStrength, 0.0f);
-
-	ed::SetNodePosition(outNodeId, start);
-	ed::BeginNode(outNodeId);
-	ed::BeginPin(outPinId, ed::PinKind::Output);
-	ImGui::Dummy(ImVec2(1, 1));
-	ed::EndPin();
-	ed::EndNode();
-
-	ed::SetNodePosition(inNodeId, end);
-	ed::BeginNode(inNodeId);
-	ed::BeginPin(inPinId, ed::PinKind::Input);
-	ImGui::Dummy(ImVec2(1, 1));
-	ed::EndPin();
-	ed::EndNode();
-
-	ed::PopStyleVar(2);
-	ed::PopStyleColor(2);
-
-	ed::Link(ed::LinkId(link.id), outPinId, inPinId);
-}
-// •Ó‚©‚çƒŠƒ“ƒN‚ğˆø‚«o‚·“_‚ğ‹‚ß‚é
-ImVec2 StudioTransitionGraph::GetEdgePoint(const ImVec2& rectMin, const ImVec2& rectMax, const ImVec2& target)
-{
-	ImVec2 center((rectMin.x + rectMax.x) * 0.5f, (rectMin.y + rectMax.y) * 0.5f);
-	float halfW = (rectMax.x - rectMin.x) * 0.5f;
-	float halfH = (rectMax.y - rectMin.y) * 0.5f;
-
-	ImVec2 dir(target.x - center.x, target.y - center.y);
-	if (dir.x == 0.0f && dir.y == 0.0f) return center;
-
-	float scaleX = (dir.x != 0.0f) ? halfW / fabsf(dir.x) : FLT_MAX;
-	float scaleY = (dir.y != 0.0f) ? halfH / fabsf(dir.y) : FLT_MAX;
-	float scale = (scaleX < scaleY) ? scaleX : scaleY;
-
-	return ImVec2(center.x + dir.x * scale, center.y + dir.y * scale);
-}
-// ‹tŒü‚«‚ÌLink‚ª‚ ‚é‚©Šm”F
-bool StudioTransitionGraph::HasReverseLink(int fromId, int toId) const
-{
-	for (const auto& link : graph->transitionGraph.links)
-	{
-		if (link.fromId == toId && link.toId == fromId)
-		{
-			return true;
-		}
-	}
-	return false;
-}
-// –îˆó•`‰æ
-void StudioTransitionGraph::DrawArrowHead(ImDrawList* drawList, const ImVec2& start, const ImVec2& end, ImU32 color)
-{
-	ImVec2 dir(end.x - start.x, end.y - start.y);
-	float len = sqrtf(dir.x * dir.x + dir.y * dir.y);
-	if (len < 0.0001f) return;
-
-	dir.x /= len;
-	dir.y /= len;
-
-	ImVec2 perp(-dir.y, dir.x);
-
-	const float arrowLength = 18.0f;
-	const float arrowWidth = 13.0f;
-
-	ImVec2 tip = end;
-	ImVec2 baseCenter(end.x - dir.x * arrowLength, end.y - dir.y * arrowLength);
-	ImVec2 baseLeft(baseCenter.x + perp.x * arrowWidth * 0.5f, baseCenter.y + perp.y * arrowWidth * 0.5f);
-	ImVec2 baseRight(baseCenter.x - perp.x * arrowWidth * 0.5f, baseCenter.y - perp.y * arrowWidth * 0.5f);
-
-	drawList->AddTriangleFilled(tip, baseLeft, baseRight, color);
-}
-
-// Linkì¬‚Ì‹N“_‘I‘ğ
-void StudioTransitionGraph::DrawStateContextMenu()
-{
-	static ed::NodeId contextNodeId;
-
-	ed::Suspend();
-	if (ed::ShowNodeContextMenu(&contextNodeId))
-	{
-		ImGui::OpenPopup("TransitionNodeContextMenu");
-	}
-	if (ImGui::BeginPopup("TransitionNodeContextMenu"))
-	{
-		if (ImGui::MenuItem(u8"Link"))
-		{
-			pendingLinkFromId = (int)contextNodeId.Get();
-		}
-		ImGui::EndPopup();
-	}
-	ed::Resume();
-}
-// Linkì¬ƒ‚[ƒh‚Ì“ü—Íˆ—
-void StudioTransitionGraph::UpdateLinkCreation()
-{
-	if (pendingLinkFromId == -1) return;
-
-	if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
-	{
-		ed::NodeId hovered = ed::GetHoveredNode();
-
-		if (hovered && (int)hovered.Get() != pendingLinkFromId)
-		{
-			int targetId = (int)hovered.Get();
-
-			bool targetIsEntry = false;
-			for (const auto& state : graph->parentGraph.states)
-			{
-				if (state.id == targetId && state.type == ParentStateType::Entry)
-				{
-					targetIsEntry = true;
-					break;
-				}
-			}
-
-			if (!targetIsEntry)
-			{
-				graph->transitionGraph.CreateLink(pendingLinkFromId, targetId);
-			}
-		}
-
-		pendingLinkFromId = -1;
-	}
-}
-// Linkì¬’†‚ÌƒvƒŒƒrƒ…[•`‰æ
-void StudioTransitionGraph::DrawPendingLink()
-{
-	if (pendingLinkFromId == -1) return;
-
-	auto it = stateScreenRects.find(pendingLinkFromId);
-	if (it == stateScreenRects.end()) return;
-
-	ImVec2 mousePos = ImGui::GetMousePos();
-	ImVec2 startPoint = GetEdgePoint(it->second.first, it->second.second, mousePos);
-
-	ImDrawList* drawList = ed::GetNodeBackgroundDrawList(ed::NodeId(pendingLinkFromId));
-	if (!drawList) return;
-
-	const ImU32 previewColor = IM_COL32(200, 150, 255, 255);
-
-	drawList->AddLine(startPoint, mousePos, previewColor, 2.0f);
-}
-
-// ‘I‘ğó‘Ô‚ğXV
-void StudioTransitionGraph::UpdateSelection()
-{
-	selectedState = nullptr;
-	selectedLink = nullptr;
-
-	if (ed::GetSelectedObjectCount() == 0) return;
-
-	ed::NodeId selectedNodeId;
-	if (ed::GetSelectedNodes(&selectedNodeId, 1) > 0)
-	{
-		for (auto& state : graph->parentGraph.states)
-		{
-			if (state.id == (int)selectedNodeId.Get())
-			{
-				selectedState = &state;
-				return;
-			}
-		}
-	}
-
-	ed::LinkId selectedLinkId;
-	if (ed::GetSelectedLinks(&selectedLinkId, 1) > 0)
-	{
-		for (auto& link : graph->transitionGraph.links)
-		{
-			if (link.id == (int)selectedLinkId.Get())
-			{
-				selectedLink = &link;
-				return;
-			}
-		}
-	}
-}
-// Link‚ÌInspector
-void StudioTransitionGraph::DrawLinkInspector(TransitionLink* link)
-{
-	const ParentState* fromState = nullptr;
-	const ParentState* toState = nullptr;
-	for (const auto& state : graph->parentGraph.states)
-	{
-		if (state.id == link->fromId) fromState = &state;
-		if (state.id == link->toId)   toState = &state;
-	}
-
-	std::string fromName = fromState ? fromState->name : "?";
-	std::string toName = toState ? toState->name : "?";
-
-	ImGui::TextWrapped("%s -> %s", fromName.c_str(), toName.c_str());
-
-	if (ImGui::Button("Edit Condition", ImVec2(-1.0f, 0.0f)))
-	{
-		pendingConditionEdit = true;
-	}
-
-	int linkId = link->id;
-	DrawDeleteButton("Delete Link", [this, linkId]() { graph->transitionGraph.DeleteLink(linkId); });
-}
-
-// ƒm[ƒh“à‚Å’†‰›Šñ‚¹‚É‚·‚é
-void StudioTransitionGraph::CenterNextItem(float totalWidth, float itemWidth)
-{
-	float pad = (totalWidth - itemWidth) * 0.5f;
-	if (pad > 0.0f)
-	{
-		ImGui::Dummy(ImVec2(pad, 0.0f));
-		ImGui::SameLine(0.0f, 0.0f);
-	}
-}
-// ‹¤’Ê‚Ìíœƒ{ƒ^ƒ“
-void StudioTransitionGraph::DrawDeleteButton(const char* label, const std::function<void()>& onDelete)
-{
-	ImGui::Spacing();
-	ImGui::Spacing();
-
-	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.15f, 0.15f, 1.0f));
-	ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.85f, 0.2f, 0.2f, 1.0f));
-	ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.6f, 0.1f, 0.1f, 1.0f));
-
-	bool pressed = ImGui::Button(label, ImVec2(-1.0f, 0.0f));
-
-	ImGui::PopStyleColor(3);
-
-	if (pressed)
-	{
-		onDelete();
-	}
-} 
- 
 ===== StudioWindow.cpp ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Studio\StudioWindow.cpp 
 #include "StudioWindow.h"
@@ -26772,7 +24094,7 @@ void StudioWindow::Initialize(ID3D11Device* device, StudioSharedContext* shared,
 	);
 
 	stadoiModelViewer.Initialize(device, &shared->resourceManager);
-	animatorGraph.Initialize();
+	stateGraph.Initialize();
 
 	ResizeRenderTarget();
 }
@@ -26902,7 +24224,7 @@ void StudioWindow::DrawWindow(const char* windowName)
 			ImGui::MenuItem("Animator", nullptr, &context.showAnimator);
 			ImGui::MenuItem("Timeline", nullptr, &context.showTimeline);
 			ImGui::MenuItem("Sequencer", nullptr, &context.showSequencer);
-			ImGui::MenuItem("AnimatorGraph", nullptr, &context.showAnimatorGraph);
+			ImGui::MenuItem("State Graph", nullptr, &context.showStateGraph);
 			ImGui::MenuItem("AnimationSpeed", nullptr, &context.showAnimationSpeed);
 
 			ImGui::EndMenu();
@@ -26938,14 +24260,14 @@ void StudioWindow::DrawWindow(const char* windowName)
 		std::string animatorName = "Animator##" + std::to_string(windowId);
 		std::string timelineName = "Timeline##" + std::to_string(windowId);
 		std::string sequencerName = "Sequencer##" + std::to_string(windowId);
-		std::string animatorGraphName = "AnimatorGraph##" + std::to_string(windowId);
+		std::string stateGraphName = "StateGraph##" + std::to_string(windowId);
 		std::string animationSpeedName = "Animation Speed##" + std::to_string(windowId);
 
 		ImGui::DockBuilderDockWindow(viewportName.c_str(), dockMain);
 		ImGui::DockBuilderDockWindow(animatorName.c_str(), dockLeft);
 		ImGui::DockBuilderDockWindow(timelineName.c_str(), dockBottom);
 		ImGui::DockBuilderDockWindow(sequencerName.c_str(), dockSequencer);
-		ImGui::DockBuilderDockWindow(animatorGraphName.c_str(), dockRight);
+		ImGui::DockBuilderDockWindow(stateGraphName.c_str(), dockRight);
 		ImGui::DockBuilderDockWindow(animationSpeedName.c_str(), dockSequencer);
 
 		ImGui::DockBuilderFinish(dockSpaceId);
@@ -27000,10 +24322,10 @@ void StudioWindow::DrawWindow(const char* windowName)
 		studioSequencer.DrawGUI(studioRegistry, context);
 	}
 
-	// AnimatorGraphƒpƒlƒ‹
-	if (context.showAnimatorGraph)
+	// State Graphƒpƒlƒ‹
+	if (context.showStateGraph)
 	{
-		animatorGraph.DrawGUI(studioRegistry, context);
+		stateGraph.DrawGUI(studioRegistry, context);
 	}
 
 	// AnimationSpeedƒpƒlƒ‹

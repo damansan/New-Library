@@ -100,6 +100,15 @@
     <Filter Include="Sources\Tool\Editor\ViewportWindow">
       <UniqueIdentifier>{506fd60b-a7ad-416f-a217-1b4bb77d2e6c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\Tool\Studio\StudioState">
+      <UniqueIdentifier>{359c36b7-a643-41cc-90ba-8113f819127b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Tool\Studio\StudioState\StudioStateParentCanvas">
+      <UniqueIdentifier>{19af514d-ada3-40c8-b950-a681689b4ac2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Tool\Studio\StudioState\StudioStateGraph">
+      <UniqueIdentifier>{a97d2ce3-9ea8-4950-8084-4b769dd2e383}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\External\imgui-docking\imgui.cpp">
@@ -198,6 +207,12 @@
     <ClCompile Include="..\..\Source\Code\Tool\Editor\ViewportWindow.cpp">
       <Filter>Sources\Tool\Editor\ViewportWindow</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Source\Code\Tool\Studio\StudioStateGraph.cpp">
+      <Filter>Sources\Tool\Studio\StudioState\StudioStateGraph</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Code\Tool\Studio\StudioStateParentCanvas.cpp">
+      <Filter>Sources\Tool\Studio\StudioState\StudioStateParentCanvas</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Source\Code\Tool\NodeEditor\NodeEditorCanvas.h">
@@ -277,6 +292,12 @@
     </ClInclude>
     <ClInclude Include="..\..\Source\Code\Tool\Editor\ViewportWindow.h">
       <Filter>Sources\Tool\Editor\ViewportWindow</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Code\Tool\Studio\StudioStateGraph.h">
+      <Filter>Sources\Tool\Studio\StudioState\StudioStateGraph</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Code\Tool\Studio\StudioStateParentCanvas.h">
+      <Filter>Sources\Tool\Studio\StudioState\StudioStateParentCanvas</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
