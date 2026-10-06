@@ -219,11 +219,6 @@ void SceneGame::UpdateGameplay(float elapsedTime, const SceneContext& context)
 		ZoneScopedN("InputSystem");
 		gameInputSystem.Update(registry, controllerSystem.GetSettings());
 	}
-	// 遷移グラフの評価
-	{
-		ZoneScopedN("TransitionControllerSystem");
-		transitionControllerSystem.Update(registry, elapsedTime, context);
-	}
 	// Stateマシン：Stateの遷移
 	{
 		ZoneScopedN("StateMachineSystem::UpdateState");
@@ -266,11 +261,6 @@ void SceneGame::UpdateGameplay(float elapsedTime, const SceneContext& context)
 // アニメーション系
 void SceneGame::UpdateAnimation(float elapsedTime, const SceneContext& context)
 {
-	// State遷移判定
-	{
-		ZoneScopedN("AnimatorControllerSystem");
-		animatorControllerSystem.Update(registry);
-	}
 	// Stateマシン：再生するクリップ
 	{
 		ZoneScopedN("StateMachineSystem::UpdateAnimation");

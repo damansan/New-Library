@@ -4,7 +4,6 @@
 // ÉQÅ[ÉÄÉvÉåÉCån
 #include "Engine/ECS/Systems/ControllerSystem.h"
 #include "Game/ECS/Systems/GameInputSystem.h"
-#include "Engine/ECS/Systems/TransitionControllerSystem.h"
 
 #include "Game/ECS/Systems/PlayerIdleSystem.h"
 #include "Game/ECS/Systems/PlayerMoveSystem.h"
@@ -13,7 +12,6 @@
 #include "Game/ECS/Systems/PlayerJumpSystem.h"
 
 #include "Engine/ECS/Systems/MovementSystem.h"
-#include "Engine/ECS/Systems/AnimatorControllerSystem.h"
 #include "Engine/ECS/Systems/AnimationSpeedSystem.h"
 #include "Engine/ECS/Systems/AnimationSystem.h"
 #include "Engine/ECS/Systems/SequencerSystem.h"
@@ -50,7 +48,6 @@ private:
 	// ÉQÅ[ÉÄÉvÉåÉCån
 	ControllerSystem  controllerSystem;
 	GameInputSystem   gameInputSystem;
-	TransitionControllerSystem transitionControllerSystem;
 	 
 	PlayerIdleSystem   playerIdleSystem;
 	PlayerMoveSystem   playerMoveSystem;
@@ -59,7 +56,6 @@ private:
 	PlayerJumpSystem   playerJumpSystem;
 
 	MovementSystem    movementSystem;
-	AnimatorControllerSystem animatorControllerSystem;
 	AnimationSpeedSystem     animationSpeedSystem;
 	AnimationSystem   animationSystem;
 	SequencerSystem   sequencerSystem;

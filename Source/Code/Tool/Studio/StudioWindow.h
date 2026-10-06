@@ -21,7 +21,6 @@
 #include "StudioAnimator.h"
 #include "StudioTimeline.h"
 #include "StudioSequencer.h"
-#include "StudioAnimatorGraph.h"
 #include "StudioAnimationSpeed.h"
 
 class StudioWindow
@@ -55,7 +54,6 @@ public:
         studioAnimator.SetWindowId(id);
         studioTimeline.SetWindowId(id);
         studioSequencer.SetWindowId(id);
-        animatorGraph.SetWindowId(id);
         studioAnimationSpeed.SetWindowId(id);
 
     }
@@ -96,7 +94,6 @@ private:
     StudioAnimator    studioAnimator;
     StudioTimeline    studioTimeline;
     StudioSequencer   studioSequencer;
-    StudioAnimatorGraph animatorGraph;
     StudioAnimationSpeed studioAnimationSpeed;
 
     // ウィンドウ状態

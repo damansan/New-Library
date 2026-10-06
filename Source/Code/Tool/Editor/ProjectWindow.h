@@ -54,7 +54,7 @@ private:
         std::filesystem::path path;
         std::string filename; // 拡張子を除いたファイル名（表示用）
         bool isModel = false;
-        bool isAnimGraph = false;
+        bool isStateGraph = false;
         bool isSequencer = false;
         bool isAnimSpeed = false;
     };
@@ -77,8 +77,8 @@ private:
 
     // ファイルがモデルファイルか判定
     bool IsModelFile(const std::filesystem::path& path);
-    // ファイルがアニメーショングラフファイルか判定
-    bool IsAnimGraphFile(const std::filesystem::path& path);
+    // ファイルがステートグラフファイルか判定
+    bool IsStateGraphFile(const std::filesystem::path& path);
 	// ファイルがシーケンサーファイルか判定
     static bool IsSequencerFile(const std::filesystem::path& path);
     // ファイルがアニメーション速度ファイルか判定

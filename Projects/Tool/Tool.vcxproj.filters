@@ -31,14 +31,8 @@
     <Filter Include="Sources\Tool\Studio\StudioAnimator">
       <UniqueIdentifier>{1b0cb239-9f5e-403e-adc8-b0d980212467}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Sources\Tool\Studio\StudioAnimatorGraph">
-      <UniqueIdentifier>{b1e419f6-523b-4713-91cd-1d2f5318f3dd}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Sources\Tool\Studio\StudioCamera">
       <UniqueIdentifier>{8ca02f52-44a8-4080-b780-b5dea2319689}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Tool\Studio\StudioChildStateGraph">
-      <UniqueIdentifier>{10ecb607-34d1-4869-ac63-d1a29fe4f4c7}</UniqueIdentifier>
     </Filter>
     <Filter Include="Sources\Tool\Studio\StudioConditionGraph">
       <UniqueIdentifier>{c46cd755-ed7f-47e9-b542-705229100202}</UniqueIdentifier>
@@ -49,9 +43,6 @@
     <Filter Include="Sources\Tool\Studio\StudioModelViewer">
       <UniqueIdentifier>{bbfdef7b-e3e9-418c-a594-901d7d4fedc6}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Sources\Tool\Studio\StudioParentStateGraph">
-      <UniqueIdentifier>{b7b2e46b-eb3e-4b53-9e34-902be61ff80e}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Sources\Tool\Studio\StudioSequencer">
       <UniqueIdentifier>{a6b7793e-9392-449c-bccc-d4c5284cda1c}</UniqueIdentifier>
     </Filter>
@@ -60,9 +51,6 @@
     </Filter>
     <Filter Include="Sources\Tool\Studio\StudioTimeline">
       <UniqueIdentifier>{c63959fd-78f2-4be0-8448-85e2dd22d9f6}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Tool\Studio\StudioTransitionGraph">
-      <UniqueIdentifier>{cb39e994-254c-4010-8845-52babc041f97}</UniqueIdentifier>
     </Filter>
     <Filter Include="Sources\Tool\Studio\StudioWindow">
       <UniqueIdentifier>{506274c9-84b5-4410-bfdf-4cd4d52dbaa2}</UniqueIdentifier>
@@ -153,14 +141,8 @@
     <ClCompile Include="..\..\Source\Code\Tool\Studio\StudioAnimator.cpp">
       <Filter>Sources\Tool\Studio\StudioAnimator</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\Code\Tool\Studio\StudioAnimatorGraph.cpp">
-      <Filter>Sources\Tool\Studio\StudioAnimatorGraph</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Source\Code\Tool\Studio\StudioCamera.cpp">
       <Filter>Sources\Tool\Studio\StudioCamera</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\Code\Tool\Studio\StudioChildStateGraph.cpp">
-      <Filter>Sources\Tool\Studio\StudioChildStateGraph</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\Code\Tool\Studio\StudioConditionGraph.cpp">
       <Filter>Sources\Tool\Studio\StudioConditionGraph</Filter>
@@ -168,17 +150,11 @@
     <ClCompile Include="..\..\Source\Code\Tool\Studio\StudioModelViewer.cpp">
       <Filter>Sources\Tool\Studio\StudioModelViewer</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\Code\Tool\Studio\StudioParentStateGraph.cpp">
-      <Filter>Sources\Tool\Studio\StudioParentStateGraph</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Source\Code\Tool\Studio\StudioSequencer.cpp">
       <Filter>Sources\Tool\Studio\StudioSequencer</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\Code\Tool\Studio\StudioTimeline.cpp">
       <Filter>Sources\Tool\Studio\StudioTimeline</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\Code\Tool\Studio\StudioTransitionGraph.cpp">
-      <Filter>Sources\Tool\Studio\StudioTransitionGraph</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\Code\Tool\Studio\StudioWindow.cpp">
       <Filter>Sources\Tool\Studio\StudioWindow</Filter>
@@ -233,14 +209,8 @@
     <ClInclude Include="..\..\Source\Code\Tool\Studio\StudioAnimator.h">
       <Filter>Sources\Tool\Studio\StudioAnimator</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Code\Tool\Studio\StudioAnimatorGraph.h">
-      <Filter>Sources\Tool\Studio\StudioAnimatorGraph</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Source\Code\Tool\Studio\StudioCamera.h">
       <Filter>Sources\Tool\Studio\StudioCamera</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\Code\Tool\Studio\StudioChildStateGraph.h">
-      <Filter>Sources\Tool\Studio\StudioChildStateGraph</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\Code\Tool\Studio\StudioConditionGraph.h">
       <Filter>Sources\Tool\Studio\StudioConditionGraph</Filter>
@@ -251,9 +221,6 @@
     <ClInclude Include="..\..\Source\Code\Tool\Studio\StudioModelViewer.h">
       <Filter>Sources\Tool\Studio\StudioModelViewer</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Code\Tool\Studio\StudioParentStateGraph.h">
-      <Filter>Sources\Tool\Studio\StudioParentStateGraph</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Source\Code\Tool\Studio\StudioSequencer.h">
       <Filter>Sources\Tool\Studio\StudioSequencer</Filter>
     </ClInclude>
@@ -263,17 +230,11 @@
     <ClInclude Include="..\..\Source\Code\Tool\Studio\StudioTimeline.h">
       <Filter>Sources\Tool\Studio\StudioTimeline</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Code\Tool\Studio\StudioTransitionGraph.h">
-      <Filter>Sources\Tool\Studio\StudioTransitionGraph</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Source\Code\Tool\Studio\StudioWindow.h">
       <Filter>Sources\Tool\Studio\StudioWindow</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\Code\Tool\AdaptiveTriggerToolWindow.h">
       <Filter>Sources</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\Code\Tool\Studio\AnimatorGraphNavigation.h">
-      <Filter>Sources\Tool\Studio</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\Code\Tool\Editor\ComponentInspectorRegistry.h">
       <Filter>Sources\Tool\Editor\ComponentInspectorRegistry</Filter>

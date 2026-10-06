@@ -21,9 +21,6 @@ struct AnimatorComponent
         REFLECT_FIELD(bool, useRootMotionY,            (false), ("Use Root Motion Y")) // Y軸適応
         REFLECT_FIELD(bool, useRootMotion,             (false), ("Use Root Motion"))   // ルートモーション使用
         REFLECT_FIELD(std::string, rootMotionNodeName, (""),    ("Root Motion Node"))  // ルートノード名
-
-        // アニメーショングラフ
-        REFLECT_FIELD(std::string, animatorGraphPath, (""), ("Animator Graph", 0.0f, 0.0f, 0.1f, "ANIMGRAPH_PATH")) // .animatorファイルのパス
       
     REFLECT_END()
 

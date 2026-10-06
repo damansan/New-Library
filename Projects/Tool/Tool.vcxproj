@@ -45,15 +45,11 @@
     <ClCompile Include="..\..\Source\Code\Tool\NodeEditor\NodeEditorCanvas.cpp" />
     <ClCompile Include="..\..\Source\Code\Tool\Studio\StudioAnimationSpeed.cpp" />
     <ClCompile Include="..\..\Source\Code\Tool\Studio\StudioAnimator.cpp" />
-    <ClCompile Include="..\..\Source\Code\Tool\Studio\StudioAnimatorGraph.cpp" />
     <ClCompile Include="..\..\Source\Code\Tool\Studio\StudioCamera.cpp" />
-    <ClCompile Include="..\..\Source\Code\Tool\Studio\StudioChildStateGraph.cpp" />
     <ClCompile Include="..\..\Source\Code\Tool\Studio\StudioConditionGraph.cpp" />
     <ClCompile Include="..\..\Source\Code\Tool\Studio\StudioModelViewer.cpp" />
-    <ClCompile Include="..\..\Source\Code\Tool\Studio\StudioParentStateGraph.cpp" />
     <ClCompile Include="..\..\Source\Code\Tool\Studio\StudioSequencer.cpp" />
     <ClCompile Include="..\..\Source\Code\Tool\Studio\StudioTimeline.cpp" />
-    <ClCompile Include="..\..\Source\Code\Tool\Studio\StudioTransitionGraph.cpp" />
     <ClCompile Include="..\..\Source\Code\Tool\Studio\StudioWindow.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -77,21 +73,16 @@
     <ClInclude Include="..\..\Source\Code\Tool\Editor\ProjectWindow.h" />
     <ClInclude Include="..\..\Source\Code\Tool\Editor\ViewportWindow.h" />
     <ClInclude Include="..\..\Source\Code\Tool\NodeEditor\NodeEditorCanvas.h" />
-    <ClInclude Include="..\..\Source\Code\Tool\Studio\AnimatorGraphNavigation.h" />
     <ClInclude Include="..\..\Source\Code\Tool\Studio\IStudioAttachment.h" />
     <ClInclude Include="..\..\Source\Code\Tool\Studio\StudioAnimationSpeed.h" />
     <ClInclude Include="..\..\Source\Code\Tool\Studio\StudioAnimator.h" />
-    <ClInclude Include="..\..\Source\Code\Tool\Studio\StudioAnimatorGraph.h" />
     <ClInclude Include="..\..\Source\Code\Tool\Studio\StudioCamera.h" />
-    <ClInclude Include="..\..\Source\Code\Tool\Studio\StudioChildStateGraph.h" />
     <ClInclude Include="..\..\Source\Code\Tool\Studio\StudioConditionGraph.h" />
     <ClInclude Include="..\..\Source\Code\Tool\Studio\StudioContext.h" />
     <ClInclude Include="..\..\Source\Code\Tool\Studio\StudioModelViewer.h" />
-    <ClInclude Include="..\..\Source\Code\Tool\Studio\StudioParentStateGraph.h" />
     <ClInclude Include="..\..\Source\Code\Tool\Studio\StudioSequencer.h" />
     <ClInclude Include="..\..\Source\Code\Tool\Studio\StudioSharedContext.h" />
     <ClInclude Include="..\..\Source\Code\Tool\Studio\StudioTimeline.h" />
-    <ClInclude Include="..\..\Source\Code\Tool\Studio\StudioTransitionGraph.h" />
     <ClInclude Include="..\..\Source\Code\Tool\Studio\StudioWindow.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

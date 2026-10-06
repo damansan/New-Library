@@ -28,7 +28,6 @@
     <ClCompile Include="..\..\Source\Code\Engine\Core\Scene.cpp" />
     <ClCompile Include="..\..\Source\Code\Engine\Core\SceneManager.cpp" />
     <ClCompile Include="..\..\Source\Code\Engine\Data\AnimationSpeedData.cpp" />
-    <ClCompile Include="..\..\Source\Code\Engine\Data\AnimatorGraphData.cpp" />
     <ClCompile Include="..\..\Source\Code\Engine\Data\ConditionGraphData.cpp" />
     <ClCompile Include="..\..\Source\Code\Engine\Data\SequencerData.cpp" />
     <ClCompile Include="..\..\Source\Code\Engine\Data\StateMachineData.cpp" />
@@ -36,7 +35,6 @@
     <ClCompile Include="..\..\Source\Code\Engine\ECS\Reflection.cpp" />
     <ClCompile Include="..\..\Source\Code\Engine\ECS\Systems\AnimationSpeedSystem.cpp" />
     <ClCompile Include="..\..\Source\Code\Engine\ECS\Systems\AnimationSystem.cpp" />
-    <ClCompile Include="..\..\Source\Code\Engine\ECS\Systems\AnimatorControllerSystem.cpp" />
     <ClCompile Include="..\..\Source\Code\Engine\ECS\Systems\ConditionGraphEvaluator.cpp" />
     <ClCompile Include="..\..\Source\Code\Engine\ECS\Systems\ControllerSystem.cpp" />
     <ClCompile Include="..\..\Source\Code\Engine\ECS\Systems\IKSystem.cpp" />
@@ -45,9 +43,7 @@
     <ClCompile Include="..\..\Source\Code\Engine\ECS\Systems\PhysicsSystem.cpp" />
     <ClCompile Include="..\..\Source\Code\Engine\ECS\Systems\RenderSystem.cpp" />
     <ClCompile Include="..\..\Source\Code\Engine\ECS\Systems\SequencerSystem.cpp" />
-    <ClCompile Include="..\..\Source\Code\Engine\ECS\Systems\StateGraphUtils.cpp" />
     <ClCompile Include="..\..\Source\Code\Engine\ECS\Systems\StateMachineSystem.cpp" />
-    <ClCompile Include="..\..\Source\Code\Engine\ECS\Systems\TransitionControllerSystem.cpp" />
     <ClCompile Include="..\..\Source\Code\Engine\ECS\Systems\TwoBoneIKSolver.cpp" />
     <ClCompile Include="..\..\Source\Code\Engine\Rendering\GBuffer.cpp" />
     <ClCompile Include="..\..\Source\Code\Engine\Rendering\LightManager.cpp" />
@@ -81,7 +77,6 @@
     <ClInclude Include="..\..\Source\Code\Engine\Core\SceneContext.h" />
     <ClInclude Include="..\..\Source\Code\Engine\Core\SceneManager.h" />
     <ClInclude Include="..\..\Source\Code\Engine\Data\AnimationSpeedData.h" />
-    <ClInclude Include="..\..\Source\Code\Engine\Data\AnimatorGraphData.h" />
     <ClInclude Include="..\..\Source\Code\Engine\Data\ConditionGraphData.h" />
     <ClInclude Include="..\..\Source\Code\Engine\Data\SequencerData.h" />
     <ClInclude Include="..\..\Source\Code\Engine\Data\StateMachineData.h" />
@@ -101,7 +96,6 @@
     <ClInclude Include="..\..\Source\Code\Engine\ECS\Components\PrefabInstanceComponent.h" />
     <ClInclude Include="..\..\Source\Code\Engine\ECS\Components\SequencerComponent.h" />
     <ClInclude Include="..\..\Source\Code\Engine\ECS\Components\SkinnedMeshComponent.h" />
-    <ClInclude Include="..\..\Source\Code\Engine\ECS\Components\StateComponent.h" />
     <ClInclude Include="..\..\Source\Code\Engine\ECS\Components\StateMachineComponent.h" />
     <ClInclude Include="..\..\Source\Code\Engine\ECS\Components\StaticMeshComponent.h" />
     <ClInclude Include="..\..\Source\Code\Engine\ECS\Components\Tags.h" />
@@ -112,7 +106,6 @@
     <ClInclude Include="..\..\Source\Code\Engine\ECS\Reflection.h" />
     <ClInclude Include="..\..\Source\Code\Engine\ECS\Systems\AnimationSpeedSystem.h" />
     <ClInclude Include="..\..\Source\Code\Engine\ECS\Systems\AnimationSystem.h" />
-    <ClInclude Include="..\..\Source\Code\Engine\ECS\Systems\AnimatorControllerSystem.h" />
     <ClInclude Include="..\..\Source\Code\Engine\ECS\Systems\ConditionGraphEvaluator.h" />
     <ClInclude Include="..\..\Source\Code\Engine\ECS\Systems\ControllerSystem.h" />
     <ClInclude Include="..\..\Source\Code\Engine\ECS\Systems\IKSystem.h" />
@@ -121,9 +114,7 @@
     <ClInclude Include="..\..\Source\Code\Engine\ECS\Systems\PhysicsSystem.h" />
     <ClInclude Include="..\..\Source\Code\Engine\ECS\Systems\RenderSystem.h" />
     <ClInclude Include="..\..\Source\Code\Engine\ECS\Systems\SequencerSystem.h" />
-    <ClInclude Include="..\..\Source\Code\Engine\ECS\Systems\StateGraphUtils.h" />
     <ClInclude Include="..\..\Source\Code\Engine\ECS\Systems\StateMachineSystem.h" />
-    <ClInclude Include="..\..\Source\Code\Engine\ECS\Systems\TransitionControllerSystem.h" />
     <ClInclude Include="..\..\Source\Code\Engine\ECS\Systems\TwoBoneIKSolver.h" />
     <ClInclude Include="..\..\Source\Code\Engine\Rendering\GBuffer.h" />
     <ClInclude Include="..\..\Source\Code\Engine\Rendering\LightManager.h" />

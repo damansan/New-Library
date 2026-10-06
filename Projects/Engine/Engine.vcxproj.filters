@@ -38,9 +38,6 @@
     <Filter Include="Sources\Engine\Data">
       <UniqueIdentifier>{bd519604-cec0-48d0-81dc-251567cdb302}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Sources\Engine\Data\AnimatorGraphData">
-      <UniqueIdentifier>{1fd941a2-c153-42e7-a6c5-0cbc0f57a1a3}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Sources\Engine\Data\SequencerData">
       <UniqueIdentifier>{c89565ae-41ae-485e-9c2b-488709db2356}</UniqueIdentifier>
     </Filter>
@@ -101,9 +98,6 @@
     <Filter Include="Sources\Engine\ECS\Systems\AnimationSystem">
       <UniqueIdentifier>{f58be703-0ac0-43df-b25a-561a7e2347db}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Sources\Engine\ECS\Systems\AnimatorControllerSystem">
-      <UniqueIdentifier>{eb770ad8-0620-4e88-93bf-6cfafc0350e8}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Sources\Engine\ECS\Systems\ConditionGraphEvaluator">
       <UniqueIdentifier>{7a9d4ab6-0644-48ed-8873-39ca8a086f3e}</UniqueIdentifier>
     </Filter>
@@ -133,12 +127,6 @@
     </Filter>
     <Filter Include="Sources\Engine\ECS\Systems\AnimationSpeedSystem">
       <UniqueIdentifier>{f008146c-9ba4-40f9-a9c9-95cf1c6537bf}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Engine\ECS\Systems\TransitionControllerSystem">
-      <UniqueIdentifier>{8efb78f8-351f-481a-9acb-4e5d30cd7748}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Engine\ECS\Systems\StateGraphUtils">
-      <UniqueIdentifier>{478a6766-04d0-4487-b0c2-e69909c33622}</UniqueIdentifier>
     </Filter>
     <Filter Include="Sources\Engine\Rendering">
       <UniqueIdentifier>{ba1d76c6-9f1c-477c-84d9-b75037a739ed}</UniqueIdentifier>
@@ -238,9 +226,6 @@
     <ClCompile Include="..\..\Source\Code\Engine\Core\SceneManager.cpp">
       <Filter>Sources\Engine\Core\SceneManager</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\Code\Engine\Data\AnimatorGraphData.cpp">
-      <Filter>Sources\Engine\Data\AnimatorGraphData</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Source\Code\Engine\Data\SequencerData.cpp">
       <Filter>Sources\Engine\Data\SequencerData</Filter>
     </ClCompile>
@@ -289,9 +274,6 @@
     <ClCompile Include="..\..\Source\Code\Engine\ECS\Systems\AnimationSystem.cpp">
       <Filter>Sources\Engine\ECS\Systems\AnimationSystem</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\Code\Engine\ECS\Systems\AnimatorControllerSystem.cpp">
-      <Filter>Sources\Engine\ECS\Systems\AnimatorControllerSystem</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Source\Code\Engine\ECS\Systems\ConditionGraphEvaluator.cpp">
       <Filter>Sources\Engine\ECS\Systems\ConditionGraphEvaluator</Filter>
     </ClCompile>
@@ -321,12 +303,6 @@
     </ClCompile>
     <ClCompile Include="..\..\Source\Code\Engine\ECS\Systems\AnimationSpeedSystem.cpp">
       <Filter>Sources\Engine\ECS\Systems\AnimationSpeedSystem</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\Code\Engine\ECS\Systems\TransitionControllerSystem.cpp">
-      <Filter>Sources\Engine\ECS\Systems\TransitionControllerSystem</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\Code\Engine\ECS\Systems\StateGraphUtils.cpp">
-      <Filter>Sources\Engine\ECS\Systems\StateGraphUtils</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\Code\Engine\Rendering\GBuffer.cpp">
       <Filter>Sources\Engine\Rendering\GBuffer</Filter>
@@ -395,9 +371,6 @@
     </ClInclude>
     <ClInclude Include="..\..\Source\Code\Engine\Core\Log.h">
       <Filter>Sources\Engine\Core\Log</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\Code\Engine\Data\AnimatorGraphData.h">
-      <Filter>Sources\Engine\Data\AnimatorGraphData</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\Code\Engine\Data\SequencerData.h">
       <Filter>Sources\Engine\Data\SequencerData</Filter>
@@ -489,9 +462,6 @@
     <ClInclude Include="..\..\Source\Code\Engine\ECS\Components\PrefabInstanceComponent.h">
       <Filter>Sources\Engine\ECS\Components</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Code\Engine\ECS\Components\StateComponent.h">
-      <Filter>Sources\Engine\ECS\Components</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Source\Code\Engine\ECS\Components\MaterialComponent.h">
       <Filter>Sources\Engine\ECS\Components</Filter>
     </ClInclude>
@@ -522,9 +492,6 @@
     <ClInclude Include="..\..\Source\Code\Engine\ECS\Systems\AnimationSystem.h">
       <Filter>Sources\Engine\ECS\Systems\AnimationSystem</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Code\Engine\ECS\Systems\AnimatorControllerSystem.h">
-      <Filter>Sources\Engine\ECS\Systems\AnimatorControllerSystem</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Source\Code\Engine\ECS\Systems\ConditionGraphEvaluator.h">
       <Filter>Sources\Engine\ECS\Systems\ConditionGraphEvaluator</Filter>
     </ClInclude>
@@ -554,12 +521,6 @@
     </ClInclude>
     <ClInclude Include="..\..\Source\Code\Engine\ECS\Systems\AnimationSpeedSystem.h">
       <Filter>Sources\Engine\ECS\Systems\AnimationSpeedSystem</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\Code\Engine\ECS\Systems\TransitionControllerSystem.h">
-      <Filter>Sources\Engine\ECS\Systems\TransitionControllerSystem</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\Code\Engine\ECS\Systems\StateGraphUtils.h">
-      <Filter>Sources\Engine\ECS\Systems\StateGraphUtils</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\Code\Engine\Rendering\GBuffer.h">
       <Filter>Sources\Engine\Rendering\GBuffer</Filter>

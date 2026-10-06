@@ -3,7 +3,6 @@
         "animationSpeedPath": ""
     },
     "AnimatorComponent": {
-        "animatorGraphPath": "Data/Json/Animgraph/Map_Robot3 (2).animgraph",
         "loop": true,
         "playSpeed": 1.0,
         "rootMotionNodeName": "root",
@@ -43,15 +42,18 @@
     "SequencerComponent": {
         "sequencerPath": "Data/Json/Sequencer/Map_Robot3.sequencer"
     },
+    "StateMachineComponent": {
+        "graphPath": "Data/Json/Animgraph/Robot.stategraph"
+    },
     "TransformComponent": {
         "position": [
             0.0,
             -6.705522537231445e-08,
-            0.0
+            -5.0
         ],
         "rotation": [
             0.0,
-            0.0,
+            3.0,
             0.0
         ],
         "scale": [

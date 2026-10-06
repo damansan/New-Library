@@ -207,7 +207,7 @@ void ProjectWindow::DrawFileGrid(entt::registry& registry, EditorContext& contex
 	for (auto& file : fileGridCache)
 	{
 		bool isModel = file.isModel;
-		bool isAnimGraph = file.isAnimGraph;
+		bool isAnimGraph = file.isStateGraph;
 		bool isSequencer = file.isSequencer;
 		bool isAnimSpeed = file.isAnimSpeed;
 
@@ -278,10 +278,8 @@ void ProjectWindow::DrawFileGrid(entt::registry& registry, EditorContext& contex
 			}
 			else if (isAnimGraph)
 			{
-				// 新しい形式(.stategraph)と古い形式(.animgraph)で、受け取り先を分ける
-				bool isStateGraph = std::filesystem::path(modelPath).extension() == ".stategraph";
 				ImGui::SetDragDropPayload(
-					isStateGraph ? "STATEGRAPH_PATH" : "ANIMGRAPH_PATH",
+					"STATEGRAPH_PATH",
 					modelPath.c_str(),
 					modelPath.size() + 1
 				);
@@ -445,7 +443,7 @@ std::vector<ProjectWindow::FileEntry> ProjectWindow::BuildFileGrid(const std::fi
 		if (!entry.is_regular_file()) continue;
 
 		bool isModel = IsModelFile(entry.path());
-		bool isAnimGraph = IsAnimGraphFile(entry.path());
+		bool isAnimGraph = IsStateGraphFile(entry.path());
 		bool isSequencer = IsSequencerFile(entry.path());
 		bool isAnimSpeed = IsAnimSpeedFile(entry.path());
 		if (!isModel && !isAnimGraph && !isSequencer && !isAnimSpeed) continue;
@@ -454,7 +452,7 @@ std::vector<ProjectWindow::FileEntry> ProjectWindow::BuildFileGrid(const std::fi
 		file.path = entry.path();
 		file.filename = entry.path().stem().string();
 		file.isModel = isModel;
-		file.isAnimGraph = isAnimGraph;
+		file.isStateGraph = isAnimGraph;
 		file.isSequencer = isSequencer;
 		file.isAnimSpeed = isAnimSpeed;
 
@@ -475,12 +473,12 @@ bool ProjectWindow::IsModelFile(const std::filesystem::path& path)
 	return ext == ".gltf" || ext == ".glb";
 }
 // ファイルがアニメーショングラフファイルか判定
-bool ProjectWindow::IsAnimGraphFile(const std::filesystem::path& path)
+bool ProjectWindow::IsStateGraphFile(const std::filesystem::path& path)
 {
 	std::string ext = path.extension().string();
 	std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
 
-	return ext == ".animgraph" || ext == ".stategraph";
+	return ext == ".stategraph";
 }
 // ファイルがシーケンサーファイルか判定
 bool ProjectWindow::IsSequencerFile(const std::filesystem::path& path)

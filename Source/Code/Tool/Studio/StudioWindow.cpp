@@ -21,7 +21,6 @@ void StudioWindow::Initialize(ID3D11Device* device, StudioSharedContext* shared,
 	);
 
 	stadoiModelViewer.Initialize(device, &shared->resourceManager);
-	animatorGraph.Initialize();
 
 	ResizeRenderTarget();
 }
@@ -247,12 +246,6 @@ void StudioWindow::DrawWindow(const char* windowName)
 	if (context.showSequencer)
 	{
 		studioSequencer.DrawGUI(studioRegistry, context);
-	}
-
-	// AnimatorGraphパネル
-	if (context.showAnimatorGraph)
-	{
-		animatorGraph.DrawGUI(studioRegistry, context);
 	}
 
 	// AnimationSpeedパネル
