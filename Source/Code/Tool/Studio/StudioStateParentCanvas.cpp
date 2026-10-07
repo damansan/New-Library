@@ -17,6 +17,13 @@ void StudioStateParentCanvas::Draw(StateMachineData& graph)
 	// キャンバス作成
 	canvas.Begin("StateParentCanvas");
 
+	// 削除や読み込みの後はノードエディタ側に残った選択を消す
+	if (clearSelectionRequested)
+	{
+		ed::ClearSelection();
+		clearSelectionRequested = false;
+	}
+
 	// ノードの矩形は毎フレーム作り直す
 	nodeRects.clear();
 
@@ -55,21 +62,66 @@ void StudioStateParentCanvas::DeleteSelection(StateMachineData& graph)
 	}
 
 	// 選択中のステート削除 (Entryは削除不可)
-	if (selectedNodeKey != -1 && selectedNodeKey != StateMachineData::kEntryId)
+	for (int key : selectedNodeKeys)
 	{
-		graph.RemoveState(selectedNodeKey);
-		selectedNodeKey = -1;
+		if (key != StateMachineData::kEntryId)
+		{
+			graph.RemoveState(key);
+		}
 	}
+	selectedNodeKeys.clear();
+	clearSelectionRequested = true;
 }
 
 // 読み込み・新規作成のときに、選択などを戻す
 void StudioStateParentCanvas::Reset()
 {
 	needsApplyPositions = true;
-	selectedNodeKey = -1;
+	selectedNodeKeys.clear();
 	selectedLinkId = -1;
 	pendingFromKey = -1;
 	contextNodeKey = -1;
+	clearSelectionRequested = true;
+}
+
+// インスペクター描画
+void StudioStateParentCanvas::DrawInspector(StateMachineData& data)
+{
+	// 描画中だけ、受け取ったデータを指す
+	this->data = &data;
+
+	// リンク選択
+	if (selectedLinkId != -1)
+	{
+		DrawLinkInspector(selectedLinkId);
+		return;
+	}
+
+	// ノード複数選択
+	if (selectedNodeKeys.size() > 1)
+	{
+		DrawMultiStateInspector();
+		return;
+	}
+
+	// ノード1つ選択
+	if (selectedNodeKeys.size() == 1)
+	{
+		int key = selectedNodeKeys[0];
+		if (key == StateMachineData::kEntryId)
+		{
+			DrawEntryInspector();
+			return;
+		}
+		if (StateNode* state = data.FindState(key))
+		{
+			DrawStateInspector(*state);
+			return;
+		}
+	}
+
+	// 未選択
+	ImGui::TextDisabled("Nothing selected.");
 }
 
 // エントリーノード描画
@@ -242,14 +294,6 @@ void StudioStateParentCanvas::DrawNodeMenu()
 		{
 			pendingFromKey = contextNodeKey;
 		}
-
-		// Entryは削除できない
-		if (contextNodeKey != StateMachineData::kEntryId && ImGui::MenuItem("Delete"))
-		{
-			data->RemoveState(contextNodeKey);
-			if (selectedNodeKey == contextNodeKey) selectedNodeKey = -1;
-			selectedLinkId = -1;
-		}
 		ImGui::EndPopup();
 	}
 
@@ -285,7 +329,7 @@ void StudioStateParentCanvas::UpdateLinkCreation()
 			{
 				// 作ったリンクを選択状態にする
 				selectedLinkId = newId;
-				selectedNodeKey = -1;
+				selectedNodeKeys.clear();
 				ed::ClearSelection();
 			}
 		}
@@ -298,23 +342,32 @@ void StudioStateParentCanvas::UpdateLinkCreation()
 void StudioStateParentCanvas::UpdateSelection()
 {
 	// ノードの選択
-	ed::NodeId selectedNode;
-	if (ed::GetSelectedNodes(&selectedNode, 1) > 0)
+	int count = ed::GetSelectedObjectCount();
+	std::vector<ed::NodeId> nodeIds(count > 0 ? count : 1);
+	int nodeCount = (count > 0) ? ed::GetSelectedNodes(nodeIds.data(), count) : 0;
+
+	std::vector<int> keys;
+	for (int i = 0; i < nodeCount; ++i)
 	{
-		selectedNodeKey = ToNodeKey(selectedNode);
+		int key = ToNodeKey(nodeIds[i]);
+		// 削除した直後などで、データに無いノードが残っていても選択として扱わない
+		if (IsExistingNode(key)) keys.push_back(key);
+	}
+
+	if (!keys.empty())
+	{
+		selectedNodeKeys = std::move(keys);
 		selectedLinkId = -1;
 	}
 	else if (selectedLinkId == -1)
 	{
 		// ノードもリンクも選ばれていない
-		selectedNodeKey = -1;
+		selectedNodeKeys.clear();
 	}
 
 	// リンクの判定
 	if (pendingFromKey != -1) return;
-	if (!ImGui::IsMouseClicked(ImGuiMouseButton_Left)) return;
-	if (!ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows)) return;
-	if (ed::GetHoveredNode()) return;
+	if (!ed::IsBackgroundClicked()) return;
 
 	// ノードエディタの中では、マウスの位置はキャンバスの座標で返る(線の座標と同じ)
 	ImVec2 mouse = ImGui::GetMousePos();
@@ -337,9 +390,257 @@ void StudioStateParentCanvas::UpdateSelection()
 	selectedLinkId = hitId;
 	if (hitId != -1)
 	{
-		selectedNodeKey = -1;
+		// リンクを選んだら、ノードの選択は外す
+		selectedNodeKeys.clear();
 		ed::ClearSelection();
 	}
+}
+
+// データに存在するノードか
+bool StudioStateParentCanvas::IsExistingNode(int key) const
+{
+	if (key == StateMachineData::kEntryId) return true;
+	return std::as_const(*data).FindState(key) != nullptr;
+}
+
+// ステートの情報
+void StudioStateParentCanvas::DrawStateInspector(StateNode& state)
+{
+	ImGui::Text("State");
+	ImGui::Separator();
+
+	// 選ぶStateが変わったら、入力欄を今の名前で作り直す
+	if (nameEditingStateId != state.id)
+	{
+		nameEditingStateId = state.id;
+		strncpy_s(nameBuffer, state.name.c_str(), sizeof(nameBuffer) - 1);
+		nameError.clear();
+	}
+
+	// 名前(Enterで確定。空や重複は確定しない)
+	if (ImGui::InputText("Name", nameBuffer, sizeof(nameBuffer), ImGuiInputTextFlags_EnterReturnsTrue))
+	{
+		if (data->RenameState(state.id, nameBuffer))
+		{
+			nameError.clear();
+		}
+		else
+		{
+			nameError = (nameBuffer[0] == '\0') ? "Name is empty." : "Name already used.";
+		}
+	}
+
+	// 入力欄から離れたら、確定していない文字は今の名前に戻す
+	if (ImGui::IsItemDeactivated() && state.name != nameBuffer)
+	{
+		strncpy_s(nameBuffer, state.name.c_str(), sizeof(nameBuffer) - 1);
+	}
+	if (!nameError.empty())
+	{
+		ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f), "%s", nameError.c_str());
+	}
+
+	// 色
+	ImGui::ColorEdit3("Color", state.editorColor);
+	ImGui::Spacing();
+
+	// 出ていくリンクの一覧
+	DrawLinkList(state.id, state.transitions);
+	ImGui::Spacing();
+
+	// 子グラフへ移動
+	ImGui::BeginDisabled();
+	ImGui::Button("Open Child Graph", ImVec2(-1.0f, 0.0f));
+	ImGui::EndDisabled();
+
+	// 削除
+	if (DrawDeleteButton("Delete State"))
+	{
+		DeleteSelection(*data);
+	}
+}
+
+// エントリーの設定
+void StudioStateParentCanvas::DrawEntryInspector()
+{
+	ImGui::Text("Entry");
+	ImGui::Separator();
+
+	// 出ていくリンクの一覧
+	DrawLinkList(StateMachineData::kEntryId, data->entry.transitions);
+}
+
+// 複数ステートの選択時
+void StudioStateParentCanvas::DrawMultiStateInspector()
+{
+	ImGui::Text("%d States selected", static_cast<int>(selectedNodeKeys.size()));
+	ImGui::Separator();
+
+	// まとめて削除
+	if (DrawDeleteButton("Delete States"))
+	{
+		DeleteSelection(*data);
+	}
+}
+
+// リンクの設定
+void StudioStateParentCanvas::DrawLinkInspector(int linkId)
+{
+	StateTransition* link = data->FindTransition(linkId);
+	int fromKey = -1, index = -1, count = 0;
+	if (!link || !FindLinkOwner(linkId, fromKey, index, count))
+	{
+		ImGui::TextDisabled("Nothing selected.");
+		return;
+	}
+
+	ImGui::Text("Link");
+	ImGui::Separator();
+
+	// 遷移元 → 遷移先
+	ImGui::Text("%s  ->  %s", GetNodeName(fromKey).c_str(), GetNodeName(link->toStateId).c_str());
+
+	// 優先度(遷移元の中で何番目か)
+	ImGui::Text("Priority: %d / %d", index + 1, count);
+	ImGui::SameLine();
+	if (ImGui::ArrowButton("##LinkUp", ImGuiDir_Up))     data->MoveTransition(linkId, -1);
+	ImGui::SameLine();
+	if (ImGui::ArrowButton("##LinkDown", ImGuiDir_Down)) data->MoveTransition(linkId, +1);
+	ImGui::Spacing();
+
+	// 常に成立
+	ImGui::Checkbox("Always", &link->always);
+
+	// ブレンド
+	ImGui::Checkbox("Blend", &link->blend.enabled);
+	ImGui::BeginDisabled(!link->blend.enabled);
+	ImGui::DragFloat("Blend Duration", &link->blend.duration, 0.01f, 0.0f, 5.0f, "%.2f s");
+	ImGui::EndDisabled();
+	ImGui::Spacing();
+
+	// 条件の状態
+	if (link->always)
+	{
+		ImGui::TextDisabled("Condition: Always");
+	}
+	else if (link->condition.IsEmpty())
+	{
+		ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f), "Condition: Empty");
+	}
+	else
+	{
+		ImGui::Text("Condition: Set");
+	}
+
+	// 条件の編集へ
+	ImGui::BeginDisabled();
+	ImGui::Button("Edit Condition", ImVec2(-1.0f, 0.0f));
+	ImGui::EndDisabled();
+
+	// 削除
+	if (DrawDeleteButton("Delete Link"))
+	{
+		DeleteSelection(*data);
+	}
+}
+
+// 出ていくリンクの一覧
+void StudioStateParentCanvas::DrawLinkList(int fromKey, std::vector<StateTransition>& links)
+{
+	ImGui::Text("Links (priority order)");
+
+	if (links.empty())
+	{
+		ImGui::TextDisabled("No links.");
+		return;
+	}
+
+	// 入れ替えは描画が終わってから
+	int moveId = -1;
+	int moveOffset = 0;
+
+	for (int i = 0; i < static_cast<int>(links.size()); ++i)
+	{
+		const StateTransition& t = links[i];
+		ImGui::PushID(t.id);
+
+		// 上下で優先度を入れ替える
+		if (ImGui::ArrowButton("##Up", ImGuiDir_Up)) { moveId = t.id; moveOffset = -1; }
+		ImGui::SameLine();
+		if (ImGui::ArrowButton("##Down", ImGuiDir_Down)) { moveId = t.id; moveOffset = +1; }
+		ImGui::SameLine();
+
+		// 条件の設定漏れは赤で表示
+		bool invalid = (!t.always && t.condition.IsEmpty());
+		if (invalid) ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.4f, 0.4f, 1.0f));
+
+		// クリックでそのリンクを選ぶ
+		std::string label = std::to_string(i + 1) + ". -> " + GetNodeName(t.toStateId);
+		if (ImGui::Selectable(label.c_str(), t.id == selectedLinkId))
+		{
+			selectedLinkId = t.id;
+			selectedNodeKeys.clear();
+			clearSelectionRequested = true; // キャンバス側のノードの選択も外す
+		}
+
+		if (invalid) ImGui::PopStyleColor();
+		ImGui::PopID();
+	}
+
+	if (moveId != -1)
+	{
+		data->MoveTransition(moveId, moveOffset);
+	}
+	(void)fromKey;
+}
+
+// 削除ボタン
+bool StudioStateParentCanvas::DrawDeleteButton(const char* label)
+{
+	ImGui::Spacing();
+	ImGui::Spacing();
+
+	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.15f, 0.15f, 1.0f));
+	ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.85f, 0.2f, 0.2f, 1.0f));
+	ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.6f, 0.1f, 0.1f, 1.0f));
+	bool pressed = ImGui::Button(label, ImVec2(-1.0f, 0.0f));
+	ImGui::PopStyleColor(3);
+
+	return pressed;
+}
+
+// リンクの遷移元と、遷移元の中での何番目かを探す
+bool StudioStateParentCanvas::FindLinkOwner(int linkId, int& outFromKey, int& outIndex, int& outCount) const
+{
+	auto search = [&](int fromKey, const std::vector<StateTransition>& list)
+		{
+			for (int i = 0; i < static_cast<int>(list.size()); ++i)
+			{
+				if (list[i].id == linkId)
+				{
+					outFromKey = fromKey;
+					outIndex = i;
+					outCount = static_cast<int>(list.size());
+					return true;
+				}
+			}
+			return false;
+		};
+
+	if (search(StateMachineData::kEntryId, data->entry.transitions)) return true;
+	for (const auto& s : data->states)
+	{
+		if (search(s.id, s.transitions)) return true;
+	}
+	return false;
+}
+
+// ノードのキーから、表示用の名前を作る
+std::string StudioStateParentCanvas::GetNodeName(int key) const
+{
+	if (key == StateMachineData::kEntryId) return "Entry";
+	if (const StateNode* s = std::as_const(*data).FindState(key)) return s->name;
+	return "(missing)";
 }
 
 // fromKeyからtoStateIdへのリンクがあるか

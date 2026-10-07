@@ -15,6 +15,9 @@ public:
 	void SetWindowId(int id) { windowId = id; }
 	void DrawGUI(entt::registry& registry, StudioContext& context) override;
 
+	// モデルが変わったときに呼ぶ
+	void OnModelChanged(StudioContext& context);
+
 private:
 	// --- ファイル関係 --- //
 
@@ -29,11 +32,11 @@ private:
 	void Save(StudioContext& context);
 	void Load(StudioContext& context);
 
-	// 新規作成
-	void NewGraph(StudioContext& context);
-
 	// 保存先のパスを決める
 	std::string BuildNewSavePath(const StudioContext& context) const;
+
+	// アニメーションを再生できるモデルか
+	static bool HasAnimatedModel(entt::registry& registry);
 
 
 	// --- データ --- //

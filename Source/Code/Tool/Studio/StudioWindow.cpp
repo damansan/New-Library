@@ -280,6 +280,9 @@ void StudioWindow::LoadAsset(const std::string& assetPath)
 {
 	stadoiModelViewer.LoadModel(studioRegistry, assetPath);
 	context.currentModelPath = assetPath;
+
+	// ƒ‚ƒfƒ‹‚ª•Ï‚í‚Á‚½‚±‚Æ‚ð“`‚¦‚é
+	stateGraph.OnModelChanged(context);
 }
 
 void StudioWindow::Begin()

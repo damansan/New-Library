@@ -19,8 +19,11 @@ public:
 	// 読み込み・新規作成のときに、選択などを戻す
 	void Reset();
 
+	// インスペクター描画
+	void DrawInspector(StateMachineData& data);
+
 	// 選択中のノードとLink
-	int GetSelectedNodeKey() const { return selectedNodeKey; }
+	const std::vector<int>& GetSelectedNodeKeys() const { return selectedNodeKeys; }
 	int GetSelectedLinkId() const { return selectedLinkId; }
 
 private:
@@ -47,6 +50,32 @@ private:
 	// 選択の更新
 	void UpdateSelection();
 
+	// データに存在するノードか
+	bool IsExistingNode(int key) const;
+
+
+	// --- インスペクター --- //
+
+	// ステートの設定
+	void DrawStateInspector(StateNode& state);
+	// エントリーの設定
+	void DrawEntryInspector();
+	// 複数ステートの選択時
+	void DrawMultiStateInspector();
+	// リンクの設定
+	void DrawLinkInspector(int linkId);
+
+	// 出ていくリンクの一覧
+	void DrawLinkList(int fromKey, std::vector<StateTransition>& links);
+
+	// 削除ボタン
+	static bool DrawDeleteButton(const char* label);
+
+	// リンクの遷移元と、遷移元の中での何番目かを探す
+	bool FindLinkOwner(int linkId, int& outFromKey, int& outIndex, int& outCount) const;
+
+	// ノードのキーから、表示用の名前を作る
+	std::string GetNodeName(int key) const;
 
 	// --- リンクの計算 --- //
 
@@ -93,8 +122,11 @@ private:
 	std::vector<LinkSegment> linkSegments;
 
 	// 選択中のノードとLink
-	int selectedNodeKey = -1;
+	std::vector<int> selectedNodeKeys;
 	int selectedLinkId = -1;
+
+	// 次にキャンバスを描くときに、ノードエディタ側の選択を消すか
+	bool clearSelectionRequested = false;
 
 	// リンクの作成中の遷移元
 	int pendingFromKey = -1;
@@ -103,4 +135,10 @@ private:
 	ImVec2 pendingCreatePos{};
 	// ノードの右クリックの対象
 	int contextNodeKey = -1;
+
+	// 名前の入力欄
+	int nameEditingStateId = -1;
+	char nameBuffer[128] = {};
+	// 名前を確定できなかった理由
+	std::string nameError;
 };

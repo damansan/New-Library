@@ -7,6 +7,9 @@
 #include <cmath>
 #include <cfloat>
 
+#include "Engine/ECS/Components/SkinnedMeshComponent.h"
+#include "Engine/ECS/Components/AnimatorComponent.h"
+
 #include "Tool/Editor/ProjectWindow.h"
 
 void StudioStateGraph::Initialize()
@@ -26,7 +29,13 @@ void StudioStateGraph::DrawGUI(entt::registry& registry, StudioContext& context)
 
 	std::string panelName = "StateGraph##" + std::to_string(windowId);
 	bool open = ImGui::Begin(panelName.c_str());
-	if (open)
+
+	// StaticModelは弾く
+	if (open && !HasAnimatedModel(registry))
+	{
+		ImGui::Text("No skinned model.");
+	}
+	else if (open)
 	{
 		DrawToolbar(context);
 
@@ -43,25 +52,8 @@ void StudioStateGraph::DrawGUI(entt::registry& registry, StudioContext& context)
 
 		ImGui::NextColumn();
 
-		// 右：インスペクター(c-2で作る。今は選択の確認用)
-		int linkId = parentCanvas.GetSelectedLinkId();
-		int stateId = parentCanvas.GetSelectedNodeKey();
-		if (linkId != -1)
-		{
-			ImGui::Text("Link: %d", linkId);
-		}
-		else if (stateId == StateMachineData::kEntryId)
-		{
-			ImGui::Text("Entry");
-		}
-		else if (const StateNode* s = std::as_const(data).FindState(stateId))
-		{
-			ImGui::Text("State: %s", s->name.c_str());
-		}
-		else
-		{
-			ImGui::TextDisabled("Nothing selected.");
-		}
+		// 右：インスペクター
+		parentCanvas.DrawInspector(data);
 
 		// 選択している物の削除(文字を入力中は、Deleteキーを文字の削除に使うので除く)
 		if (ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows) &&
@@ -77,14 +69,23 @@ void StudioStateGraph::DrawGUI(entt::registry& registry, StudioContext& context)
 	ImGui::End(); 
 }
 
+// モデルが変わったときに呼ぶ
+void StudioStateGraph::OnModelChanged(StudioContext& context)
+{
+	data.Clear();
+
+	// 選択などを戻す
+	parentCanvas.Reset();
+
+	context.attachedGraphPath.clear();
+	loaded = true;     // 空のグラフを、読み込み済みとして扱う
+	hasErrors = false; // 作り始めなので、検証は保存時に行う
+	message.clear();
+}
+
 // ツールバー
 void StudioStateGraph::DrawToolbar(StudioContext& context)
 {
-	if (ImGui::Button("New"))
-	{
-		NewGraph(context);
-	}
-	ImGui::SameLine();
 	if (ImGui::Button("Save"))
 	{
 		Save(context);
@@ -216,20 +217,6 @@ void StudioStateGraph::Load(StudioContext& context)
 	}
 }
 
-// 新規作成
-void StudioStateGraph::NewGraph(StudioContext& context)
-{
-	data.Clear();
-
-	// 選択などを戻す
-	parentCanvas.Reset();
-
-	context.attachedGraphPath.clear();
-	loaded = true;     // 空のグラフを、読み込み済みとして扱う
-	hasErrors = false; // 作り始めなので、検証は保存時に行う
-	message.clear();
-}
-
 // 保存先のパスを決める
 std::string StudioStateGraph::BuildNewSavePath(const StudioContext& context) const
 {
@@ -243,4 +230,11 @@ std::string StudioStateGraph::BuildNewSavePath(const StudioContext& context) con
 	std::string result = (saveDir / uniqueName).string();
 	std::replace(result.begin(), result.end(), '\\', '/');
 	return result;
+}
+
+// アニメーションを再生できるモデルか
+bool StudioStateGraph::HasAnimatedModel(entt::registry& registry)
+{
+	auto view = registry.view<SkinnedMeshComponent, AnimatorComponent>();
+	return view.begin() != view.end();
 }

@@ -1,5 +1,103 @@
 {
-    "entities": [],
+    "entities": [
+        {
+            "name": "FreeCamera",
+            "prefab": "Data/Prefab/Camera/FreeCamera.prefab.json"
+        },
+        {
+            "components": {
+                "ComponentCategory": {
+                    "category": "None"
+                },
+                "MaterialComponent": {
+                    "shadingModel": "Default"
+                },
+                "MeshComponent": {
+                    "modelPath": "Data/Model/Helmet/DamagedHelmet.gltf"
+                },
+                "TransformComponent": {
+                    "position": [
+                        0.0,
+                        1.6640000343322754,
+                        -0.05000000074505806
+                    ],
+                    "rotation": [
+                        -1.5700000524520874,
+                        0.0,
+                        0.0
+                    ],
+                    "scale": [
+                        0.15000000596046448,
+                        0.15000000596046448,
+                        0.15000000596046448
+                    ]
+                }
+            },
+            "name": "DamagedHelmet"
+        },
+        {
+            "components": {
+                "ComponentCategory": {
+                    "category": "None"
+                },
+                "MaterialComponent": {
+                    "shadingModel": "Default"
+                },
+                "MeshComponent": {
+                    "modelPath": "Data/Model/PlayerRobot/Map_Robot3.gltf"
+                },
+                "TransformComponent": {
+                    "position": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ],
+                    "rotation": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ],
+                    "scale": [
+                        1.0,
+                        1.0,
+                        1.0
+                    ]
+                }
+            },
+            "name": "Map_Robot3"
+        },
+        {
+            "components": {
+                "ComponentCategory": {
+                    "category": "None"
+                },
+                "MaterialComponent": {
+                    "shadingModel": "Default"
+                },
+                "MeshComponent": {
+                    "modelPath": "Data/Model/Stage/Sponza/Sponza.gltf"
+                },
+                "TransformComponent": {
+                    "position": [
+                        -0.8500000238418579,
+                        0.0,
+                        0.0
+                    ],
+                    "rotation": [
+                        0.0,
+                        1.5,
+                        0.0
+                    ],
+                    "scale": [
+                        0.019999999552965164,
+                        0.019999999552965164,
+                        0.019999999552965164
+                    ]
+                }
+            },
+            "name": "Sponza"
+        }
+    ],
     "settings": {},
     "version": 1
 }
