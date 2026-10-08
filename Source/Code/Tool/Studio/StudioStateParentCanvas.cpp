@@ -1,6 +1,4 @@
 #include "StudioStateParentCanvas.h"
-#include <cmath>
-#include <cfloat>
 #include <imgui.h>
 
 void StudioStateParentCanvas::Initialize()
@@ -213,7 +211,7 @@ void StudioStateParentCanvas::DrawLinks()
 			if (invalid)  color = IM_COL32(230, 90, 90, 255);   // 条件の設定漏れ
 			if (selected) color = IM_COL32(255, 200, 80, 255);  // 選択中
 
-			DrawArrow(drawList, start, end, color, selected ? 3.0f : 2.0f);
+			StateGraphDraw::DrawArrow(drawList, start, end, color, selected ? 3.0f : 2.0f);
 
 			// クリック判定のために描いたリンクを記録
 			linkSegments.push_back({ t.id, start, end });
@@ -222,7 +220,7 @@ void StudioStateParentCanvas::DrawLinks()
 	// Entryから出るリンク
 	for (const auto& t : data->entry.transitions) drawOne(StateMachineData::kEntryId, t);
 	
-	// 書くStateから出るリンク
+	// 各Stateから出るリンク
 	for (const auto& s : data->states)
 	{
 		for (const auto& t : s.transitions) drawOne(s.id, t);
@@ -239,8 +237,8 @@ void StudioStateParentCanvas::DrawPendingLink()
 
 	// 遷移元のノードの縁から、マウスの位置まで線を引く
 	ImVec2 mouse = ImGui::GetMousePos();
-	ImVec2 start = GetEdgePoint(it->second.first, it->second.second, mouse);
-	DrawArrow(ImGui::GetWindowDrawList(), start, mouse, IM_COL32(255, 200, 80, 255), 2.0f);
+	ImVec2 start = StateGraphDraw::GetEdgePoint(it->second.first, it->second.second, mouse);
+	StateGraphDraw::DrawArrow(ImGui::GetWindowDrawList(), start, mouse, IM_COL32(255, 200, 80, 255), 2.0f);
 }
 
 // 背景右クリックのメニュー
@@ -335,12 +333,20 @@ void StudioStateParentCanvas::UpdateLinkCreation()
 		}
 	}
 
+	// ノード以外をクリックした場合も、作成は終わる
 	pendingFromKey = -1;
 }
 
 // 選択の更新
 void StudioStateParentCanvas::UpdateSelection()
 {
+	// Stateのノードをダブルクリックしたら、子のウィンドウを開く
+	if (ed::NodeId doubleClicked = ed::GetDoubleClickedNode())
+	{
+		int key = ToNodeKey(doubleClicked);
+		if (key != StateMachineData::kEntryId) openChildRequest = key;
+	}
+
 	// ノードの選択
 	int count = ed::GetSelectedObjectCount();
 	std::vector<ed::NodeId> nodeIds(count > 0 ? count : 1);
@@ -365,7 +371,7 @@ void StudioStateParentCanvas::UpdateSelection()
 		selectedNodeKeys.clear();
 	}
 
-	// リンクの判定
+	// リンクのクリックの判定
 	if (pendingFromKey != -1) return;
 	if (!ed::IsBackgroundClicked()) return;
 
@@ -378,7 +384,7 @@ void StudioStateParentCanvas::UpdateSelection()
 	float best = hitDistance;
 	for (const auto& seg : linkSegments)
 	{
-		float d = DistanceToSegment(mouse, seg.start, seg.end);
+		float d = StateGraphDraw::DistanceToSegment(mouse, seg.start, seg.end);
 		if (d < best)
 		{
 			best = d;
@@ -407,7 +413,7 @@ bool StudioStateParentCanvas::IsExistingNode(int key) const
 void StudioStateParentCanvas::DrawStateInspector(StateNode& state)
 {
 	ImGui::Text("State");
-	ImGui::Separator();
+
 
 	// 選ぶStateが変わったら、入力欄を今の名前で作り直す
 	if (nameEditingStateId != state.id)
@@ -449,9 +455,10 @@ void StudioStateParentCanvas::DrawStateInspector(StateNode& state)
 	ImGui::Spacing();
 
 	// 子グラフへ移動
-	ImGui::BeginDisabled();
-	ImGui::Button("Open Child Graph", ImVec2(-1.0f, 0.0f));
-	ImGui::EndDisabled();
+	if (ImGui::Button("Open Child Graph", ImVec2(-1.0f, 0.0f)))
+	{
+		openChildRequest = state.id;
+	}
 
 	// 削除
 	if (DrawDeleteButton("Delete State"))
@@ -495,18 +502,13 @@ void StudioStateParentCanvas::DrawLinkInspector(int linkId)
 	}
 
 	ImGui::Text("Link");
-	ImGui::Separator();
+
 
 	// 遷移元 → 遷移先
 	ImGui::Text("%s  ->  %s", GetNodeName(fromKey).c_str(), GetNodeName(link->toStateId).c_str());
 
-	// 優先度(遷移元の中で何番目か)
-	ImGui::Text("Priority: %d / %d", index + 1, count);
-	ImGui::SameLine();
-	if (ImGui::ArrowButton("##LinkUp", ImGuiDir_Up))     data->MoveTransition(linkId, -1);
-	ImGui::SameLine();
-	if (ImGui::ArrowButton("##LinkDown", ImGuiDir_Down)) data->MoveTransition(linkId, +1);
-	ImGui::Spacing();
+	// 優先度
+	ImGui::Text("Priority: %d / %d", index + 1, count);	ImGui::Spacing();
 
 	// 常に成立
 	ImGui::Checkbox("Always", &link->always);
@@ -672,92 +674,12 @@ bool StudioStateParentCanvas::CalcLinkPoints(int fromKey, int toStateId, int lan
 	auto toIt = nodeRects.find(toStateId);
 	if (fromIt == nodeRects.end() || toIt == nodeRects.end()) return false;
 
-	const auto& [fromMin, fromMax] = fromIt->second;
-	const auto& [toMin, toMax] = toIt->second;
-	ImVec2 fromCenter((fromMin.x + fromMax.x) * 0.5f, (fromMin.y + fromMax.y) * 0.5f);
-	ImVec2 toCenter((toMin.x + toMax.x) * 0.5f, (toMin.y + toMax.y) * 0.5f);
-
-	// ノードの中心同士を結ぶ線がそれぞれの縁と交わる点を始点と終点にする
-	outStart = GetEdgePoint(fromMin, fromMax, toCenter);
-	outEnd = GetEdgePoint(toMin, toMax, fromCenter);
-
-	// 逆向きの線がある場合や、同じ向きに複数ある場合は、線を横にずらす
-	bool hasReverse = HasLink(toStateId, fromKey);
-	float offset = (hasReverse ? 8.0f : 0.0f) + lane * 10.0f;
-	if (offset <= 0.0f) return true;
-
-	// 往復の線が反対側にずれるように、IDの小さいほうから見た向きを基準にする
-	bool fromIsSmaller = fromKey < toStateId;
-	ImVec2 baseFrom = fromIsSmaller ? fromCenter : toCenter;
-	ImVec2 baseTo = fromIsSmaller ? toCenter : fromCenter;
-	ImVec2 dir(baseTo.x - baseFrom.x, baseTo.y - baseFrom.y);
-	float len = sqrtf(dir.x * dir.x + dir.y * dir.y);
-	if (len < 0.0001f) return true;
-
-	// 基準の向きに垂直な方向へずらす
-	float sign = (hasReverse && !fromIsSmaller) ? -1.0f : 1.0f;
-	ImVec2 perp(-dir.y / len * offset * sign, dir.x / len * offset * sign);
-	outStart = ImVec2(outStart.x + perp.x, outStart.y + perp.y);
-	outEnd = ImVec2(outEnd.x + perp.x, outEnd.y + perp.y);
+	StateGraphDraw::CalcLinkPoints(
+		fromIt->second.first, fromIt->second.second, fromKey,
+		toIt->second.first, toIt->second.second, toStateId,
+		HasLink(toStateId, fromKey), lane,
+		outStart, outEnd);
 	return true;
-}
-
-// 目的地へ伸ばすリンクが矩形の縁と交わる点
-ImVec2 StudioStateParentCanvas::GetEdgePoint(const ImVec2& rectMin, const ImVec2& rectMax, const ImVec2& target)
-{
-	ImVec2 center((rectMin.x + rectMax.x) * 0.5f, (rectMin.y + rectMax.y) * 0.5f);
-	float halfW = (rectMax.x - rectMin.x) * 0.5f;
-	float halfH = (rectMax.y - rectMin.y) * 0.5f;
-
-	ImVec2 dir(target.x - center.x, target.y - center.y);
-	if (dir.x == 0.0f && dir.y == 0.0f) return center;
-
-	// 横の辺と縦の辺のうち、先にぶつかるほうの倍率を使う
-	float scaleX = (dir.x != 0.0f) ? halfW / fabsf(dir.x) : FLT_MAX;
-	float scaleY = (dir.y != 0.0f) ? halfH / fabsf(dir.y) : FLT_MAX;
-	float scale = (scaleX < scaleY) ? scaleX : scaleY;
-	return ImVec2(center.x + dir.x * scale, center.y + dir.y * scale);
-}
-
-// 矢印描画
-void StudioStateParentCanvas::DrawArrow(ImDrawList* drawList, const ImVec2& start, const ImVec2& end, ImU32 color, float thickness)
-{
-	ImVec2 dir(end.x - start.x, end.y - start.y);
-	float len = sqrtf(dir.x * dir.x + dir.y * dir.y);
-	if (len < 0.0001f) return;
-	dir.x /= len;
-	dir.y /= len;
-
-	const float arrowLength = 14.0f;
-	const float arrowWidth = 11.0f;
-
-	// 線は矢印の根元まで
-	ImVec2 base(end.x - dir.x * arrowLength, end.y - dir.y * arrowLength);
-	drawList->AddLine(start, base, color, thickness);
-
-	// 矢印の三角形
-	ImVec2 perp(-dir.y, dir.x);
-	ImVec2 left(base.x + perp.x * arrowWidth * 0.5f, base.y + perp.y * arrowWidth * 0.5f);
-	ImVec2 right(base.x - perp.x * arrowWidth * 0.5f, base.y - perp.y * arrowWidth * 0.5f);
-	drawList->AddTriangleFilled(end, left, right, color);
-}
-
-// 点と線分の距離
-float StudioStateParentCanvas::DistanceToSegment(const ImVec2& p, const ImVec2& a, const ImVec2& b)
-{
-	ImVec2 ab(b.x - a.x, b.y - a.y);
-	ImVec2 ap(p.x - a.x, p.y - a.y);
-	float lenSq = ab.x * ab.x + ab.y * ab.y;
-	
-	// 点pを線分abに投影した位置。線分の外に出たら端に寄せる
-	float t = (lenSq > 0.0f) ? (ap.x * ab.x + ap.y * ab.y) / lenSq : 0.0f;
-	t = (t < 0.0f) ? 0.0f : (t > 1.0f ? 1.0f : t);
-	
-	// 線分上で一番近い点との距離
-	ImVec2 closest(a.x + ab.x * t, a.y + ab.y * t);
-	float dx = p.x - closest.x;
-	float dy = p.y - closest.y;
-	return sqrtf(dx * dx + dy * dy);
 }
 
 // ノードのキー → ノードエディタのID

@@ -1,11 +1,14 @@
 #pragma once
 #include <string>
+#include <memory>
+#include <vector>
 
 #include "IStudioAttachment.h"
 #include "Engine/Data/StateMachineData.h"
 #include "Tool/NodeEditor/NodeEditorCanvas.h"
 
 #include "StudioStateParentCanvas.h"
+#include "StudioStateChildCanvas.h"
 
 // Stateグラフの編集パネル
 class StudioStateGraph : public IStudioAttachment
@@ -61,4 +64,17 @@ private:
 
 	// 親階層キャンバス
 	StudioStateParentCanvas parentCanvas;
+	// 子階層キャンバス(複数)
+	std::vector<std::unique_ptr<StudioStateChildCanvas>> childCanvases;
+
+
+	// --- 子階層のキャンバス --- //
+
+	// 次に手前に出す子のウィンドウ
+	int focusChildStateId = -1;
+
+	// 子のウィンドウを開く
+	void OpenChildWindow(int stateId);
+	// 開いている子のウィンドウを描く
+	void DrawChildWindows();
 };

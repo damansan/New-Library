@@ -1,5 +1,5 @@
 ===== main.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\main.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\main.cpp 
 #include <time.h>
 
 // ‹N“®‚·‚éApp
@@ -74,7 +74,7 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_  HINSTANCE prev_instance, _
  
  
 ===== EditorApp.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\App\EditorApp.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\App\EditorApp.h 
 #pragma once
 #include <memory>
 #include <string>
@@ -148,7 +148,7 @@ private:
 }; 
  
 ===== GameApp.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\App\GameApp.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\App\GameApp.h 
 #pragma once
 #include <string>
 #include "Engine/Core/Application.h"
@@ -175,7 +175,7 @@ private:
 }; 
  
 ===== EditorApp.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\App\EditorApp.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\App\EditorApp.cpp 
 #include "EditorApp.h"
 #include "tracy/Tracy.hpp"
 #include <filesystem>
@@ -531,7 +531,7 @@ void EditorApp::ProcessSceneRequest()
 } 
  
 ===== GameApp.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\App\GameApp.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\App\GameApp.cpp 
 #include "GameApp.h"
 #include "tracy/Tracy.hpp"
 #include <fstream>
@@ -632,7 +632,7 @@ std::string GameApp::LoadStartScenePath()
 } 
  
 ===== Application.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Core\Application.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\Core\Application.h 
 #pragma once
 #include <windows.h>
 #include "Engine/Utility/high_resolution_timer.h"
@@ -714,7 +714,7 @@ private:
 }; 
  
 ===== Camera.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Core\Camera.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\Core\Camera.h 
 #pragma once
 #include <DirectXMath.h>
 
@@ -763,7 +763,7 @@ private:
 }; 
  
 ===== GameView.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Core\GameView.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\Core\GameView.h 
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
@@ -821,7 +821,7 @@ private:
 }; 
  
 ===== Graphics.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Core\Graphics.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\Core\Graphics.h 
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
@@ -911,7 +911,7 @@ private:
 }; 
  
 ===== JsonFileCache.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Core\JsonFileCache.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\Core\JsonFileCache.h 
 #pragma once
 #include <string>
 #include <unordered_map>
@@ -972,7 +972,7 @@ private:
 }; 
  
 ===== Log.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Core\Log.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\Core\Log.h 
 #pragma once
 #include <Windows.h>
 #include <cstdarg>
@@ -1071,7 +1071,7 @@ inline void Log(const char* format, ...)
 } 
  
 ===== PhysicsDestroyQueue.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Core\PhysicsDestroyQueue.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\Core\PhysicsDestroyQueue.h 
 #pragma once
 #include <vector>
 #include <PxPhysicsAPI.h>
@@ -1113,7 +1113,7 @@ namespace PhysicsDestroyQueue
 } 
  
 ===== PhysicsLayer.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Core\PhysicsLayer.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\Core\PhysicsLayer.h 
 #pragma once
 #include <PxPhysicsAPI.h>
 
@@ -1166,7 +1166,7 @@ private:
 }; 
  
 ===== PhysX.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Core\PhysX.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\Core\PhysX.h 
 #pragma once
 #include <PxPhysicsAPI.h>
 
@@ -1213,7 +1213,7 @@ private:
 }; 
  
 ===== Scene.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Core\Scene.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\Core\Scene.h 
 #pragma once
 #include "entt.hpp"
 #include "SceneContext.h"
@@ -1265,7 +1265,7 @@ protected:
 }; 
  
 ===== SceneContext.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Core\SceneContext.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\Core\SceneContext.h 
 #pragma once
 #include <d3d11.h>
 #include <DirectXMath.h>
@@ -1301,7 +1301,7 @@ struct SceneContext
 }; 
  
 ===== SceneManager.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Core\SceneManager.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\Core\SceneManager.h 
 #pragma once
 #include "Scene.h"
 #include <memory>
@@ -1339,7 +1339,7 @@ private:
 }; 
  
 ===== Application.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Core\Application.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\Core\Application.cpp 
 #include "Application.h"
 #include "tracy/Tracy.hpp"
 #include "Engine/ECS/EngineComponents.h"
@@ -1588,7 +1588,7 @@ LRESULT Application::HandleMessage(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lp
 } 
  
 ===== Camera.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Core\Camera.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\Core\Camera.cpp 
 #include "Camera.h"
 
 // ‰Šú‰»
@@ -1647,7 +1647,7 @@ void Camera::SetPerspectiveFov(
 } 
  
 ===== GameView.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Core\GameView.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\Core\GameView.cpp 
 #include "GameView.h"
 #include <cassert>
 
@@ -1771,7 +1771,7 @@ void GameView::SetAspect(float aspect)
 } 
  
 ===== Graphics.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Core\Graphics.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\Core\Graphics.cpp 
 #include "Graphics.h"
 #include "Engine/Utility/misc.h"
 #include "Engine/Resource/GpuResourceUtils.h"
@@ -2222,7 +2222,7 @@ void Graphics::InitializePresentResources()
 } 
  
 ===== PhysX.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Core\PhysX.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\Core\PhysX.cpp 
 #include "PhysX.h"
 
 using namespace physx;
@@ -2293,7 +2293,7 @@ physx::PxTriangleMesh* PhysX::CreateTriangleMesh(
  
  
 ===== Scene.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Core\Scene.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\Core\Scene.cpp 
 #include "Scene.h"
 
 // •¨—ƒV[ƒ“‚Ìì¬
@@ -2343,7 +2343,7 @@ void Scene::UpdatePhysicsScene(float elapsedTime)
 } 
  
 ===== SceneManager.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Core\SceneManager.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\Core\SceneManager.cpp 
 #include "SceneManager.h"
 
 // XV
@@ -2401,7 +2401,7 @@ void SceneManager::ClearScene()
  
  
 ===== AnimationSpeedData.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Data\AnimationSpeedData.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\Data\AnimationSpeedData.h 
 #pragma once
 #include <string>
 #include <vector>
@@ -2444,7 +2444,7 @@ public:
 }; 
  
 ===== ConditionGraphData.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Data\ConditionGraphData.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\Data\ConditionGraphData.h 
 #pragma once
 #include <string>
 #include <vector>
@@ -2575,7 +2575,7 @@ nlohmann::ordered_json ConditionGraphToJson(const ConditionGraph& graph);
 void ConditionGraphFromJson(ConditionGraph& graph, const nlohmann::json& j); 
  
 ===== SequencerData.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Data\SequencerData.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\Data\SequencerData.h 
 #pragma once
 #include <string>
 #include <vector>
@@ -2626,7 +2626,7 @@ public:
 }; 
  
 ===== StateMachineData.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Data\StateMachineData.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\Data\StateMachineData.h 
 #pragma once
 #include <string>
 #include <vector>
@@ -2793,7 +2793,7 @@ private:
 }; 
  
 ===== AnimationSpeedData.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Data\AnimationSpeedData.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\Data\AnimationSpeedData.cpp 
 #include "AnimationSpeedData.h"
 #include <algorithm>
 
@@ -2919,7 +2919,7 @@ void AnimationSpeedData::FromJson(const nlohmann::json& j)
 } 
  
 ===== ConditionGraphData.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Data\ConditionGraphData.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\Data\ConditionGraphData.cpp 
 #include "ConditionGraphData.h"
 #include <algorithm>
 
@@ -3218,7 +3218,7 @@ void ConditionGraphFromJson(ConditionGraph& graph, const nlohmann::json& jc)
 } 
  
 ===== SequencerData.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Data\SequencerData.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\Data\SequencerData.cpp 
 #include "SequencerData.h"
 
 namespace
@@ -3341,7 +3341,7 @@ void SequencerData::FromJson(const nlohmann::json& j)
 } 
  
 ===== StateMachineData.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Data\StateMachineData.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\Data\StateMachineData.cpp 
 #include "StateMachineData.h"
 #include <algorithm>
 #include <unordered_set>
@@ -3471,7 +3471,12 @@ void StateMachineData::Clear()
 // State
 int StateMachineData::AddState(const std::string& baseName, const EditorPosition& pos)
 {
-	return 0;
+	StateNode s;
+	s.id = GenerateId();
+	s.name = MakeUniqueStateName(baseName);
+	s.editorPos = pos;
+	states.push_back(s);
+	return s.id;
 }
 bool StateMachineData::RenameState(int stateId, const std::string& newName)
 {
@@ -4057,7 +4062,15 @@ StateTransition* StateMachineData::FindTransition(int transitionId)
 // ‘¼‚ÌState‚Æd•¡‚µ‚È‚¢–¼‘O‚ğì‚é
 std::string StateMachineData::MakeUniqueStateName(const std::string& baseName) const
 {
-	return std::string();
+	std::string base = baseName.empty() ? "State" : baseName;
+	if (!FindStateByName(base)) return base;
+
+	// “¯‚¶–¼‘O‚ª‚ ‚ê‚ÎA––”ö‚É”Ô†‚ğ•t‚¯‚é("New State 1"A"New State 2"c)
+	for (int i = 1; ; ++i)
+	{
+		std::string name = base + " " + std::to_string(i);
+		if (!FindStateByName(name)) return name;
+	}
 }
 
 // ‘JˆÚ‚ğ‚Á‚Ä‚¢‚éƒŠƒXƒg(EntryA‚Ü‚½‚Í‚Ç‚ê‚©‚ÌState)‚ğ’T‚·
@@ -4079,7 +4092,7 @@ std::vector<StateTransition>* StateMachineData::FindTransitionOwner(int transiti
  
  
 ===== EngineComponents.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\ECS\EngineComponents.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\ECS\EngineComponents.h 
 #pragma once
 
 namespace EngineComponents
@@ -4089,7 +4102,7 @@ namespace EngineComponents
 } 
  
 ===== EntityFinder.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\ECS\EntityFinder.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\ECS\EntityFinder.h 
 #pragma once
 #include "entt.hpp"
 #include "Engine/ECS/Components/CategoryComponent.h"
@@ -4127,7 +4140,7 @@ inline std::vector<entt::entity> FindAllByCategory(entt::registry& registry, Ent
 } 
  
 ===== Reflect.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\ECS\Reflect.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\ECS\Reflect.h 
 #pragma once
 #include "entt.hpp"
 #include "Engine/ECS/Reflection.h"
@@ -4195,7 +4208,7 @@ namespace ReflectEnumDetail_##EnumType                  \
 #define REFLECT_END() 
  
 ===== Reflection.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\ECS\Reflection.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\ECS\Reflection.h 
 #pragma once
 #include <string>
 #include <vector>
@@ -4278,7 +4291,7 @@ public:
 }; 
  
 ===== EngineComponents.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\ECS\EngineComponents.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\ECS\EngineComponents.cpp 
 #include "EngineComponents.h"
 #include "Engine/Resource/ComponentRegistry.h"
 
@@ -4349,7 +4362,7 @@ void EngineComponents::Register()
 } 
  
 ===== Reflection.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\ECS\Reflection.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\ECS\Reflection.cpp 
 #include "Reflection.h"
 #include <DirectXMath.h>
 
@@ -4447,7 +4460,7 @@ int Reflection::GetComponentCount(ValueType type)
 } 
  
 ===== AdaptiveTrigger.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\ECS\Components\AdaptiveTrigger.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\ECS\Components\AdaptiveTrigger.h 
 #pragma once
 #include <vector>
 #include <cmath>
@@ -4594,7 +4607,7 @@ namespace AdaptiveTrigger
 } 
  
 ===== AnimationSpeedComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\ECS\Components\AnimationSpeedComponent.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\ECS\Components\AnimationSpeedComponent.h 
 #pragma once
 #include <string>
 #include "Engine/ECS/Reflect.h"
@@ -4609,7 +4622,7 @@ struct AnimationSpeedComponent
 }; 
  
 ===== AnimatorComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\ECS\Components\AnimatorComponent.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\ECS\Components\AnimatorComponent.h 
 ï»¿#pragma once
 #include <string>
 #include <DirectXMath.h>
@@ -4666,7 +4679,7 @@ struct AnimatorComponent
 }; 
  
 ===== BaseCameraComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\ECS\Components\BaseCameraComponent.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\ECS\Components\BaseCameraComponent.h 
 #pragma once
 #include <DirectXMath.h>
 
@@ -4679,7 +4692,7 @@ struct BaseCameraComponent
  
  
 ===== CategoryComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\ECS\Components\CategoryComponent.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\ECS\Components\CategoryComponent.h 
 #pragma once
 #include "Engine/ECS/Reflect.h"
 
@@ -4710,7 +4723,7 @@ struct ComponentCategory
 }; 
  
 ===== ControllerComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\ECS\Components\ControllerComponent.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\ECS\Components\ControllerComponent.h 
 ï»¿#pragma once
 #include <cstdint>
 #include "Engine/ECS/Components/AdaptiveTrigger.h"
@@ -4779,7 +4792,7 @@ namespace ControllerButtons
 } 
  
 ===== ControllerSettings.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\ECS\Components\ControllerSettings.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\ECS\Components\ControllerSettings.h 
 #pragma once
 #include <cstdint>
 
@@ -4802,7 +4815,7 @@ struct ControllerSettings
 }; 
  
 ===== FreeCameraComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\ECS\Components\FreeCameraComponent.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\ECS\Components\FreeCameraComponent.h 
 #pragma once
 #include <windows.h>
 #include "BaseCameraComponent.h"
@@ -4820,7 +4833,7 @@ struct FreeCameraComponent
 }; 
  
 ===== IKComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\ECS\Components\IKComponent.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\ECS\Components\IKComponent.h 
 #pragma once
 #include <DirectXMath.h>
 #include <vector>
@@ -4857,7 +4870,7 @@ struct IKComponent
 }; 
  
 ===== MaterialComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\ECS\Components\MaterialComponent.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\ECS\Components\MaterialComponent.h 
 #pragma once
 #include <cstdint>
 #include "Engine/ECS/Reflect.h"
@@ -4896,7 +4909,7 @@ struct MaterialComponent
 }; 
  
 ===== MeshComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\ECS\Components\MeshComponent.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\ECS\Components\MeshComponent.h 
 #pragma once
 #include <string>
 #include "Engine/ECS/Reflect.h"
@@ -4917,7 +4930,7 @@ struct MeshComponent
 }; 
  
 ===== MovementComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\ECS\Components\MovementComponent.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\ECS\Components\MovementComponent.h 
 #pragma once
 #include <DirectXMath.h>
 #include "Engine/ECS/Reflect.h"
@@ -4945,7 +4958,7 @@ struct MovementComponent
 }; 
  
 ===== PhysicsComponents.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\ECS\Components\PhysicsComponents.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\ECS\Components\PhysicsComponents.h 
 #pragma once
 #include <PxPhysicsAPI.h>
 #include "Engine/ECS/Reflect.h"
@@ -4995,7 +5008,7 @@ struct CharacterControllerComponent
 }; 
  
 ===== PrefabInstanceComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\ECS\Components\PrefabInstanceComponent.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\ECS\Components\PrefabInstanceComponent.h 
 #pragma once
 #include <string>
 
@@ -5006,7 +5019,7 @@ struct PrefabInstanceComponent
 }; 
  
 ===== SequencerComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\ECS\Components\SequencerComponent.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\ECS\Components\SequencerComponent.h 
 #pragma once
 #include <string>
 #include "Engine/ECS/Reflect.h"
@@ -5043,7 +5056,7 @@ struct SequencerComponent
 }; 
  
 ===== SkinnedMeshComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\ECS\Components\SkinnedMeshComponent.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\ECS\Components\SkinnedMeshComponent.h 
 #pragma once
 #include <memory>
 #include <vector>
@@ -5071,7 +5084,7 @@ struct SkinnedMeshComponent
 }; 
  
 ===== StateMachineComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\ECS\Components\StateMachineComponent.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\ECS\Components\StateMachineComponent.h 
 #pragma once
 #include <string>
 #include "Engine/ECS/Reflect.h"
@@ -5099,7 +5112,7 @@ struct StateMachineComponent
 }; 
  
 ===== StaticMeshComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\ECS\Components\StaticMeshComponent.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\ECS\Components\StaticMeshComponent.h 
 #pragma once
 #include <memory>
 #include "Engine/Resource/Model.h"
@@ -5112,7 +5125,7 @@ struct StaticMeshComponent
 }; 
  
 ===== Tags.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\ECS\Components\Tags.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\ECS\Components\Tags.h 
 #pragma once
 
 // ƒ[ƒhÏ‚İƒtƒ‰ƒO
@@ -5125,7 +5138,7 @@ struct InvisibleTag {};
 struct NoShadowTag {}; 
  
 ===== TransformComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\ECS\Components\TransformComponent.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\ECS\Components\TransformComponent.h 
 #pragma once
 #include <DirectXMath.h>
 #include "Engine/ECS/Reflect.h"
@@ -5151,7 +5164,7 @@ struct TransformComponent
 }; 
  
 ===== AnimationSpeedSystem.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\ECS\Systems\AnimationSpeedSystem.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\ECS\Systems\AnimationSpeedSystem.h 
 #pragma once
 #include "entt.hpp"
 #include "Engine/Data/AnimationSpeedData.h"
@@ -5168,7 +5181,7 @@ private:
 }; 
  
 ===== AnimationSystem.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\ECS\Systems\AnimationSystem.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\ECS\Systems\AnimationSystem.h 
 #pragma once
 #include <d3d11.h>
 #include <algorithm>
@@ -5245,7 +5258,7 @@ private:
 }; 
  
 ===== ConditionGraphEvaluator.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\ECS\Systems\ConditionGraphEvaluator.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\ECS\Systems\ConditionGraphEvaluator.h 
 #pragma once
 #include "entt.hpp"
 #include "Engine/Data/ConditionGraphData.h"
@@ -5276,7 +5289,7 @@ private:
 }; 
  
 ===== ControllerSystem.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\ECS\Systems\ControllerSystem.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\ECS\Systems\ControllerSystem.h 
 #pragma once
 #pragma comment(lib, "Xinput.lib")
 
@@ -5372,7 +5385,7 @@ private:
 }; 
  
 ===== IKSystem.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\ECS\Systems\IKSystem.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\ECS\Systems\IKSystem.h 
 #pragma once
 #include <DirectXMath.h>
 #include "entt.hpp"
@@ -5395,7 +5408,7 @@ private:
 }; 
  
 ===== MeshLoaderSystem.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\ECS\Systems\MeshLoaderSystem.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\ECS\Systems\MeshLoaderSystem.h 
 #pragma once
 #include <d3d11.h>
 
@@ -5421,7 +5434,7 @@ public:
 }; 
  
 ===== MovementSystem.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\ECS\Systems\MovementSystem.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\ECS\Systems\MovementSystem.h 
 #pragma once
 #include "entt.hpp"
 #include "Engine/Core/SceneContext.h"
@@ -5433,7 +5446,7 @@ public:
 }; 
  
 ===== PhysicsSystem.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\ECS\Systems\PhysicsSystem.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\ECS\Systems\PhysicsSystem.h 
 #pragma once
 #include "entt.hpp"
 #include "Engine/Core/PhysX.h"
@@ -5501,7 +5514,7 @@ private:
 }; 
  
 ===== RenderSystem.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\ECS\Systems\RenderSystem.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\ECS\Systems\RenderSystem.h 
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
@@ -5699,7 +5712,7 @@ private:
 }; 
  
 ===== SequencerSystem.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\ECS\Systems\SequencerSystem.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\ECS\Systems\SequencerSystem.h 
 #pragma once
 #include "entt.hpp"
 #include "Engine/Data/SequencerData.h"
@@ -5719,7 +5732,7 @@ private:
 }; 
  
 ===== StateMachineSystem.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\ECS\Systems\StateMachineSystem.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\ECS\Systems\StateMachineSystem.h 
 #pragma once
 #include <set>
 #include <string>
@@ -5789,7 +5802,7 @@ private:
 }; 
  
 ===== TwoBoneIKSolver.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\ECS\Systems\TwoBoneIKSolver.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\ECS\Systems\TwoBoneIKSolver.h 
 #pragma once
 #include <DirectXMath.h>
 
@@ -5823,7 +5836,7 @@ namespace TwoBoneIKSolver
 } 
  
 ===== AnimationSpeedSystem.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\ECS\Systems\AnimationSpeedSystem.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\ECS\Systems\AnimationSpeedSystem.cpp 
 #include "AnimationSpeedSystem.h"
 #include "Engine/ECS/Components/SkinnedMeshComponent.h"
 #include "Engine/ECS/Components/AnimatorComponent.h"
@@ -5885,7 +5898,7 @@ void AnimationSpeedSystem::Update(entt::registry& registry)
 } 
  
 ===== AnimationSystem.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\ECS\Systems\AnimationSystem.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\ECS\Systems\AnimationSystem.cpp 
 #include "AnimationSystem.h"
 #include "tracy/Tracy.hpp"
 #include "Engine/Resource/SkeletonUtils.h"
@@ -6421,7 +6434,7 @@ DirectX::XMFLOAT3 AnimationSystem::CalcRootMotionDelta(
  
  
 ===== ConditionGraphEvaluator.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\ECS\Systems\ConditionGraphEvaluator.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\ECS\Systems\ConditionGraphEvaluator.cpp 
 #include "ConditionGraphEvaluator.h"
 #include "Engine/Resource/ComponentRegistry.h"
 #include "Engine/ECS/Reflection.h"
@@ -6661,7 +6674,7 @@ float ConditionGraphEvaluator::ResolveInputValue(const ConditionGraph& graph, in
  
  
 ===== ControllerSystem.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\ECS\Systems\ControllerSystem.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\ECS\Systems\ControllerSystem.cpp 
 ï»¿#include "ControllerSystem.h"
 #include <cmath>
 #include <algorithm>
@@ -7057,7 +7070,7 @@ void ControllerSystem::SendPS5Output(const AdaptiveTrigger::TriggerEffect& left,
  
  
 ===== IKSystem.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\ECS\Systems\IKSystem.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\ECS\Systems\IKSystem.cpp 
 #include "IKSystem.h"
 #include "Engine/ECS/Systems/TwoBoneIKSolver.h"
 #include "Engine/Resource/SkeletonUtils.h"
@@ -7227,7 +7240,7 @@ void IKSystem::SolveFootIK(FootIKSettings& footSettings, SkinnedMeshComponent& s
 } 
  
 ===== MeshLoaderSystem.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\ECS\Systems\MeshLoaderSystem.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\ECS\Systems\MeshLoaderSystem.cpp 
 #include "MeshLoaderSystem.h"
 
 void MeshLoaderSystem::Update(
@@ -7311,7 +7324,7 @@ void MeshLoaderSystem::Update(
 } 
  
 ===== MovementSystem.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\ECS\Systems\MovementSystem.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\ECS\Systems\MovementSystem.cpp 
 #include "MovementSystem.h"
 
 #include "Engine/ECS/Components/MovementComponent.h"
@@ -7338,7 +7351,7 @@ void MovementSystem::Update(entt::registry& registry, float elapsedTime, const S
  
  
 ===== PhysicsSystem.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\ECS\Systems\PhysicsSystem.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\ECS\Systems\PhysicsSystem.cpp 
 #include "PhysicsSystem.h"
 #include "Engine/Core/PhysicsDestroyQueue.h"
 #include "Engine/Core/PhysicsLayer.h"
@@ -7710,7 +7723,7 @@ void PhysicsSystem::ProcessCharacterControllers(entt::registry& registry, PhysX&
  
  
 ===== RenderSystem.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\ECS\Systems\RenderSystem.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\ECS\Systems\RenderSystem.cpp 
 ï»¿#include "RenderSystem.h"
 #include "Engine/Resource/GpuResourceUtils.h"
 #include "Engine/Utility/misc.h"
@@ -8383,7 +8396,7 @@ void RenderSystem::ForwardTransparentPass(
  
  
 ===== SequencerSystem.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\ECS\Systems\SequencerSystem.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\ECS\Systems\SequencerSystem.cpp 
 #include "SequencerSystem.h"
 #include "Engine/ECS/Components/SkinnedMeshComponent.h"
 #include "Engine/ECS/Components/AnimatorComponent.h"
@@ -8479,7 +8492,7 @@ void SequencerSystem::Update(entt::registry& registry)
 } 
  
 ===== StateMachineSystem.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\ECS\Systems\StateMachineSystem.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\ECS\Systems\StateMachineSystem.cpp 
 #include "StateMachineSystem.h"
 #include "ConditionGraphEvaluator.h"
 #include "Engine/Core/Log.h"
@@ -8756,7 +8769,7 @@ void StateMachineSystem::PlayClip(AnimatorComponent& animator, const ClipNode& c
 } 
  
 ===== TwoBoneIKSolver.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\ECS\Systems\TwoBoneIKSolver.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\ECS\Systems\TwoBoneIKSolver.cpp 
 #include "TwoBoneIKSolver.h"
 #include <algorithm>
 #include <cmath>
@@ -8936,7 +8949,7 @@ namespace TwoBoneIKSolver
 } 
  
 ===== GBuffer.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Rendering\GBuffer.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\Rendering\GBuffer.h 
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
@@ -8976,7 +8989,7 @@ private:
 }; 
  
 ===== LightManager.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Rendering\LightManager.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\Rendering\LightManager.h 
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
@@ -9044,7 +9057,7 @@ private:
 }; 
  
 ===== PhysicsDebugRenderer.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Rendering\PhysicsDebugRenderer.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\Rendering\PhysicsDebugRenderer.h 
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
@@ -9098,7 +9111,7 @@ private:
 }; 
  
 ===== PrimitiveRenderer.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Rendering\PrimitiveRenderer.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\Rendering\PrimitiveRenderer.h 
 #pragma once
 #include <vector>
 #include <wrl.h>
@@ -9144,7 +9157,7 @@ private:
 }; 
  
 ===== ShapeRenderer.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Rendering\ShapeRenderer.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\Rendering\ShapeRenderer.h 
 #pragma once
 #include <vector>
 #include <wrl.h>
@@ -9302,7 +9315,7 @@ private:
 }; 
  
 ===== SkyBox.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Rendering\SkyBox.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\Rendering\SkyBox.h 
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
@@ -9371,7 +9384,7 @@ private:
 }; 
  
 ===== GBuffer.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Rendering\GBuffer.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\Rendering\GBuffer.cpp 
 #include "GBuffer.h"
 #include "Engine/Utility/misc.h"
 
@@ -9453,7 +9466,7 @@ void GBuffer::EndGeometryPass(ID3D11DeviceContext* dc)
 } 
  
 ===== LightManager.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Rendering\LightManager.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\Rendering\LightManager.cpp 
 #include "LightManager.h"
 #include "Engine/Resource/GpuResourceUtils.h"
 #include "Engine/Utility/misc.h"
@@ -9541,7 +9554,7 @@ void LightManager::Bind(ID3D11DeviceContext* dc)
  
  
 ===== PhysicsDebugRenderer.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Rendering\PhysicsDebugRenderer.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\Rendering\PhysicsDebugRenderer.cpp 
 #include "PhysicsDebugRenderer.h"
 #include "Engine/ECS/Systems/PhysicsSystem.h"
 #include <string>
@@ -9896,7 +9909,7 @@ PhysicsDebugRenderer::GetOrCreateTriangleMeshCache(
 } 
  
 ===== PrimitiveRenderer.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Rendering\PrimitiveRenderer.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\Rendering\PrimitiveRenderer.cpp 
 #include "PrimitiveRenderer.h"
 #include "Engine/Resource/GpuResourceUtils.h"
 
@@ -9988,7 +10001,7 @@ void PrimitiveRenderer::Render(
 } 
  
 ===== ShapeRenderer.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Rendering\ShapeRenderer.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\Rendering\ShapeRenderer.cpp 
 #include "ShapeRenderer.h"
 #include "Engine/Resource/GpuResourceUtils.h"
 #include <algorithm>
@@ -10560,7 +10573,7 @@ void ShapeRenderer::CreateSolidCylinderMesh(ID3D11Device* device, int subdivisio
  
  
 ===== SkyBox.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Rendering\SkyBox.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\Rendering\SkyBox.cpp 
 #include "SkyBox.h"
 #include "Engine/Resource/GpuResourceUtils.h"
 #include "Engine/Utility/misc.h"
@@ -10738,7 +10751,7 @@ void SkyBox::Render(
  
  
 ===== ComponentRegistry.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Resource\ComponentRegistry.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\Resource\ComponentRegistry.h 
 #pragma once
 #include <string>
 #include <vector>
@@ -10793,7 +10806,7 @@ private:
     ComponentRegistry::RegisterType<Type>(#Type, DisplayName) 
  
 ===== EntitySerializer.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Resource\EntitySerializer.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\Resource\EntitySerializer.h 
 #pragma once
 #include "entt.hpp"
 #include <json.hpp>
@@ -10824,7 +10837,7 @@ private:
 }; 
  
 ===== GLTFConverter.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Resource\GLTFConverter.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\Resource\GLTFConverter.h 
 #pragma once
 #include <memory>
 #include <d3d11.h>
@@ -10873,7 +10886,7 @@ private:
 }; 
  
 ===== GLTFData.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Resource\GLTFData.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\Resource\GLTFData.h 
 #pragma once
 #include <string>
 #include <vector>
@@ -10990,7 +11003,7 @@ struct GLTFData
 }; 
  
 ===== GLTFImporter.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Resource\GLTFImporter.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\Resource\GLTFImporter.h 
 #pragma once
 #include <memory>
 #include <string>
@@ -11066,7 +11079,7 @@ private:
 }; 
  
 ===== GpuResourceUtils.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Resource\GpuResourceUtils.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\Resource\GpuResourceUtils.h 
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
@@ -11144,7 +11157,7 @@ public:
 }; 
  
 ===== Model.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Resource\Model.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\Resource\Model.h 
 #pragma once
 
 #include <string>
@@ -11326,7 +11339,7 @@ private:
 }; 
  
 ===== ModelSerializer.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Resource\ModelSerializer.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\Resource\ModelSerializer.h 
 #pragma once
 #include <memory>
 #include <string>
@@ -11357,7 +11370,7 @@ public:
 }; 
  
 ===== ResourceManager.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Resource\ResourceManager.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\Resource\ResourceManager.h 
 #pragma once
 #include <string>
 #include <memory>
@@ -11396,7 +11409,7 @@ private:
 }; 
  
 ===== SceneSerializer.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Resource\SceneSerializer.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\Resource\SceneSerializer.h 
 #pragma once
 #include <functional>
 #include <string>
@@ -11434,7 +11447,7 @@ private:
 }; 
  
 ===== SkeletonUtils.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Resource\SkeletonUtils.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\Resource\SkeletonUtils.h 
 #pragma once
 #include <vector>
 #include <DirectXMath.h>
@@ -11459,7 +11472,7 @@ namespace SkeletonUtils
 } 
  
 ===== ComponentRegistry.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Resource\ComponentRegistry.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\Resource\ComponentRegistry.cpp 
 #include "ComponentRegistry.h"
 
 std::unordered_map<std::string, ComponentInfo> ComponentRegistry::registry;
@@ -11485,7 +11498,7 @@ const ComponentInfo* ComponentRegistry::Get(const std::string& typeName)
 } 
  
 ===== EntitySerializer.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Resource\EntitySerializer.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\Resource\EntitySerializer.cpp 
 #include "EntitySerializer.h"
 #include "Engine/Resource/ComponentRegistry.h"
 #include "Engine/ECS/Components/PrefabInstanceComponent.h"
@@ -11713,7 +11726,7 @@ void EntitySerializer::DeserializeMetaAny(entt::meta_data metaData, entt::meta_a
 } 
  
 ===== GLTFConverter.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Resource\GLTFConverter.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\Resource\GLTFConverter.cpp 
 #include "GLTFConverter.h"
 #include "GpuResourceUtils.h"
 #include "Engine/Utility/misc.h"
@@ -12086,7 +12099,7 @@ void GLTFConverter::ConvertAnimations(
  
  
 ===== GLTFImporter.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Resource\GLTFImporter.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\Resource\GLTFImporter.cpp 
 #include "GLTFImporter.h"
 #include "Engine/Utility/misc.h"
 #include <filesystem>
@@ -12901,7 +12914,7 @@ void GLTFImporter::CalcGlobalTransform(
  
  
 ===== GpuResourceUtils.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Resource\GpuResourceUtils.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\Resource\GpuResourceUtils.cpp 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 #include "GpuResourceUtils.h"
@@ -13258,7 +13271,7 @@ HRESULT GpuResourceUtils::CreateConstantBuffer(
  
  
 ===== Model.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Resource\Model.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\Resource\Model.cpp 
 #include "Model.h"
 
 // “ü—ÍƒŒƒCƒAƒEƒg’è‹`
@@ -13273,7 +13286,7 @@ const std::vector<D3D11_INPUT_ELEMENT_DESC> Model::InputElementDescs =
 }; 
  
 ===== ModelSerializer.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Resource\ModelSerializer.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\Resource\ModelSerializer.cpp 
 #include "ModelSerializer.h"
 #include "Model.h"
 #include "Engine/Utility/CerealHelper.h"
@@ -13433,7 +13446,7 @@ std::string ModelSerializer::ToCerealPath(const std::string& gltfPath)
 } 
  
 ===== ResourceManager.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Resource\ResourceManager.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\Resource\ResourceManager.cpp 
 #include "ResourceManager.h"
 #include "GLTFImporter.h"
 #include "GLTFConverter.h" 
@@ -13502,7 +13515,7 @@ void ResourceManager::ReleaseAll()
  
  
 ===== SceneSerializer.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Resource\SceneSerializer.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\Resource\SceneSerializer.cpp 
 #include "SceneSerializer.h"
 #include "Engine/Resource/EntitySerializer.h"
 #include "Engine/ECS/Components/PrefabInstanceComponent.h"
@@ -13714,7 +13727,7 @@ nlohmann::json SceneSerializer::DiffAgainstPrefab(const nlohmann::json& current,
  
  
 ===== SkeletonUtils.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Resource\SkeletonUtils.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\Resource\SkeletonUtils.cpp 
 #include "SkeletonUtils.h"
 #include <functional>
 
@@ -13809,7 +13822,7 @@ namespace SkeletonUtils
 } 
  
 ===== CerealHelper.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Utility\CerealHelper.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\Utility\CerealHelper.h 
 #pragma once
 #include <DirectXMath.h>
 
@@ -13843,7 +13856,7 @@ namespace DirectX
 } 
  
 ===== high_resolution_timer.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Utility\high_resolution_timer.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\Utility\high_resolution_timer.h 
 #pragma once
 
 #include <windows.h>
@@ -13982,7 +13995,7 @@ private:
  
  
 ===== misc.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Utility\misc.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\Utility\misc.h 
 #pragma once
 
 #include <windows.h>
@@ -14046,7 +14059,7 @@ public:
  
  
 ===== CerealHelper.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Utility\CerealHelper.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\Utility\CerealHelper.cpp 
 #include "CerealHelper.h"
 #include <cereal/archives/binary.hpp>
 
@@ -14127,7 +14140,7 @@ namespace DirectX
 } 
  
 ===== WaveDemo.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Game\Demo\WaveDemo.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Game\Demo\WaveDemo.h 
 #pragma once
 #include <entt.hpp>
 #include <d3d11.h>
@@ -14166,7 +14179,7 @@ private:
 }; 
  
 ===== WaveDemo.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Game\Demo\WaveDemo.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Game\Demo\WaveDemo.cpp 
 #include "WaveDemo.h"
 
 void WaveDemo::Initialize(
@@ -14231,7 +14244,7 @@ void WaveDemo::Render(
 } 
  
 ===== GameComponents.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Game\ECS\GameComponents.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Game\ECS\GameComponents.h 
 #pragma once
 
 namespace GameComponents 
@@ -14241,7 +14254,7 @@ namespace GameComponents
 } 
  
 ===== GameComponents.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Game\ECS\GameComponents.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Game\ECS\GameComponents.cpp 
 #include "GameComponents.h"
 #include "Engine/Resource/ComponentRegistry.h"
 
@@ -14265,7 +14278,7 @@ void GameComponents::Register()
 } 
  
 ===== GameCameraComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Game\ECS\Components\GameCameraComponent.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Game\ECS\Components\GameCameraComponent.h 
 #pragma once
 #include <DirectXMath.h>
 #include "entt.hpp"
@@ -14365,7 +14378,7 @@ struct GameCameraComponent
 }; 
  
 ===== GameInputComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Game\ECS\Components\GameInputComponent.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Game\ECS\Components\GameInputComponent.h 
 #pragma once
 #include "Engine/ECS/Reflect.h"
 
@@ -14432,7 +14445,7 @@ struct GameInputComponent
 }; 
  
 ===== PlayerDodgeComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Game\ECS\Components\PlayerDodgeComponent.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Game\ECS\Components\PlayerDodgeComponent.h 
 #pragma once
 #include "Engine/ECS/Reflect.h"
 
@@ -14472,7 +14485,7 @@ struct PlayerDodgeComponent
 }; 
  
 ===== PlayerIdleComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Game\ECS\Components\PlayerIdleComponent.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Game\ECS\Components\PlayerIdleComponent.h 
 #pragma once
 #include "Engine/ECS/Reflect.h"
 
@@ -14496,7 +14509,7 @@ struct PlayerIdleComponent
 }; 
  
 ===== PlayerJumpComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Game\ECS\Components\PlayerJumpComponent.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Game\ECS\Components\PlayerJumpComponent.h 
 #pragma once
 #include "Engine/ECS/Reflect.h"
 
@@ -14525,7 +14538,7 @@ struct PlayerJumpComponent
 }; 
  
 ===== PlayerMoveComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Game\ECS\Components\PlayerMoveComponent.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Game\ECS\Components\PlayerMoveComponent.h 
 #pragma once
 #include "Engine/ECS/Reflect.h"
 
@@ -14562,7 +14575,7 @@ struct PlayerMoveComponent
 }; 
  
 ===== PlayerSprintComponent.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Game\ECS\Components\PlayerSprintComponent.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Game\ECS\Components\PlayerSprintComponent.h 
 #pragma once
 #include "Engine/ECS/Reflect.h"
 
@@ -14590,7 +14603,7 @@ struct PlayerSprintComponent
 }; 
  
 ===== GameCameraSystem.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Game\ECS\Systems\GameCameraSystem.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Game\ECS\Systems\GameCameraSystem.h 
 #pragma once
 #include "entt.hpp"
 #include "Engine/Core/Camera.h"
@@ -14634,7 +14647,7 @@ private:
 }; 
  
 ===== GameInputSystem.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Game\ECS\Systems\GameInputSystem.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Game\ECS\Systems\GameInputSystem.h 
 #pragma once
 #include "entt.hpp"
 #include "Game/ECS/Components/GameInputComponent.h"
@@ -14669,7 +14682,7 @@ private:
 }; 
  
 ===== PlayerDodgeSystem.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Game\ECS\Systems\PlayerDodgeSystem.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Game\ECS\Systems\PlayerDodgeSystem.h 
 #pragma once
 #include "entt.hpp"
 #include "Engine/Core/SceneContext.h"
@@ -14682,7 +14695,7 @@ public:
 }; 
  
 ===== PlayerIdleSystem.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Game\ECS\Systems\PlayerIdleSystem.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Game\ECS\Systems\PlayerIdleSystem.h 
 #pragma once
 #include "entt.hpp"
 #include "Engine/Core/SceneContext.h"
@@ -14695,7 +14708,7 @@ public:
 }; 
  
 ===== PlayerJumpSystem.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Game\ECS\Systems\PlayerJumpSystem.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Game\ECS\Systems\PlayerJumpSystem.h 
 #pragma once
 #include "entt.hpp"
 #include "Engine/Core/SceneContext.h"
@@ -14708,7 +14721,7 @@ public:
 }; 
  
 ===== PlayerMovementUtils.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Game\ECS\Systems\PlayerMovementUtils.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Game\ECS\Systems\PlayerMovementUtils.h 
 #pragma once
 #include <DirectXMath.h>
 
@@ -14745,7 +14758,7 @@ namespace PlayerMovementUtils
 } 
  
 ===== PlayerMoveSystem.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Game\ECS\Systems\PlayerMoveSystem.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Game\ECS\Systems\PlayerMoveSystem.h 
 #pragma once
 #include "entt.hpp"
 #include "Engine/Core/SceneContext.h"
@@ -14758,7 +14771,7 @@ public:
 }; 
  
 ===== PlayerSprintSystem.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Game\ECS\Systems\PlayerSprintSystem.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Game\ECS\Systems\PlayerSprintSystem.h 
 #pragma once
 #include "entt.hpp"
 #include "Engine/Core/SceneContext.h"
@@ -14771,7 +14784,7 @@ public:
 }; 
  
 ===== GameCameraSystem.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Game\ECS\Systems\GameCameraSystem.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Game\ECS\Systems\GameCameraSystem.cpp 
 ï»¿#include "GameCameraSystem.h"
 #include "Engine/ECS/EntityFinder.h"
 
@@ -15311,7 +15324,7 @@ void GameCameraSystem::UpdateLockOnEye(GameCameraComponent& cam, entt::registry&
  
  
 ===== GameInputSystem.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Game\ECS\Systems\GameInputSystem.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Game\ECS\Systems\GameInputSystem.cpp 
 ï»¿#include "GameInputSystem.h"
 #include <cmath>
 #include <algorithm>
@@ -15425,7 +15438,7 @@ void GameInputSystem::UpdateButtonState(ButtonState& state, bool isHeldNow)
  
  
 ===== PlayerDodgeSystem.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Game\ECS\Systems\PlayerDodgeSystem.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Game\ECS\Systems\PlayerDodgeSystem.cpp 
 #include "PlayerDodgeSystem.h"
 #include "Game/ECS/Components/GameInputComponent.h"
 #include "Game/ECS/Components/PlayerDodgeComponent.h"
@@ -15541,7 +15554,7 @@ void PlayerDodgeSystem::Update(entt::registry& registry, float elapsedTime, cons
 } 
  
 ===== PlayerIdleSystem.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Game\ECS\Systems\PlayerIdleSystem.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Game\ECS\Systems\PlayerIdleSystem.cpp 
 #include "PlayerIdleSystem.h"
 #include "Game/ECS/Components/PlayerIdleComponent.h"
 
@@ -15582,7 +15595,7 @@ void PlayerIdleSystem::Update(entt::registry& registry, float elapsedTime, const
 } 
  
 ===== PlayerJumpSystem.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Game\ECS\Systems\PlayerJumpSystem.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Game\ECS\Systems\PlayerJumpSystem.cpp 
 #include "PlayerJumpSystem.h"
 #include "Game/ECS/Components/PlayerJumpComponent.h"
 
@@ -15641,7 +15654,7 @@ void PlayerJumpSystem::Update(entt::registry& registry, float elapsedTime, const
 } 
  
 ===== PlayerMovementUtils.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Game\ECS\Systems\PlayerMovementUtils.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Game\ECS\Systems\PlayerMovementUtils.cpp 
 #include "PlayerMovementUtils.h"
 #include <cmath>
 
@@ -15716,7 +15729,7 @@ namespace PlayerMovementUtils
 } 
  
 ===== PlayerMoveSystem.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Game\ECS\Systems\PlayerMoveSystem.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Game\ECS\Systems\PlayerMoveSystem.cpp 
 #include "PlayerMoveSystem.h"
 #include "Game/ECS/Components/GameInputComponent.h"
 #include "Game/ECS/Components/PlayerMoveComponent.h"
@@ -15814,7 +15827,7 @@ void PlayerMoveSystem::Update(entt::registry& registry, float elapsedTime, const
 } 
  
 ===== PlayerSprintSystem.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Game\ECS\Systems\PlayerSprintSystem.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Game\ECS\Systems\PlayerSprintSystem.cpp 
 #include "PlayerSprintSystem.h"
 #include "Game/ECS/Components/GameInputComponent.h"
 #include "Game/ECS/Components/PlayerSprintComponent.h"
@@ -15882,7 +15895,7 @@ void PlayerSprintSystem::Update(entt::registry& registry, float elapsedTime, con
 } 
  
 ===== SceneGame.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Game\Scene\SceneGame.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Game\Scene\SceneGame.h 
 #pragma once
 #include "Engine/Core/Scene.h"
 
@@ -15967,7 +15980,7 @@ private:
  
  
 ===== SceneGame.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Game\Scene\SceneGame.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Game\Scene\SceneGame.cpp 
 ï»¿#include "SceneGame.h"
 #include <imgui.h>
 
@@ -16285,7 +16298,7 @@ void SceneGame::UpdateCamera(float elapsedTime, const SceneContext& context)
 } 
  
 ===== GameInspectors.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\GameTool\GameInspectors.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\GameTool\GameInspectors.h 
 #pragma once
 
 namespace GameInspectors 
@@ -16295,7 +16308,7 @@ namespace GameInspectors
 } 
  
 ===== GameInspectors.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\GameTool\GameInspectors.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\GameTool\GameInspectors.cpp 
 #include "GameInspectors.h"
 #include "Tool/Editor/ComponentInspectorRegistry.h"
 #include "Game/ECS/Components/GameCameraComponent.h"
@@ -16405,7 +16418,7 @@ void GameInspectors::Register()
 } 
  
 ===== Launcher.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Launcher\Launcher.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Launcher\Launcher.cpp 
 #include <windows.h>
 #include <commctrl.h>
 #include <string>
@@ -16497,7 +16510,7 @@ int WINAPI wWinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPWSTR, _In_ int)
 } 
  
 ===== AdaptiveTriggerToolWindow.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\AdaptiveTriggerToolWindow.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Tool\AdaptiveTriggerToolWindow.h 
 #pragma once
 #include <vector>
 #include "Engine/ECS/Components/ControllerComponent.h"
@@ -16539,7 +16552,7 @@ private:
 }; 
  
 ===== AdaptiveTriggerToolWindow.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\AdaptiveTriggerToolWindow.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Tool\AdaptiveTriggerToolWindow.cpp 
 #include "AdaptiveTriggerToolWindow.h"
 #include <imgui.h>
 #include <algorithm>
@@ -16934,7 +16947,7 @@ void AdaptiveTriggerToolWindow::DrawSelectedPointPanel(std::vector<AdaptiveTrigg
 } 
  
 ===== ComponentInspectorRegistry.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Editor\ComponentInspectorRegistry.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Tool\Editor\ComponentInspectorRegistry.h 
 #pragma once
 #include <string>
 #include <unordered_map>
@@ -16960,7 +16973,7 @@ private:
     ComponentInspectorRegistry::Register(#Type, __VA_ARGS__) 
  
 ===== ComponentRegistryInitializer.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Editor\ComponentRegistryInitializer.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Tool\Editor\ComponentRegistryInitializer.h 
 #pragma once
 
 class ComponentRegistryInitializer
@@ -16971,7 +16984,7 @@ public:
 }; 
  
 ===== DebugCameraSystem.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Editor\DebugCameraSystem.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Tool\Editor\DebugCameraSystem.h 
 #pragma once
 #include "entt.hpp"
 #include "Engine/Core/Camera.h"
@@ -16992,7 +17005,7 @@ private:
 }; 
  
 ===== EditorContext.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Editor\EditorContext.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Tool\Editor\EditorContext.h 
 #pragma once
 #include <string>
 #include <unordered_map>
@@ -17064,7 +17077,7 @@ struct EditorContext
  
  
 ===== FileDialog.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Editor\FileDialog.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Tool\Editor\FileDialog.h 
 #pragma once
 #include <string>
 #include <Windows.h>
@@ -17078,7 +17091,7 @@ namespace FileDialog
 } 
  
 ===== HierarchyWindow.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Editor\HierarchyWindow.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Tool\Editor\HierarchyWindow.h 
 #pragma once
 #include "entt.hpp"
 #include "Tool/Editor/EditorContext.h"
@@ -17091,7 +17104,7 @@ public:
 }; 
  
 ===== ImGuiManager.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Editor\ImGuiManager.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Tool\Editor\ImGuiManager.h 
 #pragma once
 #include <windows.h>
 #include <d3d11.h>
@@ -17130,7 +17143,7 @@ public:
 }; 
  
 ===== InspectorWindow.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Editor\InspectorWindow.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Tool\Editor\InspectorWindow.h 
 #pragma once
 #include "entt.hpp"
 #include "EditorContext.h"
@@ -17153,7 +17166,7 @@ private:
 }; 
  
 ===== LogWindow.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Editor\LogWindow.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Tool\Editor\LogWindow.h 
 #pragma once
 #include <imgui.h>
 #include <vector>
@@ -17172,7 +17185,7 @@ private:
 }; 
  
 ===== MetaRegistry.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Editor\MetaRegistry.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Tool\Editor\MetaRegistry.h 
 #pragma once
 #include "entt.hpp"
 #include "Engine/ECS/Reflection.h"
@@ -17185,7 +17198,7 @@ public:
 }; 
  
 ===== PrefabWindow.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Editor\PrefabWindow.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Tool\Editor\PrefabWindow.h 
 #pragma once
 #include "EditorContext.h"
 #include "entt.hpp"
@@ -17282,7 +17295,7 @@ private:
 }; 
  
 ===== ProjectWindow.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Editor\ProjectWindow.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Tool\Editor\ProjectWindow.h 
 #pragma once
 #include <string>
 #include <vector>
@@ -17402,7 +17415,7 @@ private:
 }; 
  
 ===== ViewportWindow.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Editor\ViewportWindow.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Tool\Editor\ViewportWindow.h 
 #pragma once
 #include <functional>
 #include "Engine/Core/Camera.h"
@@ -17442,7 +17455,7 @@ private:
 }; 
  
 ===== ComponentInspectorRegistry.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Editor\ComponentInspectorRegistry.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Tool\Editor\ComponentInspectorRegistry.cpp 
 #include "ComponentInspectorRegistry.h"
 
 std::unordered_map<std::string, std::function<void(entt::registry&, entt::entity)>> ComponentInspectorRegistry::registry;
@@ -17460,7 +17473,7 @@ const std::function<void(entt::registry&, entt::entity)>* ComponentInspectorRegi
 } 
  
 ===== ComponentRegistryInitializer.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Editor\ComponentRegistryInitializer.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Tool\Editor\ComponentRegistryInitializer.cpp 
 #include "ComponentRegistryInitializer.h"
 #include "Tool/Editor/ComponentInspectorRegistry.h"
 
@@ -17697,7 +17710,7 @@ void ComponentRegistryInitializer::Initialize()
 } 
  
 ===== DebugCameraSystem.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Editor\DebugCameraSystem.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Tool\Editor\DebugCameraSystem.cpp 
 #include "DebugCameraSystem.h"
 #include <imgui.h>
 #include <algorithm>
@@ -17843,7 +17856,7 @@ void DebugCameraSystem::UpdateFreeCamera(FreeCameraComponent& free, float elapse
 } 
  
 ===== FileDialog.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Editor\FileDialog.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Tool\Editor\FileDialog.cpp 
 #include "FileDialog.h"
 #include <commdlg.h>
 #include <filesystem>
@@ -17936,7 +17949,7 @@ namespace FileDialog
 } 
  
 ===== HierarchyWindow.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Editor\HierarchyWindow.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Tool\Editor\HierarchyWindow.cpp 
 #include "HierarchyWindow.h"
 #include "imgui_internal.h"
 #include <imgui.h>
@@ -18103,7 +18116,7 @@ void HierarchyWindow::Draw(entt::registry& registry, EditorContext& context)
 } 
  
 ===== ImGuiManager.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Editor\ImGuiManager.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Tool\Editor\ImGuiManager.cpp 
 #include "ImGuiManager.h"
 
 ImGuiManager::~ImGuiManager()
@@ -18204,7 +18217,7 @@ bool ImGuiManager::HandleMessage(HWND hWnd, UINT msg, WPARAM wparam, LPARAM lpar
  
  
 ===== InspectorWindow.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Editor\InspectorWindow.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Tool\Editor\InspectorWindow.cpp 
 #include "InspectorWindow.h"
 #include <imgui.h>
 #include "imgui_internal.h"
@@ -18353,7 +18366,7 @@ void InspectorWindow::DrawAddComponent(entt::registry& registry, EditorContext& 
  
  
 ===== LogWindow.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Editor\LogWindow.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Tool\Editor\LogWindow.cpp 
 #include "LogWindow.h"
 
 void LogWindow::Draw()
@@ -18408,7 +18421,7 @@ void LogWindow::Draw()
 } 
  
 ===== MetaRegistry.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Editor\MetaRegistry.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Tool\Editor\MetaRegistry.cpp 
 #include "MetaRegistry.h"
 #include <DirectXMath.h>
 #include <filesystem>
@@ -18588,7 +18601,7 @@ namespace
 } 
  
 ===== PrefabWindow.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Editor\PrefabWindow.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Tool\Editor\PrefabWindow.cpp 
 #include "PrefabWindow.h"
 #include <imgui.h>
 #include <algorithm>
@@ -19099,7 +19112,7 @@ void PrefabWindow::CommitRename()
 } 
  
 ===== ProjectWindow.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Editor\ProjectWindow.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Tool\Editor\ProjectWindow.cpp 
 #include "ProjectWindow.h"
 #include <imgui.h>
 
@@ -19690,7 +19703,7 @@ void ProjectWindow::CommitRename()
  
  
 ===== ViewportWindow.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Editor\ViewportWindow.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Tool\Editor\ViewportWindow.cpp 
 #include "ViewportWindow.h"
 #include <imgui.h>
 #include <imgui_internal.h>
@@ -19780,7 +19793,7 @@ void ViewportWindow::Draw(GameView& gameView, const std::function<void()>& drawM
 } 
  
 ===== NodeEditorCanvas.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\NodeEditor\NodeEditorCanvas.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Tool\NodeEditor\NodeEditorCanvas.h 
 #pragma once
 #include <imgui_node_editor.h>
 
@@ -19803,7 +19816,7 @@ private:
 }; 
  
 ===== NodeEditorCanvas.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\NodeEditor\NodeEditorCanvas.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Tool\NodeEditor\NodeEditorCanvas.cpp 
 #include "NodeEditorCanvas.h"
 
 NodeEditorCanvas::~NodeEditorCanvas()
@@ -19835,7 +19848,7 @@ void NodeEditorCanvas::End()
 } 
  
 ===== IStudioAttachment.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Studio\IStudioAttachment.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Tool\Studio\IStudioAttachment.h 
 #pragma once
 #include <d3d11.h>
 #include <DirectXMath.h>
@@ -19867,7 +19880,7 @@ public:
 }; 
  
 ===== StudioAnimationSpeed.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Studio\StudioAnimationSpeed.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Tool\Studio\StudioAnimationSpeed.h 
 #pragma once
 #include "IStudioAttachment.h"
 #include "Engine/Data/AnimationSpeedData.h"
@@ -19920,7 +19933,7 @@ private:
 }; 
  
 ===== StudioAnimator.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Studio\StudioAnimator.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Tool\Studio\StudioAnimator.h 
 #pragma once
 #include "IStudioAttachment.h"
 #include "Engine/ECS/Components/AnimatorComponent.h"
@@ -19944,7 +19957,7 @@ private:
 }; 
  
 ===== StudioCamera.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Studio\StudioCamera.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Tool\Studio\StudioCamera.h 
 #pragma once
 #include <DirectXMath.h>
 
@@ -19993,7 +20006,7 @@ private:
 }; 
  
 ===== StudioConditionGraph.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Studio\StudioConditionGraph.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Tool\Studio\StudioConditionGraph.h 
 #pragma once
 #include "Engine/Data/ConditionGraphData.h"
 #include "Tool/NodeEditor/NodeEditorCanvas.h"
@@ -20124,7 +20137,7 @@ private:
 }; 
  
 ===== StudioContext.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Studio\StudioContext.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Tool\Studio\StudioContext.h 
 #pragma once
 #include <d3d11.h>
 #include <string>
@@ -20157,7 +20170,7 @@ struct StudioContext
 }; 
  
 ===== StudioModelViewer.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Studio\StudioModelViewer.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Tool\Studio\StudioModelViewer.h 
 #pragma once
 #include <string>
 #include <d3d11.h>
@@ -20218,7 +20231,7 @@ private:
 }; 
  
 ===== StudioSequencer.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Studio\StudioSequencer.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Tool\Studio\StudioSequencer.h 
 #pragma once
 #include "IStudioAttachment.h"
 #include "Engine/Data/SequencerData.h"
@@ -20276,7 +20289,7 @@ private:
 };  
  
 ===== StudioSharedContext.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Studio\StudioSharedContext.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Tool\Studio\StudioSharedContext.h 
 #pragma once
 #include <d3d11.h>
 #include "Engine/Rendering/SkyBox.h"
@@ -20297,16 +20310,154 @@ struct StudioSharedContext
     }
 }; 
  
+===== StudioStateChildCanvas.h ===== 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Tool\Studio\StudioStateChildCanvas.h 
+#pragma once
+#include <unordered_map>
+#include <utility>
+#include <vector>
+#include <string>
+
+#include "StudioStateGraphDraw.h"
+
+#include "Engine/Data/StateMachineData.h"
+#include "Tool/NodeEditor/NodeEditorCanvas.h"
+
+// StateƒOƒ‰ƒt‚Ìq‚ÌƒLƒƒƒ“ƒoƒX
+class StudioStateChildCanvas
+{
+public:
+	// 
+	explicit StudioStateChildCanvas(int stateId) : stateId(stateId) {}
+
+	void Initialize();
+
+	// ‚Ç‚ÌState‚Ìq‚©
+	int GetStateId() const { return stateId; }
+
+	// ƒLƒƒƒ“ƒoƒX‚ğ•`‚­
+	void Draw(StateMachineData& data);
+	// ‘I‘ğ‚µ‚Ä‚¢‚é•¨‚ğíœ
+	void DeleteSelection(StateMachineData& data);
+
+private:
+	// --- •`‰æ --- //
+
+	// “ü‚Á‚Ä‚­‚éƒŠƒ“ƒN‚©‚çƒGƒ“ƒgƒŠ[‚Ìˆê——‚ğì‚é
+	void CollectEntries();
+
+	// ƒm[ƒh•`‰æ
+	void DrawEntryNodes();
+	void DrawClipNodes();
+
+	// ƒŠƒ“ƒN•`‰æ
+	void DrawLinks();
+	// ì¬’†‚ÌƒŠƒ“ƒN•`‰æ
+	void DrawPendingLink();
+
+	// ”wŒi‰EƒNƒŠƒbƒN‚Ìƒƒjƒ…[
+	void DrawBackgroundMenu();
+	// ƒm[ƒh‰EƒNƒŠƒbƒN‚Ìƒƒjƒ…[
+	void DrawNodeMenu();
+
+
+	// --- “ü—Í --- //
+
+	// ƒŠƒ“ƒNì¬’†‚Ì“ü—Í
+	void UpdateLinkCreation();
+	// ‘I‘ğ‚ÌXV
+	void UpdateSelection();
+
+
+
+	// --- ”»’è --- //
+
+	// ƒf[ƒ^‚É‘¶İ‚·‚éƒm[ƒh‚©”»’è
+	bool IsExistingNode(int key) const;
+	// ƒGƒ“ƒgƒŠ[‚©”»’è
+	bool IsEntry(int key) const;
+
+	
+	// --- ƒCƒ“ƒXƒyƒNƒ^[ --- //
+
+	// ‘JˆÚŒ³‚Ìƒm[ƒh‚ÌƒL[‚©‚çA•\¦—p‚Ì–¼‘O‚ğì‚é
+	std::string GetSourceName(int fromKey) const;
+
+
+	// --- ƒŠƒ“ƒN‚ÌŒvZ --- //
+
+	// fromClipId‚©‚çtoClipId‚Ö‚ÌƒŠƒ“ƒN‚ª‚ ‚é‚©
+	bool HasClipLink(int fromClipId, int toClipId) const;
+	// ü‚Ìn“_‚ÆI“_‚ğ‹‚ß‚é
+	bool CalcLinkPoints(int fromKey, int toKey, bool hasReverse, int lane, ImVec2& outStart, ImVec2& outEnd) const;
+	
+	
+	
+
+	// --- ƒf[ƒ^ --- //
+
+	int stateId = -1;
+
+	StateMachineData* data = nullptr;
+	StateNode* state = nullptr;
+
+	// ƒGƒ“ƒgƒŠ[
+	struct EntryInfo
+	{
+		int transitionId; // “ü‚Á‚Ä‚­‚é‘JˆÚ‚ÌID
+		int fromKey;      // ‘JˆÚŒ³‚Ìƒm[ƒh‚ÌƒL[
+	};
+	std::vector<EntryInfo> entries;
+
+
+	// --- ƒLƒƒƒ“ƒoƒX‚Ìó‘Ô --- //
+
+	NodeEditorCanvas canvas;
+	// ƒf[ƒ^‚ÌˆÊ’u‚ğƒm[ƒh‚É”½‰f‚·‚é‚©
+	bool needsApplyPositions = true;
+	// ƒm[ƒh‚Ì‹éŒ`
+	std::unordered_map<int, std::pair<ImVec2, ImVec2>> nodeRects;
+
+	// •`‚¢‚½ƒŠƒ“ƒN‚Ìü
+	struct LinkSegment
+	{
+		int linkId;
+		ImVec2 start;
+		ImVec2 end;
+	};
+	std::vector<LinkSegment> linkSegments;
+
+	// ‘I‘ğ’†‚Ìƒm[ƒh‚ÆLink
+	std::vector<int> selectedNodeKeys;
+	int selectedLinkId = -1;
+
+	// Ÿ‚ÉƒLƒƒƒ“ƒoƒX‚ğ•`‚­‚Æ‚«‚ÉAƒm[ƒhƒGƒfƒBƒ^‘¤‚Ì‘I‘ğ‚ğÁ‚·‚©
+	bool clearSelectionRequested = false;
+
+	// ƒŠƒ“ƒN‚Ìì¬’†‚Ì‘JˆÚŒ³
+	int pendingFromKey = -1;
+
+	// ”wŒi‚Ì‰EƒNƒŠƒbƒN‚ÌˆÊ’u
+	ImVec2 pendingCreatePos{};
+	// ƒm[ƒh‚Ì‰EƒNƒŠƒbƒN‚Ì‘ÎÛ
+	int contextNodeKey = -1;
+
+	bool columnWidthInitialized = false;
+}; 
+ 
 ===== StudioStateGraph.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Studio\StudioStateGraph.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Tool\Studio\StudioStateGraph.h 
 #pragma once
 #include <string>
+#include <memory>
+#include <vector>
 
 #include "IStudioAttachment.h"
 #include "Engine/Data/StateMachineData.h"
 #include "Tool/NodeEditor/NodeEditorCanvas.h"
 
 #include "StudioStateParentCanvas.h"
+#include "StudioStateChildCanvas.h"
 
 // StateƒOƒ‰ƒt‚Ì•ÒWƒpƒlƒ‹
 class StudioStateGraph : public IStudioAttachment
@@ -20315,6 +20466,9 @@ public:
 	void Initialize();
 	void SetWindowId(int id) { windowId = id; }
 	void DrawGUI(entt::registry& registry, StudioContext& context) override;
+
+	// ƒ‚ƒfƒ‹‚ª•Ï‚í‚Á‚½‚Æ‚«‚ÉŒÄ‚Ô
+	void OnModelChanged(StudioContext& context);
 
 private:
 	// --- ƒtƒ@ƒCƒ‹ŠÖŒW --- //
@@ -20330,11 +20484,11 @@ private:
 	void Save(StudioContext& context);
 	void Load(StudioContext& context);
 
-	// V‹Kì¬
-	void NewGraph(StudioContext& context);
-
 	// •Û‘¶æ‚ÌƒpƒX‚ğŒˆ‚ß‚é
 	std::string BuildNewSavePath(const StudioContext& context) const;
+
+	// ƒAƒjƒ[ƒVƒ‡ƒ“‚ğÄ¶‚Å‚«‚éƒ‚ƒfƒ‹‚©
+	static bool HasAnimatedModel(entt::registry& registry);
 
 
 	// --- ƒf[ƒ^ --- //
@@ -20359,14 +20513,54 @@ private:
 
 	// eŠK‘wƒLƒƒƒ“ƒoƒX
 	StudioStateParentCanvas parentCanvas;
+	// qŠK‘wƒLƒƒƒ“ƒoƒX(•¡”)
+	std::vector<std::unique_ptr<StudioStateChildCanvas>> childCanvases;
+
+
+	// --- qŠK‘w‚ÌƒLƒƒƒ“ƒoƒX --- //
+
+	// Ÿ‚Éè‘O‚Éo‚·q‚ÌƒEƒBƒ“ƒhƒE
+	int focusChildStateId = -1;
+
+	// q‚ÌƒEƒBƒ“ƒhƒE‚ğŠJ‚­
+	void OpenChildWindow(int stateId);
+	// ŠJ‚¢‚Ä‚¢‚éq‚ÌƒEƒBƒ“ƒhƒE‚ğ•`‚­
+	void DrawChildWindows();
 }; 
  
+===== StudioStateGraphDraw.h ===== 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Tool\Studio\StudioStateGraphDraw.h 
+#pragma once
+#include <imgui.h>
+
+// StateƒOƒ‰ƒt‚Åg—p‚·‚é‹¤’Êˆ—
+namespace StateGraphDraw
+{
+	// ‹éŒ`‚Ì’†S‚©‚çtarget‚ÖL‚Î‚µ‚½ü‚ªA‹éŒ`‚Ì‰‚ÆŒğ‚í‚é“_
+	ImVec2 GetEdgePoint(const ImVec2& rectMin, const ImVec2& rectMax, const ImVec2& target);
+
+	// 2‚Â‚Ìƒm[ƒh‚ğŒ‹‚ÔƒŠƒ“ƒN‚Ìn“_‚ÆI“_‚ğ‹‚ß‚é
+	void CalcLinkPoints(
+		const ImVec2& fromMin, const ImVec2& fromMax, int fromKey,
+		const ImVec2& toMin, const ImVec2& toMax, int toKey,
+		bool hasReverse, int lane,
+		ImVec2& outStart, ImVec2& outEnd);
+
+	// –îˆó•`‰æ
+	void DrawArrow(ImDrawList* drawList, const ImVec2& start, const ImVec2& end, ImU32 color, float thickness);
+
+	// “_‚Æü•ª‚Ì‹——£(ƒŠƒ“ƒN‚ÌƒNƒŠƒbƒN”»’è‚Ég‚¤)
+	float DistanceToSegment(const ImVec2& p, const ImVec2& a, const ImVec2& b);
+} 
+ 
 ===== StudioStateParentCanvas.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Studio\StudioStateParentCanvas.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Tool\Studio\StudioStateParentCanvas.h 
 #pragma once
 #include <unordered_map>
 #include <utility>
 #include <vector>
+
+#include "StudioStateGraphDraw.h"
 
 #include "Engine/Data/StateMachineData.h"
 #include "Tool/NodeEditor/NodeEditorCanvas.h"
@@ -20384,9 +20578,15 @@ public:
 	// “Ç‚İ‚İEV‹Kì¬‚Ì‚Æ‚«‚ÉA‘I‘ğ‚È‚Ç‚ğ–ß‚·
 	void Reset();
 
+	// ƒCƒ“ƒXƒyƒNƒ^[•`‰æ
+	void DrawInspector(StateMachineData& data);
+
 	// ‘I‘ğ’†‚Ìƒm[ƒh‚ÆLink
-	int GetSelectedNodeKey() const { return selectedNodeKey; }
+	const std::vector<int>& GetSelectedNodeKeys() const { return selectedNodeKeys; }
 	int GetSelectedLinkId() const { return selectedLinkId; }
+
+	// q‚ÌƒLƒƒƒ“ƒoƒX‚ğŠJ‚­ˆË—Š
+	int ConsumeOpenChildRequest() { int id = openChildRequest; openChildRequest = -1; return id; }
 
 private:
 	// --- •`‰æ --- //
@@ -20405,6 +20605,7 @@ private:
 	// ƒm[ƒh‰EƒNƒŠƒbƒN‚Ìƒƒjƒ…[
 	void DrawNodeMenu();
 
+
 	// --- “ü—Í --- //
 
 	// ƒŠƒ“ƒNì¬’†‚Ì“ü—Í
@@ -20412,6 +20613,32 @@ private:
 	// ‘I‘ğ‚ÌXV
 	void UpdateSelection();
 
+	// ƒf[ƒ^‚É‘¶İ‚·‚éƒm[ƒh‚©
+	bool IsExistingNode(int key) const;
+
+
+	// --- ƒCƒ“ƒXƒyƒNƒ^[ --- //
+
+	// ƒXƒe[ƒg‚Ìİ’è
+	void DrawStateInspector(StateNode& state);
+	// ƒGƒ“ƒgƒŠ[‚Ìİ’è
+	void DrawEntryInspector();
+	// •¡”ƒXƒe[ƒg‚Ì‘I‘ğ
+	void DrawMultiStateInspector();
+	// ƒŠƒ“ƒN‚Ìİ’è
+	void DrawLinkInspector(int linkId);
+
+	// o‚Ä‚¢‚­ƒŠƒ“ƒN‚Ìˆê——
+	void DrawLinkList(int fromKey, std::vector<StateTransition>& links);
+
+	// íœƒ{ƒ^ƒ“
+	static bool DrawDeleteButton(const char* label);
+
+	// ƒŠƒ“ƒN‚Ì‘JˆÚŒ³‚ÆA‘JˆÚŒ³‚Ì’†‚Å‚Ì‰½”Ô–Ú‚©‚ğ’T‚·
+	bool FindLinkOwner(int linkId, int& outFromKey, int& outIndex, int& outCount) const;
+
+	// ƒm[ƒh‚ÌƒL[‚©‚çA•\¦—p‚Ì–¼‘O‚ğì‚é
+	std::string GetNodeName(int key) const;
 
 	// --- ƒŠƒ“ƒN‚ÌŒvZ --- //
 
@@ -20419,12 +20646,6 @@ private:
 	bool HasLink(int fromKey, int toStateId) const;
 	// ü‚Ìn“_‚ÆI“_‚ğ‹‚ß‚é
 	bool CalcLinkPoints(int fromKey, int toStateId, int lane, ImVec2& outStart, ImVec2& outEnd) const;
-	// ‹éŒ`‚Ì’†S‚©‚çtarget‚ÖL‚Î‚µ‚½ü‚ªA‹éŒ`‚Ì‰‚ÆŒğ‚í‚é“_
-	static ImVec2 GetEdgePoint(const ImVec2& rectMin, const ImVec2& rectMax, const ImVec2& target);
-	// –îˆó•`‰æ
-	static void DrawArrow(ImDrawList* drawList, const ImVec2& start, const ImVec2& end, ImU32 color, float thickness);
-	// “_‚Æü•ª‚Ì‹——£
-	static float DistanceToSegment(const ImVec2& p, const ImVec2& a, const ImVec2& b);
 
 
 	// --- ƒm[ƒh‚ÌID --- //
@@ -20458,8 +20679,11 @@ private:
 	std::vector<LinkSegment> linkSegments;
 
 	// ‘I‘ğ’†‚Ìƒm[ƒh‚ÆLink
-	int selectedNodeKey = -1;
+	std::vector<int> selectedNodeKeys;
 	int selectedLinkId = -1;
+
+	// Ÿ‚ÉƒLƒƒƒ“ƒoƒX‚ğ•`‚­‚Æ‚«‚ÉAƒm[ƒhƒGƒfƒBƒ^‘¤‚Ì‘I‘ğ‚ğÁ‚·‚©
+	bool clearSelectionRequested = false;
 
 	// ƒŠƒ“ƒN‚Ìì¬’†‚Ì‘JˆÚŒ³
 	int pendingFromKey = -1;
@@ -20468,10 +20692,19 @@ private:
 	ImVec2 pendingCreatePos{};
 	// ƒm[ƒh‚Ì‰EƒNƒŠƒbƒN‚Ì‘ÎÛ
 	int contextNodeKey = -1;
+
+	// –¼‘O‚Ì“ü—Í—“
+	int nameEditingStateId = -1;
+	char nameBuffer[128] = {};
+	// –¼‘O‚ğŠm’è‚Å‚«‚È‚©‚Á‚½——R
+	std::string nameError;
+
+	// q‚ÌƒEƒBƒ“ƒhƒE‚ğŠJ‚¢‚Ä‚Ù‚µ‚¢State
+	int openChildRequest = -1;
 }; 
  
 ===== StudioTimeline.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Studio\StudioTimeline.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Tool\Studio\StudioTimeline.h 
 #pragma once
 #include "IStudioAttachment.h"
 #include "Engine/ECS/Components/AnimatorComponent.h"
@@ -20494,7 +20727,7 @@ private:
 }; 
  
 ===== StudioWindow.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Studio\StudioWindow.h 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Tool\Studio\StudioWindow.h 
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
@@ -20612,7 +20845,7 @@ private:
 }; 
  
 ===== StudioAnimationSpeed.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Studio\StudioAnimationSpeed.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Tool\Studio\StudioAnimationSpeed.cpp 
 #include "StudioAnimationSpeed.h"
 #include "Engine/ECS/Components/SkinnedMeshComponent.h"
 #include "Engine/ECS/Components/AnimatorComponent.h"
@@ -20988,7 +21221,7 @@ void StudioAnimationSpeed::RefreshAvailableAnimations(entt::registry& registry)
 } 
  
 ===== StudioAnimator.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Studio\StudioAnimator.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Tool\Studio\StudioAnimator.cpp 
 #include "Tool/Studio/StudioAnimator.h"
 #include <imgui.h>
 
@@ -21060,7 +21293,7 @@ void StudioAnimator::DrawGUI(
 } 
  
 ===== StudioCamera.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Studio\StudioCamera.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Tool\Studio\StudioCamera.cpp 
 #include "StudioCamera.h"
 #include <imgui.h>
 #include <Windows.h>
@@ -21216,7 +21449,7 @@ DirectX::XMFLOAT3 StudioCamera::GetRight() const
 } 
  
 ===== StudioConditionGraph.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Studio\StudioConditionGraph.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Tool\Studio\StudioConditionGraph.cpp 
 ï»¿#include "StudioConditionGraph.h"
 #include <algorithm>
 #include <vector>
@@ -22590,7 +22823,7 @@ ValueType StudioConditionGraph::GetOutputValueType(PinRole outRole, int outNodeI
 } 
  
 ===== StudioModelViewer.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Studio\StudioModelViewer.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Tool\Studio\StudioModelViewer.cpp 
 #include "StudioModelViewer.h"
 
 #include <windows.h>
@@ -22745,7 +22978,7 @@ void StudioModelViewer::LoadModel(
  
  
 ===== StudioSequencer.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Studio\StudioSequencer.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Tool\Studio\StudioSequencer.cpp 
 #include "StudioSequencer.h"
 #include "Engine/ECS/Components/SkinnedMeshComponent.h"
 #include "Engine/ECS/Components/AnimatorComponent.h"
@@ -23243,8 +23476,485 @@ const char* StudioSequencer::GetSequencerFlagName(SequencerFlag flag)
 }
  
  
+===== StudioStateChildCanvas.cpp ===== 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Tool\Studio\StudioStateChildCanvas.cpp 
+#include "StudioStateChildCanvas.h"
+#include <utility>
+#include <algorithm>
+#include <imgui.h>
+
+void StudioStateChildCanvas::Initialize()
+{
+	// ƒm[ƒhƒGƒfƒBƒ^‚ÌƒRƒ“ƒeƒLƒXƒg‚ğì‚é
+	canvas.Initialize();
+}
+
+// ƒLƒƒƒ“ƒoƒX‚ğ•`‚­
+void StudioStateChildCanvas::Draw(StateMachineData& data)
+{
+	// •`‰æ’†‚¾‚¯Aó‚¯æ‚Á‚½ƒf[ƒ^‚ğw‚·
+	this->data = &data;
+	state = data.FindState(stateId);
+	if (!state) return;
+
+	CollectEntries();
+
+	ImGui::Columns(2, "StateChildColumns", true);
+	if (!columnWidthInitialized)
+	{
+		ImGui::SetColumnWidth(0, ImGui::GetWindowWidth() * 0.7f);
+		columnWidthInitialized = true;
+	}
+
+	// ƒLƒƒƒ“ƒoƒXì¬
+	canvas.Begin("StateChildCanvas");
+
+	// íœ‚â“Ç‚İ‚İ‚ÌŒã‚Íƒm[ƒhƒGƒfƒBƒ^‘¤‚Éc‚Á‚½‘I‘ğ‚ğÁ‚·
+	if (clearSelectionRequested)
+	{
+		ed::ClearSelection();
+		clearSelectionRequested = false;
+	}
+
+	// ƒm[ƒh‚Ì‹éŒ`‚Í–ˆƒtƒŒ[ƒ€ì‚è’¼‚·
+	nodeRects.clear();
+
+	// ƒm[ƒh•`‰æ
+	DrawEntryNodes();
+	DrawClipNodes();
+
+	// ˆÊ’u‚Ì”½‰f‚ÍAŠJ‚¢‚½’¼Œã‚Ì1ƒtƒŒ[ƒ€‚¾‚¯
+	needsApplyPositions = false;
+
+	// ƒŠƒ“ƒN•`‰æ
+	DrawLinks();
+	DrawPendingLink();
+
+	// ƒƒjƒ…[•`‰æ
+	DrawBackgroundMenu();
+	DrawNodeMenu();
+
+	// “ü—ÍXV
+	UpdateLinkCreation();
+	UpdateSelection();
+
+	// ƒLƒƒƒ“ƒoƒXI—¹
+	canvas.End();
+
+	ImGui::NextColumn();
+
+	// ‰EFƒCƒ“ƒXƒyƒNƒ^[(d-2‚Åì‚éB¡‚Í‘I‘ğ‚ÌŠm”F—p)
+	if (selectedLinkId != -1)
+	{
+		ImGui::Text("Link: %d", selectedLinkId);
+	}
+	else if (!selectedNodeKeys.empty())
+	{
+		ImGui::Text("%d nodes selected", static_cast<int>(selectedNodeKeys.size()));
+	}
+	else
+	{
+		ImGui::TextDisabled("Nothing selected.");
+	}
+
+	// ‘I‘ğ‚µ‚Ä‚¢‚é•¨‚Ìíœ(•¶š‚ğ“ü—Í’†‚Íœ‚­)
+	if (ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows) &&
+		!ImGui::GetIO().WantTextInput &&
+		ImGui::IsKeyPressed(ImGuiKey_Delete))
+	{
+		DeleteSelection(data);
+	}
+
+	ImGui::Columns(1);
+}
+
+// ‘I‘ğ‚µ‚Ä‚¢‚é•¨‚ğíœ
+void StudioStateChildCanvas::DeleteSelection(StateMachineData& data)
+{
+	// ‘I‘ğ’†‚ÌƒŠƒ“ƒN‚ğíœ
+	if (selectedLinkId != -1)
+	{
+		const auto& entryLinks = state->child.entryLinks;
+		bool isEntryLink = std::any_of(entryLinks.begin(), entryLinks.end(),
+			[this](const EntryLink& l) { return l.id == selectedLinkId; });
+
+		if (isEntryLink) data.RemoveEntryLink(stateId, selectedLinkId);
+		else             data.RemoveClipLink(stateId, selectedLinkId);
+
+		selectedLinkId = -1;
+		return;
+	}
+
+	// ‘I‘ğ’†‚ÌƒNƒŠƒbƒv‚ğíœ (Entry‚Ííœ•s‰Â)
+	for (int key : selectedNodeKeys)
+	{
+		if (!IsEntry(key))
+		{
+			data.RemoveClip(stateId, key);
+		}
+	}
+	selectedNodeKeys.clear();
+	clearSelectionRequested = true;
+}
+
+// “ü‚Á‚Ä‚­‚éƒŠƒ“ƒN‚©‚çƒGƒ“ƒgƒŠ[‚Ìˆê——‚ğì‚é
+void StudioStateChildCanvas::CollectEntries()
+{
+	entries.clear();
+
+	// e‚ÌEntry‚©‚ç“ü‚Á‚Ä‚­‚éƒŠƒ“ƒN
+	for (const auto& t : data->entry.transitions)
+	{
+		if (t.toStateId == stateId) entries.push_back({ t.id, StateMachineData::kEntryId });
+	}
+
+	// ŠeState‚©‚ç“ü‚Á‚Ä‚­‚éƒŠƒ“ƒN
+	for (const auto& s : data->states)
+	{
+		for (const auto& t : s.transitions)
+		{
+			if (t.toStateId == stateId) entries.push_back({ t.id, s.id });
+		}
+	}
+}
+
+// ƒGƒ“ƒgƒŠ[ƒm[ƒh•`‰æ
+void StudioStateChildCanvas::DrawEntryNodes()
+{
+	for (int i = 0; i < static_cast<int>(entries.size()); ++i)
+	{
+		const EntryInfo& e = entries[i];
+		ed::NodeId nodeId(static_cast<uint64_t>(e.transitionId));
+
+		// ˆÊ’u‚ª‚Ü‚¾–³‚¯‚ê‚ÎA¶‘¤‚Éc‚É•À‚×‚Ä’u‚­
+		auto& posMap = state->child.entryEditorPos;
+		if (posMap.find(e.transitionId) == posMap.end())
+		{
+			posMap[e.transitionId] = { 50.0f, 100.0f + 80.0f * i };
+			ed::SetNodePosition(nodeId, ImVec2(posMap[e.transitionId].x, posMap[e.transitionId].y));
+		}
+		else if (needsApplyPositions)
+		{
+			ed::SetNodePosition(nodeId, ImVec2(posMap[e.transitionId].x, posMap[e.transitionId].y));
+		}
+
+		// ‚Ç‚ÌƒNƒŠƒbƒv‚É‚à‚Â‚È‚ª‚Á‚Ä‚¢‚È‚¢ƒGƒ“ƒgƒŠ[‚ÍA˜g‚ğÔ‚­‚·‚é
+		bool connected = std::any_of(state->child.entryLinks.begin(), state->child.entryLinks.end(),
+			[&e](const EntryLink& l) { return l.entryTransitionId == e.transitionId; });
+
+		// ƒGƒ“ƒgƒŠ[‚Í—Î‚Å•`‚­
+		ed::PushStyleColor(ed::StyleColor_NodeBg, ImColor(46, 125, 50, 255));
+		ed::PushStyleColor(ed::StyleColor_NodeBorder, connected ? ImColor(27, 94, 32, 255) : ImColor(230, 90, 90, 255));
+		ed::BeginNode(nodeId);
+		ImGui::Text("From: %s", GetSourceName(e.fromKey).c_str());
+		ImGui::Dummy(ImVec2(80.0f, 0.0f)); // ƒm[ƒh‚ÌÅ¬‚Ì•
+		ed::EndNode();
+		ed::PopStyleColor(2);
+
+		// ƒŠƒ“ƒN‚ÌŒvZ‚Ég‚¤‹éŒ`‚ğŠo‚¦‚Ä‚¨‚­
+		nodeRects[e.transitionId] = { ImGui::GetItemRectMin(), ImGui::GetItemRectMax() };
+
+		// ƒm[ƒh‚ğ“®‚©‚µ‚½‚çAƒf[ƒ^‚ÌˆÊ’u‚É‘‚«–ß‚·
+		ImVec2 pos = ed::GetNodePosition(nodeId);
+		posMap[e.transitionId] = { pos.x, pos.y };
+	}
+}
+
+// ƒNƒŠƒbƒvƒm[ƒh•`‰æ
+void StudioStateChildCanvas::DrawClipNodes()
+{
+	for (auto& c : state->child.clips)
+	{
+		ed::NodeId nodeId(static_cast<uint64_t>(c.id));
+
+		// “Ç‚İ‚İ’¼Œã‚Íƒf[ƒ^‚ÌˆÊ’u‚Éƒm[ƒh‚ğ”½‰f
+		if (needsApplyPositions)
+		{
+			ed::SetNodePosition(nodeId, ImVec2(c.editorPos.x, c.editorPos.y));
+		}
+
+		ed::BeginNode(nodeId);
+		ImGui::Text("%s", c.name.c_str());
+		// Ä¶‚·‚éƒAƒjƒ[ƒVƒ‡ƒ“(–¢İ’è‚È‚çŠDF‚Å•\¦)
+		ImGui::TextDisabled("%s", c.clipName.empty() ? "(no clip)" : c.clipName.c_str());
+		ImGui::Dummy(ImVec2(80.0f, 0.0f)); // ƒm[ƒh‚ÌÅ¬‚Ì•
+		ed::EndNode();
+
+		// ƒŠƒ“ƒN‚ÌŒvZ‚Ég‚¤‹éŒ`‚ğ‹L˜^
+		nodeRects[c.id] = { ImGui::GetItemRectMin(), ImGui::GetItemRectMax() };
+
+		// ƒm[ƒh‚ğ“®‚©‚µ‚½‚çAƒf[ƒ^‚ÌˆÊ’u‚É‘‚«–ß‚·
+		ImVec2 pos = ed::GetNodePosition(nodeId);
+		c.editorPos = { pos.x, pos.y };
+	}
+}
+
+// ƒŠƒ“ƒN•`‰æ
+void StudioStateChildCanvas::DrawLinks()
+{
+	ImDrawList* drawList = ImGui::GetWindowDrawList();
+
+	// ƒNƒŠƒbƒN”»’è—p‚Ìü‚Í–ˆƒtƒŒ[ƒ€ì‚è’¼‚·
+	linkSegments.clear();
+
+	// 2ŒÂ‚Ìƒm[ƒh‚ÌŠÔ‚É•¡”ƒŠƒ“ƒN‚ª‚ ‚é‚Æ‚«‰½–{–Ú‚©‹L˜^‚·‚é
+	std::unordered_map<int64_t, int> laneCounts;
+
+	// ƒŠƒ“ƒN1–{•ª‚ğ•`‚­
+	auto drawOne = [&](int linkId, int fromKey, int toKey, bool hasReverse, bool always, const ConditionGraph& condition)
+		{
+			// ‘JˆÚŒ³‚Æ‘JˆÚæ‚Ì‘g‚İ‡‚í‚¹‚ğ1‚Â‚Ì’l‚É‚Ü‚Æ‚ß‚Ä‰½–{–Ú‚©‚ğ”‚¦‚é
+			int64_t pairKey = (static_cast<int64_t>(fromKey) << 32) | static_cast<uint32_t>(toKey);
+			int lane = laneCounts[pairKey]++;
+
+			ImVec2 start, end;
+			if (!CalcLinkPoints(fromKey, toKey, hasReverse, lane, start, end)) return;
+
+			bool selected = (linkId == selectedLinkId);
+			bool invalid = (!always && condition.IsEmpty());
+
+			// ³í(”’F) ğŒ‚È‚µ(ÔF) ‘I‘ğ’†(‰©F)
+			ImU32 color = IM_COL32(210, 210, 210, 255);
+			if (invalid)  color = IM_COL32(230, 90, 90, 255);
+			if (selected) color = IM_COL32(255, 200, 80, 255);
+
+			StateGraphDraw::DrawArrow(drawList, start, end, color, selected ? 3.0f : 2.0f);
+
+			// ƒNƒŠƒbƒN”»’è‚Ì‚½‚ß‚É•`‚¢‚½ƒŠƒ“ƒN‚ğ‹L˜^
+			linkSegments.push_back({ linkId, start, end });
+		};
+
+	// Entry‚©‚ço‚éƒŠƒ“ƒN
+	for (const auto& l : state->child.entryLinks)
+	{
+		drawOne(l.id, l.entryTransitionId, l.toClipId, false, l.always, l.condition);
+	}
+
+	// ŠeState‚©‚ço‚éƒŠƒ“ƒN
+	for (const auto& l : state->child.clipLinks)
+	{
+		drawOne(l.id, l.fromClipId, l.toClipId, HasClipLink(l.toClipId, l.fromClipId), l.always, l.condition);
+	}
+}
+
+// ì¬’†‚ÌƒŠƒ“ƒN•`‰æ
+void StudioStateChildCanvas::DrawPendingLink()
+{
+	if (pendingFromKey == -1) return;
+
+	auto it = nodeRects.find(pendingFromKey);
+	if (it == nodeRects.end()) return;
+
+	// ‘JˆÚŒ³‚Ìƒm[ƒh‚Ì‰‚©‚çAƒ}ƒEƒX‚ÌˆÊ’u‚Ü‚Åü‚ğˆø‚­
+	ImVec2 mouse = ImGui::GetMousePos();
+	ImVec2 start = StateGraphDraw::GetEdgePoint(it->second.first, it->second.second, mouse);
+	StateGraphDraw::DrawArrow(ImGui::GetWindowDrawList(), start, mouse, IM_COL32(255, 200, 80, 255), 2.0f);
+}
+
+// ”wŒi‰EƒNƒŠƒbƒN‚Ìƒƒjƒ…[
+void StudioStateChildCanvas::DrawBackgroundMenu()
+{
+	ed::Suspend();
+
+	// ƒ|ƒbƒv‚ğŠJ‚­ƒŠƒNƒGƒXƒg
+	if (ed::ShowBackgroundContextMenu())
+	{
+		pendingCreatePos = ImGui::GetMousePos(); // ƒ}ƒEƒXˆÊ’u•Û‘¶
+		ImGui::OpenPopup("StateChildBackgroundMenu");
+	}
+
+	// ƒ|ƒbƒv“à—e
+	if (ImGui::BeginPopup("StateChildBackgroundMenu"))
+	{
+		// ‰EƒNƒŠƒbƒN‚µ‚½ˆÊ’u‚ÉƒNƒŠƒbƒv‚ğì‚é
+		if (ImGui::MenuItem("Clip"))
+		{
+			ImVec2 canvasPos = ed::ScreenToCanvas(pendingCreatePos);
+			int newId = data->AddClip(stateId, "New Clip", { canvasPos.x, canvasPos.y });
+			if (newId != -1)
+			{
+				ed::SetNodePosition(ed::NodeId(static_cast<uint64_t>(newId)), canvasPos);
+			}
+		}
+		ImGui::EndPopup();
+	}
+
+	ed::Resume();
+}
+
+// ƒm[ƒh‰EƒNƒŠƒbƒN‚Ìƒƒjƒ…[
+void StudioStateChildCanvas::DrawNodeMenu()
+{
+	ed::Suspend();
+
+	ed::NodeId nodeId;
+	if (ed::ShowNodeContextMenu(&nodeId))
+	{
+		// ƒƒjƒ…[‚ğ•Â‚¶‚é‚Ü‚Å‚Ç‚ÌƒNƒŠƒbƒv‚Ìƒƒjƒ…[‚©‚ğ‹L˜^
+		contextNodeKey = static_cast<int>(nodeId.Get());
+
+		// ƒ|ƒbƒv‚ğŠJ‚­ƒŠƒNƒGƒXƒg
+		ImGui::OpenPopup("StateChildNodeMenu");
+	}
+
+	if (ImGui::BeginPopup("StateChildNodeMenu"))
+	{
+		// ƒŠƒ“ƒNì¬ŠJn
+		if (ImGui::MenuItem("Link"))
+		{
+			pendingFromKey = contextNodeKey;
+		}
+		ImGui::EndPopup();
+	}
+
+	ed::Resume();
+}
+
+// ƒŠƒ“ƒNì¬’†‚Ì“ü—Í
+void StudioStateChildCanvas::UpdateLinkCreation()
+{
+	if (pendingFromKey == -1) return;
+
+	// Esc‚Åæ‚èÁ‚µ
+	if (ImGui::IsKeyPressed(ImGuiKey_Escape))
+	{
+		pendingFromKey = -1;
+		return;
+	}
+
+	// 
+	if (!ImGui::IsMouseClicked(ImGuiMouseButton_Left)) return;
+
+	// ƒNƒŠƒbƒN‚µ‚½ˆÊ’u‚Éƒm[ƒh‚ª‚ ‚ê‚Î‚»‚±‚ğs‚«æ‚É‚·‚é
+	ed::NodeId hovered = ed::GetHoveredNode();
+	if (hovered)
+	{
+		int toKey = static_cast<int>(hovered.Get());
+
+		// Entry‚Ö‚ÌƒŠƒ“ƒN‚ÆA©•ª©g‚Ö‚ÌƒŠƒ“ƒN‚Íì‚ç‚È‚¢
+		if (!IsEntry(toKey) && toKey != pendingFromKey)
+		{
+			int newId = IsEntry(pendingFromKey)
+				? data->AddEntryLink(stateId, pendingFromKey, toKey)  // ƒGƒ“ƒgƒŠ[ ‚©‚ç ƒNƒŠƒbƒv
+				: data->AddClipLink(stateId, pendingFromKey, toKey);  // ƒNƒŠƒbƒv ‚©‚ç ƒNƒŠƒbƒv
+
+			if (newId != -1)
+			{
+				// ì‚Á‚½ƒŠƒ“ƒN‚ğ‘I‘ğó‘Ô‚É‚·‚é
+				selectedLinkId = newId;
+				selectedNodeKeys.clear();
+				ed::ClearSelection();
+			}
+		}
+	}
+
+	// ƒm[ƒhˆÈŠO‚ğƒNƒŠƒbƒN‚µ‚½ê‡‚àAì¬‚ÍI‚í‚é
+	pendingFromKey = -1;
+}
+
+// ‘I‘ğ‚ÌXV
+void StudioStateChildCanvas::UpdateSelection()
+{
+	// ƒm[ƒh‚Ì‘I‘ğ
+	int count = ed::GetSelectedObjectCount();
+	std::vector<ed::NodeId> nodeIds(count > 0 ? count : 1);
+	int nodeCount = (count > 0) ? ed::GetSelectedNodes(nodeIds.data(), count) : 0;
+
+	std::vector<int> keys;
+	for (int i = 0; i < nodeCount; ++i)
+	{
+		int key = static_cast<int>(nodeIds[i].Get());
+		// íœ‚µ‚½’¼Œã‚È‚Ç‚ÅAƒf[ƒ^‚É–³‚¢ƒm[ƒh‚ªc‚Á‚Ä‚¢‚Ä‚à‘I‘ğ‚Æ‚µ‚Äˆµ‚í‚È‚¢
+		if (IsExistingNode(key)) keys.push_back(key);
+	}
+
+	if (!keys.empty())
+	{
+		selectedNodeKeys = std::move(keys);
+		selectedLinkId = -1;
+	}
+	else if (selectedLinkId == -1)
+	{
+		// ƒm[ƒh‚àƒŠƒ“ƒN‚à‘I‚Î‚ê‚Ä‚¢‚È‚¢
+		selectedNodeKeys.clear();
+	}
+
+	// ƒŠƒ“ƒN‚ÌƒNƒŠƒbƒN‚Ì”»’è
+	if (pendingFromKey != -1) return;
+	if (!ed::IsBackgroundClicked()) return;
+
+	// ƒm[ƒhƒGƒfƒBƒ^‚Ì’†‚Å‚ÍAƒ}ƒEƒX‚ÌˆÊ’u‚ÍƒLƒƒƒ“ƒoƒX‚ÌÀ•W‚Å•Ô‚é(ü‚ÌÀ•W‚Æ“¯‚¶)
+	ImVec2 mouse = ImGui::GetMousePos();
+
+	// ƒNƒŠƒbƒN‚µ‚½ˆÊ’u‚©‚çˆê”Ô‹ß‚¢ƒŠƒ“ƒN‚ğ’T‚·(‰“‚·‚¬‚éê‡‚Í‘I‚Î‚È‚¢)
+	const float hitDistance = 6.0f;
+	int hitId = -1;
+	float best = hitDistance;
+	for (const auto& seg : linkSegments)
+	{
+		float d = StateGraphDraw::DistanceToSegment(mouse, seg.start, seg.end);
+		if (d < best)
+		{
+			best = d;
+			hitId = seg.linkId;
+		}
+	}
+
+	// ü‚Ì‚È‚¢‚Æ‚±‚ë‚ğƒNƒŠƒbƒN‚µ‚½‚ç‘I‘ğ‰ğœ
+	selectedLinkId = hitId;
+	if (hitId != -1)
+	{
+		// ƒŠƒ“ƒN‚ğ‘I‚ñ‚¾‚çAƒm[ƒh‚Ì‘I‘ğ‚ÍŠO‚·
+		selectedNodeKeys.clear();
+		ed::ClearSelection();
+	}
+}
+
+// ƒf[ƒ^‚É‘¶İ‚·‚éƒm[ƒh‚©”»’è
+bool StudioStateChildCanvas::IsExistingNode(int key) const
+{
+	return IsEntry(key) || state->child.FindClip(key) != nullptr;
+}
+// ƒGƒ“ƒgƒŠ[‚©”»’è
+bool StudioStateChildCanvas::IsEntry(int key) const
+{
+	return std::any_of(entries.begin(), entries.end(),
+		[key](const EntryInfo& e) { return e.transitionId == key; });
+}
+
+// ‘JˆÚŒ³‚Ìƒm[ƒh‚ÌƒL[‚©‚çA•\¦—p‚Ì–¼‘O‚ğì‚é
+std::string StudioStateChildCanvas::GetSourceName(int fromKey) const
+{
+	if (fromKey == StateMachineData::kEntryId) return "Entry";
+	if (const StateNode* s = std::as_const(*data).FindState(fromKey)) return s->name;
+	return "(missing)";
+}
+
+// fromClipId‚©‚çtoClipId‚Ö‚ÌƒŠƒ“ƒN‚ª‚ ‚é‚©
+bool StudioStateChildCanvas::HasClipLink(int fromClipId, int toClipId) const
+{
+	return std::any_of(state->child.clipLinks.begin(), state->child.clipLinks.end(),
+		[=](const ClipLink& l) { return l.fromClipId == fromClipId && l.toClipId == toClipId; });
+}
+
+// ü‚Ìn“_‚ÆI“_‚ğ‹‚ß‚é
+bool StudioStateChildCanvas::CalcLinkPoints(int fromKey, int toKey, bool hasReverse, int lane, ImVec2& outStart, ImVec2& outEnd) const
+{
+	auto fromIt = nodeRects.find(fromKey);
+	auto toIt = nodeRects.find(toKey);
+	if (fromIt == nodeRects.end() || toIt == nodeRects.end()) return false;
+
+	StateGraphDraw::CalcLinkPoints(
+		fromIt->second.first, fromIt->second.second, fromKey,
+		toIt->second.first, toIt->second.second, toKey,
+		hasReverse, lane,
+		outStart, outEnd);
+	return true;
+}
+ 
+ 
 ===== StudioStateGraph.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Studio\StudioStateGraph.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Tool\Studio\StudioStateGraph.cpp 
 #include "StudioStateGraph.h"
 #include <fstream>
 #include <filesystem>
@@ -23253,6 +23963,10 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Studio\StudioStateGr
 #include <json.hpp>
 #include <cmath>
 #include <cfloat>
+#include <memory>
+
+#include "Engine/ECS/Components/SkinnedMeshComponent.h"
+#include "Engine/ECS/Components/AnimatorComponent.h"
 
 #include "Tool/Editor/ProjectWindow.h"
 
@@ -23273,7 +23987,13 @@ void StudioStateGraph::DrawGUI(entt::registry& registry, StudioContext& context)
 
 	std::string panelName = "StateGraph##" + std::to_string(windowId);
 	bool open = ImGui::Begin(panelName.c_str());
-	if (open)
+
+	// StaticModel‚Í’e‚­
+	if (open && !HasAnimatedModel(registry))
+	{
+		ImGui::Text("No skinned model.");
+	}
+	else if (open)
 	{
 		DrawToolbar(context);
 
@@ -23290,25 +24010,8 @@ void StudioStateGraph::DrawGUI(entt::registry& registry, StudioContext& context)
 
 		ImGui::NextColumn();
 
-		// ‰EFƒCƒ“ƒXƒyƒNƒ^[(c-2‚Åì‚éB¡‚Í‘I‘ğ‚ÌŠm”F—p)
-		int linkId = parentCanvas.GetSelectedLinkId();
-		int stateId = parentCanvas.GetSelectedNodeKey();
-		if (linkId != -1)
-		{
-			ImGui::Text("Link: %d", linkId);
-		}
-		else if (stateId == StateMachineData::kEntryId)
-		{
-			ImGui::Text("Entry");
-		}
-		else if (const StateNode* s = std::as_const(data).FindState(stateId))
-		{
-			ImGui::Text("State: %s", s->name.c_str());
-		}
-		else
-		{
-			ImGui::TextDisabled("Nothing selected.");
-		}
+		// ‰EFƒCƒ“ƒXƒyƒNƒ^[
+		parentCanvas.DrawInspector(data);
 
 		// ‘I‘ğ‚µ‚Ä‚¢‚é•¨‚Ìíœ(•¶š‚ğ“ü—Í’†‚ÍADeleteƒL[‚ğ•¶š‚Ìíœ‚Ég‚¤‚Ì‚Åœ‚­)
 		if (ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows) &&
@@ -23319,19 +24022,32 @@ void StudioStateGraph::DrawGUI(entt::registry& registry, StudioContext& context)
 		}
 
 		ImGui::Columns(1);
+		// eŠK‘w‚©‚çqŠK‘w‚ÌƒLƒƒƒ“ƒoƒX‚ğŠJ‚­ˆË—Š‚ª‚ ‚ê‚ÎŠJ‚­
+		int openRequest = parentCanvas.ConsumeOpenChildRequest();
+		if (openRequest != -1) OpenChildWindow(openRequest);
 	}
 
 	ImGui::End(); 
 }
 
+// ƒ‚ƒfƒ‹‚ª•Ï‚í‚Á‚½‚Æ‚«‚ÉŒÄ‚Ô
+void StudioStateGraph::OnModelChanged(StudioContext& context)
+{
+	data.Clear();
+
+	// ‘I‘ğ‚È‚Ç‚ğ–ß‚·
+	parentCanvas.Reset();
+	childCanvases.clear();
+
+	context.attachedGraphPath.clear();
+	loaded = true;     // ‹ó‚ÌƒOƒ‰ƒt‚ğA“Ç‚İ‚İÏ‚İ‚Æ‚µ‚Äˆµ‚¤
+	hasErrors = false; // ì‚èn‚ß‚È‚Ì‚ÅAŒŸØ‚Í•Û‘¶‚És‚¤
+	message.clear();
+}
+
 // ƒc[ƒ‹ƒo[
 void StudioStateGraph::DrawToolbar(StudioContext& context)
 {
-	if (ImGui::Button("New"))
-	{
-		NewGraph(context);
-	}
-	ImGui::SameLine();
 	if (ImGui::Button("Save"))
 	{
 		Save(context);
@@ -23454,6 +24170,7 @@ void StudioStateGraph::Load(StudioContext& context)
 	
 		// ‘I‘ğ‚È‚Ç‚ğ–ß‚·
 		parentCanvas.Reset();
+		childCanvases.clear();
 
 		message.clear();
 	}
@@ -23461,20 +24178,6 @@ void StudioStateGraph::Load(StudioContext& context)
 	{
 		message = "Invalid json.";
 	}
-}
-
-// V‹Kì¬
-void StudioStateGraph::NewGraph(StudioContext& context)
-{
-	data.Clear();
-
-	// ‘I‘ğ‚È‚Ç‚ğ–ß‚·
-	parentCanvas.Reset();
-
-	context.attachedGraphPath.clear();
-	loaded = true;     // ‹ó‚ÌƒOƒ‰ƒt‚ğA“Ç‚İ‚İÏ‚İ‚Æ‚µ‚Äˆµ‚¤
-	hasErrors = false; // ì‚èn‚ß‚È‚Ì‚ÅAŒŸØ‚Í•Û‘¶‚És‚¤
-	message.clear();
 }
 
 // •Û‘¶æ‚ÌƒpƒX‚ğŒˆ‚ß‚é
@@ -23490,13 +24193,184 @@ std::string StudioStateGraph::BuildNewSavePath(const StudioContext& context) con
 	std::string result = (saveDir / uniqueName).string();
 	std::replace(result.begin(), result.end(), '\\', '/');
 	return result;
+}
+
+// ƒAƒjƒ[ƒVƒ‡ƒ“‚ğÄ¶‚Å‚«‚éƒ‚ƒfƒ‹‚©
+bool StudioStateGraph::HasAnimatedModel(entt::registry& registry)
+{
+	auto view = registry.view<SkinnedMeshComponent, AnimatorComponent>();
+	return view.begin() != view.end();
+}
+
+// q‚ÌƒEƒBƒ“ƒhƒE‚ğŠJ‚­
+void StudioStateGraph::OpenChildWindow(int stateId)
+{
+	// ‚·‚Å‚ÉŠJ‚¢‚Ä‚¢‚ê‚ÎAV‚µ‚­ŠJ‚©‚¸‚Éè‘O‚Éo‚·
+	for (const auto& child : childCanvases)
+	{
+		if (child->GetStateId() == stateId)
+		{
+			focusChildStateId = stateId;
+			return;
+		}
+	}
+
+	auto child = std::make_unique<StudioStateChildCanvas>(stateId);
+	child->Initialize();
+	childCanvases.push_back(std::move(child));
+	focusChildStateId = stateId;
+}
+
+// ŠJ‚¢‚Ä‚¢‚éq‚ÌƒEƒBƒ“ƒhƒE‚ğ•`‚­
+void StudioStateGraph::DrawChildWindows()
+{
+	for (auto it = childCanvases.begin(); it != childCanvases.end(); )
+	{
+		StudioStateChildCanvas& child = **it;
+
+		// State‚ªÁ‚¦‚Ä‚¢‚ê‚Î•Â‚¶‚é
+		const StateNode* state = std::as_const(data).FindState(child.GetStateId());
+		if (!state)
+		{
+			it = childCanvases.erase(it);
+			continue;
+		}
+
+		// •\¦‚ÍState–¼AID‚ÍState‚ÌID‚Åì‚é
+		std::string title = "Child: " + state->name +
+			"###StateChild_" + std::to_string(windowId) + "_" + std::to_string(state->id);
+
+		// ƒ^ƒCƒgƒ‹ƒo[‚ğState‚ÌF‚É‚·‚é
+		const float* c = state->editorColor;
+		ImGui::PushStyleColor(ImGuiCol_TitleBg, ImVec4(c[0] * 0.7f, c[1] * 0.7f, c[2] * 0.7f, 1.0f));
+		ImGui::PushStyleColor(ImGuiCol_TitleBgActive, ImVec4(c[0], c[1], c[2], 1.0f));
+
+		// ŠJ‚¢‚½’¼Œã‚¾‚¯‘å‚«‚³‚ğŒˆ‚ß‚é
+		ImGui::SetNextWindowSize(ImVec2(700.0f, 450.0f), ImGuiCond_FirstUseEver);
+		if (focusChildStateId == state->id)
+		{
+			ImGui::SetNextWindowFocus();
+			focusChildStateId = -1;
+		}
+
+		bool open = true;
+		bool visible = ImGui::Begin(title.c_str(), &open);
+		ImGui::PopStyleColor(2);
+
+		if (visible)
+		{
+			child.Draw(data);
+		}
+		ImGui::End();
+
+		// ~‚Å•Â‚¶‚ç‚ê‚½‚çAˆê——‚©‚çŠO‚·
+		if (!open) it = childCanvases.erase(it);
+		else ++it;
+	}
+} 
+ 
+===== StudioStateGraphDraw.cpp ===== 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Tool\Studio\StudioStateGraphDraw.cpp 
+#include "StudioStateGraphDraw.h"
+#include <cmath>
+#include <cfloat>
+
+namespace StateGraphDraw
+{
+	// ‹éŒ`‚Ì’†S‚©‚çtarget‚ÖL‚Î‚µ‚½ü‚ªA‹éŒ`‚Ì‰‚ÆŒğ‚í‚é“_
+	ImVec2 GetEdgePoint(const ImVec2& rectMin, const ImVec2& rectMax, const ImVec2& target)
+	{
+		ImVec2 center((rectMin.x + rectMax.x) * 0.5f, (rectMin.y + rectMax.y) * 0.5f);
+		float halfW = (rectMax.x - rectMin.x) * 0.5f;
+		float halfH = (rectMax.y - rectMin.y) * 0.5f;
+
+		ImVec2 dir(target.x - center.x, target.y - center.y);
+		if (dir.x == 0.0f && dir.y == 0.0f) return center;
+
+		// ‰¡‚Ì•Ó‚Æc‚Ì•Ó‚Ì‚¤‚¿Aæ‚É‚Ô‚Â‚©‚é‚Ù‚¤‚Ì”{—¦‚ğg‚¤
+		float scaleX = (dir.x != 0.0f) ? halfW / fabsf(dir.x) : FLT_MAX;
+		float scaleY = (dir.y != 0.0f) ? halfH / fabsf(dir.y) : FLT_MAX;
+		float scale = (scaleX < scaleY) ? scaleX : scaleY;
+		return ImVec2(center.x + dir.x * scale, center.y + dir.y * scale);
+	}
+
+	// 2‚Â‚Ìƒm[ƒh‚ğŒ‹‚ÔƒŠƒ“ƒN‚Ìn“_‚ÆI“_‚ğ‹‚ß‚é
+	void CalcLinkPoints(
+		const ImVec2& fromMin, const ImVec2& fromMax, int fromKey,
+		const ImVec2& toMin, const ImVec2& toMax, int toKey,
+		bool hasReverse, int lane,
+		ImVec2& outStart, ImVec2& outEnd)
+	{
+		ImVec2 fromCenter((fromMin.x + fromMax.x) * 0.5f, (fromMin.y + fromMax.y) * 0.5f);
+		ImVec2 toCenter((toMin.x + toMax.x) * 0.5f, (toMin.y + toMax.y) * 0.5f);
+
+		// ƒm[ƒh‚Ì’†S“¯m‚ğŒ‹‚Ôü‚ªA‚»‚ê‚¼‚ê‚Ì‰‚ÆŒğ‚í‚é“_‚ğAn“_‚ÆI“_‚É‚·‚é
+		outStart = GetEdgePoint(fromMin, fromMax, toCenter);
+		outEnd = GetEdgePoint(toMin, toMax, fromCenter);
+
+		float offset = (hasReverse ? 8.0f : 0.0f) + lane * 10.0f;
+		if (offset <= 0.0f) return;
+
+		// ‰•œ‚Ìü‚ª”½‘Î‘¤‚É‚¸‚ê‚é‚æ‚¤‚ÉAƒL[‚Ì¬‚³‚¢‚Ù‚¤‚©‚çŒ©‚½Œü‚«‚ğŠî€‚É‚·‚é
+		bool fromIsSmaller = fromKey < toKey;
+		ImVec2 baseFrom = fromIsSmaller ? fromCenter : toCenter;
+		ImVec2 baseTo = fromIsSmaller ? toCenter : fromCenter;
+		ImVec2 dir(baseTo.x - baseFrom.x, baseTo.y - baseFrom.y);
+		float len = sqrtf(dir.x * dir.x + dir.y * dir.y);
+		if (len < 0.0001f) return;
+
+		// Šî€‚ÌŒü‚«‚É‚’¼‚È•ûŒü‚Ö‚¸‚ç‚·(‹tŒü‚«‚Ìü‚Í”½‘Î‘¤‚Ö)
+		float sign = (hasReverse && !fromIsSmaller) ? -1.0f : 1.0f;
+		ImVec2 perp(-dir.y / len * offset * sign, dir.x / len * offset * sign);
+		outStart = ImVec2(outStart.x + perp.x, outStart.y + perp.y);
+		outEnd = ImVec2(outEnd.x + perp.x, outEnd.y + perp.y);
+	}
+
+	// –îˆó•`‰æ
+	void DrawArrow(ImDrawList* drawList, const ImVec2& start, const ImVec2& end, ImU32 color, float thickness)
+	{
+		ImVec2 dir(end.x - start.x, end.y - start.y);
+		float len = sqrtf(dir.x * dir.x + dir.y * dir.y);
+		if (len < 0.0001f) return;
+		dir.x /= len;
+		dir.y /= len;
+
+		const float arrowLength = 14.0f;
+		const float arrowWidth = 11.0f;
+
+		// ü‚Í–îˆó‚ÌªŒ³‚Ü‚Å
+		ImVec2 base(end.x - dir.x * arrowLength, end.y - dir.y * arrowLength);
+		drawList->AddLine(start, base, color, thickness);
+
+		// –îˆó‚ÌOŠpŒ`
+		ImVec2 perp(-dir.y, dir.x);
+		ImVec2 left(base.x + perp.x * arrowWidth * 0.5f, base.y + perp.y * arrowWidth * 0.5f);
+		ImVec2 right(base.x - perp.x * arrowWidth * 0.5f, base.y - perp.y * arrowWidth * 0.5f);
+		drawList->AddTriangleFilled(end, left, right, color);
+	}
+
+	// “_‚Æü•ª‚Ì‹——£
+	float DistanceToSegment(const ImVec2& p, const ImVec2& a, const ImVec2& b)
+	{
+		ImVec2 ab(b.x - a.x, b.y - a.y);
+		ImVec2 ap(p.x - a.x, p.y - a.y);
+		float lenSq = ab.x * ab.x + ab.y * ab.y;
+
+		// “_p‚ğü•ªab‚É“Š‰e‚µ‚½ˆÊ’u(0‚ªaA1‚ªb)Bü•ª‚ÌŠO‚Éo‚½‚ç’[‚ÉŠñ‚¹‚é
+		float t = (lenSq > 0.0f) ? (ap.x * ab.x + ap.y * ab.y) / lenSq : 0.0f;
+		t = (t < 0.0f) ? 0.0f : (t > 1.0f ? 1.0f : t);
+
+		// ü•ªã‚Åˆê”Ô‹ß‚¢“_‚Æ‚Ì‹——£
+		ImVec2 closest(a.x + ab.x * t, a.y + ab.y * t);
+		float dx = p.x - closest.x;
+		float dy = p.y - closest.y;
+		return sqrtf(dx * dx + dy * dy);
+	}
 } 
  
 ===== StudioStateParentCanvas.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Studio\StudioStateParentCanvas.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Tool\Studio\StudioStateParentCanvas.cpp 
 #include "StudioStateParentCanvas.h"
-#include <cmath>
-#include <cfloat>
 #include <imgui.h>
 
 void StudioStateParentCanvas::Initialize()
@@ -23512,6 +24386,13 @@ void StudioStateParentCanvas::Draw(StateMachineData& graph)
 
 	// ƒLƒƒƒ“ƒoƒXì¬
 	canvas.Begin("StateParentCanvas");
+
+	// íœ‚â“Ç‚İ‚İ‚ÌŒã‚Íƒm[ƒhƒGƒfƒBƒ^‘¤‚Éc‚Á‚½‘I‘ğ‚ğÁ‚·
+	if (clearSelectionRequested)
+	{
+		ed::ClearSelection();
+		clearSelectionRequested = false;
+	}
 
 	// ƒm[ƒh‚Ì‹éŒ`‚Í–ˆƒtƒŒ[ƒ€ì‚è’¼‚·
 	nodeRects.clear();
@@ -23551,21 +24432,66 @@ void StudioStateParentCanvas::DeleteSelection(StateMachineData& graph)
 	}
 
 	// ‘I‘ğ’†‚ÌƒXƒe[ƒgíœ (Entry‚Ííœ•s‰Â)
-	if (selectedNodeKey != -1 && selectedNodeKey != StateMachineData::kEntryId)
+	for (int key : selectedNodeKeys)
 	{
-		graph.RemoveState(selectedNodeKey);
-		selectedNodeKey = -1;
+		if (key != StateMachineData::kEntryId)
+		{
+			graph.RemoveState(key);
+		}
 	}
+	selectedNodeKeys.clear();
+	clearSelectionRequested = true;
 }
 
 // “Ç‚İ‚İEV‹Kì¬‚Ì‚Æ‚«‚ÉA‘I‘ğ‚È‚Ç‚ğ–ß‚·
 void StudioStateParentCanvas::Reset()
 {
 	needsApplyPositions = true;
-	selectedNodeKey = -1;
+	selectedNodeKeys.clear();
 	selectedLinkId = -1;
 	pendingFromKey = -1;
 	contextNodeKey = -1;
+	clearSelectionRequested = true;
+}
+
+// ƒCƒ“ƒXƒyƒNƒ^[•`‰æ
+void StudioStateParentCanvas::DrawInspector(StateMachineData& data)
+{
+	// •`‰æ’†‚¾‚¯Aó‚¯æ‚Á‚½ƒf[ƒ^‚ğw‚·
+	this->data = &data;
+
+	// ƒŠƒ“ƒN‘I‘ğ
+	if (selectedLinkId != -1)
+	{
+		DrawLinkInspector(selectedLinkId);
+		return;
+	}
+
+	// ƒm[ƒh•¡”‘I‘ğ
+	if (selectedNodeKeys.size() > 1)
+	{
+		DrawMultiStateInspector();
+		return;
+	}
+
+	// ƒm[ƒh1‚Â‘I‘ğ
+	if (selectedNodeKeys.size() == 1)
+	{
+		int key = selectedNodeKeys[0];
+		if (key == StateMachineData::kEntryId)
+		{
+			DrawEntryInspector();
+			return;
+		}
+		if (StateNode* state = data.FindState(key))
+		{
+			DrawStateInspector(*state);
+			return;
+		}
+	}
+
+	// –¢‘I‘ğ
+	ImGui::TextDisabled("Nothing selected.");
 }
 
 // ƒGƒ“ƒgƒŠ[ƒm[ƒh•`‰æ
@@ -23657,7 +24583,7 @@ void StudioStateParentCanvas::DrawLinks()
 			if (invalid)  color = IM_COL32(230, 90, 90, 255);   // ğŒ‚Ìİ’è˜R‚ê
 			if (selected) color = IM_COL32(255, 200, 80, 255);  // ‘I‘ğ’†
 
-			DrawArrow(drawList, start, end, color, selected ? 3.0f : 2.0f);
+			StateGraphDraw::DrawArrow(drawList, start, end, color, selected ? 3.0f : 2.0f);
 
 			// ƒNƒŠƒbƒN”»’è‚Ì‚½‚ß‚É•`‚¢‚½ƒŠƒ“ƒN‚ğ‹L˜^
 			linkSegments.push_back({ t.id, start, end });
@@ -23666,7 +24592,7 @@ void StudioStateParentCanvas::DrawLinks()
 	// Entry‚©‚ço‚éƒŠƒ“ƒN
 	for (const auto& t : data->entry.transitions) drawOne(StateMachineData::kEntryId, t);
 	
-	// ‘‚­State‚©‚ço‚éƒŠƒ“ƒN
+	// ŠeState‚©‚ço‚éƒŠƒ“ƒN
 	for (const auto& s : data->states)
 	{
 		for (const auto& t : s.transitions) drawOne(s.id, t);
@@ -23683,8 +24609,8 @@ void StudioStateParentCanvas::DrawPendingLink()
 
 	// ‘JˆÚŒ³‚Ìƒm[ƒh‚Ì‰‚©‚çAƒ}ƒEƒX‚ÌˆÊ’u‚Ü‚Åü‚ğˆø‚­
 	ImVec2 mouse = ImGui::GetMousePos();
-	ImVec2 start = GetEdgePoint(it->second.first, it->second.second, mouse);
-	DrawArrow(ImGui::GetWindowDrawList(), start, mouse, IM_COL32(255, 200, 80, 255), 2.0f);
+	ImVec2 start = StateGraphDraw::GetEdgePoint(it->second.first, it->second.second, mouse);
+	StateGraphDraw::DrawArrow(ImGui::GetWindowDrawList(), start, mouse, IM_COL32(255, 200, 80, 255), 2.0f);
 }
 
 // ”wŒi‰EƒNƒŠƒbƒN‚Ìƒƒjƒ…[
@@ -23738,14 +24664,6 @@ void StudioStateParentCanvas::DrawNodeMenu()
 		{
 			pendingFromKey = contextNodeKey;
 		}
-
-		// Entry‚Ííœ‚Å‚«‚È‚¢
-		if (contextNodeKey != StateMachineData::kEntryId && ImGui::MenuItem("Delete"))
-		{
-			data->RemoveState(contextNodeKey);
-			if (selectedNodeKey == contextNodeKey) selectedNodeKey = -1;
-			selectedLinkId = -1;
-		}
 		ImGui::EndPopup();
 	}
 
@@ -23781,36 +24699,53 @@ void StudioStateParentCanvas::UpdateLinkCreation()
 			{
 				// ì‚Á‚½ƒŠƒ“ƒN‚ğ‘I‘ğó‘Ô‚É‚·‚é
 				selectedLinkId = newId;
-				selectedNodeKey = -1;
+				selectedNodeKeys.clear();
 				ed::ClearSelection();
 			}
 		}
 	}
 
+	// ƒm[ƒhˆÈŠO‚ğƒNƒŠƒbƒN‚µ‚½ê‡‚àAì¬‚ÍI‚í‚é
 	pendingFromKey = -1;
 }
 
 // ‘I‘ğ‚ÌXV
 void StudioStateParentCanvas::UpdateSelection()
 {
-	// ƒm[ƒh‚Ì‘I‘ğ
-	ed::NodeId selectedNode;
-	if (ed::GetSelectedNodes(&selectedNode, 1) > 0)
+	// State‚Ìƒm[ƒh‚ğƒ_ƒuƒ‹ƒNƒŠƒbƒN‚µ‚½‚çAq‚ÌƒEƒBƒ“ƒhƒE‚ğŠJ‚­
+	if (ed::NodeId doubleClicked = ed::GetDoubleClickedNode())
 	{
-		selectedNodeKey = ToNodeKey(selectedNode);
+		int key = ToNodeKey(doubleClicked);
+		if (key != StateMachineData::kEntryId) openChildRequest = key;
+	}
+
+	// ƒm[ƒh‚Ì‘I‘ğ
+	int count = ed::GetSelectedObjectCount();
+	std::vector<ed::NodeId> nodeIds(count > 0 ? count : 1);
+	int nodeCount = (count > 0) ? ed::GetSelectedNodes(nodeIds.data(), count) : 0;
+
+	std::vector<int> keys;
+	for (int i = 0; i < nodeCount; ++i)
+	{
+		int key = ToNodeKey(nodeIds[i]);
+		// íœ‚µ‚½’¼Œã‚È‚Ç‚ÅAƒf[ƒ^‚É–³‚¢ƒm[ƒh‚ªc‚Á‚Ä‚¢‚Ä‚à‘I‘ğ‚Æ‚µ‚Äˆµ‚í‚È‚¢
+		if (IsExistingNode(key)) keys.push_back(key);
+	}
+
+	if (!keys.empty())
+	{
+		selectedNodeKeys = std::move(keys);
 		selectedLinkId = -1;
 	}
 	else if (selectedLinkId == -1)
 	{
 		// ƒm[ƒh‚àƒŠƒ“ƒN‚à‘I‚Î‚ê‚Ä‚¢‚È‚¢
-		selectedNodeKey = -1;
+		selectedNodeKeys.clear();
 	}
 
-	// ƒŠƒ“ƒN‚Ì”»’è
+	// ƒŠƒ“ƒN‚ÌƒNƒŠƒbƒN‚Ì”»’è
 	if (pendingFromKey != -1) return;
-	if (!ImGui::IsMouseClicked(ImGuiMouseButton_Left)) return;
-	if (!ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows)) return;
-	if (ed::GetHoveredNode()) return;
+	if (!ed::IsBackgroundClicked()) return;
 
 	// ƒm[ƒhƒGƒfƒBƒ^‚Ì’†‚Å‚ÍAƒ}ƒEƒX‚ÌˆÊ’u‚ÍƒLƒƒƒ“ƒoƒX‚ÌÀ•W‚Å•Ô‚é(ü‚ÌÀ•W‚Æ“¯‚¶)
 	ImVec2 mouse = ImGui::GetMousePos();
@@ -23821,7 +24756,7 @@ void StudioStateParentCanvas::UpdateSelection()
 	float best = hitDistance;
 	for (const auto& seg : linkSegments)
 	{
-		float d = DistanceToSegment(mouse, seg.start, seg.end);
+		float d = StateGraphDraw::DistanceToSegment(mouse, seg.start, seg.end);
 		if (d < best)
 		{
 			best = d;
@@ -23833,9 +24768,253 @@ void StudioStateParentCanvas::UpdateSelection()
 	selectedLinkId = hitId;
 	if (hitId != -1)
 	{
-		selectedNodeKey = -1;
+		// ƒŠƒ“ƒN‚ğ‘I‚ñ‚¾‚çAƒm[ƒh‚Ì‘I‘ğ‚ÍŠO‚·
+		selectedNodeKeys.clear();
 		ed::ClearSelection();
 	}
+}
+
+// ƒf[ƒ^‚É‘¶İ‚·‚éƒm[ƒh‚©
+bool StudioStateParentCanvas::IsExistingNode(int key) const
+{
+	if (key == StateMachineData::kEntryId) return true;
+	return std::as_const(*data).FindState(key) != nullptr;
+}
+
+// ƒXƒe[ƒg‚Ìî•ñ
+void StudioStateParentCanvas::DrawStateInspector(StateNode& state)
+{
+	ImGui::Text("State");
+
+
+	// ‘I‚ÔState‚ª•Ï‚í‚Á‚½‚çA“ü—Í—“‚ğ¡‚Ì–¼‘O‚Åì‚è’¼‚·
+	if (nameEditingStateId != state.id)
+	{
+		nameEditingStateId = state.id;
+		strncpy_s(nameBuffer, state.name.c_str(), sizeof(nameBuffer) - 1);
+		nameError.clear();
+	}
+
+	// –¼‘O(Enter‚ÅŠm’èB‹ó‚âd•¡‚ÍŠm’è‚µ‚È‚¢)
+	if (ImGui::InputText("Name", nameBuffer, sizeof(nameBuffer), ImGuiInputTextFlags_EnterReturnsTrue))
+	{
+		if (data->RenameState(state.id, nameBuffer))
+		{
+			nameError.clear();
+		}
+		else
+		{
+			nameError = (nameBuffer[0] == '\0') ? "Name is empty." : "Name already used.";
+		}
+	}
+
+	// “ü—Í—“‚©‚ç—£‚ê‚½‚çAŠm’è‚µ‚Ä‚¢‚È‚¢•¶š‚Í¡‚Ì–¼‘O‚É–ß‚·
+	if (ImGui::IsItemDeactivated() && state.name != nameBuffer)
+	{
+		strncpy_s(nameBuffer, state.name.c_str(), sizeof(nameBuffer) - 1);
+	}
+	if (!nameError.empty())
+	{
+		ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f), "%s", nameError.c_str());
+	}
+
+	// F
+	ImGui::ColorEdit3("Color", state.editorColor);
+	ImGui::Spacing();
+
+	// o‚Ä‚¢‚­ƒŠƒ“ƒN‚Ìˆê——
+	DrawLinkList(state.id, state.transitions);
+	ImGui::Spacing();
+
+	// qƒOƒ‰ƒt‚ÖˆÚ“®
+	if (ImGui::Button("Open Child Graph", ImVec2(-1.0f, 0.0f)))
+	{
+		openChildRequest = state.id;
+	}
+
+	// íœ
+	if (DrawDeleteButton("Delete State"))
+	{
+		DeleteSelection(*data);
+	}
+}
+
+// ƒGƒ“ƒgƒŠ[‚Ìİ’è
+void StudioStateParentCanvas::DrawEntryInspector()
+{
+	ImGui::Text("Entry");
+	ImGui::Separator();
+
+	// o‚Ä‚¢‚­ƒŠƒ“ƒN‚Ìˆê——
+	DrawLinkList(StateMachineData::kEntryId, data->entry.transitions);
+}
+
+// •¡”ƒXƒe[ƒg‚Ì‘I‘ğ
+void StudioStateParentCanvas::DrawMultiStateInspector()
+{
+	ImGui::Text("%d States selected", static_cast<int>(selectedNodeKeys.size()));
+	ImGui::Separator();
+
+	// ‚Ü‚Æ‚ß‚Äíœ
+	if (DrawDeleteButton("Delete States"))
+	{
+		DeleteSelection(*data);
+	}
+}
+
+// ƒŠƒ“ƒN‚Ìİ’è
+void StudioStateParentCanvas::DrawLinkInspector(int linkId)
+{
+	StateTransition* link = data->FindTransition(linkId);
+	int fromKey = -1, index = -1, count = 0;
+	if (!link || !FindLinkOwner(linkId, fromKey, index, count))
+	{
+		ImGui::TextDisabled("Nothing selected.");
+		return;
+	}
+
+	ImGui::Text("Link");
+
+
+	// ‘JˆÚŒ³ ¨ ‘JˆÚæ
+	ImGui::Text("%s  ->  %s", GetNodeName(fromKey).c_str(), GetNodeName(link->toStateId).c_str());
+
+	// —Dæ“x
+	ImGui::Text("Priority: %d / %d", index + 1, count);	ImGui::Spacing();
+
+	// í‚É¬—§
+	ImGui::Checkbox("Always", &link->always);
+
+	// ƒuƒŒƒ“ƒh
+	ImGui::Checkbox("Blend", &link->blend.enabled);
+	ImGui::BeginDisabled(!link->blend.enabled);
+	ImGui::DragFloat("Blend Duration", &link->blend.duration, 0.01f, 0.0f, 5.0f, "%.2f s");
+	ImGui::EndDisabled();
+	ImGui::Spacing();
+
+	// ğŒ‚Ìó‘Ô
+	if (link->always)
+	{
+		ImGui::TextDisabled("Condition: Always");
+	}
+	else if (link->condition.IsEmpty())
+	{
+		ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f), "Condition: Empty");
+	}
+	else
+	{
+		ImGui::Text("Condition: Set");
+	}
+
+	// ğŒ‚Ì•ÒW‚Ö
+	ImGui::BeginDisabled();
+	ImGui::Button("Edit Condition", ImVec2(-1.0f, 0.0f));
+	ImGui::EndDisabled();
+
+	// íœ
+	if (DrawDeleteButton("Delete Link"))
+	{
+		DeleteSelection(*data);
+	}
+}
+
+// o‚Ä‚¢‚­ƒŠƒ“ƒN‚Ìˆê——
+void StudioStateParentCanvas::DrawLinkList(int fromKey, std::vector<StateTransition>& links)
+{
+	ImGui::Text("Links (priority order)");
+
+	if (links.empty())
+	{
+		ImGui::TextDisabled("No links.");
+		return;
+	}
+
+	// “ü‚ê‘Ö‚¦‚Í•`‰æ‚ªI‚í‚Á‚Ä‚©‚ç
+	int moveId = -1;
+	int moveOffset = 0;
+
+	for (int i = 0; i < static_cast<int>(links.size()); ++i)
+	{
+		const StateTransition& t = links[i];
+		ImGui::PushID(t.id);
+
+		// ã‰º‚Å—Dæ“x‚ğ“ü‚ê‘Ö‚¦‚é
+		if (ImGui::ArrowButton("##Up", ImGuiDir_Up)) { moveId = t.id; moveOffset = -1; }
+		ImGui::SameLine();
+		if (ImGui::ArrowButton("##Down", ImGuiDir_Down)) { moveId = t.id; moveOffset = +1; }
+		ImGui::SameLine();
+
+		// ğŒ‚Ìİ’è˜R‚ê‚ÍÔ‚Å•\¦
+		bool invalid = (!t.always && t.condition.IsEmpty());
+		if (invalid) ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.4f, 0.4f, 1.0f));
+
+		// ƒNƒŠƒbƒN‚Å‚»‚ÌƒŠƒ“ƒN‚ğ‘I‚Ô
+		std::string label = std::to_string(i + 1) + ". -> " + GetNodeName(t.toStateId);
+		if (ImGui::Selectable(label.c_str(), t.id == selectedLinkId))
+		{
+			selectedLinkId = t.id;
+			selectedNodeKeys.clear();
+			clearSelectionRequested = true; // ƒLƒƒƒ“ƒoƒX‘¤‚Ìƒm[ƒh‚Ì‘I‘ğ‚àŠO‚·
+		}
+
+		if (invalid) ImGui::PopStyleColor();
+		ImGui::PopID();
+	}
+
+	if (moveId != -1)
+	{
+		data->MoveTransition(moveId, moveOffset);
+	}
+	(void)fromKey;
+}
+
+// íœƒ{ƒ^ƒ“
+bool StudioStateParentCanvas::DrawDeleteButton(const char* label)
+{
+	ImGui::Spacing();
+	ImGui::Spacing();
+
+	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.15f, 0.15f, 1.0f));
+	ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.85f, 0.2f, 0.2f, 1.0f));
+	ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.6f, 0.1f, 0.1f, 1.0f));
+	bool pressed = ImGui::Button(label, ImVec2(-1.0f, 0.0f));
+	ImGui::PopStyleColor(3);
+
+	return pressed;
+}
+
+// ƒŠƒ“ƒN‚Ì‘JˆÚŒ³‚ÆA‘JˆÚŒ³‚Ì’†‚Å‚Ì‰½”Ô–Ú‚©‚ğ’T‚·
+bool StudioStateParentCanvas::FindLinkOwner(int linkId, int& outFromKey, int& outIndex, int& outCount) const
+{
+	auto search = [&](int fromKey, const std::vector<StateTransition>& list)
+		{
+			for (int i = 0; i < static_cast<int>(list.size()); ++i)
+			{
+				if (list[i].id == linkId)
+				{
+					outFromKey = fromKey;
+					outIndex = i;
+					outCount = static_cast<int>(list.size());
+					return true;
+				}
+			}
+			return false;
+		};
+
+	if (search(StateMachineData::kEntryId, data->entry.transitions)) return true;
+	for (const auto& s : data->states)
+	{
+		if (search(s.id, s.transitions)) return true;
+	}
+	return false;
+}
+
+// ƒm[ƒh‚ÌƒL[‚©‚çA•\¦—p‚Ì–¼‘O‚ğì‚é
+std::string StudioStateParentCanvas::GetNodeName(int key) const
+{
+	if (key == StateMachineData::kEntryId) return "Entry";
+	if (const StateNode* s = std::as_const(*data).FindState(key)) return s->name;
+	return "(missing)";
 }
 
 // fromKey‚©‚çtoStateId‚Ö‚ÌƒŠƒ“ƒN‚ª‚ ‚é‚©
@@ -23867,92 +25046,12 @@ bool StudioStateParentCanvas::CalcLinkPoints(int fromKey, int toStateId, int lan
 	auto toIt = nodeRects.find(toStateId);
 	if (fromIt == nodeRects.end() || toIt == nodeRects.end()) return false;
 
-	const auto& [fromMin, fromMax] = fromIt->second;
-	const auto& [toMin, toMax] = toIt->second;
-	ImVec2 fromCenter((fromMin.x + fromMax.x) * 0.5f, (fromMin.y + fromMax.y) * 0.5f);
-	ImVec2 toCenter((toMin.x + toMax.x) * 0.5f, (toMin.y + toMax.y) * 0.5f);
-
-	// ƒm[ƒh‚Ì’†S“¯m‚ğŒ‹‚Ôü‚ª‚»‚ê‚¼‚ê‚Ì‰‚ÆŒğ‚í‚é“_‚ğn“_‚ÆI“_‚É‚·‚é
-	outStart = GetEdgePoint(fromMin, fromMax, toCenter);
-	outEnd = GetEdgePoint(toMin, toMax, fromCenter);
-
-	// ‹tŒü‚«‚Ìü‚ª‚ ‚éê‡‚âA“¯‚¶Œü‚«‚É•¡”‚ ‚éê‡‚ÍAü‚ğ‰¡‚É‚¸‚ç‚·
-	bool hasReverse = HasLink(toStateId, fromKey);
-	float offset = (hasReverse ? 8.0f : 0.0f) + lane * 10.0f;
-	if (offset <= 0.0f) return true;
-
-	// ‰•œ‚Ìü‚ª”½‘Î‘¤‚É‚¸‚ê‚é‚æ‚¤‚ÉAID‚Ì¬‚³‚¢‚Ù‚¤‚©‚çŒ©‚½Œü‚«‚ğŠî€‚É‚·‚é
-	bool fromIsSmaller = fromKey < toStateId;
-	ImVec2 baseFrom = fromIsSmaller ? fromCenter : toCenter;
-	ImVec2 baseTo = fromIsSmaller ? toCenter : fromCenter;
-	ImVec2 dir(baseTo.x - baseFrom.x, baseTo.y - baseFrom.y);
-	float len = sqrtf(dir.x * dir.x + dir.y * dir.y);
-	if (len < 0.0001f) return true;
-
-	// Šî€‚ÌŒü‚«‚É‚’¼‚È•ûŒü‚Ö‚¸‚ç‚·
-	float sign = (hasReverse && !fromIsSmaller) ? -1.0f : 1.0f;
-	ImVec2 perp(-dir.y / len * offset * sign, dir.x / len * offset * sign);
-	outStart = ImVec2(outStart.x + perp.x, outStart.y + perp.y);
-	outEnd = ImVec2(outEnd.x + perp.x, outEnd.y + perp.y);
+	StateGraphDraw::CalcLinkPoints(
+		fromIt->second.first, fromIt->second.second, fromKey,
+		toIt->second.first, toIt->second.second, toStateId,
+		HasLink(toStateId, fromKey), lane,
+		outStart, outEnd);
 	return true;
-}
-
-// –Ú“I’n‚ÖL‚Î‚·ƒŠƒ“ƒN‚ª‹éŒ`‚Ì‰‚ÆŒğ‚í‚é“_
-ImVec2 StudioStateParentCanvas::GetEdgePoint(const ImVec2& rectMin, const ImVec2& rectMax, const ImVec2& target)
-{
-	ImVec2 center((rectMin.x + rectMax.x) * 0.5f, (rectMin.y + rectMax.y) * 0.5f);
-	float halfW = (rectMax.x - rectMin.x) * 0.5f;
-	float halfH = (rectMax.y - rectMin.y) * 0.5f;
-
-	ImVec2 dir(target.x - center.x, target.y - center.y);
-	if (dir.x == 0.0f && dir.y == 0.0f) return center;
-
-	// ‰¡‚Ì•Ó‚Æc‚Ì•Ó‚Ì‚¤‚¿Aæ‚É‚Ô‚Â‚©‚é‚Ù‚¤‚Ì”{—¦‚ğg‚¤
-	float scaleX = (dir.x != 0.0f) ? halfW / fabsf(dir.x) : FLT_MAX;
-	float scaleY = (dir.y != 0.0f) ? halfH / fabsf(dir.y) : FLT_MAX;
-	float scale = (scaleX < scaleY) ? scaleX : scaleY;
-	return ImVec2(center.x + dir.x * scale, center.y + dir.y * scale);
-}
-
-// –îˆó•`‰æ
-void StudioStateParentCanvas::DrawArrow(ImDrawList* drawList, const ImVec2& start, const ImVec2& end, ImU32 color, float thickness)
-{
-	ImVec2 dir(end.x - start.x, end.y - start.y);
-	float len = sqrtf(dir.x * dir.x + dir.y * dir.y);
-	if (len < 0.0001f) return;
-	dir.x /= len;
-	dir.y /= len;
-
-	const float arrowLength = 14.0f;
-	const float arrowWidth = 11.0f;
-
-	// ü‚Í–îˆó‚ÌªŒ³‚Ü‚Å
-	ImVec2 base(end.x - dir.x * arrowLength, end.y - dir.y * arrowLength);
-	drawList->AddLine(start, base, color, thickness);
-
-	// –îˆó‚ÌOŠpŒ`
-	ImVec2 perp(-dir.y, dir.x);
-	ImVec2 left(base.x + perp.x * arrowWidth * 0.5f, base.y + perp.y * arrowWidth * 0.5f);
-	ImVec2 right(base.x - perp.x * arrowWidth * 0.5f, base.y - perp.y * arrowWidth * 0.5f);
-	drawList->AddTriangleFilled(end, left, right, color);
-}
-
-// “_‚Æü•ª‚Ì‹——£
-float StudioStateParentCanvas::DistanceToSegment(const ImVec2& p, const ImVec2& a, const ImVec2& b)
-{
-	ImVec2 ab(b.x - a.x, b.y - a.y);
-	ImVec2 ap(p.x - a.x, p.y - a.y);
-	float lenSq = ab.x * ab.x + ab.y * ab.y;
-	
-	// “_p‚ğü•ªab‚É“Š‰e‚µ‚½ˆÊ’uBü•ª‚ÌŠO‚Éo‚½‚ç’[‚ÉŠñ‚¹‚é
-	float t = (lenSq > 0.0f) ? (ap.x * ab.x + ap.y * ab.y) / lenSq : 0.0f;
-	t = (t < 0.0f) ? 0.0f : (t > 1.0f ? 1.0f : t);
-	
-	// ü•ªã‚Åˆê”Ô‹ß‚¢“_‚Æ‚Ì‹——£
-	ImVec2 closest(a.x + ab.x * t, a.y + ab.y * t);
-	float dx = p.x - closest.x;
-	float dy = p.y - closest.y;
-	return sqrtf(dx * dx + dy * dy);
 }
 
 // ƒm[ƒh‚ÌƒL[ ¨ ƒm[ƒhƒGƒfƒBƒ^‚ÌID
@@ -23970,7 +25069,7 @@ int StudioStateParentCanvas::ToNodeKey(ed::NodeId nodeId)
 } 
  
 ===== StudioTimeline.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Studio\StudioTimeline.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Tool\Studio\StudioTimeline.cpp 
 ï»¿#include "StudioTimeline.h"
 #include <imgui.h>
 #include <string>
@@ -24070,7 +25169,7 @@ void StudioTimeline::DrawGUI(entt::registry& registry, StudioContext& context)
  
  
 ===== StudioWindow.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Studio\StudioWindow.cpp 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Tool\Studio\StudioWindow.cpp 
 #include "StudioWindow.h"
 #include <imgui.h>
 #include <imgui_internal.h>
@@ -24353,6 +25452,9 @@ void StudioWindow::LoadAsset(const std::string& assetPath)
 {
 	stadoiModelViewer.LoadModel(studioRegistry, assetPath);
 	context.currentModelPath = assetPath;
+
+	// ƒ‚ƒfƒ‹‚ª•Ï‚í‚Á‚½‚±‚Æ‚ğ“`‚¦‚é
+	stateGraph.OnModelChanged(context);
 }
 
 void StudioWindow::Begin()

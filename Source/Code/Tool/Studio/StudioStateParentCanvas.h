@@ -3,6 +3,8 @@
 #include <utility>
 #include <vector>
 
+#include "StudioStateGraphDraw.h"
+
 #include "Engine/Data/StateMachineData.h"
 #include "Tool/NodeEditor/NodeEditorCanvas.h"
 
@@ -26,6 +28,9 @@ public:
 	const std::vector<int>& GetSelectedNodeKeys() const { return selectedNodeKeys; }
 	int GetSelectedLinkId() const { return selectedLinkId; }
 
+	// 子のキャンバスを開く依頼
+	int ConsumeOpenChildRequest() { int id = openChildRequest; openChildRequest = -1; return id; }
+
 private:
 	// --- 描画 --- //
 
@@ -42,6 +47,7 @@ private:
 	void DrawBackgroundMenu();
 	// ノード右クリックのメニュー
 	void DrawNodeMenu();
+
 
 	// --- 入力 --- //
 
@@ -83,12 +89,6 @@ private:
 	bool HasLink(int fromKey, int toStateId) const;
 	// 線の始点と終点を求める
 	bool CalcLinkPoints(int fromKey, int toStateId, int lane, ImVec2& outStart, ImVec2& outEnd) const;
-	// 矩形の中心からtargetへ伸ばした線が、矩形の縁と交わる点
-	static ImVec2 GetEdgePoint(const ImVec2& rectMin, const ImVec2& rectMax, const ImVec2& target);
-	// 矢印描画
-	static void DrawArrow(ImDrawList* drawList, const ImVec2& start, const ImVec2& end, ImU32 color, float thickness);
-	// 点と線分の距離
-	static float DistanceToSegment(const ImVec2& p, const ImVec2& a, const ImVec2& b);
 
 
 	// --- ノードのID --- //
@@ -141,4 +141,7 @@ private:
 	char nameBuffer[128] = {};
 	// 名前を確定できなかった理由
 	std::string nameError;
+
+	// 子のウィンドウを開いてほしいState
+	int openChildRequest = -1;
 };
