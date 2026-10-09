@@ -40,16 +40,8 @@ bool ConditionGraphEvaluator::Evaluate(const ConditionGraph& graph, entt::regist
 // ゲッターノードで取得している値を取得する
 float ConditionGraphEvaluator::GetGetterValue(const ConditionGetterNode& node, entt::registry& registry, entt::entity entity)
 {
-	// コンポーネント名とフィールド名から一致するFieldEntryを探す
-	const FieldEntry* found = nullptr;
-	for (const auto& f : Reflection::GetAllFields()) 
-	{
-		if (f.componentName == node.componentName && f.fieldLabel == node.fieldName)
-		{
-			found = &f;
-			break;
-		}
-	}
+	// コンポーネント名とフィールドのコード上の名前から、FieldEntryを探す
+	const FieldEntry* found = Reflection::FindField(node.componentName, node.fieldName);
 	if (!found) return 0.0f;
 
 	// コンポーネントの実体を取得する

@@ -1,6 +1,6 @@
 {
     "version": 2,
-    "nextId": 50,
+    "nextId": 51,
     "entry": {
         "transitions": [
             {
@@ -54,7 +54,7 @@
                                 "posX": 306.0,
                                 "posY": 204.0,
                                 "componentName": "GameInputComponent",
-                                "fieldName": "Dodge Trigger.Pressed",
+                                "fieldName": "dodgeTrigger.pressed",
                                 "type": "Bool",
                                 "selectedComponent": "None"
                             }
@@ -104,7 +104,7 @@
                                 "posX": 98.0,
                                 "posY": 204.0,
                                 "componentName": "GameInputComponent",
-                                "fieldName": "Jump.Pressed",
+                                "fieldName": "jump.pressed",
                                 "type": "Bool",
                                 "selectedComponent": "None"
                             },
@@ -113,7 +113,7 @@
                                 "posX": -43.0,
                                 "posY": 332.0,
                                 "componentName": "MovementComponent",
-                                "fieldName": "Is Grounded",
+                                "fieldName": "isGrounded",
                                 "type": "Bool",
                                 "selectedComponent": "None"
                             }
@@ -168,7 +168,7 @@
                                 "posX": 258.0,
                                 "posY": 172.0,
                                 "componentName": "GameInputComponent",
-                                "fieldName": "Move Stick.Has Input",
+                                "fieldName": "moveStick.hasInput",
                                 "type": "Bool",
                                 "selectedComponent": "None"
                             }
@@ -191,12 +191,12 @@
                     {
                         "id": 19,
                         "name": "Idle",
-                        "clip": "AS_Idle",
+                        "clip": "AS_Walk_Loop",
                         "loop": true,
                         "rootMotion": false,
                         "editor": {
-                            "x": 224.0,
-                            "y": 192.0
+                            "x": 304.0,
+                            "y": 336.0
                         }
                     }
                 ],
@@ -362,7 +362,7 @@
                                 "posX": 258.0,
                                 "posY": 172.0,
                                 "componentName": "GameInputComponent",
-                                "fieldName": "Dodge Trigger.Pressed",
+                                "fieldName": "dodgeTrigger.pressed",
                                 "type": "Bool",
                                 "selectedComponent": "None"
                             }
@@ -412,7 +412,7 @@
                                 "posX": 226.0,
                                 "posY": 188.0,
                                 "componentName": "GameInputComponent",
-                                "fieldName": "Jump.Pressed",
+                                "fieldName": "jump.pressed",
                                 "type": "Bool",
                                 "selectedComponent": "None"
                             },
@@ -421,7 +421,7 @@
                                 "posX": 49.0,
                                 "posY": 285.0,
                                 "componentName": "MovementComponent",
-                                "fieldName": "Is Grounded",
+                                "fieldName": "isGrounded",
                                 "type": "Bool",
                                 "selectedComponent": "None"
                             }
@@ -482,7 +482,7 @@
                                 "posX": 146.0,
                                 "posY": 204.0,
                                 "componentName": "GameInputComponent",
-                                "fieldName": "Move Stick.Has Input",
+                                "fieldName": "moveStick.hasInput",
                                 "type": "Bool",
                                 "selectedComponent": "None"
                             }
@@ -553,7 +553,7 @@
                                     "posX": 224.0,
                                     "posY": 188.0,
                                     "componentName": "PlayerMoveComponent",
-                                    "fieldName": "Is Jogging",
+                                    "fieldName": "isJogging",
                                     "type": "Bool",
                                     "selectedComponent": "None"
                                 }
@@ -589,7 +589,7 @@
                                     "posX": 272.0,
                                     "posY": 188.0,
                                     "componentName": "PlayerMoveComponent",
-                                    "fieldName": "Is Walking",
+                                    "fieldName": "isWalking",
                                     "type": "Bool",
                                     "selectedComponent": "None"
                                 }
@@ -625,7 +625,7 @@
                                     "posX": 224.0,
                                     "posY": 188.0,
                                     "componentName": "PlayerMoveComponent",
-                                    "fieldName": "Is Jogging",
+                                    "fieldName": "isJogging",
                                     "type": "Bool",
                                     "selectedComponent": "None"
                                 }
@@ -661,7 +661,7 @@
                                     "posX": 272.0,
                                     "posY": 188.0,
                                     "componentName": "PlayerMoveComponent",
-                                    "fieldName": "Is Walking",
+                                    "fieldName": "isWalking",
                                     "type": "Bool",
                                     "selectedComponent": "None"
                                 }
@@ -699,7 +699,7 @@
                                     "posX": 240.0,
                                     "posY": 188.0,
                                     "componentName": "PlayerMoveComponent",
-                                    "fieldName": "Is Jogging",
+                                    "fieldName": "isJogging",
                                     "type": "Bool",
                                     "selectedComponent": "None"
                                 }
@@ -737,7 +737,7 @@
                                     "posX": 256.0,
                                     "posY": 172.0,
                                     "componentName": "PlayerMoveComponent",
-                                    "fieldName": "Is Walking",
+                                    "fieldName": "isWalking",
                                     "type": "Bool",
                                     "selectedComponent": "None"
                                 }
@@ -834,7 +834,7 @@
                                 "posX": -334.0,
                                 "posY": 28.0,
                                 "componentName": "GameInputComponent",
-                                "fieldName": "Dodge Trigger.Pressed",
+                                "fieldName": "dodgeTrigger.pressed",
                                 "type": "Bool",
                                 "selectedComponent": "None"
                             },
@@ -843,7 +843,7 @@
                                 "posX": -187.0,
                                 "posY": 124.0,
                                 "componentName": "SequencerComponent",
-                                "fieldName": "Anim Exit",
+                                "fieldName": "animExit",
                                 "type": "Bool",
                                 "selectedComponent": "None"
                             },
@@ -852,7 +852,7 @@
                                 "posX": -36.0,
                                 "posY": 236.0,
                                 "componentName": "AnimatorComponent",
-                                "fieldName": "Is End",
+                                "fieldName": "isEnd",
                                 "type": "Bool",
                                 "selectedComponent": "None"
                             },
@@ -861,7 +861,7 @@
                                 "posX": -24.0,
                                 "posY": 346.0,
                                 "componentName": "GameInputComponent",
-                                "fieldName": "Move Stick.Has Input",
+                                "fieldName": "moveStick.hasInput",
                                 "type": "Bool",
                                 "selectedComponent": "None"
                             }
@@ -971,7 +971,7 @@
                                 "posX": -238.0,
                                 "posY": 92.0,
                                 "componentName": "GameInputComponent",
-                                "fieldName": "Dodge Trigger.Pressed",
+                                "fieldName": "dodgeTrigger.pressed",
                                 "type": "Bool",
                                 "selectedComponent": "None"
                             },
@@ -980,7 +980,7 @@
                                 "posX": -75.0,
                                 "posY": 204.0,
                                 "componentName": "SequencerComponent",
-                                "fieldName": "Anim Exit",
+                                "fieldName": "animExit",
                                 "type": "Bool",
                                 "selectedComponent": "None"
                             },
@@ -989,7 +989,7 @@
                                 "posX": 92.0,
                                 "posY": 44.0,
                                 "componentName": "AnimatorComponent",
-                                "fieldName": "Is End",
+                                "fieldName": "isEnd",
                                 "type": "Bool",
                                 "selectedComponent": "None"
                             },
@@ -998,7 +998,7 @@
                                 "posX": 290.0,
                                 "posY": 12.0,
                                 "componentName": "GameInputComponent",
-                                "fieldName": "Move Stick.Has Input",
+                                "fieldName": "moveStick.hasInput",
                                 "type": "Bool",
                                 "selectedComponent": "None"
                             }
@@ -1186,7 +1186,7 @@
                                 "posX": 290.0,
                                 "posY": 156.0,
                                 "componentName": "GameInputComponent",
-                                "fieldName": "Dodge Trigger.Pressed",
+                                "fieldName": "dodgeTrigger.pressed",
                                 "type": "Bool",
                                 "selectedComponent": "None"
                             }
@@ -1236,7 +1236,7 @@
                                 "posX": 306.0,
                                 "posY": 156.0,
                                 "componentName": "GameInputComponent",
-                                "fieldName": "Jump.Pressed",
+                                "fieldName": "jump.pressed",
                                 "type": "Bool",
                                 "selectedComponent": "None"
                             },
@@ -1245,7 +1245,7 @@
                                 "posX": 181.0,
                                 "posY": 300.0,
                                 "componentName": "MovementComponent",
-                                "fieldName": "Is Grounded",
+                                "fieldName": "isGrounded",
                                 "type": "Bool",
                                 "selectedComponent": "None"
                             }
@@ -1306,7 +1306,7 @@
                                 "posX": 210.0,
                                 "posY": 188.0,
                                 "componentName": "GameInputComponent",
-                                "fieldName": "Move Stick.Has Input",
+                                "fieldName": "moveStick.hasInput",
                                 "type": "Bool",
                                 "selectedComponent": "None"
                             }
@@ -1423,7 +1423,7 @@
                                 "posX": 218.0,
                                 "posY": 202.0,
                                 "componentName": "MovementComponent",
-                                "fieldName": "Is Grounded",
+                                "fieldName": "isGrounded",
                                 "type": "Bool",
                                 "selectedComponent": "None"
                             },
@@ -1432,7 +1432,7 @@
                                 "posX": 55.0,
                                 "posY": 314.0,
                                 "componentName": "GameInputComponent",
-                                "fieldName": "Move Stick.Has Input",
+                                "fieldName": "moveStick.hasInput",
                                 "type": "Bool",
                                 "selectedComponent": "None"
                             }
@@ -1494,7 +1494,7 @@
                                 "posX": 218.0,
                                 "posY": 202.0,
                                 "componentName": "MovementComponent",
-                                "fieldName": "Is Grounded",
+                                "fieldName": "isGrounded",
                                 "type": "Bool",
                                 "selectedComponent": "None"
                             },
@@ -1503,7 +1503,7 @@
                                 "posX": 218.0,
                                 "posY": 314.0,
                                 "componentName": "GameInputComponent",
-                                "fieldName": "Move Stick.Has Input",
+                                "fieldName": "moveStick.hasInput",
                                 "type": "Bool",
                                 "selectedComponent": "None"
                             }
@@ -1580,7 +1580,7 @@
                                     "posX": 210.0,
                                     "posY": 172.0,
                                     "componentName": "GameInputComponent",
-                                    "fieldName": "Jump.Pressed",
+                                    "fieldName": "jump.pressed",
                                     "type": "Bool",
                                     "selectedComponent": "None"
                                 }
@@ -1622,7 +1622,7 @@
                                     "posX": 69.0,
                                     "posY": 172.0,
                                     "componentName": "MovementComponent",
-                                    "fieldName": "Is Grounded",
+                                    "fieldName": "isGrounded",
                                     "type": "Bool",
                                     "selectedComponent": "None"
                                 }
@@ -1664,7 +1664,7 @@
                                     "posX": 210.0,
                                     "posY": 172.0,
                                     "componentName": "GameInputComponent",
-                                    "fieldName": "Jump.Pressed",
+                                    "fieldName": "jump.pressed",
                                     "type": "Bool",
                                     "selectedComponent": "None"
                                 }
@@ -1706,7 +1706,7 @@
                                     "posX": 69.0,
                                     "posY": 172.0,
                                     "componentName": "MovementComponent",
-                                    "fieldName": "Is Grounded",
+                                    "fieldName": "isGrounded",
                                     "type": "Bool",
                                     "selectedComponent": "None"
                                 }
@@ -1748,7 +1748,7 @@
                                     "posX": 210.0,
                                     "posY": 172.0,
                                     "componentName": "GameInputComponent",
-                                    "fieldName": "Jump.Pressed",
+                                    "fieldName": "jump.pressed",
                                     "type": "Bool",
                                     "selectedComponent": "None"
                                 }
@@ -1790,7 +1790,7 @@
                                     "posX": 69.0,
                                     "posY": 172.0,
                                     "componentName": "MovementComponent",
-                                    "fieldName": "Is Grounded",
+                                    "fieldName": "isGrounded",
                                     "type": "Bool",
                                     "selectedComponent": "None"
                                 }
@@ -1834,7 +1834,7 @@
                                     "posX": 300.0,
                                     "posY": 172.0,
                                     "componentName": "AnimatorComponent",
-                                    "fieldName": "Is End",
+                                    "fieldName": "isEnd",
                                     "type": "Bool",
                                     "selectedComponent": "None"
                                 }

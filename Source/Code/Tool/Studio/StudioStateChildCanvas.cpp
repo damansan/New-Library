@@ -1,6 +1,7 @@
 #include "StudioStateChildCanvas.h"
 #include <utility>
 #include <algorithm>
+#include <cctype>
 #include <imgui.h>
 
 void StudioStateChildCanvas::Initialize()
@@ -10,7 +11,7 @@ void StudioStateChildCanvas::Initialize()
 }
 
 // キャンバスを描く
-void StudioStateChildCanvas::Draw(StateMachineData& data)
+void StudioStateChildCanvas::Draw(StateMachineData& data, const std::vector<std::string>& animations)
 {
 	// 描画中だけ、受け取ったデータを指す
 	this->data = &data;
@@ -63,19 +64,8 @@ void StudioStateChildCanvas::Draw(StateMachineData& data)
 
 	ImGui::NextColumn();
 
-	// 右：インスペクター(d-2で作る。今は選択の確認用)
-	if (selectedLinkId != -1)
-	{
-		ImGui::Text("Link: %d", selectedLinkId);
-	}
-	else if (!selectedNodeKeys.empty())
-	{
-		ImGui::Text("%d nodes selected", static_cast<int>(selectedNodeKeys.size()));
-	}
-	else
-	{
-		ImGui::TextDisabled("Nothing selected.");
-	}
+	// 右：インスペクター
+	DrawInspector(animations);
 
 	// 選択している物の削除(文字を入力中は除く)
 	if (ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows) &&
@@ -442,11 +432,379 @@ bool StudioStateChildCanvas::IsEntry(int key) const
 		[key](const EntryInfo& e) { return e.transitionId == key; });
 }
 
+// インスペクター描画
+void StudioStateChildCanvas::DrawInspector(const std::vector<std::string>& animations)
+{
+	// リンク選択中
+	if (selectedLinkId != -1)
+	{
+		DrawLinkInspector(selectedLinkId);
+		return;
+	}
+
+	// ノード複数選択
+	if (selectedNodeKeys.size() > 1)
+	{
+		DrawMultiInspector();
+		return;
+	}
+
+	// ノード1つ選択
+	if (selectedNodeKeys.size() == 1)
+	{
+		int key = selectedNodeKeys[0];
+		if (IsEntry(key))
+		{
+			DrawEntryInspector(key);
+			return;
+		}
+		for (auto& c : state->child.clips)
+		{
+			if (c.id == key)
+			{
+				DrawClipInspector(c, animations);
+				return;
+			}
+		}
+	}
+
+	// 未選択
+	ImGui::TextDisabled("Nothing selected.");
+}
+
+// エントリーの設定
+void StudioStateChildCanvas::DrawEntryInspector(int transitionId)
+{
+	ImGui::Text("Entry");
+	ImGui::Separator();
+
+	// どこから入ってくるか
+	int fromKey = -1;
+	for (const auto& e : entries)
+	{
+		if (e.transitionId == transitionId) fromKey = e.fromKey;
+	}
+	ImGui::Text("From: %s", GetSourceName(fromKey).c_str());
+
+	// ブレンド表示
+	if (const StateTransition* t = std::as_const(*data).FindTransition(transitionId))
+	{
+		if (t->blend.enabled) ImGui::TextDisabled("Blend: %.2f s (parent link)", t->blend.duration);
+		else                  ImGui::TextDisabled("Blend: Off (parent link)");
+	}
+	ImGui::Separator();
+
+	// 出ていくリンクの一覧
+	DrawOutLinkList(transitionId, true);
+}
+
+// クリップの設定
+void StudioStateChildCanvas::DrawClipInspector(ClipNode& clip, const std::vector<std::string>& animations)
+{
+	ImGui::Text("Clip");
+	ImGui::Separator();
+
+	// 選ぶクリップが変わったら、入力欄を今の名前で作り直す
+	if (nameEditingClipId != clip.id)
+	{
+		nameEditingClipId = clip.id;
+		strncpy_s(nameBuffer, clip.name.c_str(), sizeof(nameBuffer) - 1);
+	}
+
+	// 名前欄
+	if (ImGui::InputText("Name", nameBuffer, sizeof(nameBuffer), ImGuiInputTextFlags_EnterReturnsTrue))
+	{
+		if (nameBuffer[0] != '\0') clip.name = nameBuffer;
+	}
+	// 入力欄から離れたら、確定していない文字は今の名前に戻す
+	if (ImGui::IsItemDeactivated() && clip.name != nameBuffer)
+	{
+		strncpy_s(nameBuffer, clip.name.c_str(), sizeof(nameBuffer) - 1);
+	}
+	ImGui::Separator();
+
+	// 再生するアニメーション
+	DrawAnimationList(clip, animations);
+	ImGui::Separator();
+
+	// 再生の設定
+	ImGui::Checkbox("Loop", &clip.loop);
+	ImGui::Checkbox("Root Motion", &clip.rootMotion);
+	ImGui::Separator();
+
+	// 出ていくリンクの一覧
+	DrawOutLinkList(clip.id, false);
+
+	// 削除
+	if (StateGraphDraw::DeleteButton("Delete Clip"))
+	{
+		DeleteSelection(*data);
+	}
+}
+
+// 複数選択時
+void StudioStateChildCanvas::DrawMultiInspector()
+{
+	ImGui::Text("%d nodes selected", static_cast<int>(selectedNodeKeys.size()));
+	ImGui::Separator();
+
+	// まとめて削除
+	if (StateGraphDraw::DeleteButton("Delete Clips"))
+	{
+		DeleteSelection(*data);
+	}
+}
+
+// リンクの設定
+void StudioStateChildCanvas::DrawLinkInspector(int linkId)
+{
+	EntryLink* entryLink = FindEntryLink(linkId);
+	ClipLink* clipLink = FindClipLink(linkId);
+	if (!entryLink && !clipLink)
+	{
+		ImGui::TextDisabled("Nothing selected.");
+		return;
+	}
+
+	ImGui::Text("Link");
+	ImGui::Separator();
+
+	// 元 → 先 と、同じ遷移元の中で何番目か
+	int index = 0;
+	int count = 0;
+	if (entryLink)
+	{
+		ImGui::Text("Entry(%s)  ->  %s",
+			GetSourceName([&] { for (const auto& e : entries) if (e.transitionId == entryLink->entryTransitionId) return e.fromKey; return -1; }()).c_str(),
+			GetClipName(entryLink->toClipId).c_str());
+
+		for (const auto& l : state->child.entryLinks)
+		{
+			if (l.entryTransitionId != entryLink->entryTransitionId) continue;
+			if (l.id == linkId) index = count;
+			++count;
+		}
+	}
+	else
+	{
+		ImGui::Text("%s  ->  %s", GetClipName(clipLink->fromClipId).c_str(), GetClipName(clipLink->toClipId).c_str());
+
+		for (const auto& l : state->child.clipLinks)
+		{
+			if (l.fromClipId != clipLink->fromClipId) continue;
+			if (l.id == linkId) index = count;
+			++count;
+		}
+	}
+
+	// 優先度
+	ImGui::Text("Priority: %d / %d", index + 1, count);
+	ImGui::Spacing();
+
+	// 常に成立
+	bool& always = entryLink ? entryLink->always : clipLink->always;
+	ImGui::Checkbox("Always", &always);
+
+	// ブレンド
+	if (clipLink)
+	{
+		ImGui::Checkbox("Blend", &clipLink->blend.enabled);
+		ImGui::BeginDisabled(!clipLink->blend.enabled);
+		ImGui::DragFloat("Blend Duration", &clipLink->blend.duration, 0.01f, 0.0f, 5.0f, "%.2f s");
+		ImGui::EndDisabled();
+	}
+	ImGui::Spacing();
+
+	// 条件の状態
+	const ConditionGraph& condition = entryLink ? entryLink->condition : clipLink->condition;
+	if (always)
+	{
+		ImGui::TextDisabled("Condition: Always");
+	}
+	else if (condition.IsEmpty())
+	{
+		ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f), "Condition: Empty");
+	}
+	else
+	{
+		ImGui::Text("Condition: Set");
+	}
+
+	// 条件の編集へ
+	if (ImGui::Button("Edit Condition", ImVec2(-1.0f, 0.0f)))
+	{
+		ConditionTarget::Kind kind = entryLink ? ConditionTarget::Kind::EntryLink : ConditionTarget::Kind::ClipLink;
+		editConditionRequest = { kind, stateId, linkId };
+	}
+
+	// 削除
+	if (StateGraphDraw::DeleteButton("Delete Link"))
+	{
+		DeleteSelection(*data);
+	}
+}
+
+// クリップのアニメーション一覧
+void StudioStateChildCanvas::DrawAnimationList(ClipNode& clip, const std::vector<std::string>& animations)
+{
+	ImGui::Text("Animation");
+
+	// 一覧を表示するクリップが変わったら、今のアニメーションの位置へスクロールする
+	if (animationListClipId != clip.id)
+	{
+		animationListClipId = clip.id;
+		scrollToCurrent = true;
+	}
+
+	// 設定されている名前が、モデルのアニメーションに無い時
+	bool missing = !clip.clipName.empty() &&
+		std::find(animations.begin(), animations.end(), clip.clipName) == animations.end();
+	if (missing)
+	{
+		ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f), "%s (missing)", clip.clipName.c_str());
+	}
+
+	// 絞り込みの文字
+	std::string filter = animationFilter;
+	std::transform(filter.begin(), filter.end(), filter.begin(),
+		[](unsigned char ch) { return static_cast<char>(std::tolower(ch)); });
+
+	// 一覧表示
+	ImGui::BeginChild("##AnimationList", ImVec2(0.0f, 200.0f), true);
+	for (const auto& name : animations)
+	{
+		if (!filter.empty())
+		{
+			std::string lower = name;
+			std::transform(lower.begin(), lower.end(), lower.begin(),
+				[](unsigned char ch) { return static_cast<char>(std::tolower(ch)); });
+			if (lower.find(filter) == std::string::npos) continue;
+		}
+
+		bool current = (name == clip.clipName);
+
+		// クリックで確定
+		if (ImGui::Selectable(name.c_str(), current))
+		{
+			clip.clipName = name;
+		}
+
+		// 今のアニメーションが見える位置までスクロールする
+		if (current && scrollToCurrent)
+		{
+			ImGui::SetScrollHereY(0.5f);
+		}
+	}
+	ImGui::EndChild();
+	scrollToCurrent = false;
+
+	// 検索欄入力
+	ImGui::SetNextItemWidth(-1.0f);
+	if (ImGui::InputTextWithHint("##AnimationFilter", "Filter...", animationFilter, sizeof(animationFilter)))
+	{
+		// 絞り込みを変えたら、今のアニメーションが残っていればその位置へ
+		scrollToCurrent = true;
+	}
+
+}
+
+// 出ていくリンクの一覧
+void StudioStateChildCanvas::DrawOutLinkList(int fromKey, bool fromEntry)
+{
+	ImGui::Text("Links (priority order)");
+
+	// 入れ替えは描画が終わってから
+	int moveId = -1;
+	int moveOffset = 0;
+	int number = 0;
+
+	// リンク1本分
+	auto drawRow = [&](int linkId, int toClipId, bool always, const ConditionGraph& condition)
+		{
+			ImGui::PushID(linkId);
+
+			// 上下で優先度を入れ替える
+			if (ImGui::ArrowButton("##Up", ImGuiDir_Up)) { moveId = linkId; moveOffset = -1; }
+			ImGui::SameLine();
+			if (ImGui::ArrowButton("##Down", ImGuiDir_Down)) { moveId = linkId; moveOffset = +1; }
+			ImGui::SameLine();
+
+			// 条件の設定漏れは赤で表示
+			bool invalid = (!always && condition.IsEmpty());
+			if (invalid) ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.4f, 0.4f, 1.0f));
+
+			// クリックでそのリンクを選ぶ
+			std::string label = std::to_string(++number) + ". -> " + GetClipName(toClipId);
+			if (ImGui::Selectable(label.c_str(), linkId == selectedLinkId))
+			{
+				selectedLinkId = linkId;
+				selectedNodeKeys.clear();
+				clearSelectionRequested = true; // キャンバス側のノードの選択も外す
+			}
+
+			if (invalid) ImGui::PopStyleColor();
+			ImGui::PopID();
+		};
+
+	// 遷移元に合うリンクを、配列の並び順に描く
+	if (fromEntry)
+	{
+		for (const auto& l : state->child.entryLinks)
+		{
+			if (l.entryTransitionId == fromKey) drawRow(l.id, l.toClipId, l.always, l.condition);
+		}
+	}
+	else
+	{
+		for (const auto& l : state->child.clipLinks)
+		{
+			if (l.fromClipId == fromKey) drawRow(l.id, l.toClipId, l.always, l.condition);
+		}
+	}
+
+	if (number == 0)
+	{
+		ImGui::TextDisabled("No links.");
+	}
+
+	// 描画が終わってから入れ替える
+	if (moveId != -1)
+	{
+		if (fromEntry) data->MoveEntryLink(stateId, moveId, moveOffset);
+		else           data->MoveClipLink(stateId, moveId, moveOffset);
+	}
+}
+
+// IDからリンクを探す
+EntryLink* StudioStateChildCanvas::FindEntryLink(int linkId)
+{
+	for (auto& l : state->child.entryLinks)
+	{
+		if (l.id == linkId) return &l;
+	}
+	return nullptr;
+}
+ClipLink* StudioStateChildCanvas::FindClipLink(int linkId)
+{
+	for (auto& l : state->child.clipLinks)
+	{
+		if (l.id == linkId) return &l;
+	}
+	return nullptr;
+}
+
 // 遷移元のノードのキーから、表示用の名前を作る
 std::string StudioStateChildCanvas::GetSourceName(int fromKey) const
 {
 	if (fromKey == StateMachineData::kEntryId) return "Entry";
 	if (const StateNode* s = std::as_const(*data).FindState(fromKey)) return s->name;
+	return "(missing)";
+}
+
+// クリップのIDから、表示用の名前を作る
+std::string StudioStateChildCanvas::GetClipName(int clipId) const
+{
+	if (const ClipNode* c = state->child.FindClip(clipId)) return c->name;
 	return "(missing)";
 }
 

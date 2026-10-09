@@ -82,6 +82,7 @@
     <ClInclude Include="..\..\Source\Code\Tool\Studio\StudioAnimator.h" />
     <ClInclude Include="..\..\Source\Code\Tool\Studio\StudioCamera.h" />
     <ClInclude Include="..\..\Source\Code\Tool\Studio\StudioConditionGraph.h" />
+    <ClInclude Include="..\..\Source\Code\Tool\Studio\StudioConditionTarget.h" />
     <ClInclude Include="..\..\Source\Code\Tool\Studio\StudioContext.h" />
     <ClInclude Include="..\..\Source\Code\Tool\Studio\StudioModelViewer.h" />
     <ClInclude Include="..\..\Source\Code\Tool\Studio\StudioSequencer.h" />

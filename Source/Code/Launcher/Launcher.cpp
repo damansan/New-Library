@@ -15,7 +15,7 @@ namespace
 		kButtonGame = 101,
 	};
 
-	// 起動するアプリを選択画面で選ぶ(閉じられた場合は0)
+	// 起動するアプリを選択画面で選ぶ
 	int ShowSelectDialog()
 	{
 		TASKDIALOG_BUTTON buttons[] =
@@ -50,7 +50,7 @@ namespace
 		return dir + fileName;
 	}
 
-	// 別プロセスとして起動する(作業ディレクトリはランチャーと同じ)
+	// 別プロセスとして起動する
 	bool Launch(const std::wstring& exePath)
 	{
 		STARTUPINFOW si = {};

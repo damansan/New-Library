@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "StudioStateGraphDraw.h"
+#include "StudioConditionTarget.h"
 
 #include "Engine/Data/StateMachineData.h"
 #include "Tool/NodeEditor/NodeEditorCanvas.h"
@@ -30,6 +31,8 @@ public:
 
 	// 子のキャンバスを開く依頼
 	int ConsumeOpenChildRequest() { int id = openChildRequest; openChildRequest = -1; return id; }
+	// 条件編集するキャンバスを開く依頼
+	ConditionTarget ConsumeEditConditionRequest() { ConditionTarget t = editConditionRequest; editConditionRequest = {}; return t; }
 
 private:
 	// --- 描画 --- //
@@ -73,9 +76,6 @@ private:
 
 	// 出ていくリンクの一覧
 	void DrawLinkList(int fromKey, std::vector<StateTransition>& links);
-
-	// 削除ボタン
-	static bool DrawDeleteButton(const char* label);
 
 	// リンクの遷移元と、遷移元の中での何番目かを探す
 	bool FindLinkOwner(int linkId, int& outFromKey, int& outIndex, int& outCount) const;
@@ -144,4 +144,7 @@ private:
 
 	// 子のウィンドウを開いてほしいState
 	int openChildRequest = -1;
+
+	// 条件を編集してほしいリンク
+	ConditionTarget editConditionRequest;
 };

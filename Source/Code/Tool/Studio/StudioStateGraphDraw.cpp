@@ -93,4 +93,19 @@ namespace StateGraphDraw
 		float dy = p.y - closest.y;
 		return sqrtf(dx * dx + dy * dy);
 	}
+
+	// çÌèúÉ{É^Éì
+	bool DeleteButton(const char* label)
+	{
+		ImGui::Spacing();
+		ImGui::Spacing();
+
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.15f, 0.15f, 1.0f));
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.85f, 0.2f, 0.2f, 1.0f));
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.6f, 0.1f, 0.1f, 1.0f));
+		bool pressed = ImGui::Button(label, ImVec2(-1.0f, 0.0f));
+		ImGui::PopStyleColor(3);
+
+		return pressed;
+	}
 }

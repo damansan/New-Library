@@ -423,7 +423,7 @@ void StudioStateParentCanvas::DrawStateInspector(StateNode& state)
 		nameError.clear();
 	}
 
-	// 名前(Enterで確定。空や重複は確定しない)
+	// 名前
 	if (ImGui::InputText("Name", nameBuffer, sizeof(nameBuffer), ImGuiInputTextFlags_EnterReturnsTrue))
 	{
 		if (data->RenameState(state.id, nameBuffer))
@@ -461,7 +461,7 @@ void StudioStateParentCanvas::DrawStateInspector(StateNode& state)
 	}
 
 	// 削除
-	if (DrawDeleteButton("Delete State"))
+	if (StateGraphDraw::DeleteButton("Delete State"))
 	{
 		DeleteSelection(*data);
 	}
@@ -484,7 +484,7 @@ void StudioStateParentCanvas::DrawMultiStateInspector()
 	ImGui::Separator();
 
 	// まとめて削除
-	if (DrawDeleteButton("Delete States"))
+	if (StateGraphDraw::DeleteButton("Delete States"))
 	{
 		DeleteSelection(*data);
 	}
@@ -534,13 +534,14 @@ void StudioStateParentCanvas::DrawLinkInspector(int linkId)
 		ImGui::Text("Condition: Set");
 	}
 
-	// 条件の編集へ
-	ImGui::BeginDisabled();
-	ImGui::Button("Edit Condition", ImVec2(-1.0f, 0.0f));
-	ImGui::EndDisabled();
+	// 条件のウィンドウで編集する
+	if (ImGui::Button("Edit Condition", ImVec2(-1.0f, 0.0f)))
+	{
+		editConditionRequest = { ConditionTarget::Kind::StateLink, -1, linkId };
+	}
 
 	// 削除
-	if (DrawDeleteButton("Delete Link"))
+	if (StateGraphDraw::DeleteButton("Delete Link"))
 	{
 		DeleteSelection(*data);
 	}
@@ -594,21 +595,6 @@ void StudioStateParentCanvas::DrawLinkList(int fromKey, std::vector<StateTransit
 		data->MoveTransition(moveId, moveOffset);
 	}
 	(void)fromKey;
-}
-
-// 削除ボタン
-bool StudioStateParentCanvas::DrawDeleteButton(const char* label)
-{
-	ImGui::Spacing();
-	ImGui::Spacing();
-
-	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.15f, 0.15f, 1.0f));
-	ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.85f, 0.2f, 0.2f, 1.0f));
-	ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.6f, 0.1f, 0.1f, 1.0f));
-	bool pressed = ImGui::Button(label, ImVec2(-1.0f, 0.0f));
-	ImGui::PopStyleColor(3);
-
-	return pressed;
 }
 
 // リンクの遷移元と、遷移元の中での何番目かを探す

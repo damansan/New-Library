@@ -10,6 +10,9 @@
 #include "StudioStateParentCanvas.h"
 #include "StudioStateChildCanvas.h"
 
+#include "StudioConditionGraph.h"
+#include "StudioConditionTarget.h"
+
 // Stateグラフの編集パネル
 class StudioStateGraph : public IStudioAttachment
 {
@@ -38,6 +41,8 @@ private:
 	// 保存先のパスを決める
 	std::string BuildNewSavePath(const StudioContext& context) const;
 
+	// モデルが持っているアニメーションの名前の一覧を作り直す
+	void RefreshAnimationNames(entt::registry& registry);
 	// アニメーションを再生できるモデルか
 	static bool HasAnimatedModel(entt::registry& registry);
 
@@ -66,6 +71,13 @@ private:
 	StudioStateParentCanvas parentCanvas;
 	// 子階層キャンバス(複数)
 	std::vector<std::unique_ptr<StudioStateChildCanvas>> childCanvases;
+	
+	// 条件のウィンドウ
+	StudioConditionGraph conditionGraph;
+	ConditionTarget conditionTarget;            // 編集中の条件がどのリンクのものか
+	ConditionGraph* conditionPointer = nullptr; // 前のフレームで見つけた実体
+	bool focusConditionWindow = false;          // 次のフレームで手前に出すか
+	bool conditionColumnInitialized = false;
 
 
 	// --- 子階層のキャンバス --- //
@@ -77,4 +89,22 @@ private:
 	void OpenChildWindow(int stateId);
 	// 開いている子のウィンドウを描く
 	void DrawChildWindows();
+
+	// モデルが持っているアニメーションの名前
+	std::vector<std::string> animationNames;
+
+
+	// --- 条件のウィンドウ --- //
+
+	// 条件のウィンドウを開く
+	void OpenConditionWindow(const ConditionTarget& target);
+	// 条件のウィンドウを描く
+	void DrawConditionWindow();
+	// 条件のウィンドウを閉じる
+	void CloseConditionWindow();
+	// 編集する条件の実体を探す
+	ConditionGraph* ResolveCondition(const ConditionTarget& target, std::string& outTitle, ImVec4& outColor);
+	// 親のリンクのIDから、遷移元の名前と色を探す
+	bool FindTransitionSource(int transitionId, std::string& outName, ImVec4& outColor) const;
+
 };

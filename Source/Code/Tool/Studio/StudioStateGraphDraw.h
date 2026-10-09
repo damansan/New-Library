@@ -19,4 +19,7 @@ namespace StateGraphDraw
 
 	// 点と線分の距離(リンクのクリック判定に使う)
 	float DistanceToSegment(const ImVec2& p, const ImVec2& a, const ImVec2& b);
+
+	// 削除ボタン
+	bool DeleteButton(const char* label);
 }

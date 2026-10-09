@@ -13,6 +13,15 @@ void StudioConditionGraph::SetTarget(ConditionGraph* condition)
 {
 	targetCondition = condition;
 	needsApplyPositions = true;
+
+	// 別の条件に切り替えたら前の条件ノードを指している選択を外す
+	selectedVariable = nullptr;
+	selectedGetter = nullptr;
+	selectedOperator = nullptr;
+	selectedLogic = nullptr;
+	selectedNot = nullptr;
+	selectedConditionLink = nullptr;
+	clearSelectionRequested = true;
 }
 
 // ImGui描画
@@ -25,6 +34,13 @@ void StudioConditionGraph::DrawGUI()
 	}
 
 	canvas.Begin("ConditionCanvas");
+
+	// 条件を切り替えた後は、ノードエディタ側に残った前の条件の選択を消す
+	if (clearSelectionRequested)
+	{
+		ed::ClearSelection();
+		clearSelectionRequested = false;
+	}
 
 	ed::PushStyleVar(ed::StyleVar_LinkStrength, 0.0f);
 
@@ -129,11 +145,11 @@ void StudioConditionGraph::DrawInspector()
 				{
 					if (f.componentName != selectedGetter->componentName) continue;
 
-					bool isSelected = (f.fieldLabel == selectedGetter->fieldName);
+					bool isSelected = (f.fieldName == selectedGetter->fieldName);
 					if (ImGui::Selectable(f.fieldLabel.c_str(), isSelected))
 					{
 						// フィールドを変えたら、成分選択もリセットする
-						selectedGetter->fieldName = f.fieldLabel;
+						selectedGetter->fieldName = f.fieldName;
 						selectedGetter->type = f.type;
 						selectedGetter->selectedComponent = FloatComponent::None;
 					}

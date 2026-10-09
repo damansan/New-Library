@@ -87,6 +87,34 @@ namespace
 		if (s == "Or") return LogicOp::Or;
 		return LogicOp::And;
 	}
+
+	// IDで要素を探す
+	template<typename T>
+	const T* FindById(const std::vector<T>& list, int id)
+	{
+		for (const auto& e : list)
+		{
+			if (e.id == id) return &e;
+		}
+		return nullptr;
+	}
+
+	// IDで要素を消す
+	template<typename T>
+	bool EraseById(std::vector<T>& list, int id)
+	{
+		auto it = std::remove_if(list.begin(), list.end(), [id](const T& e) { return e.id == id; });
+		if (it == list.end()) return false;
+		list.erase(it, list.end());
+		return true;
+	}
+
+	// 大小の比較か
+	bool IsOrderCompareOp(CompareOp op)
+	{
+		return op == CompareOp::Greater || op == CompareOp::Less
+			|| op == CompareOp::GreaterEqual || op == CompareOp::LessEqual;
+	}
 }
 
 // 使用中のIDの最大値+1に、採番をそろえる
@@ -110,6 +138,248 @@ bool ConditionGraph::IsEmpty() const
 		if (l.toId == returnNode.id) return false;
 	}
 	return true;
+}
+
+// ノードの種類
+ConditionNodeKind ConditionGraph::GetNodeKind(int nodeId) const
+{
+	if (nodeId == returnNode.id)            return ConditionNodeKind::Return;
+	if (FindById(variableNodes, nodeId))    return ConditionNodeKind::Variable;
+	if (FindById(getterNodes, nodeId))      return ConditionNodeKind::Getter;
+	if (FindById(operatorNodes, nodeId))    return ConditionNodeKind::Operator;
+	if (FindById(logicNodes, nodeId))       return ConditionNodeKind::Logic;
+	if (FindById(notNodes, nodeId))         return ConditionNodeKind::Not;
+	return ConditionNodeKind::None;
+}
+
+// 出力ピンが出す値の型
+bool ConditionGraph::GetOutputType(int nodeId, ValueType& outType) const
+{
+	switch (GetNodeKind(nodeId))
+	{
+	case ConditionNodeKind::Variable:
+		outType = FindById(variableNodes, nodeId)->type;
+		return true;
+
+	case ConditionNodeKind::Getter:
+	{
+		const ConditionGetterNode* g = FindById(getterNodes, nodeId);
+		// Float2～4は、成分(.xyz)を選んでいればFloatとして扱う
+		if (Reflection::GetComponentCount(g->type) > 0 && g->selectedComponent != FloatComponent::None)
+		{
+			outType = ValueType::Float;
+		}
+		else
+		{
+			outType = g->type;
+		}
+		return true;
+	}
+	// 比較・論理・否定の出力は常にBool
+	case ConditionNodeKind::Operator:
+	case ConditionNodeKind::Logic:
+	case ConditionNodeKind::Not:
+		outType = ValueType::Bool;
+		return true;
+
+		// Returnは出力ピンを持たない
+	default:
+		return false;
+	}
+}
+
+// 変数ノードの追加
+int ConditionGraph::AddVariableNode(ValueType type, float x, float y)
+{
+	ConditionVariableNode n;
+	n.id = GenerateId();
+	n.posX = x;
+	n.posY = y;
+	n.type = type;
+	variableNodes.push_back(n);
+	return n.id;
+}
+// ゲッターノードの追加
+int ConditionGraph::AddGetterNode(float x, float y)
+{
+	ConditionGetterNode n;
+	n.id = GenerateId();
+	n.posX = x;
+	n.posY = y;
+	getterNodes.push_back(n);
+	return n.id;
+}
+// 比較ノード追加
+int ConditionGraph::AddOperatorNode(CompareOp op, float x, float y)
+{
+	ConditionOperatorNode n;
+	n.id = GenerateId();
+	n.posX = x;
+	n.posY = y;
+	n.op = op;
+	operatorNodes.push_back(n);
+	return n.id;
+}
+// 論理演算ノード追加
+int ConditionGraph::AddLogicNode(LogicOp op, float x, float y)
+{
+	ConditionLogicNode n;
+	n.id = GenerateId();
+	n.posX = x;
+	n.posY = y;
+	n.op = op;
+	logicNodes.push_back(n);
+	return n.id;
+}
+// 否定ノード追加
+int ConditionGraph::AddNotNode(float x, float y)
+{
+	ConditionNotNode n;
+	n.id = GenerateId();
+	n.posX = x;
+	n.posY = y;
+	notNodes.push_back(n);
+	return n.id;
+}
+
+// ノードの削除
+void ConditionGraph::RemoveNode(int nodeId)
+{
+	// Returnは条件グラフに必ず1つあるので消さない
+	if (nodeId == returnNode.id) return;
+
+	bool removed = EraseById(variableNodes, nodeId)
+		|| EraseById(getterNodes, nodeId)
+		|| EraseById(operatorNodes, nodeId)
+		|| EraseById(logicNodes, nodeId)
+		|| EraseById(notNodes, nodeId);
+	if (!removed) return;
+
+	// つながっていたリンクも消す
+	links.erase(
+		std::remove_if(links.begin(), links.end(),
+			[nodeId](const ConditionLink& l) { return l.fromId == nodeId || l.toId == nodeId; }),
+		links.end());
+}
+
+// リンクを作れるか
+bool ConditionGraph::CanLink(int fromNodeId, int toNodeId, bool toPinB, std::string* reason) const
+{
+	return CheckLink(fromNodeId, toNodeId, toPinB, -1, reason);
+}
+// リンクを作る
+int ConditionGraph::AddLink(int fromNodeId, int toNodeId, bool toPinB)
+{
+	if (!CanLink(fromNodeId, toNodeId, toPinB)) return -1;
+
+	// 入力ピンには1本だけ
+	links.erase(
+		std::remove_if(links.begin(), links.end(),
+			[=](const ConditionLink& l) { return l.toId == toNodeId && l.toPinB == toPinB; }),
+		links.end());
+
+	ConditionLink l;
+	l.id = GenerateId();
+	l.fromId = fromNodeId;
+	l.toId = toNodeId;
+	l.toPinB = toPinB;
+	links.push_back(l);
+	return l.id;
+}
+
+// リンクの削除
+void ConditionGraph::RemoveLink(int linkId)
+{
+	EraseById(links, linkId);
+}
+
+// 今の設定で、リンクが決まりに合っているか
+bool ConditionGraph::IsLinkValid(const ConditionLink& link, std::string* reason) const
+{
+	return CheckLink(link.fromId, link.toId, link.toPinB, link.id, reason);
+}
+
+
+// リンクの決まりの確認
+bool ConditionGraph::CheckLink(int fromNodeId, int toNodeId, bool toPinB, int ignoreLinkId, std::string* reason) const
+{
+	auto fail = [reason](const char* message)
+		{
+			if (reason) *reason = message;
+			return false;
+		};
+
+	if (fromNodeId == toNodeId) return fail("Cannot link a node to itself.");
+
+	// 出す側の型
+	ValueType fromType;
+	if (!GetOutputType(fromNodeId, fromType)) return fail("Source has no output.");
+
+	// 受ける側に、そのピンがあるか
+	ConditionNodeKind toKind = GetNodeKind(toNodeId);
+	bool hasPinA = (toKind == ConditionNodeKind::Operator || toKind == ConditionNodeKind::Logic
+		|| toKind == ConditionNodeKind::Not || toKind == ConditionNodeKind::Return);
+	bool hasPinB = (toKind == ConditionNodeKind::Operator || toKind == ConditionNodeKind::Logic);
+	if (toPinB ? !hasPinB : !hasPinA) return fail("Target has no such input.");
+
+	// 型の決まり
+	if (toKind == ConditionNodeKind::Operator)
+	{
+		// Boolは == と != だけ
+		const ConditionOperatorNode* o = FindById(operatorNodes, toNodeId);
+		if (fromType == ValueType::Bool && IsOrderCompareOp(o->op))
+		{
+			return fail("Bool can only be compared with == or !=.");
+		}
+
+		// AとBは同じ型
+		for (const auto& l : links)
+		{
+			if (l.id == ignoreLinkId) continue;
+			if (l.toId != toNodeId || l.toPinB == toPinB) continue;
+
+			ValueType otherType;
+			if (GetOutputType(l.fromId, otherType) && otherType != fromType)
+			{
+				return fail("A and B must be the same type.");
+			}
+		}
+	}
+	else
+	{
+		// 論理・否定・Returnは、Boolだけ
+		if (fromType != ValueType::Bool) return fail("Input must be Bool.");
+	}
+
+	// 輪を作らない
+	if (DependsOn(fromNodeId, toNodeId, ignoreLinkId)) return fail("Cannot create a loop.");
+
+	return true;
+}
+
+// nodeIdの入力を後ろへたどって、targetIdにたどり着くか
+bool ConditionGraph::DependsOn(int nodeId, int targetId, int ignoreLinkId) const
+{
+	// たどる途中で同じノードを何度も見ないように、見たものを覚えておく
+	std::vector<int> stack{ nodeId };
+	std::vector<int> visited;
+
+	while (!stack.empty())
+	{
+		int current = stack.back();
+		stack.pop_back();
+		if (current == targetId) return true;
+		if (std::find(visited.begin(), visited.end(), current) != visited.end()) continue;
+		visited.push_back(current);
+
+		// currentに入ってくるリンクの元をたどる
+		for (const auto& l : links)
+		{
+			if (l.id == ignoreLinkId) continue;
+			if (l.toId == current) stack.push_back(l.fromId);
+		}
+	}
+	return false;
 }
 
 // JSONへ変換
@@ -272,6 +542,16 @@ void ConditionGraphFromJson(ConditionGraph& graph, const nlohmann::json& jc)
 			g.posY = jg.value("posY", 0.0f);
 			g.componentName = jg.value("componentName", "");
 			g.fieldName = jg.value("fieldName", "");
+
+			// 古い保存データは表示名で保存されているので、コード上の名前に置き換える
+			if (!g.componentName.empty() && !g.fieldName.empty() &&
+				!Reflection::FindField(g.componentName, g.fieldName))
+			{
+				if (const FieldEntry* f = Reflection::FindFieldByLabel(g.componentName, g.fieldName))
+				{
+					g.fieldName = f->fieldName;
+				}
+			}
 			g.type = ToValueType(jg.value("type", "Float"));
 			g.selectedComponent = ToFloatComponent(jg.value("selectedComponent", "None"));
 			graph.getterNodes.push_back(g);

@@ -88,6 +88,18 @@ struct ConditionReturnNode
 	float posY = 200.0f;
 };
 
+// 条件グラフのノードの種類
+enum class ConditionNodeKind
+{
+	None,     // 見つからない
+	Return,
+	Variable,
+	Getter,
+	Operator,
+	Logic,
+	Not,
+};
+
 // 条件グラフ内のリンク
 struct ConditionLink
 {
@@ -121,6 +133,42 @@ struct ConditionGraph
 
 	// Returnに何もつながっていないか(条件が空か)
 	bool IsEmpty() const;
+
+	// ノードの種類
+	ConditionNodeKind GetNodeKind(int nodeId) const;
+	// 出力ピンが出す値の型
+	bool GetOutputType(int nodeId, ValueType& outType) const;
+
+	// 変数ノードの追加
+	int AddVariableNode(ValueType type, float x, float y);
+	// ゲッターノードの追加
+	int AddGetterNode(float x, float y);
+	// 比較ノード追加
+	int AddOperatorNode(CompareOp op, float x, float y);
+	// 論理演算ノード追加
+	int AddLogicNode(LogicOp op, float x, float y);
+	// 否定ノード追加
+	int AddNotNode(float x, float y);
+
+	// ノードの削除
+	void RemoveNode(int nodeId);
+
+	// リンクを作れるか
+	bool CanLink(int fromNodeId, int toNodeId, bool toPinB, std::string* reason = nullptr) const;
+	// リンクを作る
+	int AddLink(int fromNodeId, int toNodeId, bool toPinB);
+	
+	// リンクの削除
+	void RemoveLink(int linkId);
+
+	// 今の設定で、リンクが決まりに合っているか
+	bool IsLinkValid(const ConditionLink& link, std::string* reason = nullptr) const;
+
+private:
+	// リンクの決まりの確認
+	bool CheckLink(int fromNodeId, int toNodeId, bool toPinB, int ignoreLinkId, std::string* reason) const;
+	// nodeIdの入力を後ろへたどって、targetIdにたどり着くか
+	bool DependsOn(int nodeId, int targetId, int ignoreLinkId) const;
 };
 
 // JSONとの変換

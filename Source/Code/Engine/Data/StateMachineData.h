@@ -135,10 +135,12 @@ public:
 	// 子階層：(エントリー → クリップ)
 	int  AddEntryLink(int stateId, int transitionId, int toClipId); // 作成
 	void RemoveEntryLink(int stateId, int linkId);                  // 削除
-	
+	bool MoveEntryLink(int stateId, int linkId, int offset);        // 優先度の入れ替え
+
 	// 子階層：(クリップ → クリップ)
 	int  AddClipLink(int stateId, int fromClipId, int toClipId); // 作成
 	void RemoveClipLink(int stateId, int linkId);                // 削除
+	bool MoveClipLink(int stateId, int linkId, int offset);      // 優先度の入れ替え
 
 	// 編集用の検索
 	StateNode* FindState(int stateId);

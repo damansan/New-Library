@@ -34,9 +34,6 @@
     <Filter Include="Sources\Tool\Studio\StudioCamera">
       <UniqueIdentifier>{8ca02f52-44a8-4080-b780-b5dea2319689}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Sources\Tool\Studio\StudioConditionGraph">
-      <UniqueIdentifier>{c46cd755-ed7f-47e9-b542-705229100202}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Sources\Tool\Studio\StudioContext">
       <UniqueIdentifier>{0592aa32-da15-46bd-9b66-51c4c7da141b}</UniqueIdentifier>
     </Filter>
@@ -115,6 +112,15 @@
     <Filter Include="Sources\Tool\Studio\StudioState\StudioStateChildCanvas">
       <UniqueIdentifier>{573c98f1-9c75-42aa-b9bc-d96afbccf897}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\Tool\Studio\StudioState\StudioConditionTarget">
+      <UniqueIdentifier>{6edaa81f-57a5-4520-a643-4b45862eb171}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Tool\Studio\StudioState\StudioConditionGraph">
+      <UniqueIdentifier>{c46cd755-ed7f-47e9-b542-705229100202}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Tool\Studio\StudioState\StudioConditionCanvas">
+      <UniqueIdentifier>{eb7ed029-ccb8-4565-aaec-81960b447b2a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\External\imgui-docking\imgui.cpp">
@@ -160,7 +166,7 @@
       <Filter>Sources\Tool\Studio\StudioCamera</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\Code\Tool\Studio\StudioConditionGraph.cpp">
-      <Filter>Sources\Tool\Studio\StudioConditionGraph</Filter>
+      <Filter>Sources\Tool\Studio\StudioState\StudioConditionGraph</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\Code\Tool\Studio\StudioModelViewer.cpp">
       <Filter>Sources\Tool\Studio\StudioModelViewer</Filter>
@@ -240,7 +246,7 @@
       <Filter>Sources\Tool\Studio\StudioCamera</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\Code\Tool\Studio\StudioConditionGraph.h">
-      <Filter>Sources\Tool\Studio\StudioConditionGraph</Filter>
+      <Filter>Sources\Tool\Studio\StudioState\StudioConditionGraph</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\Code\Tool\Studio\StudioContext.h">
       <Filter>Sources\Tool\Studio\StudioContext</Filter>
@@ -316,6 +322,9 @@
     </ClInclude>
     <ClInclude Include="..\..\Source\Code\Tool\Studio\StudioStateChildCanvas.h">
       <Filter>Sources\Tool\Studio\StudioState\StudioStateChildCanvas</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Code\Tool\Studio\StudioConditionTarget.h">
+      <Filter>Sources\Tool\Studio\StudioState\StudioConditionTarget</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

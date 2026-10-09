@@ -24,6 +24,10 @@ public:
 	void DrawInspector();
 
 private:
+
+	// 次にキャンバスを描くときに、ノードエディタ側の選択を消すか
+	bool clearSelectionRequested = false;
+
 	// == 内部状態 == //
 	NodeEditorCanvas canvas;        // このクラス専用のノードエディタコンテキスト
 	ConditionGraph* targetCondition = nullptr; // 現在編集中の条件グラフ

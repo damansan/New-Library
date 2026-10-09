@@ -62,9 +62,11 @@ const std::vector<FieldEntry>& Reflection::GetAllFields()
 
 						ValueType valueType = ResolveValueType(subMetaData.type());
 						std::string combinedLabel = label + "." + subLabel;
+						// コード上の名前も、表示名と同じく「親.子」でつなぐ
+						std::string combinedName = std::string(metaData.name()) + "." + std::string(subMetaData.name());
 
 						fieldEntries.push_back(FieldEntry{
-							metaType, fieldId, fieldType, subFieldId, componentName, category, combinedLabel, valueType
+							metaType, fieldId, fieldType, subFieldId, componentName, category, combinedLabel, combinedName, valueType
 							});
 					}
 					continue;
@@ -73,13 +75,32 @@ const std::vector<FieldEntry>& Reflection::GetAllFields()
 				ValueType valueType = ResolveValueType(fieldType);
 
 				fieldEntries.push_back(FieldEntry{
-					metaType, fieldId, entt::meta_type{}, 0, componentName, category, label, valueType
+					metaType, fieldId, entt::meta_type{}, 0, componentName, category, label, std::string(metaData.name()), valueType
 					});
 			}
 		}
 	}
 
 	return fieldEntries;
+}
+
+// コード上の名前でフィールドを探す
+const FieldEntry* Reflection::FindField(const std::string& componentName, const std::string& fieldName)
+{
+	for (const auto& f : GetAllFields())
+	{
+		if (f.componentName == componentName && f.fieldName == fieldName) return &f;
+	}
+	return nullptr;
+}
+// 表示名でフィールドを探す
+const FieldEntry* Reflection::FindFieldByLabel(const std::string& componentName, const std::string& label)
+{
+	for (const auto& f : GetAllFields())
+	{
+		if (f.componentName == componentName && f.fieldLabel == label) return &f;
+	}
+	return nullptr;
 }
 
 // Float2/3/4型の、成分数を返す(それ以外は0)

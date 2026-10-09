@@ -65,6 +65,8 @@ struct FieldEntry
 	std::string componentName;     // コンポーネントの型名
 	std::string category;          // カテゴリ
 	std::string fieldLabel;        // フィールドの表示名
+	std::string fieldName;         // フィールドのコード上の名前
+
 	ValueType type = ValueType::Float;
 };
 
@@ -74,6 +76,11 @@ class Reflection
 public:
 	// 登録済みのフィールド一覧を取得する
 	static const std::vector<FieldEntry>& GetAllFields();
+
+	// コード上の名前でフィールドを探す
+	static const FieldEntry* FindField(const std::string& componentName, const std::string& fieldName);
+	// 表示名でフィールドを探す
+	static const FieldEntry* FindFieldByLabel(const std::string& componentName, const std::string& label);
 
 	// Float2/3/4型の、成分数を返す(それ以外は0)
 	static int GetComponentCount(ValueType type);

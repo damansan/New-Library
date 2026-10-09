@@ -66,6 +66,31 @@ namespace
 		ReadBlend(j, t.blend);
 		return t;
 	}
+
+	// 同じグループの中で隣のものと入れ替える
+	template<typename T, typename GroupFn>
+	bool MoveInGroup(std::vector<T>& list, int linkId, int offset, GroupFn groupOf)
+	{
+		int index = -1;
+		for (int i = 0; i < static_cast<int>(list.size()); ++i)
+		{
+			if (list[i].id == linkId) index = i;
+		}
+		if (index < 0 || offset == 0) return false;
+
+		// offsetの向きに、同じグループの要素を探して入れ替える
+		int group = groupOf(list[index]);
+		int step = (offset < 0) ? -1 : 1;
+		for (int i = index + step; i >= 0 && i < static_cast<int>(list.size()); i += step)
+		{
+			if (groupOf(list[i]) == group)
+			{
+				std::swap(list[index], list[i]);
+				return true;
+			}
+		}
+		return false; // 端なので動かせない
+	}
 }
 
 // 検索 
@@ -312,6 +337,16 @@ void StateMachineData::RemoveEntryLink(int stateId, int linkId)
 		links.end());
 }
 
+// 優先度の入れ替え
+bool StateMachineData::MoveEntryLink(int stateId, int linkId, int offset)
+{
+	StateNode* s = FindState(stateId);
+	if (!s) return false;
+
+	return MoveInGroup(s->child.entryLinks, linkId, offset,
+		[](const EntryLink& l) { return l.entryTransitionId; });
+}
+
 // 子階層：(クリップ → クリップ)
 int StateMachineData::AddClipLink(int stateId, int fromClipId, int toClipId)
 {
@@ -337,6 +372,16 @@ void StateMachineData::RemoveClipLink(int stateId, int linkId)
 		std::remove_if(links.begin(), links.end(),
 			[linkId](const ClipLink& l) { return l.id == linkId; }),
 		links.end());
+}
+
+// 優先度の入れ替え
+bool StateMachineData::MoveClipLink(int stateId, int linkId, int offset)
+{
+	StateNode* s = FindState(stateId);
+	if (!s) return false;
+
+	return MoveInGroup(s->child.clipLinks, linkId, offset,
+		[](const ClipLink& l) { return l.fromClipId; });
 }
 
 
@@ -407,7 +452,18 @@ bool StateMachineData::Validate(const std::string& sourceName) const
 			{
 				error(what + u8" の条件が空です(常に成立させる場合はalwaysを指定)");
 			}
+
+			// Getterが読むフィールドが、今のコードにあるか(名前を変えた・消したときに気づけるように)
+			for (const auto& g : condition.getterNodes)
+			{
+				if (g.componentName.empty() || g.fieldName.empty()) continue; // 未設定はエディタで表示する
+				if (!Reflection::FindField(g.componentName, g.fieldName))
+				{
+					error(what + u8" の条件が、存在しないフィールド「" + g.componentName + "." + g.fieldName + u8"」を読んでいます");
+				}
+			}
 		};
+
 	auto checkBlend = [&](const BlendSetting& blend, const std::string& what)
 		{
 			if (blend.enabled && blend.duration <= 0.0f)

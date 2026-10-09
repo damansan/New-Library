@@ -5,6 +5,7 @@
 #include <string>
 
 #include "StudioStateGraphDraw.h"
+#include "StudioConditionTarget.h"
 
 #include "Engine/Data/StateMachineData.h"
 #include "Tool/NodeEditor/NodeEditorCanvas.h"
@@ -22,9 +23,12 @@ public:
 	int GetStateId() const { return stateId; }
 
 	// キャンバスを描く
-	void Draw(StateMachineData& data);
+	void Draw(StateMachineData& data,const std::vector<std::string>& animations);
 	// 選択している物を削除
 	void DeleteSelection(StateMachineData& data);
+
+	// 条件を編集してほしいリンクからの依頼
+	ConditionTarget ConsumeEditConditionRequest() { ConditionTarget t = editConditionRequest; editConditionRequest = {}; return t; }
 
 private:
 	// --- 描画 --- //
@@ -66,8 +70,32 @@ private:
 	
 	// --- インスペクター --- //
 
+	// インスペクター描画
+	void DrawInspector(const std::vector<std::string>& animations);
+	
+	// エントリーの設定
+	void DrawEntryInspector(int transitionId);
+	// クリップの設定
+	void DrawClipInspector(ClipNode& clip, const std::vector<std::string>& animations);
+	// 複数選択時
+	void DrawMultiInspector();
+	// リンクの設定
+	void DrawLinkInspector(int linkId);
+
+	// クリップのアニメーション一覧
+	void DrawAnimationList(ClipNode& clip, const std::vector<std::string>& animations);
+
+	// 出ていくリンクの一覧
+	void DrawOutLinkList(int fromKey, bool fromEntry);
+
+	// IDからリンクを探す
+	EntryLink* FindEntryLink(int linkId);
+	ClipLink* FindClipLink(int linkId);
+
 	// 遷移元のノードのキーから、表示用の名前を作る
 	std::string GetSourceName(int fromKey) const;
+	// クリップのIDから、表示用の名前を作る
+	std::string GetClipName(int clipId) const;
 
 
 	// --- リンクの計算 --- //
@@ -76,8 +104,6 @@ private:
 	bool HasClipLink(int fromClipId, int toClipId) const;
 	// 線の始点と終点を求める
 	bool CalcLinkPoints(int fromKey, int toKey, bool hasReverse, int lane, ImVec2& outStart, ImVec2& outEnd) const;
-	
-	
 	
 
 	// --- データ --- //
@@ -97,6 +123,9 @@ private:
 
 
 	// --- キャンバスの状態 --- //
+	
+	// 条件を編集してほしいリンク
+	ConditionTarget editConditionRequest;
 
 	NodeEditorCanvas canvas;
 	// データの位置をノードに反映するか
@@ -129,4 +158,13 @@ private:
 	int contextNodeKey = -1;
 
 	bool columnWidthInitialized = false;
+
+	// クリップの名前の入力欄
+	int nameEditingClipId = -1;
+	char nameBuffer[128] = {};
+
+	// アニメーションの一覧
+	char animationFilter[64] = {};   // 絞り込みの文字
+	int animationListClipId = -1;    // 一覧を表示しているクリップ
+	bool scrollToCurrent = false;
 };
