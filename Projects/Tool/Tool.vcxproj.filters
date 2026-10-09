@@ -231,6 +231,9 @@
     <ClCompile Include="..\..\Source\Code\Tool\Studio\StudioStateChildCanvas.cpp">
       <Filter>Sources\Tool\Studio\StudioState\StudioStateChildCanvas</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Source\Code\Tool\Studio\StudioConditionCanvas.cpp">
+      <Filter>Sources\Tool\Studio\StudioState\StudioConditionCanvas</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Source\Code\Tool\NodeEditor\NodeEditorCanvas.h">
@@ -325,6 +328,9 @@
     </ClInclude>
     <ClInclude Include="..\..\Source\Code\Tool\Studio\StudioConditionTarget.h">
       <Filter>Sources\Tool\Studio\StudioState\StudioConditionTarget</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Code\Tool\Studio\StudioConditionCanvas.h">
+      <Filter>Sources\Tool\Studio\StudioState\StudioConditionCanvas</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
