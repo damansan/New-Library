@@ -13,6 +13,8 @@ enum class ValueType
 	Float2,
 	Float3,
 	Float4,
+
+	Unsupported, // 条件で読めない型(strong,enumなど)
 };
 
 // フィールドの扱いを表すフラグ

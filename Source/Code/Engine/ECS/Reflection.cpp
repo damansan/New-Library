@@ -11,7 +11,9 @@ namespace
 		if (type == entt::resolve<DirectX::XMFLOAT2>()) return ValueType::Float2;
 		if (type == entt::resolve<DirectX::XMFLOAT3>()) return ValueType::Float3;
 		if (type == entt::resolve<DirectX::XMFLOAT4>()) return ValueType::Float4;
-		return ValueType::Float;
+		
+		// ‚»‚êˆÈŠO(string,enum‚È‚Ç)‚ÍAğŒ‚Å‚Í“Ç‚ß‚È‚¢
+		return ValueType::Unsupported;
 	}
 
 	// leafŒ^‚©‚Ç‚¤‚©

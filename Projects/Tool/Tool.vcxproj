@@ -47,7 +47,6 @@
     <ClCompile Include="..\..\Source\Code\Tool\Studio\StudioAnimator.cpp" />
     <ClCompile Include="..\..\Source\Code\Tool\Studio\StudioCamera.cpp" />
     <ClCompile Include="..\..\Source\Code\Tool\Studio\StudioConditionCanvas.cpp" />
-    <ClCompile Include="..\..\Source\Code\Tool\Studio\StudioConditionGraph.cpp" />
     <ClCompile Include="..\..\Source\Code\Tool\Studio\StudioModelViewer.cpp" />
     <ClCompile Include="..\..\Source\Code\Tool\Studio\StudioSequencer.cpp" />
     <ClCompile Include="..\..\Source\Code\Tool\Studio\StudioStateChildCanvas.cpp" />
@@ -83,7 +82,6 @@
     <ClInclude Include="..\..\Source\Code\Tool\Studio\StudioAnimator.h" />
     <ClInclude Include="..\..\Source\Code\Tool\Studio\StudioCamera.h" />
     <ClInclude Include="..\..\Source\Code\Tool\Studio\StudioConditionCanvas.h" />
-    <ClInclude Include="..\..\Source\Code\Tool\Studio\StudioConditionGraph.h" />
     <ClInclude Include="..\..\Source\Code\Tool\Studio\StudioConditionTarget.h" />
     <ClInclude Include="..\..\Source\Code\Tool\Studio\StudioContext.h" />
     <ClInclude Include="..\..\Source\Code\Tool\Studio\StudioModelViewer.h" />

@@ -115,9 +115,6 @@
     <Filter Include="Sources\Tool\Studio\StudioState\StudioConditionTarget">
       <UniqueIdentifier>{6edaa81f-57a5-4520-a643-4b45862eb171}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Sources\Tool\Studio\StudioState\StudioConditionGraph">
-      <UniqueIdentifier>{c46cd755-ed7f-47e9-b542-705229100202}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Sources\Tool\Studio\StudioState\StudioConditionCanvas">
       <UniqueIdentifier>{eb7ed029-ccb8-4565-aaec-81960b447b2a}</UniqueIdentifier>
     </Filter>
@@ -164,9 +161,6 @@
     </ClCompile>
     <ClCompile Include="..\..\Source\Code\Tool\Studio\StudioCamera.cpp">
       <Filter>Sources\Tool\Studio\StudioCamera</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\Code\Tool\Studio\StudioConditionGraph.cpp">
-      <Filter>Sources\Tool\Studio\StudioState\StudioConditionGraph</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\Code\Tool\Studio\StudioModelViewer.cpp">
       <Filter>Sources\Tool\Studio\StudioModelViewer</Filter>
@@ -247,9 +241,6 @@
     </ClInclude>
     <ClInclude Include="..\..\Source\Code\Tool\Studio\StudioCamera.h">
       <Filter>Sources\Tool\Studio\StudioCamera</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\Code\Tool\Studio\StudioConditionGraph.h">
-      <Filter>Sources\Tool\Studio\StudioState\StudioConditionGraph</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\Code\Tool\Studio\StudioContext.h">
       <Filter>Sources\Tool\Studio\StudioContext</Filter>

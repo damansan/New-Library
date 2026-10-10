@@ -149,29 +149,3 @@ void MetaRegistry::DrawMetaFields(entt::meta_type metaType, entt::meta_any insta
 		}
 	}
 }
-
-// ’l‚ÌŒ^‚ğ”»•Ê‚·‚éƒwƒ‹ƒp[
-namespace
-{
-	ValueType ResolveValueType(entt::meta_type type)
-	{
-		if (type == entt::resolve<bool>())              return ValueType::Bool;
-		if (type == entt::resolve<int>())               return ValueType::Int;
-		if (type == entt::resolve<DirectX::XMFLOAT2>()) return ValueType::Float2;
-		if (type == entt::resolve<DirectX::XMFLOAT3>()) return ValueType::Float3;
-		if (type == entt::resolve<DirectX::XMFLOAT4>()) return ValueType::Float4;
-		return ValueType::Float;
-	}
-
-	// leafŒ^‚©‚Ç‚¤‚©
-	bool IsLeafType(entt::meta_type type)
-	{
-		return type == entt::resolve<bool>()
-			|| type == entt::resolve<int>()
-			|| type == entt::resolve<float>()
-			|| type == entt::resolve<std::string>()
-			|| type == entt::resolve<DirectX::XMFLOAT2>()
-			|| type == entt::resolve<DirectX::XMFLOAT3>()
-			|| type == entt::resolve<DirectX::XMFLOAT4>();
-	}
-}

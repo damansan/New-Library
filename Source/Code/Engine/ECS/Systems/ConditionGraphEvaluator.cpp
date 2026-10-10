@@ -16,7 +16,7 @@ bool ConditionGraphEvaluator::Evaluate(const ConditionGraph& graph, entt::regist
 			break;
 		}
 	}
-	if (fromId == -1) return true; // Return‚É‰½‚àŒq‚ª‚Á‚Ä‚¢‚È‚¢ê‡‚ÍA‘JˆÚ‚Æ‚µ‚Äˆµ‚¤
+	if (fromId == -1) return false; // Return‚É‰½‚à‚Â‚È‚ª‚Á‚Ä‚¢‚È‚¢‚È‚ç•s¬—§
 
 	// Œq‚ª‚Á‚Ä‚¢‚é‚Ì‚ªOperator‚È‚çA‚»‚Ì”äŠrŒ‹‰Ê‚ğ‚»‚Ì‚Ü‚Ü•Ô‚·
 	for (const auto& o : graph.operatorNodes)

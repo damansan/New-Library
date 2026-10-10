@@ -10,7 +10,7 @@
 #include "StudioStateParentCanvas.h"
 #include "StudioStateChildCanvas.h"
 
-#include "StudioConditionGraph.h"
+#include "StudioConditionCanvas.h"
 #include "StudioConditionTarget.h"
 
 // Stateグラフの編集パネル
@@ -73,8 +73,9 @@ private:
 	std::vector<std::unique_ptr<StudioStateChildCanvas>> childCanvases;
 	
 	// 条件のウィンドウ
-	StudioConditionGraph conditionGraph;
+	StudioConditionCanvas conditionCanvas;      // 新しい条件のキャンバス
 	ConditionTarget conditionTarget;            // 編集中の条件がどのリンクのものか
+
 	ConditionGraph* conditionPointer = nullptr; // 前のフレームで見つけた実体
 	bool focusConditionWindow = false;          // 次のフレームで手前に出すか
 	bool conditionColumnInitialized = false;

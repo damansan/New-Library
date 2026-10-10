@@ -18,7 +18,7 @@ void StudioStateGraph::Initialize()
 	// 親階層キャンバス初期化
 	parentCanvas.Initialize();
 	// 条件のキャンバス初期化
-	conditionGraph.Initialize();
+	conditionCanvas.Initialize();
 }
 
 void StudioStateGraph::DrawGUI(entt::registry& registry, StudioContext& context)
@@ -380,7 +380,7 @@ void StudioStateGraph::DrawConditionWindow()
 	// 実体の場所が変わったら条件の画面をリセットする
 	if (condition != conditionPointer)
 	{
-		conditionGraph.SetTarget(condition);
+		conditionCanvas.SetTarget(condition);
 		conditionPointer = condition;
 	}
 
@@ -412,9 +412,9 @@ void StudioStateGraph::DrawConditionWindow()
 			conditionColumnInitialized = true;
 		}
 
-		conditionGraph.DrawGUI();
+		conditionCanvas.Draw();
 		ImGui::NextColumn();
-		conditionGraph.DrawInspector();
+		conditionCanvas.DrawInspector();
 
 		ImGui::Columns(1);
 	}
@@ -429,7 +429,7 @@ void StudioStateGraph::CloseConditionWindow()
 {
 	conditionTarget = {};
 	conditionPointer = nullptr;
-	conditionGraph.SetTarget(nullptr);
+	conditionCanvas.SetTarget(nullptr);
 }
 
 // 編集する条件の実体を探す

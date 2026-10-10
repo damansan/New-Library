@@ -8,22 +8,24 @@ namespace
 	{
 		switch (type)
 		{
-		case ValueType::Int:    return "Int";
-		case ValueType::Float:  return "Float";
-		case ValueType::Bool:   return "Bool";
-		case ValueType::Float2: return "Float2";
-		case ValueType::Float3: return "Float3";
-		case ValueType::Float4: return "Float4";
-		default:                return "Float";
+		case ValueType::Int:         return "Int";
+		case ValueType::Float:       return "Float";
+		case ValueType::Bool:        return "Bool";
+		case ValueType::Float2:      return "Float2";
+		case ValueType::Float3:      return "Float3";
+		case ValueType::Float4:      return "Float4";
+		case ValueType::Unsupported: return "Unsupported";
+		default:                     return "Float";
 		}
 	}
 	ValueType ToValueType(const std::string& s)
 	{
-		if (s == "Int")    return ValueType::Int;
-		if (s == "Bool")   return ValueType::Bool;
-		if (s == "Float2") return ValueType::Float2;
-		if (s == "Float3") return ValueType::Float3;
-		if (s == "Float4") return ValueType::Float4;
+		if (s == "Int")         return ValueType::Int;
+		if (s == "Bool")        return ValueType::Bool;
+		if (s == "Float2")      return ValueType::Float2;
+		if (s == "Float3")      return ValueType::Float3;
+		if (s == "Float4")      return ValueType::Float4;
+		if (s == "Unsupported") return ValueType::Unsupported;
 		return ValueType::Float;
 	}
 
@@ -164,15 +166,8 @@ bool ConditionGraph::GetOutputType(int nodeId, ValueType& outType) const
 	case ConditionNodeKind::Getter:
 	{
 		const ConditionGetterNode* g = FindById(getterNodes, nodeId);
-		// Float2～4は、成分(.xyz)を選んでいればFloatとして扱う
-		if (Reflection::GetComponentCount(g->type) > 0 && g->selectedComponent != FloatComponent::None)
-		{
-			outType = ValueType::Float;
-		}
-		else
-		{
-			outType = g->type;
-		}
+		// Float2～4は、使える成分(.xyz)を選んでいればFloatとして扱う
+		outType = IsGetterAxisValid(*g) ? ValueType::Float : GetGetterFieldType(*g);
 		return true;
 	}
 	// 比較・論理・否定の出力は常にBool
@@ -315,6 +310,18 @@ bool ConditionGraph::CheckLink(int fromNodeId, int toNodeId, bool toPinB, int ig
 	ValueType fromType;
 	if (!GetOutputType(fromNodeId, fromType)) return fail("Source has no output.");
 
+	// ゲッターは、読めるフィールドを選んでいないとつなげない
+	if (GetNodeKind(fromNodeId) == ConditionNodeKind::Getter)
+	{
+		const ConditionGetterNode* g = FindById(getterNodes, fromNodeId);
+		if (g->componentName.empty() || g->fieldName.empty()) return fail("Select a field.");
+		if (!Reflection::FindField(g->componentName, g->fieldName)) return fail("Field not found.");
+	}
+	if (fromType == ValueType::Unsupported) return fail("This field cannot be read in conditions.");
+
+	// Float2～4は、成分(X/Y/Z/W)を選ばないと比べられない
+	if (Reflection::GetComponentCount(fromType) > 0) return fail("Select an axis (X/Y/Z/W).");
+
 	// 受ける側に、そのピンがあるか
 	ConditionNodeKind toKind = GetNodeKind(toNodeId);
 	bool hasPinA = (toKind == ConditionNodeKind::Operator || toKind == ConditionNodeKind::Logic
@@ -446,7 +453,6 @@ nlohmann::ordered_json ConditionGraphToJson(const ConditionGraph& graph)
 		jg["posY"] = g.posY;
 		jg["componentName"] = g.componentName;
 		jg["fieldName"] = g.fieldName;
-		jg["type"] = ToString(g.type);
 		jg["selectedComponent"] = ToString(g.selectedComponent);
 		jc["getterNodes"].push_back(jg);
 	}
@@ -552,7 +558,6 @@ void ConditionGraphFromJson(ConditionGraph& graph, const nlohmann::json& jc)
 					g.fieldName = f->fieldName;
 				}
 			}
-			g.type = ToValueType(jg.value("type", "Float"));
 			g.selectedComponent = ToFloatComponent(jg.value("selectedComponent", "None"));
 			graph.getterNodes.push_back(g);
 		}
@@ -573,4 +578,20 @@ void ConditionGraphFromJson(ConditionGraph& graph, const nlohmann::json& jc)
 
 	// 読み込んだIDの続きから採番する
 	graph.RecalculateNextId();
+}
+
+// ゲッターが読むフィールドの型
+ValueType GetGetterFieldType(const ConditionGetterNode& node)
+{
+	if (node.componentName.empty() || node.fieldName.empty()) return ValueType::Unsupported;
+
+	const FieldEntry* field = Reflection::FindField(node.componentName, node.fieldName);
+	return field ? field->type : ValueType::Unsupported;
+}
+// ゲッターで選んでいる成分が、その型で使えるか
+bool IsGetterAxisValid(const ConditionGetterNode& node)
+{
+	int count = Reflection::GetComponentCount(GetGetterFieldType(node));
+	int index = static_cast<int>(node.selectedComponent); // None=0, X=1, Y=2, Z=3, W=4
+	return count > 0 && index >= 1 && index <= count;
 }

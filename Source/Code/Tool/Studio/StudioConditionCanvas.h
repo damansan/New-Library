@@ -1,49 +1,122 @@
-#include "StudioConditionCanvas.h"
+#pragma once
+#include <cstdint>
+#include <string>
+#include <vector>
+#include <imgui.h>
 
-void StudioConditionCanvas::Initialize()
+#include "Engine/Data/ConditionGraphData.h"
+#include "Tool/NodeEditor/NodeEditorCanvas.h"
+
+// 条件グラフの編集キャンバス
+class StudioConditionCanvas
 {
-	// ノードエディタのコンテキストを作る
-	canvas.Initialize();
-}
+public:
+	void Initialize();
 
-// 編集対象の条件グラフを設定する
-void StudioConditionCanvas::SetTarget(ConditionGraph* target)
-{
-	graph = target;
+	// 編集対象の条件グラフを設定する(nullptrで解除)
+	void SetTarget(ConditionGraph* target);
 
-	// 別の条件に切り替えたので、位置を反映し直し、前の条件の選択を消す
-	needsApplyPositions = true;
-	clearSelectionRequested = true;
-}
+	// キャンバスを描く
+	void Draw();
+	// インスペクターを描く
+	void DrawInspector();
 
-// キャンバスを描く
-void StudioConditionCanvas::Draw()
-{
-	if (!graph)
+private:
+
+	// --- ノードの描画 --- //
+
+	// リターンノード描画
+	void DrawReturnNode();
+	// 変数ノード描画
+	void DrawVariableNodes();
+	// ゲッターノード描画
+	void DrawGetterNodes();
+	// 比較演算ノード描画
+	void DrawOperatorNodes();
+	// 論理演算ノード描画
+	void DrawLogicNodes();
+	// 否定ノード描画
+	void DrawNotNodes();
+
+	// リンク描画
+	void DrawLinks();
+	
+	// 背景右クリックのノード作成メニュー
+	void DrawCreateMenu();
+
+	// ピンからドラッグしてリンクを作る
+	void UpdateLinkCreation();
+	// ノードエディタの選択を、こちらの選択に写す
+	void UpdateSelection();
+	// 選択している物を削除
+	void DeleteSelection();
+
+
+	// --- インスペクター --- //
+
+	// リターンノードの設定
+	void DrawReturnInspector();
+	// 変数ノードの設定
+	void DrawVariableInspector(ConditionVariableNode& node);
+	// ゲッターノードの設定
+	void DrawGetterInspector(ConditionGetterNode& node);
+	// 比較演算ノードの設定
+	void DrawOperatorInspector(ConditionOperatorNode& node);
+	// 論理演算ノードの設定
+	void DrawLogicInspector(ConditionLogicNode& node);
+	// 否定ノードの設定
+	void DrawNotInspector();
+
+	// リンクの設定
+	void DrawLinkInspector(const ConditionLink& link);
+
+	// 表示用ノードの名前
+	std::string GetNodeName(int nodeId) const;
+
+
+	// --- 位置 --- //
+
+	// 対象を切り替えた直後だけ、データの位置をノードに反映する
+	void ApplyPosition(int nodeId, float x, float y) const;
+	// ノードを動かしたら、データの位置に書き戻す
+	static void ReadPosition(int nodeId, float& x, float& y);
+	// 背景を右クリックした位置
+	ImVec2 pendingCreatePos{};
+
+	// --- ピンのID --- //
+
+		// ノードの中でのピンの位置
+	enum PinSlot : uint64_t
 	{
-		ImGui::TextDisabled("No link selected.");
-		return;
-	}
+		kPinOut = 1, // 出力
+		kPinInA = 2, // 入力A(入力が1つのノードもA)
+		kPinInB = 3, // 入力B
+	};
+	// ノードのIDと重ならないように付ける印
+	static constexpr uint64_t kPinIdTag = 1ull << 40;
 
-	canvas.Begin("ConditionCanvas");
+	// ノードのIDと位置 <-> ピンのID
+	static ed::PinId ToPinId(int nodeId, PinSlot slot);
+	static bool FromPinId(ed::PinId pinId, int& outNodeId, PinSlot& outSlot);
 
-	// 条件を切り替えた後は、ノードエディタ側に残った前の条件の選択を消す
-	if (clearSelectionRequested)
-	{
-		ed::ClearSelection();
-		clearSelectionRequested = false;
-	}
 
-	// (ノード・リンクの描画は、後の段階で足す)
+	// このクラス専用のノードエディタのコンテキスト
+	NodeEditorCanvas canvas;
+	// 編集中の条件グラフ(実体はStateMachineData側が持つ)
+	ConditionGraph* graph = nullptr;
 
-	// 位置の反映は、切り替えた直後の1フレームだけ
-	needsApplyPositions = false;
+	// データの位置をノードに反映するか(対象を切り替えた直後の1フレームだけ)
+	bool needsApplyPositions = true;
+	// 次にキャンバスを描くときに、ノードエディタ側の選択を消すか
+	bool clearSelectionRequested = false;
 
-	canvas.End();
-}
 
-// インスペクターを描く
-void StudioConditionCanvas::DrawInspector()
-{
-	ImGui::TextDisabled("No node selected.");
-}
+	// 選択中のノード(複数)とリンク(1本)。ノードとリンクは同時には選ばない
+	std::vector<int> selectedNodeIds;
+	int selectedLinkId = -1;
+
+	// ゲッターのインスペクターの状態
+	int getterInspectorNodeId = -1; // 表示しているゲッター
+	std::string browseComponent;    // 一覧で開いているコンポーネント
+	bool scrollToCurrent = false;   // 今の設定の位置までスクロールするか
+};

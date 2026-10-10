@@ -462,6 +462,16 @@ bool StateMachineData::Validate(const std::string& sourceName) const
 					error(what + u8" の条件が、存在しないフィールド「" + g.componentName + "." + g.fieldName + u8"」を読んでいます");
 				}
 			}
+
+			// 決まりに合わないリンク(エディタで赤く表示されるもの)
+			for (const auto& l : condition.links)
+			{
+				std::string reason;
+				if (!condition.IsLinkValid(l, &reason))
+				{
+					error(what + u8" の条件に、決まりに合わないリンクがあります(リンクID " + std::to_string(l.id) + u8"): " + reason);
+				}
+			}
 		};
 
 	auto checkBlend = [&](const BlendSetting& blend, const std::string& what)

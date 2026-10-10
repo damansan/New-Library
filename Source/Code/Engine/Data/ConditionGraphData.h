@@ -35,9 +35,8 @@ struct ConditionGetterNode
 	int id = -1;
 	float posX = 0.0f;
 	float posY = 0.0f;
-	std::string componentName; // 型名(Reflectionで登録したもの)
-	std::string fieldName;     // フィールド名
-	ValueType type = ValueType::Float;
+	std::string componentName; // 型名
+	std::string fieldName;     // フィールドのコード上の名前
 	FloatComponent selectedComponent = FloatComponent::None;
 };
 
@@ -174,3 +173,8 @@ private:
 // JSONとの変換
 nlohmann::ordered_json ConditionGraphToJson(const ConditionGraph& graph);
 void ConditionGraphFromJson(ConditionGraph& graph, const nlohmann::json& j);
+
+// ゲッターが読むフィールドの型
+ValueType GetGetterFieldType(const ConditionGetterNode& node);
+// ゲッターで選んでいる成分が、その型で使えるか
+bool IsGetterAxisValid(const ConditionGetterNode& node);
