@@ -13,7 +13,7 @@ class StudioConditionCanvas
 public:
 	void Initialize();
 
-	// 編集対象の条件グラフを設定する(nullptrで解除)
+	// 編集対象の条件グラフを設定する
 	void SetTarget(ConditionGraph* target);
 
 	// キャンバスを描く
@@ -44,9 +44,12 @@ private:
 	// 背景右クリックのノード作成メニュー
 	void DrawCreateMenu();
 
+
+	// --- 入力 --- //
+	
 	// ピンからドラッグしてリンクを作る
 	void UpdateLinkCreation();
-	// ノードエディタの選択を、こちらの選択に写す
+	// 選択更新
 	void UpdateSelection();
 	// 選択している物を削除
 	void DeleteSelection();
@@ -70,7 +73,7 @@ private:
 	// リンクの設定
 	void DrawLinkInspector(const ConditionLink& link);
 
-	// 表示用ノードの名前
+	// ノードのIDから、表示用の名前を作る
 	std::string GetNodeName(int nodeId) const;
 
 
@@ -80,43 +83,55 @@ private:
 	void ApplyPosition(int nodeId, float x, float y) const;
 	// ノードを動かしたら、データの位置に書き戻す
 	static void ReadPosition(int nodeId, float& x, float& y);
-	// 背景を右クリックした位置
-	ImVec2 pendingCreatePos{};
+
 
 	// --- ピンのID --- //
 
-		// ノードの中でのピンの位置
+	// ノードの中でのピンの位置
 	enum PinSlot : uint64_t
 	{
 		kPinOut = 1, // 出力
-		kPinInA = 2, // 入力A(入力が1つのノードもA)
+		kPinInA = 2, // 入力A
 		kPinInB = 3, // 入力B
 	};
 	// ノードのIDと重ならないように付ける印
 	static constexpr uint64_t kPinIdTag = 1ull << 40;
 
-	// ノードのIDと位置 <-> ピンのID
+	// ノードのIDと位置 -> ピンのID
 	static ed::PinId ToPinId(int nodeId, PinSlot slot);
+	// ピンのID -> ノードのIDと位置
 	static bool FromPinId(ed::PinId pinId, int& outNodeId, PinSlot& outSlot);
 
 
+	// --- データ --- //
+
 	// このクラス専用のノードエディタのコンテキスト
 	NodeEditorCanvas canvas;
-	// 編集中の条件グラフ(実体はStateMachineData側が持つ)
+	// 編集中の条件グラフ
 	ConditionGraph* graph = nullptr;
 
-	// データの位置をノードに反映するか(対象を切り替えた直後の1フレームだけ)
+
+	// --- キャンバスの状態 --- //
+
+	// データの位置をノードに反映するか
 	bool needsApplyPositions = true;
 	// 次にキャンバスを描くときに、ノードエディタ側の選択を消すか
 	bool clearSelectionRequested = false;
 
+	// 背景の右クリックの位置
+	ImVec2 pendingCreatePos{};
 
-	// 選択中のノード(複数)とリンク(1本)。ノードとリンクは同時には選ばない
+	// 選択中のノードとリンク
 	std::vector<int> selectedNodeIds;
 	int selectedLinkId = -1;
 
-	// ゲッターのインスペクターの状態
-	int getterInspectorNodeId = -1; // 表示しているゲッター
-	std::string browseComponent;    // 一覧で開いているコンポーネント
-	bool scrollToCurrent = false;   // 今の設定の位置までスクロールするか
+
+	// --- ゲッターのインスペクター状態 --- //
+
+	// 表示しているゲッター
+	int getterInspectorNodeId = -1;
+	// 一覧で開いているコンポーネント
+	std::string browseComponent;
+	// 今の設定の位置までスクロールするか
+	bool scrollToCurrent = false; 
 };

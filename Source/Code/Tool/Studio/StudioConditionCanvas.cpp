@@ -6,12 +6,13 @@
 #include "Engine/ECS/Reflection.h"
 #include "StudioStateGraphDraw.h"
 
+// このファイル内だけで使う処理
 namespace
 {
 	// ピンの印(▶)
 	const char* kPinIcon = u8"▶";
 
-	// 次の項目を、幅totalWidthの中で中央に寄せる
+	// 各ノードの幅に合わせて、中央に配置する
 	void CenterNextItem(float totalWidth, float itemWidth)
 	{
 		float pad = (totalWidth - itemWidth) * 0.5f;
@@ -39,7 +40,7 @@ namespace
 		}
 	}
 
-	// 比較の記号
+	// 比較演算の記号
 	const char* GetCompareOpSymbol(CompareOp op)
 	{
 		switch (op)
@@ -54,7 +55,7 @@ namespace
 		}
 	}
 
-	// 論理の記号
+	// 論理演算の記号
 	const char* GetLogicOpSymbol(LogicOp op)
 	{
 		return (op == LogicOp::Or) ? "OR" : "AND";
@@ -141,13 +142,15 @@ void StudioConditionCanvas::SetTarget(ConditionGraph* target)
 {
 	graph = target;
 
-	// 別の条件に切り替えたので、位置を反映し直し、前の条件の選択を消す
+	// 次に描くときに、データの位置をノードに反映し直す
 	needsApplyPositions = true;
+
+	// 前の条件の選択を消す
 	clearSelectionRequested = true;
 	selectedNodeIds.clear();
 	selectedLinkId = -1;
 
-	// 別の条件にも同じIDのノードがあるので、インスペクターの状態も戻す
+	// ゲッターの一覧の状態も戻す
 	getterInspectorNodeId = -1;
 	browseComponent.clear();
 }
@@ -155,31 +158,32 @@ void StudioConditionCanvas::SetTarget(ConditionGraph* target)
 // キャンバスを描く
 void StudioConditionCanvas::Draw()
 {
+	// 編集する条件が無ければ、キャンバスを作らずに抜ける
 	if (!graph)
 	{
 		ImGui::TextDisabled("No link selected.");
 		return;
 	}
 
+	// キャンバス作成
 	canvas.Begin("ConditionCanvas");
 
-	// 条件を切り替えた後は、ノードエディタ側に残った前の条件の選択を消す
+	// 削除や読み込みの後はノードエディタ側に残った選択を消す
 	if (clearSelectionRequested)
 	{
 		ed::ClearSelection();
 		clearSelectionRequested = false;
 	}
 
-	ed::PushStyleVar(ed::StyleVar_LinkStrength, 0.0f);
 	
 	// ノード描画
+	ed::PushStyleVar(ed::StyleVar_LinkStrength, 0.0f);	
 	DrawReturnNode();
 	DrawVariableNodes();
 	DrawGetterNodes();
 	DrawOperatorNodes();
 	DrawLogicNodes();
 	DrawNotNodes();
-
 	ed::PopStyleVar(1);
 
 	// リンク描画
@@ -195,9 +199,11 @@ void StudioConditionCanvas::Draw()
 	// 位置の反映は、切り替えた直後の1フレームだけ
 	needsApplyPositions = false;
 
+	// キャンバス終了
 	canvas.End();
 
-	// 選択している物の削除(文字を入力中は、Deleteキーを文字の削除に使うので除く)
+
+	// 選択している物の削除
 	if (ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows) &&
 		!ImGui::GetIO().WantTextInput &&
 		ImGui::IsKeyPressed(ImGuiKey_Delete))
@@ -209,13 +215,14 @@ void StudioConditionCanvas::Draw()
 // インスペクターを描く
 void StudioConditionCanvas::DrawInspector()
 {
+	// 編集する条件が無ければ何も出さない
 	if (!graph)
 	{
 		ImGui::TextDisabled("No link selected.");
 		return;
 	}
 
-	// リンクを選んでいる
+	// リンク描画
 	if (selectedLinkId != -1)
 	{
 		for (const auto& l : graph->links)
@@ -229,7 +236,7 @@ void StudioConditionCanvas::DrawInspector()
 		return;
 	}
 
-	// ノードを複数選んでいる
+	// ノード複数選択
 	if (selectedNodeIds.size() > 1)
 	{
 		ImGui::Text("%d nodes selected", static_cast<int>(selectedNodeIds.size()));
@@ -249,7 +256,7 @@ void StudioConditionCanvas::DrawInspector()
 		return;
 	}
 
-	// ノードを1つ選んでいる
+	// ノード1つ選択
 	if (selectedNodeIds.size() == 1)
 	{
 		int id = selectedNodeIds[0];
@@ -261,9 +268,9 @@ void StudioConditionCanvas::DrawInspector()
 			return;
 
 		case ConditionNodeKind::Variable: DrawVariableInspector(*FindNode(graph->variableNodes, id)); break;
-		case ConditionNodeKind::Getter:   DrawGetterInspector(*FindNode(graph->getterNodes, id));     break;
+		case ConditionNodeKind::Getter:   DrawGetterInspector  (*FindNode(graph->getterNodes,   id)); break;
 		case ConditionNodeKind::Operator: DrawOperatorInspector(*FindNode(graph->operatorNodes, id)); break;
-		case ConditionNodeKind::Logic:    DrawLogicInspector(*FindNode(graph->logicNodes, id));       break;
+		case ConditionNodeKind::Logic:    DrawLogicInspector   (*FindNode(graph->logicNodes,    id)); break;
 		case ConditionNodeKind::Not:      DrawNotInspector();                                         break;
 		default: return;
 		}
@@ -275,18 +282,24 @@ void StudioConditionCanvas::DrawInspector()
 		}
 		return;
 	}
+
+	// 未選択
+	ImGui::TextDisabled("No node selected.");
 }
 
 // リターンノード描画
 void StudioConditionCanvas::DrawReturnNode()
 {
 	ConditionReturnNode& node = graph->returnNode;
+
+	// 読み込み直後はデータの位置にノードを反映
 	ApplyPosition(node.id, node.posX, node.posY);
 
-	// 紫
+	// Returnは紫で描く
 	ed::PushStyleColor(ed::StyleColor_NodeBg, ImColor(197, 134, 192, 255));
 	ed::PushStyleColor(ed::StyleColor_NodeBorder, ImColor(140, 90, 137, 255));
 
+	// 左に入力ピン、右に名前
 	ed::BeginNode(ed::NodeId(static_cast<uint64_t>(node.id)));
 	DrawPin(ToPinId(node.id, kPinInA), ed::PinKind::Input);
 	ImGui::SameLine();
@@ -296,6 +309,7 @@ void StudioConditionCanvas::DrawReturnNode()
 
 	ed::PopStyleColor(2);
 
+	// ノードを動かしたら、データの位置に書き戻す
 	ReadPosition(node.id, node.posX, node.posY);
 }
 
@@ -307,6 +321,7 @@ void StudioConditionCanvas::DrawVariableNodes()
 
 	for (auto& v : graph->variableNodes)
 	{
+		// 読み込み直後はデータの位置にノードを反映
 		ApplyPosition(v.id, v.posX, v.posY);
 
 		// 型ごとに枠の色を変える
@@ -316,7 +331,7 @@ void StudioConditionCanvas::DrawVariableNodes()
 		ed::BeginNode(ed::NodeId(static_cast<uint64_t>(v.id)));
 		ImGui::PushID(v.id);
 
-		// 1行目：名前(中央)と出力ピン
+		// 1行目：名前と出力ピン
 		std::string name = v.name.empty() ? "Variable" : v.name;
 		CenterNextItem(nodeWidth, ImGui::CalcTextSize(name.c_str()).x);
 		ImGui::Text("%s", name.c_str());
@@ -348,6 +363,7 @@ void StudioConditionCanvas::DrawVariableNodes()
 		ed::PopStyleColor(1);
 		ed::PopStyleVar(1);
 
+		// ノードを動かしたら、データの位置に書き戻す
 		ReadPosition(v.id, v.posX, v.posY);
 	}
 }
@@ -364,12 +380,15 @@ void StudioConditionCanvas::DrawGetterNodes()
 		bool assigned = !g.componentName.empty() && !g.fieldName.empty();
 		const FieldEntry* field = assigned ? Reflection::FindField(g.componentName, g.fieldName) : nullptr;
 
-		// 1行目：コンポーネント名、2行目：フィールドの表示名
+		// 1行目：コンポーネント名
 		std::string line1;
+		// 2行目：フィールドの表示名
 		std::string line2;
+
 		ImColor border;
 		if (!assigned)
 		{
+			// フィールド未設定
 			line1 = "Empty";
 			border = ImColor(255, 255, 255, 255);
 		}
@@ -382,6 +401,7 @@ void StudioConditionCanvas::DrawGetterNodes()
 		}
 		else
 		{
+			// 設定済み
 			line1 = g.componentName;
 			line2 = field->fieldLabel;
 			if (Reflection::GetComponentCount(field->type) > 0)
@@ -402,6 +422,7 @@ void StudioConditionCanvas::DrawGetterNodes()
 		float width2 = ImGui::CalcTextSize(line2.c_str()).x;
 		float nodeWidth = (std::max)(width1, width2) + spacing;
 
+		// 文字を中央に描き、右端に出力ピンを置く
 		CenterNextItem(nodeWidth, width1);
 		ImGui::Text("%s", line1.c_str());
 		if (!line2.empty())
@@ -418,6 +439,7 @@ void StudioConditionCanvas::DrawGetterNodes()
 		ed::PopStyleColor(1);
 		ed::PopStyleVar(1);
 
+		// ノードを動かしたら、データの位置に書き戻す
 		ReadPosition(g.id, g.posX, g.posY);
 	}
 }
@@ -429,18 +451,21 @@ void StudioConditionCanvas::DrawOperatorNodes()
 
 	for (auto& o : graph->operatorNodes)
 	{
+		// 切り替えた直後だけ、データの位置をノードに反映
 		ApplyPosition(o.id, o.posX, o.posY);
 
-		// 青
+		// 比較は青で描く
 		ed::PushStyleColor(ed::StyleColor_NodeBorder, ImColor(90, 140, 220, 255));
 		ed::PushStyleVar(ed::StyleVar_NodeBorderWidth, 2.0f);
 
 		ed::BeginNode(ed::NodeId(static_cast<uint64_t>(o.id)));
 		ImGui::PushID(o.id);
 
-		// 1行目：入力A、2行目：記号、3行目：入力Bと出力
+		// 1行目：入力A
 		DrawPin(ToPinId(o.id, kPinInA), ed::PinKind::Input);
+		// 2行目：記号
 		DrawSymbol(GetCompareOpSymbol(o.op), nodeWidth, 2.0f);
+		// 3行目：入力Bと出力
 		DrawPin(ToPinId(o.id, kPinInB), ed::PinKind::Input);
 		ImGui::SameLine(nodeWidth);
 		DrawPin(ToPinId(o.id, kPinOut), ed::PinKind::Output);
@@ -451,6 +476,7 @@ void StudioConditionCanvas::DrawOperatorNodes()
 		ed::PopStyleColor(1);
 		ed::PopStyleVar(1);
 
+		// ノードを動かしたら、データの位置に書き戻す
 		ReadPosition(o.id, o.posX, o.posY);
 	}
 }
@@ -462,18 +488,21 @@ void StudioConditionCanvas::DrawLogicNodes()
 
 	for (auto& l : graph->logicNodes)
 	{
+		// 切り替えた直後だけ、データの位置をノードに反映
 		ApplyPosition(l.id, l.posX, l.posY);
 
-		// オレンジ
+		// 論理はオレンジで描く
 		ed::PushStyleColor(ed::StyleColor_NodeBorder, ImColor(200, 130, 60, 255));
 		ed::PushStyleVar(ed::StyleVar_NodeBorderWidth, 2.0f);
 
 		ed::BeginNode(ed::NodeId(static_cast<uint64_t>(l.id)));
 		ImGui::PushID(l.id);
 
-		// 1行目：入力A、2行目：記号、3行目：入力Bと出力
+		// 1行目：入力A
 		DrawPin(ToPinId(l.id, kPinInA), ed::PinKind::Input);
+		// 2行目：記号
 		DrawSymbol(GetLogicOpSymbol(l.op), nodeWidth, 1.5f);
+		// 3行目：入力Bと出力
 		DrawPin(ToPinId(l.id, kPinInB), ed::PinKind::Input);
 		ImGui::SameLine(nodeWidth);
 		DrawPin(ToPinId(l.id, kPinOut), ed::PinKind::Output);
@@ -484,6 +513,7 @@ void StudioConditionCanvas::DrawLogicNodes()
 		ed::PopStyleColor(1);
 		ed::PopStyleVar(1);
 
+		// ノードを動かしたら、データの位置に書き戻す
 		ReadPosition(l.id, l.posX, l.posY);
 	}
 }
@@ -495,17 +525,19 @@ void StudioConditionCanvas::DrawNotNodes()
 
 	for (auto& n : graph->notNodes)
 	{
+		// 切り替えた直後だけ、データの位置をノードに反映
 		ApplyPosition(n.id, n.posX, n.posY);
 
-		// 赤
+		// 否定は赤で描く
 		ed::PushStyleColor(ed::StyleColor_NodeBorder, ImColor(200, 80, 80, 255));
 		ed::PushStyleVar(ed::StyleVar_NodeBorderWidth, 2.0f);
 
 		ed::BeginNode(ed::NodeId(static_cast<uint64_t>(n.id)));
 		ImGui::PushID(n.id);
 
-		// 1行目：記号、2行目：入力と出力
+		// 1行目：記号
 		DrawSymbol("NOT", nodeWidth, 1.5f);
+		// 2行目：入力と出力
 		DrawPin(ToPinId(n.id, kPinInA), ed::PinKind::Input);
 		ImGui::SameLine(nodeWidth);
 		DrawPin(ToPinId(n.id, kPinOut), ed::PinKind::Output);
@@ -516,6 +548,7 @@ void StudioConditionCanvas::DrawNotNodes()
 		ed::PopStyleColor(1);
 		ed::PopStyleVar(1);
 
+		// ノードを動かしたら、データの位置に書き戻す
 		ReadPosition(n.id, n.posX, n.posY);
 	}
 }
@@ -535,6 +568,7 @@ void StudioConditionCanvas::DrawLinks()
 		// 型を変えた等で、決まりに合わなくなったリンクは赤
 		ImColor color = graph->IsLinkValid(l) ? validColor : invalidColor;
 
+		// 出す側は必ず出力ピン、受ける側はtoPinBでAかBを選ぶ
 		ed::Link(
 			ed::LinkId(static_cast<uint64_t>(l.id)),
 			ToPinId(l.fromId, kPinOut),
@@ -556,6 +590,7 @@ void StudioConditionCanvas::DrawCreateMenu()
 		ImGui::OpenPopup("CreateConditionNode");
 	}
 
+	// ポップ内容
 	if (ImGui::BeginPopup("CreateConditionNode"))
 	{
 		// 右クリックした位置(キャンバスの座標)
@@ -613,11 +648,14 @@ void StudioConditionCanvas::DrawCreateMenu()
 // ピンからドラッグしてリンクを作る
 void StudioConditionCanvas::UpdateLinkCreation()
 {
+	// ドラッグ中の処理
 	if (ed::BeginCreate(ImColor(255, 255, 255, 255), 2.0f))
 	{
+		// ドラッグ中の2つのピン
 		ed::PinId pinA, pinB;
 		if (ed::QueryNewLink(&pinA, &pinB))
 		{
+			// ピンのIDを、ノードのIDとピンの位置に戻す
 			int nodeA = -1, nodeB = -1;
 			PinSlot slotA = kPinOut, slotB = kPinOut;
 			bool decoded = FromPinId(pinA, nodeA, slotA) && FromPinId(pinB, nodeB, slotB);
@@ -629,6 +667,7 @@ void StudioConditionCanvas::UpdateLinkCreation()
 				std::swap(slotA, slotB);
 			}
 
+			// つないでよいかを判断する
 			std::string reason;
 			bool ok = false;
 			if (!decoded || slotA != kPinOut || slotB == kPinOut)
@@ -651,11 +690,12 @@ void StudioConditionCanvas::UpdateLinkCreation()
 			}
 			else
 			{
-				// つなげない理由を、マウスの近くに出す(ツールチップは画面の座標で描く)
+				// つなげられない理由を、マウスの近くに出す
 				ed::Suspend();
 				ImGui::SetTooltip("%s", reason.c_str());
 				ed::Resume();
 
+				// 線を赤くして、離してもつながらないようにする
 				ed::RejectNewItem(ImColor(255, 0, 0, 255), 2.0f);
 			}
 		}
@@ -663,7 +703,7 @@ void StudioConditionCanvas::UpdateLinkCreation()
 	ed::EndCreate();
 }
 
-// ノードエディタの選択を、こちらの選択に写す
+// 選択の更新
 void StudioConditionCanvas::UpdateSelection()
 {
 	// 選ばれているノードとリンクを、ノードエディタから受け取る
@@ -673,7 +713,7 @@ void StudioConditionCanvas::UpdateSelection()
 	int nodeCount = (count > 0) ? ed::GetSelectedNodes(nodeIds.data(), count) : 0;
 	int linkCount = (count > 0) ? ed::GetSelectedLinks(linkIds.data(), count) : 0;
 
-	// ノード(削除した直後などで、データに無いものは除く)
+	// ノードの選択(削除した直後などで、データに無いものは除く)
 	selectedNodeIds.clear();
 	for (int i = 0; i < nodeCount; ++i)
 	{
@@ -684,7 +724,7 @@ void StudioConditionCanvas::UpdateSelection()
 		}
 	}
 
-	// リンク(ノードが選ばれていないときだけ、最初の1本)
+	// リンクの選択(ノードが選ばれていないときだけ、最初の1本)
 	selectedLinkId = -1;
 	if (selectedNodeIds.empty() && linkCount > 0)
 	{
@@ -704,7 +744,7 @@ void StudioConditionCanvas::DeleteSelection()
 		graph->RemoveLink(selectedLinkId);
 	}
 
-	// 選んでいるノードを消す(Returnはデータ側で消さない。つながっていたリンクも一緒に消える)
+	// 選んでいるノードを消す
 	for (int id : selectedNodeIds)
 	{
 		graph->RemoveNode(id);
@@ -723,15 +763,14 @@ void StudioConditionCanvas::DrawReturnInspector()
 	ImGui::Text("Return");
 	ImGui::Separator();
 
-	ImGui::TextWrapped("The result of this condition. Connect a bool output here.");
-
-	// 何もつながっていなければ、条件が空(親・子キャンバスのリンクも赤)
+	// 何もつながっていなければ条件が空なことを出す
 	if (graph->IsEmpty())
 	{
 		ImGui::Spacing();
 		ErrorTextWrapped("Not connected. This condition is empty.");
 	}
 
+	// Returnは条件に必ず1つあるので、削除できないことを知らせる
 	ImGui::Spacing();
 	ImGui::TextDisabled("Return cannot be deleted.");
 }
