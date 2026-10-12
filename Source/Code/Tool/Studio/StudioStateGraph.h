@@ -90,7 +90,7 @@ private:
 	// 子のウィンドウを開く
 	void OpenChildWindow(int stateId);
 	// 開いている子のウィンドウを描く
-	void DrawChildWindows();
+	void DrawChildWindows(ImGuiID ownerViewportId);
 
 	// モデルが持っているアニメーションの名前
 	std::vector<std::string> animationNames;
@@ -101,7 +101,7 @@ private:
 	// 条件のウィンドウを開く
 	void OpenConditionWindow(const ConditionTarget& target);
 	// 条件のウィンドウを描く
-	void DrawConditionWindow();
+	void DrawConditionWindow(ImGuiID ownerViewportId);
 	// 条件のウィンドウを閉じる
 	void CloseConditionWindow();
 	// 編集する条件の実体を探す

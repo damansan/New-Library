@@ -27,4 +27,7 @@ struct StudioContext
 
     // タイムラインでスクラブ操作されたフラグ
     bool requestPoseUpdate = false;
+
+    // Studioのウィンドウがいるビューポート
+    unsigned int studioViewportId = 0;
 };

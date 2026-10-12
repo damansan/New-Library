@@ -15,6 +15,16 @@
 
 namespace
 {
+	// 次に作るウィンドウの持ち主を、Studioのビューポートにする
+	void SetNextWindowOwner(ImGuiID ownerViewportId)
+	{
+		if (ownerViewportId == 0) return;
+
+		ImGuiWindowClass windowClass;
+		windowClass.ParentViewportId = ownerViewportId;
+		ImGui::SetNextWindowClass(&windowClass);
+	}
+
 	// Return以外のノードがあるか(写すと消えてしまう物があるか)
 	bool HasNodesBesidesReturn(const ConditionGraph& condition)
 	{
@@ -100,9 +110,9 @@ void StudioStateGraph::DrawGUI(entt::registry& registry, StudioContext& context)
 	ImGui::End();
 
 	// 子階層ウィンドウ
-	DrawChildWindows();
+	DrawChildWindows(context.studioViewportId);
 	// 条件のウィンドウ
-	DrawConditionWindow();
+	DrawConditionWindow(context.studioViewportId);
 
 	// 上書きの確認
 	DrawCopyConfirmPopup();
@@ -323,7 +333,7 @@ void StudioStateGraph::OpenChildWindow(int stateId)
 }
 
 // 開いている子のウィンドウを描く
-void StudioStateGraph::DrawChildWindows()
+void StudioStateGraph::DrawChildWindows(ImGuiID ownerViewportId)
 {
 	for (auto it = childCanvases.begin(); it != childCanvases.end(); )
 	{
@@ -353,6 +363,9 @@ void StudioStateGraph::DrawChildWindows()
 			ImGui::SetNextWindowFocus();
 			focusChildStateId = -1;
 		}
+
+		// アプリの外に出したとき、Studioより手前に出るようにする
+		SetNextWindowOwner(ownerViewportId);
 
 		bool open = true;
 		bool visible = ImGui::Begin(title.c_str(), &open);
@@ -389,7 +402,7 @@ void StudioStateGraph::OpenConditionWindow(const ConditionTarget& target)
 }
 
 // 条件のウィンドウを描く
-void StudioStateGraph::DrawConditionWindow()
+void StudioStateGraph::DrawConditionWindow(ImGuiID ownerViewportId)
 {
 	if (!conditionTarget.IsValid()) return;
 
@@ -425,6 +438,9 @@ void StudioStateGraph::DrawConditionWindow()
 		ImGui::SetNextWindowFocus();
 		focusConditionWindow = false;
 	}
+
+	// アプリの外に出したとき、Studioより手前に出るようにする
+	SetNextWindowOwner(ownerViewportId);
 
 	bool open = true;
 	bool visible = ImGui::Begin(title.c_str(), &open);

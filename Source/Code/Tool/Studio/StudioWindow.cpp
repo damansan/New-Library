@@ -137,8 +137,11 @@ void StudioWindow::Render()
 void StudioWindow::DrawWindow(const char* windowName)
 {
 	bool open = true;
-	ImGui::Begin(windowName, &open, ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoBringToFrontOnFocus);
+	ImGui::Begin(windowName, &open, ImGuiWindowFlags_MenuBar);
 	if (!open) closeRequested = true;
+
+	// Studioがいるビューポート
+	context.studioViewportId = ImGui::GetWindowViewport()->ID;
 
 	// Studioウィンドウ全体でホバー判定
 	isHovered = ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_DockHierarchy);
