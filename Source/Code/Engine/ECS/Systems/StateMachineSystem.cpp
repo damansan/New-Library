@@ -9,13 +9,18 @@
 const StateMachineData* StateMachineSystem::Load(const std::string& path)
 {
 	LoadedStateMachine& loaded = graphCache.GetOrLoad(path,
-		[&path](LoadedStateMachine& l, const nlohmann::json& j)
+		[this, &path](LoadedStateMachine& l, const nlohmann::json& j)
 		{
 			l.loaded = true;
 			l.valid = l.data.FromJson(j, path);
 
-			// 読み込んだときに1回だけ、申告されたState名があるかを確かめる
-			if (l.valid) CheckRequiredStates(l.data, path);
+			// 読み込み直したら、このパスの「Stateが無い」の報告済みを消して、確かめ直せるようにする
+			std::string prefix = path + "\n";
+			for (auto it = reportedMissingStates.begin(); it != reportedMissingStates.end(); )
+			{
+				if (it->compare(0, prefix.size(), prefix) == 0) it = reportedMissingStates.erase(it);
+				else ++it;
+			}
 		});
 
 	if (!loaded.loaded || !loaded.valid)
@@ -75,6 +80,9 @@ void StateMachineSystem::UpdateState(entt::registry& registry)
 		// 未初期化、またはグラフの作り直しで今のStateが無くなった場合は、Entryから入り直す
 		if (!current)
 		{
+			// このエンティティを処理するSystemが使うStateが、グラフにあるかを確かめる
+			CheckRequiredStates(*data, sm.graphPath, registry, entity);
+
 			const StateTransition* t = FindPassedTransition(data->entry.transitions, registry, entity);
 			if (!t) continue;
 
@@ -171,28 +179,33 @@ std::vector<StateMachineSystem::RequiredState>& StateMachineSystem::GetRequiredS
 	return requiredStates;
 }
 
-// 申告されたState名が、グラフにあるかを確かめる
-void StateMachineSystem::CheckRequiredStates(const StateMachineData& data, const std::string& path)
+// 申告されたState名が、このエンティティのグラフにあるかを確かめる
+void StateMachineSystem::CheckRequiredStates(const StateMachineData& data, const std::string& path, const entt::registry& registry, entt::entity entity)
 {
 	for (const auto& r : GetRequiredStates())
 	{
-		if (!data.FindStateByName(r.stateName))
-		{
-			Log(u8"[StateMachine] 警告(%s): State「%s」がグラフにありません(%s が使用)",
-				path.c_str(), r.stateName.c_str(), r.user.c_str());
-		}
+		// 申告したSystemの対象でないエンティティ(Playerの申告に対するEnemyなど)は確かめない
+		if (r.usesState && !r.usesState(registry, entity)) continue;
+		if (data.FindStateByName(r.stateName)) continue;
+
+		// 同じ組については1回だけ報告する
+		std::string key = path + "\n" + r.stateName + "\n" + r.user;
+		if (!reportedMissingStates.insert(key).second) continue;
+
+		Log(u8"[StateMachine] 警告(%s): State「%s」がグラフにありません(%s が使用)",
+			path.c_str(), r.stateName.c_str(), r.user.c_str());
 	}
 }
 
-// 使用するState名を申告する
-void StateMachineSystem::RequireState(const std::string& stateName, const std::string& user)
+// 申告を一覧に足す
+void StateMachineSystem::AddRequiredState(const std::string& stateName, const std::string& user, UsesStateFunc usesState)
 {
 	auto& list = GetRequiredStates();
 	for (const auto& r : list)
 	{
 		if (r.stateName == stateName && r.user == user) return; // 申告済み
 	}
-	list.push_back({ stateName, user });
+	list.push_back({ stateName, user, usesState });
 }
 
 // トリミング範囲を探す

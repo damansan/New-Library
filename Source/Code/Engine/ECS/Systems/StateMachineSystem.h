@@ -29,20 +29,32 @@ public:
 	void UpdateAnimation(entt::registry& registry);
 
 	// 使用するState名を申告する(グラフの読み込み時に、存在するかを確かめる)
-	static void RequireState(const std::string& stateName, const std::string& user);
+	template<typename UserComponent>
+	static void RequireState(const std::string& stateName, const std::string& user)
+	{
+		AddRequiredState(stateName, user,
+			[](const entt::registry& registry, entt::entity entity) { return registry.all_of<UserComponent>(entity); });
+	}
 
 private:
 	
+	// エンティティが、申告したSystemの対象か(UserComponentを持っているか)
+	using UsesStateFunc = bool(*)(const entt::registry& registry, entt::entity entity);
+
 	// 申告されたState名と、申告した側の名前
 	struct RequiredState
 	{
 		std::string stateName;
 		std::string user;
+		UsesStateFunc usesState = nullptr; // 申告したSystemの対象か
 	};
 	static std::vector<RequiredState>& GetRequiredStates();
+	// 申告を一覧に足す
+	static void AddRequiredState(const std::string& stateName, const std::string& user, UsesStateFunc usesState);
 
-	// 申告されたState名が、グラフにあるかを確かめる(無ければ警告)
-	static void CheckRequiredStates(const StateMachineData& data, const std::string& path);
+	// 申告されたState名が、このエンティティのグラフにあるかを確かめる
+	void CheckRequiredStates(const StateMachineData& data, const std::string& path, const entt::registry& registry, entt::entity entity);
+
 
 	// グラフを取得する (読み込めない・検証エラーの場合はnullptr)
 	const StateMachineData* Load(const std::string& path);
@@ -64,4 +76,6 @@ private:
 
 	// 使えないことをLogに報告済みのパス
 	std::set<std::string> reportedPaths;
+	// 「Stateが無い」と報告済みの組
+	std::set<std::string> reportedMissingStates;
 };

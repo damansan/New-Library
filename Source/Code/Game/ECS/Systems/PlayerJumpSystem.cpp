@@ -8,7 +8,7 @@
 
 PlayerJumpSystem::PlayerJumpSystem()
 {
-	StateMachineSystem::RequireState("Jump", "PlayerJumpSystem");
+	StateMachineSystem::RequireState<PlayerJumpComponent>("Jump", "PlayerJumpSystem");
 }
 
 void PlayerJumpSystem::Update(entt::registry& registry, float elapsedTime, const SceneContext& context)

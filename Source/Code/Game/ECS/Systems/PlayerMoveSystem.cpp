@@ -10,7 +10,7 @@
 
 PlayerMoveSystem::PlayerMoveSystem()
 {
-	StateMachineSystem::RequireState("Move", "PlayerMoveSystem");
+	StateMachineSystem::RequireState<PlayerMoveComponent>("Move", "PlayerMoveSystem");
 }
 
 void PlayerMoveSystem::Update(entt::registry& registry, float elapsedTime, const SceneContext& context)

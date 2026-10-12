@@ -1,6 +1,5 @@
 {
     "AnimatorComponent": {
-        "animatorGraphPath": "Data/Json/Animgraph/SK_SteamPunkBoss.animgraph",
         "loop": true,
         "playSpeed": 1.0,
         "rootMotionNodeName": "root",
@@ -18,6 +17,9 @@
     },
     "PhysicsBodyTypeComponent": {
         "type": "Character"
+    },
+    "StateMachineComponent": {
+        "graphPath": "Data/Json/StateGraph/SK_SteamPunkBoss.stategraph"
     },
     "TransformComponent": {
         "position": [

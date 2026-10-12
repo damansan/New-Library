@@ -8,7 +8,7 @@
 
 PlayerIdleSystem::PlayerIdleSystem()
 {
-	StateMachineSystem::RequireState("Idle", "PlayerIdleSystem");
+	StateMachineSystem::RequireState<PlayerIdleComponent>("Idle", "PlayerIdleSystem");
 }
 
 void PlayerIdleSystem::Update(entt::registry& registry, float elapsedTime, const SceneContext& context)

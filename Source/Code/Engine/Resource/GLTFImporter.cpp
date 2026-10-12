@@ -257,11 +257,11 @@ void GLTFImporter::LoadMeshes(
 				mesh.vertices.resize(acc.count);
 				for (size_t i = 0; i < acc.count; i++)
 				{
-					mesh.vertices[i].position = 
-					{ 
+					mesh.vertices[i].position =
+					{
 						src[i * 3 + 0],
-						src[i * 3 + 1], 
-						-src[i * 3 + 2] 
+						src[i * 3 + 1],
+						-src[i * 3 + 2]
 					};
 				}
 			}
@@ -277,11 +277,11 @@ void GLTFImporter::LoadMeshes(
 
 				for (size_t i = 0; i < acc.count; i++)
 				{
-					mesh.vertices[i].normal = 
-					{ 
-						src[i * 3 + 0], 
-						src[i * 3 + 1], 
-						-src[i * 3 + 2] 
+					mesh.vertices[i].normal =
+					{
+						src[i * 3 + 0],
+						src[i * 3 + 1],
+						-src[i * 3 + 2]
 					};
 				}
 			}
@@ -520,42 +520,8 @@ void GLTFImporter::LoadTextures(
 	const tinygltf::Model& gltfModel,
 	const std::filesystem::path& filepath)
 {
-	//data.textures.reserve(gltfModel.textures.size());
-
-	//for (const auto& gltfTexture : gltfModel.textures)
-	//{
-	//	GLTFData::TextureData texData;
-	//	const auto& image = gltfModel.images[gltfTexture.source];
-
-	//	if (!image.uri.empty())
-	//	{
-	//		// 外部ファイルの場合はファイルから読み込んでバイナリ化
-	//		std::string texPath = (filepath.parent_path() / image.uri).string();
-
-	//		std::ifstream ifs(texPath, std::ios::binary);
-	//		_ASSERT_EXPR_A(ifs, "Texture file not found");
-
-	//		texData.pixels = std::vector<uint8_t>(
-	//			std::istreambuf_iterator<char>(ifs),
-	//			std::istreambuf_iterator<char>()
-	//		);
-	//	}
-	//	else if (image.bufferView >= 0)
-	//	{
-	//		// GLB埋め込みの場合はbufferViewからバイナリを取り出す
-	//		const auto& bv = gltfModel.bufferViews[image.bufferView];
-	//		const auto& buffer = gltfModel.buffers[bv.buffer];
-	//		const uint8_t* begin = buffer.data.data() + bv.byteOffset;
-
-	//		texData.pixels.assign(begin, begin + bv.byteLength);
-	//	}
-
-	//	data.textures.push_back(std::move(texData));
-	//}
-
-	LARGE_INTEGER freq, t0, t1;
+	LARGE_INTEGER freq, t0;
 	QueryPerformanceFrequency(&freq);
-	char buf[256];
 
 	data.textures.reserve(gltfModel.textures.size());
 
@@ -567,27 +533,6 @@ void GLTFImporter::LoadTextures(
 		GLTFData::TextureData texData;
 		const auto& image = gltfModel.images[gltfTexture.source];
 
-		//if (!image.uri.empty())
-		//{
-		//	std::string texPath = (filepath.parent_path() / image.uri).string();
-
-		//	// istreambuf_iterator より read の方が大幅に速い
-		//	std::ifstream ifs(texPath, std::ios::binary | std::ios::ate);
-		//	_ASSERT_EXPR_A(ifs, "Texture file not found");
-
-		//	std::streamsize size = ifs.tellg();
-		//	ifs.seekg(0, std::ios::beg);
-
-		//	texData.pixels.resize(static_cast<size_t>(size));
-		//	ifs.read(reinterpret_cast<char*>(texData.pixels.data()), size);
-		//}
-		//else if (image.bufferView >= 0)
-		//{
-		//	const auto& bv = gltfModel.bufferViews[image.bufferView];
-		//	const auto& buffer = gltfModel.buffers[bv.buffer];
-		//	const uint8_t* begin = buffer.data.data() + bv.byteOffset;
-		//	texData.pixels.assign(begin, begin + bv.byteLength);
-		//}
 		if (!image.uri.empty())
 		{
 			std::string texPath = (filepath.parent_path() / image.uri).string();
@@ -655,11 +600,11 @@ void GLTFImporter::LoadAnimations(
 				{
 					GLTFData::VectorKeyframe kf;
 					kf.seconds = times[i];
-					kf.value = 
+					kf.value =
 					{
-						values[i * 3 + 0], 
-						values[i * 3 + 1], 
-						-values[i * 3 + 2] 
+						values[i * 3 + 0],
+						values[i * 3 + 1],
+						-values[i * 3 + 2]
 					};
 					nodeAnim.positionKeyframes.push_back(kf);
 				}
@@ -675,12 +620,12 @@ void GLTFImporter::LoadAnimations(
 
 					GLTFData::QuaternionKeyframe kf;
 					kf.seconds = times[i];
-					kf.value = 
-					{ 
-						-values[i * 4 + 0], 
+					kf.value =
+					{
+						-values[i * 4 + 0],
 						-values[i * 4 + 1],
-						values[i * 4 + 2], 
-						values[i * 4 + 3] 
+						values[i * 4 + 2],
+						values[i * 4 + 3]
 					};
 					nodeAnim.rotationKeyframes.push_back(kf);
 				}

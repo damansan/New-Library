@@ -1,0 +1,95 @@
+{
+    "version": 2,
+    "nextId": 5,
+    "entry": {
+        "transitions": [
+            {
+                "id": 3,
+                "to": 1,
+                "always": true,
+                "condition": {
+                    "returnNode": {
+                        "id": 1,
+                        "posX": 500.0,
+                        "posY": 200.0
+                    },
+                    "variableNodes": [],
+                    "operatorNodes": [],
+                    "logicNodes": [],
+                    "notNodes": [],
+                    "getterNodes": [],
+                    "links": []
+                },
+                "blend": false,
+                "blendDuration": 0.20000000298023224
+            }
+        ],
+        "editor": {
+            "x": 48.0,
+            "y": 208.0
+        }
+    },
+    "states": [
+        {
+            "id": 1,
+            "name": "Idle",
+            "transitions": [],
+            "child": {
+                "clips": [
+                    {
+                        "id": 2,
+                        "name": "New Clip",
+                        "clip": "Anim_Idle_0",
+                        "loop": true,
+                        "rootMotion": false,
+                        "editor": {
+                            "x": 160.0,
+                            "y": 128.0
+                        }
+                    }
+                ],
+                "entryLinks": [
+                    {
+                        "id": 4,
+                        "entry": 3,
+                        "to": 2,
+                        "always": true,
+                        "condition": {
+                            "returnNode": {
+                                "id": 1,
+                                "posX": 500.0,
+                                "posY": 200.0
+                            },
+                            "variableNodes": [],
+                            "operatorNodes": [],
+                            "logicNodes": [],
+                            "notNodes": [],
+                            "getterNodes": [],
+                            "links": []
+                        }
+                    }
+                ],
+                "clipLinks": [],
+                "editor": {
+                    "entries": [
+                        {
+                            "x": -16.0,
+                            "y": 144.0,
+                            "entry": 3
+                        }
+                    ]
+                }
+            },
+            "editor": {
+                "x": 240.0,
+                "y": 208.0,
+                "color": [
+                    0.27000001072883606,
+                    0.3499999940395355,
+                    0.4699999988079071
+                ]
+            }
+        }
+    ],
+    "sourceModelPath": "Data/Model/EnemyRobot/SK_SteamPunkBoss.gltf"
+}

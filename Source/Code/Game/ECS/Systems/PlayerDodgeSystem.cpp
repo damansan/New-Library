@@ -13,7 +13,7 @@
 
 PlayerDodgeSystem::PlayerDodgeSystem()
 {
-	StateMachineSystem::RequireState("Dodge", "PlayerDodgeSystem");
+	StateMachineSystem::RequireState<PlayerDodgeComponent>("Dodge", "PlayerDodgeSystem");
 }
 
 void PlayerDodgeSystem::Update(entt::registry& registry, float elapsedTime, const SceneContext& context)

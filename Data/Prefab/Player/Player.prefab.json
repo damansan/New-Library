@@ -43,7 +43,7 @@
         "sequencerPath": "Data/Json/Sequencer/Map_Robot3.sequencer"
     },
     "StateMachineComponent": {
-        "graphPath": "Data/Json/Animgraph/Robot.stategraph"
+        "graphPath": "Data/Json/StateGraph/Map_Robot3.stategraph"
     },
     "TransformComponent": {
         "position": [

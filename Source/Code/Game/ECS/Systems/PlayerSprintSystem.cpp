@@ -13,7 +13,7 @@
 
 PlayerSprintSystem::PlayerSprintSystem()
 {
-	StateMachineSystem::RequireState("Sprint", "PlayerSprintSystem");
+	StateMachineSystem::RequireState<PlayerSprintComponent>("Sprint", "PlayerSprintSystem");
 }
 
 void PlayerSprintSystem::Update(entt::registry& registry, float elapsedTime, const SceneContext& context)
