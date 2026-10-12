@@ -11,7 +11,7 @@ void ViewportWindow::Initialize(UINT width, UINT height)
 // ImGui描画
 void ViewportWindow::Draw(GameView& gameView, const std::function<void()>& drawMenus)
 {
-    ImGui::Begin("Game", nullptr, ImGuiWindowFlags_MenuBar);
+    ImGui::Begin("Game", nullptr, ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoBringToFrontOnFocus);
 
     // メニューバー
     if (ImGui::BeginMenuBar())
