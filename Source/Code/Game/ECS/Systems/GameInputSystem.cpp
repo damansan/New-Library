@@ -35,6 +35,7 @@ void GameInputSystem::Update(entt::registry& registry, const ControllerSettings&
             {
                 // 接続が切れた場合も、ボタンは押されていない状態にする
                 UpdateButtonState(input.dodgeTrigger, false);
+                UpdateButtonState(input.lockOnTrigger, false);
                 UpdateButtonState(input.jump, false);
                 return;
             }

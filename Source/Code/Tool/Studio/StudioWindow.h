@@ -3,6 +3,7 @@
 #include <wrl.h>
 #include <vector>
 #include <memory>
+#include <imgui.h>
 
 #include "StudioCamera.h"
 #include "StudioContext.h"
@@ -67,6 +68,9 @@ private:
     void End();
     void ResizeRenderTarget();
 
+    // 最大化ボタン
+    void DrawMaximizeButton();
+
     Microsoft::WRL::ComPtr<ID3D11Texture2D>          renderTexture;
     Microsoft::WRL::ComPtr<ID3D11RenderTargetView>   rtv;
     Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv;
@@ -112,4 +116,14 @@ private:
     // ビューポート保存
     D3D11_VIEWPORT savedViewport = {};
     int            renderSkipCount = 0;
+
+
+
+    // 最大化
+    bool   maximized = false;        // 最大化しているか
+    bool   applyWindowRect = false;  // 次のフレームで位置と大きさを変えるか
+    ImVec2 applyPos{};               // 変える先の位置(最大化中は、最大化した位置)
+    ImVec2 applySize{};              // 変える先の大きさ(最大化中は、最大化した大きさ)
+    ImVec2 restorePos{};             // 元に戻す位置
+    ImVec2 restoreSize{};            // 元に戻す大きさ
 };

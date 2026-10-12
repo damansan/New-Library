@@ -1,7 +1,58 @@
-#include "StudioWindow.h"
+ï»¿#include "StudioWindow.h"
 #include <imgui.h>
 #include <imgui_internal.h>
 #include <cassert>
+#include <cmath>
+
+namespace
+{
+	// æœ€å¤§åŒ–ã—ãŸã¨ãã®åºƒã’ã‚‹å…ˆã‚’æ±‚ã‚ã‚‹
+	void GetMaximizeArea(ImVec2 windowPos, ImVec2 windowSize, ImVec2& outPos, ImVec2& outSize)
+	{
+		// ã‚¢ãƒ—ãƒªã®ä¸­ã«ã„ã‚‹
+		ImGuiViewport* mainViewport = ImGui::GetMainViewport();
+		if (ImGui::GetWindowViewport() == mainViewport)
+		{
+			outPos = mainViewport->WorkPos;
+			outSize = mainViewport->WorkSize;
+			return;
+		}
+
+		// ã‚¢ãƒ—ãƒªã®å¤–ï¼šã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã®ä¸­å¿ƒãŒã‚ã‚‹ãƒ¢ãƒ‹ã‚¿ãƒ¼ã‚’æ¢ã™
+		ImVec2 center(windowPos.x + windowSize.x * 0.5f, windowPos.y + windowSize.y * 0.5f);
+		const ImGuiPlatformIO& platformIO = ImGui::GetPlatformIO();
+		for (const ImGuiPlatformMonitor& monitor : platformIO.Monitors)
+		{
+			bool inside =
+				center.x >= monitor.MainPos.x && center.x < monitor.MainPos.x + monitor.MainSize.x &&
+				center.y >= monitor.MainPos.y && center.y < monitor.MainPos.y + monitor.MainSize.y;
+			if (inside)
+			{
+				outPos = monitor.WorkPos;
+				outSize = monitor.WorkSize;
+				return;
+			}
+		}
+
+		// è¦‹ã¤ã‹ã‚‰ãªã‘ã‚Œã°æœ€åˆã®ãƒ¢ãƒ‹ã‚¿ãƒ¼
+		if (!platformIO.Monitors.empty())
+		{
+			outPos = platformIO.Monitors[0].WorkPos;
+			outSize = platformIO.Monitors[0].WorkSize;
+			return;
+		}
+
+		// ãƒ¢ãƒ‹ã‚¿ãƒ¼ã®æƒ…å ±ãŒç„¡ã„å ´åˆã¯ã€ã‚¢ãƒ—ãƒªã®ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦
+		outPos = mainViewport->WorkPos;
+		outSize = mainViewport->WorkSize;
+	}
+
+	// 2ã¤ã®å€¤ãŒã»ã¼åŒã˜ã‹
+	bool NearlyEqual(ImVec2 a, ImVec2 b)
+	{
+		return std::fabs(a.x - b.x) < 1.0f && std::fabs(a.y - b.y) < 1.0f;
+	}
+}
 
 void StudioWindow::Initialize(ID3D11Device* device, StudioSharedContext* shared, UINT width, UINT height)
 {
@@ -13,7 +64,7 @@ void StudioWindow::Initialize(ID3D11Device* device, StudioSharedContext* shared,
 	renderSystem.Initialize(device);
 	lightManager.Initialize(device);
 
-	// IBLƒeƒNƒXƒ`ƒƒƒZƒbƒg
+	// IBLãƒ†ã‚¯ã‚¹ãƒãƒ£ã‚»ãƒƒãƒˆ
 	renderSystem.SetIBLTextures(
 		shared->skyBox.GetDiffuseIem(),
 		shared->skyBox.GetSRV(),
@@ -26,21 +77,21 @@ void StudioWindow::Initialize(ID3D11Device* device, StudioSharedContext* shared,
 	ResizeRenderTarget();
 }
 
-// XV
+// æ›´æ–°
 void StudioWindow::Update(float elapsedTime)
 {
-	// ƒJƒƒ‰XV
+	// ã‚«ãƒ¡ãƒ©æ›´æ–°
 	camera.Update(viewportHovered, elapsedTime);
 
-	// ƒ‚ƒfƒ‹ƒrƒ…ƒ[XV
+	// ãƒ¢ãƒ‡ãƒ«ãƒ“ãƒ¥ãƒ¯ãƒ¼æ›´æ–°
 	stadoiModelViewer.Update(elapsedTime, context);
 
-	// ƒAƒjƒ[ƒVƒ‡ƒ“‘¬“xXV
+	// ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³é€Ÿåº¦æ›´æ–°
 	animationSpeedSystem.Update(studioRegistry);
 
 	if (context.requestPoseUpdate)
 	{
-		// ƒXƒNƒ‰ƒu‘€ì‚ÍŠÔ‚ği‚ß‚¸ƒ|[ƒY‚¾‚¯XV
+		// ã‚¹ã‚¯ãƒ©ãƒ–æ“ä½œæ™‚ã¯æ™‚é–“ã‚’é€²ã‚ãšãƒãƒ¼ã‚ºã ã‘æ›´æ–°
 		animationSystem.EvaluatePose(studioRegistry);
 		context.requestPoseUpdate = false;
 	}
@@ -49,17 +100,17 @@ void StudioWindow::Update(float elapsedTime)
 		animationSystem.Update(studioRegistry, elapsedTime);
 	}
 
-	// ƒAƒ^ƒbƒ`ƒƒ“ƒgXV
+	// ã‚¢ã‚¿ãƒƒãƒãƒ¡ãƒ³ãƒˆæ›´æ–°
 	for (auto& attachment : attachments)
 	{
 		attachment->Update(elapsedTime, context);
 	}
 }
 
-// •`‰æ
+// æç”»
 void StudioWindow::Render()
 {
-	// ƒzƒo[’†‚Í–ˆƒtƒŒ[ƒ€A—£‚ê‚½‚ç1/10
+	// ãƒ›ãƒãƒ¼ä¸­ã¯æ¯ãƒ•ãƒ¬ãƒ¼ãƒ ã€é›¢ã‚ŒãŸã‚‰1/10
 	if (!isHovered)
 	{
 		renderSkipCount++;
@@ -74,10 +125,10 @@ void StudioWindow::Render()
 	ID3D11DeviceContext* dc = context.deviceContext;
 	if (!dc) return;
 
-	// •`‰ææ‚ğ©‘ORTV‚ÉØ‚è‘Ö‚¦
+	// æç”»å…ˆã‚’è‡ªå‰RTVã«åˆ‡ã‚Šæ›¿ãˆ
 	Begin();
 
-	// CbSceneXV
+	// CbSceneæ›´æ–°
 	CbScene cbSceneData{};
 	cbSceneData.view = camera.GetView();
 	cbSceneData.projection = camera.GetProjection();
@@ -88,13 +139,13 @@ void StudioWindow::Render()
 	dc->VSSetConstantBuffers(0, 1, renderSystem.GetCbSceneAddress());
 	dc->PSSetConstantBuffers(0, 1, renderSystem.GetCbSceneAddress());
 
-	// ƒ‰ƒCƒg‚ğGPU‚É“]‘—
+	// ãƒ©ã‚¤ãƒˆã‚’GPUã«è»¢é€
 	lightManager.Bind(dc);
 
-	// ƒtƒ‰ƒXƒ^ƒ€XV
+	// ãƒ•ãƒ©ã‚¹ã‚¿ãƒ æ›´æ–°
 	renderSystem.SetFrustum(camera.GetView(), camera.GetProjection());
 
-	// ƒXƒJƒCƒ{ƒbƒNƒX•`‰æ
+	// ã‚¹ã‚«ã‚¤ãƒœãƒƒã‚¯ã‚¹æç”»
 	shared->skyBox.Render(
 		dc,
 		camera.GetView(),
@@ -102,10 +153,10 @@ void StudioWindow::Render()
 		camera.GetEye()
 	);
 
-	// ƒ‚ƒfƒ‹‚ª‚ ‚é‚¾‚¯RenderSystem‚ğ‘–‚ç‚¹‚é
+	// ãƒ¢ãƒ‡ãƒ«ãŒã‚ã‚‹æ™‚ã ã‘RenderSystemã‚’èµ°ã‚‰ã›ã‚‹
 	if (!studioRegistry.storage<TransformComponent>().empty())
 	{
-		// •`‰æ
+		// æç”»
 		renderSystem.Render(
 			studioRegistry,
 			dc,
@@ -117,7 +168,7 @@ void StudioWindow::Render()
 		);
 	}
 
-	// ƒAƒ^ƒbƒ`ƒƒ“ƒg‚Ì3D•`‰æ
+	// ã‚¢ã‚¿ãƒƒãƒãƒ¡ãƒ³ãƒˆã®3Dæç”»
 	for (auto& attachment : attachments)
 	{
 		attachment->OnRender(
@@ -129,24 +180,43 @@ void StudioWindow::Render()
 		);
 	}
 
-	// •`‰ææ‚ğƒƒCƒ“‚É–ß‚·
+	// æç”»å…ˆã‚’ãƒ¡ã‚¤ãƒ³ã«æˆ»ã™
 	End();
 }
 
-// ImGui•`‰æ
+// ImGuiæç”»
 void StudioWindow::DrawWindow(const char* windowName)
 {
+	// æœ€å¤§åŒ–ãƒ»å…ƒã«æˆ»ã™ã®äºˆç´„ãŒã‚ã‚Œã°ã€Beginã®å‰ã«ä½ç½®ã¨å¤§ãã•ã‚’ä¼ãˆã‚‹
+	if (applyWindowRect)
+	{
+		ImGui::SetNextWindowPos(applyPos, ImGuiCond_Always);
+		ImGui::SetNextWindowSize(applySize, ImGuiCond_Always);
+		applyWindowRect = false;
+	}
+
+
 	bool open = true;
 	ImGui::Begin(windowName, &open, ImGuiWindowFlags_MenuBar);
 	if (!open) closeRequested = true;
 
-	// Studio‚ª‚¢‚éƒrƒ…[ƒ|[ƒg
+	// StudioãŒã„ã‚‹ãƒ“ãƒ¥ãƒ¼ãƒãƒ¼ãƒˆ
 	context.studioViewportId = ImGui::GetWindowViewport()->ID;
 
-	// StudioƒEƒBƒ“ƒhƒE‘S‘Ì‚Åƒzƒo[”»’è
+	// æœ€å¤§åŒ–ä¸­ã«ã€ãƒ‰ãƒ©ãƒƒã‚°ã§å‹•ã‹ã—ãŸãƒ»å¤§ãã•ã‚’å¤‰ãˆãŸãƒ»ãƒ‰ãƒƒã‚­ãƒ³ã‚°ã—ãŸã‚‰ã€æœ€å¤§åŒ–ã‚’å¤–ã™
+	if (maximized)
+	{
+		bool changed = !NearlyEqual(ImGui::GetWindowPos(), applyPos) || !NearlyEqual(ImGui::GetWindowSize(), applySize);
+		if (changed || ImGui::IsWindowDocked()) maximized = false;
+	}
+
+	// å³ç«¯ï¼šæœ€å¤§åŒ–ãƒœã‚¿ãƒ³
+	DrawMaximizeButton();
+
+	// Studioã‚¦ã‚£ãƒ³ãƒ‰ã‚¦å…¨ä½“ã§ãƒ›ãƒãƒ¼åˆ¤å®š
 	isHovered = ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_DockHierarchy);
 
-	// ƒƒjƒ…[ƒo[
+	// ãƒ¡ãƒ‹ãƒ¥ãƒ¼ãƒãƒ¼
 	if (ImGui::BeginMenuBar())
 	{
 		if (ImGui::BeginMenu("Window"))
@@ -162,12 +232,12 @@ void StudioWindow::DrawWindow(const char* windowName)
 		ImGui::EndMenuBar();
 	}
 
-	// ‚±‚ÌStudioê—p‚ÌDockSpace
+	// ã“ã®Studioå°‚ç”¨ã®DockSpace
 	std::string dockSpaceName = "StudioDockSpace##" + std::to_string(windowId);
 	ImGuiID dockSpaceId = ImGui::GetID(dockSpaceName.c_str());
 	ImGui::DockSpace(dockSpaceId, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
 
-	// ‰‰ñƒtƒŒ[ƒ€‚¾‚¯ƒfƒtƒHƒ‹ƒgƒŒƒCƒAƒEƒg‚ğ‘g‚Ş
+	// åˆå›ãƒ•ãƒ¬ãƒ¼ãƒ ã ã‘ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆãƒ¬ã‚¤ã‚¢ã‚¦ãƒˆã‚’çµ„ã‚€
 	if (firstDockSetup)
 	{
 		firstDockSetup = false;
@@ -203,11 +273,11 @@ void StudioWindow::DrawWindow(const char* windowName)
 		ImGui::DockBuilderFinish(dockSpaceId);
 	}
 
-	// Viewportƒpƒlƒ‹
+	// Viewportãƒ‘ãƒãƒ«
 	std::string viewportName = "Viewport##" + std::to_string(windowId);
 	ImGui::Begin(viewportName.c_str());
 
-	// ‰æ¿Šm”F
+	// ç”»è³ªç¢ºèª
 	// ImGui::Text("Render Resolution: %ux%u", renderWidth, renderHeight);
 
 	ImVec2 region = ImGui::GetContentRegionAvail();
@@ -218,7 +288,7 @@ void StudioWindow::DrawWindow(const char* windowName)
 
 	ImGui::Image(reinterpret_cast<ImTextureID>(srv.Get()), region);
 
-	// ƒ‚ƒfƒ‹‚Ìƒhƒƒbƒv‚ğó‚¯æ‚é
+	// ãƒ¢ãƒ‡ãƒ«ã®ãƒ‰ãƒ­ãƒƒãƒ—ã‚’å—ã‘å–ã‚‹
 	if (ImGui::BeginDragDropTarget())
 	{
 		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("MODEL_PATH"))
@@ -229,36 +299,36 @@ void StudioWindow::DrawWindow(const char* windowName)
 		ImGui::EndDragDropTarget();
 	}
 
-	// ƒJƒƒ‰‘€ì‚ÌŠJn”»’è‚ÍViewport’P‘Ì‚Ìƒzƒo[‚¾‚¯‚ğŒ©‚é
+	// ã‚«ãƒ¡ãƒ©æ“ä½œã®é–‹å§‹åˆ¤å®šã¯Viewportå˜ä½“ã®ãƒ›ãƒãƒ¼ã ã‘ã‚’è¦‹ã‚‹
 	viewportHovered = ImGui::IsWindowHovered();
 
 	ImGui::End(); // Viewport
 
-	// Animatorƒpƒlƒ‹
+	// Animatorãƒ‘ãƒãƒ«
 	if (context.showAnimator)
 	{
 		studioAnimator.DrawGUI(studioRegistry, context);
 	}
 
-	// Timelineƒpƒlƒ‹
+	// Timelineãƒ‘ãƒãƒ«
 	if (context.showTimeline)
 	{
 		studioTimeline.DrawGUI(studioRegistry, context);
 	}
 
-	// Sequencerƒpƒlƒ‹
+	// Sequencerãƒ‘ãƒãƒ«
 	if (context.showSequencer)
 	{
 		studioSequencer.DrawGUI(studioRegistry, context);
 	}
 
-	// State Graphƒpƒlƒ‹
+	// State Graphãƒ‘ãƒãƒ«
 	if (context.showStateGraph)
 	{
 		stateGraph.DrawGUI(studioRegistry, context);
 	}
 
-	// AnimationSpeedƒpƒlƒ‹
+	// AnimationSpeedãƒ‘ãƒãƒ«
 	if (context.showAnimationSpeed)
 	{
 		studioAnimationSpeed.DrawGUI(studioRegistry, context);
@@ -272,19 +342,19 @@ void StudioWindow::DrawWindow(const char* windowName)
 	ImGui::End(); // Studio
 }
 
-// ƒAƒ^ƒbƒ`ƒƒ“ƒg’Ç‰Á
+// ã‚¢ã‚¿ãƒƒãƒãƒ¡ãƒ³ãƒˆè¿½åŠ 
 void StudioWindow::AddAttachment(std::unique_ptr<IStudioAttachment> attachment)
 {
 	attachments.push_back(std::move(attachment));
 }
 
-// ƒAƒZƒbƒg“Ç‚İ‚İ
+// ã‚¢ã‚»ãƒƒãƒˆèª­ã¿è¾¼ã¿
 void StudioWindow::LoadAsset(const std::string& assetPath)
 {
 	stadoiModelViewer.LoadModel(studioRegistry, assetPath);
 	context.currentModelPath = assetPath;
 
-	// ƒ‚ƒfƒ‹‚ª•Ï‚í‚Á‚½‚±‚Æ‚ğ“`‚¦‚é
+	// ãƒ¢ãƒ‡ãƒ«ãŒå¤‰ã‚ã£ãŸã“ã¨ã‚’ä¼ãˆã‚‹
 	stateGraph.OnModelChanged(context);
 }
 
@@ -293,11 +363,11 @@ void StudioWindow::Begin()
 	ID3D11DeviceContext* dc = context.deviceContext;
 	if (!dc) return;
 
-	// Œ»İ‚Ìƒrƒ…[ƒ|[ƒg‚ğ•Û‘¶
+	// ç¾åœ¨ã®ãƒ“ãƒ¥ãƒ¼ãƒãƒ¼ãƒˆã‚’ä¿å­˜
 	UINT numVP = 1;
 	dc->RSGetViewports(&numVP, &savedViewport);
 
-	// ©‘O‚Ìƒrƒ…[ƒ|[ƒg‚ğƒZƒbƒg
+	// è‡ªå‰ã®ãƒ“ãƒ¥ãƒ¼ãƒãƒ¼ãƒˆã‚’ã‚»ãƒƒãƒˆ
 	D3D11_VIEWPORT vp{};
 	vp.Width = static_cast<float>(renderWidth);
 	vp.Height = static_cast<float>(renderHeight);
@@ -305,10 +375,10 @@ void StudioWindow::Begin()
 	vp.MaxDepth = 1.0f;
 	dc->RSSetViewports(1, &vp);
 
-	// •`‰ææ‚ğ©‘ORTV‚ÉØ‚è‘Ö‚¦
+	// æç”»å…ˆã‚’è‡ªå‰RTVã«åˆ‡ã‚Šæ›¿ãˆ
 	dc->OMSetRenderTargets(1, rtv.GetAddressOf(), dsv.Get());
 
-	// ƒNƒŠƒA
+	// ã‚¯ãƒªã‚¢
 	float clear[4] = { 0.15f, 0.15f, 0.15f, 1.0f };
 	dc->ClearRenderTargetView(rtv.Get(), clear);
 	dc->ClearDepthStencilView(dsv.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
@@ -318,10 +388,10 @@ void StudioWindow::End()
 	ID3D11DeviceContext* dc = context.deviceContext;
 	if (!dc) return;
 
-	// ƒrƒ…[ƒ|[ƒg‚ğŒ³‚É–ß‚·
+	// ãƒ“ãƒ¥ãƒ¼ãƒãƒ¼ãƒˆã‚’å…ƒã«æˆ»ã™
 	dc->RSSetViewports(1, &savedViewport);
 
-	// •`‰ææ‚ğƒƒCƒ“‚É–ß‚·
+	// æç”»å…ˆã‚’ãƒ¡ã‚¤ãƒ³ã«æˆ»ã™
 	ID3D11RenderTargetView* nullRTV = nullptr;
 	dc->OMSetRenderTargets(1, &nullRTV, nullptr);
 }
@@ -331,7 +401,7 @@ void StudioWindow::ResizeRenderTarget()
 	if (!device) return;
 	if (renderWidth == 0 || renderHeight == 0) return;
 
-	// ŒÃ‚¢ƒŠƒ\[ƒX‚ğ‰ğ•ú
+	// å¤ã„ãƒªã‚½ãƒ¼ã‚¹ã‚’è§£æ”¾
 	srv.Reset();
 	rtv.Reset();
 	renderTexture.Reset();
@@ -340,7 +410,7 @@ void StudioWindow::ResizeRenderTarget()
 
 	HRESULT hr;
 
-	// ƒJƒ‰[ƒeƒNƒXƒ`ƒƒÄ¶¬
+	// ã‚«ãƒ©ãƒ¼ãƒ†ã‚¯ã‚¹ãƒãƒ£å†ç”Ÿæˆ
 	{
 		D3D11_TEXTURE2D_DESC desc{};
 		desc.Width = renderWidth;
@@ -360,7 +430,7 @@ void StudioWindow::ResizeRenderTarget()
 		assert(SUCCEEDED(hr));
 	}
 
-	// [“xƒeƒNƒXƒ`ƒƒÄ¶¬
+	// æ·±åº¦ãƒ†ã‚¯ã‚¹ãƒãƒ£å†ç”Ÿæˆ
 	{
 		D3D11_TEXTURE2D_DESC desc{};
 		desc.Width = renderWidth;
@@ -377,4 +447,84 @@ void StudioWindow::ResizeRenderTarget()
 		hr = device->CreateDepthStencilView(depthTexture.Get(), nullptr, dsv.GetAddressOf());
 		assert(SUCCEEDED(hr));
 	}
+}
+
+// æœ€å¤§åŒ–ãƒœã‚¿ãƒ³
+void StudioWindow::DrawMaximizeButton()
+{
+	ImGuiWindow* window = ImGui::GetCurrentWindow();
+
+	// ãƒ‰ãƒƒã‚­ãƒ³ã‚°ä¸­ã¯ã‚¿ã‚¤ãƒˆãƒ«ãƒãƒ¼ãŒã‚¿ãƒ–ã«ãªã‚‹ã®ã§å‡ºã•ãªã„
+	if (window->DockIsActive || (window->Flags & ImGuiWindowFlags_NoTitleBar)) return;
+
+	ImGuiStyle& style = ImGui::GetStyle();
+	ImRect titleBar = window->TitleBarRect();
+
+	// Ã—ãƒœã‚¿ãƒ³ã¨åŒã˜å¤§ãã•ã§ã€Ã—ã®å·¦ã«ä¸¦ã¹ã‚‹(ImGuiãŒÃ—ã‚’ç½®ãä½ç½®ã®è¨ˆç®—ã«åˆã‚ã›ã‚‹)
+	float buttonSize = ImGui::GetFontSize();
+	float closeX = titleBar.Max.x - window->WindowBorderSize - style.FramePadding.x - buttonSize;
+	ImVec2 pos(closeX - style.ItemInnerSpacing.x - buttonSize, titleBar.Min.y + style.FramePadding.y);
+	ImRect bb(pos, ImVec2(pos.x + buttonSize, pos.y + buttonSize));
+
+	// ã‚¿ã‚¤ãƒˆãƒ«ãƒãƒ¼ã¯ä¸­èº«ã®æç”»ç¯„å›²ã®å¤–ãªã®ã§ã€ãƒœã‚¿ãƒ³ã‚’ä½œã‚‹é–“ã ã‘ç¯„å›²ã‚’åºƒã’ã‚‹
+	ImGui::PushClipRect(titleBar.Min, titleBar.Max, false);
+
+	// ãƒœã‚¿ãƒ³ã®åˆ¤å®š(Ã—ãƒœã‚¿ãƒ³ã¨åŒã˜ä½œã‚Šæ–¹)
+	ImGuiID id = window->GetID("#MAXIMIZE");
+	ImGui::ItemAdd(bb, id);
+	bool hovered = false;
+	bool held = false;
+	bool pressed = ImGui::ButtonBehavior(bb, id, &hovered, &held);
+
+	// ãƒã‚¦ã‚¹ãŒä¹—ã£ãŸã‚‰ã€Ã—ãƒœã‚¿ãƒ³ã¨åŒã˜ãä¸¸ã„èƒŒæ™¯ã‚’å‡ºã™
+	ImDrawList* drawList = window->DrawList;
+	ImVec2 center = bb.GetCenter();
+	if (hovered)
+	{
+		ImU32 bg = ImGui::GetColorU32(held ? ImGuiCol_ButtonActive : ImGuiCol_ButtonHovered);
+		drawList->AddCircleFilled(center, ImMax(2.0f, buttonSize * 0.5f + 1.0f), bg);
+	}
+
+	// å°ï¼šé€šå¸¸ã¯å››è§’1ã¤(æœ€å¤§åŒ–)ã€æœ€å¤§åŒ–ä¸­ã¯å››è§’2ã¤ã‚’é‡ã­ã‚‹(å…ƒã«æˆ»ã™)
+	ImU32 color = ImGui::GetColorU32(ImGuiCol_Text);
+	float half = buttonSize * 0.25f;
+	if (!maximized)
+	{
+		drawList->AddRect(ImVec2(center.x - half, center.y - half), ImVec2(center.x + half, center.y + half), color);
+	}
+	else
+	{
+		float offset = half * 0.4f;
+		drawList->AddRect(ImVec2(center.x - half + offset, center.y - half - offset), ImVec2(center.x + half + offset, center.y + half - offset), color);
+		drawList->AddRect(ImVec2(center.x - half - offset, center.y - half + offset), ImVec2(center.x + half - offset, center.y + half + offset), color);
+	}
+
+	ImGui::PopClipRect();
+
+	// èª¬æ˜
+	if (hovered)
+	{
+		ImGui::SetTooltip("%s", maximized ? "Restore" : "Maximize");
+	}
+
+	if (!pressed) return;
+
+	if (!maximized)
+	{
+		// ä»Šã®ä½ç½®ã¨å¤§ãã•ã‚’è¦šãˆã¦ã€åºƒã’ã‚‹å…ˆã‚’äºˆç´„ã™ã‚‹
+		restorePos = ImGui::GetWindowPos();
+		restoreSize = ImGui::GetWindowSize();
+		GetMaximizeArea(restorePos, restoreSize, applyPos, applySize);
+		maximized = true;
+	}
+	else
+	{
+		// è¦šãˆã¦ãŠã„ãŸä½ç½®ã¨å¤§ãã•ã«æˆ»ã™
+		applyPos = restorePos;
+		applySize = restoreSize;
+		maximized = false;
+	}
+
+	// ä½ç½®ã¨å¤§ãã•ã¯ã€æ¬¡ã®ãƒ•ãƒ¬ãƒ¼ãƒ ã®Beginã®å‰ã«åæ˜ ã™ã‚‹
+	applyWindowRect = true;
 }
