@@ -449714,7 +449714,7 @@
           }
         }
       ],
-      "name": "AS_Sprint_Turn_Letf",
+      "name": "AS_Sprint_Turn_Left",
       "samplers": [
         {
           "input": 5470,
@@ -472695,7 +472695,7 @@
           }
         }
       ],
-      "name": "AS_Dodge_Letf",
+      "name": "AS_Dodge_Left",
       "samplers": [
         {
           "input": 9292,
@@ -475978,7 +475978,7 @@
           }
         }
       ],
-      "name": "AS_Dodge_RIght",
+      "name": "AS_Dodge_Right",
       "samplers": [
         {
           "input": 9838,
@@ -479261,7 +479261,7 @@
           }
         }
       ],
-      "name": "AS_light_Attack_1-1",
+      "name": "AS_Light_Attack_1-1",
       "samplers": [
         {
           "input": 10384,
@@ -482544,7 +482544,7 @@
           }
         }
       ],
-      "name": "AS_light_Attack_1-2",
+      "name": "AS_Light_Attack_1-2",
       "samplers": [
         {
           "input": 10930,
@@ -485827,7 +485827,7 @@
           }
         }
       ],
-      "name": "AS_light_Attack_1-3",
+      "name": "AS_Light_Attack_1-3",
       "samplers": [
         {
           "input": 11476,
@@ -489110,7 +489110,7 @@
           }
         }
       ],
-      "name": "AS_light_Attack_1-4",
+      "name": "AS_Light_Attack_1-4",
       "samplers": [
         {
           "input": 12022,
@@ -551487,7 +551487,7 @@
           }
         }
       ],
-      "name": "AS_Jump_Front_Startd",
+      "name": "AS_Jump_Front_Start",
       "samplers": [
         {
           "input": 22396,
@@ -567902,7 +567902,7 @@
           }
         }
       ],
-      "name": "AS_Light_Air_Attack1-1",
+      "name": "AS_Air_Light_Attack_1-1",
       "samplers": [
         {
           "input": 25126,
@@ -571185,7 +571185,7 @@
           }
         }
       ],
-      "name": "AS_Light_Air_Attack1-2",
+      "name": "AS_Air_Light_Attack_1-2",
       "samplers": [
         {
           "input": 25672,
@@ -574468,7 +574468,7 @@
           }
         }
       ],
-      "name": "AS_Light_Air_Attack1-3",
+      "name": "AS_Air_Light_Attack_1-3",
       "samplers": [
         {
           "input": 26218,
@@ -577751,7 +577751,7 @@
           }
         }
       ],
-      "name": "AS_Light_Air_Attack1-4",
+      "name": "AS_Air_Light_Attack_1-4",
       "samplers": [
         {
           "input": 26764,
@@ -581034,7 +581034,7 @@
           }
         }
       ],
-      "name": "AS_Heavy_Air_Attack_Start",
+      "name": "AS_Air_Heavy_Attack_Start",
       "samplers": [
         {
           "input": 27310,
@@ -584317,7 +584317,7 @@
           }
         }
       ],
-      "name": "AS_Heavy_Air_Attack_Loop",
+      "name": "AS_Air_Heavy_Attack_Loop",
       "samplers": [
         {
           "input": 27856,
@@ -587600,7 +587600,7 @@
           }
         }
       ],
-      "name": "AS_Heavy_Air_Attack_End",
+      "name": "AS_Air_Heavy_Attack_End",
       "samplers": [
         {
           "input": 28402,
