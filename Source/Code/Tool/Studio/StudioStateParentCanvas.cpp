@@ -545,6 +545,19 @@ void StudioStateParentCanvas::DrawLinkInspector(int linkId)
 	{
 		DeleteSelection(*data);
 	}
+
+	// 同じ階層のリンクから、設定を写すためのリスト
+	ConditionTarget self{ ConditionTarget::Kind::StateLink, -1, linkId };
+	ImGui::Spacing();
+	ImGui::Separator();
+	ImGui::Text("Copy From");
+
+	// 受け口に落とされたら、写す依頼を出す
+	ConditionTarget source = ConditionCopyList::DrawDropTarget(self);
+	if (source.IsValid()) copyRequest = { source, self };
+
+	// 写す元のリスト
+	ConditionCopyList::Draw(ConditionCopyList::CollectParent(*data, self));
 }
 
 // 出ていくリンクの一覧

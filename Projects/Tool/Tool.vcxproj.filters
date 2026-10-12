@@ -118,6 +118,9 @@
     <Filter Include="Sources\Tool\Studio\StudioState\StudioConditionCanvas">
       <UniqueIdentifier>{eb7ed029-ccb8-4565-aaec-81960b447b2a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\Tool\Studio\StudioState\StudioConditionCopyList">
+      <UniqueIdentifier>{cd45949d-26e9-4b73-ab64-5045479de42c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\External\imgui-docking\imgui.cpp">
@@ -228,6 +231,9 @@
     <ClCompile Include="..\..\Source\Code\Tool\Studio\StudioConditionCanvas.cpp">
       <Filter>Sources\Tool\Studio\StudioState\StudioConditionCanvas</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Source\Code\Tool\Studio\StudioConditionCopyList.cpp">
+      <Filter>Sources\Tool\Studio\StudioState\StudioConditionCopyList</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Source\Code\Tool\NodeEditor\NodeEditorCanvas.h">
@@ -322,6 +328,9 @@
     </ClInclude>
     <ClInclude Include="..\..\Source\Code\Tool\Studio\StudioConditionCanvas.h">
       <Filter>Sources\Tool\Studio\StudioState\StudioConditionCanvas</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Code\Tool\Studio\StudioConditionCopyList.h">
+      <Filter>Sources\Tool\Studio\StudioState\StudioConditionCopyList</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

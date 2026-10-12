@@ -2482,9 +2482,8 @@ struct ConditionGetterNode
 	int id = -1;
 	float posX = 0.0f;
 	float posY = 0.0f;
-	std::string componentName; // Œ^–¼(Reflection‚Å“o˜^‚µ‚½‚à‚Ì)
-	std::string fieldName;     // ƒtƒB[ƒ‹ƒh–¼
-	ValueType type = ValueType::Float;
+	std::string componentName; // Œ^–¼
+	std::string fieldName;     // ƒtƒB[ƒ‹ƒh‚ÌƒR[ƒhã‚Ì–¼‘O
 	FloatComponent selectedComponent = FloatComponent::None;
 };
 
@@ -2620,7 +2619,12 @@ private:
 
 // JSON‚Æ‚Ì•ÏŠ·
 nlohmann::ordered_json ConditionGraphToJson(const ConditionGraph& graph);
-void ConditionGraphFromJson(ConditionGraph& graph, const nlohmann::json& j); 
+void ConditionGraphFromJson(ConditionGraph& graph, const nlohmann::json& j);
+
+// ƒQƒbƒ^[‚ª“Ç‚ŞƒtƒB[ƒ‹ƒh‚ÌŒ^
+ValueType GetGetterFieldType(const ConditionGetterNode& node);
+// ƒQƒbƒ^[‚Å‘I‚ñ‚Å‚¢‚é¬•ª‚ªA‚»‚ÌŒ^‚Åg‚¦‚é‚©
+bool IsGetterAxisValid(const ConditionGetterNode& node); 
  
 ===== SequencerData.h ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Data\SequencerData.h 
@@ -2980,22 +2984,24 @@ namespace
 	{
 		switch (type)
 		{
-		case ValueType::Int:    return "Int";
-		case ValueType::Float:  return "Float";
-		case ValueType::Bool:   return "Bool";
-		case ValueType::Float2: return "Float2";
-		case ValueType::Float3: return "Float3";
-		case ValueType::Float4: return "Float4";
-		default:                return "Float";
+		case ValueType::Int:         return "Int";
+		case ValueType::Float:       return "Float";
+		case ValueType::Bool:        return "Bool";
+		case ValueType::Float2:      return "Float2";
+		case ValueType::Float3:      return "Float3";
+		case ValueType::Float4:      return "Float4";
+		case ValueType::Unsupported: return "Unsupported";
+		default:                     return "Float";
 		}
 	}
 	ValueType ToValueType(const std::string& s)
 	{
-		if (s == "Int")    return ValueType::Int;
-		if (s == "Bool")   return ValueType::Bool;
-		if (s == "Float2") return ValueType::Float2;
-		if (s == "Float3") return ValueType::Float3;
-		if (s == "Float4") return ValueType::Float4;
+		if (s == "Int")         return ValueType::Int;
+		if (s == "Bool")        return ValueType::Bool;
+		if (s == "Float2")      return ValueType::Float2;
+		if (s == "Float3")      return ValueType::Float3;
+		if (s == "Float4")      return ValueType::Float4;
+		if (s == "Unsupported") return ValueType::Unsupported;
 		return ValueType::Float;
 	}
 
@@ -3136,15 +3142,8 @@ bool ConditionGraph::GetOutputType(int nodeId, ValueType& outType) const
 	case ConditionNodeKind::Getter:
 	{
 		const ConditionGetterNode* g = FindById(getterNodes, nodeId);
-		// Float2`4‚ÍA¬•ª(.xyz)‚ğ‘I‚ñ‚Å‚¢‚ê‚ÎFloat‚Æ‚µ‚Äˆµ‚¤
-		if (Reflection::GetComponentCount(g->type) > 0 && g->selectedComponent != FloatComponent::None)
-		{
-			outType = ValueType::Float;
-		}
-		else
-		{
-			outType = g->type;
-		}
+		// Float2`4‚ÍAg‚¦‚é¬•ª(.xyz)‚ğ‘I‚ñ‚Å‚¢‚ê‚ÎFloat‚Æ‚µ‚Äˆµ‚¤
+		outType = IsGetterAxisValid(*g) ? ValueType::Float : GetGetterFieldType(*g);
 		return true;
 	}
 	// ”äŠrE˜_—E”Û’è‚Ìo—Í‚Íí‚ÉBool
@@ -3287,6 +3286,18 @@ bool ConditionGraph::CheckLink(int fromNodeId, int toNodeId, bool toPinB, int ig
 	ValueType fromType;
 	if (!GetOutputType(fromNodeId, fromType)) return fail("Source has no output.");
 
+	// ƒQƒbƒ^[‚ÍA“Ç‚ß‚éƒtƒB[ƒ‹ƒh‚ğ‘I‚ñ‚Å‚¢‚È‚¢‚Æ‚Â‚È‚°‚È‚¢
+	if (GetNodeKind(fromNodeId) == ConditionNodeKind::Getter)
+	{
+		const ConditionGetterNode* g = FindById(getterNodes, fromNodeId);
+		if (g->componentName.empty() || g->fieldName.empty()) return fail("Select a field.");
+		if (!Reflection::FindField(g->componentName, g->fieldName)) return fail("Field not found.");
+	}
+	if (fromType == ValueType::Unsupported) return fail("This field cannot be read in conditions.");
+
+	// Float2`4‚ÍA¬•ª(X/Y/Z/W)‚ğ‘I‚Î‚È‚¢‚Æ”ä‚×‚ç‚ê‚È‚¢
+	if (Reflection::GetComponentCount(fromType) > 0) return fail("Select an axis (X/Y/Z/W).");
+
 	// ó‚¯‚é‘¤‚ÉA‚»‚Ìƒsƒ“‚ª‚ ‚é‚©
 	ConditionNodeKind toKind = GetNodeKind(toNodeId);
 	bool hasPinA = (toKind == ConditionNodeKind::Operator || toKind == ConditionNodeKind::Logic
@@ -3418,7 +3429,6 @@ nlohmann::ordered_json ConditionGraphToJson(const ConditionGraph& graph)
 		jg["posY"] = g.posY;
 		jg["componentName"] = g.componentName;
 		jg["fieldName"] = g.fieldName;
-		jg["type"] = ToString(g.type);
 		jg["selectedComponent"] = ToString(g.selectedComponent);
 		jc["getterNodes"].push_back(jg);
 	}
@@ -3524,7 +3534,6 @@ void ConditionGraphFromJson(ConditionGraph& graph, const nlohmann::json& jc)
 					g.fieldName = f->fieldName;
 				}
 			}
-			g.type = ToValueType(jg.value("type", "Float"));
 			g.selectedComponent = ToFloatComponent(jg.value("selectedComponent", "None"));
 			graph.getterNodes.push_back(g);
 		}
@@ -3545,7 +3554,24 @@ void ConditionGraphFromJson(ConditionGraph& graph, const nlohmann::json& jc)
 
 	// “Ç‚İ‚ñ‚¾ID‚Ì‘±‚«‚©‚çÌ”Ô‚·‚é
 	graph.RecalculateNextId();
-} 
+}
+
+// ƒQƒbƒ^[‚ª“Ç‚ŞƒtƒB[ƒ‹ƒh‚ÌŒ^
+ValueType GetGetterFieldType(const ConditionGetterNode& node)
+{
+	if (node.componentName.empty() || node.fieldName.empty()) return ValueType::Unsupported;
+
+	const FieldEntry* field = Reflection::FindField(node.componentName, node.fieldName);
+	return field ? field->type : ValueType::Unsupported;
+}
+// ƒQƒbƒ^[‚Å‘I‚ñ‚Å‚¢‚é¬•ª‚ªA‚»‚ÌŒ^‚Åg‚¦‚é‚©
+bool IsGetterAxisValid(const ConditionGetterNode& node)
+{
+	int count = Reflection::GetComponentCount(GetGetterFieldType(node));
+	int index = static_cast<int>(node.selectedComponent); // None=0, X=1, Y=2, Z=3, W=4
+	return count > 0 && index >= 1 && index <= count;
+}
+ 
  
 ===== SequencerData.cpp ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Data\SequencerData.cpp 
@@ -4136,6 +4162,16 @@ bool StateMachineData::Validate(const std::string& sourceName) const
 					error(what + u8" ‚ÌğŒ‚ªA‘¶İ‚µ‚È‚¢ƒtƒB[ƒ‹ƒhu" + g.componentName + "." + g.fieldName + u8"v‚ğ“Ç‚ñ‚Å‚¢‚Ü‚·");
 				}
 			}
+
+			// Œˆ‚Ü‚è‚É‡‚í‚È‚¢ƒŠƒ“ƒN(ƒGƒfƒBƒ^‚ÅÔ‚­•\¦‚³‚ê‚é‚à‚Ì)
+			for (const auto& l : condition.links)
+			{
+				std::string reason;
+				if (!condition.IsLinkValid(l, &reason))
+				{
+					error(what + u8" ‚ÌğŒ‚ÉAŒˆ‚Ü‚è‚É‡‚í‚È‚¢ƒŠƒ“ƒN‚ª‚ ‚è‚Ü‚·(ƒŠƒ“ƒNID " + std::to_string(l.id) + u8"): " + reason);
+				}
+			}
 		};
 
 	auto checkBlend = [&](const BlendSetting& blend, const std::string& what)
@@ -4610,6 +4646,8 @@ enum class ValueType
 	Float2,
 	Float3,
 	Float4,
+
+	Unsupported, // ğŒ‚Å“Ç‚ß‚È‚¢Œ^(strong,enum‚È‚Ç)
 };
 
 // ƒtƒB[ƒ‹ƒh‚Ìˆµ‚¢‚ğ•\‚·ƒtƒ‰ƒO
@@ -4769,7 +4807,9 @@ namespace
 		if (type == entt::resolve<DirectX::XMFLOAT2>()) return ValueType::Float2;
 		if (type == entt::resolve<DirectX::XMFLOAT3>()) return ValueType::Float3;
 		if (type == entt::resolve<DirectX::XMFLOAT4>()) return ValueType::Float4;
-		return ValueType::Float;
+		
+		// ‚»‚êˆÈŠO(string,enum‚È‚Ç)‚ÍAğŒ‚Å‚Í“Ç‚ß‚È‚¢
+		return ValueType::Unsupported;
 	}
 
 	// leafŒ^‚©‚Ç‚¤‚©
@@ -6867,7 +6907,7 @@ bool ConditionGraphEvaluator::Evaluate(const ConditionGraph& graph, entt::regist
 			break;
 		}
 	}
-	if (fromId == -1) return true; // Return‚É‰½‚àŒq‚ª‚Á‚Ä‚¢‚È‚¢ê‡‚ÍA‘JˆÚ‚Æ‚µ‚Äˆµ‚¤
+	if (fromId == -1) return false; // Return‚É‰½‚à‚Â‚È‚ª‚Á‚Ä‚¢‚È‚¢‚È‚ç•s¬—§
 
 	// Œq‚ª‚Á‚Ä‚¢‚é‚Ì‚ªOperator‚È‚çA‚»‚Ì”äŠrŒ‹‰Ê‚ğ‚»‚Ì‚Ü‚Ü•Ô‚·
 	for (const auto& o : graph.operatorNodes)
@@ -12513,6 +12553,8 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Resource\GLTFImpor
 #include <algorithm>
 #include <fstream>
 
+#include "Engine/Core/Log.h"
+
 #define TINYGLTF_IMPLEMENTATION
 #include "tiny_gltf.h"
 
@@ -12815,6 +12857,10 @@ void GLTFImporter::LoadMeshes(
 				const auto& buf = gltfModel.buffers[bv.buffer];
 				const float* src = reinterpret_cast<const float*>(
 					buf.data.data() + bv.byteOffset + acc.byteOffset);
+
+				// Šm”F—pFƒEƒFƒCƒg‚ÌŒ^‚Æ”z’u
+				Log(u8"[WEIGHTS_0] componentType=%d type=%d count=%zu byteStride=%zu vertices=%zu",
+					acc.componentType, acc.type, acc.count, bv.byteStride, mesh.vertices.size());
 
 				for (size_t i = 0; i < acc.count; i++)
 				{
@@ -18978,32 +19024,6 @@ void MetaRegistry::DrawMetaFields(entt::meta_type metaType, entt::meta_any insta
 			ImGui::TextDisabled("%s: (unsupported type)", label.c_str());
 		}
 	}
-}
-
-// ’l‚ÌŒ^‚ğ”»•Ê‚·‚éƒwƒ‹ƒp[
-namespace
-{
-	ValueType ResolveValueType(entt::meta_type type)
-	{
-		if (type == entt::resolve<bool>())              return ValueType::Bool;
-		if (type == entt::resolve<int>())               return ValueType::Int;
-		if (type == entt::resolve<DirectX::XMFLOAT2>()) return ValueType::Float2;
-		if (type == entt::resolve<DirectX::XMFLOAT3>()) return ValueType::Float3;
-		if (type == entt::resolve<DirectX::XMFLOAT4>()) return ValueType::Float4;
-		return ValueType::Float;
-	}
-
-	// leafŒ^‚©‚Ç‚¤‚©
-	bool IsLeafType(entt::meta_type type)
-	{
-		return type == entt::resolve<bool>()
-			|| type == entt::resolve<int>()
-			|| type == entt::resolve<float>()
-			|| type == entt::resolve<std::string>()
-			|| type == entt::resolve<DirectX::XMFLOAT2>()
-			|| type == entt::resolve<DirectX::XMFLOAT3>()
-			|| type == entt::resolve<DirectX::XMFLOAT4>();
-	}
 } 
  
 ===== PrefabWindow.cpp ===== 
@@ -20411,140 +20431,189 @@ private:
     bool isControlling = false;
 }; 
  
-===== StudioConditionGraph.h ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Studio\StudioConditionGraph.h 
+===== StudioConditionCanvas.h ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Studio\StudioConditionCanvas.h 
 #pragma once
+#include <cstdint>
+#include <string>
+#include <vector>
+#include <imgui.h>
+
 #include "Engine/Data/ConditionGraphData.h"
 #include "Tool/NodeEditor/NodeEditorCanvas.h"
-#include <imgui.h>
-#include <functional>
-#include <imgui_node_editor.h>
 
-namespace ed = ax::NodeEditor;
-
-class StudioConditionGraph
+// ğŒƒOƒ‰ƒt‚Ì•ÒWƒLƒƒƒ“ƒoƒX
+class StudioConditionCanvas
 {
 public:
-	StudioConditionGraph() = default;
-	~StudioConditionGraph() = default;
-
 	void Initialize();
 
 	// •ÒW‘ÎÛ‚ÌğŒƒOƒ‰ƒt‚ğİ’è‚·‚é
-	void SetTarget(ConditionGraph* condition);
+	void SetTarget(ConditionGraph* target);
 
-	// ImGui•`‰æ
-	void DrawGUI();
-	// ‰E‘¤ƒƒjƒ…[
+	// ƒLƒƒƒ“ƒoƒX‚ğ•`‚­
+	void Draw();
+	// ƒCƒ“ƒXƒyƒNƒ^[‚ğ•`‚­
 	void DrawInspector();
 
 private:
 
+	// --- ƒm[ƒh‚Ì•`‰æ --- //
+
+	// ƒŠƒ^[ƒ“ƒm[ƒh•`‰æ
+	void DrawReturnNode();
+	// •Ï”ƒm[ƒh•`‰æ
+	void DrawVariableNodes();
+	// ƒQƒbƒ^[ƒm[ƒh•`‰æ
+	void DrawGetterNodes();
+	// ”äŠr‰‰Zƒm[ƒh•`‰æ
+	void DrawOperatorNodes();
+	// ˜_—‰‰Zƒm[ƒh•`‰æ
+	void DrawLogicNodes();
+	// ”Û’èƒm[ƒh•`‰æ
+	void DrawNotNodes();
+
+	// ƒŠƒ“ƒN•`‰æ
+	void DrawLinks();
+	
+	// ”wŒi‰EƒNƒŠƒbƒN‚Ìƒm[ƒhì¬ƒƒjƒ…[
+	void DrawCreateMenu();
+
+
+	// --- “ü—Í --- //
+	
+	// ƒsƒ“‚©‚çƒhƒ‰ƒbƒO‚µ‚ÄƒŠƒ“ƒN‚ğì‚é
+	void UpdateLinkCreation();
+	// ‘I‘ğXV
+	void UpdateSelection();
+	// ‘I‘ğ‚µ‚Ä‚¢‚é•¨‚ğíœ
+	void DeleteSelection();
+
+
+	// --- ƒCƒ“ƒXƒyƒNƒ^[ --- //
+
+	// ƒŠƒ^[ƒ“ƒm[ƒh‚Ìİ’è
+	void DrawReturnInspector();
+	// •Ï”ƒm[ƒh‚Ìİ’è
+	void DrawVariableInspector(ConditionVariableNode& node);
+	// ƒQƒbƒ^[ƒm[ƒh‚Ìİ’è
+	void DrawGetterInspector(ConditionGetterNode& node);
+	// ”äŠr‰‰Zƒm[ƒh‚Ìİ’è
+	void DrawOperatorInspector(ConditionOperatorNode& node);
+	// ˜_—‰‰Zƒm[ƒh‚Ìİ’è
+	void DrawLogicInspector(ConditionLogicNode& node);
+	// ”Û’èƒm[ƒh‚Ìİ’è
+	void DrawNotInspector();
+
+	// ƒŠƒ“ƒN‚Ìİ’è
+	void DrawLinkInspector(const ConditionLink& link);
+
+	// ƒm[ƒh‚ÌID‚©‚çA•\¦—p‚Ì–¼‘O‚ğì‚é
+	std::string GetNodeName(int nodeId) const;
+
+
+	// --- ˆÊ’u --- //
+
+	// ‘ÎÛ‚ğØ‚è‘Ö‚¦‚½’¼Œã‚¾‚¯Aƒf[ƒ^‚ÌˆÊ’u‚ğƒm[ƒh‚É”½‰f‚·‚é
+	void ApplyPosition(int nodeId, float x, float y) const;
+	// ƒm[ƒh‚ğ“®‚©‚µ‚½‚çAƒf[ƒ^‚ÌˆÊ’u‚É‘‚«–ß‚·
+	static void ReadPosition(int nodeId, float& x, float& y);
+
+
+	// --- ƒsƒ“‚ÌID --- //
+
+	// ƒm[ƒh‚Ì’†‚Å‚Ìƒsƒ“‚ÌˆÊ’u
+	enum PinSlot : uint64_t
+	{
+		kPinOut = 1, // o—Í
+		kPinInA = 2, // “ü—ÍA
+		kPinInB = 3, // “ü—ÍB
+	};
+	// ƒm[ƒh‚ÌID‚Æd‚È‚ç‚È‚¢‚æ‚¤‚É•t‚¯‚éˆó
+	static constexpr uint64_t kPinIdTag = 1ull << 40;
+
+	// ƒm[ƒh‚ÌID‚ÆˆÊ’u -> ƒsƒ“‚ÌID
+	static ed::PinId ToPinId(int nodeId, PinSlot slot);
+	// ƒsƒ“‚ÌID -> ƒm[ƒh‚ÌID‚ÆˆÊ’u
+	static bool FromPinId(ed::PinId pinId, int& outNodeId, PinSlot& outSlot);
+
+
+	// --- ƒf[ƒ^ --- //
+
+	// ‚±‚ÌƒNƒ‰ƒXê—p‚Ìƒm[ƒhƒGƒfƒBƒ^‚ÌƒRƒ“ƒeƒLƒXƒg
+	NodeEditorCanvas canvas;
+	// •ÒW’†‚ÌğŒƒOƒ‰ƒt
+	ConditionGraph* graph = nullptr;
+
+
+	// --- ƒLƒƒƒ“ƒoƒX‚Ìó‘Ô --- //
+
+	// ƒf[ƒ^‚ÌˆÊ’u‚ğƒm[ƒh‚É”½‰f‚·‚é‚©
+	bool needsApplyPositions = true;
 	// Ÿ‚ÉƒLƒƒƒ“ƒoƒX‚ğ•`‚­‚Æ‚«‚ÉAƒm[ƒhƒGƒfƒBƒ^‘¤‚Ì‘I‘ğ‚ğÁ‚·‚©
 	bool clearSelectionRequested = false;
 
-	// == “à•”ó‘Ô == //
-	NodeEditorCanvas canvas;        // ‚±‚ÌƒNƒ‰ƒXê—p‚Ìƒm[ƒhƒGƒfƒBƒ^ƒRƒ“ƒeƒLƒXƒg
-	ConditionGraph* targetCondition = nullptr; // Œ»İ•ÒW’†‚ÌğŒƒOƒ‰ƒt
+	// ”wŒi‚Ì‰EƒNƒŠƒbƒN‚ÌˆÊ’u
 	ImVec2 pendingCreatePos{};
-	bool needsApplyPositions = false;
 
-	ConditionVariableNode* selectedVariable = nullptr;
-	ConditionGetterNode* selectedGetter = nullptr;
-	ConditionOperatorNode* selectedOperator = nullptr;
-	ConditionLogicNode* selectedLogic = nullptr;
-	ConditionNotNode* selectedNot = nullptr;
-	ConditionLink* selectedConditionLink = nullptr;
+	// ‘I‘ğ’†‚Ìƒm[ƒh‚ÆƒŠƒ“ƒN
+	std::vector<int> selectedNodeIds;
+	int selectedLinkId = -1;
 
-	// == Šeƒm[ƒh•`‰æ == //
-	void DrawReturnNode();    // ƒŠƒ^[ƒ“ƒm[ƒh•`‰æ
-	void DrawVariableNodes(); // •Ï”ƒm[ƒh•`‰æ
-	void DrawOperatorNodes(); // ”äŠr‰‰Zƒm[ƒh•`‰æ
-	void DrawLogicNodes();    // ˜_—‰‰Zƒm[ƒh•`‰æ
-	void DrawGetterNodes();	  // ƒQƒbƒ^[ƒm[ƒh•`‰æ
-	void DrawNotNodes();      // ”Û’èƒm[ƒh•`‰æ
 
-	void DrawUnassignedGetterNode(ConditionGetterNode& g); // –¢İ’èƒQƒbƒ^[ƒm[ƒh
-	void DrawAssignedGetterNode(ConditionGetterNode& g);   // İ’èÏ‚İƒQƒbƒ^[ƒm[ƒh
+	// --- ƒQƒbƒ^[‚ÌƒCƒ“ƒXƒyƒNƒ^[ó‘Ô --- //
 
-	// == ƒsƒ“Ú‘± == //
-	enum class PinRole // ƒsƒ“‚Ì–ğŠ„
-	{
-		VariableIn, VariableOut,
-		OperatorA, OperatorB, OperatorOut,
-		LogicA, LogicB, LogicOut,
-		NotIn, NotOut,
-		GetterOut,
-		ReturnIn,
-		Unknown
-	};
-	enum class NodeKind { Variable, Getter, Operator, Logic, Not, Return, Unknown }; // ƒm[ƒh‚Ìí—Ş
-
-	// ƒsƒ“IDŒvZ—p‚Ìƒx[ƒXƒIƒtƒZƒbƒg
-	static constexpr int64_t VariableOffset = 1000000;
-	static constexpr int64_t OperatorOffset = 2000000;
-	static constexpr int64_t GetterOffset = 3000000;
-	static constexpr int64_t ReturnOffset = 4000000;
-	static constexpr int64_t LogicOffset = 5000000;
-	static constexpr int64_t NotOffset = 6000000;
-
-	static void ResolvePinRole(int64_t rawPinId, PinRole& outRole, int& outNodeId); // ¶‚Ìƒsƒ“ID(int64_t)‚©‚çA–ğŠ„‚Æƒm[ƒhID‚ğ‹tZ‚·‚é
-	NodeKind GetNodeKind(int id) const; // ¶‚Ìƒm[ƒhID(int)‚©‚çA‚±‚ÌLink“à‚Å‚Ç‚Ìí—Ş‚Ìƒm[ƒh‚©‚ğ’²‚×‚é
-
-	void DrawLinkCreation();    // ƒsƒ“Ú‘±(ƒhƒ‰ƒbƒO)‚Ìˆ—
-	void DrawConditionLinks();  // Ú‘±Ï‚İConditionLink‚Ì•`‰æ
-
-	// fromId/toId‚©‚çed::Link‚ğˆø‚­‚½‚ß‚ÌAÀÛ‚Ìƒsƒ“ID‚ğ‹‚ß‚é
-	ed::PinId GetOutputPinIdOf(int nodeId, NodeKind kind) const;
-	ed::PinId GetInputPinIdOf(int nodeId, NodeKind kind, bool toPinB) const;
-
-	ValueType GetNodeValueType(NodeKind kind, int nodeId) const;        // ƒm[ƒh‚Ì’l‚ÌŒ^‚ğæ“¾‚·‚é
-	ValueType GetOutputValueType(PinRole outRole, int outNodeId) const; // o—Íƒsƒ“‚ÌÀ¿“I‚ÈŒ^‚ğæ“¾‚·‚é
-	static bool IsOrderCompareOp(CompareOp op);                         // ‘å¬Œn‰‰Zq‚©‚ğ”»’è‚·‚é
-
-	// == ƒm[ƒh‚Ìì¬ == //		
-	void DrawCreateNodeMenu();               // ‰EƒNƒŠƒbƒNƒƒjƒ…[
-	void CreateVariableNode(ValueType type); // •Ï”ƒm[ƒhì¬
-	void CreateOperatorNode(CompareOp op);   // ”äŠr‰‰Zƒm[ƒhì¬
-	void CreateLogicNode(LogicOp op);        // ˜_—‰‰Zƒm[ƒhì¬
-	void CreateNotNode();                    // ”Û’èƒm[ƒhì¬
-	void CreateGetterNode();                 // ƒQƒbƒ^[ƒm[ƒhì¬
-
-	// == ƒm[ƒh‚Ìíœ == //
-	void DrawDeleteButton(const char* label, int targetId, const std::function<void(int)>& onDelete);
-	void DeleteVariableNode(int id);  // •Ï”ƒm[ƒhíœ
-	void DeleteGetterNode(int id);    // ƒQƒbƒ^[ƒm[ƒhíœ
-	void DeleteOperatorNode(int id);  // ”äŠr‰‰Zƒm[ƒhíœ
-	void DeleteLogicNode(int id);     // ˜_—‰‰Zƒm[ƒhíœ
-	void DeleteNotNode(int id);       // ”Û’èƒm[ƒhíœ
-	void DeleteConditionLink(int id); // ConditionLinkíœ
-
-	// == ‘I‘ğó‘Ô == //
-	void UpdateSelection();
-	ConditionLink* GetSelectedConditionLink();
-
-	// == •\¦—pƒwƒ‹ƒp[ == //
-	static void CenterNextItem(float totalWidth, float itemWidth); // ƒm[ƒh“à‚Å’†‰›Šñ‚¹‚É‚·‚é
-	static ImColor GetValueTypeColor(ValueType type);	           // ’l‚ÌŒ^‚²‚Æ‚Ì•\¦F‚ğ•Ô‚·
-	static const char* GetValueTypeName(ValueType type);           // ’l‚ÌŒ^–¼‚ğ•¶š‚É‚µ‚Ä•Ô‚·
-	static const char* GetCompareOpSymbol(CompareOp op);	       // ”äŠr‰‰Zq‚Ì•\¦—p‹L†
-	static CompareOp InvertCompareOp(CompareOp op);                // ”äŠr‰‰Zq‚ÌŒü‚«‚ğ”½“]‚·‚é
-	static const char* GetLogicOpSymbol(LogicOp op);               // ˜_—‰‰Zq‚Ì•\¦—p‹L†
-
-	// == ƒsƒ“ID == //
-	static ed::PinId GetVariableInPinId  (int nodeId) { return ed::PinId(VariableOffset + (int64_t)nodeId * 2); }
-	static ed::PinId GetVariableOutPinId (int nodeId) { return ed::PinId(VariableOffset + (int64_t)nodeId * 2 + 1); }
-	static ed::PinId GetOperatorPinA     (int nodeId) { return ed::PinId(OperatorOffset + (int64_t)nodeId * 3); }
-	static ed::PinId GetOperatorPinB     (int nodeId) { return ed::PinId(OperatorOffset + (int64_t)nodeId * 3 + 1); }
-	static ed::PinId GetOperatorOutPinId (int nodeId) { return ed::PinId(OperatorOffset + (int64_t)nodeId * 3 + 2); }
-	static ed::PinId GetGetterOutPinId   (int nodeId) { return ed::PinId(GetterOffset   + (int64_t)nodeId); }
-	static ed::PinId GetReturnInPinId    (int nodeId) { return ed::PinId(ReturnOffset   + (int64_t)nodeId); }
-	static ed::PinId GetLogicPinA        (int nodeId) { return ed::PinId(LogicOffset    + (int64_t)nodeId * 3); }
-	static ed::PinId GetLogicPinB        (int nodeId) { return ed::PinId(LogicOffset    + (int64_t)nodeId * 3 + 1); }
-	static ed::PinId GetLogicOutPinId    (int nodeId) { return ed::PinId(LogicOffset    + (int64_t)nodeId * 3 + 2); }
-	static ed::PinId GetNotInPinId       (int nodeId) { return ed::PinId(NotOffset      + (int64_t)nodeId * 2); }
-	static ed::PinId GetNotOutPinId      (int nodeId) { return ed::PinId(NotOffset      + (int64_t)nodeId * 2 + 1); }
+	// •\¦‚µ‚Ä‚¢‚éƒQƒbƒ^[
+	int getterInspectorNodeId = -1;
+	// ˆê——‚ÅŠJ‚¢‚Ä‚¢‚éƒRƒ“ƒ|[ƒlƒ“ƒg
+	std::string browseComponent;
+	// ¡‚Ìİ’è‚ÌˆÊ’u‚Ü‚ÅƒXƒNƒ[ƒ‹‚·‚é‚©
+	bool scrollToCurrent = false; 
 }; 
+ 
+===== StudioConditionCopyList.h ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Studio\StudioConditionCopyList.h 
+#pragma once
+#include <string>
+#include <vector>
+
+#include "StudioConditionTarget.h"
+#include "Engine/Data/StateMachineData.h"
+
+// Ê‚·Œ³‚ÌŒó•â1Œ
+struct ConditionCopyItem
+{
+	ConditionTarget target; // ‚Ç‚ÌƒŠƒ“ƒN‚©
+	std::string group;      // Œ©o‚µ(q‚Ì‚Æ‚«‚ÍState–¼Ae‚Ì‚Æ‚«‚Í‹ó)
+	std::string label;      // •\¦–¼
+};
+
+// İ’è‚ğÊ‚·ˆË—Š
+struct ConditionCopyRequest
+{
+	ConditionTarget source; // Ê‚·Œ³
+	ConditionTarget target; // Ê‚·æ
+
+	bool IsValid() const { return source.IsValid() && target.IsValid(); }
+};
+
+// “¯‚¶ŠK‘w‚ÌƒŠƒ“ƒN‚©‚çAİ’è‚ğÊ‚·‚½‚ß‚ÌƒŠƒXƒg
+namespace ConditionCopyList
+{
+	// ƒhƒ‰ƒbƒO‚Å‰^‚Ô•¨‚Ìí—Ş
+	inline constexpr const char* kPayloadType = "CONDITION_LINK";
+
+	// e‚ÌŠK‘w‚ÌƒŠƒ“ƒN‚ğW‚ß‚é
+	std::vector<ConditionCopyItem> CollectParent(const StateMachineData& data, const ConditionTarget& self);
+	// q‚ÌŠK‘w‚ÌƒŠƒ“ƒN‚ğW‚ß‚é
+	std::vector<ConditionCopyItem> CollectChild(const StateMachineData& data, const ConditionTarget& self);
+
+	// ƒŠƒXƒg‚ğ•`‚­
+	void Draw(const std::vector<ConditionCopyItem>& items);
+
+	// ó‚¯Œû‚ğ•`‚­
+	ConditionTarget DrawDropTarget(const ConditionTarget& self);
+} 
  
 ===== StudioConditionTarget.h ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Studio\StudioConditionTarget.h 
@@ -20754,6 +20823,7 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Studio\StudioStateCh
 
 #include "StudioStateGraphDraw.h"
 #include "StudioConditionTarget.h"
+#include "StudioConditionCopyList.h"
 
 #include "Engine/Data/StateMachineData.h"
 #include "Tool/NodeEditor/NodeEditorCanvas.h"
@@ -20777,6 +20847,8 @@ public:
 
 	// ğŒ‚ğ•ÒW‚µ‚Ä‚Ù‚µ‚¢ƒŠƒ“ƒN‚©‚ç‚ÌˆË—Š
 	ConditionTarget ConsumeEditConditionRequest() { ConditionTarget t = editConditionRequest; editConditionRequest = {}; return t; }
+	// ƒŠƒ“ƒN‚Ìİ’è‚ğÊ‚·ˆË—Š
+	ConditionCopyRequest ConsumeCopyRequest() { ConditionCopyRequest r = copyRequest; copyRequest = {}; return r; }
 
 private:
 	// --- •`‰æ --- //
@@ -20874,6 +20946,8 @@ private:
 	
 	// ğŒ‚ğ•ÒW‚µ‚Ä‚Ù‚µ‚¢ƒŠƒ“ƒN
 	ConditionTarget editConditionRequest;
+	// İ’è‚ğÊ‚µ‚Ä‚Ù‚µ‚¢ƒŠƒ“ƒN
+	ConditionCopyRequest copyRequest;
 
 	NodeEditorCanvas canvas;
 	// ƒf[ƒ^‚ÌˆÊ’u‚ğƒm[ƒh‚É”½‰f‚·‚é‚©
@@ -20931,8 +21005,9 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Studio\StudioStateGr
 #include "StudioStateParentCanvas.h"
 #include "StudioStateChildCanvas.h"
 
-#include "StudioConditionGraph.h"
+#include "StudioConditionCanvas.h"
 #include "StudioConditionTarget.h"
+#include "StudioConditionCopyList.h"
 
 // StateƒOƒ‰ƒt‚Ì•ÒWƒpƒlƒ‹
 class StudioStateGraph : public IStudioAttachment
@@ -20994,8 +21069,9 @@ private:
 	std::vector<std::unique_ptr<StudioStateChildCanvas>> childCanvases;
 	
 	// ğŒ‚ÌƒEƒBƒ“ƒhƒE
-	StudioConditionGraph conditionGraph;
+	StudioConditionCanvas conditionCanvas;      // V‚µ‚¢ğŒ‚ÌƒLƒƒƒ“ƒoƒX
 	ConditionTarget conditionTarget;            // •ÒW’†‚ÌğŒ‚ª‚Ç‚ÌƒŠƒ“ƒN‚Ì‚à‚Ì‚©
+
 	ConditionGraph* conditionPointer = nullptr; // ‘O‚ÌƒtƒŒ[ƒ€‚ÅŒ©‚Â‚¯‚½À‘Ì
 	bool focusConditionWindow = false;          // Ÿ‚ÌƒtƒŒ[ƒ€‚Åè‘O‚Éo‚·‚©
 	bool conditionColumnInitialized = false;
@@ -21028,6 +21104,30 @@ private:
 	// e‚ÌƒŠƒ“ƒN‚ÌID‚©‚çA‘JˆÚŒ³‚Ì–¼‘O‚ÆF‚ğ’T‚·
 	bool FindTransitionSource(int transitionId, std::string& outName, ImVec4& outColor) const;
 
+
+	// --- ƒŠƒ“ƒN‚Ìİ’è‚ğÊ‚· --- //
+
+	// ƒŠƒ“ƒN‚ª‚Âİ’è‚ÌêŠ(ƒuƒŒƒ“ƒh‚ğ‚½‚È‚¢ƒŠƒ“ƒN‚Ínullptr)
+	struct LinkSettingsRef
+	{
+		ConditionGraph* condition = nullptr;
+		bool* always = nullptr;
+		BlendSetting* blend = nullptr;
+	};
+
+	// ƒŠƒ“ƒN‚Ìİ’è‚ÌêŠ‚ğ’T‚·
+	bool ResolveLinkSettings(const ConditionTarget& target, LinkSettingsRef& out);
+	// Ê‚·ˆË—Š‚ğó‚¯æ‚é
+	void RequestCopy(const ConditionCopyRequest& request);
+	// Ê‚·
+	void CopyLinkSettings(const ConditionCopyRequest& request);
+	// ã‘‚«‚ÌŠm”F‚Ìƒ|ƒbƒvƒAƒbƒv
+	void DrawCopyConfirmPopup();
+
+	// Šm”F’†‚ÌˆË—Š
+	ConditionCopyRequest pendingCopy;
+	// Ÿ‚ÉŠm”F‚Ìƒ|ƒbƒvƒAƒbƒv‚ğŠJ‚­‚©
+	bool openCopyConfirm = false;
 }; 
  
 ===== StudioStateGraphDraw.h ===== 
@@ -21067,6 +21167,7 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Studio\StudioStatePa
 
 #include "StudioStateGraphDraw.h"
 #include "StudioConditionTarget.h"
+#include "StudioConditionCopyList.h"
 
 #include "Engine/Data/StateMachineData.h"
 #include "Tool/NodeEditor/NodeEditorCanvas.h"
@@ -21095,6 +21196,8 @@ public:
 	int ConsumeOpenChildRequest() { int id = openChildRequest; openChildRequest = -1; return id; }
 	// ğŒ•ÒW‚·‚éƒLƒƒƒ“ƒoƒX‚ğŠJ‚­ˆË—Š
 	ConditionTarget ConsumeEditConditionRequest() { ConditionTarget t = editConditionRequest; editConditionRequest = {}; return t; }
+	// ƒŠƒ“ƒN‚Ìİ’è‚ğÊ‚·ˆË—Š
+	ConditionCopyRequest ConsumeCopyRequest() { ConditionCopyRequest r = copyRequest; copyRequest = {}; return r; }
 
 private:
 	// --- •`‰æ --- //
@@ -21209,6 +21312,8 @@ private:
 
 	// ğŒ‚ğ•ÒW‚µ‚Ä‚Ù‚µ‚¢ƒŠƒ“ƒN
 	ConditionTarget editConditionRequest;
+	// İ’è‚ğÊ‚µ‚Ä‚Ù‚µ‚¢ƒŠƒ“ƒN
+	ConditionCopyRequest copyRequest;
 }; 
  
 ===== StudioTimeline.h ===== 
@@ -21956,375 +22061,364 @@ DirectX::XMFLOAT3 StudioCamera::GetRight() const
 	return right;
 } 
  
-===== StudioConditionGraph.cpp ===== 
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Studio\StudioConditionGraph.cpp 
-ï»¿#include "StudioConditionGraph.h"
+===== StudioConditionCanvas.cpp ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Studio\StudioConditionCanvas.cpp 
+ï»¿#include "StudioConditionCanvas.h"
 #include <algorithm>
-#include <vector>
+#include <string>
+#include <utility>
 
 #include "Engine/ECS/Reflection.h"
+#include "StudioStateGraphDraw.h"
 
-void StudioConditionGraph::Initialize()
+// ã“ã®ãƒ•ã‚¡ã‚¤ãƒ«å†…ã ã‘ã§ä½¿ã†å‡¦ç†
+namespace
 {
+	// ãƒ”ãƒ³ã®å°(â–¶)
+	const char* kPinIcon = u8"â–¶";
+
+	// å„ãƒãƒ¼ãƒ‰ã®å¹…ã«åˆã‚ã›ã¦ã€ä¸­å¤®ã«é…ç½®ã™ã‚‹
+	void CenterNextItem(float totalWidth, float itemWidth)
+	{
+		float pad = (totalWidth - itemWidth) * 0.5f;
+		if (pad > 0.0f)
+		{
+			ImGui::Dummy(ImVec2(pad, 0.0f));
+			ImGui::SameLine(0.0f, 0.0f);
+		}
+	}
+
+	// å€¤ã®å‹ã”ã¨ã®æ ã®è‰²
+	ImColor GetValueTypeColor(ValueType type)
+	{
+		switch (type)
+		{
+		case ValueType::Int:    return ImColor(68, 201, 156, 255);  // æ°´è‰²
+		case ValueType::Float:
+		case ValueType::Float2:
+		case ValueType::Float3:
+		case ValueType::Float4: return ImColor(147, 226, 74, 255);  // ç·‘
+		case ValueType::Bool:   return ImColor(220, 48, 48, 255);   // èµ¤
+		case ValueType::Unsupported: return ImColor(128, 128, 128, 255); // ç°è‰²(æ¡ä»¶ã§èª­ã‚ãªã„)
+
+		default:                return ImColor(255, 255, 255, 255);
+		}
+	}
+
+	// æ¯”è¼ƒæ¼”ç®—ã®è¨˜å·
+	const char* GetCompareOpSymbol(CompareOp op)
+	{
+		switch (op)
+		{
+		case CompareOp::Greater:      return ">";
+		case CompareOp::Less:         return "<";
+		case CompareOp::Equal:        return "==";
+		case CompareOp::NotEqual:     return "!=";
+		case CompareOp::GreaterEqual: return ">=";
+		case CompareOp::LessEqual:    return "<=";
+		default:                      return "?";
+		}
+	}
+
+	// è«–ç†æ¼”ç®—ã®è¨˜å·
+	const char* GetLogicOpSymbol(LogicOp op)
+	{
+		return (op == LogicOp::Or) ? "OR" : "AND";
+	}
+
+	// æˆåˆ†ã®åå‰
+	const char* GetAxisName(FloatComponent c)
+	{
+		switch (c)
+		{
+		case FloatComponent::X: return "X";
+		case FloatComponent::Y: return "Y";
+		case FloatComponent::Z: return "Z";
+		case FloatComponent::W: return "W";
+		default:                return "?";
+		}
+	}
+
+	// å€¤ã®å‹ã®åå‰
+	const char* GetValueTypeName(ValueType type)
+	{
+		switch (type)
+		{
+		case ValueType::Int:         return "int";
+		case ValueType::Float:       return "float";
+		case ValueType::Bool:        return "bool";
+		case ValueType::Float2:      return "float2";
+		case ValueType::Float3:      return "float3";
+		case ValueType::Float4:      return "float4";
+		case ValueType::Unsupported: return "unsupported";
+		default:                     return "?";
+		}
+	}
+
+	// ã‚¨ãƒ©ãƒ¼ã®æ–‡å­—ã®è‰²
+	const ImVec4 kErrorTextColor(1.0f, 0.4f, 0.4f, 1.0f);
+
+	// IDã§ãƒãƒ¼ãƒ‰ã‚’æ¢ã™
+	template<typename T>
+	T* FindNode(std::vector<T>& list, int id)
+	{
+		for (auto& n : list)
+		{
+			if (n.id == id) return &n;
+		}
+		return nullptr;
+	}
+
+	// ã‚¨ãƒ©ãƒ¼ã®æ–‡å­—ã‚’ã€æŠ˜ã‚Šè¿”ã—ã¦æã
+	void ErrorTextWrapped(const char* text)
+	{
+		ImGui::PushStyleColor(ImGuiCol_Text, kErrorTextColor);
+		ImGui::TextWrapped("%s", text);
+		ImGui::PopStyleColor();
+	}
+
+	// è¨˜å·ã‚’å¤§ãã‚ã«ã—ã¦ä¸­å¤®ã«æã
+	void DrawSymbol(const char* symbol, float nodeWidth, float scale)
+	{
+		ImGui::SetWindowFontScale(scale);
+		CenterNextItem(nodeWidth, ImGui::CalcTextSize(symbol).x);
+		ImGui::Text("%s", symbol);
+		ImGui::SetWindowFontScale(1.0f);
+	}
+
+	// ãƒ”ãƒ³ã‚’1ã¤æã
+	void DrawPin(ed::PinId pinId, ed::PinKind kind)
+	{
+		ed::BeginPin(pinId, kind);
+		ImGui::Text("%s", kPinIcon);
+		ed::EndPin();
+	}
+}
+
+
+void StudioConditionCanvas::Initialize()
+{
+	// ãƒãƒ¼ãƒ‰ã‚¨ãƒ‡ã‚£ã‚¿ã®ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆã‚’ä½œã‚‹
 	canvas.Initialize();
 }
 
-void StudioConditionGraph::SetTarget(ConditionGraph* condition)
+// ç·¨é›†å¯¾è±¡ã®æ¡ä»¶ã‚°ãƒ©ãƒ•ã‚’è¨­å®šã™ã‚‹
+void StudioConditionCanvas::SetTarget(ConditionGraph* target)
 {
-	targetCondition = condition;
+	graph = target;
+
+	// æ¬¡ã«æãã¨ãã«ã€ãƒ‡ãƒ¼ã‚¿ã®ä½ç½®ã‚’ãƒãƒ¼ãƒ‰ã«åæ˜ ã—ç›´ã™
 	needsApplyPositions = true;
 
-	// åˆ¥ã®æ¡ä»¶ã«åˆ‡ã‚Šæ›¿ãˆãŸã‚‰å‰ã®æ¡ä»¶ãƒãƒ¼ãƒ‰ã‚’æŒ‡ã—ã¦ã„ã‚‹é¸æŠã‚’å¤–ã™
-	selectedVariable = nullptr;
-	selectedGetter = nullptr;
-	selectedOperator = nullptr;
-	selectedLogic = nullptr;
-	selectedNot = nullptr;
-	selectedConditionLink = nullptr;
+	// å‰ã®æ¡ä»¶ã®é¸æŠã‚’æ¶ˆã™
 	clearSelectionRequested = true;
+	selectedNodeIds.clear();
+	selectedLinkId = -1;
+
+	// ã‚²ãƒƒã‚¿ãƒ¼ã®ä¸€è¦§ã®çŠ¶æ…‹ã‚‚æˆ»ã™
+	getterInspectorNodeId = -1;
+	browseComponent.clear();
 }
 
-// ImGuiæç”»
-void StudioConditionGraph::DrawGUI()
+// ã‚­ãƒ£ãƒ³ãƒã‚¹ã‚’æã
+void StudioConditionCanvas::Draw()
 {
-	if (!targetCondition)
+	// ç·¨é›†ã™ã‚‹æ¡ä»¶ãŒç„¡ã‘ã‚Œã°ã€ã‚­ãƒ£ãƒ³ãƒã‚¹ã‚’ä½œã‚‰ãšã«æŠœã‘ã‚‹
+	if (!graph)
 	{
 		ImGui::TextDisabled("No link selected.");
 		return;
 	}
 
+	// ã‚­ãƒ£ãƒ³ãƒã‚¹ä½œæˆ
 	canvas.Begin("ConditionCanvas");
 
-	// æ¡ä»¶ã‚’åˆ‡ã‚Šæ›¿ãˆãŸå¾Œã¯ã€ãƒãƒ¼ãƒ‰ã‚¨ãƒ‡ã‚£ã‚¿å´ã«æ®‹ã£ãŸå‰ã®æ¡ä»¶ã®é¸æŠã‚’æ¶ˆã™
+	// å‰Šé™¤ã‚„èª­ã¿è¾¼ã¿ã®å¾Œã¯ãƒãƒ¼ãƒ‰ã‚¨ãƒ‡ã‚£ã‚¿å´ã«æ®‹ã£ãŸé¸æŠã‚’æ¶ˆã™
 	if (clearSelectionRequested)
 	{
 		ed::ClearSelection();
 		clearSelectionRequested = false;
 	}
 
-	ed::PushStyleVar(ed::StyleVar_LinkStrength, 0.0f);
-
+	
+	// ãƒãƒ¼ãƒ‰æç”»
+	ed::PushStyleVar(ed::StyleVar_LinkStrength, 0.0f);	
 	DrawReturnNode();
 	DrawVariableNodes();
+	DrawGetterNodes();
 	DrawOperatorNodes();
 	DrawLogicNodes();
-	DrawGetterNodes();
 	DrawNotNodes();
-
 	ed::PopStyleVar(1);
 
-	DrawConditionLinks();
-	DrawLinkCreation();
+	// ãƒªãƒ³ã‚¯æç”»
+	DrawLinks();
 
-	DrawCreateNodeMenu();
+	// ãƒ¡ãƒ‹ãƒ¥ãƒ¼æç”»
+	DrawCreateMenu();
 
+	// å…¥åŠ›æ›´æ–°
+	UpdateLinkCreation();
 	UpdateSelection();
 
+	// ä½ç½®ã®åæ˜ ã¯ã€åˆ‡ã‚Šæ›¿ãˆãŸç›´å¾Œã®1ãƒ•ãƒ¬ãƒ¼ãƒ ã ã‘
+	needsApplyPositions = false;
+
+	// ã‚­ãƒ£ãƒ³ãƒã‚¹çµ‚äº†
 	canvas.End();
 
-	needsApplyPositions = false;
+
+	// é¸æŠã—ã¦ã„ã‚‹ç‰©ã®å‰Šé™¤
+	if (ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows) &&
+		!ImGui::GetIO().WantTextInput &&
+		ImGui::IsKeyPressed(ImGuiKey_Delete))
+	{
+		DeleteSelection();
+	}
 }
-// å³å´ãƒ¡ãƒ‹ãƒ¥ãƒ¼
-void StudioConditionGraph::DrawInspector()
+
+// ã‚¤ãƒ³ã‚¹ãƒšã‚¯ã‚¿ãƒ¼ã‚’æã
+void StudioConditionCanvas::DrawInspector()
 {
-	// å¤‰æ•°ãƒãƒ¼ãƒ‰é¸æŠ
-	if (selectedVariable)
+	// ç·¨é›†ã™ã‚‹æ¡ä»¶ãŒç„¡ã‘ã‚Œã°ä½•ã‚‚å‡ºã•ãªã„
+	if (!graph)
 	{
-		ImGui::Text("Variable");
-		ImGui::Separator();
-
-		char nameBuf[128];
-		strncpy_s(nameBuf, selectedVariable->name.c_str(), sizeof(nameBuf) - 1);
-		if (ImGui::InputText("Name", nameBuf, sizeof(nameBuf)))
-		{
-			selectedVariable->name = nameBuf;
-		}
-
-		ImGui::Text("Type: %s", GetValueTypeName(selectedVariable->type));
-
-		switch (selectedVariable->type)
-		{
-		case ValueType::Int:
-			ImGui::DragInt("Value", &selectedVariable->intValue, 1);
-			break;
-		case ValueType::Float:
-			ImGui::DragFloat("Value", &selectedVariable->floatValue, 0.1f);
-			break;
-		case ValueType::Bool:
-			ImGui::Checkbox("Value", &selectedVariable->boolValue);
-			break;
-		}
-
-		DrawDeleteButton("Delete Node", selectedVariable->id, [this](int id) { DeleteVariableNode(id); });
+		ImGui::TextDisabled("No link selected.");
 		return;
 	}
 
-	// ã‚²ãƒƒã‚¿ãƒ¼ãƒãƒ¼ãƒ‰é¸æŠ
-	if (selectedGetter)
+	// ãƒªãƒ³ã‚¯æç”»
+	if (selectedLinkId != -1)
 	{
-		ImGui::Text("Getter");
-		ImGui::Separator();
-
-		const auto& fields = Reflection::GetAllFields();
-
-		// 1æ®µç›®:ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆåã®ä¸€è¦§(é‡è¤‡é™¤å»)
-		std::vector<std::string> componentNames;
-		for (const auto& f : fields)
+		for (const auto& l : graph->links)
 		{
-			if (std::find(componentNames.begin(), componentNames.end(), f.componentName) == componentNames.end())
+			if (l.id == selectedLinkId)
 			{
-				componentNames.push_back(f.componentName);
+				DrawLinkInspector(l);
+				return;
 			}
 		}
-
-		std::string currentComponent = selectedGetter->componentName.empty() ? "(Select Component)" : selectedGetter->componentName;
-
-		if (ImGui::BeginCombo("Component", currentComponent.c_str()))
-		{
-			for (const auto& name : componentNames)
-			{
-				bool isSelected = (name == selectedGetter->componentName);
-				if (ImGui::Selectable(name.c_str(), isSelected))
-				{
-					// ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆã‚’å¤‰ãˆãŸã‚‰ã€ãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰ã®é¸æŠã¯ãƒªã‚»ãƒƒãƒˆã™ã‚‹
-					selectedGetter->componentName = name;
-					selectedGetter->fieldName.clear();
-				}
-			}
-			ImGui::EndCombo();
-		}
-
-		// 2æ®µç›®:é¸æŠä¸­ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆã«å±ã™ã‚‹ãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰ã ã‘ã«çµã‚Šè¾¼ã‚€
-		if (!selectedGetter->componentName.empty())
-		{
-			std::string currentField = selectedGetter->fieldName.empty() ? "(Select Field)" : selectedGetter->fieldName;
-
-			if (ImGui::BeginCombo("Field", currentField.c_str()))
-			{
-				for (const auto& f : fields)
-				{
-					if (f.componentName != selectedGetter->componentName) continue;
-
-					bool isSelected = (f.fieldName == selectedGetter->fieldName);
-					if (ImGui::Selectable(f.fieldLabel.c_str(), isSelected))
-					{
-						// ãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰ã‚’å¤‰ãˆãŸã‚‰ã€æˆåˆ†é¸æŠã‚‚ãƒªã‚»ãƒƒãƒˆã™ã‚‹
-						selectedGetter->fieldName = f.fieldName;
-						selectedGetter->type = f.type;
-						selectedGetter->selectedComponent = FloatComponent::None;
-					}
-				}
-				ImGui::EndCombo();
-			}
-		}
-
-		// 3æ®µç›®:é¸æŠä¸­ãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰ãŒFloat2/3/4ã®å ´åˆã®ã¿ã€æˆåˆ†é¸æŠã‚’è¡¨ç¤ºã™ã‚‹
-		int componentCount = Reflection::GetComponentCount(selectedGetter->type);
-		if (componentCount > 0)
-		{
-			static const char* names[] = { "X", "Y", "Z", "W" };
-			static const FloatComponent values[] = { FloatComponent::X, FloatComponent::Y, FloatComponent::Z, FloatComponent::W };
-
-			std::string currentComp = "(Select Component)";
-			for (int i = 0; i < componentCount; i++)
-			{
-				if (values[i] == selectedGetter->selectedComponent) currentComp = names[i];
-			}
-
-			if (ImGui::BeginCombo("Axis", currentComp.c_str()))
-			{
-				for (int i = 0; i < componentCount; i++)
-				{
-					bool isSelected = (values[i] == selectedGetter->selectedComponent);
-					if (ImGui::Selectable(names[i], isSelected))
-					{
-						selectedGetter->selectedComponent = values[i];
-					}
-				}
-				ImGui::EndCombo();
-			}
-		}
-
-		DrawDeleteButton("Delete Getter", selectedGetter->id, [this](int id) { DeleteGetterNode(id); });
 		return;
 	}
 
-	// æ¯”è¼ƒæ¼”ç®—ãƒãƒ¼ãƒ‰é¸æŠ
-	if (selectedOperator)
+	// ãƒãƒ¼ãƒ‰è¤‡æ•°é¸æŠ
+	if (selectedNodeIds.size() > 1)
 	{
-		ImGui::Text("Operator");
+		ImGui::Text("%d nodes selected", static_cast<int>(selectedNodeIds.size()));
 		ImGui::Separator();
 
-		ImGui::Text("Op: %s", GetCompareOpSymbol(selectedOperator->op));
-
-		if (ImGui::Button("Invert", ImVec2(-1.0f, 0.0f)))
+		bool hasReturn = std::find(selectedNodeIds.begin(), selectedNodeIds.end(),
+			graph->returnNode.id) != selectedNodeIds.end();
+		if (hasReturn)
 		{
-			selectedOperator->op = InvertCompareOp(selectedOperator->op);
+			ImGui::TextDisabled("Return is not deleted.");
 		}
 
-		DrawDeleteButton("Delete Operator", selectedOperator->id, [this](int id) { DeleteOperatorNode(id); });
+		if (StateGraphDraw::DeleteButton("Delete Nodes"))
+		{
+			DeleteSelection();
+		}
 		return;
 	}
 
-	// è«–ç†æ¼”ç®—ãƒãƒ¼ãƒ‰é¸æŠ
-	if (selectedLogic)
+	// ãƒãƒ¼ãƒ‰1ã¤é¸æŠ
+	if (selectedNodeIds.size() == 1)
 	{
-		ImGui::Text("Logic");
-		ImGui::Separator();
-
-		ImGui::Text("Op: %s", GetLogicOpSymbol(selectedLogic->op));
-
-		if (ImGui::Button("Toggle AND/OR", ImVec2(-1.0f, 0.0f)))
+		int id = selectedNodeIds[0];
+		switch (graph->GetNodeKind(id))
 		{
-			selectedLogic->op = (selectedLogic->op == LogicOp::And) ? LogicOp::Or : LogicOp::And;
+		case ConditionNodeKind::Return:
+			// Returnã¯æ¡ä»¶ã«å¿…ãš1ã¤ã‚ã‚‹ã®ã§ã€å‰Šé™¤ãƒœã‚¿ãƒ³ã¯å‡ºã•ãªã„
+			DrawReturnInspector();
+			return;
+
+		case ConditionNodeKind::Variable: DrawVariableInspector(*FindNode(graph->variableNodes, id)); break;
+		case ConditionNodeKind::Getter:   DrawGetterInspector  (*FindNode(graph->getterNodes,   id)); break;
+		case ConditionNodeKind::Operator: DrawOperatorInspector(*FindNode(graph->operatorNodes, id)); break;
+		case ConditionNodeKind::Logic:    DrawLogicInspector   (*FindNode(graph->logicNodes,    id)); break;
+		case ConditionNodeKind::Not:      DrawNotInspector();                                         break;
+		default: return;
 		}
 
-		DrawDeleteButton("Delete Logic", selectedLogic->id, [this](int id) { DeleteLogicNode(id); });
+		// Returnä»¥å¤–ã¯å‰Šé™¤ã§ãã‚‹
+		if (StateGraphDraw::DeleteButton("Delete Node"))
+		{
+			DeleteSelection();
+		}
 		return;
 	}
 
-	// å¦å®šãƒãƒ¼ãƒ‰é¸æŠ
-	if (selectedNot)
-	{
-		ImGui::Text("Not");
-		ImGui::Separator();
-
-		ImGui::TextDisabled("Inverts the input bool.");
-
-		DrawDeleteButton("Delete Not", selectedNot->id, [this](int id) { DeleteNotNode(id); });
-		return;
-	}
-
-	// ãƒªãƒ³ã‚¯é¸æŠ
-	if (selectedConditionLink)
-	{
-		ImGui::Text("Link");
-		ImGui::Separator();
-
-		int linkId = selectedConditionLink->id;
-		DrawDeleteButton("Delete Link", linkId, [this](int id) { DeleteConditionLink(id); });
-		return;
-	}
-
+	// æœªé¸æŠ
 	ImGui::TextDisabled("No node selected.");
 }
 
-
 // ãƒªã‚¿ãƒ¼ãƒ³ãƒãƒ¼ãƒ‰æç”»
-void StudioConditionGraph::DrawReturnNode()
+void StudioConditionCanvas::DrawReturnNode()
 {
-	ConditionReturnNode& returnNode = targetCondition->returnNode;
-	ed::NodeId nodeId(returnNode.id);
+	ConditionReturnNode& node = graph->returnNode;
 
-	if (needsApplyPositions)
-	{
-		ed::SetNodePosition(nodeId, ImVec2(returnNode.posX, returnNode.posY));
-	}
+	// èª­ã¿è¾¼ã¿ç›´å¾Œã¯ãƒ‡ãƒ¼ã‚¿ã®ä½ç½®ã«ãƒãƒ¼ãƒ‰ã‚’åæ˜ 
+	ApplyPosition(node.id, node.posX, node.posY);
 
-	// Visual Studioã®returnç›¸å½“ã®ç´«è‰²
-	const ImColor bgColor(197, 134, 192, 255);
-	const ImColor borderColor(140, 90, 137, 255);
+	// Returnã¯ç´«ã§æã
+	ed::PushStyleColor(ed::StyleColor_NodeBg, ImColor(197, 134, 192, 255));
+	ed::PushStyleColor(ed::StyleColor_NodeBorder, ImColor(140, 90, 137, 255));
 
-	ed::PushStyleColor(ed::StyleColor_NodeBg, bgColor);
-	ed::PushStyleColor(ed::StyleColor_NodeBorder, borderColor);
-	ed::PushStyleVar(ed::StyleVar_NodeRounding, 4.0f);
-
-	ed::BeginNode(nodeId);
-
-	ed::BeginPin(GetReturnInPinId(returnNode.id), ed::PinKind::Input);
-	ImGui::Text(u8"â–¶");
-	ed::EndPin();
-
+	// å·¦ã«å…¥åŠ›ãƒ”ãƒ³ã€å³ã«åå‰
+	ed::BeginNode(ed::NodeId(static_cast<uint64_t>(node.id)));
+	DrawPin(ToPinId(node.id, kPinInA), ed::PinKind::Input);
 	ImGui::SameLine();
-
-	const float totalWidth = 100.0f;
-	float textWidth = ImGui::CalcTextSize("Return").x;
-	float padding = (totalWidth - textWidth) * 0.5f;
-
-	if (padding > 0.0f)
-	{
-		ImGui::Dummy(ImVec2(padding, 0.0f));
-		ImGui::SameLine(0.0f, 0.0f);
-	}
-
+	CenterNextItem(100.0f, ImGui::CalcTextSize("Return").x);
 	ImGui::Text("Return");
-
-	if (padding > 0.0f)
-	{
-		ImGui::SameLine(0.0f, 0.0f);
-		ImGui::Dummy(ImVec2(padding, 0.0f));
-	}
-
 	ed::EndNode();
 
-	ImVec2 currentPos = ed::GetNodePosition(nodeId);
-	returnNode.posX = currentPos.x;
-	returnNode.posY = currentPos.y;
-
 	ed::PopStyleColor(2);
-	ed::PopStyleVar(1);
+
+	// ãƒãƒ¼ãƒ‰ã‚’å‹•ã‹ã—ãŸã‚‰ã€ãƒ‡ãƒ¼ã‚¿ã®ä½ç½®ã«æ›¸ãæˆ»ã™
+	ReadPosition(node.id, node.posX, node.posY);
 }
+
 // å¤‰æ•°ãƒãƒ¼ãƒ‰æç”»
-void StudioConditionGraph::DrawVariableNodes()
+void StudioConditionCanvas::DrawVariableNodes()
 {
 	const float nodeWidth = 140.0f;
 	const float valueWidth = 80.0f;
 
-	for (auto& v : targetCondition->variableNodes) 
+	for (auto& v : graph->variableNodes)
 	{
-		ed::NodeId nodeId(v.id);
-		if (needsApplyPositions)
-		{
-			ed::SetNodePosition(nodeId, ImVec2(v.posX, v.posY));
-		}
+		// èª­ã¿è¾¼ã¿ç›´å¾Œã¯ãƒ‡ãƒ¼ã‚¿ã®ä½ç½®ã«ãƒãƒ¼ãƒ‰ã‚’åæ˜ 
+		ApplyPosition(v.id, v.posX, v.posY);
 
-		// å‹ã”ã¨ã«æ ç·šã®è‰²ã‚’å¤‰ãˆã‚‹
+		// å‹ã”ã¨ã«æ ã®è‰²ã‚’å¤‰ãˆã‚‹
 		ed::PushStyleColor(ed::StyleColor_NodeBorder, GetValueTypeColor(v.type));
 		ed::PushStyleVar(ed::StyleVar_NodeBorderWidth, 2.0f);
 
-
-		ed::BeginNode(nodeId);
+		ed::BeginNode(ed::NodeId(static_cast<uint64_t>(v.id)));
 		ImGui::PushID(v.id);
 
-		// å·¦ã«å…¥åŠ›ãƒ”ãƒ³ã€ãƒãƒ¼ãƒ‰åã¯ä¸­å¤®å¯„ã›ã€å³ã«å‡ºåŠ›ãƒ”ãƒ³
-		ed::BeginPin(GetVariableInPinId(v.id), ed::PinKind::Input);
-		ImGui::Text(u8"â–¶");
-		ed::EndPin();
-
-		const float pinIconWidth = ImGui::CalcTextSize(u8"â–¶").x;
-		const float totalWidth = nodeWidth + pinIconWidth;
-
-		std::string displayName = v.name.empty() ? "Variable" : v.name;
-		float nameWidth = ImGui::CalcTextSize(displayName.c_str()).x;
-		float namePadding = (totalWidth - nameWidth) * 0.5f;
-
-		ImGui::SameLine(namePadding > 0.0f ? namePadding : 0.0f);
-		ImGui::Text("%s", displayName.c_str());
-
+		// 1è¡Œç›®ï¼šåå‰ã¨å‡ºåŠ›ãƒ”ãƒ³
+		std::string name = v.name.empty() ? "Variable" : v.name;
+		CenterNextItem(nodeWidth, ImGui::CalcTextSize(name.c_str()).x);
+		ImGui::Text("%s", name.c_str());
 		ImGui::SameLine(nodeWidth);
-		ed::BeginPin(GetVariableOutPinId(v.id), ed::PinKind::Output);
-		ImGui::Text(u8"â–¶");
-		ed::EndPin();
+		DrawPin(ToPinId(v.id, kPinOut), ed::PinKind::Output);
 
-		// intå‹ãƒãƒ¼ãƒ‰
+		// 2è¡Œç›®ï¼šå€¤
 		if (v.type == ValueType::Int)
 		{
-			CenterNextItem(totalWidth, valueWidth);
+			CenterNextItem(nodeWidth, valueWidth);
 			ImGui::SetNextItemWidth(valueWidth);
 			ImGui::DragInt("##int", &v.intValue, 1);
 		}
-		// floatå‹ãƒãƒ¼ãƒ‰
 		else if (v.type == ValueType::Float)
 		{
-			CenterNextItem(totalWidth, valueWidth);
+			CenterNextItem(nodeWidth, valueWidth);
 			ImGui::SetNextItemWidth(valueWidth);
 			ImGui::DragFloat("##float", &v.floatValue, 0.1f);
 		}
-		// boolå‹ãƒãƒ¼ãƒ‰
 		else
 		{
-			float checkboxWidth = ImGui::GetFrameHeight();
-			CenterNextItem(totalWidth, checkboxWidth);
+			CenterNextItem(nodeWidth, ImGui::GetFrameHeight());
 			ImGui::Checkbox("##bool", &v.boolValue);
 		}
 
@@ -22334,190 +22428,184 @@ void StudioConditionGraph::DrawVariableNodes()
 		ed::PopStyleColor(1);
 		ed::PopStyleVar(1);
 
-		ImVec2 currentPos = ed::GetNodePosition(nodeId);
-		v.posX = currentPos.x;
-		v.posY = currentPos.y;
+		// ãƒãƒ¼ãƒ‰ã‚’å‹•ã‹ã—ãŸã‚‰ã€ãƒ‡ãƒ¼ã‚¿ã®ä½ç½®ã«æ›¸ãæˆ»ã™
+		ReadPosition(v.id, v.posX, v.posY);
 	}
 }
-// æ¯”è¼ƒæ¼”ç®—ãƒãƒ¼ãƒ‰æç”»
-void StudioConditionGraph::DrawOperatorNodes()
-{
-	const float nodeWidth = 100.0f;
-	const ImColor operatorBorderColor(90, 140, 220, 255);
 
-	for (auto& o : targetCondition->operatorNodes)
-	{
-		ed::NodeId nodeId(o.id);
-		if (needsApplyPositions)
-		{
-			ed::SetNodePosition(nodeId, ImVec2(o.posX, o.posY));
-		}
-
-		ed::PushStyleColor(ed::StyleColor_NodeBorder, operatorBorderColor);
-		ed::PushStyleVar(ed::StyleVar_NodeBorderWidth, 2.0f);
-
-		ed::BeginNode(nodeId);
-		ImGui::PushID(o.id);
-
-		// Aå´å…¥åŠ›ãƒ”ãƒ³
-		ed::BeginPin(GetOperatorPinA(o.id), ed::PinKind::Input);
-		ImGui::Text(u8"â–¶");
-		ed::EndPin();
-
-		// æ¼”ç®—å­è¨˜å·(ä¸­å¤®å¯„ã›ã€å°‘ã—å¤§ãã‚ã«è¡¨ç¤º)
-		const char* symbol = GetCompareOpSymbol(o.op);
-		const float symbolScale = 2.0f;
-
-		ImGui::SetWindowFontScale(symbolScale);
-		float symbolWidth = ImGui::CalcTextSize(symbol).x;
-		CenterNextItem(nodeWidth, symbolWidth);
-		ImGui::Text("%s", symbol);
-		ImGui::SetWindowFontScale(1.0f);
-
-		// Bå´å…¥åŠ›ãƒ”ãƒ³ã¨ã€å‡ºåŠ›ãƒ”ãƒ³(åŒã˜è¡Œ)
-		ed::BeginPin(GetOperatorPinB(o.id), ed::PinKind::Input);
-		ImGui::Text(u8"â–¶");
-		ed::EndPin();
-
-		ImGui::SameLine(nodeWidth);
-		ed::BeginPin(GetOperatorOutPinId(o.id), ed::PinKind::Output);
-		ImGui::Text(u8"â–¶");
-		ed::EndPin();
-
-		ImGui::PopID();
-		ed::EndNode();
-
-		ed::PopStyleColor(1);
-		ed::PopStyleVar(1);
-
-		ImVec2 currentPos = ed::GetNodePosition(nodeId);
-		o.posX = currentPos.x;
-		o.posY = currentPos.y;
-	}
-}
-// è«–ç†æ¼”ç®—ãƒãƒ¼ãƒ‰æç”»
-void StudioConditionGraph::DrawLogicNodes()
-{
-	const float nodeWidth = 100.0f;
-	const ImColor logicBorderColor(200, 130, 60, 255); // ã‚ªãƒ¬ãƒ³ã‚¸
-
-	for (auto& l : targetCondition->logicNodes)
-	{
-		ed::NodeId nodeId(l.id);
-		if (needsApplyPositions)
-		{
-			ed::SetNodePosition(nodeId, ImVec2(l.posX, l.posY));
-		}
-
-		ed::PushStyleColor(ed::StyleColor_NodeBorder, logicBorderColor);
-		ed::PushStyleVar(ed::StyleVar_NodeBorderWidth, 2.0f);
-
-		ed::BeginNode(nodeId);
-		ImGui::PushID(l.id);
-
-		// Aå´å…¥åŠ›ãƒ”ãƒ³
-		ed::BeginPin(GetLogicPinA(l.id), ed::PinKind::Input);
-		ImGui::Text(u8"â–¶");
-		ed::EndPin();
-
-		// æ¼”ç®—å­è¨˜å·(ä¸­å¤®å¯„ã›ã€å°‘ã—å¤§ãã‚ã«è¡¨ç¤º)
-		const char* symbol = GetLogicOpSymbol(l.op);
-		const float symbolScale = 1.5f;
-
-		ImGui::SetWindowFontScale(symbolScale);
-		float symbolWidth = ImGui::CalcTextSize(symbol).x;
-		CenterNextItem(nodeWidth, symbolWidth);
-		ImGui::Text("%s", symbol);
-		ImGui::SetWindowFontScale(1.0f);
-
-		// Bå´å…¥åŠ›ãƒ”ãƒ³ã¨ã€å‡ºåŠ›ãƒ”ãƒ³(åŒã˜è¡Œ)
-		ed::BeginPin(GetLogicPinB(l.id), ed::PinKind::Input);
-		ImGui::Text(u8"â–¶");
-		ed::EndPin();
-
-		ImGui::SameLine(nodeWidth);
-		ed::BeginPin(GetLogicOutPinId(l.id), ed::PinKind::Output);
-		ImGui::Text(u8"â–¶");
-		ed::EndPin();
-
-		ImGui::PopID();
-		ed::EndNode();
-
-		ed::PopStyleColor(1);
-		ed::PopStyleVar(1);
-
-		ImVec2 currentPos = ed::GetNodePosition(nodeId);
-		l.posX = currentPos.x;
-		l.posY = currentPos.y;
-	}
-}
 // ã‚²ãƒƒã‚¿ãƒ¼ãƒãƒ¼ãƒ‰æç”»
-void StudioConditionGraph::DrawGetterNodes()
+void StudioConditionCanvas::DrawGetterNodes()
 {
-	for (auto& g : targetCondition->getterNodes)
+	const float spacing = 8.0f;
+
+	for (auto& g : graph->getterNodes)
 	{
-		ed::NodeId nodeId(g.id);
-		if (needsApplyPositions)
+		ApplyPosition(g.id, g.posX, g.posY);
+
+		bool assigned = !g.componentName.empty() && !g.fieldName.empty();
+		const FieldEntry* field = assigned ? Reflection::FindField(g.componentName, g.fieldName) : nullptr;
+
+		// 1è¡Œç›®ï¼šã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆå
+		std::string line1;
+		// 2è¡Œç›®ï¼šãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰ã®è¡¨ç¤ºå
+		std::string line2;
+
+		ImColor border;
+		if (!assigned)
 		{
-			ed::SetNodePosition(nodeId, ImVec2(g.posX, g.posY));
+			// ãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰æœªè¨­å®š
+			line1 = "Empty";
+			border = ImColor(255, 255, 255, 255);
 		}
-
-		bool isAssigned = !g.componentName.empty() && !g.fieldName.empty();
-
-		if (isAssigned)
+		else if (!field)
 		{
-			DrawAssignedGetterNode(g);
+			// åå‰ã‚’å¤‰ãˆãŸãƒ»æ¶ˆã—ãŸç­‰ã§ã€ä»Šã®ã‚³ãƒ¼ãƒ‰ã«ç„¡ã„ãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰
+			line1 = g.componentName;
+			line2 = g.fieldName + " (missing)";
+			border = ImColor(230, 90, 90, 255);
 		}
 		else
 		{
-			DrawUnassignedGetterNode(g);
+			// è¨­å®šæ¸ˆã¿
+			line1 = g.componentName;
+			line2 = field->fieldLabel;
+			if (Reflection::GetComponentCount(field->type) > 0)
+			{
+				line2 += std::string(".") + GetAxisName(g.selectedComponent);
+			}
+			border = GetValueTypeColor(field->type);
 		}
 
-		ImVec2 currentPos = ed::GetNodePosition(nodeId);
-		g.posX = currentPos.x;
-		g.posY = currentPos.y;
+		ed::PushStyleColor(ed::StyleColor_NodeBorder, border);
+		ed::PushStyleVar(ed::StyleVar_NodeBorderWidth, 2.0f);
+
+		ed::BeginNode(ed::NodeId(static_cast<uint64_t>(g.id)));
+		ImGui::PushID(g.id);
+
+		// é•·ã„ã»ã†ã®è¡Œã«åˆã‚ã›ã¦ãƒãƒ¼ãƒ‰ã®å¹…ã‚’æ±ºã‚ã‚‹
+		float width1 = ImGui::CalcTextSize(line1.c_str()).x;
+		float width2 = ImGui::CalcTextSize(line2.c_str()).x;
+		float nodeWidth = (std::max)(width1, width2) + spacing;
+
+		// æ–‡å­—ã‚’ä¸­å¤®ã«æãã€å³ç«¯ã«å‡ºåŠ›ãƒ”ãƒ³ã‚’ç½®ã
+		CenterNextItem(nodeWidth, width1);
+		ImGui::Text("%s", line1.c_str());
+		if (!line2.empty())
+		{
+			CenterNextItem(nodeWidth, width2);
+			ImGui::Text("%s", line2.c_str());
+		}
+		ImGui::SameLine(nodeWidth);
+		DrawPin(ToPinId(g.id, kPinOut), ed::PinKind::Output);
+
+		ImGui::PopID();
+		ed::EndNode();
+
+		ed::PopStyleColor(1);
+		ed::PopStyleVar(1);
+
+		// ãƒãƒ¼ãƒ‰ã‚’å‹•ã‹ã—ãŸã‚‰ã€ãƒ‡ãƒ¼ã‚¿ã®ä½ç½®ã«æ›¸ãæˆ»ã™
+		ReadPosition(g.id, g.posX, g.posY);
+	}
+}
+
+// æ¯”è¼ƒæ¼”ç®—ãƒãƒ¼ãƒ‰æç”»
+void StudioConditionCanvas::DrawOperatorNodes()
+{
+	const float nodeWidth = 100.0f;
+
+	for (auto& o : graph->operatorNodes)
+	{
+		// åˆ‡ã‚Šæ›¿ãˆãŸç›´å¾Œã ã‘ã€ãƒ‡ãƒ¼ã‚¿ã®ä½ç½®ã‚’ãƒãƒ¼ãƒ‰ã«åæ˜ 
+		ApplyPosition(o.id, o.posX, o.posY);
+
+		// æ¯”è¼ƒã¯é’ã§æã
+		ed::PushStyleColor(ed::StyleColor_NodeBorder, ImColor(90, 140, 220, 255));
+		ed::PushStyleVar(ed::StyleVar_NodeBorderWidth, 2.0f);
+
+		ed::BeginNode(ed::NodeId(static_cast<uint64_t>(o.id)));
+		ImGui::PushID(o.id);
+
+		// 1è¡Œç›®ï¼šå…¥åŠ›A
+		DrawPin(ToPinId(o.id, kPinInA), ed::PinKind::Input);
+		// 2è¡Œç›®ï¼šè¨˜å·
+		DrawSymbol(GetCompareOpSymbol(o.op), nodeWidth, 2.0f);
+		// 3è¡Œç›®ï¼šå…¥åŠ›Bã¨å‡ºåŠ›
+		DrawPin(ToPinId(o.id, kPinInB), ed::PinKind::Input);
+		ImGui::SameLine(nodeWidth);
+		DrawPin(ToPinId(o.id, kPinOut), ed::PinKind::Output);
+
+		ImGui::PopID();
+		ed::EndNode();
+
+		ed::PopStyleColor(1);
+		ed::PopStyleVar(1);
+
+		// ãƒãƒ¼ãƒ‰ã‚’å‹•ã‹ã—ãŸã‚‰ã€ãƒ‡ãƒ¼ã‚¿ã®ä½ç½®ã«æ›¸ãæˆ»ã™
+		ReadPosition(o.id, o.posX, o.posY);
+	}
+}
+
+// è«–ç†æ¼”ç®—ãƒãƒ¼ãƒ‰æç”»
+void StudioConditionCanvas::DrawLogicNodes()
+{
+	const float nodeWidth = 100.0f;
+
+	for (auto& l : graph->logicNodes)
+	{
+		// åˆ‡ã‚Šæ›¿ãˆãŸç›´å¾Œã ã‘ã€ãƒ‡ãƒ¼ã‚¿ã®ä½ç½®ã‚’ãƒãƒ¼ãƒ‰ã«åæ˜ 
+		ApplyPosition(l.id, l.posX, l.posY);
+
+		// è«–ç†ã¯ã‚ªãƒ¬ãƒ³ã‚¸ã§æã
+		ed::PushStyleColor(ed::StyleColor_NodeBorder, ImColor(200, 130, 60, 255));
+		ed::PushStyleVar(ed::StyleVar_NodeBorderWidth, 2.0f);
+
+		ed::BeginNode(ed::NodeId(static_cast<uint64_t>(l.id)));
+		ImGui::PushID(l.id);
+
+		// 1è¡Œç›®ï¼šå…¥åŠ›A
+		DrawPin(ToPinId(l.id, kPinInA), ed::PinKind::Input);
+		// 2è¡Œç›®ï¼šè¨˜å·
+		DrawSymbol(GetLogicOpSymbol(l.op), nodeWidth, 1.5f);
+		// 3è¡Œç›®ï¼šå…¥åŠ›Bã¨å‡ºåŠ›
+		DrawPin(ToPinId(l.id, kPinInB), ed::PinKind::Input);
+		ImGui::SameLine(nodeWidth);
+		DrawPin(ToPinId(l.id, kPinOut), ed::PinKind::Output);
+
+		ImGui::PopID();
+		ed::EndNode();
+
+		ed::PopStyleColor(1);
+		ed::PopStyleVar(1);
+
+		// ãƒãƒ¼ãƒ‰ã‚’å‹•ã‹ã—ãŸã‚‰ã€ãƒ‡ãƒ¼ã‚¿ã®ä½ç½®ã«æ›¸ãæˆ»ã™
+		ReadPosition(l.id, l.posX, l.posY);
 	}
 }
 
 // å¦å®šãƒãƒ¼ãƒ‰æç”»
-void StudioConditionGraph::DrawNotNodes()
+void StudioConditionCanvas::DrawNotNodes()
 {
 	const float nodeWidth = 80.0f;
-	const ImColor notBorderColor(200, 80, 80, 255); // èµ¤
 
-	for (auto& n : targetCondition->notNodes)
+	for (auto& n : graph->notNodes)
 	{
-		ed::NodeId nodeId(n.id);
-		if (needsApplyPositions)
-		{
-			ed::SetNodePosition(nodeId, ImVec2(n.posX, n.posY));
-		}
+		// åˆ‡ã‚Šæ›¿ãˆãŸç›´å¾Œã ã‘ã€ãƒ‡ãƒ¼ã‚¿ã®ä½ç½®ã‚’ãƒãƒ¼ãƒ‰ã«åæ˜ 
+		ApplyPosition(n.id, n.posX, n.posY);
 
-		ed::PushStyleColor(ed::StyleColor_NodeBorder, notBorderColor);
+		// å¦å®šã¯èµ¤ã§æã
+		ed::PushStyleColor(ed::StyleColor_NodeBorder, ImColor(200, 80, 80, 255));
 		ed::PushStyleVar(ed::StyleVar_NodeBorderWidth, 2.0f);
 
-		ed::BeginNode(nodeId);
+		ed::BeginNode(ed::NodeId(static_cast<uint64_t>(n.id)));
 		ImGui::PushID(n.id);
 
-		// è¨˜å·(ä¸­å¤®å¯„ã›ã€å°‘ã—å¤§ãã‚ã«è¡¨ç¤º)
-		const char* symbol = "NOT";
-		const float symbolScale = 1.5f;
-
-		ImGui::SetWindowFontScale(symbolScale);
-		float symbolWidth = ImGui::CalcTextSize(symbol).x;
-		CenterNextItem(nodeWidth, symbolWidth);
-		ImGui::Text("%s", symbol);
-		ImGui::SetWindowFontScale(1.0f);
-
-		// å…¥åŠ›ãƒ”ãƒ³ã¨å‡ºåŠ›ãƒ”ãƒ³(åŒã˜è¡Œ)
-		ed::BeginPin(GetNotInPinId(n.id), ed::PinKind::Input);
-		ImGui::Text(u8"â–¶");
-		ed::EndPin();
-
+		// 1è¡Œç›®ï¼šè¨˜å·
+		DrawSymbol("NOT", nodeWidth, 1.5f);
+		// 2è¡Œç›®ï¼šå…¥åŠ›ã¨å‡ºåŠ›
+		DrawPin(ToPinId(n.id, kPinInA), ed::PinKind::Input);
 		ImGui::SameLine(nodeWidth);
-		ed::BeginPin(GetNotOutPinId(n.id), ed::PinKind::Output);
-		ImGui::Text(u8"â–¶");
-		ed::EndPin();
+		DrawPin(ToPinId(n.id, kPinOut), ed::PinKind::Output);
 
 		ImGui::PopID();
 		ed::EndNode();
@@ -22525,161 +22613,95 @@ void StudioConditionGraph::DrawNotNodes()
 		ed::PopStyleColor(1);
 		ed::PopStyleVar(1);
 
-		ImVec2 currentPos = ed::GetNodePosition(nodeId);
-		n.posX = currentPos.x;
-		n.posY = currentPos.y;
+		// ãƒãƒ¼ãƒ‰ã‚’å‹•ã‹ã—ãŸã‚‰ã€ãƒ‡ãƒ¼ã‚¿ã®ä½ç½®ã«æ›¸ãæˆ»ã™
+		ReadPosition(n.id, n.posX, n.posY);
 	}
 }
 
-// æœªè¨­å®šã‚²ãƒƒã‚¿ãƒ¼ãƒãƒ¼ãƒ‰
-void StudioConditionGraph::DrawUnassignedGetterNode(ConditionGetterNode& g)
+// ãƒªãƒ³ã‚¯æç”»
+void StudioConditionCanvas::DrawLinks()
 {
-	ed::NodeId nodeId(g.id);
+	const ImColor validColor(210, 210, 210, 255);
+	const ImColor invalidColor(230, 90, 90, 255);
 
-	ed::PushStyleColor(ed::StyleColor_NodeBorder, ImColor(255, 255, 255, 255));
-	ed::PushStyleVar(ed::StyleVar_NodeBorderWidth, 2.0f);
-
-	ed::BeginNode(nodeId);
-	ImGui::PushID(g.id);
-
-	const char* label = "Empty";
-	const float pinIconWidth = ImGui::CalcTextSize(u8"â–¶").x;
-	const float labelWidth = ImGui::CalcTextSize(label).x;
-	const float spacing = 8.0f;
-
-	const float nodeWidth = labelWidth + spacing;
-
-	ImGui::Text("%s", label);
-
-	ImGui::SameLine(nodeWidth);
-	ed::BeginPin(GetGetterOutPinId(g.id), ed::PinKind::Output);
-	ImGui::Text(u8"â–¶");
-	ed::EndPin();
-
-	ImGui::PopID();
-	ed::EndNode();
-
-	ed::PopStyleColor(1);
-	ed::PopStyleVar(1);
-}
-// è¨­å®šæ¸ˆã¿ã‚²ãƒƒã‚¿ãƒ¼ãƒãƒ¼ãƒ‰
-void StudioConditionGraph::DrawAssignedGetterNode(ConditionGetterNode& g)
-{
-	ed::NodeId nodeId(g.id);
-
-	ed::PushStyleColor(ed::StyleColor_NodeBorder, GetValueTypeColor(g.type));
-	ed::PushStyleVar(ed::StyleVar_NodeBorderWidth, 2.0f);
-
-	ed::BeginNode(nodeId);
-	ImGui::PushID(g.id);
-
-	// 1è¡Œç›®:ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆå
-	std::string line1 = g.componentName;
-
-	// 2è¡Œç›®:ãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰å(æ§‹é€ ä½“ã®å ´åˆã¯ã€Œãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰å.æˆåˆ†ã€ã€å˜ç´”ãªå‹ãªã‚‰ãã®ã¾ã¾)
-	std::string line2;
-	int componentCount = Reflection::GetComponentCount(g.type);
-	if (componentCount > 0)
+	for (const auto& l : graph->links)
 	{
-		std::string axisName = "?"; // æœªé¸æŠã®å ´åˆ
-		switch (g.selectedComponent)
-		{
-		case FloatComponent::X: axisName = "X"; break;
-		case FloatComponent::Y: axisName = "Y"; break;
-		case FloatComponent::Z: axisName = "Z"; break;
-		case FloatComponent::W: axisName = "W"; break;
-		default: break;
-		}
-		line2 = g.fieldName + "." + axisName;
+		// ä¸¡ç«¯ã®ãƒãƒ¼ãƒ‰ãŒç„¡ã„ãƒªãƒ³ã‚¯ã¯æã‹ãªã„
+		if (graph->GetNodeKind(l.fromId) == ConditionNodeKind::None) continue;
+		if (graph->GetNodeKind(l.toId) == ConditionNodeKind::None) continue;
+
+		// å‹ã‚’å¤‰ãˆãŸç­‰ã§ã€æ±ºã¾ã‚Šã«åˆã‚ãªããªã£ãŸãƒªãƒ³ã‚¯ã¯èµ¤
+		ImColor color = graph->IsLinkValid(l) ? validColor : invalidColor;
+
+		// å‡ºã™å´ã¯å¿…ãšå‡ºåŠ›ãƒ”ãƒ³ã€å—ã‘ã‚‹å´ã¯toPinBã§Aã‹Bã‚’é¸ã¶
+		ed::Link(
+			ed::LinkId(static_cast<uint64_t>(l.id)),
+			ToPinId(l.fromId, kPinOut),
+			ToPinId(l.toId, l.toPinB ? kPinInB : kPinInA),
+			color, 2.0f);
 	}
-	else
-	{
-		line2 = g.fieldName;
-	}
-
-	float line1Width = ImGui::CalcTextSize(line1.c_str()).x;
-	float line2Width = ImGui::CalcTextSize(line2.c_str()).x;
-	const float pinIconWidth = ImGui::CalcTextSize(u8"â–¶").x;
-	const float spacing = 8.0f;
-
-	// 2è¡Œã®ã†ã¡é•·ã„æ–¹ã«åˆã‚ã›ã¦ã€ãƒãƒ¼ãƒ‰å¹…ã‚’æ±ºã‚ã‚‹
-	const float contentWidth = (line1Width > line2Width) ? line1Width : line2Width;
-	const float nodeWidth = contentWidth + spacing;
-
-	CenterNextItem(nodeWidth, line1Width);
-	ImGui::Text("%s", line1.c_str());
-
-	CenterNextItem(nodeWidth, line2Width);
-	ImGui::Text("%s", line2.c_str());
-
-	ImGui::SameLine(nodeWidth);
-	ed::BeginPin(GetGetterOutPinId(g.id), ed::PinKind::Output);
-	ImGui::Text(u8"â–¶");
-	ed::EndPin();
-
-	ImGui::PopID();
-	ed::EndNode();
-
-	ed::PopStyleColor(1);
-	ed::PopStyleVar(1);
 }
 
-
-// å³ã‚¯ãƒªãƒƒã‚¯ãƒ¡ãƒ‹ãƒ¥ãƒ¼
-void StudioConditionGraph::DrawCreateNodeMenu()
+// èƒŒæ™¯å³ã‚¯ãƒªãƒƒã‚¯ã®ãƒãƒ¼ãƒ‰ä½œæˆãƒ¡ãƒ‹ãƒ¥ãƒ¼
+void StudioConditionCanvas::DrawCreateMenu()
 {
+	// ãƒ¡ãƒ‹ãƒ¥ãƒ¼ã¯ç”»é¢ã®åº§æ¨™ã§æã
 	ed::Suspend();
+
+	// èƒŒæ™¯ã‚’å³ã‚¯ãƒªãƒƒã‚¯ã—ãŸã‚‰ã€ä½ç½®ã‚’è¦šãˆã¦ãƒ¡ãƒ‹ãƒ¥ãƒ¼ã‚’é–‹ã
 	if (ed::ShowBackgroundContextMenu())
 	{
 		pendingCreatePos = ImGui::GetMousePos();
 		ImGui::OpenPopup("CreateConditionNode");
 	}
+
+	// ãƒãƒƒãƒ—å†…å®¹
 	if (ImGui::BeginPopup("CreateConditionNode"))
 	{
+		// å³ã‚¯ãƒªãƒƒã‚¯ã—ãŸä½ç½®(ã‚­ãƒ£ãƒ³ãƒã‚¹ã®åº§æ¨™)
+		ImVec2 pos = ed::ScreenToCanvas(pendingCreatePos);
+		int newId = -1;
+
 		// å¤‰æ•°
 		if (ImGui::BeginMenu("Add Variable"))
 		{
-			if (ImGui::MenuItem("int"))
-			{
-				CreateVariableNode(ValueType::Int);
-			}
-			if (ImGui::MenuItem("float"))
-			{
-				CreateVariableNode(ValueType::Float);
-			}
-			if (ImGui::MenuItem("bool"))
-			{
-				CreateVariableNode(ValueType::Bool);
-			}
+			if (ImGui::MenuItem("int"))   newId = graph->AddVariableNode(ValueType::Int, pos.x, pos.y);
+			if (ImGui::MenuItem("float")) newId = graph->AddVariableNode(ValueType::Float, pos.x, pos.y);
+			if (ImGui::MenuItem("bool"))  newId = graph->AddVariableNode(ValueType::Bool, pos.x, pos.y);
 			ImGui::EndMenu();
 		}
 
-		// æ¯”è¼ƒæ¼”ç®—å­
+		// æ¯”è¼ƒ
 		if (ImGui::BeginMenu("Add Operator"))
 		{
-			if (ImGui::MenuItem(">"))  CreateOperatorNode(CompareOp::Greater);
-			if (ImGui::MenuItem("<"))  CreateOperatorNode(CompareOp::Less);
-			if (ImGui::MenuItem("==")) CreateOperatorNode(CompareOp::Equal);
-			if (ImGui::MenuItem("!=")) CreateOperatorNode(CompareOp::NotEqual);
-			if (ImGui::MenuItem(">=")) CreateOperatorNode(CompareOp::GreaterEqual);
-			if (ImGui::MenuItem("<=")) CreateOperatorNode(CompareOp::LessEqual);
+			if (ImGui::MenuItem(">"))  newId = graph->AddOperatorNode(CompareOp::Greater, pos.x, pos.y);
+			if (ImGui::MenuItem("<"))  newId = graph->AddOperatorNode(CompareOp::Less, pos.x, pos.y);
+			if (ImGui::MenuItem("==")) newId = graph->AddOperatorNode(CompareOp::Equal, pos.x, pos.y);
+			if (ImGui::MenuItem("!=")) newId = graph->AddOperatorNode(CompareOp::NotEqual, pos.x, pos.y);
+			if (ImGui::MenuItem(">=")) newId = graph->AddOperatorNode(CompareOp::GreaterEqual, pos.x, pos.y);
+			if (ImGui::MenuItem("<=")) newId = graph->AddOperatorNode(CompareOp::LessEqual, pos.x, pos.y);
 			ImGui::EndMenu();
 		}
 
-		// è«–ç†æ¼”ç®—å­
+		// è«–ç†
 		if (ImGui::BeginMenu("Add Logic"))
 		{
-			if (ImGui::MenuItem("AND")) CreateLogicNode(LogicOp::And);
-			if (ImGui::MenuItem("OR"))  CreateLogicNode(LogicOp::Or);
-			if (ImGui::MenuItem("NOT")) CreateNotNode();
-
+			if (ImGui::MenuItem("AND")) newId = graph->AddLogicNode(LogicOp::And, pos.x, pos.y);
+			if (ImGui::MenuItem("OR"))  newId = graph->AddLogicNode(LogicOp::Or, pos.x, pos.y);
+			if (ImGui::MenuItem("NOT")) newId = graph->AddNotNode(pos.x, pos.y);
 			ImGui::EndMenu();
 		}
 
-		// ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆã®ã‚²ãƒƒã‚¿ãƒ¼
+		// ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆã®å€¤
 		if (ImGui::MenuItem("Add Getter"))
 		{
-			CreateGetterNode();
+			newId = graph->AddGetterNode(pos.x, pos.y);
+		}
+
+		// ä½œã£ãŸãƒãƒ¼ãƒ‰ã‚’ã€å³ã‚¯ãƒªãƒƒã‚¯ã—ãŸä½ç½®ã«ç½®ã
+		if (newId != -1)
+		{
+			ed::SetNodePosition(ed::NodeId(static_cast<uint64_t>(newId)), pos);
 		}
 
 		ImGui::EndPopup();
@@ -22687,663 +22709,633 @@ void StudioConditionGraph::DrawCreateNodeMenu()
 
 	ed::Resume();
 }
-// å¤‰æ•°ãƒãƒ¼ãƒ‰ä½œæˆ
-void StudioConditionGraph::CreateVariableNode(ValueType type)
+
+// ãƒ”ãƒ³ã‹ã‚‰ãƒ‰ãƒ©ãƒƒã‚°ã—ã¦ãƒªãƒ³ã‚¯ã‚’ä½œã‚‹
+void StudioConditionCanvas::UpdateLinkCreation()
 {
-	ImVec2 canvasPos = ed::ScreenToCanvas(pendingCreatePos);
-
-	ConditionVariableNode v;
-	v.id = targetCondition->GenerateId();
-	v.posX = canvasPos.x;
-	v.posY = canvasPos.y;
-	v.type = type;
-
-	targetCondition->variableNodes.push_back(v);
-
-	ed::SetNodePosition(ed::NodeId(v.id), canvasPos);
-}
-// æ¯”è¼ƒæ¼”ç®—ãƒãƒ¼ãƒ‰ä½œæˆ
-void StudioConditionGraph::CreateOperatorNode(CompareOp op)
-{
-	ImVec2 canvasPos = ed::ScreenToCanvas(pendingCreatePos);
-
-	ConditionOperatorNode o;
-	o.id = targetCondition->GenerateId();
-	o.posX = canvasPos.x;
-	o.posY = canvasPos.y;
-	o.op = op;
-
-	targetCondition->operatorNodes.push_back(o);
-
-	ed::SetNodePosition(ed::NodeId(o.id), canvasPos);
-}
-// è«–ç†æ¼”ç®—ãƒãƒ¼ãƒ‰ä½œæˆ
-void StudioConditionGraph::CreateLogicNode(LogicOp op)
-{
-	ImVec2 canvasPos = ed::ScreenToCanvas(pendingCreatePos);
-
-	ConditionLogicNode l;
-	l.id = targetCondition->GenerateId();
-	l.posX = canvasPos.x;
-	l.posY = canvasPos.y;
-	l.op = op;
-
-	targetCondition->logicNodes.push_back(l);
-
-	ed::SetNodePosition(ed::NodeId(l.id), canvasPos);
-}
-// å¦å®šãƒãƒ¼ãƒ‰ä½œæˆ
-void StudioConditionGraph::CreateNotNode()
-{
-	ImVec2 canvasPos = ed::ScreenToCanvas(pendingCreatePos);
-
-	ConditionNotNode n;
-	n.id = targetCondition->GenerateId();
-	n.posX = canvasPos.x;
-	n.posY = canvasPos.y;
-
-	targetCondition->notNodes.push_back(n);
-
-	ed::SetNodePosition(ed::NodeId(n.id), canvasPos);
-}
-// ã‚²ãƒƒã‚¿ãƒ¼ãƒãƒ¼ãƒ‰ä½œæˆ
-void StudioConditionGraph::CreateGetterNode()
-{
-	ImVec2 canvasPos = ed::ScreenToCanvas(pendingCreatePos);
-
-	ConditionGetterNode g;
-	g.id = targetCondition->GenerateId();
-	g.posX = canvasPos.x;
-	g.posY = canvasPos.y;
-
-	targetCondition->getterNodes.push_back(g);
-
-	ed::SetNodePosition(ed::NodeId(g.id), canvasPos);
-}
-
-
-// å‰Šé™¤ãƒœã‚¿ãƒ³
-void StudioConditionGraph::DrawDeleteButton(const char* label, int targetId, const std::function<void(int)>& onDelete)
-{
-	ImGui::Spacing();
-	ImGui::Spacing();
-
-	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.15f, 0.15f, 1.0f));
-	ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.85f, 0.2f, 0.2f, 1.0f));
-	ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.6f, 0.1f, 0.1f, 1.0f));
-
-	bool pressed = ImGui::Button(label, ImVec2(-1.0f, 0.0f));
-
-	ImGui::PopStyleColor(3);
-
-	if (pressed)
+	// ãƒ‰ãƒ©ãƒƒã‚°ä¸­ã®å‡¦ç†
+	if (ed::BeginCreate(ImColor(255, 255, 255, 255), 2.0f))
 	{
-		onDelete(targetId);
-		selectedVariable = nullptr;
-		selectedGetter = nullptr;
-		selectedOperator = nullptr;
-		selectedLogic = nullptr;
-		selectedNot = nullptr;
-		selectedConditionLink = nullptr;
-	}
-}
-// å¤‰æ•°ãƒãƒ¼ãƒ‰å‰Šé™¤
-void StudioConditionGraph::DeleteVariableNode(int id)
-{
-	auto& vars = targetCondition->variableNodes;
-	vars.erase(
-		std::remove_if(vars.begin(), vars.end(),
-			[id](const ConditionVariableNode& v) { return v.id == id; }),
-		vars.end()
-	);
-
-	auto& links = targetCondition->links;
-	links.erase(
-		std::remove_if(links.begin(), links.end(),
-			[id](const ConditionLink& l) { return l.fromId == id || l.toId == id; }),
-		links.end()
-	);
-}
-// ã‚²ãƒƒã‚¿ãƒ¼ãƒãƒ¼ãƒ‰å‰Šé™¤
-void StudioConditionGraph::DeleteGetterNode(int id)
-{
-	auto& getters = targetCondition->getterNodes;
-	getters.erase(
-		std::remove_if(getters.begin(), getters.end(),
-			[id](const ConditionGetterNode& g) { return g.id == id; }),
-		getters.end()
-	);
-
-	auto& links = targetCondition->links;
-	links.erase(
-		std::remove_if(links.begin(), links.end(),
-			[id](const ConditionLink& l) { return l.fromId == id || l.toId == id; }),
-		links.end()
-	);
-}
-// æ¯”è¼ƒæ¼”ç®—ãƒãƒ¼ãƒ‰å‰Šé™¤
-void StudioConditionGraph::DeleteOperatorNode(int id)
-{
-	auto& ops = targetCondition->operatorNodes;
-	ops.erase(
-		std::remove_if(ops.begin(), ops.end(),
-			[id](const ConditionOperatorNode& o) { return o.id == id; }),
-		ops.end()
-	);
-
-	auto& links = targetCondition->links;
-	links.erase(
-		std::remove_if(links.begin(), links.end(),
-			[id](const ConditionLink& l) { return l.fromId == id || l.toId == id; }),
-		links.end()
-	);
-}
-// è«–ç†æ¼”ç®—ãƒãƒ¼ãƒ‰å‰Šé™¤
-void StudioConditionGraph::DeleteLogicNode(int id)
-{
-	auto& logics = targetCondition->logicNodes;
-	logics.erase(
-		std::remove_if(logics.begin(), logics.end(),
-			[id](const ConditionLogicNode& l) { return l.id == id; }),
-		logics.end()
-	);
-
-	auto& links = targetCondition->links;
-	links.erase(
-		std::remove_if(links.begin(), links.end(),
-			[id](const ConditionLink& cl) { return cl.fromId == id || cl.toId == id; }),
-		links.end()
-	);
-}
-// å¦å®šãƒãƒ¼ãƒ‰å‰Šé™¤
-void StudioConditionGraph::DeleteNotNode(int id)
-{
-	auto& nots = targetCondition->notNodes;
-	nots.erase(
-		std::remove_if(nots.begin(), nots.end(),
-			[id](const ConditionNotNode& n) { return n.id == id; }),
-		nots.end()
-	);
-
-	auto& links = targetCondition->links;
-	links.erase(
-		std::remove_if(links.begin(), links.end(),
-			[id](const ConditionLink& cl) { return cl.fromId == id || cl.toId == id; }),
-		links.end()
-	);
-}
-// ConditionLinkå‰Šé™¤
-void StudioConditionGraph::DeleteConditionLink(int id)
-{
-	auto& links = targetCondition->links;
-	links.erase(
-		std::remove_if(links.begin(), links.end(),
-			[id](const ConditionLink& l) { return l.id == id; }),
-		links.end()
-	);
-}
-
-
-// ãƒãƒ¼ãƒ‰é¸æŠçŠ¶æ…‹ã‚’æ›´æ–°
-void StudioConditionGraph::UpdateSelection()
-{
-	selectedVariable = nullptr;
-	selectedGetter = nullptr;
-	selectedOperator = nullptr;
-	selectedLogic = nullptr;
-	selectedNot = nullptr;
-	selectedConditionLink = nullptr;
-
-	if (ed::GetSelectedObjectCount() == 0) return;
-
-	ed::NodeId selectedId;
-	ed::GetSelectedNodes(&selectedId, 1);
-	int id = (int)selectedId.Get();
-
-	for (auto& v : targetCondition->variableNodes)
-	{
-		if (v.id == id) { selectedVariable = &v; return; }
-	}
-	for (auto& g : targetCondition->getterNodes)
-	{
-		if (g.id == id) { selectedGetter = &g; return; }
-	}
-	for (auto& o : targetCondition->operatorNodes)
-	{
-		if (o.id == id) { selectedOperator = &o; return; }
-	}
-	for (auto& l : targetCondition->logicNodes)
-	{
-		if (l.id == id) { selectedLogic = &l; return; }
-	}
-	for (auto& n : targetCondition->notNodes)
-	{
-		if (n.id == id) { selectedNot = &n; return; }
-	}
-
-	// Linkã®é¸æŠ
-	selectedConditionLink = GetSelectedConditionLink();
-}
-// é¸æŠä¸­ã®ConditionLinkã‚’å–å¾—ã™ã‚‹
-ConditionLink* StudioConditionGraph::GetSelectedConditionLink()
-{
-	ed::LinkId selectedId;
-	if (ed::GetSelectedLinks(&selectedId, 1) == 0) return nullptr;
-
-	for (auto& cl : targetCondition->links)
-	{
-		if (cl.id == (int)selectedId.Get()) return &cl;
-	}
-	return nullptr;
-}
-
-
-// ãƒãƒ¼ãƒ‰å†…ã§ä¸­å¤®å¯„ã›ã«ã™ã‚‹
-void StudioConditionGraph::CenterNextItem(float totalWidth, float itemWidth)
-{
-	float pad = (totalWidth - itemWidth) * 0.5f;
-	if (pad > 0.0f)
-	{
-		ImGui::Dummy(ImVec2(pad, 0.0f));
-		ImGui::SameLine(0.0f, 0.0f);
-	}
-}
-// å€¤ã®å‹ã”ã¨ã®è¡¨ç¤ºè‰²ã‚’è¿”ã™
-ImColor StudioConditionGraph::GetValueTypeColor(ValueType type)
-{
-	switch (type)
-	{
-	case ValueType::Int:    return ImColor(68, 201, 156, 255);  // æ°´è‰²
-
-	case ValueType::Float:  return ImColor(147, 226, 74, 255);  // ç·‘(Float2/3/4ã‚‚åŒã˜ç·‘ã«ã™ã‚‹)
-	case ValueType::Float2:
-	case ValueType::Float3:
-	case ValueType::Float4: return ImColor(147, 226, 74, 255);
-
-	case ValueType::Bool:   return ImColor(220, 48, 48, 255);   // èµ¤
-
-	default:                return ImColor(255, 255, 255, 255);
-	}
-}
-// å€¤ã®å‹åã‚’æ–‡å­—ã«ã—ã¦è¿”ã™
-const char* StudioConditionGraph::GetValueTypeName(ValueType type)
-{
-	switch (type)
-	{
-	case ValueType::Int:   return "int";
-	case ValueType::Float: return "float";
-	case ValueType::Bool:  return "bool";
-	}
-	return "?";
-}
-// æ¯”è¼ƒæ¼”ç®—å­ã®è¡¨ç¤ºç”¨è¨˜å·
-const char* StudioConditionGraph::GetCompareOpSymbol(CompareOp op)
-{
-	switch (op)
-	{
-	case CompareOp::Greater:      return ">";
-	case CompareOp::Less:         return "<";
-	case CompareOp::Equal:        return "==";
-	case CompareOp::NotEqual:     return "!=";
-	case CompareOp::GreaterEqual: return ">=";
-	case CompareOp::LessEqual:    return "<=";
-	}
-	return "?";
-}
-// æ¯”è¼ƒæ¼”ç®—å­ã®å‘ãã‚’åè»¢ã™ã‚‹
-CompareOp StudioConditionGraph::InvertCompareOp(CompareOp op)
-{
-	switch (op)
-	{
-	case CompareOp::Greater:      return CompareOp::Less;
-	case CompareOp::Less:         return CompareOp::Greater;
-	case CompareOp::GreaterEqual: return CompareOp::LessEqual;
-	case CompareOp::LessEqual:    return CompareOp::GreaterEqual;
-	default: return op; // Equal/NotEqualã¯å‘ãã®æ¦‚å¿µãŒç„¡ã„ãŸã‚å¤‰åŒ–ãªã—
-	}
-}
-
-// è«–ç†æ¼”ç®—å­ã®è¡¨ç¤ºç”¨è¨˜å·
-const char* StudioConditionGraph::GetLogicOpSymbol(LogicOp op)
-{
-	switch (op)
-	{
-	case LogicOp::And: return "AND";
-	case LogicOp::Or:  return "OR";
-	}
-	return "?";
-}
-
-
-// ç”Ÿã®ãƒ”ãƒ³ID(int64_t)ã‹ã‚‰ã€å½¹å‰²ã¨ãƒãƒ¼ãƒ‰IDã‚’é€†ç®—ã™ã‚‹
-void StudioConditionGraph::ResolvePinRole(int64_t rawPinId, PinRole& outRole, int& outNodeId)
-{
-	if (rawPinId >= ReturnOffset && rawPinId < ReturnOffset + 1000000)
-	{
-		outRole = PinRole::ReturnIn;
-		outNodeId = (int)(rawPinId - ReturnOffset);
-		return;
-	}
-	if (rawPinId >= GetterOffset && rawPinId < GetterOffset + 1000000)
-	{
-		outRole = PinRole::GetterOut;
-		outNodeId = (int)(rawPinId - GetterOffset);
-		return;
-	}
-	if (rawPinId >= LogicOffset && rawPinId < LogicOffset + 1000000)
-	{
-		int64_t offset = rawPinId - LogicOffset;
-		int64_t nodeId = offset / 3;
-		int64_t rem = offset % 3;
-		outNodeId = (int)nodeId;
-		outRole = (rem == 0) ? PinRole::LogicA : (rem == 1) ? PinRole::LogicB : PinRole::LogicOut;
-		return;
-	}
-	if (rawPinId >= OperatorOffset && rawPinId < OperatorOffset + 1000000)
-	{
-		int64_t offset = rawPinId - OperatorOffset;
-		int64_t nodeId = offset / 3;
-		int64_t rem = offset % 3;
-		outNodeId = (int)nodeId;
-		outRole = (rem == 0) ? PinRole::OperatorA : (rem == 1) ? PinRole::OperatorB : PinRole::OperatorOut;
-		return;
-	}
-	if (rawPinId >= VariableOffset && rawPinId < VariableOffset + 1000000)
-	{
-		int64_t offset = rawPinId - VariableOffset;
-		int64_t nodeId = offset / 2;
-		int64_t rem = offset % 2;
-		outNodeId = (int)nodeId;
-		outRole = (rem == 0) ? PinRole::VariableIn : PinRole::VariableOut;
-		return;
-	}
-	if (rawPinId >= NotOffset && rawPinId < NotOffset + 1000000)
-	{
-		int64_t offset = rawPinId - NotOffset;
-		int64_t nodeId = offset / 2;
-		int64_t rem = offset % 2;
-		outNodeId = (int)nodeId;
-		outRole = (rem == 0) ? PinRole::NotIn : PinRole::NotOut;
-		return;
-	}
-
-	outRole = PinRole::Unknown;
-	outNodeId = -1;
-}
-// ç”Ÿã®ãƒãƒ¼ãƒ‰ID(int)ã‹ã‚‰ã€ã“ã®Linkå†…ã§ã©ã®ç¨®é¡ã®ãƒãƒ¼ãƒ‰ã‹ã‚’èª¿ã¹ã‚‹
-StudioConditionGraph::NodeKind StudioConditionGraph::GetNodeKind(int id) const
-{
-	if (targetCondition->returnNode.id == id) return NodeKind::Return;
-
-	for (const auto& v : targetCondition->variableNodes)
-		if (v.id == id) return NodeKind::Variable;
-
-	for (const auto& g : targetCondition->getterNodes)
-		if (g.id == id) return NodeKind::Getter;
-
-	for (const auto& o : targetCondition->operatorNodes)
-		if (o.id == id) return NodeKind::Operator;
-
-	for (const auto& l : targetCondition->logicNodes)
-		if (l.id == id) return NodeKind::Logic;
-	
-	for (const auto& n : targetCondition->notNodes)
-		if (n.id == id) return NodeKind::Not;
-
-	return NodeKind::Unknown;
-}
-// ãƒ”ãƒ³æ¥ç¶š(ãƒ‰ãƒ©ãƒƒã‚°)ã®å‡¦ç†
-void StudioConditionGraph::DrawLinkCreation()
-{
-	if (ed::BeginCreate())
-	{
-		ed::PinId pinIdA, pinIdB;
-		if (ed::QueryNewLink(&pinIdA, &pinIdB))
+		// ãƒ‰ãƒ©ãƒƒã‚°ä¸­ã®2ã¤ã®ãƒ”ãƒ³
+		ed::PinId pinA, pinB;
+		if (ed::QueryNewLink(&pinA, &pinB))
 		{
-			PinRole roleA, roleB;
-			int nodeIdA, nodeIdB;
-			ResolvePinRole(pinIdA.Get(), roleA, nodeIdA);
-			ResolvePinRole(pinIdB.Get(), roleB, nodeIdB);
+			// ãƒ”ãƒ³ã®IDã‚’ã€ãƒãƒ¼ãƒ‰ã®IDã¨ãƒ”ãƒ³ã®ä½ç½®ã«æˆ»ã™
+			int nodeA = -1, nodeB = -1;
+			PinSlot slotA = kPinOut, slotB = kPinOut;
+			bool decoded = FromPinId(pinA, nodeA, slotA) && FromPinId(pinB, nodeB, slotB);
 
-			// å‡ºåŠ›å´/å…¥åŠ›å´ã‚’åˆ¤å®šã™ã‚‹(ãƒ‰ãƒ©ãƒƒã‚°ã®å‘ãã«é–¢ã‚ã‚‰ãšæ­£è¦åŒ–ã™ã‚‹)
-			auto isOutputRole = [](PinRole r)
-				{
-					return r == PinRole::VariableOut || r == PinRole::GetterOut || r == PinRole::OperatorOut || r == PinRole::LogicOut
-						|| r == PinRole::NotOut;
-				};
-			auto isInputRole = [](PinRole r)
-				{
-					return r == PinRole::VariableIn || r == PinRole::OperatorA || r == PinRole::OperatorB
-						|| r == PinRole::LogicA || r == PinRole::LogicB || r == PinRole::ReturnIn
-						|| r == PinRole::NotIn;
-				};
-
-			PinRole outRole, inRole;
-			int outNodeId, inNodeId;
-			bool orderOk = false;
-
-			if (isOutputRole(roleA) && isInputRole(roleB))
+			// ãƒ‰ãƒ©ãƒƒã‚°ã®å‘ãã«é–¢ã‚ã‚‰ãšã€Aï¼å‡ºåŠ›ã€Bï¼å…¥åŠ›ã«ãã‚ãˆã‚‹
+			if (decoded && slotA != kPinOut)
 			{
-				outRole = roleA; outNodeId = nodeIdA;
-				inRole = roleB; inNodeId = nodeIdB;
-				orderOk = true;
-			}
-			else if (isOutputRole(roleB) && isInputRole(roleA))
-			{
-				outRole = roleB; outNodeId = nodeIdB;
-				inRole = roleA; inNodeId = nodeIdA;
-				orderOk = true;
+				std::swap(nodeA, nodeB);
+				std::swap(slotA, slotB);
 			}
 
-			// å‡ºåŠ›å´ãŒã€Œå¸¸ã«Boolãªå‡ºåŠ›(Operator/Logic)ã€ã‹ã©ã†ã‹
-			auto isBoolOutRole = [](PinRole r)
-				{
-					return r == PinRole::OperatorOut || r == PinRole::LogicOut || r == PinRole::NotOut;
-				};
-
-			// è¨±å¯ã™ã‚‹çµ„ã¿åˆã‚ã›:
-			// Getter/Variable/Operator/Logic â†’ OperatorA/B
-			// Getter/Variable(bool)/Operator/Logic â†’ LogicA/B
-			// Operator/Logic â†’ Return
-			// Getter/Variable(bool) â†’ Return
-			bool isValid = orderOk && (
-				((outRole == PinRole::GetterOut || outRole == PinRole::VariableOut || isBoolOutRole(outRole)) && (inRole == PinRole::OperatorA || inRole == PinRole::OperatorB)) ||
-				((outRole == PinRole::GetterOut || outRole == PinRole::VariableOut || isBoolOutRole(outRole)) && (inRole == PinRole::LogicA || inRole == PinRole::LogicB)) ||
-				((outRole == PinRole::GetterOut || outRole == PinRole::VariableOut || isBoolOutRole(outRole)) && inRole == PinRole::NotIn) ||
-				(isBoolOutRole(outRole) && inRole == PinRole::ReturnIn) ||
-				((outRole == PinRole::GetterOut || outRole == PinRole::VariableOut) && inRole == PinRole::ReturnIn)
-				);
-
-			// åŒã˜ãƒãƒ¼ãƒ‰åŒå£«ã¯ç¦æ­¢
-			if (isValid && outNodeId == inNodeId) isValid = false;
-
-			// Getter/Variable/Operator/Logicâ†’Operatorã®A/Bã¯ã€å¤§å°ç³»æ¼”ç®—å­ãªã‚‰Boolã‚’ç¦æ­¢ã™ã‚‹ã€‚==/!=ãªã‚‰å‹ä¸€è‡´ã®ã¿è¦‹ã‚‹
-			if (isValid && (outRole == PinRole::GetterOut || outRole == PinRole::VariableOut || isBoolOutRole(outRole)) && (inRole == PinRole::OperatorA || inRole == PinRole::OperatorB))
+			// ã¤ãªã„ã§ã‚ˆã„ã‹ã‚’åˆ¤æ–­ã™ã‚‹
+			std::string reason;
+			bool ok = false;
+			if (!decoded || slotA != kPinOut || slotB == kPinOut)
 			{
-				ValueType srcType = GetOutputValueType(outRole, outNodeId);
-
-				CompareOp op = CompareOp::Greater;
-				for (const auto& o : targetCondition->operatorNodes)
-				{
-					if (o.id == inNodeId) { op = o.op; break; }
-				}
-
-				if (srcType == ValueType::Bool && IsOrderCompareOp(op))
-				{
-					isValid = false;
-				}
-
-				// æ—¢ã«A/Bã®ã©ã¡ã‚‰ã‹ã«ç¹‹ãŒã£ã¦ã„ã‚‹å´ãŒã‚ã‚Œã°ã€ãã®å‹ã¨ä¸€è‡´ã—ã¦ã„ã‚‹å¿…è¦ãŒã‚ã‚‹
-				int otherPinNodeId = -1;
-				PinRole otherOutRole = PinRole::Unknown;
-				bool wantPinB = (inRole == PinRole::OperatorB);
-				for (const auto& cl : targetCondition->links)
-				{
-					if (cl.toId == inNodeId && cl.toPinB != wantPinB)
-					{
-						otherPinNodeId = cl.fromId;
-						NodeKind otherKind = GetNodeKind(cl.fromId);
-						otherOutRole = (otherKind == NodeKind::Operator) ? PinRole::OperatorOut
-							: (otherKind == NodeKind::Logic) ? PinRole::LogicOut
-							: (otherKind == NodeKind::Not) ? PinRole::NotOut
-							: (otherKind == NodeKind::Getter) ? PinRole::GetterOut
-							: PinRole::VariableOut;
-						break;
-					}
-				}
-				if (otherPinNodeId != -1)
-				{
-					ValueType otherType = GetOutputValueType(otherOutRole, otherPinNodeId);
-					if (otherType != srcType) isValid = false;
-				}
+				// å‡ºåŠ›åŒå£«ãƒ»å…¥åŠ›åŒå£«
+				reason = "Connect an output to an input.";
+			}
+			else
+			{
+				ok = graph->CanLink(nodeA, nodeB, slotB == kPinInB, &reason);
 			}
 
-			// Getter/Variable(bool)/Operator/Logic â†’ Logicã®A/Bã¯ã€Boolå‹ã®ã¿è¨±å¯
-			if (isValid && (outRole == PinRole::GetterOut || outRole == PinRole::VariableOut || isBoolOutRole(outRole)) && (inRole == PinRole::LogicA || inRole == PinRole::LogicB))
+			if (ok)
 			{
-				ValueType srcType = GetOutputValueType(outRole, outNodeId);
-				if (srcType != ValueType::Bool) isValid = false;
-			}
-
-			// Getter/Variable(bool)/Operator/Logic/Not â†’ Notã®å…¥åŠ›ã¯ã€Boolå‹ã®ã¿è¨±å¯
-			if (isValid && inRole == PinRole::NotIn)
-			{
-				ValueType srcType = GetOutputValueType(outRole, outNodeId);
-				if (srcType != ValueType::Bool) isValid = false;
-			}
-
-			// Getter/Variable(bool)â†’Returnã¯ã€boolå‹ã®ã¿è¨±å¯
-			if (isValid && (outRole == PinRole::GetterOut || outRole == PinRole::VariableOut) && inRole == PinRole::ReturnIn)
-			{
-				NodeKind outKind = (outRole == PinRole::GetterOut) ? NodeKind::Getter : NodeKind::Variable;
-				ValueType outType = GetNodeValueType(outKind, outNodeId);
-				if (outType != ValueType::Bool) isValid = false;
-			}
-
-			if (isValid)
-			{
-				if (ed::AcceptNewItem())
+				// ãƒã‚¦ã‚¹ã‚’é›¢ã—ãŸç¬é–“ã«trueã«ãªã‚‹
+				if (ed::AcceptNewItem(ImColor(255, 255, 255, 255), 2.0f))
 				{
-					bool toPinB = (inRole == PinRole::OperatorB || inRole == PinRole::LogicB);
-
-					// å…¥åŠ›ãƒ”ãƒ³ã¯1æœ¬ã¾ã§:æ—¢ã«åŒã˜å…¥åŠ›ã«ç¹‹ãŒã£ã¦ã„ã‚‹LinkãŒã‚ã‚Œã°ç½®ãæ›ãˆã‚‹
-					auto& links = targetCondition->links;
-					links.erase(
-						std::remove_if(links.begin(), links.end(),
-							[&](const ConditionLink& l)
-							{
-								return l.toId == inNodeId && l.toPinB == toPinB;
-							}),
-						links.end()
-					);
-
-					ConditionLink newLink;
-					newLink.id = targetCondition->GenerateId();
-					newLink.fromId = outNodeId;
-					newLink.toId = inNodeId;
-					newLink.toPinB = toPinB;
-					links.push_back(newLink);
+					graph->AddLink(nodeA, nodeB, slotB == kPinInB);
 				}
 			}
 			else
 			{
+				// ã¤ãªã’ã‚‰ã‚Œãªã„ç†ç”±ã‚’ã€ãƒã‚¦ã‚¹ã®è¿‘ãã«å‡ºã™
+				ed::Suspend();
+				ImGui::SetTooltip("%s", reason.c_str());
+				ed::Resume();
+
+				// ç·šã‚’èµ¤ãã—ã¦ã€é›¢ã—ã¦ã‚‚ã¤ãªãŒã‚‰ãªã„ã‚ˆã†ã«ã™ã‚‹
 				ed::RejectNewItem(ImColor(255, 0, 0, 255), 2.0f);
 			}
 		}
 	}
 	ed::EndCreate();
 }
-// æ¥ç¶šæ¸ˆã¿ConditionLinkã®æç”»
-void StudioConditionGraph::DrawConditionLinks()
-{
-	const ImColor linkColor(210, 210, 210, 255);
-	const float linkThickness = 2.0f;
 
-	for (const auto& cl : targetCondition->links)
-	{
-		NodeKind fromKind = GetNodeKind(cl.fromId);
-		NodeKind toKind = GetNodeKind(cl.toId);
-
-		ed::PinId fromPin = GetOutputPinIdOf(cl.fromId, fromKind);
-		ed::PinId toPin = GetInputPinIdOf(cl.toId, toKind, cl.toPinB);
-
-		ed::Link(ed::LinkId(cl.id), fromPin, toPin, linkColor, linkThickness);
-	}
-}
-// fromId/toIdã‹ã‚‰ed::Linkã‚’å¼•ããŸã‚ã®ã€å®Ÿéš›ã®ãƒ”ãƒ³IDã‚’æ±‚ã‚ã‚‹
-ed::PinId StudioConditionGraph::GetOutputPinIdOf(int nodeId, NodeKind kind) const
+// é¸æŠã®æ›´æ–°
+void StudioConditionCanvas::UpdateSelection()
 {
-	switch (kind)
-	{
-	case NodeKind::Variable: return GetVariableOutPinId(nodeId);
-	case NodeKind::Getter:   return GetGetterOutPinId(nodeId);
-	case NodeKind::Operator: return GetOperatorOutPinId(nodeId);
-	case NodeKind::Logic:    return GetLogicOutPinId(nodeId);
-	case NodeKind::Not:      return GetNotOutPinId(nodeId);
+	// é¸ã°ã‚Œã¦ã„ã‚‹ãƒãƒ¼ãƒ‰ã¨ãƒªãƒ³ã‚¯ã‚’ã€ãƒãƒ¼ãƒ‰ã‚¨ãƒ‡ã‚£ã‚¿ã‹ã‚‰å—ã‘å–ã‚‹
+	int count = ed::GetSelectedObjectCount();
+	std::vector<ed::NodeId> nodeIds(count > 0 ? count : 1);
+	std::vector<ed::LinkId> linkIds(count > 0 ? count : 1);
+	int nodeCount = (count > 0) ? ed::GetSelectedNodes(nodeIds.data(), count) : 0;
+	int linkCount = (count > 0) ? ed::GetSelectedLinks(linkIds.data(), count) : 0;
 
-	default:                 return ed::PinId();
-	}
-}
-ed::PinId StudioConditionGraph::GetInputPinIdOf(int nodeId, NodeKind kind, bool toPinB) const
-{
-	switch (kind)
+	// ãƒãƒ¼ãƒ‰ã®é¸æŠ(å‰Šé™¤ã—ãŸç›´å¾Œãªã©ã§ã€ãƒ‡ãƒ¼ã‚¿ã«ç„¡ã„ã‚‚ã®ã¯é™¤ã)
+	selectedNodeIds.clear();
+	for (int i = 0; i < nodeCount; ++i)
 	{
-	case NodeKind::Variable: return GetVariableInPinId(nodeId);
-	case NodeKind::Operator: return toPinB ? GetOperatorPinB(nodeId) : GetOperatorPinA(nodeId);
-	case NodeKind::Logic:    return toPinB ? GetLogicPinB(nodeId) : GetLogicPinA(nodeId);
-	case NodeKind::Not:      return GetNotInPinId(nodeId);
-	case NodeKind::Return:   return GetReturnInPinId(nodeId);
-	default:                 return ed::PinId();
-	}
-}
-// ãƒãƒ¼ãƒ‰ã®å€¤ã®å‹ã‚’å–å¾—ã™ã‚‹
-ValueType StudioConditionGraph::GetNodeValueType(NodeKind kind, int nodeId) const
-{
-	if (kind == NodeKind::Variable)
-	{
-		for (const auto& v : targetCondition->variableNodes)
-			if (v.id == nodeId) return v.type;
-	}
-	else if (kind == NodeKind::Getter)
-	{
-		for (const auto& g : targetCondition->getterNodes)
+		int id = static_cast<int>(nodeIds[i].Get());
+		if (graph->GetNodeKind(id) != ConditionNodeKind::None)
 		{
-			if (g.id == nodeId)
-			{
-				// Float2/3/4ã¯ã€è»¸(X/Y/Z/W)ã‚’é¸ã‚“ã§åˆã‚ã¦ã€Œå®Ÿè³ªFloatã€ã¨ã—ã¦æ‰±ã†
-				if (Reflection::GetComponentCount(g.type) > 0)
-				{
-					return (g.selectedComponent != FloatComponent::None) ? ValueType::Float : g.type;
-				}
-				return g.type;
-			}
+			selectedNodeIds.push_back(id);
 		}
 	}
-	return ValueType::Float;
-}
-// å¤§å°ç³»æ¼”ç®—å­ã‹åˆ¤å®šã™ã‚‹
-bool StudioConditionGraph::IsOrderCompareOp(CompareOp op)
-{
-	switch (op)
+
+	// ãƒªãƒ³ã‚¯ã®é¸æŠ(ãƒãƒ¼ãƒ‰ãŒé¸ã°ã‚Œã¦ã„ãªã„ã¨ãã ã‘ã€æœ€åˆã®1æœ¬)
+	selectedLinkId = -1;
+	if (selectedNodeIds.empty() && linkCount > 0)
 	{
-	case CompareOp::Greater:
-	case CompareOp::Less:
-	case CompareOp::GreaterEqual:
-	case CompareOp::LessEqual:
-		return true;
-	default:
-		return false;
+		int id = static_cast<int>(linkIds[0].Get());
+		bool exists = std::any_of(graph->links.begin(), graph->links.end(),
+			[id](const ConditionLink& l) { return l.id == id; });
+		if (exists) selectedLinkId = id;
 	}
 }
-// å‡ºåŠ›ãƒ”ãƒ³ã®å®Ÿè³ªçš„ãªå‹ã‚’å–å¾—ã™ã‚‹
-ValueType StudioConditionGraph::GetOutputValueType(PinRole outRole, int outNodeId) const
-{
-	if (outRole == PinRole::OperatorOut) return ValueType::Bool; // Operatorã®å‡ºåŠ›ã¯å¸¸ã«Bool
-	if (outRole == PinRole::LogicOut)    return ValueType::Bool; // Logicã®å‡ºåŠ›ã‚‚å¸¸ã«Bool
-	if (outRole == PinRole::NotOut)      return ValueType::Bool; // Notã®å‡ºåŠ›ã‚‚å¸¸ã«Bool
 
-	if (outRole == PinRole::GetterOut)   return GetNodeValueType(NodeKind::Getter, outNodeId);
-	return GetNodeValueType(NodeKind::Variable, outNodeId); // VariableOut
+// é¸æŠã—ã¦ã„ã‚‹ç‰©ã‚’å‰Šé™¤
+void StudioConditionCanvas::DeleteSelection()
+{
+	// ãƒªãƒ³ã‚¯ã‚’é¸ã‚“ã§ã„ã‚Œã°ã€ãã®ãƒªãƒ³ã‚¯ã‚’æ¶ˆã™
+	if (selectedLinkId != -1)
+	{
+		graph->RemoveLink(selectedLinkId);
+	}
+
+	// é¸ã‚“ã§ã„ã‚‹ãƒãƒ¼ãƒ‰ã‚’æ¶ˆã™
+	for (int id : selectedNodeIds)
+	{
+		graph->RemoveNode(id);
+	}
+
+	selectedNodeIds.clear();
+	selectedLinkId = -1;
+
+	// ãƒãƒ¼ãƒ‰ã‚¨ãƒ‡ã‚£ã‚¿å´ã«æ®‹ã£ãŸã€æ¶ˆãˆãŸãƒãƒ¼ãƒ‰ã®é¸æŠã‚‚æ¶ˆã™
+	clearSelectionRequested = true;
+}
+
+// ãƒªã‚¿ãƒ¼ãƒ³ãƒãƒ¼ãƒ‰ã®è¨­å®š
+void StudioConditionCanvas::DrawReturnInspector()
+{
+	ImGui::Text("Return");
+	ImGui::Separator();
+
+	// ä½•ã‚‚ã¤ãªãŒã£ã¦ã„ãªã‘ã‚Œã°æ¡ä»¶ãŒç©ºãªã“ã¨ã‚’å‡ºã™
+	if (graph->IsEmpty())
+	{
+		ImGui::Spacing();
+		ErrorTextWrapped("Not connected. This condition is empty.");
+	}
+
+	// Returnã¯æ¡ä»¶ã«å¿…ãš1ã¤ã‚ã‚‹ã®ã§ã€å‰Šé™¤ã§ããªã„ã“ã¨ã‚’çŸ¥ã‚‰ã›ã‚‹
+	ImGui::Spacing();
+	ImGui::TextDisabled("Return cannot be deleted.");
+}
+
+// å¤‰æ•°ãƒãƒ¼ãƒ‰ã®è¨­å®š
+void StudioConditionCanvas::DrawVariableInspector(ConditionVariableNode& node)
+{
+	ImGui::Text("Variable");
+	ImGui::Separator();
+
+	// åå‰(ç©ºãªã‚‰ãƒãƒ¼ãƒ‰ã«"Variable"ã¨è¡¨ç¤º)
+	char nameBuffer[128] = {};
+	strncpy_s(nameBuffer, node.name.c_str(), sizeof(nameBuffer) - 1);
+	if (ImGui::InputText("Name", nameBuffer, sizeof(nameBuffer)))
+	{
+		node.name = nameBuffer;
+	}
+
+	// å‹ã¯ä½œã‚‹ã¨ãã«æ±ºã¾ã‚‹(å¤‰ãˆã‚‹ã¨ã¤ãªãŒã£ã¦ã„ã‚‹ãƒªãƒ³ã‚¯ã®æ„å‘³ãŒå¤‰ã‚ã‚‹ã®ã§ã€è¡¨ç¤ºã ã‘)
+	ImGui::Text("Type: %s", GetValueTypeName(node.type));
+
+	// å€¤
+	switch (node.type)
+	{
+	case ValueType::Int:   ImGui::DragInt("Value", &node.intValue, 1);       break;
+	case ValueType::Float: ImGui::DragFloat("Value", &node.floatValue, 0.1f); break;
+	case ValueType::Bool:  ImGui::Checkbox("Value", &node.boolValue);        break;
+	default: break;
+	}
+}
+
+// ã‚²ãƒƒã‚¿ãƒ¼ãƒãƒ¼ãƒ‰ã®è¨­å®š
+void StudioConditionCanvas::DrawGetterInspector(ConditionGetterNode& node)
+{
+	const auto& fields = Reflection::GetAllFields();
+
+	// è¡¨ç¤ºã™ã‚‹ã‚²ãƒƒã‚¿ãƒ¼ãŒå¤‰ã‚ã£ãŸã‚‰ã€ä¸€è¦§ã‚’ä»Šã®è¨­å®šã«åˆã‚ã›ã‚‹
+	if (getterInspectorNodeId != node.id)
+	{
+		getterInspectorNodeId = node.id;
+		browseComponent = node.componentName;
+		scrollToCurrent = true;
+	}
+
+	ImGui::Text("Getter");
+	ImGui::Separator();
+
+	// ä»Šã®è¨­å®š
+	bool assigned = !node.componentName.empty() && !node.fieldName.empty();
+	const FieldEntry* currentField = assigned ? Reflection::FindField(node.componentName, node.fieldName) : nullptr;
+	if (!assigned)
+	{
+		ImGui::TextDisabled("No field selected.");
+	}
+	else if (!currentField)
+	{
+		ImGui::TextColored(kErrorTextColor, "%s.%s (missing)", node.componentName.c_str(), node.fieldName.c_str());
+	}
+	else
+	{
+		ImGui::Text("%s.%s (%s)", node.componentName.c_str(), currentField->fieldLabel.c_str(), GetValueTypeName(currentField->type));
+	}
+	ImGui::Spacing();
+
+	// 1æ®µç›®ï¼šã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆ(é¸ã‚“ã§ã‚‚ä¸€è¦§ãŒåˆ‡ã‚Šæ›¿ã‚ã‚‹ã ã‘ã§ã€ãƒ‡ãƒ¼ã‚¿ã¯å¤‰ãˆãªã„)
+	ImGui::Text("Component");
+	ImGui::BeginChild("##GetterComponents", ImVec2(0.0f, 120.0f), true);
+	std::string previous;
+	for (const auto& f : fields)
+	{
+		// åŒã˜ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆã®ãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰ã¯ç¶šã‘ã¦ä¸¦ã‚“ã§ã„ã‚‹ã®ã§ã€åå‰ãŒå¤‰ã‚ã£ãŸã¨ã“ã‚ã§1è¡Œå‡ºã™
+		if (f.componentName == previous) continue;
+		previous = f.componentName;
+
+		bool open = (f.componentName == browseComponent);
+		if (ImGui::Selectable(f.componentName.c_str(), open))
+		{
+			browseComponent = f.componentName;
+		}
+		if (open && scrollToCurrent)
+		{
+			ImGui::SetScrollHereY(0.5f);
+		}
+	}
+	ImGui::EndChild();
+
+	// 2æ®µç›®ï¼šãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰(é¸ã‚“ã ã¨ãã«ãƒ‡ãƒ¼ã‚¿ã‚’å¤‰ãˆã‚‹)
+	ImGui::Text("Field");
+	ImGui::BeginChild("##GetterFields", ImVec2(0.0f, 200.0f), true);
+	if (browseComponent.empty())
+	{
+		ImGui::TextDisabled("Select a component.");
+	}
+	for (const auto& f : fields)
+	{
+		if (f.componentName != browseComponent) continue;
+
+		// æ¡ä»¶ã§èª­ã‚ãªã„å‹ã¯ã€ç°è‰²ã§é¸ã¹ãªã„ã‚ˆã†ã«ã™ã‚‹
+		bool readable = (f.type != ValueType::Unsupported);
+		bool current = (f.componentName == node.componentName && f.fieldName == node.fieldName);
+		std::string label = f.fieldLabel + "  (" + GetValueTypeName(f.type) + ")";
+
+		ImGui::PushID(f.fieldName.c_str());
+		ImGuiSelectableFlags flags = readable ? ImGuiSelectableFlags_None : ImGuiSelectableFlags_Disabled;
+		if (ImGui::Selectable(label.c_str(), current, flags) && !current)
+		{
+			node.componentName = f.componentName;
+			node.fieldName = f.fieldName;
+			node.selectedComponent = FloatComponent::None; // æˆåˆ†ã¯é¸ã³ç›´ã™
+		}
+		if (current && scrollToCurrent)
+		{
+			ImGui::SetScrollHereY(0.5f);
+		}
+		ImGui::PopID();
+	}
+	ImGui::EndChild();
+	scrollToCurrent = false;
+
+	// 3æ®µç›®ï¼šæˆåˆ†(Float2ï½4ã®ã¨ãã ã‘)
+	// ãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰ã‚’ã“ã®ãƒ•ãƒ¬ãƒ¼ãƒ ã§é¸ã³ç›´ã—ãŸå ´åˆã«å‚™ãˆã¦ã€å‹ã¯é¸ã‚“ã å¾Œã«æ±‚ã‚ç›´ã™
+	ValueType fieldType = GetGetterFieldType(node);
+	int count = Reflection::GetComponentCount(fieldType);
+	if (count > 0)
+	{
+		static const char* names[] = { "X", "Y", "Z", "W" };
+		static const FloatComponent values[] = { FloatComponent::X, FloatComponent::Y, FloatComponent::Z, FloatComponent::W };
+
+		ImGui::Spacing();
+		ImGui::Text("Axis");
+		for (int i = 0; i < count; ++i)
+		{
+			if (i > 0) ImGui::SameLine();
+			if (ImGui::RadioButton(names[i], node.selectedComponent == values[i]))
+			{
+				node.selectedComponent = values[i];
+			}
+		}
+
+		// æˆåˆ†ã‚’é¸ã¶ã¾ã§ã¤ãªã’ãªã„
+		if (!IsGetterAxisValid(node))
+		{
+			ImGui::TextColored(kErrorTextColor, "Select an axis to connect.");
+		}
+	}
+}
+
+// æ¯”è¼ƒæ¼”ç®—ãƒãƒ¼ãƒ‰ã®è¨­å®š
+void StudioConditionCanvas::DrawOperatorInspector(ConditionOperatorNode& node)
+{
+	ImGui::Text("Operator");
+	ImGui::Separator();
+
+	static const CompareOp ops[] =
+	{
+		CompareOp::Greater, CompareOp::Less, CompareOp::Equal,
+		CompareOp::NotEqual, CompareOp::GreaterEqual, CompareOp::LessEqual,
+	};
+
+	// 6ç¨®é¡ã®ã©ã‚Œã«ã§ã‚‚å¤‰ãˆã‚‰ã‚Œã‚‹(åˆã‚ãªããªã£ãŸãƒªãƒ³ã‚¯ã¯èµ¤ã«ãªã‚‹)
+	for (int i = 0; i < 6; ++i)
+	{
+		if (i % 3 != 0) ImGui::SameLine();
+		if (ImGui::RadioButton(GetCompareOpSymbol(ops[i]), node.op == ops[i]))
+		{
+			node.op = ops[i];
+		}
+	}
+
+	ImGui::Spacing();
+	ImGui::TextDisabled("A and B must be the same type.");
+	ImGui::TextDisabled("Bool: == or != only.");
+}
+
+// è«–ç†æ¼”ç®—ãƒãƒ¼ãƒ‰ã®è¨­å®š
+void StudioConditionCanvas::DrawLogicInspector(ConditionLogicNode& node)
+{
+	ImGui::Text("Logic");
+	ImGui::Separator();
+
+	if (ImGui::RadioButton("AND", node.op == LogicOp::And)) node.op = LogicOp::And;
+	ImGui::SameLine();
+	if (ImGui::RadioButton("OR", node.op == LogicOp::Or))   node.op = LogicOp::Or;
+
+	ImGui::Spacing();
+	ImGui::TextDisabled("A and B must be bool.");
+}
+
+// å¦å®šãƒãƒ¼ãƒ‰ã®è¨­å®š
+void StudioConditionCanvas::DrawNotInspector()
+{
+	ImGui::Text("Not");
+	ImGui::Separator();
+
+	ImGui::TextWrapped("Inverts the input bool.");
+}
+
+// ãƒªãƒ³ã‚¯ã®è¨­å®š
+void StudioConditionCanvas::DrawLinkInspector(const ConditionLink& link)
+{
+	ImGui::Text("Link");
+	ImGui::Separator();
+
+	// å…¥åŠ›ãŒ2ã¤ã‚ã‚‹ãƒãƒ¼ãƒ‰ã¯ã€Aã¨Bã®ã©ã¡ã‚‰ã«ã¤ãªãŒã£ã¦ã„ã‚‹ã‹ã‚‚å‡ºã™
+	ConditionNodeKind toKind = graph->GetNodeKind(link.toId);
+	bool twoInputs = (toKind == ConditionNodeKind::Operator || toKind == ConditionNodeKind::Logic);
+	const char* pin = twoInputs ? (link.toPinB ? " (B)" : " (A)") : "";
+
+	ImGui::Text("%s", GetNodeName(link.fromId).c_str());
+	ImGui::Text("-> %s%s", GetNodeName(link.toId).c_str(), pin);
+
+	// æ±ºã¾ã‚Šã«åˆã‚ãªã„ãƒªãƒ³ã‚¯ã¯ã€èµ¤ã„ç†ç”±ã‚’å‡ºã™(Validateã§ã‚‚ã‚¨ãƒ©ãƒ¼ã«ãªã‚‹)
+	std::string reason;
+	if (!graph->IsLinkValid(link, &reason))
+	{
+		ImGui::Spacing();
+		ErrorTextWrapped(("Invalid: " + reason).c_str());
+	}
+
+	if (StateGraphDraw::DeleteButton("Delete Link"))
+	{
+		DeleteSelection();
+	}
+}
+
+// è¡¨ç¤ºç”¨ãƒãƒ¼ãƒ‰ã®åå‰
+std::string StudioConditionCanvas::GetNodeName(int nodeId) const
+{
+	switch (graph->GetNodeKind(nodeId))
+	{
+	case ConditionNodeKind::Return:
+		return "Return";
+
+	case ConditionNodeKind::Variable:
+	{
+		const ConditionVariableNode* v = FindNode(graph->variableNodes, nodeId);
+		return v->name.empty() ? "Variable" : v->name;
+	}
+
+	case ConditionNodeKind::Getter:
+	{
+		const ConditionGetterNode* g = FindNode(graph->getterNodes, nodeId);
+		if (g->componentName.empty() || g->fieldName.empty()) return "Getter (Empty)";
+
+		const FieldEntry* field = Reflection::FindField(g->componentName, g->fieldName);
+		if (!field) return g->componentName + "." + g->fieldName + " (missing)";
+
+		std::string name = g->componentName + "." + field->fieldLabel;
+		if (Reflection::GetComponentCount(field->type) > 0)
+		{
+			name += std::string(".") + GetAxisName(g->selectedComponent);
+		}
+		return name;
+	}
+
+	case ConditionNodeKind::Operator:
+		return std::string("Compare ") + GetCompareOpSymbol(FindNode(graph->operatorNodes, nodeId)->op);
+
+	case ConditionNodeKind::Logic:
+		return GetLogicOpSymbol(FindNode(graph->logicNodes, nodeId)->op);
+
+	case ConditionNodeKind::Not:
+		return "NOT";
+
+	default:
+		return "(missing)";
+	}
+}
+
+// å¯¾è±¡ã‚’åˆ‡ã‚Šæ›¿ãˆãŸç›´å¾Œã ã‘ã€ãƒ‡ãƒ¼ã‚¿ã®ä½ç½®ã‚’ãƒãƒ¼ãƒ‰ã«åæ˜ ã™ã‚‹
+void StudioConditionCanvas::ApplyPosition(int nodeId, float x, float y) const
+{
+	if (!needsApplyPositions) return;
+	ed::SetNodePosition(ed::NodeId(static_cast<uint64_t>(nodeId)), ImVec2(x, y));
+}
+
+// ãƒãƒ¼ãƒ‰ã‚’å‹•ã‹ã—ãŸã‚‰ã€ãƒ‡ãƒ¼ã‚¿ã®ä½ç½®ã«æ›¸ãæˆ»ã™
+void StudioConditionCanvas::ReadPosition(int nodeId, float& x, float& y)
+{
+	ImVec2 pos = ed::GetNodePosition(ed::NodeId(static_cast<uint64_t>(nodeId)));
+	x = pos.x;
+	y = pos.y;
+}
+
+// ãƒãƒ¼ãƒ‰ã®IDã¨ä½ç½® <-> ãƒ”ãƒ³ã®ID
+ed::PinId StudioConditionCanvas::ToPinId(int nodeId, PinSlot slot)
+{
+	// ä¸€åº¦uint32_tã«ã—ã¦ã‹ã‚‰åºƒã’ã‚‹(è² ã®å€¤ãŒå…¥ã£ã¦ã‚‚ä¸Šä½ãƒ“ãƒƒãƒˆãŒåŸ‹ã¾ã‚‰ãªã„ã‚ˆã†ã«)
+	uint64_t id = static_cast<uint64_t>(static_cast<uint32_t>(nodeId));
+	return ed::PinId(kPinIdTag | (id << 2) | static_cast<uint64_t>(slot));
+}
+bool StudioConditionCanvas::FromPinId(ed::PinId pinId, int& outNodeId, PinSlot& outSlot)
+{
+	uint64_t value = pinId.Get();
+
+	// å°ãŒç„¡ã‘ã‚Œã°ã€ã“ã®ã‚­ãƒ£ãƒ³ãƒã‚¹ã®ãƒ”ãƒ³ã§ã¯ãªã„
+	if ((value & kPinIdTag) == 0) return false;
+	value &= ~kPinIdTag;
+
+	// ä½ç½®0ã¯ä½¿ã£ã¦ã„ãªã„
+	uint64_t slot = value & 0x3;
+	if (slot == 0) return false;
+
+	outNodeId = static_cast<int>(value >> 2);
+	outSlot = static_cast<PinSlot>(slot);
+	return true;
+}
+ 
+ 
+===== StudioConditionCopyList.cpp ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Studio\StudioConditionCopyList.cpp 
+#include "StudioConditionCopyList.h"
+#include <imgui.h>
+
+// ‚±‚Ìƒtƒ@ƒCƒ‹‚Ì’†‚¾‚¯‚Åg‚¤ˆ—
+namespace
+{
+	// Ê‚·Œ³‚É‚Å‚«‚éğŒ‚©
+	bool IsCopySource(bool always, const ConditionGraph& condition)
+	{
+		// always‚ÌƒŠƒ“ƒN‚ÍAğŒ‚ğg‚Á‚Ä‚¢‚È‚¢‚Ì‚Åo‚³‚È‚¢
+		if (always) return false;
+
+		// ğŒ‚ª‹ó(Ô‚¢ƒŠƒ“ƒN)‚ÍAÊ‚µ‚Ä‚à‹ó‚É‚È‚é‚¾‚¯‚È‚Ì‚Åo‚³‚È‚¢
+		if (condition.IsEmpty()) return false;
+
+		// Œˆ‚Ü‚è‚É‡‚í‚È‚¢ƒŠƒ“ƒN‚ğŠÜ‚ŞğŒ‚ÍAƒGƒ‰[‚²‚ÆÊ‚Á‚Ä‚µ‚Ü‚¤‚Ì‚Åo‚³‚È‚¢
+		for (const auto& l : condition.links)
+		{
+			if (!condition.IsLinkValid(l)) return false;
+		}
+		return true;
+	}
+
+	// e‚Ì‘JˆÚ‚ÌID‚©‚çA‘JˆÚŒ³‚Ì–¼‘O‚ğì‚é
+	std::string GetTransitionSourceName(const StateMachineData& data, int transitionId)
+	{
+		for (const auto& t : data.entry.transitions)
+		{
+			if (t.id == transitionId) return "Entry";
+		}
+		for (const auto& s : data.states)
+		{
+			for (const auto& t : s.transitions)
+			{
+				if (t.id == transitionId) return s.name;
+			}
+		}
+		return "(missing)";
+	}
+
+	// State‚ÌID‚©‚çA•\¦—p‚Ì–¼‘O‚ğì‚é
+	std::string GetStateName(const StateMachineData& data, int stateId)
+	{
+		const StateNode* s = data.FindState(stateId);
+		return s ? s->name : "(missing)";
+	}
+
+	// ƒNƒŠƒbƒv‚ÌID‚©‚çA•\¦—p‚Ì–¼‘O‚ğì‚é
+	std::string GetClipName(const ChildGraph& child, int clipId)
+	{
+		const ClipNode* c = child.FindClip(clipId);
+		return c ? c->name : "(missing)";
+	}
+}
+
+// e‚ÌŠK‘w‚ÌƒŠƒ“ƒN‚ğW‚ß‚é
+std::vector<ConditionCopyItem> ConditionCopyList::CollectParent(const StateMachineData& data, const ConditionTarget& self)
+{
+	std::vector<ConditionCopyItem> items;
+
+	// ƒŠƒ“ƒN1–{•ª‚ğAğŒ‚É‡‚¦‚Î‘«‚·
+	auto add = [&](const std::string& fromName, const StateTransition& t)
+		{
+			ConditionTarget target{ ConditionTarget::Kind::StateLink, -1, t.id };
+			if (target == self) return; // ©•ª©g‚Ío‚³‚È‚¢
+			if (!IsCopySource(t.always, t.condition)) return;
+
+			items.push_back({ target, "", fromName + " -> " + GetStateName(data, t.toStateId) });
+		};
+
+	// Entry‚©‚ço‚éƒŠƒ“ƒN
+	for (const auto& t : data.entry.transitions) add("Entry", t);
+
+	// ŠeState‚©‚ço‚éƒŠƒ“ƒN
+	for (const auto& s : data.states)
+	{
+		for (const auto& t : s.transitions) add(s.name, t);
+	}
+
+	return items;
+}
+
+// q‚ÌŠK‘w‚ÌƒŠƒ“ƒN‚ğW‚ß‚é
+std::vector<ConditionCopyItem> ConditionCopyList::CollectChild(const StateMachineData& data, const ConditionTarget& self)
+{
+	std::vector<ConditionCopyItem> items;
+
+	// ‘S‚Ä‚ÌState‚Ìq‚ÌƒŠƒ“ƒN‚ğAState–¼‚ğŒ©o‚µ‚É‚µ‚ÄW‚ß‚é
+	for (const auto& s : data.states)
+	{
+		// ƒGƒ“ƒgƒŠ[ ¨ ƒNƒŠƒbƒv
+		for (const auto& l : s.child.entryLinks)
+		{
+			ConditionTarget target{ ConditionTarget::Kind::EntryLink, s.id, l.id };
+			if (target == self) continue; // ©•ª©g‚Ío‚³‚È‚¢
+			if (!IsCopySource(l.always, l.condition)) continue;
+
+			std::string label = "Entry(" + GetTransitionSourceName(data, l.entryTransitionId) + ") -> " + GetClipName(s.child, l.toClipId);
+			items.push_back({ target, s.name, label });
+		}
+
+		// ƒNƒŠƒbƒv ¨ ƒNƒŠƒbƒv
+		for (const auto& l : s.child.clipLinks)
+		{
+			ConditionTarget target{ ConditionTarget::Kind::ClipLink, s.id, l.id };
+			if (target == self) continue; // ©•ª©g‚Ío‚³‚È‚¢
+			if (!IsCopySource(l.always, l.condition)) continue;
+
+			std::string label = GetClipName(s.child, l.fromClipId) + " -> " + GetClipName(s.child, l.toClipId);
+			items.push_back({ target, s.name, label });
+		}
+	}
+
+	return items;
+}
+
+// ƒŠƒXƒg‚ğ•`‚­
+void ConditionCopyList::Draw(const std::vector<ConditionCopyItem>& items)
+{
+	ImGui::BeginChild("##ConditionCopyList", ImVec2(0.0f, 150.0f), true);
+
+	if (items.empty())
+	{
+		ImGui::TextDisabled("No links to copy from.");
+	}
+
+	std::string previousGroup;
+	for (size_t i = 0; i < items.size(); ++i)
+	{
+		const ConditionCopyItem& item = items[i];
+
+		// Œ©o‚µ
+		bool hasGroup = !item.group.empty();
+		if (hasGroup && (i == 0 || item.group != previousGroup))
+		{
+			ImGui::TextDisabled("%s", item.group.c_str());
+		}
+		previousGroup = item.group;
+
+		// €–Ú
+		ImGui::PushID(item.target.linkId);
+		if (hasGroup) ImGui::Indent();
+		ImGui::Selectable(item.label.c_str());
+
+		// ƒhƒ‰ƒbƒOŠJnF‚Ç‚ÌƒŠƒ“ƒN‚©‚ğ‰^‚Ô
+		if (ImGui::BeginDragDropSource())
+		{
+			ImGui::SetDragDropPayload(kPayloadType, &item.target, sizeof(ConditionTarget));
+			ImGui::Text("Copy: %s", item.label.c_str());
+			ImGui::EndDragDropSource();
+		}
+
+		if (hasGroup) ImGui::Unindent();
+		ImGui::PopID();
+	}
+
+	ImGui::EndChild();
+}
+
+// ó‚¯Œû‚ğ•`‚­
+ConditionTarget ConditionCopyList::DrawDropTarget(const ConditionTarget& self)
+{
+	ConditionTarget dropped;
+
+	// ó‚¯Œû‚Ì˜g
+	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.20f, 0.20f, 0.25f, 1.0f));
+	ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.20f, 0.20f, 0.25f, 1.0f));
+	ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.20f, 0.20f, 0.25f, 1.0f));
+	ImGui::Button("Drop a link here to copy", ImVec2(-1.0f, 40.0f));
+	ImGui::PopStyleColor(3);
+
+	// ƒŠƒXƒg‚©‚ç‰^‚Î‚ê‚Ä‚«‚½ƒŠƒ“ƒN‚ğó‚¯æ‚é
+	if (ImGui::BeginDragDropTarget())
+	{
+		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(kPayloadType))
+		{
+			// ‰^‚Î‚ê‚Ä‚«‚½•¨‚Ì‘å‚«‚³‚ª‡‚Á‚Ä‚¢‚é‚Æ‚«‚¾‚¯g‚¤
+			if (payload->DataSize == sizeof(ConditionTarget))
+			{
+				ConditionTarget source = *static_cast<const ConditionTarget*>(payload->Data);
+
+				// ©•ª©g‚ÍÊ‚³‚È‚¢
+				if (source != self) dropped = source;
+			}
+		}
+		ImGui::EndDragDropTarget();
+	}
+
+	return dropped;
 } 
  
 ===== StudioModelViewer.cpp ===== 
@@ -24646,6 +24638,20 @@ void StudioStateChildCanvas::DrawLinkInspector(int linkId)
 	{
 		DeleteSelection(*data);
 	}
+
+	// “¯‚¶ŠK‘w‚ÌƒŠƒ“ƒN‚©‚çAİ’è‚ğÊ‚·‚½‚ß‚ÌƒŠƒXƒg
+	ConditionTarget::Kind kind = entryLink ? ConditionTarget::Kind::EntryLink : ConditionTarget::Kind::ClipLink;
+	ConditionTarget self{ kind, stateId, linkId };
+	ImGui::Spacing();
+	ImGui::Separator();
+	ImGui::Text("Copy From");
+
+	// ó‚¯Œû‚É—‚Æ‚³‚ê‚½‚çAÊ‚·ˆË—Š‚ğo‚·
+	ConditionTarget source = ConditionCopyList::DrawDropTarget(self);
+	if (source.IsValid()) copyRequest = { source, self };
+
+	// Ê‚·Œ³‚ÌƒŠƒXƒg
+	ConditionCopyList::Draw(ConditionCopyList::CollectChild(*data, self));
 }
 
 // ƒNƒŠƒbƒv‚ÌƒAƒjƒ[ƒVƒ‡ƒ“ˆê——
@@ -24852,12 +24858,25 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Studio\StudioStateGr
 
 #include "Tool/Editor/ProjectWindow.h"
 
+namespace
+{
+	// ReturnˆÈŠO‚Ìƒm[ƒh‚ª‚ ‚é‚©(Ê‚·‚ÆÁ‚¦‚Ä‚µ‚Ü‚¤•¨‚ª‚ ‚é‚©)
+	bool HasNodesBesidesReturn(const ConditionGraph& condition)
+	{
+		return !condition.variableNodes.empty()
+			|| !condition.getterNodes.empty()
+			|| !condition.operatorNodes.empty()
+			|| !condition.logicNodes.empty()
+			|| !condition.notNodes.empty();
+	}
+}
+
 void StudioStateGraph::Initialize()
 {
 	// eŠK‘wƒLƒƒƒ“ƒoƒX‰Šú‰»
 	parentCanvas.Initialize();
 	// ğŒ‚ÌƒLƒƒƒ“ƒoƒX‰Šú‰»
-	conditionGraph.Initialize();
+	conditionCanvas.Initialize();
 }
 
 void StudioStateGraph::DrawGUI(entt::registry& registry, StudioContext& context)
@@ -24909,7 +24928,7 @@ void StudioStateGraph::DrawGUI(entt::registry& registry, StudioContext& context)
 		}
 
 		ImGui::Columns(1);
-		
+
 		// eŠK‘w‚©‚çqŠK‘w‚ÌƒLƒƒƒ“ƒoƒX‚ğŠJ‚­ˆË—Š‚ª‚ ‚ê‚ÎŠJ‚­
 		int openRequest = parentCanvas.ConsumeOpenChildRequest();
 		if (openRequest != -1) OpenChildWindow(openRequest);
@@ -24925,6 +24944,9 @@ void StudioStateGraph::DrawGUI(entt::registry& registry, StudioContext& context)
 	DrawChildWindows();
 	// ğŒ‚ÌƒEƒBƒ“ƒhƒE
 	DrawConditionWindow();
+
+	// ã‘‚«‚ÌŠm”F
+	DrawCopyConfirmPopup();
 }
 
 // ƒ‚ƒfƒ‹‚ª•Ï‚í‚Á‚½‚Æ‚«‚ÉŒÄ‚Ô
@@ -24936,6 +24958,8 @@ void StudioStateGraph::OnModelChanged(StudioContext& context)
 	parentCanvas.Reset();
 	childCanvases.clear();
 	CloseConditionWindow();
+	pendingCopy = {};
+	openCopyConfirm = false;
 
 	context.attachedGraphPath.clear();
 	loaded = true;     // ‹ó‚ÌƒOƒ‰ƒt‚ğA“Ç‚İ‚İÏ‚İ‚Æ‚µ‚Äˆµ‚¤
@@ -25183,6 +25207,10 @@ void StudioStateGraph::DrawChildWindows()
 		ConditionTarget conditionRequest = child.ConsumeEditConditionRequest();
 		if (conditionRequest.IsValid()) OpenConditionWindow(conditionRequest);
 
+		// q‚ÌƒŠƒ“ƒN‚Ìİ’è‚ğÊ‚·ˆË—Š
+		ConditionCopyRequest copyRequest = child.ConsumeCopyRequest();
+		if (copyRequest.IsValid()) RequestCopy(copyRequest);
+
 		// ~‚Å•Â‚¶‚ç‚ê‚½‚çAˆê——‚©‚çŠO‚·
 		if (!open) it = childCanvases.erase(it);
 		else ++it;
@@ -25219,7 +25247,7 @@ void StudioStateGraph::DrawConditionWindow()
 	// À‘Ì‚ÌêŠ‚ª•Ï‚í‚Á‚½‚çğŒ‚Ì‰æ–Ê‚ğƒŠƒZƒbƒg‚·‚é
 	if (condition != conditionPointer)
 	{
-		conditionGraph.SetTarget(condition);
+		conditionCanvas.SetTarget(condition);
 		conditionPointer = condition;
 	}
 
@@ -25251,9 +25279,9 @@ void StudioStateGraph::DrawConditionWindow()
 			conditionColumnInitialized = true;
 		}
 
-		conditionGraph.DrawGUI();
+		conditionCanvas.Draw();
 		ImGui::NextColumn();
-		conditionGraph.DrawInspector();
+		conditionCanvas.DrawInspector();
 
 		ImGui::Columns(1);
 	}
@@ -25268,7 +25296,7 @@ void StudioStateGraph::CloseConditionWindow()
 {
 	conditionTarget = {};
 	conditionPointer = nullptr;
-	conditionGraph.SetTarget(nullptr);
+	conditionCanvas.SetTarget(nullptr);
 }
 
 // •ÒW‚·‚éğŒ‚ÌÀ‘Ì‚ğ’T‚·
@@ -25362,7 +25390,145 @@ bool StudioStateGraph::FindTransitionSource(int transitionId, std::string& outNa
 	}
 	return false;
 }
- 
+
+// ƒŠƒ“ƒN‚Ìİ’è‚ÌêŠ‚ğ’T‚·
+bool StudioStateGraph::ResolveLinkSettings(const ConditionTarget& target, LinkSettingsRef& out)
+{
+	out = {};
+
+	switch (target.kind)
+	{
+	case ConditionTarget::Kind::StateLink:
+	{
+		// e‚ÌƒŠƒ“ƒNFğŒAalwaysAƒuƒŒƒ“ƒh
+		StateTransition* t = data.FindTransition(target.linkId);
+		if (!t) return false;
+		out = { &t->condition, &t->always, &t->blend };
+		return true;
+	}
+
+	case ConditionTarget::Kind::EntryLink:
+	{
+		// q‚ÌƒGƒ“ƒgƒŠ[‚ÌƒŠƒ“ƒNFğŒAalways(ƒuƒŒƒ“ƒh‚Íe‚ÌƒŠƒ“ƒN‚ª‚Â‚Ì‚Å–³‚¢)
+		StateNode* state = data.FindState(target.stateId);
+		if (!state) return false;
+		for (auto& l : state->child.entryLinks)
+		{
+			if (l.id != target.linkId) continue;
+			out = { &l.condition, &l.always, nullptr };
+			return true;
+		}
+		return false;
+	}
+
+	case ConditionTarget::Kind::ClipLink:
+	{
+		// q‚ÌƒNƒŠƒbƒv‚ÌƒŠƒ“ƒNFğŒAalwaysAƒuƒŒƒ“ƒh
+		StateNode* state = data.FindState(target.stateId);
+		if (!state) return false;
+		for (auto& l : state->child.clipLinks)
+		{
+			if (l.id != target.linkId) continue;
+			out = { &l.condition, &l.always, &l.blend };
+			return true;
+		}
+		return false;
+	}
+
+	default:
+		return false;
+	}
+}
+
+// Ê‚·ˆË—Š‚ğó‚¯æ‚é
+void StudioStateGraph::RequestCopy(const ConditionCopyRequest& request)
+{
+	LinkSettingsRef dst;
+	if (!ResolveLinkSettings(request.target, dst)) return;
+
+	// æ‚ÉReturnˆÈŠO‚Ìƒm[ƒh‚ª‚ ‚ê‚ÎAŠm”F‚µ‚Ä‚©‚çÊ‚·
+	if (HasNodesBesidesReturn(*dst.condition))
+	{
+		pendingCopy = request;
+		openCopyConfirm = true;
+		return;
+	}
+
+	CopyLinkSettings(request);
+}
+
+// Ê‚·
+void StudioStateGraph::CopyLinkSettings(const ConditionCopyRequest& request)
+{
+	if (request.source == request.target) return;
+
+	// Šm”F‚ÌŠÔ‚ÉƒŠƒ“ƒN‚ªÁ‚¦‚Ä‚¢‚éê‡‚à‚ ‚é‚Ì‚ÅA‚±‚±‚Å’T‚µ’¼‚·
+	LinkSettingsRef src, dst;
+	if (!ResolveLinkSettings(request.source, src)) return;
+	if (!ResolveLinkSettings(request.target, dst)) return;
+
+	// ğŒ‚Æalways‚ğÊ‚·
+	*dst.condition = *src.condition;
+	*dst.always = *src.always;
+
+	// ƒuƒŒƒ“ƒh‚ÍA—¼•û‚ª‚Á‚Ä‚¢‚é‚Æ‚«‚¾‚¯Ê‚·
+	if (src.blend && dst.blend) *dst.blend = *src.blend;
+
+	// Ê‚µ‚½æ‚ğğŒƒEƒBƒ“ƒhƒE‚ÅŠJ‚¢‚Ä‚¢‚ê‚ÎA‰æ–Ê‚ğ•t‚¯’¼‚·
+	if (conditionTarget == request.target) conditionPointer = nullptr;
+}
+
+// ã‘‚«‚ÌŠm”F‚Ìƒ|ƒbƒvƒAƒbƒv
+void StudioStateGraph::DrawCopyConfirmPopup()
+{
+	// Studio‚ÌƒEƒBƒ“ƒhƒE‚²‚Æ‚É–¼‘O‚ğ•ª‚¯‚é
+	std::string popupName = "Copy Link Settings##" + std::to_string(windowId);
+
+	// ˆË—Š‚ª—ˆ‚Ä‚¢‚ê‚ÎŠJ‚­
+	if (openCopyConfirm)
+	{
+		ImGui::OpenPopup(popupName.c_str());
+		openCopyConfirm = false;
+	}
+
+	// ‰æ–Ê‚Ì’†‰›‚Éo‚·
+	ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+	if (!ImGui::BeginPopupModal(popupName.c_str(), nullptr, ImGuiWindowFlags_AlwaysAutoResize)) return;
+
+	// Œ³‚Ææ‚Ì–¼‘O
+	std::string fromTitle, toTitle;
+	ImVec4 unused;
+	bool exists = ResolveCondition(pendingCopy.source, fromTitle, unused) != nullptr
+		&& ResolveCondition(pendingCopy.target, toTitle, unused) != nullptr;
+	if (!exists)
+	{
+		pendingCopy = {};
+		ImGui::CloseCurrentPopup();
+		ImGui::EndPopup();
+		return;
+	}
+
+	ImGui::Text("The condition of this link will be replaced:");
+	ImGui::Text("    %s", toTitle.c_str());
+	ImGui::Text("Copy from:");
+	ImGui::Text("    %s", fromTitle.c_str());
+	ImGui::Spacing();
+
+	if (ImGui::Button("Replace", ImVec2(120.0f, 0.0f)))
+	{
+		CopyLinkSettings(pendingCopy);
+		pendingCopy = {};
+		ImGui::CloseCurrentPopup();
+	}
+	ImGui::SameLine();
+	if (ImGui::Button("Cancel", ImVec2(120.0f, 0.0f)))
+	{
+		pendingCopy = {};
+		ImGui::CloseCurrentPopup();
+	}
+
+	ImGui::EndPopup();
+} 
  
 ===== StudioStateGraphDraw.cpp ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Studio\StudioStateGraphDraw.cpp 
@@ -26027,6 +26193,19 @@ void StudioStateParentCanvas::DrawLinkInspector(int linkId)
 	{
 		DeleteSelection(*data);
 	}
+
+	// “¯‚¶ŠK‘w‚ÌƒŠƒ“ƒN‚©‚çAİ’è‚ğÊ‚·‚½‚ß‚ÌƒŠƒXƒg
+	ConditionTarget self{ ConditionTarget::Kind::StateLink, -1, linkId };
+	ImGui::Spacing();
+	ImGui::Separator();
+	ImGui::Text("Copy From");
+
+	// ó‚¯Œû‚É—‚Æ‚³‚ê‚½‚çAÊ‚·ˆË—Š‚ğo‚·
+	ConditionTarget source = ConditionCopyList::DrawDropTarget(self);
+	if (source.IsValid()) copyRequest = { source, self };
+
+	// Ê‚·Œ³‚ÌƒŠƒXƒg
+	ConditionCopyList::Draw(ConditionCopyList::CollectParent(*data, self));
 }
 
 // o‚Ä‚¢‚­ƒŠƒ“ƒN‚Ìˆê——

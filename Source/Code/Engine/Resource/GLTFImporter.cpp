@@ -5,6 +5,8 @@
 #include <algorithm>
 #include <fstream>
 
+#include "Engine/Core/Log.h"
+
 #define TINYGLTF_IMPLEMENTATION
 #include "tiny_gltf.h"
 
@@ -307,6 +309,10 @@ void GLTFImporter::LoadMeshes(
 				const auto& buf = gltfModel.buffers[bv.buffer];
 				const float* src = reinterpret_cast<const float*>(
 					buf.data.data() + bv.byteOffset + acc.byteOffset);
+
+				// 確認用：ウェイトの型と配置
+				Log(u8"[WEIGHTS_0] componentType=%d type=%d count=%zu byteStride=%zu vertices=%zu",
+					acc.componentType, acc.type, acc.count, bv.byteStride, mesh.vertices.size());
 
 				for (size_t i = 0; i < acc.count; i++)
 				{

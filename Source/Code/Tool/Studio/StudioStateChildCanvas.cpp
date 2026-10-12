@@ -642,6 +642,20 @@ void StudioStateChildCanvas::DrawLinkInspector(int linkId)
 	{
 		DeleteSelection(*data);
 	}
+
+	// 同じ階層のリンクから、設定を写すためのリスト
+	ConditionTarget::Kind kind = entryLink ? ConditionTarget::Kind::EntryLink : ConditionTarget::Kind::ClipLink;
+	ConditionTarget self{ kind, stateId, linkId };
+	ImGui::Spacing();
+	ImGui::Separator();
+	ImGui::Text("Copy From");
+
+	// 受け口に落とされたら、写す依頼を出す
+	ConditionTarget source = ConditionCopyList::DrawDropTarget(self);
+	if (source.IsValid()) copyRequest = { source, self };
+
+	// 写す元のリスト
+	ConditionCopyList::Draw(ConditionCopyList::CollectChild(*data, self));
 }
 
 // クリップのアニメーション一覧

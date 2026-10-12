@@ -13,6 +13,19 @@
 
 #include "Tool/Editor/ProjectWindow.h"
 
+namespace
+{
+	// Return以外のノードがあるか(写すと消えてしまう物があるか)
+	bool HasNodesBesidesReturn(const ConditionGraph& condition)
+	{
+		return !condition.variableNodes.empty()
+			|| !condition.getterNodes.empty()
+			|| !condition.operatorNodes.empty()
+			|| !condition.logicNodes.empty()
+			|| !condition.notNodes.empty();
+	}
+}
+
 void StudioStateGraph::Initialize()
 {
 	// 親階層キャンバス初期化
@@ -70,7 +83,7 @@ void StudioStateGraph::DrawGUI(entt::registry& registry, StudioContext& context)
 		}
 
 		ImGui::Columns(1);
-		
+
 		// 親階層から子階層のキャンバスを開く依頼があれば開く
 		int openRequest = parentCanvas.ConsumeOpenChildRequest();
 		if (openRequest != -1) OpenChildWindow(openRequest);
@@ -78,6 +91,10 @@ void StudioStateGraph::DrawGUI(entt::registry& registry, StudioContext& context)
 		// 親のリンクの条件を編集する依頼があれば開く
 		ConditionTarget conditionRequest = parentCanvas.ConsumeEditConditionRequest();
 		if (conditionRequest.IsValid()) OpenConditionWindow(conditionRequest);
+
+		// 親のリンクの設定を写す依頼
+		ConditionCopyRequest copyRequest = parentCanvas.ConsumeCopyRequest();
+		if (copyRequest.IsValid()) RequestCopy(copyRequest);
 	}
 
 	ImGui::End();
@@ -86,6 +103,9 @@ void StudioStateGraph::DrawGUI(entt::registry& registry, StudioContext& context)
 	DrawChildWindows();
 	// 条件のウィンドウ
 	DrawConditionWindow();
+
+	// 上書きの確認
+	DrawCopyConfirmPopup();
 }
 
 // モデルが変わったときに呼ぶ
@@ -97,6 +117,8 @@ void StudioStateGraph::OnModelChanged(StudioContext& context)
 	parentCanvas.Reset();
 	childCanvases.clear();
 	CloseConditionWindow();
+	pendingCopy = {};
+	openCopyConfirm = false;
 
 	context.attachedGraphPath.clear();
 	loaded = true;     // 空のグラフを、読み込み済みとして扱う
@@ -231,6 +253,8 @@ void StudioStateGraph::Load(StudioContext& context)
 		parentCanvas.Reset();
 		childCanvases.clear();
 		CloseConditionWindow();
+		pendingCopy = {};
+		openCopyConfirm = false;
 
 		message.clear();
 	}
@@ -343,6 +367,10 @@ void StudioStateGraph::DrawChildWindows()
 		// 子のリンクの条件を編集する依頼があれば開く
 		ConditionTarget conditionRequest = child.ConsumeEditConditionRequest();
 		if (conditionRequest.IsValid()) OpenConditionWindow(conditionRequest);
+
+		// 子のリンクの設定を写す依頼
+		ConditionCopyRequest copyRequest = child.ConsumeCopyRequest();
+		if (copyRequest.IsValid()) RequestCopy(copyRequest);
 
 		// ×で閉じられたら、一覧から外す
 		if (!open) it = childCanvases.erase(it);
@@ -522,4 +550,143 @@ bool StudioStateGraph::FindTransitionSource(int transitionId, std::string& outNa
 		}
 	}
 	return false;
+}
+
+// リンクの設定の場所を探す
+bool StudioStateGraph::ResolveLinkSettings(const ConditionTarget& target, LinkSettingsRef& out)
+{
+	out = {};
+
+	switch (target.kind)
+	{
+	case ConditionTarget::Kind::StateLink:
+	{
+		// 親のリンク：条件、always、ブレンド
+		StateTransition* t = data.FindTransition(target.linkId);
+		if (!t) return false;
+		out = { &t->condition, &t->always, &t->blend };
+		return true;
+	}
+
+	case ConditionTarget::Kind::EntryLink:
+	{
+		// 子のエントリーのリンク：条件、always(ブレンドは親のリンクが持つので無い)
+		StateNode* state = data.FindState(target.stateId);
+		if (!state) return false;
+		for (auto& l : state->child.entryLinks)
+		{
+			if (l.id != target.linkId) continue;
+			out = { &l.condition, &l.always, nullptr };
+			return true;
+		}
+		return false;
+	}
+
+	case ConditionTarget::Kind::ClipLink:
+	{
+		// 子のクリップのリンク：条件、always、ブレンド
+		StateNode* state = data.FindState(target.stateId);
+		if (!state) return false;
+		for (auto& l : state->child.clipLinks)
+		{
+			if (l.id != target.linkId) continue;
+			out = { &l.condition, &l.always, &l.blend };
+			return true;
+		}
+		return false;
+	}
+
+	default:
+		return false;
+	}
+}
+
+// 写す依頼を受け取る
+void StudioStateGraph::RequestCopy(const ConditionCopyRequest& request)
+{
+	LinkSettingsRef dst;
+	if (!ResolveLinkSettings(request.target, dst)) return;
+
+	// 先にReturn以外のノードがあれば、確認してから写す
+	if (HasNodesBesidesReturn(*dst.condition))
+	{
+		pendingCopy = request;
+		openCopyConfirm = true;
+		return;
+	}
+
+	CopyLinkSettings(request);
+}
+
+// 写す
+void StudioStateGraph::CopyLinkSettings(const ConditionCopyRequest& request)
+{
+	if (request.source == request.target) return;
+
+	// 確認の間にリンクが消えている場合もあるので、ここで探し直す
+	LinkSettingsRef src, dst;
+	if (!ResolveLinkSettings(request.source, src)) return;
+	if (!ResolveLinkSettings(request.target, dst)) return;
+
+	// 条件とalwaysを写す
+	*dst.condition = *src.condition;
+	*dst.always = *src.always;
+
+	// ブレンドは、両方が持っているときだけ写す
+	if (src.blend && dst.blend) *dst.blend = *src.blend;
+
+	// 写した先を条件ウィンドウで開いていれば、画面を付け直す
+	if (conditionTarget == request.target) conditionPointer = nullptr;
+}
+
+// 上書きの確認のポップアップ
+void StudioStateGraph::DrawCopyConfirmPopup()
+{
+	// Studioのウィンドウごとに名前を分ける
+	std::string popupName = "Copy Link Settings##" + std::to_string(windowId);
+
+	// 依頼が来ていれば開く
+	if (openCopyConfirm)
+	{
+		ImGui::OpenPopup(popupName.c_str());
+		openCopyConfirm = false;
+	}
+
+	// 画面の中央に出す
+	ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+	if (!ImGui::BeginPopupModal(popupName.c_str(), nullptr, ImGuiWindowFlags_AlwaysAutoResize)) return;
+
+	// 元と先の名前
+	std::string fromTitle, toTitle;
+	ImVec4 unused;
+	bool exists = ResolveCondition(pendingCopy.source, fromTitle, unused) != nullptr
+		&& ResolveCondition(pendingCopy.target, toTitle, unused) != nullptr;
+	if (!exists)
+	{
+		pendingCopy = {};
+		ImGui::CloseCurrentPopup();
+		ImGui::EndPopup();
+		return;
+	}
+
+	ImGui::Text("The condition of this link will be replaced:");
+	ImGui::Text("    %s", toTitle.c_str());
+	ImGui::Text("Copy from:");
+	ImGui::Text("    %s", fromTitle.c_str());
+	ImGui::Spacing();
+
+	if (ImGui::Button("Replace", ImVec2(120.0f, 0.0f)))
+	{
+		CopyLinkSettings(pendingCopy);
+		pendingCopy = {};
+		ImGui::CloseCurrentPopup();
+	}
+	ImGui::SameLine();
+	if (ImGui::Button("Cancel", ImVec2(120.0f, 0.0f)))
+	{
+		pendingCopy = {};
+		ImGui::CloseCurrentPopup();
+	}
+
+	ImGui::EndPopup();
 }

@@ -12,6 +12,7 @@
 
 #include "StudioConditionCanvas.h"
 #include "StudioConditionTarget.h"
+#include "StudioConditionCopyList.h"
 
 // Stateグラフの編集パネル
 class StudioStateGraph : public IStudioAttachment
@@ -108,4 +109,28 @@ private:
 	// 親のリンクのIDから、遷移元の名前と色を探す
 	bool FindTransitionSource(int transitionId, std::string& outName, ImVec4& outColor) const;
 
+
+	// --- リンクの設定を写す --- //
+
+	// リンクが持つ設定の場所(ブレンドを持たないリンクはnullptr)
+	struct LinkSettingsRef
+	{
+		ConditionGraph* condition = nullptr;
+		bool* always = nullptr;
+		BlendSetting* blend = nullptr;
+	};
+
+	// リンクの設定の場所を探す
+	bool ResolveLinkSettings(const ConditionTarget& target, LinkSettingsRef& out);
+	// 写す依頼を受け取る
+	void RequestCopy(const ConditionCopyRequest& request);
+	// 写す
+	void CopyLinkSettings(const ConditionCopyRequest& request);
+	// 上書きの確認のポップアップ
+	void DrawCopyConfirmPopup();
+
+	// 確認中の依頼
+	ConditionCopyRequest pendingCopy;
+	// 次に確認のポップアップを開くか
+	bool openCopyConfirm = false;
 };

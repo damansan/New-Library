@@ -5,6 +5,7 @@
 
 #include "StudioStateGraphDraw.h"
 #include "StudioConditionTarget.h"
+#include "StudioConditionCopyList.h"
 
 #include "Engine/Data/StateMachineData.h"
 #include "Tool/NodeEditor/NodeEditorCanvas.h"
@@ -33,6 +34,8 @@ public:
 	int ConsumeOpenChildRequest() { int id = openChildRequest; openChildRequest = -1; return id; }
 	// 条件編集するキャンバスを開く依頼
 	ConditionTarget ConsumeEditConditionRequest() { ConditionTarget t = editConditionRequest; editConditionRequest = {}; return t; }
+	// リンクの設定を写す依頼
+	ConditionCopyRequest ConsumeCopyRequest() { ConditionCopyRequest r = copyRequest; copyRequest = {}; return r; }
 
 private:
 	// --- 描画 --- //
@@ -147,4 +150,6 @@ private:
 
 	// 条件を編集してほしいリンク
 	ConditionTarget editConditionRequest;
+	// 設定を写してほしいリンク
+	ConditionCopyRequest copyRequest;
 };
