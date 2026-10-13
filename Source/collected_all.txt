@@ -6218,20 +6218,32 @@ public:
 	void UpdateAnimation(entt::registry& registry);
 
 	// g—p‚·‚éState–¼‚ğ\‚·‚é(ƒOƒ‰ƒt‚Ì“Ç‚İ‚İ‚ÉA‘¶İ‚·‚é‚©‚ğŠm‚©‚ß‚é)
-	static void RequireState(const std::string& stateName, const std::string& user);
+	template<typename UserComponent>
+	static void RequireState(const std::string& stateName, const std::string& user)
+	{
+		AddRequiredState(stateName, user,
+			[](const entt::registry& registry, entt::entity entity) { return registry.all_of<UserComponent>(entity); });
+	}
 
 private:
 	
+	// ƒGƒ“ƒeƒBƒeƒB‚ªA\‚µ‚½System‚Ì‘ÎÛ‚©(UserComponent‚ğ‚Á‚Ä‚¢‚é‚©)
+	using UsesStateFunc = bool(*)(const entt::registry& registry, entt::entity entity);
+
 	// \‚³‚ê‚½State–¼‚ÆA\‚µ‚½‘¤‚Ì–¼‘O
 	struct RequiredState
 	{
 		std::string stateName;
 		std::string user;
+		UsesStateFunc usesState = nullptr; // \‚µ‚½System‚Ì‘ÎÛ‚©
 	};
 	static std::vector<RequiredState>& GetRequiredStates();
+	// \‚ğˆê——‚É‘«‚·
+	static void AddRequiredState(const std::string& stateName, const std::string& user, UsesStateFunc usesState);
 
-	// \‚³‚ê‚½State–¼‚ªAƒOƒ‰ƒt‚É‚ ‚é‚©‚ğŠm‚©‚ß‚é(–³‚¯‚ê‚ÎŒx)
-	static void CheckRequiredStates(const StateMachineData& data, const std::string& path);
+	// \‚³‚ê‚½State–¼‚ªA‚±‚ÌƒGƒ“ƒeƒBƒeƒB‚ÌƒOƒ‰ƒt‚É‚ ‚é‚©‚ğŠm‚©‚ß‚é
+	void CheckRequiredStates(const StateMachineData& data, const std::string& path, const entt::registry& registry, entt::entity entity);
+
 
 	// ƒOƒ‰ƒt‚ğæ“¾‚·‚é (“Ç‚İ‚ß‚È‚¢EŒŸØƒGƒ‰[‚Ìê‡‚Ínullptr)
 	const StateMachineData* Load(const std::string& path);
@@ -6253,6 +6265,8 @@ private:
 
 	// g‚¦‚È‚¢‚±‚Æ‚ğLog‚É•ñÏ‚İ‚ÌƒpƒX
 	std::set<std::string> reportedPaths;
+	// uState‚ª–³‚¢v‚Æ•ñÏ‚İ‚Ì‘g
+	std::set<std::string> reportedMissingStates;
 }; 
  
 ===== TwoBoneIKSolver.h ===== 
@@ -8950,13 +8964,18 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\ECS\Systems\StateM
 const StateMachineData* StateMachineSystem::Load(const std::string& path)
 {
 	LoadedStateMachine& loaded = graphCache.GetOrLoad(path,
-		[&path](LoadedStateMachine& l, const nlohmann::json& j)
+		[this, &path](LoadedStateMachine& l, const nlohmann::json& j)
 		{
 			l.loaded = true;
 			l.valid = l.data.FromJson(j, path);
 
-			// “Ç‚İ‚ñ‚¾‚Æ‚«‚É1‰ñ‚¾‚¯A\‚³‚ê‚½State–¼‚ª‚ ‚é‚©‚ğŠm‚©‚ß‚é
-			if (l.valid) CheckRequiredStates(l.data, path);
+			// “Ç‚İ‚İ’¼‚µ‚½‚çA‚±‚ÌƒpƒX‚ÌuState‚ª–³‚¢v‚Ì•ñÏ‚İ‚ğÁ‚µ‚ÄAŠm‚©‚ß’¼‚¹‚é‚æ‚¤‚É‚·‚é
+			std::string prefix = path + "\n";
+			for (auto it = reportedMissingStates.begin(); it != reportedMissingStates.end(); )
+			{
+				if (it->compare(0, prefix.size(), prefix) == 0) it = reportedMissingStates.erase(it);
+				else ++it;
+			}
 		});
 
 	if (!loaded.loaded || !loaded.valid)
@@ -9016,6 +9035,9 @@ void StateMachineSystem::UpdateState(entt::registry& registry)
 		// –¢‰Šú‰»A‚Ü‚½‚ÍƒOƒ‰ƒt‚Ìì‚è’¼‚µ‚Å¡‚ÌState‚ª–³‚­‚È‚Á‚½ê‡‚ÍAEntry‚©‚ç“ü‚è’¼‚·
 		if (!current)
 		{
+			// ‚±‚ÌƒGƒ“ƒeƒBƒeƒB‚ğˆ—‚·‚éSystem‚ªg‚¤State‚ªAƒOƒ‰ƒt‚É‚ ‚é‚©‚ğŠm‚©‚ß‚é
+			CheckRequiredStates(*data, sm.graphPath, registry, entity);
+
 			const StateTransition* t = FindPassedTransition(data->entry.transitions, registry, entity);
 			if (!t) continue;
 
@@ -9112,28 +9134,33 @@ std::vector<StateMachineSystem::RequiredState>& StateMachineSystem::GetRequiredS
 	return requiredStates;
 }
 
-// \‚³‚ê‚½State–¼‚ªAƒOƒ‰ƒt‚É‚ ‚é‚©‚ğŠm‚©‚ß‚é
-void StateMachineSystem::CheckRequiredStates(const StateMachineData& data, const std::string& path)
+// \‚³‚ê‚½State–¼‚ªA‚±‚ÌƒGƒ“ƒeƒBƒeƒB‚ÌƒOƒ‰ƒt‚É‚ ‚é‚©‚ğŠm‚©‚ß‚é
+void StateMachineSystem::CheckRequiredStates(const StateMachineData& data, const std::string& path, const entt::registry& registry, entt::entity entity)
 {
 	for (const auto& r : GetRequiredStates())
 	{
-		if (!data.FindStateByName(r.stateName))
-		{
-			Log(u8"[StateMachine] Œx(%s): Stateu%sv‚ªƒOƒ‰ƒt‚É‚ ‚è‚Ü‚¹‚ñ(%s ‚ªg—p)",
-				path.c_str(), r.stateName.c_str(), r.user.c_str());
-		}
+		// \‚µ‚½System‚Ì‘ÎÛ‚Å‚È‚¢ƒGƒ“ƒeƒBƒeƒB(Player‚Ì\‚É‘Î‚·‚éEnemy‚È‚Ç)‚ÍŠm‚©‚ß‚È‚¢
+		if (r.usesState && !r.usesState(registry, entity)) continue;
+		if (data.FindStateByName(r.stateName)) continue;
+
+		// “¯‚¶‘g‚É‚Â‚¢‚Ä‚Í1‰ñ‚¾‚¯•ñ‚·‚é
+		std::string key = path + "\n" + r.stateName + "\n" + r.user;
+		if (!reportedMissingStates.insert(key).second) continue;
+
+		Log(u8"[StateMachine] Œx(%s): Stateu%sv‚ªƒOƒ‰ƒt‚É‚ ‚è‚Ü‚¹‚ñ(%s ‚ªg—p)",
+			path.c_str(), r.stateName.c_str(), r.user.c_str());
 	}
 }
 
-// g—p‚·‚éState–¼‚ğ\‚·‚é
-void StateMachineSystem::RequireState(const std::string& stateName, const std::string& user)
+// \‚ğˆê——‚É‘«‚·
+void StateMachineSystem::AddRequiredState(const std::string& stateName, const std::string& user, UsesStateFunc usesState)
 {
 	auto& list = GetRequiredStates();
 	for (const auto& r : list)
 	{
 		if (r.stateName == stateName && r.user == user) return; // \Ï‚İ
 	}
-	list.push_back({ stateName, user });
+	list.push_back({ stateName, user, usesState });
 }
 
 // ƒgƒŠƒ~ƒ“ƒO”ÍˆÍ‚ğ’T‚·
@@ -12805,11 +12832,11 @@ void GLTFImporter::LoadMeshes(
 				mesh.vertices.resize(acc.count);
 				for (size_t i = 0; i < acc.count; i++)
 				{
-					mesh.vertices[i].position = 
-					{ 
+					mesh.vertices[i].position =
+					{
 						src[i * 3 + 0],
-						src[i * 3 + 1], 
-						-src[i * 3 + 2] 
+						src[i * 3 + 1],
+						-src[i * 3 + 2]
 					};
 				}
 			}
@@ -12825,11 +12852,11 @@ void GLTFImporter::LoadMeshes(
 
 				for (size_t i = 0; i < acc.count; i++)
 				{
-					mesh.vertices[i].normal = 
-					{ 
-						src[i * 3 + 0], 
-						src[i * 3 + 1], 
-						-src[i * 3 + 2] 
+					mesh.vertices[i].normal =
+					{
+						src[i * 3 + 0],
+						src[i * 3 + 1],
+						-src[i * 3 + 2]
 					};
 				}
 			}
@@ -13068,42 +13095,8 @@ void GLTFImporter::LoadTextures(
 	const tinygltf::Model& gltfModel,
 	const std::filesystem::path& filepath)
 {
-	//data.textures.reserve(gltfModel.textures.size());
-
-	//for (const auto& gltfTexture : gltfModel.textures)
-	//{
-	//	GLTFData::TextureData texData;
-	//	const auto& image = gltfModel.images[gltfTexture.source];
-
-	//	if (!image.uri.empty())
-	//	{
-	//		// ŠO•”ƒtƒ@ƒCƒ‹‚Ìê‡‚Íƒtƒ@ƒCƒ‹‚©‚ç“Ç‚İ‚ñ‚ÅƒoƒCƒiƒŠ‰»
-	//		std::string texPath = (filepath.parent_path() / image.uri).string();
-
-	//		std::ifstream ifs(texPath, std::ios::binary);
-	//		_ASSERT_EXPR_A(ifs, "Texture file not found");
-
-	//		texData.pixels = std::vector<uint8_t>(
-	//			std::istreambuf_iterator<char>(ifs),
-	//			std::istreambuf_iterator<char>()
-	//		);
-	//	}
-	//	else if (image.bufferView >= 0)
-	//	{
-	//		// GLB–„‚ß‚İ‚Ìê‡‚ÍbufferView‚©‚çƒoƒCƒiƒŠ‚ğæ‚èo‚·
-	//		const auto& bv = gltfModel.bufferViews[image.bufferView];
-	//		const auto& buffer = gltfModel.buffers[bv.buffer];
-	//		const uint8_t* begin = buffer.data.data() + bv.byteOffset;
-
-	//		texData.pixels.assign(begin, begin + bv.byteLength);
-	//	}
-
-	//	data.textures.push_back(std::move(texData));
-	//}
-
-	LARGE_INTEGER freq, t0, t1;
+	LARGE_INTEGER freq, t0;
 	QueryPerformanceFrequency(&freq);
-	char buf[256];
 
 	data.textures.reserve(gltfModel.textures.size());
 
@@ -13115,27 +13108,6 @@ void GLTFImporter::LoadTextures(
 		GLTFData::TextureData texData;
 		const auto& image = gltfModel.images[gltfTexture.source];
 
-		//if (!image.uri.empty())
-		//{
-		//	std::string texPath = (filepath.parent_path() / image.uri).string();
-
-		//	// istreambuf_iterator ‚æ‚è read ‚Ì•û‚ª‘å•‚É‘¬‚¢
-		//	std::ifstream ifs(texPath, std::ios::binary | std::ios::ate);
-		//	_ASSERT_EXPR_A(ifs, "Texture file not found");
-
-		//	std::streamsize size = ifs.tellg();
-		//	ifs.seekg(0, std::ios::beg);
-
-		//	texData.pixels.resize(static_cast<size_t>(size));
-		//	ifs.read(reinterpret_cast<char*>(texData.pixels.data()), size);
-		//}
-		//else if (image.bufferView >= 0)
-		//{
-		//	const auto& bv = gltfModel.bufferViews[image.bufferView];
-		//	const auto& buffer = gltfModel.buffers[bv.buffer];
-		//	const uint8_t* begin = buffer.data.data() + bv.byteOffset;
-		//	texData.pixels.assign(begin, begin + bv.byteLength);
-		//}
 		if (!image.uri.empty())
 		{
 			std::string texPath = (filepath.parent_path() / image.uri).string();
@@ -13203,11 +13175,11 @@ void GLTFImporter::LoadAnimations(
 				{
 					GLTFData::VectorKeyframe kf;
 					kf.seconds = times[i];
-					kf.value = 
+					kf.value =
 					{
-						values[i * 3 + 0], 
-						values[i * 3 + 1], 
-						-values[i * 3 + 2] 
+						values[i * 3 + 0],
+						values[i * 3 + 1],
+						-values[i * 3 + 2]
 					};
 					nodeAnim.positionKeyframes.push_back(kf);
 				}
@@ -13223,12 +13195,12 @@ void GLTFImporter::LoadAnimations(
 
 					GLTFData::QuaternionKeyframe kf;
 					kf.seconds = times[i];
-					kf.value = 
-					{ 
-						-values[i * 4 + 0], 
+					kf.value =
+					{
+						-values[i * 4 + 0],
 						-values[i * 4 + 1],
-						values[i * 4 + 2], 
-						values[i * 4 + 3] 
+						values[i * 4 + 2],
+						values[i * 4 + 3]
 					};
 					nodeAnim.rotationKeyframes.push_back(kf);
 				}
@@ -15814,6 +15786,7 @@ void GameInputSystem::Update(entt::registry& registry, const ControllerSettings&
             {
                 // æ¥ç¶šãŒåˆ‡ã‚ŒãŸå ´åˆã‚‚ã€ãƒœã‚¿ãƒ³ã¯æŠ¼ã•ã‚Œã¦ã„ãªã„çŠ¶æ…‹ã«ã™ã‚‹
                 UpdateButtonState(input.dodgeTrigger, false);
+                UpdateButtonState(input.lockOnTrigger, false);
                 UpdateButtonState(input.jump, false);
                 return;
             }
@@ -15906,7 +15879,7 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Game\ECS\Systems\PlayerDo
 
 PlayerDodgeSystem::PlayerDodgeSystem()
 {
-	StateMachineSystem::RequireState("Dodge", "PlayerDodgeSystem");
+	StateMachineSystem::RequireState<PlayerDodgeComponent>("Dodge", "PlayerDodgeSystem");
 }
 
 void PlayerDodgeSystem::Update(entt::registry& registry, float elapsedTime, const SceneContext& context)
@@ -16017,7 +15990,7 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Game\ECS\Systems\PlayerId
 
 PlayerIdleSystem::PlayerIdleSystem()
 {
-	StateMachineSystem::RequireState("Idle", "PlayerIdleSystem");
+	StateMachineSystem::RequireState<PlayerIdleComponent>("Idle", "PlayerIdleSystem");
 }
 
 void PlayerIdleSystem::Update(entt::registry& registry, float elapsedTime, const SceneContext& context)
@@ -16058,7 +16031,7 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Game\ECS\Systems\PlayerJu
 
 PlayerJumpSystem::PlayerJumpSystem()
 {
-	StateMachineSystem::RequireState("Jump", "PlayerJumpSystem");
+	StateMachineSystem::RequireState<PlayerJumpComponent>("Jump", "PlayerJumpSystem");
 }
 
 void PlayerJumpSystem::Update(entt::registry& registry, float elapsedTime, const SceneContext& context)
@@ -16194,7 +16167,7 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Game\ECS\Systems\PlayerMo
 
 PlayerMoveSystem::PlayerMoveSystem()
 {
-	StateMachineSystem::RequireState("Move", "PlayerMoveSystem");
+	StateMachineSystem::RequireState<PlayerMoveComponent>("Move", "PlayerMoveSystem");
 }
 
 void PlayerMoveSystem::Update(entt::registry& registry, float elapsedTime, const SceneContext& context)
@@ -16295,7 +16268,7 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Game\ECS\Systems\PlayerSp
 
 PlayerSprintSystem::PlayerSprintSystem()
 {
-	StateMachineSystem::RequireState("Sprint", "PlayerSprintSystem");
+	StateMachineSystem::RequireState<PlayerSprintComponent>("Sprint", "PlayerSprintSystem");
 }
 
 void PlayerSprintSystem::Update(entt::registry& registry, float elapsedTime, const SceneContext& context)
@@ -20143,7 +20116,7 @@ void ViewportWindow::Initialize(UINT width, UINT height)
 // ImGui•`‰æ
 void ViewportWindow::Draw(GameView& gameView, const std::function<void()>& drawMenus)
 {
-    ImGui::Begin("Game", nullptr, ImGuiWindowFlags_MenuBar);
+    ImGui::Begin("Game", nullptr, ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoBringToFrontOnFocus);
 
     // ƒƒjƒ…[ƒo[
     if (ImGui::BeginMenuBar())
@@ -20670,6 +20643,9 @@ struct StudioContext
 
     // ƒ^ƒCƒ€ƒ‰ƒCƒ“‚ÅƒXƒNƒ‰ƒu‘€ì‚³‚ê‚½ƒtƒ‰ƒO
     bool requestPoseUpdate = false;
+
+    // Studio‚ÌƒEƒBƒ“ƒhƒE‚ª‚¢‚éƒrƒ…[ƒ|[ƒg
+    unsigned int studioViewportId = 0;
 }; 
  
 ===== StudioModelViewer.h ===== 
@@ -21085,7 +21061,7 @@ private:
 	// q‚ÌƒEƒBƒ“ƒhƒE‚ğŠJ‚­
 	void OpenChildWindow(int stateId);
 	// ŠJ‚¢‚Ä‚¢‚éq‚ÌƒEƒBƒ“ƒhƒE‚ğ•`‚­
-	void DrawChildWindows();
+	void DrawChildWindows(ImGuiID ownerViewportId);
 
 	// ƒ‚ƒfƒ‹‚ª‚Á‚Ä‚¢‚éƒAƒjƒ[ƒVƒ‡ƒ“‚Ì–¼‘O
 	std::vector<std::string> animationNames;
@@ -21096,7 +21072,7 @@ private:
 	// ğŒ‚ÌƒEƒBƒ“ƒhƒE‚ğŠJ‚­
 	void OpenConditionWindow(const ConditionTarget& target);
 	// ğŒ‚ÌƒEƒBƒ“ƒhƒE‚ğ•`‚­
-	void DrawConditionWindow();
+	void DrawConditionWindow(ImGuiID ownerViewportId);
 	// ğŒ‚ÌƒEƒBƒ“ƒhƒE‚ğ•Â‚¶‚é
 	void CloseConditionWindow();
 	// •ÒW‚·‚éğŒ‚ÌÀ‘Ì‚ğ’T‚·
@@ -21346,6 +21322,7 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Studio\StudioWindow.
 #include <wrl.h>
 #include <vector>
 #include <memory>
+#include <imgui.h>
 
 #include "StudioCamera.h"
 #include "StudioContext.h"
@@ -21410,6 +21387,9 @@ private:
     void End();
     void ResizeRenderTarget();
 
+    // Å‘å‰»ƒ{ƒ^ƒ“
+    void DrawMaximizeButton();
+
     Microsoft::WRL::ComPtr<ID3D11Texture2D>          renderTexture;
     Microsoft::WRL::ComPtr<ID3D11RenderTargetView>   rtv;
     Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv;
@@ -21455,6 +21435,16 @@ private:
     // ƒrƒ…[ƒ|[ƒg•Û‘¶
     D3D11_VIEWPORT savedViewport = {};
     int            renderSkipCount = 0;
+
+
+
+    // Å‘å‰»
+    bool   maximized = false;        // Å‘å‰»‚µ‚Ä‚¢‚é‚©
+    bool   applyWindowRect = false;  // Ÿ‚ÌƒtƒŒ[ƒ€‚ÅˆÊ’u‚Æ‘å‚«‚³‚ğ•Ï‚¦‚é‚©
+    ImVec2 applyPos{};               // •Ï‚¦‚éæ‚ÌˆÊ’u(Å‘å‰»’†‚ÍAÅ‘å‰»‚µ‚½ˆÊ’u)
+    ImVec2 applySize{};              // •Ï‚¦‚éæ‚Ì‘å‚«‚³(Å‘å‰»’†‚ÍAÅ‘å‰»‚µ‚½‘å‚«‚³)
+    ImVec2 restorePos{};             // Œ³‚É–ß‚·ˆÊ’u
+    ImVec2 restoreSize{};            // Œ³‚É–ß‚·‘å‚«‚³
 }; 
  
 ===== StudioAnimationSpeed.cpp ===== 
@@ -24860,6 +24850,16 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Studio\StudioStateGr
 
 namespace
 {
+	// Ÿ‚Éì‚éƒEƒBƒ“ƒhƒE‚Ì‚¿å‚ğAStudio‚Ìƒrƒ…[ƒ|[ƒg‚É‚·‚é
+	void SetNextWindowOwner(ImGuiID ownerViewportId)
+	{
+		if (ownerViewportId == 0) return;
+
+		ImGuiWindowClass windowClass;
+		windowClass.ParentViewportId = ownerViewportId;
+		ImGui::SetNextWindowClass(&windowClass);
+	}
+
 	// ReturnˆÈŠO‚Ìƒm[ƒh‚ª‚ ‚é‚©(Ê‚·‚ÆÁ‚¦‚Ä‚µ‚Ü‚¤•¨‚ª‚ ‚é‚©)
 	bool HasNodesBesidesReturn(const ConditionGraph& condition)
 	{
@@ -24936,14 +24936,18 @@ void StudioStateGraph::DrawGUI(entt::registry& registry, StudioContext& context)
 		// e‚ÌƒŠƒ“ƒN‚ÌğŒ‚ğ•ÒW‚·‚éˆË—Š‚ª‚ ‚ê‚ÎŠJ‚­
 		ConditionTarget conditionRequest = parentCanvas.ConsumeEditConditionRequest();
 		if (conditionRequest.IsValid()) OpenConditionWindow(conditionRequest);
+
+		// e‚ÌƒŠƒ“ƒN‚Ìİ’è‚ğÊ‚·ˆË—Š
+		ConditionCopyRequest copyRequest = parentCanvas.ConsumeCopyRequest();
+		if (copyRequest.IsValid()) RequestCopy(copyRequest);
 	}
 
 	ImGui::End();
 
 	// qŠK‘wƒEƒBƒ“ƒhƒE
-	DrawChildWindows();
+	DrawChildWindows(context.studioViewportId);
 	// ğŒ‚ÌƒEƒBƒ“ƒhƒE
-	DrawConditionWindow();
+	DrawConditionWindow(context.studioViewportId);
 
 	// ã‘‚«‚ÌŠm”F
 	DrawCopyConfirmPopup();
@@ -25094,6 +25098,8 @@ void StudioStateGraph::Load(StudioContext& context)
 		parentCanvas.Reset();
 		childCanvases.clear();
 		CloseConditionWindow();
+		pendingCopy = {};
+		openCopyConfirm = false;
 
 		message.clear();
 	}
@@ -25162,7 +25168,7 @@ void StudioStateGraph::OpenChildWindow(int stateId)
 }
 
 // ŠJ‚¢‚Ä‚¢‚éq‚ÌƒEƒBƒ“ƒhƒE‚ğ•`‚­
-void StudioStateGraph::DrawChildWindows()
+void StudioStateGraph::DrawChildWindows(ImGuiID ownerViewportId)
 {
 	for (auto it = childCanvases.begin(); it != childCanvases.end(); )
 	{
@@ -25192,6 +25198,9 @@ void StudioStateGraph::DrawChildWindows()
 			ImGui::SetNextWindowFocus();
 			focusChildStateId = -1;
 		}
+
+		// ƒAƒvƒŠ‚ÌŠO‚Éo‚µ‚½‚Æ‚«AStudio‚æ‚èè‘O‚Éo‚é‚æ‚¤‚É‚·‚é
+		SetNextWindowOwner(ownerViewportId);
 
 		bool open = true;
 		bool visible = ImGui::Begin(title.c_str(), &open);
@@ -25228,7 +25237,7 @@ void StudioStateGraph::OpenConditionWindow(const ConditionTarget& target)
 }
 
 // ğŒ‚ÌƒEƒBƒ“ƒhƒE‚ğ•`‚­
-void StudioStateGraph::DrawConditionWindow()
+void StudioStateGraph::DrawConditionWindow(ImGuiID ownerViewportId)
 {
 	if (!conditionTarget.IsValid()) return;
 
@@ -25264,6 +25273,9 @@ void StudioStateGraph::DrawConditionWindow()
 		ImGui::SetNextWindowFocus();
 		focusConditionWindow = false;
 	}
+
+	// ƒAƒvƒŠ‚ÌŠO‚Éo‚µ‚½‚Æ‚«AStudio‚æ‚èè‘O‚Éo‚é‚æ‚¤‚É‚·‚é
+	SetNextWindowOwner(ownerViewportId);
 
 	bool open = true;
 	bool visible = ImGui::Begin(title.c_str(), &open);
@@ -26445,10 +26457,61 @@ void StudioTimeline::DrawGUI(entt::registry& registry, StudioContext& context)
  
 ===== StudioWindow.cpp ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Studio\StudioWindow.cpp 
-#include "StudioWindow.h"
+ï»¿#include "StudioWindow.h"
 #include <imgui.h>
 #include <imgui_internal.h>
 #include <cassert>
+#include <cmath>
+
+namespace
+{
+	// æœ€å¤§åŒ–ã—ãŸã¨ãã®åºƒã’ã‚‹å…ˆã‚’æ±‚ã‚ã‚‹
+	void GetMaximizeArea(ImVec2 windowPos, ImVec2 windowSize, ImVec2& outPos, ImVec2& outSize)
+	{
+		// ã‚¢ãƒ—ãƒªã®ä¸­ã«ã„ã‚‹
+		ImGuiViewport* mainViewport = ImGui::GetMainViewport();
+		if (ImGui::GetWindowViewport() == mainViewport)
+		{
+			outPos = mainViewport->WorkPos;
+			outSize = mainViewport->WorkSize;
+			return;
+		}
+
+		// ã‚¢ãƒ—ãƒªã®å¤–ï¼šã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã®ä¸­å¿ƒãŒã‚ã‚‹ãƒ¢ãƒ‹ã‚¿ãƒ¼ã‚’æ¢ã™
+		ImVec2 center(windowPos.x + windowSize.x * 0.5f, windowPos.y + windowSize.y * 0.5f);
+		const ImGuiPlatformIO& platformIO = ImGui::GetPlatformIO();
+		for (const ImGuiPlatformMonitor& monitor : platformIO.Monitors)
+		{
+			bool inside =
+				center.x >= monitor.MainPos.x && center.x < monitor.MainPos.x + monitor.MainSize.x &&
+				center.y >= monitor.MainPos.y && center.y < monitor.MainPos.y + monitor.MainSize.y;
+			if (inside)
+			{
+				outPos = monitor.WorkPos;
+				outSize = monitor.WorkSize;
+				return;
+			}
+		}
+
+		// è¦‹ã¤ã‹ã‚‰ãªã‘ã‚Œã°æœ€åˆã®ãƒ¢ãƒ‹ã‚¿ãƒ¼
+		if (!platformIO.Monitors.empty())
+		{
+			outPos = platformIO.Monitors[0].WorkPos;
+			outSize = platformIO.Monitors[0].WorkSize;
+			return;
+		}
+
+		// ãƒ¢ãƒ‹ã‚¿ãƒ¼ã®æƒ…å ±ãŒç„¡ã„å ´åˆã¯ã€ã‚¢ãƒ—ãƒªã®ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦
+		outPos = mainViewport->WorkPos;
+		outSize = mainViewport->WorkSize;
+	}
+
+	// 2ã¤ã®å€¤ãŒã»ã¼åŒã˜ã‹
+	bool NearlyEqual(ImVec2 a, ImVec2 b)
+	{
+		return std::fabs(a.x - b.x) < 1.0f && std::fabs(a.y - b.y) < 1.0f;
+	}
+}
 
 void StudioWindow::Initialize(ID3D11Device* device, StudioSharedContext* shared, UINT width, UINT height)
 {
@@ -26460,7 +26523,7 @@ void StudioWindow::Initialize(ID3D11Device* device, StudioSharedContext* shared,
 	renderSystem.Initialize(device);
 	lightManager.Initialize(device);
 
-	// IBLƒeƒNƒXƒ`ƒƒƒZƒbƒg
+	// IBLãƒ†ã‚¯ã‚¹ãƒãƒ£ã‚»ãƒƒãƒˆ
 	renderSystem.SetIBLTextures(
 		shared->skyBox.GetDiffuseIem(),
 		shared->skyBox.GetSRV(),
@@ -26473,21 +26536,21 @@ void StudioWindow::Initialize(ID3D11Device* device, StudioSharedContext* shared,
 	ResizeRenderTarget();
 }
 
-// XV
+// æ›´æ–°
 void StudioWindow::Update(float elapsedTime)
 {
-	// ƒJƒƒ‰XV
+	// ã‚«ãƒ¡ãƒ©æ›´æ–°
 	camera.Update(viewportHovered, elapsedTime);
 
-	// ƒ‚ƒfƒ‹ƒrƒ…ƒ[XV
+	// ãƒ¢ãƒ‡ãƒ«ãƒ“ãƒ¥ãƒ¯ãƒ¼æ›´æ–°
 	stadoiModelViewer.Update(elapsedTime, context);
 
-	// ƒAƒjƒ[ƒVƒ‡ƒ“‘¬“xXV
+	// ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³é€Ÿåº¦æ›´æ–°
 	animationSpeedSystem.Update(studioRegistry);
 
 	if (context.requestPoseUpdate)
 	{
-		// ƒXƒNƒ‰ƒu‘€ì‚ÍŠÔ‚ği‚ß‚¸ƒ|[ƒY‚¾‚¯XV
+		// ã‚¹ã‚¯ãƒ©ãƒ–æ“ä½œæ™‚ã¯æ™‚é–“ã‚’é€²ã‚ãšãƒãƒ¼ã‚ºã ã‘æ›´æ–°
 		animationSystem.EvaluatePose(studioRegistry);
 		context.requestPoseUpdate = false;
 	}
@@ -26496,17 +26559,17 @@ void StudioWindow::Update(float elapsedTime)
 		animationSystem.Update(studioRegistry, elapsedTime);
 	}
 
-	// ƒAƒ^ƒbƒ`ƒƒ“ƒgXV
+	// ã‚¢ã‚¿ãƒƒãƒãƒ¡ãƒ³ãƒˆæ›´æ–°
 	for (auto& attachment : attachments)
 	{
 		attachment->Update(elapsedTime, context);
 	}
 }
 
-// •`‰æ
+// æç”»
 void StudioWindow::Render()
 {
-	// ƒzƒo[’†‚Í–ˆƒtƒŒ[ƒ€A—£‚ê‚½‚ç1/10
+	// ãƒ›ãƒãƒ¼ä¸­ã¯æ¯ãƒ•ãƒ¬ãƒ¼ãƒ ã€é›¢ã‚ŒãŸã‚‰1/10
 	if (!isHovered)
 	{
 		renderSkipCount++;
@@ -26521,10 +26584,10 @@ void StudioWindow::Render()
 	ID3D11DeviceContext* dc = context.deviceContext;
 	if (!dc) return;
 
-	// •`‰ææ‚ğ©‘ORTV‚ÉØ‚è‘Ö‚¦
+	// æç”»å…ˆã‚’è‡ªå‰RTVã«åˆ‡ã‚Šæ›¿ãˆ
 	Begin();
 
-	// CbSceneXV
+	// CbSceneæ›´æ–°
 	CbScene cbSceneData{};
 	cbSceneData.view = camera.GetView();
 	cbSceneData.projection = camera.GetProjection();
@@ -26535,13 +26598,13 @@ void StudioWindow::Render()
 	dc->VSSetConstantBuffers(0, 1, renderSystem.GetCbSceneAddress());
 	dc->PSSetConstantBuffers(0, 1, renderSystem.GetCbSceneAddress());
 
-	// ƒ‰ƒCƒg‚ğGPU‚É“]‘—
+	// ãƒ©ã‚¤ãƒˆã‚’GPUã«è»¢é€
 	lightManager.Bind(dc);
 
-	// ƒtƒ‰ƒXƒ^ƒ€XV
+	// ãƒ•ãƒ©ã‚¹ã‚¿ãƒ æ›´æ–°
 	renderSystem.SetFrustum(camera.GetView(), camera.GetProjection());
 
-	// ƒXƒJƒCƒ{ƒbƒNƒX•`‰æ
+	// ã‚¹ã‚«ã‚¤ãƒœãƒƒã‚¯ã‚¹æç”»
 	shared->skyBox.Render(
 		dc,
 		camera.GetView(),
@@ -26549,10 +26612,10 @@ void StudioWindow::Render()
 		camera.GetEye()
 	);
 
-	// ƒ‚ƒfƒ‹‚ª‚ ‚é‚¾‚¯RenderSystem‚ğ‘–‚ç‚¹‚é
+	// ãƒ¢ãƒ‡ãƒ«ãŒã‚ã‚‹æ™‚ã ã‘RenderSystemã‚’èµ°ã‚‰ã›ã‚‹
 	if (!studioRegistry.storage<TransformComponent>().empty())
 	{
-		// •`‰æ
+		// æç”»
 		renderSystem.Render(
 			studioRegistry,
 			dc,
@@ -26564,7 +26627,7 @@ void StudioWindow::Render()
 		);
 	}
 
-	// ƒAƒ^ƒbƒ`ƒƒ“ƒg‚Ì3D•`‰æ
+	// ã‚¢ã‚¿ãƒƒãƒãƒ¡ãƒ³ãƒˆã®3Dæç”»
 	for (auto& attachment : attachments)
 	{
 		attachment->OnRender(
@@ -26576,21 +26639,43 @@ void StudioWindow::Render()
 		);
 	}
 
-	// •`‰ææ‚ğƒƒCƒ“‚É–ß‚·
+	// æç”»å…ˆã‚’ãƒ¡ã‚¤ãƒ³ã«æˆ»ã™
 	End();
 }
 
-// ImGui•`‰æ
+// ImGuiæç”»
 void StudioWindow::DrawWindow(const char* windowName)
 {
+	// æœ€å¤§åŒ–ãƒ»å…ƒã«æˆ»ã™ã®äºˆç´„ãŒã‚ã‚Œã°ã€Beginã®å‰ã«ä½ç½®ã¨å¤§ãã•ã‚’ä¼ãˆã‚‹
+	if (applyWindowRect)
+	{
+		ImGui::SetNextWindowPos(applyPos, ImGuiCond_Always);
+		ImGui::SetNextWindowSize(applySize, ImGuiCond_Always);
+		applyWindowRect = false;
+	}
+
+
 	bool open = true;
 	ImGui::Begin(windowName, &open, ImGuiWindowFlags_MenuBar);
 	if (!open) closeRequested = true;
 
-	// StudioƒEƒBƒ“ƒhƒE‘S‘Ì‚Åƒzƒo[”»’è
+	// StudioãŒã„ã‚‹ãƒ“ãƒ¥ãƒ¼ãƒãƒ¼ãƒˆ
+	context.studioViewportId = ImGui::GetWindowViewport()->ID;
+
+	// æœ€å¤§åŒ–ä¸­ã«ã€ãƒ‰ãƒ©ãƒƒã‚°ã§å‹•ã‹ã—ãŸãƒ»å¤§ãã•ã‚’å¤‰ãˆãŸãƒ»ãƒ‰ãƒƒã‚­ãƒ³ã‚°ã—ãŸã‚‰ã€æœ€å¤§åŒ–ã‚’å¤–ã™
+	if (maximized)
+	{
+		bool changed = !NearlyEqual(ImGui::GetWindowPos(), applyPos) || !NearlyEqual(ImGui::GetWindowSize(), applySize);
+		if (changed || ImGui::IsWindowDocked()) maximized = false;
+	}
+
+	// å³ç«¯ï¼šæœ€å¤§åŒ–ãƒœã‚¿ãƒ³
+	DrawMaximizeButton();
+
+	// Studioã‚¦ã‚£ãƒ³ãƒ‰ã‚¦å…¨ä½“ã§ãƒ›ãƒãƒ¼åˆ¤å®š
 	isHovered = ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_DockHierarchy);
 
-	// ƒƒjƒ…[ƒo[
+	// ãƒ¡ãƒ‹ãƒ¥ãƒ¼ãƒãƒ¼
 	if (ImGui::BeginMenuBar())
 	{
 		if (ImGui::BeginMenu("Window"))
@@ -26606,12 +26691,12 @@ void StudioWindow::DrawWindow(const char* windowName)
 		ImGui::EndMenuBar();
 	}
 
-	// ‚±‚ÌStudioê—p‚ÌDockSpace
+	// ã“ã®Studioå°‚ç”¨ã®DockSpace
 	std::string dockSpaceName = "StudioDockSpace##" + std::to_string(windowId);
 	ImGuiID dockSpaceId = ImGui::GetID(dockSpaceName.c_str());
 	ImGui::DockSpace(dockSpaceId, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
 
-	// ‰‰ñƒtƒŒ[ƒ€‚¾‚¯ƒfƒtƒHƒ‹ƒgƒŒƒCƒAƒEƒg‚ğ‘g‚Ş
+	// åˆå›ãƒ•ãƒ¬ãƒ¼ãƒ ã ã‘ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆãƒ¬ã‚¤ã‚¢ã‚¦ãƒˆã‚’çµ„ã‚€
 	if (firstDockSetup)
 	{
 		firstDockSetup = false;
@@ -26647,11 +26732,11 @@ void StudioWindow::DrawWindow(const char* windowName)
 		ImGui::DockBuilderFinish(dockSpaceId);
 	}
 
-	// Viewportƒpƒlƒ‹
+	// Viewportãƒ‘ãƒãƒ«
 	std::string viewportName = "Viewport##" + std::to_string(windowId);
 	ImGui::Begin(viewportName.c_str());
 
-	// ‰æ¿Šm”F
+	// ç”»è³ªç¢ºèª
 	// ImGui::Text("Render Resolution: %ux%u", renderWidth, renderHeight);
 
 	ImVec2 region = ImGui::GetContentRegionAvail();
@@ -26662,7 +26747,7 @@ void StudioWindow::DrawWindow(const char* windowName)
 
 	ImGui::Image(reinterpret_cast<ImTextureID>(srv.Get()), region);
 
-	// ƒ‚ƒfƒ‹‚Ìƒhƒƒbƒv‚ğó‚¯æ‚é
+	// ãƒ¢ãƒ‡ãƒ«ã®ãƒ‰ãƒ­ãƒƒãƒ—ã‚’å—ã‘å–ã‚‹
 	if (ImGui::BeginDragDropTarget())
 	{
 		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("MODEL_PATH"))
@@ -26673,36 +26758,36 @@ void StudioWindow::DrawWindow(const char* windowName)
 		ImGui::EndDragDropTarget();
 	}
 
-	// ƒJƒƒ‰‘€ì‚ÌŠJn”»’è‚ÍViewport’P‘Ì‚Ìƒzƒo[‚¾‚¯‚ğŒ©‚é
+	// ã‚«ãƒ¡ãƒ©æ“ä½œã®é–‹å§‹åˆ¤å®šã¯Viewportå˜ä½“ã®ãƒ›ãƒãƒ¼ã ã‘ã‚’è¦‹ã‚‹
 	viewportHovered = ImGui::IsWindowHovered();
 
 	ImGui::End(); // Viewport
 
-	// Animatorƒpƒlƒ‹
+	// Animatorãƒ‘ãƒãƒ«
 	if (context.showAnimator)
 	{
 		studioAnimator.DrawGUI(studioRegistry, context);
 	}
 
-	// Timelineƒpƒlƒ‹
+	// Timelineãƒ‘ãƒãƒ«
 	if (context.showTimeline)
 	{
 		studioTimeline.DrawGUI(studioRegistry, context);
 	}
 
-	// Sequencerƒpƒlƒ‹
+	// Sequencerãƒ‘ãƒãƒ«
 	if (context.showSequencer)
 	{
 		studioSequencer.DrawGUI(studioRegistry, context);
 	}
 
-	// State Graphƒpƒlƒ‹
+	// State Graphãƒ‘ãƒãƒ«
 	if (context.showStateGraph)
 	{
 		stateGraph.DrawGUI(studioRegistry, context);
 	}
 
-	// AnimationSpeedƒpƒlƒ‹
+	// AnimationSpeedãƒ‘ãƒãƒ«
 	if (context.showAnimationSpeed)
 	{
 		studioAnimationSpeed.DrawGUI(studioRegistry, context);
@@ -26716,19 +26801,19 @@ void StudioWindow::DrawWindow(const char* windowName)
 	ImGui::End(); // Studio
 }
 
-// ƒAƒ^ƒbƒ`ƒƒ“ƒg’Ç‰Á
+// ã‚¢ã‚¿ãƒƒãƒãƒ¡ãƒ³ãƒˆè¿½åŠ 
 void StudioWindow::AddAttachment(std::unique_ptr<IStudioAttachment> attachment)
 {
 	attachments.push_back(std::move(attachment));
 }
 
-// ƒAƒZƒbƒg“Ç‚İ‚İ
+// ã‚¢ã‚»ãƒƒãƒˆèª­ã¿è¾¼ã¿
 void StudioWindow::LoadAsset(const std::string& assetPath)
 {
 	stadoiModelViewer.LoadModel(studioRegistry, assetPath);
 	context.currentModelPath = assetPath;
 
-	// ƒ‚ƒfƒ‹‚ª•Ï‚í‚Á‚½‚±‚Æ‚ğ“`‚¦‚é
+	// ãƒ¢ãƒ‡ãƒ«ãŒå¤‰ã‚ã£ãŸã“ã¨ã‚’ä¼ãˆã‚‹
 	stateGraph.OnModelChanged(context);
 }
 
@@ -26737,11 +26822,11 @@ void StudioWindow::Begin()
 	ID3D11DeviceContext* dc = context.deviceContext;
 	if (!dc) return;
 
-	// Œ»İ‚Ìƒrƒ…[ƒ|[ƒg‚ğ•Û‘¶
+	// ç¾åœ¨ã®ãƒ“ãƒ¥ãƒ¼ãƒãƒ¼ãƒˆã‚’ä¿å­˜
 	UINT numVP = 1;
 	dc->RSGetViewports(&numVP, &savedViewport);
 
-	// ©‘O‚Ìƒrƒ…[ƒ|[ƒg‚ğƒZƒbƒg
+	// è‡ªå‰ã®ãƒ“ãƒ¥ãƒ¼ãƒãƒ¼ãƒˆã‚’ã‚»ãƒƒãƒˆ
 	D3D11_VIEWPORT vp{};
 	vp.Width = static_cast<float>(renderWidth);
 	vp.Height = static_cast<float>(renderHeight);
@@ -26749,10 +26834,10 @@ void StudioWindow::Begin()
 	vp.MaxDepth = 1.0f;
 	dc->RSSetViewports(1, &vp);
 
-	// •`‰ææ‚ğ©‘ORTV‚ÉØ‚è‘Ö‚¦
+	// æç”»å…ˆã‚’è‡ªå‰RTVã«åˆ‡ã‚Šæ›¿ãˆ
 	dc->OMSetRenderTargets(1, rtv.GetAddressOf(), dsv.Get());
 
-	// ƒNƒŠƒA
+	// ã‚¯ãƒªã‚¢
 	float clear[4] = { 0.15f, 0.15f, 0.15f, 1.0f };
 	dc->ClearRenderTargetView(rtv.Get(), clear);
 	dc->ClearDepthStencilView(dsv.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
@@ -26762,10 +26847,10 @@ void StudioWindow::End()
 	ID3D11DeviceContext* dc = context.deviceContext;
 	if (!dc) return;
 
-	// ƒrƒ…[ƒ|[ƒg‚ğŒ³‚É–ß‚·
+	// ãƒ“ãƒ¥ãƒ¼ãƒãƒ¼ãƒˆã‚’å…ƒã«æˆ»ã™
 	dc->RSSetViewports(1, &savedViewport);
 
-	// •`‰ææ‚ğƒƒCƒ“‚É–ß‚·
+	// æç”»å…ˆã‚’ãƒ¡ã‚¤ãƒ³ã«æˆ»ã™
 	ID3D11RenderTargetView* nullRTV = nullptr;
 	dc->OMSetRenderTargets(1, &nullRTV, nullptr);
 }
@@ -26775,7 +26860,7 @@ void StudioWindow::ResizeRenderTarget()
 	if (!device) return;
 	if (renderWidth == 0 || renderHeight == 0) return;
 
-	// ŒÃ‚¢ƒŠƒ\[ƒX‚ğ‰ğ•ú
+	// å¤ã„ãƒªã‚½ãƒ¼ã‚¹ã‚’è§£æ”¾
 	srv.Reset();
 	rtv.Reset();
 	renderTexture.Reset();
@@ -26784,7 +26869,7 @@ void StudioWindow::ResizeRenderTarget()
 
 	HRESULT hr;
 
-	// ƒJƒ‰[ƒeƒNƒXƒ`ƒƒÄ¶¬
+	// ã‚«ãƒ©ãƒ¼ãƒ†ã‚¯ã‚¹ãƒãƒ£å†ç”Ÿæˆ
 	{
 		D3D11_TEXTURE2D_DESC desc{};
 		desc.Width = renderWidth;
@@ -26804,7 +26889,7 @@ void StudioWindow::ResizeRenderTarget()
 		assert(SUCCEEDED(hr));
 	}
 
-	// [“xƒeƒNƒXƒ`ƒƒÄ¶¬
+	// æ·±åº¦ãƒ†ã‚¯ã‚¹ãƒãƒ£å†ç”Ÿæˆ
 	{
 		D3D11_TEXTURE2D_DESC desc{};
 		desc.Width = renderWidth;
@@ -26821,6 +26906,86 @@ void StudioWindow::ResizeRenderTarget()
 		hr = device->CreateDepthStencilView(depthTexture.Get(), nullptr, dsv.GetAddressOf());
 		assert(SUCCEEDED(hr));
 	}
+}
+
+// æœ€å¤§åŒ–ãƒœã‚¿ãƒ³
+void StudioWindow::DrawMaximizeButton()
+{
+	ImGuiWindow* window = ImGui::GetCurrentWindow();
+
+	// ãƒ‰ãƒƒã‚­ãƒ³ã‚°ä¸­ã¯ã‚¿ã‚¤ãƒˆãƒ«ãƒãƒ¼ãŒã‚¿ãƒ–ã«ãªã‚‹ã®ã§å‡ºã•ãªã„
+	if (window->DockIsActive || (window->Flags & ImGuiWindowFlags_NoTitleBar)) return;
+
+	ImGuiStyle& style = ImGui::GetStyle();
+	ImRect titleBar = window->TitleBarRect();
+
+	// Ã—ãƒœã‚¿ãƒ³ã¨åŒã˜å¤§ãã•ã§ã€Ã—ã®å·¦ã«ä¸¦ã¹ã‚‹(ImGuiãŒÃ—ã‚’ç½®ãä½ç½®ã®è¨ˆç®—ã«åˆã‚ã›ã‚‹)
+	float buttonSize = ImGui::GetFontSize();
+	float closeX = titleBar.Max.x - window->WindowBorderSize - style.FramePadding.x - buttonSize;
+	ImVec2 pos(closeX - style.ItemInnerSpacing.x - buttonSize, titleBar.Min.y + style.FramePadding.y);
+	ImRect bb(pos, ImVec2(pos.x + buttonSize, pos.y + buttonSize));
+
+	// ã‚¿ã‚¤ãƒˆãƒ«ãƒãƒ¼ã¯ä¸­èº«ã®æç”»ç¯„å›²ã®å¤–ãªã®ã§ã€ãƒœã‚¿ãƒ³ã‚’ä½œã‚‹é–“ã ã‘ç¯„å›²ã‚’åºƒã’ã‚‹
+	ImGui::PushClipRect(titleBar.Min, titleBar.Max, false);
+
+	// ãƒœã‚¿ãƒ³ã®åˆ¤å®š(Ã—ãƒœã‚¿ãƒ³ã¨åŒã˜ä½œã‚Šæ–¹)
+	ImGuiID id = window->GetID("#MAXIMIZE");
+	ImGui::ItemAdd(bb, id);
+	bool hovered = false;
+	bool held = false;
+	bool pressed = ImGui::ButtonBehavior(bb, id, &hovered, &held);
+
+	// ãƒã‚¦ã‚¹ãŒä¹—ã£ãŸã‚‰ã€Ã—ãƒœã‚¿ãƒ³ã¨åŒã˜ãä¸¸ã„èƒŒæ™¯ã‚’å‡ºã™
+	ImDrawList* drawList = window->DrawList;
+	ImVec2 center = bb.GetCenter();
+	if (hovered)
+	{
+		ImU32 bg = ImGui::GetColorU32(held ? ImGuiCol_ButtonActive : ImGuiCol_ButtonHovered);
+		drawList->AddCircleFilled(center, ImMax(2.0f, buttonSize * 0.5f + 1.0f), bg);
+	}
+
+	// å°ï¼šé€šå¸¸ã¯å››è§’1ã¤(æœ€å¤§åŒ–)ã€æœ€å¤§åŒ–ä¸­ã¯å››è§’2ã¤ã‚’é‡ã­ã‚‹(å…ƒã«æˆ»ã™)
+	ImU32 color = ImGui::GetColorU32(ImGuiCol_Text);
+	float half = buttonSize * 0.25f;
+	if (!maximized)
+	{
+		drawList->AddRect(ImVec2(center.x - half, center.y - half), ImVec2(center.x + half, center.y + half), color);
+	}
+	else
+	{
+		float offset = half * 0.4f;
+		drawList->AddRect(ImVec2(center.x - half + offset, center.y - half - offset), ImVec2(center.x + half + offset, center.y + half - offset), color);
+		drawList->AddRect(ImVec2(center.x - half - offset, center.y - half + offset), ImVec2(center.x + half - offset, center.y + half + offset), color);
+	}
+
+	ImGui::PopClipRect();
+
+	// èª¬æ˜
+	if (hovered)
+	{
+		ImGui::SetTooltip("%s", maximized ? "Restore" : "Maximize");
+	}
+
+	if (!pressed) return;
+
+	if (!maximized)
+	{
+		// ä»Šã®ä½ç½®ã¨å¤§ãã•ã‚’è¦šãˆã¦ã€åºƒã’ã‚‹å…ˆã‚’äºˆç´„ã™ã‚‹
+		restorePos = ImGui::GetWindowPos();
+		restoreSize = ImGui::GetWindowSize();
+		GetMaximizeArea(restorePos, restoreSize, applyPos, applySize);
+		maximized = true;
+	}
+	else
+	{
+		// è¦šãˆã¦ãŠã„ãŸä½ç½®ã¨å¤§ãã•ã«æˆ»ã™
+		applyPos = restorePos;
+		applySize = restoreSize;
+		maximized = false;
+	}
+
+	// ä½ç½®ã¨å¤§ãã•ã¯ã€æ¬¡ã®ãƒ•ãƒ¬ãƒ¼ãƒ ã®Beginã®å‰ã«åæ˜ ã™ã‚‹
+	applyWindowRect = true;
 }
  
  

@@ -103,7 +103,7 @@
         },
         {
             "clipName": "AS_Walk_Start",
-            "nextId": 1,
+            "nextId": 3,
             "ranges": [],
             "points": []
         },
