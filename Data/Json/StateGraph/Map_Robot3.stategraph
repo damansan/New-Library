@@ -1,6 +1,6 @@
 {
     "version": 2,
-    "nextId": 73,
+    "nextId": 76,
     "entry": {
         "transitions": [
             {
@@ -530,7 +530,7 @@
                         "rootMotion": false,
                         "editor": {
                             "x": 224.0,
-                            "y": 144.0
+                            "y": 80.0
                         }
                     },
                     {
@@ -541,7 +541,7 @@
                         "rootMotion": false,
                         "editor": {
                             "x": 224.0,
-                            "y": 256.0
+                            "y": 304.0
                         }
                     },
                     {
@@ -565,24 +565,13 @@
                             "x": 496.0,
                             "y": 256.0
                         }
-                    },
-                    {
-                        "id": 70,
-                        "name": "New Clip",
-                        "clip": "AS_Jump_End",
-                        "loop": false,
-                        "rootMotion": false,
-                        "editor": {
-                            "x": 256.0,
-                            "y": 352.0
-                        }
                     }
                 ],
                 "entryLinks": [
                     {
-                        "id": 58,
+                        "id": 73,
                         "entry": 9,
-                        "to": 55,
+                        "to": 25,
                         "always": false,
                         "condition": {
                             "returnNode": {
@@ -615,14 +604,14 @@
                         }
                     },
                     {
-                        "id": 67,
+                        "id": 74,
                         "entry": 9,
-                        "to": 56,
+                        "to": 26,
                         "always": false,
                         "condition": {
                             "returnNode": {
                                 "id": 1,
-                                "posX": 450.0,
+                                "posX": 498.0,
                                 "posY": 208.0
                             },
                             "variableNodes": [],
@@ -632,7 +621,7 @@
                             "getterNodes": [
                                 {
                                     "id": 2,
-                                    "posX": 256.0,
+                                    "posX": 272.0,
                                     "posY": 188.0,
                                     "componentName": "PlayerMoveComponent",
                                     "fieldName": "isJogging",
@@ -650,9 +639,9 @@
                         }
                     },
                     {
-                        "id": 71,
+                        "id": 75,
                         "entry": 46,
-                        "to": 70,
+                        "to": 26,
                         "always": true,
                         "condition": {
                             "returnNode": {
@@ -827,8 +816,8 @@
                             "entry": 9
                         },
                         {
-                            "x": 96.0,
-                            "y": 368.0,
+                            "x": 272.0,
+                            "y": 400.0,
                             "entry": 46
                         }
                     ]

@@ -6,6 +6,15 @@
         },
         {
             "name": "ExampleStage",
+            "overrides": {
+                "TransformComponent": {
+                    "scale": [
+                        10.0,
+                        10.0,
+                        10.0
+                    ]
+                }
+            },
             "prefab": "Data/Prefab/Stage/ExampleStage.prefab.json"
         },
         {
@@ -14,7 +23,7 @@
                 "TransformComponent": {
                     "position": [
                         0.0,
-                        -0.01626737415790558,
+                        -0.16267479956150055,
                         0.0
                     ]
                 }
@@ -22,25 +31,12 @@
             "prefab": "Data/Prefab/Player/Player.prefab.json"
         },
         {
-            "name": "Enemy",
-            "overrides": {
-                "TransformComponent": {
-                    "position": [
-                        0.0,
-                        -0.01626737415790558,
-                        0.0
-                    ]
-                }
-            },
-            "prefab": "Data/Prefab/Enemy/Enemy.prefab.json"
+            "name": "GameCamera",
+            "prefab": "Data/Prefab/Camera/GameCamera.prefab.json"
         },
         {
             "name": "FreeCamera",
             "prefab": "Data/Prefab/Camera/FreeCamera.prefab.json"
-        },
-        {
-            "name": "GameCamera",
-            "prefab": "Data/Prefab/Camera/GameCamera.prefab.json"
         }
     ],
     "settings": {},
