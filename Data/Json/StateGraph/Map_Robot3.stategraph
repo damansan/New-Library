@@ -527,7 +527,7 @@
                         "name": "Walk_Start",
                         "clip": "AS_Walk_Start",
                         "loop": false,
-                        "rootMotion": true,
+                        "rootMotion": false,
                         "editor": {
                             "x": 224.0,
                             "y": 144.0
