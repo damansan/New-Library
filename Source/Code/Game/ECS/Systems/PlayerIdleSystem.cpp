@@ -1,9 +1,8 @@
 #include "PlayerIdleSystem.h"
 #include "Game/ECS/Components/PlayerIdleComponent.h"
+#include "Game/ECS/Components/PlayerLocomotionComponent.h"
 
 #include "Engine/ECS/Components/StateMachineComponent.h"
-#include "Engine/ECS/Components/MovementComponent.h"
-
 #include "Engine/ECS/Systems/StateMachineSystem.h"
 
 PlayerIdleSystem::PlayerIdleSystem()
@@ -13,26 +12,20 @@ PlayerIdleSystem::PlayerIdleSystem()
 
 void PlayerIdleSystem::Update(entt::registry& registry, float elapsedTime, const SceneContext& context)
 {
-	auto view = registry.view<StateMachineComponent, PlayerIdleComponent, MovementComponent>();
+	(void)elapsedTime;
+	(void)context;
 
-	view.each(
-		[&](auto entity,
-			StateMachineComponent& stateMachine,
-			PlayerIdleComponent& idle,
-			MovementComponent& movement) 
+	auto view = registry.view<PlayerIdleComponent, StateMachineComponent, PlayerLocomotionComponent>();
+	view.each([&](const PlayerIdleComponent& idle, const StateMachineComponent& stateMachine, PlayerLocomotionComponent& loco)
 		{
-			// Idleでなければ、以降の処理は行わない
-			if (!stateMachine.IsIn("Idle"))
-			{
-				idle.isIdling = false;
-				return;
-			}
+			if (!stateMachine.IsIn("Idle")) return;
 
-			// 水平方向の移動を止める
-			movement.velocity.x = 0.0f;
-			movement.velocity.z = 0.0f;
-
-			// フラグ更新
-			idle.isIdling = true;
+			// その場で止まる(向きは変えない)
+			LocomotionCommand& cmd = loco.command;
+			cmd.mode = LocomotionMode::Drive;
+			cmd.moveDir = { 0.0f, 0.0f, 0.0f };
+			cmd.targetSpeed = 0.0f;
+			cmd.decelHalfLife = idle.stopHalfLife;
+			cmd.turnSpeed = 0.0f;
 		});
 }

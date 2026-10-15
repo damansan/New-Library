@@ -127,7 +127,9 @@
     <ClCompile Include="..\..\Source\Code\Game\ECS\Systems\GameInputSystem.cpp" />
     <ClCompile Include="..\..\Source\Code\Game\ECS\Systems\PlayerDodgeSystem.cpp" />
     <ClCompile Include="..\..\Source\Code\Game\ECS\Systems\PlayerIdleSystem.cpp" />
+    <ClCompile Include="..\..\Source\Code\Game\ECS\Systems\PlayerIntentSystem.cpp" />
     <ClCompile Include="..\..\Source\Code\Game\ECS\Systems\PlayerJumpSystem.cpp" />
+    <ClCompile Include="..\..\Source\Code\Game\ECS\Systems\PlayerLocomotionSystem.cpp" />
     <ClCompile Include="..\..\Source\Code\Game\ECS\Systems\PlayerMovementUtils.cpp" />
     <ClCompile Include="..\..\Source\Code\Game\ECS\Systems\PlayerMoveSystem.cpp" />
     <ClCompile Include="..\..\Source\Code\Game\ECS\Systems\PlayerSprintSystem.cpp" />
@@ -139,7 +141,9 @@
     <ClInclude Include="..\..\Source\Code\Game\ECS\Components\GameInputComponent.h" />
     <ClInclude Include="..\..\Source\Code\Game\ECS\Components\PlayerDodgeComponent.h" />
     <ClInclude Include="..\..\Source\Code\Game\ECS\Components\PlayerIdleComponent.h" />
+    <ClInclude Include="..\..\Source\Code\Game\ECS\Components\PlayerIntentComponent.h" />
     <ClInclude Include="..\..\Source\Code\Game\ECS\Components\PlayerJumpComponent.h" />
+    <ClInclude Include="..\..\Source\Code\Game\ECS\Components\PlayerLocomotionComponent.h" />
     <ClInclude Include="..\..\Source\Code\Game\ECS\Components\PlayerMoveComponent.h" />
     <ClInclude Include="..\..\Source\Code\Game\ECS\Components\PlayerSprintComponent.h" />
     <ClInclude Include="..\..\Source\Code\Game\ECS\GameComponents.h" />
@@ -147,7 +151,9 @@
     <ClInclude Include="..\..\Source\Code\Game\ECS\Systems\GameInputSystem.h" />
     <ClInclude Include="..\..\Source\Code\Game\ECS\Systems\PlayerDodgeSystem.h" />
     <ClInclude Include="..\..\Source\Code\Game\ECS\Systems\PlayerIdleSystem.h" />
+    <ClInclude Include="..\..\Source\Code\Game\ECS\Systems\PlayerIntentSystem.h" />
     <ClInclude Include="..\..\Source\Code\Game\ECS\Systems\PlayerJumpSystem.h" />
+    <ClInclude Include="..\..\Source\Code\Game\ECS\Systems\PlayerLocomotionSystem.h" />
     <ClInclude Include="..\..\Source\Code\Game\ECS\Systems\PlayerMovementUtils.h" />
     <ClInclude Include="..\..\Source\Code\Game\ECS\Systems\PlayerMoveSystem.h" />
     <ClInclude Include="..\..\Source\Code\Game\ECS\Systems\PlayerSprintSystem.h" />

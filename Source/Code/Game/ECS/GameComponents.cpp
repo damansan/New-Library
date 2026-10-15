@@ -9,6 +9,9 @@
 #include "Game/ECS/Components/PlayerSprintComponent.h"
 #include "Game/ECS/Components/PlayerJumpComponent.h"
 
+#include "Game/ECS/Components/PlayerIntentComponent.h"
+#include "Game/ECS/Components/PlayerLocomotionComponent.h"
+
 void GameComponents::Register() 
 {
 	REGISTER_COMPONENT_TYPE(GameInputComponent,    "GameInput");
@@ -18,4 +21,7 @@ void GameComponents::Register()
 	REGISTER_COMPONENT_TYPE(PlayerDodgeComponent,  "Player Dodge");
 	REGISTER_COMPONENT_TYPE(PlayerSprintComponent, "Player Sprint");
 	REGISTER_COMPONENT_TYPE(PlayerJumpComponent,   "Player Jump");
+
+	REGISTER_COMPONENT_TYPE(PlayerIntentComponent, "Player Intent");
+	REGISTER_COMPONENT_TYPE(PlayerLocomotionComponent, "Player Locomotion");
 }

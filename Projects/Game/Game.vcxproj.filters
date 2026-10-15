@@ -49,6 +49,12 @@
     <Filter Include="Sources\ECS\System\Player\PlayerSprintSystem">
       <UniqueIdentifier>{35716ebb-7a34-4dc0-9e57-03bb431afd6c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\ECS\System\Player\PlayerIntentSystem">
+      <UniqueIdentifier>{4168eb5e-6379-4ca1-8571-0505a095a2bb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\ECS\System\Player\PlayerLocomotionSystem">
+      <UniqueIdentifier>{f9b6a8e2-dec4-4935-9a17-acb3eb8f7cf1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Source\Code\Game\ECS\GameComponents.cpp">
@@ -83,6 +89,12 @@
     </ClCompile>
     <ClCompile Include="..\..\Source\Code\Game\ECS\Systems\PlayerSprintSystem.cpp">
       <Filter>Sources\ECS\System\Player\PlayerSprintSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Code\Game\ECS\Systems\PlayerIntentSystem.cpp">
+      <Filter>Sources\ECS\System\Player\PlayerIntentSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Code\Game\ECS\Systems\PlayerLocomotionSystem.cpp">
+      <Filter>Sources\ECS\System\Player\PlayerLocomotionSystem</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -139,6 +151,18 @@
     </ClInclude>
     <ClInclude Include="..\..\Source\Code\Game\ECS\Systems\PlayerSprintSystem.h">
       <Filter>Sources\ECS\System\Player\PlayerSprintSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Code\Game\ECS\Components\PlayerIntentComponent.h">
+      <Filter>Sources\ECS\Components\Player</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Code\Game\ECS\Systems\PlayerIntentSystem.h">
+      <Filter>Sources\ECS\System\Player\PlayerIntentSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Code\Game\ECS\Components\PlayerLocomotionComponent.h">
+      <Filter>Sources\ECS\Components\Player</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Code\Game\ECS\Systems\PlayerLocomotionSystem.h">
+      <Filter>Sources\ECS\System\Player\PlayerLocomotionSystem</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

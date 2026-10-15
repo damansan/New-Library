@@ -1,34 +1,16 @@
-#pragma once
+ï»¿#pragma once
 #include "Engine/ECS/Reflect.h"
 
-enum class PlayerMoveSubState
-{
-	None,
-	Walking, // •à‚«
-	Jogging, // ¬‘–‚è
-};
-
+// Move ã‚¹ãƒ†ãƒ¼ãƒˆã®èª¿æ•´å€¤
 struct PlayerMoveComponent
 {
-	// ó‘Ô
-	PlayerMoveSubState moveSub = PlayerMoveSubState::None;
-
 	REFLECT_BEGIN(PlayerMoveComponent, "Player Move")
 
-		// İ’è’l
-		REFLECT_FIELD(float, walkSpeed,    (2.0f),  ("Walk Speed",    0.0f, 10.0f))
-		REFLECT_FIELD(float, jogSpeed,     (4.0f),  ("Jog Speed",     0.0f, 10.0f))
-		REFLECT_FIELD(float, jogThreshold, (0.9f),  ("Jog Threshold", 0.0f, 1.0f))
-		REFLECT_FIELD(float, turnSpeed,    (10.0f), ("Turn Speed",    0.0f, 30.0f))
+		REFLECT_FIELD(float, walkSpeed, (1.7f), ("Walk Speed", 0.0f, 10.0f)) // Walk_Loop ã®æƒ³å®šé€Ÿåº¦
+		REFLECT_FIELD(float, runSpeed, (4.2f), ("Run Speed", 0.0f, 10.0f)) // Run_Loop ã®æƒ³å®šé€Ÿåº¦
+		REFLECT_FIELD(float, accelHalfLife, (0.05f), ("Accel Half Life", 0.0f, 1.0f))  // åŠ é€Ÿæ™‚ã®åŠæ¸›æœŸ(ç§’)
+		REFLECT_FIELD(float, decelHalfLife, (0.08f), ("Decel Half Life", 0.0f, 1.0f))  // æ¸›é€Ÿæ™‚ã®åŠæ¸›æœŸ(ç§’)ã€‚æ—‹å›ã§ç›®æ¨™é€Ÿåº¦ãŒä¸‹ãŒã£ãŸæ™‚ãªã©
+		REFLECT_FIELD(float, turnSpeed, (10.0f), ("Turn Speed", 0.0f, 30.0f)) // æ—‹å›é€Ÿåº¦(rad/s)
 
-		// ó‘Ôƒtƒ‰ƒO
-		REFLECT_FIELD(bool, isWalking, (false), ("Is Walking", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient))
-		REFLECT_FIELD(bool, isJogging, (false), ("Is Jogging", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient))
-		REFLECT_FIELD(bool, isMoving, (false),  ("Is Moving",  0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient))
-
-	REFLECT_END()
-
-		// “à•”À‘•—p
-		float inputLossGraceTime = 0.1f; // “ü—Í‚ªˆêu–³‚­‚È‚Á‚Ä‚àA—P—\‚Æ‚µ‚ÄˆÛ‚·‚éŠÔ
-		float inputLossTimer = 0.0f;     // “à•”À‘•—pA“ü—Í‚ª–³‚­‚È‚Á‚Ä‚©‚ç‚ÌŒo‰ßŠÔ
+		REFLECT_END()
 };

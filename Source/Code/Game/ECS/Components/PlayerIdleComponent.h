@@ -1,21 +1,14 @@
-#pragma once
+ï»¿#pragma once
 #include "Engine/ECS/Reflect.h"
 
-enum class PlayerIdleSubState
-{
-	None,
-	Idle,   // ‘Ò‹@’†
-};
+#include "Engine/ECS/Reflect.h"
 
+// Idle ã‚¹ãƒ†ãƒ¼ãƒˆã®èª¿æ•´å€¤
 struct PlayerIdleComponent
 {
-	// ó‘Ô
-	PlayerIdleSubState idleSub = PlayerIdleSubState::None;
-
 	REFLECT_BEGIN(PlayerIdleComponent, "Player Idle")
 
-		// ó‘Ôƒtƒ‰ƒO
-		REFLECT_FIELD(bool, isIdling, (false), ("Is Idling", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient))
+		REFLECT_FIELD(float, stopHalfLife, (0.06f), ("Stop Half Life", 0.0f, 1.0f)) // åœæ­¢æ™‚ã®åŠæ¸›æœŸ(ç§’)
 
-	REFLECT_END()
+		REFLECT_END()
 };

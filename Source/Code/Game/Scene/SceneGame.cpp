@@ -219,6 +219,11 @@ void SceneGame::UpdateGameplay(float elapsedTime, const SceneContext& context)
 		ZoneScopedN("InputSystem");
 		gameInputSystem.Update(registry, controllerSystem.GetSettings());
 	}
+	// 意図の集約(グラフが遷移を決める前に作る)
+	{
+		ZoneScopedN("PlayerIntentSystem");
+		playerIntentSystem.Update(registry, elapsedTime, context);
+	}
 	// Stateマシン：Stateの遷移
 	{
 		ZoneScopedN("StateMachineSystem::UpdateState");
@@ -235,20 +240,25 @@ void SceneGame::UpdateGameplay(float elapsedTime, const SceneContext& context)
 		ZoneScopedN("PlayerMoveSystem");
 		playerMoveSystem.Update(registry, elapsedTime, context);
 	}
-	// プレイヤー回避処理
+	//// プレイヤー回避処理
+	//{
+	//	ZoneScopedN("PlayerDodgeSystem");
+	//	playerDodgeSystem.Update(registry, elapsedTime, context);
+	//}
+	//// プレイヤースプリント処理
+	//{
+	//	ZoneScopedN("PlayerSprintSystem");
+	//	playerSprintSystem.Update(registry, elapsedTime, context);
+	//}
+	//// プレイヤージャンプ処理
+	//{
+	//	ZoneScopedN("PlayerJumpSystem");
+	//	playerJumpSystem.Update(registry, elapsedTime, context);
+	//}
+	// 水平移動(各ステートの指示をもとに velocity.xz と rotation.y を書く)
 	{
-		ZoneScopedN("PlayerDodgeSystem");
-		playerDodgeSystem.Update(registry, elapsedTime, context);
-	}
-	// プレイヤースプリント処理
-	{
-		ZoneScopedN("PlayerSprintSystem");
-		playerSprintSystem.Update(registry, elapsedTime, context);
-	}
-	// プレイヤージャンプ処理
-	{
-		ZoneScopedN("PlayerJumpSystem");
-		playerJumpSystem.Update(registry, elapsedTime, context);
+		ZoneScopedN("PlayerLocomotionSystem");
+		playerLocomotionSystem.Update(registry, elapsedTime);
 	}
 
 	// 移動処理

@@ -5,11 +5,16 @@
 #include "Engine/ECS/Systems/ControllerSystem.h"
 #include "Game/ECS/Systems/GameInputSystem.h"
 
+
+// PlayerŠÖŒW
+#include "Game/ECS/Systems/PlayerIntentSystem.h"
+#include "Game/ECS/Systems/PlayerLocomotionSystem.h"
+
 #include "Game/ECS/Systems/PlayerIdleSystem.h"
 #include "Game/ECS/Systems/PlayerMoveSystem.h"
-#include "Game/ECS/Systems/PlayerDodgeSystem.h"
-#include "Game/ECS/Systems/PlayerSprintSystem.h"
-#include "Game/ECS/Systems/PlayerJumpSystem.h"
+//#include "Game/ECS/Systems/PlayerDodgeSystem.h"
+//#include "Game/ECS/Systems/PlayerSprintSystem.h"
+//#include "Game/ECS/Systems/PlayerJumpSystem.h"
 
 #include "Engine/ECS/Systems/MovementSystem.h"
 #include "Engine/ECS/Systems/AnimationSpeedSystem.h"
@@ -49,11 +54,15 @@ private:
 	ControllerSystem  controllerSystem;
 	GameInputSystem   gameInputSystem;
 	 
+	// PlayerŠÖŒW
+	PlayerIntentSystem playerIntentSystem;
+	PlayerLocomotionSystem playerLocomotionSystem;
+
 	PlayerIdleSystem   playerIdleSystem;
 	PlayerMoveSystem   playerMoveSystem;
-	PlayerDodgeSystem  playerDodgeSystem;
-	PlayerSprintSystem playerSprintSystem;
-	PlayerJumpSystem   playerJumpSystem;
+	//PlayerDodgeSystem  playerDodgeSystem;
+	//PlayerSprintSystem playerSprintSystem;
+	//PlayerJumpSystem   playerJumpSystem;
 
 	MovementSystem    movementSystem;
 	AnimationSpeedSystem     animationSpeedSystem;
