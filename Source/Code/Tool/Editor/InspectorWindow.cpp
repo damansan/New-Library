@@ -64,9 +64,9 @@ void InspectorWindow::DrawComponents(entt::registry& registry, EditorContext& co
         // このEntityがコンポーネントを持っているか
         if (!info->has(registry, e)) continue;
 
+        ImGui::PushID(name.c_str());
 
         // 削除ボタン
-        ImGui::PushID(name.c_str());
         if (ImGui::Button("x"))
         {
             info->remove(registry, e);
@@ -75,7 +75,6 @@ void InspectorWindow::DrawComponents(entt::registry& registry, EditorContext& co
             break;
         }
         ImGui::SameLine();
-        ImGui::PopID();
 
 
         // コンポーネントのImGuiを描画
@@ -103,6 +102,8 @@ void InspectorWindow::DrawComponents(entt::registry& registry, EditorContext& co
                 }
             }
         }
+
+        ImGui::PopID();
     }
 }
 

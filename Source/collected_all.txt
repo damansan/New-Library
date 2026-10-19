@@ -198,6 +198,8 @@ Path: C:\Users\offri\Desktop\New-Library\Source\Code\App\EditorApp.h
 #include "Tool/Studio/StudioSharedContext.h"
 #include "Tool/Studio/StudioWindow.h"
 
+#include "GameTool/MovementMonitorWindow.h"
+
 // ƒGƒfƒBƒ^‚ÌƒAƒvƒŠƒP[ƒVƒ‡ƒ“
 class EditorApp : public Application
 {
@@ -240,6 +242,8 @@ private:
 	InspectorWindow inspectorWindow;
 	PrefabWindow    prefabWindow;
 	LogWindow       logWindow;
+
+	MovementMonitorWindow movementMonitor;
 
 	StudioSharedContext studioShared;
 	std::vector<std::unique_ptr<StudioWindow>> studioWindows;
@@ -350,6 +354,12 @@ void EditorApp::OnPostUpdate(float elapsedTime)
 	// ƒfƒoƒbƒOƒJƒƒ‰XV(ƒV[ƒ“‚ÌŒã‚És‚¤)
 	UpdateDebugCamera(elapsedTime);
 
+	// ˆÚ“®‚Ì‹L˜^
+	if (auto* scene = sceneManager.GetCurrentScene())
+	{
+		movementMonitor.Record(scene->GetRegistry(), elapsedTime);
+	}
+
 	// StudioXV
 	for (auto& win : studioWindows)
 	{
@@ -380,6 +390,8 @@ void EditorApp::OnFrame()
 	}
 	// ƒV[ƒ“‚ª–³‚­‚Ä‚àAƒƒO‚ÍŒ©‚ç‚ê‚é‚æ‚¤‚É‚·‚é
 	logWindow.Draw();
+	// Às’†‚ÉŠm”F‚·‚éƒc[ƒ‹
+	movementMonitor.Draw();
 
 	// StudioOpenRequest‚ğˆ—
 	if (editorContext.studioRequest.pending)
@@ -577,6 +589,11 @@ void EditorApp::DrawMainMenu()
 		if (ImGui::BeginMenu("System"))
 		{
 			ImGui::MenuItem("VSync", nullptr, &vsync);
+			ImGui::EndMenu();
+		}
+		if (ImGui::BeginMenu("Tool"))
+		{
+			ImGui::MenuItem("Movement Monitor", nullptr, &movementMonitor.isOpen);
 			ImGui::EndMenu();
 		}
 
@@ -5666,6 +5683,9 @@ struct StateMachineComponent
 	// State‚É“ü‚Á‚½’¼Œã‚ÅAqƒOƒ‰ƒt‚ÌƒGƒ“ƒgƒŠ[‚ğ‚Ü‚¾ˆ—‚µ‚Ä‚¢‚È‚¢‚©
 	bool pendingEntry = false;
 
+	// ‚±‚ÌƒtƒŒ[ƒ€‚ÉState‚É“ü‚Á‚½‚©
+	bool enteredThisFrame = false;
+
 	// Œ»İ‚ÌState‚ªAw’è‚µ‚½–¼‘O‚ÌState‚©
 	bool IsIn(const std::string& stateName) const { return currentStateName == stateName; }
 }; 
@@ -9118,6 +9138,7 @@ void StateMachineSystem::EnterState(StateMachineComponent& sm, const StateNode& 
 	sm.currentStateId = state.id;
 	sm.currentStateName = state.name;
 	sm.enteredTransitionId = via.id;
+	sm.enteredThisFrame = true;
 
 	// Å‰‚ÌƒNƒŠƒbƒv‚ÍAƒQ[ƒ€ƒvƒŒƒC‚ÌŠeSystem‚ª“®‚¢‚½Œã‚ÉŒˆ‚ß‚é
 	sm.pendingEntry = true;
@@ -9130,6 +9151,9 @@ void StateMachineSystem::UpdateState(entt::registry& registry)
 	for (auto entity : view)
 	{
 		auto& sm = view.get<StateMachineComponent>(entity);
+
+		sm.enteredThisFrame = false;
+
 		if (sm.graphPath.empty()) continue;
 
 		const StateMachineData* data = Load(sm.graphPath);
@@ -14795,6 +14819,9 @@ Path: C:\Users\offri\Desktop\New-Library\Source\Code\Game\ECS\GameComponents.cpp
 #include "Game/ECS/Components/PlayerSprintComponent.h"
 #include "Game/ECS/Components/PlayerJumpComponent.h"
 
+#include "Game/ECS/Components/PlayerIntentComponent.h"
+#include "Game/ECS/Components/PlayerLocomotionComponent.h"
+
 void GameComponents::Register() 
 {
 	REGISTER_COMPONENT_TYPE(GameInputComponent,    "GameInput");
@@ -14804,6 +14831,9 @@ void GameComponents::Register()
 	REGISTER_COMPONENT_TYPE(PlayerDodgeComponent,  "Player Dodge");
 	REGISTER_COMPONENT_TYPE(PlayerSprintComponent, "Player Sprint");
 	REGISTER_COMPONENT_TYPE(PlayerJumpComponent,   "Player Jump");
+
+	REGISTER_COMPONENT_TYPE(PlayerIntentComponent, "Player Intent");
+	REGISTER_COMPONENT_TYPE(PlayerLocomotionComponent, "Player Locomotion");
 } 
  
 ===== GameCameraComponent.h ===== 
@@ -15018,26 +15048,71 @@ Path: C:\Users\offri\Desktop\New-Library\Source\Code\Game\ECS\Components\PlayerI
 ï»¿#pragma once
 #include "Engine/ECS/Reflect.h"
 
-enum class PlayerIdleSubState
-{
-	None,
-	Idle,   // å¾…æ©Ÿä¸­
-};
+#include "Engine/ECS/Reflect.h"
 
+// Idle ã‚¹ãƒ†ãƒ¼ãƒˆã®èª¿æ•´å€¤
 struct PlayerIdleComponent
 {
-	// çŠ¶æ…‹
-	PlayerIdleSubState idleSub = PlayerIdleSubState::None;
-
 	REFLECT_BEGIN(PlayerIdleComponent, "Player Idle")
 
-		// è¨­å®šå€¤
-		REFLECT_FIELD(float, deceleration, (25.0f), ("Deceleration", 0.0f, 100.0f)) // 1ç§’ã‚ãŸã‚Šã«è½ã¨ã™é€Ÿã•(m/sÂ²)
+		REFLECT_FIELD(float, stopHalfLife, (0.06f), ("Stop Half Life", 0.0f, 1.0f)) // åœæ­¢æ™‚ã®åŠæ¸›æœŸ(ç§’)
 
-		// çŠ¶æ…‹ãƒ•ãƒ©ã‚°
-		REFLECT_FIELD(bool, isIdling, (false), ("Is Idling", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient))
+		REFLECT_END()
+}; 
+ 
+===== PlayerIntentComponent.h ===== 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Game\ECS\Components\PlayerIntentComponent.h 
+#pragma once
+#include <DirectXMath.h>
+#include "Engine/ECS/Reflect.h"
 
-	REFLECT_END()
+// ƒ{ƒ^ƒ“1‚Â‚Ô‚ñ‚ÌˆÓ}
+struct ActionIntent
+{
+	REFLECT_BEGIN(ActionIntent, "Action Intent")
+
+		REFLECT_FIELD(bool,  buffered, (false), ("Buffered",  0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // æs“ü—Í‚Æ‚µ‚Äó‚¯•t‚¯’†
+		REFLECT_FIELD(bool,  held,     (false), ("Held",      0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // ¡‰Ÿ‚µ‘±‚¯‚Ä‚¢‚é‚©
+		REFLECT_FIELD(float, heldTime, (0.0f),  ("Held Time", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // ‰Ÿ‚µ‘±‚¯‚Ä‚¢‚éŠÔ
+
+		REFLECT_END()
+
+		// “à•”À‘•—p
+		float bufferTimer = 0.0f; // ‰Ÿ‚µ‚Ä‚©‚ç‚ÌŒo‰ßŠÔ
+
+	// ƒXƒe[ƒg‚ªg‚Á‚½‚ÉŒÄ‚Ô
+	void Consume() { buffered = false; }
+};
+
+// ƒvƒŒƒCƒ„[‚ÌˆÓ}
+struct PlayerIntentComponent
+{
+	REFLECT_BEGIN(PlayerIntentComponent, "Player Intent")
+
+		// İ’è’l
+		REFLECT_FIELD(float, moveGraceTime,     (0.1f),  ("Move Grace Time",     0.0f, 0.5f)) // “ü—Í‚ª“rØ‚ê‚Ä‚à wantsMove ‚ğ•Û‚ÂŠÔ
+		REFLECT_FIELD(float, runEnterThreshold, (0.9f),  ("Run Enter Threshold", 0.0f, 1.0f)) // ‚±‚Ì“|‚µ‹ï‡ˆÈã‚Å‘–‚è‚É“ü‚é
+		REFLECT_FIELD(float, runExitThreshold,  (0.7f),  ("Run Exit Threshold",  0.0f, 1.0f)) // ‚±‚Ì“|‚µ‹ï‡–¢–‚Å•à‚«‚É–ß‚é
+		REFLECT_FIELD(float, jumpBufferTime,    (0.15f), ("Jump Buffer Time",    0.0f, 0.5f)) // ƒWƒƒƒ“ƒv‚Ìæs“ü—Í‚ğó‚¯•t‚¯‚Ä‚¨‚­ŠÔ
+		REFLECT_FIELD(float, dodgeBufferTime,   (0.15f), ("Dodge Buffer Time",   0.0f, 0.5f)) // ‰ñ”ğ‚Ìæs“ü—Í‚ğó‚¯•t‚¯‚Ä‚¨‚­ŠÔ
+
+		// ˆÓ}
+		REFLECT_FIELD(bool, wantsMove, (false), ("Wants Move", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // “®‚«‚½‚¢‚©
+		REFLECT_FIELD(bool, wantsRun,  (false), ("Wants Run",  0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // ‘–‚è‚½‚¢‚©
+		
+		REFLECT_FIELD(DirectX::XMFLOAT3, moveDir, (0.0f, 0.0f, 0.0f), ("Move Dir", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // ƒ[ƒ‹ƒh•ûŒü
+		
+		REFLECT_FIELD(float, moveAmount,  (0.0f),  ("Move Amount",   0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // “|‚µ‹ï‡
+		REFLECT_FIELD(bool,  hasRawInput, (false), ("Has Raw Input", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // ¡ƒtƒŒ[ƒ€‚Ì¶‚Ì“ü—Í‚ª‚ ‚é‚©
+
+		// ƒ{ƒ^ƒ“‚ÌˆÓ}
+		REFLECT_FIELD(ActionIntent, jump, (), ("Jump"))
+		REFLECT_FIELD(ActionIntent, dodge, (), ("Dodge"))
+
+		REFLECT_END()
+
+		// “à•”À‘•—p
+		float graceTimer = 0.0f; // “ü—Í‚ª“rØ‚ê‚Ä‚©‚ç‚ÌŒo‰ßŠÔ
 }; 
  
 ===== PlayerJumpComponent.h ===== 
@@ -15045,28 +15120,83 @@ Path: C:\Users\offri\Desktop\New-Library\Source\Code\Game\ECS\Components\PlayerJ
 #pragma once
 #include "Engine/ECS/Reflect.h"
 
-enum class PlayerJumpSubState
-{
-	None,
-	Start, // ’µ–ô
-	Loop,  // ‹ó’†
-	End,   // ’…’n
-};
-
 struct PlayerJumpComponent
 {
-	// ó‘Ô
-	PlayerJumpSubState jumpSub = PlayerJumpSubState::None;
-
 	REFLECT_BEGIN(PlayerJumpComponent, "Player Jump")
 
 		// İ’è’l
-		REFLECT_FIELD(float, jumpPower, (8.0f), ("Jump Power", 0.0f, 50.0f))
+		REFLECT_FIELD(float, jumpSpeed, (8.0f), ("Jump Speed", 0.0f, 30.0f)) // ãŒü‚«‚Ì‰‘¬(m/s)Bd—Í -20 ‚Å‚‚³–ñ1.6m
+		REFLECT_FIELD(float, airSpeed, (4.2f), ("Air Speed", 0.0f, 20.0f)) // ‹ó’†‚Å“ü—Í‚µ‚½‚Ì–Ú•W‘¬“x‚Ì‰ºŒÀ(m/s)
+		REFLECT_FIELD(float, airControlHalfLife, (0.5f), ("Air Control Half Life", 0.0f, 3.0f))  // ‹ó’†‚Å—‘z‚Ì‘¬“x‚ÉŠñ‚é”¼Œ¸Šú(•b)B‘å‚«‚¢‚Ù‚Ç‹È‚°‚É‚­‚¢
+		REFLECT_FIELD(float, airTurnSpeed, (5.0f), ("Air Turn Speed", 0.0f, 30.0f)) // ‹ó’†‚Ìù‰ñ‘¬“x(rad/s)
 
-		// ó‘Ôƒtƒ‰ƒO
-		REFLECT_FIELD(bool, isJumping, (false), ("Is Jumping", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient))
+		// ’µ‚Ñ•û(Às’†)
+		REFLECT_FIELD(bool, fromGround, (false), ("From Ground", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // ’nã‚©‚ç’µ‚ñ‚¾‚©(qƒOƒ‰ƒt‚Ì“üŒû‚Åg‚¤)
 
-	REFLECT_END()
+		REFLECT_END()
+
+		// “à•”À‘•—p
+		float takeoffSpeed = 0.0f; // “¥‚İØ‚Á‚½‚Ì…•½‚Ì‘¬‚³
+}; 
+ 
+===== PlayerLocomotionComponent.h ===== 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Game\ECS\Components\PlayerLocomotionComponent.h 
+ï»¿#pragma once
+#include <DirectXMath.h>
+#include "Engine/ECS/Reflect.h"
+
+// æ°´å¹³ç§»å‹•ã‚’ã©ã†è¨ˆç®—ã™ã‚‹ã‹
+enum class LocomotionMode
+{
+	Ground,   // åœ°ä¸Šï¼šä½“ã®å‘ãã«æ²¿ã£ã¦é€²ã‚€
+	Air,      // ç©ºä¸­ï¼šé€Ÿåº¦ã®ãƒ™ã‚¯ãƒˆãƒ«ã‚’ä¿ã¡å…¥åŠ›æ–¹å‘ã«å¯„ã›ã‚‹
+	External, // å¤–éƒ¨
+};
+
+// ã‚¹ãƒ†ãƒ¼ãƒˆã‹ã‚‰ Locomotion ã¸ã®æŒ‡ç¤º
+struct LocomotionCommand
+{
+	LocomotionMode    mode = LocomotionMode::Ground;
+	DirectX::XMFLOAT3 moveDir = { 0.0f, 0.0f, 0.0f }; // å‘ã‹ã„ãŸã„æ–¹å‘
+	float  targetSpeed = 0.0f;    // ç›®æ¨™ã®é€Ÿã•
+	float  accelHalfLife = 0.05f; // é€Ÿã•ã‚’ä¸Šã’ã‚‹æ™‚ã®åŠæ¸›æœŸ 
+	float  decelHalfLife = 0.06f; // é€Ÿã•ã‚’ä¸‹ã’ã‚‹æ™‚ã®åŠæ¸›æœŸ
+	float  turnSpeed = 0.0f;      // æ—‹å›é€Ÿåº¦
+	float  carryHalfLife = 0.2f;  // æŒã¡è¶Šã—ã®é€Ÿåº¦ãŒæ¸›ã‚‹åŠæ¸›æœŸ
+};
+
+// æ°´å¹³ç§»å‹•ã®é‹è»¢æ‰‹ã¨ã€ä½“ã®çŠ¶æ…‹
+struct PlayerLocomotionComponent
+{
+	REFLECT_BEGIN(PlayerLocomotionComponent, "Player Locomotion")
+
+		// è¨­å®šå€¤
+		REFLECT_FIELD(float, fallGraceTime, (0.1f), ("Fall Grace Time", 0.0f, 0.5f)) // æ¥åœ°ã—ã¦ã„ãªã„çŠ¶æ…‹ãŒã“ã®æ™‚é–“ç¶šã„ãŸã‚‰ã€å®™ã«æµ®ã„ãŸã¨ã¿ãªã™
+
+		// ä½“ã®çŠ¶æ…‹
+		REFLECT_FIELD(float, horizontalSpeed, (0.0f), ("Horizontal Speed", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // ä»Šã®æ°´å¹³ã®é€Ÿã•(æŒã¡è¶Šã—ã‚’å«ã‚€)
+		REFLECT_FIELD(float, verticalSpeed,   (0.0f), ("Vertical Speed",   0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // ä»Šã®ç¸¦ã®é€Ÿã•
+		
+		REFLECT_FIELD(float, landingHorizontalSpeed, (0.0f), ("Landing Horizontal Speed", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // ç©ºä¸­ã«ã„ãŸæœ€å¾Œã®ãƒ•ãƒ¬ãƒ¼ãƒ ã®æ°´å¹³ã®é€Ÿã•
+		REFLECT_FIELD(float, landingVerticalSpeed,   (0.0f), ("Landing Vertical Speed",   0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // ç©ºä¸­ã«ã„ãŸæœ€å¾Œã®ãƒ•ãƒ¬ãƒ¼ãƒ ã®ç¸¦ã®é€Ÿã•
+		
+		REFLECT_FIELD(float, airTime,   (0.0f),  ("Air Time",    0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // æ¥åœ°ã—ã¦ã„ãªã„æ™‚é–“(ç§’)
+		REFLECT_FIELD(bool, isAirborne, (false), ("Is Airborne", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // å®™ã«æµ®ã„ã¦ã„ã‚‹ã‹(çŒ¶äºˆä»˜ã)
+
+		// è¨ˆç®—ã®é€”ä¸­çµŒé
+		REFLECT_FIELD(float, currentSpeed,   (0.0f), ("Current Speed", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // Groundï¼šè‡ªåˆ†ã§èµ°ã£ã¦ã„ã‚‹é€Ÿã•
+		REFLECT_FIELD(float, desiredSpeed,   (0.0f), ("Desired Speed", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // å‘ãã®ãšã‚Œã‚’è€ƒæ…®ã—ãŸç›®æ¨™ã®é€Ÿã•
+	
+		REFLECT_FIELD(float, facingErrorDeg, (0.0f), ("Facing Error Deg", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // ä½“ã®å‘ãã¨æŒ‡ç¤ºæ–¹å‘ã®ãšã‚Œ(åº¦)
+
+		REFLECT_END()
+
+	// å†…éƒ¨å®Ÿè£…ç”¨
+	DirectX::XMFLOAT3 carryVelocity = { 0.0f, 0.0f, 0.0f }; // æŒã¡è¶Šã—ã®é€Ÿåº¦
+	LocomotionMode    lastMode = LocomotionMode::Ground;    // å‰ãƒ•ãƒ¬ãƒ¼ãƒ ã®ãƒ¢ãƒ¼ãƒ‰
+
+	// ã‚¹ãƒ†ãƒ¼ãƒˆã‹ã‚‰ã®æŒ‡ç¤º
+	LocomotionCommand command;
 }; 
  
 ===== PlayerMoveComponent.h ===== 
@@ -15074,37 +15204,18 @@ Path: C:\Users\offri\Desktop\New-Library\Source\Code\Game\ECS\Components\PlayerM
 ï»¿#pragma once
 #include "Engine/ECS/Reflect.h"
 
-enum class PlayerMoveSubState
-{
-	None,
-	Walking, // æ­©ã
-	Jogging, // å°èµ°ã‚Š
-};
-
+// Move ã‚¹ãƒ†ãƒ¼ãƒˆã®èª¿æ•´å€¤
 struct PlayerMoveComponent
 {
-	// çŠ¶æ…‹
-	PlayerMoveSubState moveSub = PlayerMoveSubState::None;
-
 	REFLECT_BEGIN(PlayerMoveComponent, "Player Move")
 
-		// è¨­å®šå€¤
-		REFLECT_FIELD(float, walkSpeed,    (2.0f),  ("Walk Speed",    0.0f, 10.0f))
-		REFLECT_FIELD(float, jogSpeed,     (4.0f),  ("Jog Speed",     0.0f, 10.0f))
-		REFLECT_FIELD(float, jogThreshold, (0.9f),  ("Jog Threshold", 0.0f, 1.0f))
-		REFLECT_FIELD(float, turnSpeed, (10.0f), ("Turn Speed", 0.0f, 30.0f))
-		REFLECT_FIELD(float, acceleration, (30.0f), ("Acceleration", 0.0f, 100.0f)) // 1ç§’ã‚ãŸã‚Šã«å¢—æ¸›ã§ãã‚‹é€Ÿã•(m/sÂ²)
+		REFLECT_FIELD(float, walkSpeed, (1.7f), ("Walk Speed", 0.0f, 10.0f)) // Walk_Loop ã®æƒ³å®šé€Ÿåº¦
+		REFLECT_FIELD(float, runSpeed, (4.2f), ("Run Speed", 0.0f, 10.0f)) // Run_Loop ã®æƒ³å®šé€Ÿåº¦
+		REFLECT_FIELD(float, accelHalfLife, (0.05f), ("Accel Half Life", 0.0f, 1.0f))  // åŠ é€Ÿæ™‚ã®åŠæ¸›æœŸ(ç§’)
+		REFLECT_FIELD(float, decelHalfLife, (0.08f), ("Decel Half Life", 0.0f, 1.0f))  // æ¸›é€Ÿæ™‚ã®åŠæ¸›æœŸ(ç§’)ã€‚æ—‹å›ã§ç›®æ¨™é€Ÿåº¦ãŒä¸‹ãŒã£ãŸæ™‚ãªã©
+		REFLECT_FIELD(float, turnSpeed, (10.0f), ("Turn Speed", 0.0f, 30.0f)) // æ—‹å›é€Ÿåº¦(rad/s)
 
-		// çŠ¶æ…‹ãƒ•ãƒ©ã‚°
-		REFLECT_FIELD(bool, isWalking, (false), ("Is Walking", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient))
-		REFLECT_FIELD(bool, isJogging, (false), ("Is Jogging", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient))
-		REFLECT_FIELD(bool, isMoving, (false),  ("Is Moving",  0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient))
-
-	REFLECT_END()
-
-		// å†…éƒ¨å®Ÿè£…ç”¨
-		float inputLossGraceTime = 0.1f; // å…¥åŠ›ãŒä¸€ç¬ç„¡ããªã£ã¦ã‚‚ã€çŒ¶äºˆã¨ã—ã¦ç¶­æŒã™ã‚‹æ™‚é–“
-		float inputLossTimer = 0.0f;     // å†…éƒ¨å®Ÿè£…ç”¨ã€å…¥åŠ›ãŒç„¡ããªã£ã¦ã‹ã‚‰ã®çµŒéæ™‚é–“
+		REFLECT_END()
 }; 
  
 ===== PlayerSprintComponent.h ===== 
@@ -15240,6 +15351,19 @@ public:
 	void Update(entt::registry& registry, float elapsedTime, const SceneContext& context);
 }; 
  
+===== PlayerIntentSystem.h ===== 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Game\ECS\Systems\PlayerIntentSystem.h 
+#pragma once
+#include "entt.hpp"
+#include "Engine/Core/SceneContext.h"
+
+// ƒRƒ“ƒgƒ[ƒ‰[‚Ì¶“ü—Í‚ğƒvƒŒƒCƒ„[‚ÌˆÓ}‚É‰ğß‚·‚é
+class PlayerIntentSystem
+{
+public:
+	void Update(entt::registry& registry, float elapsedTime, const SceneContext& context);
+}; 
+ 
 ===== PlayerJumpSystem.h ===== 
 Path: C:\Users\offri\Desktop\New-Library\Source\Code\Game\ECS\Systems\PlayerJumpSystem.h 
 #pragma once
@@ -15251,6 +15375,18 @@ class PlayerJumpSystem
 public:
 	PlayerJumpSystem();
 	void Update(entt::registry& registry, float elapsedTime, const SceneContext& context);
+}; 
+ 
+===== PlayerLocomotionSystem.h ===== 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Game\ECS\Systems\PlayerLocomotionSystem.h 
+#pragma once
+#include "entt.hpp"
+
+// ƒXƒe[ƒg‚©‚ç‚Ìw¦‚Æ‘¬“x‚ğ‘‚­
+class PlayerLocomotionSystem
+{
+public:
+	void Update(entt::registry& registry, float elapsedTime);
 }; 
  
 ===== PlayerMovementUtils.h ===== 
@@ -15298,6 +15434,9 @@ namespace PlayerMovementUtils
 
 	// current ‚ğ target ‚ÖAÅ‘å maxStep ‚¾‚¯‹ß‚Ã‚¯‚é
 	float MoveTowards(float current, float target, float maxStep);
+
+	// current ‚ğ target ‚ÖAw”“I‚É‹ß‚Ã‚¯‚é(halfLife •b‚Å·‚ª”¼•ª‚É‚È‚éBƒtƒŒ[ƒ€ƒŒ[ƒg”ñˆË‘¶)
+	float Damper(float current, float target, float halfLife, float elapsedTime);
 } 
  
 ===== PlayerMoveSystem.h ===== 
@@ -16101,10 +16240,9 @@ void PlayerDodgeSystem::Update(entt::registry& registry, float elapsedTime, cons
 Path: C:\Users\offri\Desktop\New-Library\Source\Code\Game\ECS\Systems\PlayerIdleSystem.cpp 
 #include "PlayerIdleSystem.h"
 #include "Game/ECS/Components/PlayerIdleComponent.h"
+#include "Game/ECS/Components/PlayerLocomotionComponent.h"
 
 #include "Engine/ECS/Components/StateMachineComponent.h"
-#include "Engine/ECS/Components/MovementComponent.h"
-
 #include "Engine/ECS/Systems/StateMachineSystem.h"
 
 PlayerIdleSystem::PlayerIdleSystem()
@@ -16114,44 +16252,126 @@ PlayerIdleSystem::PlayerIdleSystem()
 
 void PlayerIdleSystem::Update(entt::registry& registry, float elapsedTime, const SceneContext& context)
 {
-	auto view = registry.view<StateMachineComponent, PlayerIdleComponent, MovementComponent>();
+	(void)elapsedTime;
+	(void)context;
 
-	view.each(
-		[&](auto entity,
-			StateMachineComponent& stateMachine,
-			PlayerIdleComponent& idle,
-			MovementComponent& movement) 
+	auto view = registry.view<PlayerIdleComponent, StateMachineComponent, PlayerLocomotionComponent>();
+	view.each([&](const PlayerIdleComponent& idle, const StateMachineComponent& stateMachine, PlayerLocomotionComponent& loco)
 		{
-			// Idle‚Å‚È‚¯‚ê‚ÎAˆÈ~‚Ìˆ—‚Ís‚í‚È‚¢
-			if (!stateMachine.IsIn("Idle"))
+			if (!stateMachine.IsIn("Idle")) return;
+
+			// ‚»‚Ìê‚Å~‚Ü‚é(Œü‚«‚Í•Ï‚¦‚È‚¢)
+			LocomotionCommand& cmd = loco.command;
+			cmd.mode = LocomotionMode::Ground;
+			cmd.moveDir = { 0.0f, 0.0f, 0.0f };
+			cmd.targetSpeed = 0.0f;
+			cmd.decelHalfLife = idle.stopHalfLife;
+			cmd.turnSpeed = 0.0f;
+		});
+} 
+ 
+===== PlayerIntentSystem.cpp ===== 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Game\ECS\Systems\PlayerIntentSystem.cpp 
+#include "PlayerIntentSystem.h"
+#include <algorithm>
+
+#include "Game/ECS/Components/GameInputComponent.h"
+#include "Game/ECS/Components/PlayerIntentComponent.h"
+#include "Game/ECS/Systems/PlayerMovementUtils.h"
+
+namespace
+{
+	// ƒ{ƒ^ƒ“1‚Â‚Ô‚ñ‚ÌˆÓ}‚ğXV‚·‚é
+	void UpdateAction(ActionIntent& action, bool pressed, bool held, float bufferTime, float elapsedTime)
+	{
+		// ‰Ÿ‚µ‘±‚¯‚Ä‚¢‚éŠÔ
+		action.held = held;
+		action.heldTime = held ? action.heldTime + elapsedTime : 0.0f;
+
+		// æs“ü—ÍF‰Ÿ‚³‚ê‚½uŠÔ‚Éó‚¯•t‚¯Aó•tŠÔ‚ğ‰ß‚¬‚½‚çæ‚èÁ‚·
+		if (pressed)
+		{
+			action.buffered = true;
+			action.bufferTimer = 0.0f;
+		}
+		else if (action.buffered)
+		{
+			action.bufferTimer += elapsedTime;
+			if (action.bufferTimer > bufferTime)
 			{
-				idle.isIdling = false;
-				return;
+				action.buffered = false;
+			}
+		}
+	}
+}
+
+void PlayerIntentSystem::Update(entt::registry& registry, float elapsedTime, const SceneContext& context)
+{
+	// ƒJƒƒ‰‚ª‚È‚¢ê‡‚Íˆ—‚µ‚È‚¢
+	if (!context.camera)return;
+
+	// ƒJƒƒ‰‚Ì‘O•ûŒü‚Æ‰E•ûŒü‚ğæ“¾
+	const DirectX::XMFLOAT3 front = context.camera->GetFront();
+	const DirectX::XMFLOAT3 right = context.camera->GetRight();
+
+	auto view = registry.view<GameInputComponent, PlayerIntentComponent>();
+	view.each([&](const GameInputComponent& input, PlayerIntentComponent& intent)
+		{
+			// ¶‚Ì“ü—Í‚ğAƒJƒƒ‰Šî€‚Ìƒ[ƒ‹ƒh•ûŒü‚É•ÏŠ·
+			auto dir = PlayerMovementUtils::StickToWorldVelocity(input.moveStick.x, input.moveStick.y, front, right, 1.0f);
+			intent.hasRawInput = (dir.inputLength > 0.0f);
+
+			// “®‚«‚½‚¢‚©(—P—\•t‚«)
+			if (intent.hasRawInput)
+			{
+				// “ü—Í‚ ‚èF•ûŒü‚Æ“|‚µ‹ï‡‚ğXV‚µ‚ÄA—P—\‚ğƒŠƒZƒbƒg
+				intent.moveDir = dir.velocity; // ’·‚³1
+				intent.moveAmount = (std::min)(dir.inputLength, 1.0f);
+				intent.graceTimer = 0.0f;
+				intent.wantsMove = true;
+			}
+			else
+			{
+				// “ü—Í‚È‚µF—P—\‚ÌŠÔ‚ÍAÅŒã‚Ì•ûŒü‚Æ“|‚µ‹ï‡‚ğ•Û‚Â
+				intent.graceTimer += elapsedTime;
+				if (intent.graceTimer >= intent.moveGraceTime)
+				{
+					intent.wantsMove = false;
+					intent.moveAmount = 0.0f;
+				}
 			}
 
-			// …•½•ûŒü‚Ì‘¬“x‚ğAŒ¸‘¬‚µ‚È‚ª‚ç0‚Ö‹ß‚Ã‚¯‚é
-			float speed = sqrtf(movement.velocity.x * movement.velocity.x + movement.velocity.z * movement.velocity.z);
-			if (speed > 0.0f)
+			// ‘–‚è‚½‚¢‚©(ƒqƒXƒeƒŠƒVƒX)
+			if (!intent.wantsMove)
 			{
-				float newSpeed = (std::max)(0.0f, speed - idle.deceleration * elapsedTime);
-				float scale = newSpeed / speed;
-				movement.velocity.x *= scale;
-				movement.velocity.z *= scale;
+				intent.wantsRun = false;
+			}
+			else if (intent.moveAmount >= intent.runEnterThreshold)
+			{
+				intent.wantsRun = true;
+			}
+			else if (intent.moveAmount < intent.runExitThreshold)
+			{
+				intent.wantsRun = false;
 			}
 
-			// ƒtƒ‰ƒOXV
-			idle.isIdling = true;
+			// ƒ{ƒ^ƒ“‚ÌˆÓ}
+			UpdateAction(intent.jump,  input.jump.pressed,         input.jump.held,         intent.jumpBufferTime,  elapsedTime);
+			UpdateAction(intent.dodge, input.dodgeTrigger.pressed, input.dodgeTrigger.held, intent.dodgeBufferTime, elapsedTime);
 		});
 } 
  
 ===== PlayerJumpSystem.cpp ===== 
 Path: C:\Users\offri\Desktop\New-Library\Source\Code\Game\ECS\Systems\PlayerJumpSystem.cpp 
 #include "PlayerJumpSystem.h"
+#include <algorithm>
+
+#include "Game/ECS/Components/PlayerIntentComponent.h"
 #include "Game/ECS/Components/PlayerJumpComponent.h"
+#include "Game/ECS/Components/PlayerLocomotionComponent.h"
 
 #include "Engine/ECS/Components/StateMachineComponent.h"
 #include "Engine/ECS/Components/MovementComponent.h"
-
 #include "Engine/ECS/Systems/StateMachineSystem.h"
 
 PlayerJumpSystem::PlayerJumpSystem()
@@ -16161,45 +16381,189 @@ PlayerJumpSystem::PlayerJumpSystem()
 
 void PlayerJumpSystem::Update(entt::registry& registry, float elapsedTime, const SceneContext& context)
 {
-	auto view = registry.view<PlayerJumpComponent, StateMachineComponent, MovementComponent>();
+	(void)elapsedTime;
+	(void)context;
 
-	view.each(
-		[&](PlayerJumpComponent& jump,
-			StateMachineComponent& stateMachine,
-			MovementComponent& movement)
+	auto view = registry.view<PlayerIntentComponent, PlayerJumpComponent, StateMachineComponent, PlayerLocomotionComponent, MovementComponent>();
+	view.each([&](PlayerIntentComponent& intent, PlayerJumpComponent& jump, const StateMachineComponent& stateMachine,
+		PlayerLocomotionComponent& loco, MovementComponent& movement)
 		{
-			// Jump‚Å‚È‚¯‚ê‚ÎAˆÈ~‚Ìˆ—‚Ís‚í‚È‚¢
-			if (!stateMachine.IsIn("Jump"))
-			{
-				jump.isJumping = false;
-				jump.jumpSub = PlayerJumpSubState::None;
-				return;
-			}
+			if (!stateMachine.IsIn("Jump")) return;
 
-			// Jump‚É“ü‚Á‚½Å‰‚ÌƒtƒŒ[ƒ€
-			if (jump.jumpSub == PlayerJumpSubState::None)
+			// “ü‚Á‚½uŠÔFƒWƒƒƒ“ƒv“ü—Í‚ª‚ ‚èA‚Ü‚¾’ˆ‚É•‚‚¢‚Ä‚¢‚È‚¯‚ê‚Î’µ‚ÔB‚»‚¤‚Å‚È‚¯‚ê‚Î—‚¿‚é‚¾‚¯
+			if (stateMachine.enteredThisFrame)
 			{
-				if (movement.isGrounded)
+				jump.fromGround = intent.jump.buffered && !loco.isAirborne;
+				jump.takeoffSpeed = loco.horizontalSpeed;
+
+				if (jump.fromGround)
 				{
-					// ’nã‚©‚ç“ü‚Á‚½FƒWƒƒƒ“ƒv
-					movement.velocity.y = jump.jumpPower;
-					jump.jumpSub = PlayerJumpSubState::Start;
-				}
-				else
-				{
-					// ‹ó’†‚©‚ç“ü‚Á‚½F—‰º
-					jump.jumpSub = PlayerJumpSubState::Loop;
+					// 1‰ñŒÀ‚è‚Ì‰‘¬‚ÍAƒXƒe[ƒg‚ª’¼Ú‘‚¢‚Ä‚æ‚¢(ˆÈ~‚Íd—Í‚É”C‚¹‚é)
+					movement.velocity.y = jump.jumpSpeed;
+					intent.jump.Consume();
 				}
 			}
 
-			// ’¸“_‚ğ‰z‚¦‚½‚çLoop‚Ö
-			if (jump.jumpSub == PlayerJumpSubState::Start && movement.velocity.y <= 0.0f)
+			// –ˆƒtƒŒ[ƒ€F‹ó’†‚Ìw¦
+			LocomotionCommand& cmd = loco.command;
+			cmd.mode = LocomotionMode::Air;
+			cmd.moveDir = intent.wantsMove ? intent.moveDir : DirectX::XMFLOAT3{ 0.0f, 0.0f, 0.0f };
+			cmd.targetSpeed = (std::max)(jump.takeoffSpeed, jump.airSpeed); // “¥‚İØ‚è‚Ì¨‚¢‚ğ‹ó’†‚Å¸‚í‚È‚¢‚æ‚¤‚É
+			cmd.accelHalfLife = jump.airControlHalfLife;
+			cmd.turnSpeed = jump.airTurnSpeed;
+		});
+} 
+ 
+===== PlayerLocomotionSystem.cpp ===== 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Game\ECS\Systems\PlayerLocomotionSystem.cpp 
+#include "PlayerLocomotionSystem.h"
+#include <cmath>
+#include <algorithm>
+#include <DirectXMath.h>
+
+#include "Game/ECS/Components/PlayerLocomotionComponent.h"
+#include "Game/ECS/Systems/PlayerMovementUtils.h"
+#include "Engine/ECS/Components/MovementComponent.h"
+#include "Engine/ECS/Components/TransformComponent.h"
+
+namespace
+{
+	// w”“I‚ÈŒ¸Š‚Í0‚É“Í‚©‚È‚¢‚Ì‚ÅA‚±‚ê‚æ‚è’x‚­‚È‚Á‚½‚ç0‚É‚·‚é
+	constexpr float kStopSpeed = 0.05f;
+
+	float PlanarLength(float x, float z) { return sqrtf(x * x + z * z); }
+
+	bool HasDirection(const DirectX::XMFLOAT3& dir) { return PlanarLength(dir.x, dir.z) > 0.0001f; }
+
+	// w¦‚³‚ê‚½•ûŒü‚Ö‘Ì‚ğ‰ñ‚µA‰ñ‚Á‚½Œã‚ÌŒü‚«‚Ì‚¸‚ê(rad)‚ğ•Ô‚·
+	float TurnTowards(const LocomotionCommand& cmd, TransformComponent& transform, float elapsedTime)
+	{
+		if (!HasDirection(cmd.moveDir)) return 0.0f;
+
+		float targetYaw = PlayerMovementUtils::CalcFacingYaw(cmd.moveDir.x, cmd.moveDir.z);
+		transform.rotation.y = PlayerMovementUtils::RotateTowards(transform.rotation.y, targetYaw, cmd.turnSpeed, elapsedTime);
+		return PlayerMovementUtils::AngleDiff(transform.rotation.y, targetYaw);
+	}
+
+	// Ground ‚É“ü‚éFÀÛ‚Ì‘¬“x‚ğu‘Ì‚ÌŒü‚«‚É‰ˆ‚Á‚½‘¬‚³v‚Æu‚¿‰z‚µ‚Ì‘¬“xv‚É•ª‚¯‚Äæ‚è‚Ş
+	void AbsorbIntoGround(PlayerLocomotionComponent& loco, const MovementComponent& movement, const TransformComponent& transform)
+	{
+		DirectX::XMFLOAT3 forward = PlayerMovementUtils::YawToForward(transform.rotation.y);
+
+		// ‘Ì‚ÌŒü‚«‚É‰ˆ‚Á‚½¬•ª(Œã‚ëŒü‚«‚Í0‚Æ‚·‚é)
+		float along = movement.velocity.x * forward.x + movement.velocity.z * forward.z;
+		loco.currentSpeed = (std::max)(0.0f, along);
+
+		// ‚»‚êˆÈŠO(‰¡EŒã‚ëŒü‚«)‚ÍA‚¿‰z‚µ‚Ì‘¬“x‚Æ‚µ‚Äc‚·
+		loco.carryVelocity.x = movement.velocity.x - forward.x * loco.currentSpeed;
+		loco.carryVelocity.z = movement.velocity.z - forward.z * loco.currentSpeed;
+	}
+
+	// ’nãF‘Ì‚ÌŒü‚«‚É‰ˆ‚Á‚Äi‚ŞB‚¿‰z‚µ‚Ì‘¬“x‚Í0‚ÖŒ¸‚Á‚Ä‚¢‚­
+	void DriveGround(PlayerLocomotionComponent& loco, const LocomotionCommand& cmd,
+		MovementComponent& movement, TransformComponent& transform, float elapsedTime)
+	{
+		// 1) Œü‚«
+		float facingError = TurnTowards(cmd, transform, elapsedTime);
+
+		// 2) ©•ª‚Å‘–‚Á‚Ä‚¢‚é‘¬‚³F‚¸‚ê‚ª‘å‚«‚¢‚Ù‚Ç–Ú•W‚ğ‰º‚°(90‹ˆÈã‚Å0)Aƒ_ƒ“ƒp[‚Å‹ß‚Ã‚¯‚é
+		float alignment = (std::max)(0.0f, cosf(facingError));
+		float desiredSpeed = cmd.targetSpeed * alignment;
+
+		float halfLife = (desiredSpeed > loco.currentSpeed) ? cmd.accelHalfLife : cmd.decelHalfLife;
+		loco.currentSpeed = PlayerMovementUtils::Damper(loco.currentSpeed, desiredSpeed, halfLife, elapsedTime);
+		if (desiredSpeed <= 0.0f && loco.currentSpeed < kStopSpeed)
+		{
+			loco.currentSpeed = 0.0f;
+		}
+
+		// 3) ‚¿‰z‚µ‚Ì‘¬“xF0‚ÖŒ¸‚ç‚·
+		loco.carryVelocity.x = PlayerMovementUtils::Damper(loco.carryVelocity.x, 0.0f, cmd.carryHalfLife, elapsedTime);
+		loco.carryVelocity.z = PlayerMovementUtils::Damper(loco.carryVelocity.z, 0.0f, cmd.carryHalfLife, elapsedTime);
+		if (PlanarLength(loco.carryVelocity.x, loco.carryVelocity.z) < kStopSpeed)
+		{
+			loco.carryVelocity = { 0.0f, 0.0f, 0.0f };
+		}
+
+		// 4) ‘¬“x = ‘Ì‚ÌŒü‚« ~ ‘¬‚³ { ‚¿‰z‚µ
+		DirectX::XMFLOAT3 forward = PlayerMovementUtils::YawToForward(transform.rotation.y);
+		movement.velocity.x = forward.x * loco.currentSpeed + loco.carryVelocity.x;
+		movement.velocity.z = forward.z * loco.currentSpeed + loco.carryVelocity.z;
+
+		// Šm”F—p
+		loco.desiredSpeed = desiredSpeed;
+		loco.facingErrorDeg = DirectX::XMConvertToDegrees(facingError);
+	}
+
+	// ‹ó’†F‘¬“x‚ÌƒxƒNƒgƒ‹‚ğ•Û‚ÂB“ü—Í‚ª‚ ‚é‚¾‚¯A—‘z‚Ì‘¬“x‚Ö­‚µ‚¸‚ÂŠñ‚¹‚é
+	void DriveAir(PlayerLocomotionComponent& loco, const LocomotionCommand& cmd,
+		MovementComponent& movement, TransformComponent& transform, float elapsedTime)
+	{
+		// 1) Œü‚«
+		float facingError = TurnTowards(cmd, transform, elapsedTime);
+
+		// 2) ‘¬“xF“ü—Í‚ª–³‚¯‚ê‚Î¨‚¢‚ğ‚»‚Ì‚Ü‚Ü•Û‚Â
+		if (HasDirection(cmd.moveDir))
+		{
+			float targetX = cmd.moveDir.x * cmd.targetSpeed;
+			float targetZ = cmd.moveDir.z * cmd.targetSpeed;
+			movement.velocity.x = PlayerMovementUtils::Damper(movement.velocity.x, targetX, cmd.accelHalfLife, elapsedTime);
+			movement.velocity.z = PlayerMovementUtils::Damper(movement.velocity.z, targetZ, cmd.accelHalfLife, elapsedTime);
+		}
+
+		// ’…’n‚µ‚½Œã‚Å‚àQÆ‚Å‚«‚é‚æ‚¤‚ÉA‹ó’†‚É‚¢‚éŠÔ‚Ì¨‚¢‚ğ‹L˜^‚·‚é
+		// (’…’n‚µ‚½ƒtƒŒ[ƒ€‚ÅAc‚Ì‘¬“x‚Í’n–Ê‚É‰Ÿ‚µ•t‚¯‚é’l‚É‘‚«Š·‚¦‚ç‚ê‚é‚½‚ß)
+		loco.landingHorizontalSpeed = PlanarLength(movement.velocity.x, movement.velocity.z);
+		loco.landingVerticalSpeed = movement.velocity.y;
+
+		// Šm”F—p
+		loco.currentSpeed = loco.landingHorizontalSpeed;
+		loco.desiredSpeed = cmd.targetSpeed;
+		loco.facingErrorDeg = DirectX::XMConvertToDegrees(facingError);
+	}
+}
+
+void PlayerLocomotionSystem::Update(entt::registry& registry, float elapsedTime)
+{
+	auto view = registry.view<PlayerLocomotionComponent, MovementComponent, TransformComponent>();
+	view.each([&](PlayerLocomotionComponent& loco, MovementComponent& movement, TransformComponent& transform)
+		{
+			const LocomotionCommand& cmd = loco.command;
+
+			// ‘Ì‚Ìó‘ÔFÚ’n‚µ‚Ä‚¢‚È‚¢ŠÔ(ƒ‚[ƒh‚ÉŠÖŒW‚È‚­–ˆƒtƒŒ[ƒ€)
+			loco.airTime = movement.isGrounded ? 0.0f : loco.airTime + elapsedTime;
+			loco.isAirborne = (loco.airTime >= loco.fallGraceTime);
+
+			// ‘¼‚Ìƒ‚[ƒh‚©‚ç Ground ‚ÉØ‚è‘Ö‚í‚Á‚½‚¾‚¯AÀÛ‚Ì‘¬“x‚ğæ‚è‚Ş
+			if (cmd.mode == LocomotionMode::Ground && loco.lastMode != LocomotionMode::Ground)
 			{
-				jump.jumpSub = PlayerJumpSubState::Loop;
+				AbsorbIntoGround(loco, movement, transform);
 			}
 
-			// ƒtƒ‰ƒOXV
-			jump.isJumping = true;
+			switch (cmd.mode)
+			{
+			case LocomotionMode::Ground:
+				DriveGround(loco, cmd, movement, transform, elapsedTime);
+				break;
+
+			case LocomotionMode::Air:
+				DriveAir(loco, cmd, movement, transform, elapsedTime);
+				break;
+
+			case LocomotionMode::External:
+				// velocity.xz ‚ÍŠO•”‚ª‘‚­
+				loco.desiredSpeed = 0.0f;
+				loco.facingErrorDeg = 0.0f;
+				break;
+			}
+
+			// ‘Ì‚Ìó‘ÔF¡‚Ì¨‚¢(ƒ‚[ƒh‚ÉŠÖŒW‚È‚­–ˆƒtƒŒ[ƒ€)
+			loco.horizontalSpeed = PlanarLength(movement.velocity.x, movement.velocity.z);
+			loco.verticalSpeed = movement.velocity.y;
+
+			// w¦‚Í1ƒtƒŒ[ƒ€ŒÀ‚èB‘‚«–Y‚ê‚½‚ç~‚Ü‚é‚æ‚¤‚ÉA‰Šú’l‚É–ß‚·
+			loco.lastMode = cmd.mode;
+			loco.command = LocomotionCommand{};
 		});
 } 
  
@@ -16317,18 +16681,23 @@ namespace PlayerMovementUtils
 		if (fabsf(diff) <= maxStep) return target;
 		return current + (diff > 0.0f ? maxStep : -maxStep);
 	}
+
+	float Damper(float current, float target, float halfLife, float elapsedTime)
+	{
+		if (halfLife <= 0.0f) return target;
+		// Œo‰ßŠÔ‚ª halfLife 1‚Â•ª‚È‚çA·‚Í 2^-1 = ”¼•ª‚É‚È‚é
+		return target + (current - target) * exp2f(-elapsedTime / halfLife);
+	}
 } 
  
 ===== PlayerMoveSystem.cpp ===== 
 Path: C:\Users\offri\Desktop\New-Library\Source\Code\Game\ECS\Systems\PlayerMoveSystem.cpp 
 #include "PlayerMoveSystem.h"
-#include "Game/ECS/Components/GameInputComponent.h"
+#include "Game/ECS/Components/PlayerIntentComponent.h"
 #include "Game/ECS/Components/PlayerMoveComponent.h"
-#include "Game/ECS/Systems/PlayerMovementUtils.h"
+#include "Game/ECS/Components/PlayerLocomotionComponent.h"
 
 #include "Engine/ECS/Components/StateMachineComponent.h"
-#include "Engine/ECS/Components/MovementComponent.h"
-#include "Engine/ECS/Components/TransformComponent.h"
 #include "Engine/ECS/Systems/StateMachineSystem.h"
 
 PlayerMoveSystem::PlayerMoveSystem()
@@ -16338,99 +16707,23 @@ PlayerMoveSystem::PlayerMoveSystem()
 
 void PlayerMoveSystem::Update(entt::registry& registry, float elapsedTime, const SceneContext& context)
 {
-	auto view = registry.view<GameInputComponent, PlayerMoveComponent, StateMachineComponent, MovementComponent, TransformComponent>();
+	(void)elapsedTime;
+	(void)context;
 
-	view.each(
-		[&](auto entity,
-			GameInputComponent& input,
-			PlayerMoveComponent& playerMove,
-			StateMachineComponent& stateMachine,
-			MovementComponent& movement,
-			TransformComponent& transform)
+	auto view = registry.view<PlayerIntentComponent, PlayerMoveComponent, StateMachineComponent, PlayerLocomotionComponent>();
+	view.each([&](const PlayerIntentComponent& intent, const PlayerMoveComponent& move,
+		const StateMachineComponent& stateMachine, PlayerLocomotionComponent& loco)
 		{
-			// Move‚Å‚È‚¯‚ê‚ÎAˆÈ~‚Ìˆ—‚Ís‚í‚È‚¢
-			if (!stateMachine.IsIn("Move"))
-			{
-				playerMove.isMoving = false;
-				playerMove.isWalking = false;
-				playerMove.isJogging = false;
+			if (!stateMachine.IsIn("Move")) return;
 
-				playerMove.moveSub = PlayerMoveSubState::None;
-				return;
-			}
-
-			// ˆÚ“®‚ªƒƒbƒN‚³‚ê‚Ä‚¢‚éŠÔ‚ÍA‰½‚à‚µ‚È‚¢
-			if (movement.movementLocked) return;
-
-			// ƒJƒƒ‰‚Ì‘OŒã¶‰EƒxƒNƒgƒ‹æ“¾
-			DirectX::XMFLOAT3 front = context.camera->GetFront();
-			DirectX::XMFLOAT3 right = context.camera->GetRight();
-
-			// ƒXƒeƒBƒbƒN“ü—Í‚©‚çƒ[ƒ‹ƒh•ûŒü‚ğZo
-			auto dir = PlayerMovementUtils::StickToWorldVelocity(input.moveStick.x, input.moveStick.y, front, right, 1.0f);
-
-			// “ü—Í•ûŒü‚ÌYaw(“ü—Í‚ª–³‚¢‚Æ‚«‚ÍA¡‚ÌŒü‚«‚Ì‚Ü‚Ü)
-			float inputYaw = transform.rotation.y;
-			if (dir.inputLength > 0.0f)
-			{
-				inputYaw = PlayerMovementUtils::CalcFacingYaw(dir.velocity.x, dir.velocity.z);
-			}
-
-			// Œü‚«‚Ì§ŒäŒ ‚ª‚ ‚é‚Æ‚«‚Ì‚İXV
-			if (!movement.facingLocked && dir.inputLength > 0.0f)
-			{
-				transform.rotation.y = PlayerMovementUtils::RotateTowards(transform.rotation.y, inputYaw, playerMove.turnSpeed, elapsedTime);
-			}
-
-			// ˆÚ“®‚Ì§ŒäŒ ‚ª‚ ‚é‚Æ‚«‚Ì‚İXV
-			if (!movement.xzControlLocked)
-			{
-				if (dir.inputLength > 0.0f)
-				{
-					// “ü—ÍƒƒX—P—\ƒ^ƒCƒ}[‚ğƒŠƒZƒbƒg
-					playerMove.inputLossTimer = 0.0f;
-
-					// “ü—Í—Ê‚É‰‚¶‚ÄAWalking/Jogging‚ğ”»’è
-					playerMove.moveSub = (dir.inputLength > playerMove.jogThreshold)
-						? PlayerMoveSubState::Jogging
-						: PlayerMoveSubState::Walking;
-
-					float speed = (playerMove.moveSub == PlayerMoveSubState::Jogging) ? playerMove.jogSpeed : playerMove.walkSpeed;
-
-					// ‘Ì‚ÌŒü‚«‚Æ“ü—Í•ûŒü‚Ì‚¸‚ê(‚±‚ÌƒtƒŒ[ƒ€‚Å‰ñ‚Á‚½Œã‚ÌŒü‚«‚Å‘ª‚é)
-					float diff = PlayerMovementUtils::AngleDiff(transform.rotation.y, inputYaw);
-
-					// ‚¸‚ê‚ª‘å‚«‚¢‚Ù‚Ç–Ú•W‘¬“x‚ğ‰º‚°‚é(90‹ˆÈã‚¸‚ê‚Ä‚¢‚½‚çA‚»‚Ìê‚ÅŒü‚«‚ğ•Ï‚¦‚é)
-					float alignment = (std::max)(0.0f, cosf(diff));
-					float desiredSpeed = speed * alignment;
-
-					// ¡‚Ì‘¬‚³‚ğA‰Á‘¬“x‚Ì”ÍˆÍ‚Å–Ú•W‚Ö‹ß‚Ã‚¯‚é
-					float currentSpeed = sqrtf(movement.velocity.x * movement.velocity.x + movement.velocity.z * movement.velocity.z);
-					float newSpeed = PlayerMovementUtils::MoveTowards(currentSpeed, desiredSpeed, playerMove.acceleration * elapsedTime);
-
-					// i‚Ş•ûŒü‚Íu“ü—Í•ûŒüv‚Å‚Í‚È‚­u‘Ì‚ÌŒü‚«v
-					DirectX::XMFLOAT3 forward = PlayerMovementUtils::YawToForward(transform.rotation.y);
-					movement.velocity.x = forward.x * newSpeed;
-					movement.velocity.z = forward.z * newSpeed;
-				}
-				else
-				{
-					// “ü—Í‚È‚µ—P—\’†
-					playerMove.inputLossTimer += elapsedTime;
-					if (playerMove.inputLossTimer >= playerMove.inputLossGraceTime)
-					{
-						// “ü—ÍƒƒXŠm’èB“®‚«‚ğ~‚ß‚é
-						playerMove.moveSub = PlayerMoveSubState::None;
-						movement.velocity.x = 0.0f;
-						movement.velocity.z = 0.0f;
-					}
-				}
-			}
-
-			// ƒtƒ‰ƒOXV
-			playerMove.isWalking = (playerMove.moveSub == PlayerMoveSubState::Walking);
-			playerMove.isJogging = (playerMove.moveSub == PlayerMoveSubState::Jogging);
-			playerMove.isMoving = true;
+			// ˆÓ}‚ğALocomotion ‚Ö‚Ìw¦‚É•Ï‚¦‚é
+			LocomotionCommand& cmd = loco.command;
+			cmd.mode = LocomotionMode::Ground;
+			cmd.moveDir = intent.moveDir;
+			cmd.targetSpeed = intent.wantsRun ? move.runSpeed : move.walkSpeed;
+			cmd.accelHalfLife = move.accelHalfLife;
+			cmd.decelHalfLife = move.decelHalfLife;
+			cmd.turnSpeed = move.turnSpeed;
 		});
 } 
  
@@ -16511,10 +16804,15 @@ Path: C:\Users\offri\Desktop\New-Library\Source\Code\Game\Scene\SceneGame.h
 #include "Engine/ECS/Systems/ControllerSystem.h"
 #include "Game/ECS/Systems/GameInputSystem.h"
 
+
+// PlayerŠÖŒW
+#include "Game/ECS/Systems/PlayerIntentSystem.h"
+#include "Game/ECS/Systems/PlayerLocomotionSystem.h"
+
 #include "Game/ECS/Systems/PlayerIdleSystem.h"
 #include "Game/ECS/Systems/PlayerMoveSystem.h"
-#include "Game/ECS/Systems/PlayerDodgeSystem.h"
-#include "Game/ECS/Systems/PlayerSprintSystem.h"
+//#include "Game/ECS/Systems/PlayerDodgeSystem.h"
+//#include "Game/ECS/Systems/PlayerSprintSystem.h"
 #include "Game/ECS/Systems/PlayerJumpSystem.h"
 
 #include "Engine/ECS/Systems/MovementSystem.h"
@@ -16555,10 +16853,14 @@ private:
 	ControllerSystem  controllerSystem;
 	GameInputSystem   gameInputSystem;
 	 
+	// PlayerŠÖŒW
+	PlayerIntentSystem playerIntentSystem;
+	PlayerLocomotionSystem playerLocomotionSystem;
+
 	PlayerIdleSystem   playerIdleSystem;
 	PlayerMoveSystem   playerMoveSystem;
-	PlayerDodgeSystem  playerDodgeSystem;
-	PlayerSprintSystem playerSprintSystem;
+	//PlayerDodgeSystem  playerDodgeSystem;
+	//PlayerSprintSystem playerSprintSystem;
 	PlayerJumpSystem   playerJumpSystem;
 
 	MovementSystem    movementSystem;
@@ -16810,6 +17112,11 @@ void SceneGame::UpdateGameplay(float elapsedTime, const SceneContext& context)
 		ZoneScopedN("InputSystem");
 		gameInputSystem.Update(registry, controllerSystem.GetSettings());
 	}
+	// æ„å›³ã®é›†ç´„(ã‚°ãƒ©ãƒ•ãŒé·ç§»ã‚’æ±ºã‚ã‚‹å‰ã«ä½œã‚‹)
+	{
+		ZoneScopedN("PlayerIntentSystem");
+		playerIntentSystem.Update(registry, elapsedTime, context);
+	}
 	// Stateãƒã‚·ãƒ³ï¼šStateã®é·ç§»
 	{
 		ZoneScopedN("StateMachineSystem::UpdateState");
@@ -16826,20 +17133,25 @@ void SceneGame::UpdateGameplay(float elapsedTime, const SceneContext& context)
 		ZoneScopedN("PlayerMoveSystem");
 		playerMoveSystem.Update(registry, elapsedTime, context);
 	}
-	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼å›é¿å‡¦ç†
-	{
-		ZoneScopedN("PlayerDodgeSystem");
-		playerDodgeSystem.Update(registry, elapsedTime, context);
-	}
-	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã‚¹ãƒ—ãƒªãƒ³ãƒˆå‡¦ç†
-	{
-		ZoneScopedN("PlayerSprintSystem");
-		playerSprintSystem.Update(registry, elapsedTime, context);
-	}
+	//// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼å›é¿å‡¦ç†
+	//{
+	//	ZoneScopedN("PlayerDodgeSystem");
+	//	playerDodgeSystem.Update(registry, elapsedTime, context);
+	//}
+	//// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã‚¹ãƒ—ãƒªãƒ³ãƒˆå‡¦ç†
+	//{
+	//	ZoneScopedN("PlayerSprintSystem");
+	//	playerSprintSystem.Update(registry, elapsedTime, context);
+	//}
 	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã‚¸ãƒ£ãƒ³ãƒ—å‡¦ç†
 	{
 		ZoneScopedN("PlayerJumpSystem");
 		playerJumpSystem.Update(registry, elapsedTime, context);
+	}
+	// æ°´å¹³ç§»å‹•(å„ã‚¹ãƒ†ãƒ¼ãƒˆã®æŒ‡ç¤ºã‚’ã‚‚ã¨ã« velocity.xz ã¨ rotation.y ã‚’æ›¸ã)
+	{
+		ZoneScopedN("PlayerLocomotionSystem");
+		playerLocomotionSystem.Update(registry, elapsedTime);
 	}
 
 	// ç§»å‹•å‡¦ç†
@@ -16914,6 +17226,61 @@ namespace GameInspectors
 	// Project‚ÌƒRƒ“ƒ|[ƒlƒ“ƒg‚Ì“Æ©ƒCƒ“ƒXƒyƒNƒ^[‚ğ“o˜^‚·‚é
 	void Register();
 } 
+ 
+===== MovementMonitorWindow.h ===== 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\GameTool\MovementMonitorWindow.h 
+#pragma once
+#include <deque>
+#include <string>
+#include <vector>
+#include "entt.hpp"
+
+// Player ‚ÌˆÚ“®‚Ì—lq
+class MovementMonitorWindow
+{
+public:
+	// ’l‚ğ1‚Â‹L˜^‚·‚é
+	void Record(entt::registry& registry, float elapsedTime);
+
+	// ‹L˜^‚ğƒOƒ‰ƒt‚É•`‚­
+	void Draw();
+
+	// •\¦‚µ‚Ä‚¢‚é‚©
+	bool isOpen = false;
+
+private:
+	// 1‰ñ•ª‚Ì‹L˜^
+	struct Sample
+	{
+		float time = 0.0f;            // ‹L˜^‚ğn‚ß‚Ä‚©‚ç‚ÌŠÔ
+		float horizontalSpeed = 0.0f; // …•½‚Ì‘¬‚³
+		float verticalSpeed = 0.0f;   // c‚Ì‘¬‚³
+		int   stateIndex = 0;         // ƒXƒe[ƒg‚Ì”Ô†
+	};
+
+	// ƒOƒ‰ƒt‚É•`‚­1–{‚Ìü
+	struct Series
+	{
+		float Sample::* value = nullptr; // ‚Ç‚Ì’l‚ğ•`‚­‚©
+		unsigned int    color = 0;
+		float           thickness = 1.0f;
+	};
+
+	// ƒOƒ‰ƒt‚ğ1‚Â•`‚­
+	void DrawGraph(float height, float minValue, float maxValue, float gridStep, const Series* series, int seriesCount);
+
+	// ƒXƒe[ƒg–¼‚ğ”Ô†‚É•Ï‚¦‚é
+	int FindOrAddState(const std::string& name);
+
+	std::deque<Sample>       samples;    // ŒÃ‚¢‡
+	std::vector<std::string> stateNames; // ƒXƒe[ƒg–¼
+
+	float totalTime = 0.0f;   // ‹L˜^‚ğn‚ß‚Ä‚©‚ç‚ÌŠÔ
+	bool  paused = false;     // ˆê’â~’†‚Í‹L˜^‚µ‚È‚¢
+
+	static constexpr float kViewSeconds = 3.0f;  // •\¦‚·‚éŠÔ‚Ì•
+	static constexpr float kKeepSeconds = 10.0f; // ‹L˜^‚Æ‚µ‚Äc‚µ‚Ä‚¨‚­’·‚³
+}; 
  
 ===== GameInspectors.cpp ===== 
 Path: C:\Users\offri\Desktop\New-Library\Source\Code\GameTool\GameInspectors.cpp 
@@ -17023,6 +17390,227 @@ void GameInspectors::Register()
 			ImGui::DragFloat3("Eye", &_c->base.currentEye.x, 0.1f);
 			ImGui::DragFloat3("Target", &_c->base.currentTarget.x, 0.1f);
 		});
+} 
+ 
+===== MovementMonitorWindow.cpp ===== 
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\GameTool\MovementMonitorWindow.cpp 
+#include "MovementMonitorWindow.h"
+#include <imgui.h>
+#include <algorithm>
+#include <cmath>
+
+#include "Engine/ECS/EntityFinder.h"
+#include "Engine/ECS/Components/MovementComponent.h"
+#include "Engine/ECS/Components/StateMachineComponent.h"
+
+namespace
+{
+	constexpr ImU32 kBackColor = IM_COL32(25, 25, 30, 255);
+	constexpr ImU32 kGridColor = IM_COL32(60, 60, 70, 255);
+	constexpr ImU32 kZeroColor = IM_COL32(130, 130, 140, 255);
+	constexpr ImU32 kLabelColor = IM_COL32(150, 150, 160, 255);
+	constexpr ImU32 kHorizontalColor = IM_COL32(66, 150, 250, 255);  // …•½‚Ì‘¬‚³(Â)
+	constexpr ImU32 kVerticalColor = IM_COL32(120, 220, 140, 255); // c‚Ì‘¬‚³(—Î)
+
+	constexpr float kBandHeight = 16.0f; // ƒXƒe[ƒg‚Ì‘Ñ‚Ì‚‚³
+
+	// ƒXƒe[ƒg‚ÌF(‰‚ß‚Äo‚Ä‚«‚½‡‚Ég‚¤)
+	constexpr ImU32 kStateColors[] =
+	{
+		IM_COL32(90, 110, 140, 255),
+		IM_COL32(70, 140, 100, 255),
+		IM_COL32(160, 110, 60, 255),
+		IM_COL32(130, 80, 150, 255),
+		IM_COL32(150, 70, 80, 255),
+		IM_COL32(120, 120, 60, 255),
+	};
+	constexpr int kStateColorCount = sizeof(kStateColors) / sizeof(kStateColors[0]);
+}
+
+// ’l‚ğ1‚Â‹L˜^‚·‚é(ƒQ[ƒ€‚ÌXV‚²‚Æ‚É1‰ñ)
+void MovementMonitorWindow::Record(entt::registry& registry, float elapsedTime)
+{
+	if (paused) return;
+
+	// ƒJƒeƒSƒŠ‚ª Player ‚ÌƒGƒ“ƒeƒBƒeƒB‚ğ‹L˜^‚·‚é
+	entt::entity player = FindFirstByCategory(registry, EntityCategory::Player);
+	if (player == entt::null) return;
+
+	const auto* movement = registry.try_get<MovementComponent>(player);
+	if (!movement) return;
+	const auto* stateMachine = registry.try_get<StateMachineComponent>(player);
+
+	totalTime += elapsedTime;
+
+	Sample s;
+	s.time = totalTime;
+	s.horizontalSpeed = sqrtf(movement->velocity.x * movement->velocity.x + movement->velocity.z * movement->velocity.z);
+	s.verticalSpeed = movement->velocity.y;
+	s.stateIndex = FindOrAddState(stateMachine ? stateMachine->currentStateName : "(no state)");
+	samples.push_back(s);
+
+	// ŒÃ‚¢‹L˜^‚ğÌ‚Ä‚é
+	while (!samples.empty() && samples.front().time < totalTime - kKeepSeconds)
+	{
+		samples.pop_front();
+	}
+}
+
+// ‹L˜^‚ğƒOƒ‰ƒt‚É•`‚­
+void MovementMonitorWindow::Draw()
+{
+	if (!isOpen) return;
+
+	if (!ImGui::Begin("Locomotion Monitor", &isOpen))
+	{
+		ImGui::End();
+		return;
+	}
+
+	ImGui::Checkbox("Stop", &paused);
+
+	if (samples.size() < 2)
+	{
+		ImGui::TextDisabled("No data");
+		ImGui::End();
+		return;
+	}
+
+	// •\¦”ÍˆÍ‚ÌÅ‘å’l‚É‡‚í‚¹‚ÄAc‚Ì–Ú·‚è‚ğŒˆ‚ß‚é
+	const float startTime = samples.back().time - kViewSeconds;
+	float maxHorizontal = 6.0f;
+	float maxVertical = 10.0f;
+	for (const Sample& s : samples)
+	{
+		if (s.time < startTime) continue;
+		maxHorizontal = (std::max)(maxHorizontal, (std::max)(s.horizontalSpeed, s.desiredSpeed));
+		maxVertical = (std::max)(maxVertical, fabsf(s.verticalSpeed));
+	}
+
+	ImGui::TextUnformatted("Horizontal (m/s)");
+	const Series horizontal[] =
+	{
+		{ &Sample::desiredSpeed,    kDesiredColor, 1.5f },
+		{ &Sample::horizontalSpeed, kActualColor,  2.0f },
+	};
+	DrawGraph(180.0f, 0.0f, maxHorizontal * 1.1f, 1.0f, horizontal, 2);
+
+	ImGui::TextUnformatted("Vertical (m/s)");
+	const Series vertical[] =
+	{
+		{ &Sample::verticalSpeed, kVerticalColor, 2.0f },
+	};
+	DrawGraph(140.0f, -maxVertical * 1.1f, maxVertical * 1.1f, 5.0f, vertical, 1);
+
+	ImGui::End();
+}
+
+// ƒOƒ‰ƒt‚ğ1‚Â•`‚­(‰º‚ÉƒXƒe[ƒg‚Ì‘Ñ‚ª•t‚­)
+void MovementMonitorWindow::DrawGraph(float height, float minValue, float maxValue, float gridStep, const Series* series, int seriesCount)
+{
+	ImDrawList* dl = ImGui::GetWindowDrawList();
+
+	const ImVec2 pos = ImGui::GetCursorScreenPos();
+	const float width = ImGui::GetContentRegionAvail().x;
+	const float plotHeight = height - kBandHeight;
+
+	const ImVec2 plotMin = pos;
+	const ImVec2 plotMax = ImVec2(pos.x + width, pos.y + plotHeight);
+	const ImVec2 bandMax = ImVec2(pos.x + width, pos.y + height);
+
+	// ŠÔ ¨ XÀ•WA’l ¨ YÀ•W
+	const float endTime = samples.back().time;
+	const float startTime = endTime - kViewSeconds;
+	auto ToX = [&](float t) { return plotMin.x + (t - startTime) / kViewSeconds * width; };
+	auto ToY = [&](float v)
+		{
+			float rate = std::clamp((v - minValue) / (maxValue - minValue), 0.0f, 1.0f);
+			return plotMax.y - rate * plotHeight;
+		};
+
+	dl->PushClipRect(plotMin, bandMax, true);
+
+	// ”wŒi
+	dl->AddRectFilled(plotMin, plotMax, kBackColor);
+
+	// ‰¡‚Ì–Ú·‚è(’l)
+	for (float v = ceilf(minValue / gridStep) * gridStep; v <= maxValue; v += gridStep)
+	{
+		float y = ToY(v);
+		bool isZero = fabsf(v) < 0.001f;
+		dl->AddLine(ImVec2(plotMin.x, y), ImVec2(plotMax.x, y), isZero ? kZeroColor : kGridColor);
+
+		char label[16];
+		snprintf(label, sizeof(label), "%.0f", v);
+		dl->AddText(ImVec2(plotMin.x + 2.0f, y - 14.0f), kLabelColor, label);
+	}
+
+	// c‚Ì–Ú·‚è(1•b‚²‚Æ)
+	for (float t = ceilf(startTime); t <= endTime; t += 1.0f)
+	{
+		float x = ToX(t);
+		dl->AddLine(ImVec2(x, plotMin.y), ImVec2(x, plotMax.y), kGridColor);
+	}
+
+	// ’l‚Ìü
+	for (int k = 0; k < seriesCount; ++k)
+	{
+		const Series& s = series[k];
+		for (size_t i = 1; i < samples.size(); ++i)
+		{
+			const Sample& a = samples[i - 1];
+			const Sample& b = samples[i];
+			if (b.time < startTime) continue;
+
+			dl->AddLine(ImVec2(ToX(a.time), ToY(a.*(s.value))), ImVec2(ToX(b.time), ToY(b.*(s.value))), s.color, s.thickness);
+		}
+	}
+
+	// ƒXƒe[ƒg‚Ì‘Ñ(“¯‚¶ƒXƒe[ƒg‚ª‘±‚­‹æŠÔ‚²‚Æ‚ÉA‚Ü‚Æ‚ß‚Ä•`‚­)
+	size_t runStart = 0;
+	for (size_t i = 1; i <= samples.size(); ++i)
+	{
+		bool runEnds = (i == samples.size()) || (samples[i].stateIndex != samples[runStart].stateIndex);
+		if (!runEnds) continue;
+
+		const Sample& first = samples[runStart];
+		const Sample& end = samples[i - 1];
+		float x0 = ToX(first.time);
+		float x1 = ToX(end.time);
+
+		if (end.time >= startTime)
+		{
+			ImU32 color = kStateColors[first.stateIndex % kStateColorCount];
+			dl->AddRectFilled(ImVec2(x0, plotMax.y), ImVec2(x1, bandMax.y), color);
+
+			// ‹æŠÔ‚Éû‚Ü‚é‚¾‚¯AƒXƒe[ƒg–¼‚ğ‘‚­
+			const char* name = stateNames[first.stateIndex].c_str();
+			float textWidth = ImGui::CalcTextSize(name).x;
+			float textX = (std::max)(x0, plotMin.x) + 3.0f;
+			if (textX + textWidth < x1)
+			{
+				dl->AddText(ImVec2(textX, plotMax.y + 1.0f), IM_COL32_WHITE, name);
+			}
+		}
+
+		runStart = i;
+	}
+
+	dl->PopClipRect();
+
+	// •`‚¢‚½•ª‚ÌêŠ‚ğŠm•Û‚·‚é(Ÿ‚Ì ImGui ‚Ì•”•i‚ªd‚È‚ç‚È‚¢‚æ‚¤‚É)
+	ImGui::Dummy(ImVec2(width, height));
+}
+
+// ƒXƒe[ƒg–¼‚ğ”Ô†‚É•Ï‚¦‚é(‰‚ß‚ÄŒ©‚é–¼‘O‚È‚ç’Ç‰Á‚·‚é)
+int MovementMonitorWindow::FindOrAddState(const std::string& name)
+{
+	for (int i = 0; i < (int)stateNames.size(); ++i)
+	{
+		if (stateNames[i] == name) return i;
+	}
+	stateNames.push_back(name);
+	return (int)stateNames.size() - 1;
 } 
  
 ===== Launcher.cpp ===== 
@@ -18892,6 +19480,7 @@ void InspectorWindow::DrawComponents(entt::registry& registry, EditorContext& co
         // ‚±‚ÌEntity‚ªƒRƒ“ƒ|[ƒlƒ“ƒg‚ğ‚Á‚Ä‚¢‚é‚©
         if (!info->has(registry, e)) continue;
 
+        ImGui::PushID(name.c_str());
 
         // íœƒ{ƒ^ƒ“
         ImGui::PushID(name.c_str());
@@ -18931,6 +19520,8 @@ void InspectorWindow::DrawComponents(entt::registry& registry, EditorContext& co
                 }
             }
         }
+
+        ImGui::PopID();
     }
 }
 
@@ -19046,6 +19637,8 @@ void MetaRegistry::DrawMetaFields(entt::meta_type metaType, entt::meta_any insta
 
 	for (auto&& [id, metaData] : metaType.data())
 	{
+		ImGui::PushID(static_cast<int>(id));
+
 		FieldInfo* fieldInfo = metaData.custom();
 		std::string label = fieldInfo ? fieldInfo->label : std::string(metaData.name());
 
@@ -19179,6 +19772,8 @@ void MetaRegistry::DrawMetaFields(entt::meta_type metaType, entt::meta_any insta
 		{
 			ImGui::TextDisabled("%s: (unsupported type)", label.c_str());
 		}
+
+		ImGui::PopID();
 	}
 } 
  

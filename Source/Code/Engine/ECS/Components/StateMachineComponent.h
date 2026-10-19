@@ -20,6 +20,9 @@ struct StateMachineComponent
 	// Stateに入った直後で、子グラフのエントリーをまだ処理していないか
 	bool pendingEntry = false;
 
+	// このフレームにStateに入ったか
+	bool enteredThisFrame = false;
+
 	// 現在のStateが、指定した名前のStateか
 	bool IsIn(const std::string& stateName) const { return currentStateName == stateName; }
 };

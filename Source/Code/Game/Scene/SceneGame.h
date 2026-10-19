@@ -14,7 +14,7 @@
 #include "Game/ECS/Systems/PlayerMoveSystem.h"
 //#include "Game/ECS/Systems/PlayerDodgeSystem.h"
 //#include "Game/ECS/Systems/PlayerSprintSystem.h"
-//#include "Game/ECS/Systems/PlayerJumpSystem.h"
+#include "Game/ECS/Systems/PlayerJumpSystem.h"
 
 #include "Engine/ECS/Systems/MovementSystem.h"
 #include "Engine/ECS/Systems/AnimationSpeedSystem.h"
@@ -62,7 +62,7 @@ private:
 	PlayerMoveSystem   playerMoveSystem;
 	//PlayerDodgeSystem  playerDodgeSystem;
 	//PlayerSprintSystem playerSprintSystem;
-	//PlayerJumpSystem   playerJumpSystem;
+	PlayerJumpSystem   playerJumpSystem;
 
 	MovementSystem    movementSystem;
 	AnimationSpeedSystem     animationSpeedSystem;

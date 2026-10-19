@@ -122,9 +122,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Source\Code\GameTool\GameInspectors.cpp" />
+    <ClCompile Include="..\..\Source\Code\GameTool\MovementMonitorWindow.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Source\Code\GameTool\GameInspectors.h" />
+    <ClInclude Include="..\..\Source\Code\GameTool\MovementMonitorWindow.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Engine\Engine.vcxproj">

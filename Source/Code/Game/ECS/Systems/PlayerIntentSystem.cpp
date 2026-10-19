@@ -5,6 +5,32 @@
 #include "Game/ECS/Components/PlayerIntentComponent.h"
 #include "Game/ECS/Systems/PlayerMovementUtils.h"
 
+namespace
+{
+	// ボタン1つぶんの意図を更新する
+	void UpdateAction(ActionIntent& action, bool pressed, bool held, float bufferTime, float elapsedTime)
+	{
+		// 押し続けている時間
+		action.held = held;
+		action.heldTime = held ? action.heldTime + elapsedTime : 0.0f;
+
+		// 先行入力：押された瞬間に受け付け、受付時間を過ぎたら取り消す
+		if (pressed)
+		{
+			action.buffered = true;
+			action.bufferTimer = 0.0f;
+		}
+		else if (action.buffered)
+		{
+			action.bufferTimer += elapsedTime;
+			if (action.bufferTimer > bufferTime)
+			{
+				action.buffered = false;
+			}
+		}
+	}
+}
+
 void PlayerIntentSystem::Update(entt::registry& registry, float elapsedTime, const SceneContext& context)
 {
 	// カメラがない場合は処理しない
@@ -54,5 +80,9 @@ void PlayerIntentSystem::Update(entt::registry& registry, float elapsedTime, con
 			{
 				intent.wantsRun = false;
 			}
+
+			// ボタンの意図
+			UpdateAction(intent.jump,  input.jump.pressed,         input.jump.held,         intent.jumpBufferTime,  elapsedTime);
+			UpdateAction(intent.dodge, input.dodgeTrigger.pressed, input.dodgeTrigger.held, intent.dodgeBufferTime, elapsedTime);
 		});
 }

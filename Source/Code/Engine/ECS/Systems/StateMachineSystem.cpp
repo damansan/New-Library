@@ -58,6 +58,7 @@ void StateMachineSystem::EnterState(StateMachineComponent& sm, const StateNode& 
 	sm.currentStateId = state.id;
 	sm.currentStateName = state.name;
 	sm.enteredTransitionId = via.id;
+	sm.enteredThisFrame = true;
 
 	// 最初のクリップは、ゲームプレイの各Systemが動いた後に決める
 	sm.pendingEntry = true;
@@ -70,6 +71,9 @@ void StateMachineSystem::UpdateState(entt::registry& registry)
 	for (auto entity : view)
 	{
 		auto& sm = view.get<StateMachineComponent>(entity);
+
+		sm.enteredThisFrame = false;
+
 		if (sm.graphPath.empty()) continue;
 
 		const StateMachineData* data = Load(sm.graphPath);

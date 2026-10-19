@@ -22,7 +22,7 @@ void PlayerIdleSystem::Update(entt::registry& registry, float elapsedTime, const
 
 			// ‚»‚Ìê‚Å~‚Ü‚é(Œü‚«‚Í•Ï‚¦‚È‚¢)
 			LocomotionCommand& cmd = loco.command;
-			cmd.mode = LocomotionMode::Drive;
+			cmd.mode = LocomotionMode::Ground;
 			cmd.moveDir = { 0.0f, 0.0f, 0.0f };
 			cmd.targetSpeed = 0.0f;
 			cmd.decelHalfLife = idle.stopHalfLife;

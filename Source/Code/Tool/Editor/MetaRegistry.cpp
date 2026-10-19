@@ -14,6 +14,8 @@ void MetaRegistry::DrawMetaFields(entt::meta_type metaType, entt::meta_any insta
 
 	for (auto&& [id, metaData] : metaType.data())
 	{
+		ImGui::PushID(static_cast<int>(id));
+
 		FieldInfo* fieldInfo = metaData.custom();
 		std::string label = fieldInfo ? fieldInfo->label : std::string(metaData.name());
 
@@ -147,5 +149,7 @@ void MetaRegistry::DrawMetaFields(entt::meta_type metaType, entt::meta_any insta
 		{
 			ImGui::TextDisabled("%s: (unsupported type)", label.c_str());
 		}
+
+		ImGui::PopID();
 	}
 }

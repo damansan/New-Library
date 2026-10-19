@@ -250,11 +250,11 @@ void SceneGame::UpdateGameplay(float elapsedTime, const SceneContext& context)
 	//	ZoneScopedN("PlayerSprintSystem");
 	//	playerSprintSystem.Update(registry, elapsedTime, context);
 	//}
-	//// プレイヤージャンプ処理
-	//{
-	//	ZoneScopedN("PlayerJumpSystem");
-	//	playerJumpSystem.Update(registry, elapsedTime, context);
-	//}
+	// プレイヤージャンプ処理
+	{
+		ZoneScopedN("PlayerJumpSystem");
+		playerJumpSystem.Update(registry, elapsedTime, context);
+	}
 	// 水平移動(各ステートの指示をもとに velocity.xz と rotation.y を書く)
 	{
 		ZoneScopedN("PlayerLocomotionSystem");

@@ -7,15 +7,27 @@
     <Filter Include="Sources\GameTool">
       <UniqueIdentifier>{7744df8c-29f6-4b55-a776-cd6b5f509bb6}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\GameTool\GameInspectors">
+      <UniqueIdentifier>{1bbf4717-0a0b-4c61-b276-5fa54310f7e7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\GameTool\MovementMonitorWindow">
+      <UniqueIdentifier>{2d53f362-7767-481f-8727-edbb6280df6f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Source\Code\GameTool\GameInspectors.cpp">
-      <Filter>Sources\GameTool</Filter>
+      <Filter>Sources\GameTool\GameInspectors</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Code\GameTool\MovementMonitorWindow.cpp">
+      <Filter>Sources\GameTool\MovementMonitorWindow</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Source\Code\GameTool\GameInspectors.h">
-      <Filter>Sources\GameTool</Filter>
+      <Filter>Sources\GameTool\GameInspectors</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Code\GameTool\MovementMonitorWindow.h">
+      <Filter>Sources\GameTool\MovementMonitorWindow</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

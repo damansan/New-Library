@@ -1,9 +1,12 @@
 #include "PlayerJumpSystem.h"
+#include <algorithm>
+
+#include "Game/ECS/Components/PlayerIntentComponent.h"
 #include "Game/ECS/Components/PlayerJumpComponent.h"
+#include "Game/ECS/Components/PlayerLocomotionComponent.h"
 
 #include "Engine/ECS/Components/StateMachineComponent.h"
 #include "Engine/ECS/Components/MovementComponent.h"
-
 #include "Engine/ECS/Systems/StateMachineSystem.h"
 
 PlayerJumpSystem::PlayerJumpSystem()
@@ -13,44 +16,35 @@ PlayerJumpSystem::PlayerJumpSystem()
 
 void PlayerJumpSystem::Update(entt::registry& registry, float elapsedTime, const SceneContext& context)
 {
-	auto view = registry.view<PlayerJumpComponent, StateMachineComponent, MovementComponent>();
+	(void)elapsedTime;
+	(void)context;
 
-	view.each(
-		[&](PlayerJumpComponent& jump,
-			StateMachineComponent& stateMachine,
-			MovementComponent& movement)
+	auto view = registry.view<PlayerIntentComponent, PlayerJumpComponent, StateMachineComponent, PlayerLocomotionComponent, MovementComponent>();
+	view.each([&](PlayerIntentComponent& intent, PlayerJumpComponent& jump, const StateMachineComponent& stateMachine,
+		PlayerLocomotionComponent& loco, MovementComponent& movement)
 		{
-			// Jumpでなければ、以降の処理は行わない
-			if (!stateMachine.IsIn("Jump"))
-			{
-				jump.isJumping = false;
-				jump.jumpSub = PlayerJumpSubState::None;
-				return;
-			}
+			if (!stateMachine.IsIn("Jump")) return;
 
-			// Jumpに入った最初のフレーム
-			if (jump.jumpSub == PlayerJumpSubState::None)
+			// 入った瞬間：ジャンプ入力があり、まだ宙に浮いていなければ跳ぶ。そうでなければ落ちるだけ
+			if (stateMachine.enteredThisFrame)
 			{
-				if (movement.isGrounded)
+				jump.fromGround = intent.jump.buffered && !loco.isAirborne;
+				jump.takeoffSpeed = loco.horizontalSpeed;
+
+				if (jump.fromGround)
 				{
-					// 地上から入った：ジャンプ
-					movement.velocity.y = jump.jumpPower;
-					jump.jumpSub = PlayerJumpSubState::Start;
-				}
-				else
-				{
-					// 空中から入った：落下
-					jump.jumpSub = PlayerJumpSubState::Loop;
+					// 1回限りの初速は、ステートが直接書いてよい(以降は重力に任せる)
+					movement.velocity.y = jump.jumpSpeed;
+					intent.jump.Consume();
 				}
 			}
 
-			// 頂点を越えたらLoopへ
-			if (jump.jumpSub == PlayerJumpSubState::Start && movement.velocity.y <= 0.0f)
-			{
-				jump.jumpSub = PlayerJumpSubState::Loop;
-			}
-
-			// フラグ更新
-			jump.isJumping = true;
+			// 毎フレーム：空中の指示
+			LocomotionCommand& cmd = loco.command;
+			cmd.mode = LocomotionMode::Air;
+			cmd.moveDir = intent.wantsMove ? intent.moveDir : DirectX::XMFLOAT3{ 0.0f, 0.0f, 0.0f };
+			cmd.targetSpeed = (std::max)(jump.takeoffSpeed, jump.airSpeed); // 踏み切りの勢いを空中で失わないように
+			cmd.accelHalfLife = jump.airControlHalfLife;
+			cmd.turnSpeed = jump.airTurnSpeed;
 		});
 }

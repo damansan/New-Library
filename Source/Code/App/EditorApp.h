@@ -16,6 +16,8 @@
 #include "Tool/Studio/StudioSharedContext.h"
 #include "Tool/Studio/StudioWindow.h"
 
+#include "GameTool/MovementMonitorWindow.h"
+
 // エディタのアプリケーション
 class EditorApp : public Application
 {
@@ -58,6 +60,8 @@ private:
 	InspectorWindow inspectorWindow;
 	PrefabWindow    prefabWindow;
 	LogWindow       logWindow;
+
+	MovementMonitorWindow movementMonitor;
 
 	StudioSharedContext studioShared;
 	std::vector<std::unique_ptr<StudioWindow>> studioWindows;

@@ -35,6 +35,69 @@
             "name": "Idle",
             "transitions": [
                 {
+                    "id": 8,
+                    "to": 5,
+                    "always": false,
+                    "condition": {
+                        "returnNode": {
+                            "id": 165,
+                            "posX": 514.0,
+                            "posY": 352.0
+                        },
+                        "variableNodes": [],
+                        "operatorNodes": [],
+                        "logicNodes": [
+                            {
+                                "id": 246,
+                                "posX": 366.0,
+                                "posY": 304.0,
+                                "op": "Or"
+                            }
+                        ],
+                        "notNodes": [],
+                        "getterNodes": [
+                            {
+                                "id": 245,
+                                "posX": 173.0,
+                                "posY": 268.0,
+                                "componentName": "PlayerIntentComponent",
+                                "fieldName": "jump.buffered",
+                                "selectedComponent": "None"
+                            },
+                            {
+                                "id": 248,
+                                "posX": 141.0,
+                                "posY": 364.0,
+                                "componentName": "PlayerLocomotionComponent",
+                                "fieldName": "isAirborne",
+                                "selectedComponent": "None"
+                            }
+                        ],
+                        "links": [
+                            {
+                                "id": 247,
+                                "fromId": 245,
+                                "toId": 246,
+                                "toPinB": false
+                            },
+                            {
+                                "id": 249,
+                                "fromId": 248,
+                                "toId": 246,
+                                "toPinB": true
+                            },
+                            {
+                                "id": 250,
+                                "fromId": 246,
+                                "toId": 165,
+                                "toPinB": false
+                            }
+                        ]
+                    },
+                    "blend": true,
+                    "blendDuration": 0.20000000298023224
+                },
+                {
                     "id": 7,
                     "to": 3,
                     "always": false,
@@ -64,81 +127,6 @@
                                 "fromId": 74,
                                 "toId": 59,
                                 "toPinB": false
-                            }
-                        ]
-                    },
-                    "blend": true,
-                    "blendDuration": 0.20000000298023224
-                },
-                {
-                    "id": 8,
-                    "to": 5,
-                    "always": false,
-                    "condition": {
-                        "returnNode": {
-                            "id": 165,
-                            "posX": 482.0,
-                            "posY": 320.0
-                        },
-                        "variableNodes": [],
-                        "operatorNodes": [],
-                        "logicNodes": [
-                            {
-                                "id": 237,
-                                "posX": 302.0,
-                                "posY": 272.0,
-                                "op": "Or"
-                            }
-                        ],
-                        "notNodes": [
-                            {
-                                "id": 242,
-                                "posX": 146.0,
-                                "posY": 324.0
-                            }
-                        ],
-                        "getterNodes": [
-                            {
-                                "id": 176,
-                                "posX": 98.0,
-                                "posY": 204.0,
-                                "componentName": "GameInputComponent",
-                                "fieldName": "jump.pressed",
-                                "selectedComponent": "None"
-                            },
-                            {
-                                "id": 239,
-                                "posX": -43.0,
-                                "posY": 332.0,
-                                "componentName": "MovementComponent",
-                                "fieldName": "isGrounded",
-                                "selectedComponent": "None"
-                            }
-                        ],
-                        "links": [
-                            {
-                                "id": 238,
-                                "fromId": 176,
-                                "toId": 237,
-                                "toPinB": false
-                            },
-                            {
-                                "id": 241,
-                                "fromId": 237,
-                                "toId": 165,
-                                "toPinB": false
-                            },
-                            {
-                                "id": 243,
-                                "fromId": 239,
-                                "toId": 242,
-                                "toPinB": false
-                            },
-                            {
-                                "id": 244,
-                                "fromId": 242,
-                                "toId": 237,
-                                "toPinB": true
                             }
                         ]
                     },
@@ -339,6 +327,69 @@
             "name": "Move",
             "transitions": [
                 {
+                    "id": 11,
+                    "to": 5,
+                    "always": false,
+                    "condition": {
+                        "returnNode": {
+                            "id": 165,
+                            "posX": 514.0,
+                            "posY": 352.0
+                        },
+                        "variableNodes": [],
+                        "operatorNodes": [],
+                        "logicNodes": [
+                            {
+                                "id": 246,
+                                "posX": 366.0,
+                                "posY": 304.0,
+                                "op": "Or"
+                            }
+                        ],
+                        "notNodes": [],
+                        "getterNodes": [
+                            {
+                                "id": 245,
+                                "posX": 173.0,
+                                "posY": 268.0,
+                                "componentName": "PlayerIntentComponent",
+                                "fieldName": "jump.buffered",
+                                "selectedComponent": "None"
+                            },
+                            {
+                                "id": 248,
+                                "posX": 141.0,
+                                "posY": 364.0,
+                                "componentName": "PlayerLocomotionComponent",
+                                "fieldName": "isAirborne",
+                                "selectedComponent": "None"
+                            }
+                        ],
+                        "links": [
+                            {
+                                "id": 247,
+                                "fromId": 245,
+                                "toId": 246,
+                                "toPinB": false
+                            },
+                            {
+                                "id": 249,
+                                "fromId": 248,
+                                "toId": 246,
+                                "toPinB": true
+                            },
+                            {
+                                "id": 250,
+                                "fromId": 246,
+                                "toId": 165,
+                                "toPinB": false
+                            }
+                        ]
+                    },
+                    "blend": true,
+                    "blendDuration": 0.20000000298023224
+                },
+                {
                     "id": 10,
                     "to": 3,
                     "always": false,
@@ -367,81 +418,6 @@
                                 "id": 102,
                                 "fromId": 101,
                                 "toId": 67,
-                                "toPinB": false
-                            }
-                        ]
-                    },
-                    "blend": true,
-                    "blendDuration": 0.20000000298023224
-                },
-                {
-                    "id": 11,
-                    "to": 5,
-                    "always": false,
-                    "condition": {
-                        "returnNode": {
-                            "id": 187,
-                            "posX": 594.0,
-                            "posY": 272.0
-                        },
-                        "variableNodes": [],
-                        "operatorNodes": [],
-                        "logicNodes": [
-                            {
-                                "id": 248,
-                                "posX": 398.0,
-                                "posY": 224.0,
-                                "op": "Or"
-                            }
-                        ],
-                        "notNodes": [
-                            {
-                                "id": 245,
-                                "posX": 258.0,
-                                "posY": 276.0
-                            }
-                        ],
-                        "getterNodes": [
-                            {
-                                "id": 192,
-                                "posX": 226.0,
-                                "posY": 188.0,
-                                "componentName": "GameInputComponent",
-                                "fieldName": "jump.pressed",
-                                "selectedComponent": "None"
-                            },
-                            {
-                                "id": 246,
-                                "posX": 49.0,
-                                "posY": 285.0,
-                                "componentName": "MovementComponent",
-                                "fieldName": "isGrounded",
-                                "selectedComponent": "None"
-                            }
-                        ],
-                        "links": [
-                            {
-                                "id": 247,
-                                "fromId": 246,
-                                "toId": 245,
-                                "toPinB": false
-                            },
-                            {
-                                "id": 249,
-                                "fromId": 192,
-                                "toId": 248,
-                                "toPinB": false
-                            },
-                            {
-                                "id": 250,
-                                "fromId": 245,
-                                "toId": 248,
-                                "toPinB": true
-                            },
-                            {
-                                "id": 251,
-                                "fromId": 248,
-                                "toId": 187,
                                 "toPinB": false
                             }
                         ]
@@ -1345,65 +1321,65 @@
                         "returnNode": {
                             "id": 169,
                             "posX": 546.0,
-                            "posY": 304.0
+                            "posY": 336.0
                         },
                         "variableNodes": [],
                         "operatorNodes": [],
                         "logicNodes": [
                             {
-                                "id": 279,
-                                "posX": 386.0,
-                                "posY": 256.0,
+                                "id": 287,
+                                "posX": 398.0,
+                                "posY": 288.0,
                                 "op": "And"
                             }
                         ],
                         "notNodes": [
                             {
-                                "id": 282,
-                                "posX": 247.0,
-                                "posY": 306.0
+                                "id": 288,
+                                "posX": 258.0,
+                                "posY": 340.0
                             }
                         ],
                         "getterNodes": [
                             {
-                                "id": 178,
-                                "posX": 218.0,
-                                "posY": 202.0,
+                                "id": 286,
+                                "posX": 213.0,
+                                "posY": 252.0,
                                 "componentName": "MovementComponent",
                                 "fieldName": "isGrounded",
                                 "selectedComponent": "None"
                             },
                             {
-                                "id": 281,
-                                "posX": 55.0,
-                                "posY": 314.0,
-                                "componentName": "GameInputComponent",
-                                "fieldName": "moveStick.hasInput",
+                                "id": 289,
+                                "posX": 77.0,
+                                "posY": 348.0,
+                                "componentName": "PlayerIntentComponent",
+                                "fieldName": "wantsMove",
                                 "selectedComponent": "None"
                             }
                         ],
                         "links": [
                             {
-                                "id": 280,
-                                "fromId": 178,
-                                "toId": 279,
+                                "id": 290,
+                                "fromId": 289,
+                                "toId": 288,
                                 "toPinB": false
                             },
                             {
-                                "id": 283,
-                                "fromId": 281,
-                                "toId": 282,
-                                "toPinB": false
-                            },
-                            {
-                                "id": 284,
-                                "fromId": 282,
-                                "toId": 279,
+                                "id": 291,
+                                "fromId": 288,
+                                "toId": 287,
                                 "toPinB": true
                             },
                             {
-                                "id": 285,
-                                "fromId": 279,
+                                "id": 292,
+                                "fromId": 286,
+                                "toId": 287,
+                                "toPinB": false
+                            },
+                            {
+                                "id": 293,
+                                "fromId": 287,
                                 "toId": 169,
                                 "toPinB": false
                             }
@@ -1420,55 +1396,55 @@
                         "returnNode": {
                             "id": 169,
                             "posX": 546.0,
-                            "posY": 304.0
+                            "posY": 336.0
                         },
                         "variableNodes": [],
                         "operatorNodes": [],
                         "logicNodes": [
                             {
-                                "id": 279,
-                                "posX": 386.0,
-                                "posY": 256.0,
+                                "id": 287,
+                                "posX": 398.0,
+                                "posY": 288.0,
                                 "op": "And"
                             }
                         ],
                         "notNodes": [],
                         "getterNodes": [
                             {
-                                "id": 178,
-                                "posX": 218.0,
-                                "posY": 202.0,
+                                "id": 286,
+                                "posX": 213.0,
+                                "posY": 252.0,
                                 "componentName": "MovementComponent",
                                 "fieldName": "isGrounded",
                                 "selectedComponent": "None"
                             },
                             {
-                                "id": 281,
-                                "posX": 218.0,
-                                "posY": 314.0,
-                                "componentName": "GameInputComponent",
-                                "fieldName": "moveStick.hasInput",
+                                "id": 289,
+                                "posX": 205.0,
+                                "posY": 332.0,
+                                "componentName": "PlayerIntentComponent",
+                                "fieldName": "wantsMove",
                                 "selectedComponent": "None"
                             }
                         ],
                         "links": [
                             {
-                                "id": 280,
-                                "fromId": 178,
-                                "toId": 279,
+                                "id": 292,
+                                "fromId": 286,
+                                "toId": 287,
                                 "toPinB": false
                             },
                             {
-                                "id": 283,
-                                "fromId": 281,
-                                "toId": 279,
-                                "toPinB": true
-                            },
-                            {
-                                "id": 285,
-                                "fromId": 279,
+                                "id": 293,
+                                "fromId": 287,
                                 "toId": 169,
                                 "toPinB": false
+                            },
+                            {
+                                "id": 294,
+                                "fromId": 289,
+                                "toId": 287,
+                                "toPinB": true
                             }
                         ]
                     },

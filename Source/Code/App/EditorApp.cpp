@@ -67,6 +67,12 @@ void EditorApp::OnPostUpdate(float elapsedTime)
 	// デバッグカメラ更新(シーンの後に行う)
 	UpdateDebugCamera(elapsedTime);
 
+	// 移動の記録
+	if (auto* scene = sceneManager.GetCurrentScene())
+	{
+		movementMonitor.Record(scene->GetRegistry(), elapsedTime);
+	}
+
 	// Studio更新
 	for (auto& win : studioWindows)
 	{
@@ -97,6 +103,8 @@ void EditorApp::OnFrame()
 	}
 	// シーンが無くても、ログは見られるようにする
 	logWindow.Draw();
+	// 実行中に確認するツール
+	movementMonitor.Draw();
 
 	// StudioOpenRequestを処理
 	if (editorContext.studioRequest.pending)
@@ -294,6 +302,11 @@ void EditorApp::DrawMainMenu()
 		if (ImGui::BeginMenu("System"))
 		{
 			ImGui::MenuItem("VSync", nullptr, &vsync);
+			ImGui::EndMenu();
+		}
+		if (ImGui::BeginMenu("Tool"))
+		{
+			ImGui::MenuItem("Movement Monitor", nullptr, &movementMonitor.isOpen);
 			ImGui::EndMenu();
 		}
 

@@ -24,7 +24,7 @@ void PlayerMoveSystem::Update(entt::registry& registry, float elapsedTime, const
 
 			// à”ê}ÇÅALocomotion Ç÷ÇÃéwé¶Ç…ïœÇ¶ÇÈ
 			LocomotionCommand& cmd = loco.command;
-			cmd.mode = LocomotionMode::Drive;
+			cmd.mode = LocomotionMode::Ground;
 			cmd.moveDir = intent.moveDir;
 			cmd.targetSpeed = intent.wantsRun ? move.runSpeed : move.walkSpeed;
 			cmd.accelHalfLife = move.accelHalfLife;
