@@ -16,7 +16,7 @@ namespace
 	constexpr ImU32 kZeroColor =       IM_COL32(130, 130, 140, 255);
 	constexpr ImU32 kLabelColor =      IM_COL32(150, 150, 160, 255);
 	constexpr ImU32 kHorizontalColor = IM_COL32(66, 150, 250, 255);  // 水平の速さ(青)
-	constexpr ImU32 kDesiredColor = IM_COL32(250, 200, 60, 220);     // 目標の速さ(黄)
+	constexpr ImU32 kDesiredColor =    IM_COL32(250, 200, 60, 220);  // 目標の速さ(黄)
 	constexpr ImU32 kVerticalColor =   IM_COL32(120, 220, 140, 255); // 縦の速さ(緑)
 
 	constexpr float kBandHeight = 16.0f; // ステートの帯の高さ
@@ -34,7 +34,7 @@ namespace
 	constexpr int kStateColorCount = sizeof(kStateColors) / sizeof(kStateColors[0]);
 }
 
-// 値を1つ記録する(ゲームの更新ごとに1回)
+// 値を1つ記録する
 void MovementMonitorWindow::Record(entt::registry& registry, float elapsedTime)
 {
 	if (paused) return;
@@ -142,7 +142,7 @@ void MovementMonitorWindow::DrawGraph(float height, float minValue, float maxVal
 	// 背景
 	dl->AddRectFilled(plotMin, plotMax, kBackColor);
 
-	// 横の目盛り(値)
+	// 横の目盛り
 	for (float v = ceilf(minValue / gridStep) * gridStep; v <= maxValue; v += gridStep)
 	{
 		float y = ToY(v);
@@ -154,7 +154,7 @@ void MovementMonitorWindow::DrawGraph(float height, float minValue, float maxVal
 		dl->AddText(ImVec2(plotMin.x + 2.0f, y - 14.0f), kLabelColor, label);
 	}
 
-	// 縦の目盛り(1秒ごと)
+	// 縦の目盛り
 	for (float t = ceilf(startTime); t <= endTime; t += 1.0f)
 	{
 		float x = ToX(t);
@@ -175,7 +175,7 @@ void MovementMonitorWindow::DrawGraph(float height, float minValue, float maxVal
 		}
 	}
 
-	// ステートの帯(同じステートが続く区間ごとに、まとめて描く)
+	// ステートの帯
 	size_t runStart = 0;
 	for (size_t i = 1; i <= samples.size(); ++i)
 	{
@@ -207,11 +207,11 @@ void MovementMonitorWindow::DrawGraph(float height, float minValue, float maxVal
 
 	dl->PopClipRect();
 
-	// 描いた分の場所を確保する(次の ImGui の部品が重ならないように)
+	// 描いた分の場所を確保する
 	ImGui::Dummy(ImVec2(width, height));
 }
 
-// ステート名を番号に変える(初めて見る名前なら追加する)
+// ステート名を番号に変える
 int MovementMonitorWindow::FindOrAddState(const std::string& name)
 {
 	for (int i = 0; i < (int)stateNames.size(); ++i)
