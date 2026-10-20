@@ -1,37 +1,42 @@
 #pragma once
+#include <DirectXMath.h>
 #include "Engine/ECS/Reflect.h"
 
-enum class PlayerDodgeSubState
+// 回避の方向
+enum class PlayerDodgeDirection
 {
-	None,
-	Deciding, // 方向決定の猶予中
-	InPlace,  // その場回避
-	Front,    // 前方回避
-	Back,     // 後方回避
-	Left,     // 左回避
-	Right,    // 右回避
+	Front,
+	Back,
+	Left,
+	Right,
 };
 
 struct PlayerDodgeComponent
 {
-	// 状態
-	PlayerDodgeSubState dodgeSub = PlayerDodgeSubState::None;
-
 	REFLECT_BEGIN(PlayerDodgeComponent, "Player Dodge")
 
 		// 設定値
-		REFLECT_FIELD(float, directionBufferTime, (0.12f), ("Direction Buffer Time", 0.0f, 1.0f))
+		REFLECT_FIELD(float, dodgeSpeed,    (8.0f),  ("Dodge Speed",     0.0f, 20.0f)) // 回避中の速さ
+		REFLECT_FIELD(float, minTime,       (0.15f), ("Min Time",        0.0f, 2.0f))  // R2を短く押した時の長さ
+		REFLECT_FIELD(float, maxTime,       (0.5f),  ("Max Time",        0.0f, 2.0f))  // R2を押し続けた時の長さ
+		REFLECT_FIELD(float, accelHalfLife, (0.02f), ("Accel Half Life", 0.0f, 1.0f))  // 回避の速さに達するまでの半減期
+		REFLECT_FIELD(float, turnSpeed,     (10.0f), ("Turn Speed",      0.0f, 30.0f)) // 回避方向を曲げる速さ
 
-		// 状態フラグ
-		REFLECT_FIELD(bool, isDodging,    (false), ("Is Dodging",     0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient))
-		REFLECT_FIELD(bool, isNoneInput,  (false), ("Is None Input",  0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient))
-		REFLECT_FIELD(bool, isFrontInput, (false), ("Is Front Input", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient))
-		REFLECT_FIELD(bool, isBackInput,  (false), ("Is Back Input",  0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient))
-		REFLECT_FIELD(bool, isLeftInput,  (false), ("Is Left Input",  0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient))
-		REFLECT_FIELD(bool, isRightInput, (false), ("Is Right Input", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient))
+		// 状態
+		REFLECT_FIELD(bool, isFront,  (false), ("Is Front", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // 前へ回避
+		REFLECT_FIELD(bool, isBack,   (false), ("Is Back",  0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // 後ろへ回避
+		REFLECT_FIELD(bool, isLeft,   (false), ("Is Left",  0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // 左へ回避
+		REFLECT_FIELD(bool, isRight,  (false), ("Is Right", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // 右へ回避
+		REFLECT_FIELD(bool, finished, (false), ("Finished", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // 回避が終わったか
 
-	REFLECT_END()
+		// 体から見た回避方向
+		REFLECT_FIELD(float, localX,  (0.0f), ("Local X", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // 右が +
+		REFLECT_FIELD(float, localZ,  (0.0f), ("Local Z", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // 前が +
+		REFLECT_FIELD(float, elapsed, (0.0f), ("Elapsed", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // 回避に入ってからの時間(秒)
+
+		REFLECT_END()
 
 	// 内部実装用
-	float bufferTimer = 0.0f; // 猶予経過時間
+	PlayerDodgeDirection direction = PlayerDodgeDirection::Back; // 入った時に決めた方向
+	DirectX::XMFLOAT3    dodgeDir = { 0.0f, 0.0f, 0.0f };        // 今進んでいる方向
 };

@@ -15006,41 +15006,46 @@ struct GameInputComponent
 ===== PlayerDodgeComponent.h ===== 
 Path: C:\Users\offri\Desktop\New-Library\Source\Code\Game\ECS\Components\PlayerDodgeComponent.h 
 #pragma once
+#include <DirectXMath.h>
 #include "Engine/ECS/Reflect.h"
 
-enum class PlayerDodgeSubState
+// ‰ñ”ğ‚Ì•ûŒü
+enum class PlayerDodgeDirection
 {
-	None,
-	Deciding, // •ûŒüŒˆ’è‚Ì—P—\’†
-	InPlace,  // ‚»‚Ìê‰ñ”ğ
-	Front,    // ‘O•û‰ñ”ğ
-	Back,     // Œã•û‰ñ”ğ
-	Left,     // ¶‰ñ”ğ
-	Right,    // ‰E‰ñ”ğ
+	Front,
+	Back,
+	Left,
+	Right,
 };
 
 struct PlayerDodgeComponent
 {
-	// ó‘Ô
-	PlayerDodgeSubState dodgeSub = PlayerDodgeSubState::None;
-
 	REFLECT_BEGIN(PlayerDodgeComponent, "Player Dodge")
 
 		// İ’è’l
-		REFLECT_FIELD(float, directionBufferTime, (0.12f), ("Direction Buffer Time", 0.0f, 1.0f))
+		REFLECT_FIELD(float, dodgeSpeed,    (8.0f),  ("Dodge Speed",     0.0f, 20.0f)) // ‰ñ”ğ’†‚Ì‘¬‚³
+		REFLECT_FIELD(float, minTime,       (0.15f), ("Min Time",        0.0f, 2.0f))  // R2‚ğ’Z‚­‰Ÿ‚µ‚½‚Ì’·‚³
+		REFLECT_FIELD(float, maxTime,       (0.5f),  ("Max Time",        0.0f, 2.0f))  // R2‚ğ‰Ÿ‚µ‘±‚¯‚½‚Ì’·‚³
+		REFLECT_FIELD(float, accelHalfLife, (0.02f), ("Accel Half Life", 0.0f, 1.0f))  // ‰ñ”ğ‚Ì‘¬‚³‚É’B‚·‚é‚Ü‚Å‚Ì”¼Œ¸Šú
+		REFLECT_FIELD(float, turnSpeed,     (10.0f), ("Turn Speed",      0.0f, 30.0f)) // ‰ñ”ğ•ûŒü‚ğ‹È‚°‚é‘¬‚³
 
-		// ó‘Ôƒtƒ‰ƒO
-		REFLECT_FIELD(bool, isDodging,    (false), ("Is Dodging",     0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient))
-		REFLECT_FIELD(bool, isNoneInput,  (false), ("Is None Input",  0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient))
-		REFLECT_FIELD(bool, isFrontInput, (false), ("Is Front Input", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient))
-		REFLECT_FIELD(bool, isBackInput,  (false), ("Is Back Input",  0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient))
-		REFLECT_FIELD(bool, isLeftInput,  (false), ("Is Left Input",  0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient))
-		REFLECT_FIELD(bool, isRightInput, (false), ("Is Right Input", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient))
+		// ó‘Ô
+		REFLECT_FIELD(bool, isFront,  (false), ("Is Front", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // ‘O‚Ö‰ñ”ğ
+		REFLECT_FIELD(bool, isBack,   (false), ("Is Back",  0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // Œã‚ë‚Ö‰ñ”ğ
+		REFLECT_FIELD(bool, isLeft,   (false), ("Is Left",  0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // ¶‚Ö‰ñ”ğ
+		REFLECT_FIELD(bool, isRight,  (false), ("Is Right", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // ‰E‚Ö‰ñ”ğ
+		REFLECT_FIELD(bool, finished, (false), ("Finished", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // ‰ñ”ğ‚ªI‚í‚Á‚½‚©
 
-	REFLECT_END()
+		// ‘Ì‚©‚çŒ©‚½‰ñ”ğ•ûŒü
+		REFLECT_FIELD(float, localX,  (0.0f), ("Local X", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // ‰E‚ª +
+		REFLECT_FIELD(float, localZ,  (0.0f), ("Local Z", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // ‘O‚ª +
+		REFLECT_FIELD(float, elapsed, (0.0f), ("Elapsed", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // ‰ñ”ğ‚É“ü‚Á‚Ä‚©‚ç‚ÌŠÔ(•b)
+
+		REFLECT_END()
 
 	// “à•”À‘•—p
-	float bufferTimer = 0.0f; // —P—\Œo‰ßŠÔ
+	PlayerDodgeDirection direction = PlayerDodgeDirection::Back; // “ü‚Á‚½‚ÉŒˆ‚ß‚½•ûŒü
+	DirectX::XMFLOAT3    dodgeDir = { 0.0f, 0.0f, 0.0f };        // ¡i‚ñ‚Å‚¢‚é•ûŒü
 }; 
  
 ===== PlayerIdleComponent.h ===== 
@@ -15148,9 +15153,10 @@ Path: C:\Users\offri\Desktop\New-Library\Source\Code\Game\ECS\Components\PlayerL
 // æ°´å¹³ç§»å‹•ã‚’ã©ã†è¨ˆç®—ã™ã‚‹ã‹
 enum class LocomotionMode
 {
-	Ground,   // åœ°ä¸Šï¼šä½“ã®å‘ãã«æ²¿ã£ã¦é€²ã‚€
-	Air,      // ç©ºä¸­ï¼šé€Ÿåº¦ã®ãƒ™ã‚¯ãƒˆãƒ«ã‚’ä¿ã¡å…¥åŠ›æ–¹å‘ã«å¯„ã›ã‚‹
-	External, // å¤–éƒ¨
+	Ground,      // åœ°ä¸Šï¼šä½“ã®å‘ãã«æ²¿ã£ã¦é€²ã‚€
+	Air,         // ç©ºä¸­ï¼šé€Ÿåº¦ã®ãƒ™ã‚¯ãƒˆãƒ«ã‚’ä¿ã¡å…¥åŠ›æ–¹å‘ã«å¯„ã›ã‚‹
+	Directional, // å‘ãã¨ã¯åˆ¥ã«é€²ã‚€
+	External,    // å¤–éƒ¨
 };
 
 // ã‚¹ãƒ†ãƒ¼ãƒˆã‹ã‚‰ Locomotion ã¸ã®æŒ‡ç¤º
@@ -15163,6 +15169,7 @@ struct LocomotionCommand
 	float  decelHalfLife = 0.06f; // é€Ÿã•ã‚’ä¸‹ã’ã‚‹æ™‚ã®åŠæ¸›æœŸ
 	float  turnSpeed = 0.0f;      // æ—‹å›é€Ÿåº¦
 	float  carryHalfLife = 0.2f;  // æŒã¡è¶Šã—ã®é€Ÿåº¦ãŒæ¸›ã‚‹åŠæ¸›æœŸ
+	bool   faceMoveDir = false;   // ä½“ã®å‘ãã‚’ å‘ã‹ã„ãŸã„æ–¹å‘ ã«ä¸€æ°—ã«å‘ã‘ã‚‹
 };
 
 // æ°´å¹³ç§»å‹•ã®é‹è»¢æ‰‹ã¨ã€ä½“ã®çŠ¶æ…‹
@@ -16123,17 +16130,30 @@ void GameInputSystem::UpdateButtonState(ButtonState& state, bool isHeldNow)
 ===== PlayerDodgeSystem.cpp ===== 
 Path: C:\Users\offri\Desktop\New-Library\Source\Code\Game\ECS\Systems\PlayerDodgeSystem.cpp 
 #include "PlayerDodgeSystem.h"
-#include "Game/ECS/Components/GameInputComponent.h"
+#include <cmath>
+
+#include "Game/ECS/Components/PlayerIntentComponent.h"
 #include "Game/ECS/Components/PlayerDodgeComponent.h"
+#include "Game/ECS/Components/PlayerLocomotionComponent.h"
 #include "Game/ECS/Systems/PlayerMovementUtils.h"
 
 #include "Engine/ECS/Components/StateMachineComponent.h"
-#include "Engine/ECS/Components/MovementComponent.h"
 #include "Engine/ECS/Components/TransformComponent.h"
-
 #include "Engine/ECS/Systems/StateMachineSystem.h"
 
-#include <DirectXMath.h>
+namespace
+{
+	// ‘Ì‚ÌŒü‚«‚©‚çŒ©‚½Šp“x·‚©‚çA4•ûŒü‚Ì‚Ç‚ê‚©‚ğŒˆ‚ß‚é
+	PlayerDodgeDirection ClassifyDirection(float diff)
+	{
+		const float quarter = DirectX::XM_PIDIV4; // 45“x
+
+		if (diff > -quarter && diff <= quarter)         return PlayerDodgeDirection::Front;
+		if (diff > quarter && diff <= quarter * 3.0f)   return PlayerDodgeDirection::Right;
+		if (diff > -quarter * 3.0f && diff <= -quarter) return PlayerDodgeDirection::Left;
+		return PlayerDodgeDirection::Back;
+	}
+}
 
 PlayerDodgeSystem::PlayerDodgeSystem()
 {
@@ -16142,97 +16162,71 @@ PlayerDodgeSystem::PlayerDodgeSystem()
 
 void PlayerDodgeSystem::Update(entt::registry& registry, float elapsedTime, const SceneContext& context)
 {
-	auto view = registry.view<GameInputComponent, PlayerDodgeComponent, StateMachineComponent, MovementComponent, TransformComponent>();
+	(void)context;
 
-	view.each(
-		[&](auto entity,
-			GameInputComponent& input,
-			PlayerDodgeComponent& dodge,
-			StateMachineComponent& stateMachine,
-			MovementComponent& movement,
-			TransformComponent& transform)
+	auto view = registry.view<PlayerIntentComponent, PlayerDodgeComponent, StateMachineComponent, PlayerLocomotionComponent, TransformComponent>();
+	view.each([&](PlayerIntentComponent& intent, PlayerDodgeComponent& dodge, const StateMachineComponent& stateMachine,
+		PlayerLocomotionComponent& loco, const TransformComponent& transform)
 		{
-			// Dodge‚Å‚È‚¯‚ê‚ÎAˆÈ~‚Ìˆ—‚Ís‚í‚È‚¢
-			if (!stateMachine.IsIn("Dodge"))
-			{
-				dodge.isDodging = false;
-				dodge.bufferTimer = 0.0f;
-				dodge.isNoneInput = false;
-				dodge.isFrontInput = false;
-				dodge.isBackInput = false;
-				dodge.isLeftInput = false;
-				dodge.isRightInput = false;
-				movement.facingLocked = false;
-				movement.xzControlLocked = false;
+			if (!stateMachine.IsIn("Dodge")) return;
 
-				dodge.dodgeSub = PlayerDodgeSubState::None;
-				return;
+			// “ü‚Á‚½uŠÔF‰ñ”ğ•ûŒü‚ğŒˆ‚ß‚é
+			if (stateMachine.enteredThisFrame)
+			{
+				// ƒXƒeƒBƒbƒN“ü—Í‚ª‚ ‚ê‚Î‚»‚Ì•ûŒüA–³‚¯‚ê‚Î‘Ì‚ÌŒã‚ë
+				float dodgeYaw = intent.wantsMove
+					? PlayerMovementUtils::CalcFacingYaw(intent.moveDir.x, intent.moveDir.z)
+					: transform.rotation.y + DirectX::XM_PI;
+				dodge.dodgeDir = PlayerMovementUtils::YawToForward(dodgeYaw);
+
+				// ƒNƒŠƒbƒv‚Ì‘I‘ğ—pF4•ûŒü‚Í“ü‚Á‚½uŠÔ‚¾‚¯Œˆ‚ßA‰ñ”ğ’†‚Í•Ï‚¦‚È‚¢
+				dodge.direction = ClassifyDirection(PlayerMovementUtils::AngleDiff(transform.rotation.y, dodgeYaw));
+				dodge.isFront = (dodge.direction == PlayerDodgeDirection::Front);
+				dodge.isBack = (dodge.direction == PlayerDodgeDirection::Back);
+				dodge.isLeft = (dodge.direction == PlayerDodgeDirection::Left);
+				dodge.isRight = (dodge.direction == PlayerDodgeDirection::Right);
+
+				dodge.elapsed = 0.0f;
+				dodge.finished = false;
+
+				// “ü‚Á‚½ƒXƒe[ƒg‚ª“ü—Í‚ğÁ”ï‚·‚é
+				intent.dodge.Consume();
+			}
+			// ‰ñ”ğ’†FƒXƒeƒBƒbƒN“ü—Í‚ª‚ ‚ê‚ÎA‰ñ”ğ•ûŒü‚ğ“ü—Í‚Ì‚Ù‚¤‚Ö‹È‚°‚é
+			else if (intent.wantsMove)
+			{
+				float dodgeYaw = PlayerMovementUtils::CalcFacingYaw(dodge.dodgeDir.x, dodge.dodgeDir.z);
+				float inputYaw = PlayerMovementUtils::CalcFacingYaw(intent.moveDir.x, intent.moveDir.z);
+				dodgeYaw = PlayerMovementUtils::RotateTowards(dodgeYaw, inputYaw, dodge.turnSpeed, elapsedTime);
+				dodge.dodgeDir = PlayerMovementUtils::YawToForward(dodgeYaw);
 			}
 
-			// ƒJƒƒ‰‚Ì‘OŒã¶‰EƒxƒNƒgƒ‹æ“¾
-			DirectX::XMFLOAT3 front = context.camera->GetFront();
-			DirectX::XMFLOAT3 right = context.camera->GetRight();
+			// –ˆƒtƒŒ[ƒ€FŠÔ‚ği‚ßA‘Ì‚©‚çŒ©‚½‰ñ”ğ•ûŒü‚ğ‹‚ß‚é(«—ˆ‚ÌƒuƒŒƒ“ƒh‚Ì”ä—¦)
+			dodge.elapsed += elapsedTime;
 
-			// Dodge‚É“ü‚Á‚½’¼Œã‚ÍA•ûŒüŒˆ’è‚Ì—P—\ó‘Ô‚É‚·‚é
-			if (dodge.dodgeSub == PlayerDodgeSubState::None)
+			float localDiff = PlayerMovementUtils::AngleDiff(
+				transform.rotation.y,
+				PlayerMovementUtils::CalcFacingYaw(dodge.dodgeDir.x, dodge.dodgeDir.z));
+			dodge.localX = sinf(localDiff);
+			dodge.localZ = cosf(localDiff);
+
+			// I‚í‚è‚Ì”»’èFÅ’áŠÔ‚ğ‰ß‚¬‚ÄR2‚ğ—£‚µ‚½A‚Ü‚½‚ÍÅ‘åŠÔ‚É’B‚µ‚½(ˆê“xI‚í‚Á‚½‚ç–ß‚ç‚È‚¢)
+			if (!dodge.finished)
 			{
-				dodge.dodgeSub = PlayerDodgeSubState::Deciding;
-				dodge.bufferTimer = 0.0f;
+				bool released = !intent.dodge.held && dodge.elapsed >= dodge.minTime;
+				bool timeUp = dodge.elapsed >= dodge.maxTime;
+				dodge.finished = released || timeUp;
 			}
 
-			// •ûŒüŒˆ’è‚Ì—P—\’†
-			if (dodge.dodgeSub == PlayerDodgeSubState::Deciding)
-			{
-				// “ü—Í•ûŒü‚Æ“|‚µ‹ï‡‚ğZo
-				auto dir = PlayerMovementUtils::StickToWorldVelocity(input.moveStick.x, input.moveStick.y, front, right, 1.0f);
+			// –ˆƒtƒŒ[ƒ€FLocomotion ‚Ö‚Ìw¦
+			LocomotionCommand& cmd = loco.command;
+			cmd.mode = LocomotionMode::Directional;
+			cmd.moveDir = dodge.dodgeDir;
+			cmd.targetSpeed = dodge.dodgeSpeed;
+			cmd.accelHalfLife = dodge.accelHalfLife;
 
-				// •ûŒü‚ ‚è‰ñ”ğ
-				if (dir.inputLength > 0.0f)
-				{
-					// “ü—Í•ûŒü‚ÆƒLƒƒƒ‰ƒNƒ^[‚ÌŒü‚«‚Ì·‚ğ‹‚ß‚é
-					float inputYaw = PlayerMovementUtils::CalcFacingYaw(dir.velocity.x, dir.velocity.z);
-					float diff = inputYaw - transform.rotation.y;
-
-					// Šp“x·‚ğ³‹K‰»
-					while (diff > DirectX::XM_PI)  diff -= DirectX::XM_2PI;
-					while (diff < -DirectX::XM_PI) diff += DirectX::XM_2PI;
-
-					const float quarter = DirectX::XM_PIDIV4; // 45“x
-
-					if (diff > -quarter && diff <= quarter)
-						dodge.dodgeSub = PlayerDodgeSubState::Front;
-					else if (diff > quarter && diff <= quarter * 3.0f)
-						dodge.dodgeSub = PlayerDodgeSubState::Right;
-					else if (diff > -quarter * 3.0f && diff <= -quarter)
-						dodge.dodgeSub = PlayerDodgeSubState::Left;
-					else
-						dodge.dodgeSub = PlayerDodgeSubState::Back;
-
-					// Œü‚«‚ÆXZ•ûŒü‚Ì§ŒäŒ ‚ğæ“¾
-					movement.facingLocked = true;
-					movement.xzControlLocked = true;
-				}
-				else
-				{
-					// —P—\ŠÔ‚ÌÁ‰»
-					dodge.bufferTimer += elapsedTime;
-					if (dodge.bufferTimer >= dodge.directionBufferTime)
-					{
-						// ƒXƒeƒBƒbƒN“ü—Í‚ª—ˆ‚È‚©‚Á‚½‚Ì‚ÅA‚»‚Ìê‰ñ”ğ‚ÉŠm’è‚·‚é
-						dodge.dodgeSub = PlayerDodgeSubState::InPlace;
-						movement.facingLocked = true;
-						movement.xzControlLocked = true;
-					}
-				}
-			}
-
-			// ƒtƒ‰ƒOXV
-			dodge.isNoneInput = (dodge.dodgeSub == PlayerDodgeSubState::InPlace);
-			dodge.isFrontInput = (dodge.dodgeSub == PlayerDodgeSubState::Front);
-			dodge.isBackInput = (dodge.dodgeSub == PlayerDodgeSubState::Back);
-			dodge.isLeftInput = (dodge.dodgeSub == PlayerDodgeSubState::Left);
-			dodge.isRightInput = (dodge.dodgeSub == PlayerDodgeSubState::Right);
-			dodge.isDodging = true;
+			// ‘–‚èo‚·‚ÍA”²‚¯‚é‘O‚ÉŒü‚«‚ğ‰ñ”ğ•ûŒü‚Ö‡‚í‚¹‚Ä‚¨‚­(Ÿ‚ÌƒtƒŒ[ƒ€‚Ìæ‚è‚İ‚Å¨‚¢‚ª‘S•”u‘–‚é‘¬‚³v‚É“ü‚é)
+			cmd.faceMoveDir = dodge.finished && intent.wantsMove;
 		});
 } 
  
@@ -16521,6 +16515,22 @@ namespace
 		loco.desiredSpeed = cmd.targetSpeed;
 		loco.facingErrorDeg = DirectX::XMConvertToDegrees(facingError);
 	}
+
+	// Œü‚«‚Æ‚Í•Ê‚Ì•ûŒü‚Éi‚ŞF‘Ì‚ÌŒü‚«‚Í•Ï‚¦‚¸A‘¬“x‚¾‚¯‚ğw¦‚³‚ê‚½•ûŒü‚ÖŠñ‚¹‚é
+	void DriveDirectional(PlayerLocomotionComponent& loco, const LocomotionCommand& cmd,
+		MovementComponent& movement, float elapsedTime)
+	{
+		// ‘¬“xFw¦‚³‚ê‚½•ûŒü ~ ‘¬‚³ ‚Öƒ_ƒ“ƒp[‚Å‹ß‚Ã‚¯‚é(•ûŒü‚ª–³‚¯‚ê‚Î~‚Ü‚é)
+		float targetX = cmd.moveDir.x * cmd.targetSpeed;
+		float targetZ = cmd.moveDir.z * cmd.targetSpeed;
+		movement.velocity.x = PlayerMovementUtils::Damper(movement.velocity.x, targetX, cmd.accelHalfLife, elapsedTime);
+		movement.velocity.z = PlayerMovementUtils::Damper(movement.velocity.z, targetZ, cmd.accelHalfLife, elapsedTime);
+
+		// Šm”F—p
+		loco.currentSpeed = PlanarLength(movement.velocity.x, movement.velocity.z);
+		loco.desiredSpeed = cmd.targetSpeed;
+		loco.facingErrorDeg = 0.0f;
+	}
 }
 
 void PlayerLocomotionSystem::Update(entt::registry& registry, float elapsedTime)
@@ -16534,8 +16544,15 @@ void PlayerLocomotionSystem::Update(entt::registry& registry, float elapsedTime)
 			loco.airTime = movement.isGrounded ? 0.0f : loco.airTime + elapsedTime;
 			loco.isAirborne = (loco.airTime >= loco.fallGraceTime);
 
+			// w¦‚ª‚ ‚ê‚ÎAŒü‚«‚ği‚Ş•ûŒü‚Öˆê‹C‚É‡‚í‚¹‚é
+			// (Ground ‚Ö‚Ìæ‚è‚İ‚æ‚èæ‚És‚¤BŒü‚«‚Æ‘¬“x‚ª‚»‚ë‚Á‚Ä‚¢‚ê‚ÎA¨‚¢‚ª‘S•”u‘–‚é‘¬‚³v‚É“ü‚é)
+			if (cmd.faceMoveDir && HasDirection(cmd.moveDir))
+			{
+				transform.rotation.y = PlayerMovementUtils::CalcFacingYaw(cmd.moveDir.x, cmd.moveDir.z);
+			}
+
 			// ‘¼‚Ìƒ‚[ƒh‚©‚ç Ground ‚ÉØ‚è‘Ö‚í‚Á‚½‚¾‚¯AÀÛ‚Ì‘¬“x‚ğæ‚è‚Ş
-			if (cmd.mode == LocomotionMode::Ground && loco.lastMode != LocomotionMode::Ground)
+			if (cmd.mode == LocomotionMode::Ground && loco.lastMode != LocomotionMode::Ground) 
 			{
 				AbsorbIntoGround(loco, movement, transform);
 			}
@@ -16548,6 +16565,10 @@ void PlayerLocomotionSystem::Update(entt::registry& registry, float elapsedTime)
 
 			case LocomotionMode::Air:
 				DriveAir(loco, cmd, movement, transform, elapsedTime);
+				break;
+
+			case LocomotionMode::Directional:
+				DriveDirectional(loco, cmd, movement, elapsedTime);
 				break;
 
 			case LocomotionMode::External:
@@ -17254,6 +17275,7 @@ private:
 	{
 		float time = 0.0f;            // ‹L˜^‚ğn‚ß‚Ä‚©‚ç‚ÌŠÔ
 		float horizontalSpeed = 0.0f; // …•½‚Ì‘¬‚³
+		float desiredSpeed = 0.0f;    // –Ú•W‚Ì‘¬‚³
 		float verticalSpeed = 0.0f;   // c‚Ì‘¬‚³
 		int   stateIndex = 0;         // ƒXƒe[ƒg‚Ì”Ô†
 	};
@@ -17403,14 +17425,17 @@ Path: C:\Users\offri\Desktop\New-Library\Source\Code\GameTool\MovementMonitorWin
 #include "Engine/ECS/Components/MovementComponent.h"
 #include "Engine/ECS/Components/StateMachineComponent.h"
 
+#include "Game/ECS/Components/PlayerLocomotionComponent.h"
+
 namespace
 {
-	constexpr ImU32 kBackColor = IM_COL32(25, 25, 30, 255);
-	constexpr ImU32 kGridColor = IM_COL32(60, 60, 70, 255);
-	constexpr ImU32 kZeroColor = IM_COL32(130, 130, 140, 255);
-	constexpr ImU32 kLabelColor = IM_COL32(150, 150, 160, 255);
+	constexpr ImU32 kBackColor =       IM_COL32(25, 25, 30, 255);
+	constexpr ImU32 kGridColor =       IM_COL32(60, 60, 70, 255);
+	constexpr ImU32 kZeroColor =       IM_COL32(130, 130, 140, 255);
+	constexpr ImU32 kLabelColor =      IM_COL32(150, 150, 160, 255);
 	constexpr ImU32 kHorizontalColor = IM_COL32(66, 150, 250, 255);  // …•½‚Ì‘¬‚³(Â)
-	constexpr ImU32 kVerticalColor = IM_COL32(120, 220, 140, 255); // c‚Ì‘¬‚³(—Î)
+	constexpr ImU32 kDesiredColor =    IM_COL32(250, 200, 60, 220);  // –Ú•W‚Ì‘¬‚³(‰©)
+	constexpr ImU32 kVerticalColor =   IM_COL32(120, 220, 140, 255); // c‚Ì‘¬‚³(—Î)
 
 	constexpr float kBandHeight = 16.0f; // ƒXƒe[ƒg‚Ì‘Ñ‚Ì‚‚³
 
@@ -17427,7 +17452,7 @@ namespace
 	constexpr int kStateColorCount = sizeof(kStateColors) / sizeof(kStateColors[0]);
 }
 
-// ’l‚ğ1‚Â‹L˜^‚·‚é(ƒQ[ƒ€‚ÌXV‚²‚Æ‚É1‰ñ)
+// ’l‚ğ1‚Â‹L˜^‚·‚é
 void MovementMonitorWindow::Record(entt::registry& registry, float elapsedTime)
 {
 	if (paused) return;
@@ -17439,12 +17464,14 @@ void MovementMonitorWindow::Record(entt::registry& registry, float elapsedTime)
 	const auto* movement = registry.try_get<MovementComponent>(player);
 	if (!movement) return;
 	const auto* stateMachine = registry.try_get<StateMachineComponent>(player);
+	const auto* locomotion = registry.try_get<PlayerLocomotionComponent>(player);
 
 	totalTime += elapsedTime;
 
 	Sample s;
 	s.time = totalTime;
 	s.horizontalSpeed = sqrtf(movement->velocity.x * movement->velocity.x + movement->velocity.z * movement->velocity.z);
+	s.desiredSpeed = locomotion ? locomotion->desiredSpeed : 0.0f;
 	s.verticalSpeed = movement->velocity.y;
 	s.stateIndex = FindOrAddState(stateMachine ? stateMachine->currentStateName : "(no state)");
 	samples.push_back(s);
@@ -17461,7 +17488,7 @@ void MovementMonitorWindow::Draw()
 {
 	if (!isOpen) return;
 
-	if (!ImGui::Begin("Locomotion Monitor", &isOpen))
+	if (!ImGui::Begin("Movement Monitor", &isOpen))
 	{
 		ImGui::End();
 		return;
@@ -17490,8 +17517,8 @@ void MovementMonitorWindow::Draw()
 	ImGui::TextUnformatted("Horizontal (m/s)");
 	const Series horizontal[] =
 	{
-		{ &Sample::desiredSpeed,    kDesiredColor, 1.5f },
-		{ &Sample::horizontalSpeed, kActualColor,  2.0f },
+		{ &Sample::desiredSpeed,    kDesiredColor,    1.5f },
+		{ &Sample::horizontalSpeed, kHorizontalColor, 2.0f },
 	};
 	DrawGraph(180.0f, 0.0f, maxHorizontal * 1.1f, 1.0f, horizontal, 2);
 
@@ -17505,7 +17532,7 @@ void MovementMonitorWindow::Draw()
 	ImGui::End();
 }
 
-// ƒOƒ‰ƒt‚ğ1‚Â•`‚­(‰º‚ÉƒXƒe[ƒg‚Ì‘Ñ‚ª•t‚­)
+// ƒOƒ‰ƒt‚ğ1‚Â•`‚­
 void MovementMonitorWindow::DrawGraph(float height, float minValue, float maxValue, float gridStep, const Series* series, int seriesCount)
 {
 	ImDrawList* dl = ImGui::GetWindowDrawList();
@@ -17533,7 +17560,7 @@ void MovementMonitorWindow::DrawGraph(float height, float minValue, float maxVal
 	// ”wŒi
 	dl->AddRectFilled(plotMin, plotMax, kBackColor);
 
-	// ‰¡‚Ì–Ú·‚è(’l)
+	// ‰¡‚Ì–Ú·‚è
 	for (float v = ceilf(minValue / gridStep) * gridStep; v <= maxValue; v += gridStep)
 	{
 		float y = ToY(v);
@@ -17545,7 +17572,7 @@ void MovementMonitorWindow::DrawGraph(float height, float minValue, float maxVal
 		dl->AddText(ImVec2(plotMin.x + 2.0f, y - 14.0f), kLabelColor, label);
 	}
 
-	// c‚Ì–Ú·‚è(1•b‚²‚Æ)
+	// c‚Ì–Ú·‚è
 	for (float t = ceilf(startTime); t <= endTime; t += 1.0f)
 	{
 		float x = ToX(t);
@@ -17566,7 +17593,7 @@ void MovementMonitorWindow::DrawGraph(float height, float minValue, float maxVal
 		}
 	}
 
-	// ƒXƒe[ƒg‚Ì‘Ñ(“¯‚¶ƒXƒe[ƒg‚ª‘±‚­‹æŠÔ‚²‚Æ‚ÉA‚Ü‚Æ‚ß‚Ä•`‚­)
+	// ƒXƒe[ƒg‚Ì‘Ñ
 	size_t runStart = 0;
 	for (size_t i = 1; i <= samples.size(); ++i)
 	{
@@ -17598,11 +17625,11 @@ void MovementMonitorWindow::DrawGraph(float height, float minValue, float maxVal
 
 	dl->PopClipRect();
 
-	// •`‚¢‚½•ª‚ÌêŠ‚ğŠm•Û‚·‚é(Ÿ‚Ì ImGui ‚Ì•”•i‚ªd‚È‚ç‚È‚¢‚æ‚¤‚É)
+	// •`‚¢‚½•ª‚ÌêŠ‚ğŠm•Û‚·‚é
 	ImGui::Dummy(ImVec2(width, height));
 }
 
-// ƒXƒe[ƒg–¼‚ğ”Ô†‚É•Ï‚¦‚é(‰‚ß‚ÄŒ©‚é–¼‘O‚È‚ç’Ç‰Á‚·‚é)
+// ƒXƒe[ƒg–¼‚ğ”Ô†‚É•Ï‚¦‚é
 int MovementMonitorWindow::FindOrAddState(const std::string& name)
 {
 	for (int i = 0; i < (int)stateNames.size(); ++i)
@@ -19483,7 +19510,6 @@ void InspectorWindow::DrawComponents(entt::registry& registry, EditorContext& co
         ImGui::PushID(name.c_str());
 
         // íœƒ{ƒ^ƒ“
-        ImGui::PushID(name.c_str());
         if (ImGui::Button("x"))
         {
             info->remove(registry, e);
@@ -19492,7 +19518,6 @@ void InspectorWindow::DrawComponents(entt::registry& registry, EditorContext& co
             break;
         }
         ImGui::SameLine();
-        ImGui::PopID();
 
 
         // ƒRƒ“ƒ|[ƒlƒ“ƒg‚ÌImGui‚ğ•`‰æ

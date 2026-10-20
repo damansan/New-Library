@@ -1,15 +1,28 @@
 #include "PlayerDodgeSystem.h"
-#include "Game/ECS/Components/GameInputComponent.h"
+#include <cmath>
+
+#include "Game/ECS/Components/PlayerIntentComponent.h"
 #include "Game/ECS/Components/PlayerDodgeComponent.h"
+#include "Game/ECS/Components/PlayerLocomotionComponent.h"
 #include "Game/ECS/Systems/PlayerMovementUtils.h"
 
 #include "Engine/ECS/Components/StateMachineComponent.h"
-#include "Engine/ECS/Components/MovementComponent.h"
 #include "Engine/ECS/Components/TransformComponent.h"
-
 #include "Engine/ECS/Systems/StateMachineSystem.h"
 
-#include <DirectXMath.h>
+namespace
+{
+	// 体の向きから見た角度差から、4方向のどれかを決める
+	PlayerDodgeDirection ClassifyDirection(float diff)
+	{
+		const float quarter = DirectX::XM_PIDIV4; // 45度
+
+		if (diff > -quarter && diff <= quarter)         return PlayerDodgeDirection::Front;
+		if (diff > quarter && diff <= quarter * 3.0f)   return PlayerDodgeDirection::Right;
+		if (diff > -quarter * 3.0f && diff <= -quarter) return PlayerDodgeDirection::Left;
+		return PlayerDodgeDirection::Back;
+	}
+}
 
 PlayerDodgeSystem::PlayerDodgeSystem()
 {
@@ -18,96 +31,70 @@ PlayerDodgeSystem::PlayerDodgeSystem()
 
 void PlayerDodgeSystem::Update(entt::registry& registry, float elapsedTime, const SceneContext& context)
 {
-	auto view = registry.view<GameInputComponent, PlayerDodgeComponent, StateMachineComponent, MovementComponent, TransformComponent>();
+	(void)context;
 
-	view.each(
-		[&](auto entity,
-			GameInputComponent& input,
-			PlayerDodgeComponent& dodge,
-			StateMachineComponent& stateMachine,
-			MovementComponent& movement,
-			TransformComponent& transform)
+	auto view = registry.view<PlayerIntentComponent, PlayerDodgeComponent, StateMachineComponent, PlayerLocomotionComponent, TransformComponent>();
+	view.each([&](PlayerIntentComponent& intent, PlayerDodgeComponent& dodge, const StateMachineComponent& stateMachine,
+		PlayerLocomotionComponent& loco, const TransformComponent& transform)
 		{
-			// Dodgeでなければ、以降の処理は行わない
-			if (!stateMachine.IsIn("Dodge"))
-			{
-				dodge.isDodging = false;
-				dodge.bufferTimer = 0.0f;
-				dodge.isNoneInput = false;
-				dodge.isFrontInput = false;
-				dodge.isBackInput = false;
-				dodge.isLeftInput = false;
-				dodge.isRightInput = false;
-				movement.facingLocked = false;
-				movement.xzControlLocked = false;
+			if (!stateMachine.IsIn("Dodge")) return;
 
-				dodge.dodgeSub = PlayerDodgeSubState::None;
-				return;
+			// 入った瞬間：回避方向を決める
+			if (stateMachine.enteredThisFrame)
+			{
+				// スティック入力があればその方向、無ければ体の後ろ
+				float dodgeYaw = intent.wantsMove
+					? PlayerMovementUtils::CalcFacingYaw(intent.moveDir.x, intent.moveDir.z)
+					: transform.rotation.y + DirectX::XM_PI;
+				dodge.dodgeDir = PlayerMovementUtils::YawToForward(dodgeYaw);
+
+				// クリップの選択用：4方向は入った瞬間だけ決め、回避中は変えない
+				dodge.direction = ClassifyDirection(PlayerMovementUtils::AngleDiff(transform.rotation.y, dodgeYaw));
+				dodge.isFront = (dodge.direction == PlayerDodgeDirection::Front);
+				dodge.isBack = (dodge.direction == PlayerDodgeDirection::Back);
+				dodge.isLeft = (dodge.direction == PlayerDodgeDirection::Left);
+				dodge.isRight = (dodge.direction == PlayerDodgeDirection::Right);
+
+				dodge.elapsed = 0.0f;
+				dodge.finished = false;
+
+				// 入ったステートが入力を消費する
+				intent.dodge.Consume();
+			}
+			// 回避中：スティック入力があれば、回避方向を入力のほうへ曲げる
+			else if (intent.wantsMove)
+			{
+				float dodgeYaw = PlayerMovementUtils::CalcFacingYaw(dodge.dodgeDir.x, dodge.dodgeDir.z);
+				float inputYaw = PlayerMovementUtils::CalcFacingYaw(intent.moveDir.x, intent.moveDir.z);
+				dodgeYaw = PlayerMovementUtils::RotateTowards(dodgeYaw, inputYaw, dodge.turnSpeed, elapsedTime);
+				dodge.dodgeDir = PlayerMovementUtils::YawToForward(dodgeYaw);
 			}
 
-			// カメラの前後左右ベクトル取得
-			DirectX::XMFLOAT3 front = context.camera->GetFront();
-			DirectX::XMFLOAT3 right = context.camera->GetRight();
+			// 毎フレーム：時間を進め、体から見た回避方向を求める(将来のブレンドの比率)
+			dodge.elapsed += elapsedTime;
 
-			// Dodgeに入った直後は、方向決定の猶予状態にする
-			if (dodge.dodgeSub == PlayerDodgeSubState::None)
+			float localDiff = PlayerMovementUtils::AngleDiff(
+				transform.rotation.y,
+				PlayerMovementUtils::CalcFacingYaw(dodge.dodgeDir.x, dodge.dodgeDir.z));
+			dodge.localX = sinf(localDiff);
+			dodge.localZ = cosf(localDiff);
+
+			// 終わりの判定：最低時間を過ぎてR2を離した、または最大時間に達した(一度終わったら戻らない)
+			if (!dodge.finished)
 			{
-				dodge.dodgeSub = PlayerDodgeSubState::Deciding;
-				dodge.bufferTimer = 0.0f;
+				bool released = !intent.dodge.held && dodge.elapsed >= dodge.minTime;
+				bool timeUp = dodge.elapsed >= dodge.maxTime;
+				dodge.finished = released || timeUp;
 			}
 
-			// 方向決定の猶予中
-			if (dodge.dodgeSub == PlayerDodgeSubState::Deciding)
-			{
-				// 入力方向と倒し具合を算出
-				auto dir = PlayerMovementUtils::StickToWorldVelocity(input.moveStick.x, input.moveStick.y, front, right, 1.0f);
+			// 毎フレーム：Locomotion への指示
+			LocomotionCommand& cmd = loco.command;
+			cmd.mode = LocomotionMode::Directional;
+			cmd.moveDir = dodge.dodgeDir;
+			cmd.targetSpeed = dodge.dodgeSpeed;
+			cmd.accelHalfLife = dodge.accelHalfLife;
 
-				// 方向あり回避
-				if (dir.inputLength > 0.0f)
-				{
-					// 入力方向とキャラクターの向きの差を求める
-					float inputYaw = PlayerMovementUtils::CalcFacingYaw(dir.velocity.x, dir.velocity.z);
-					float diff = inputYaw - transform.rotation.y;
-
-					// 角度差を正規化
-					while (diff > DirectX::XM_PI)  diff -= DirectX::XM_2PI;
-					while (diff < -DirectX::XM_PI) diff += DirectX::XM_2PI;
-
-					const float quarter = DirectX::XM_PIDIV4; // 45度
-
-					if (diff > -quarter && diff <= quarter)
-						dodge.dodgeSub = PlayerDodgeSubState::Front;
-					else if (diff > quarter && diff <= quarter * 3.0f)
-						dodge.dodgeSub = PlayerDodgeSubState::Right;
-					else if (diff > -quarter * 3.0f && diff <= -quarter)
-						dodge.dodgeSub = PlayerDodgeSubState::Left;
-					else
-						dodge.dodgeSub = PlayerDodgeSubState::Back;
-
-					// 向きとXZ方向の制御権を取得
-					movement.facingLocked = true;
-					movement.xzControlLocked = true;
-				}
-				else
-				{
-					// 猶予時間の消化
-					dodge.bufferTimer += elapsedTime;
-					if (dodge.bufferTimer >= dodge.directionBufferTime)
-					{
-						// スティック入力が来なかったので、その場回避に確定する
-						dodge.dodgeSub = PlayerDodgeSubState::InPlace;
-						movement.facingLocked = true;
-						movement.xzControlLocked = true;
-					}
-				}
-			}
-
-			// フラグ更新
-			dodge.isNoneInput = (dodge.dodgeSub == PlayerDodgeSubState::InPlace);
-			dodge.isFrontInput = (dodge.dodgeSub == PlayerDodgeSubState::Front);
-			dodge.isBackInput = (dodge.dodgeSub == PlayerDodgeSubState::Back);
-			dodge.isLeftInput = (dodge.dodgeSub == PlayerDodgeSubState::Left);
-			dodge.isRightInput = (dodge.dodgeSub == PlayerDodgeSubState::Right);
-			dodge.isDodging = true;
+			// 走り出す時は、抜ける前に向きを回避方向へ合わせておく(次のフレームの取り込みで勢いが全部「走る速さ」に入る)
+			cmd.faceMoveDir = dodge.finished && intent.wantsMove;
 		});
 }

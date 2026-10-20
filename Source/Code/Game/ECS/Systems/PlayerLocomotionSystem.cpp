@@ -103,6 +103,22 @@ namespace
 		loco.desiredSpeed = cmd.targetSpeed;
 		loco.facingErrorDeg = DirectX::XMConvertToDegrees(facingError);
 	}
+
+	// 向きとは別の方向に進む：体の向きは変えず、速度だけを指示された方向へ寄せる
+	void DriveDirectional(PlayerLocomotionComponent& loco, const LocomotionCommand& cmd,
+		MovementComponent& movement, float elapsedTime)
+	{
+		// 速度：指示された方向 × 速さ へダンパーで近づける(方向が無ければ止まる)
+		float targetX = cmd.moveDir.x * cmd.targetSpeed;
+		float targetZ = cmd.moveDir.z * cmd.targetSpeed;
+		movement.velocity.x = PlayerMovementUtils::Damper(movement.velocity.x, targetX, cmd.accelHalfLife, elapsedTime);
+		movement.velocity.z = PlayerMovementUtils::Damper(movement.velocity.z, targetZ, cmd.accelHalfLife, elapsedTime);
+
+		// 確認用
+		loco.currentSpeed = PlanarLength(movement.velocity.x, movement.velocity.z);
+		loco.desiredSpeed = cmd.targetSpeed;
+		loco.facingErrorDeg = 0.0f;
+	}
 }
 
 void PlayerLocomotionSystem::Update(entt::registry& registry, float elapsedTime)
@@ -116,8 +132,15 @@ void PlayerLocomotionSystem::Update(entt::registry& registry, float elapsedTime)
 			loco.airTime = movement.isGrounded ? 0.0f : loco.airTime + elapsedTime;
 			loco.isAirborne = (loco.airTime >= loco.fallGraceTime);
 
+			// 指示があれば、向きを進む方向へ一気に合わせる
+			// (Ground への取り込みより先に行う。向きと速度がそろっていれば、勢いが全部「走る速さ」に入る)
+			if (cmd.faceMoveDir && HasDirection(cmd.moveDir))
+			{
+				transform.rotation.y = PlayerMovementUtils::CalcFacingYaw(cmd.moveDir.x, cmd.moveDir.z);
+			}
+
 			// 他のモードから Ground に切り替わった時だけ、実際の速度を取り込む
-			if (cmd.mode == LocomotionMode::Ground && loco.lastMode != LocomotionMode::Ground)
+			if (cmd.mode == LocomotionMode::Ground && loco.lastMode != LocomotionMode::Ground) 
 			{
 				AbsorbIntoGround(loco, movement, transform);
 			}
@@ -130,6 +153,10 @@ void PlayerLocomotionSystem::Update(entt::registry& registry, float elapsedTime)
 
 			case LocomotionMode::Air:
 				DriveAir(loco, cmd, movement, transform, elapsedTime);
+				break;
+
+			case LocomotionMode::Directional:
+				DriveDirectional(loco, cmd, movement, elapsedTime);
 				break;
 
 			case LocomotionMode::External:

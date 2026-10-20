@@ -240,11 +240,11 @@ void SceneGame::UpdateGameplay(float elapsedTime, const SceneContext& context)
 		ZoneScopedN("PlayerMoveSystem");
 		playerMoveSystem.Update(registry, elapsedTime, context);
 	}
-	//// プレイヤー回避処理
-	//{
-	//	ZoneScopedN("PlayerDodgeSystem");
-	//	playerDodgeSystem.Update(registry, elapsedTime, context);
-	//}
+	// プレイヤー回避処理
+	{
+		ZoneScopedN("PlayerDodgeSystem");
+		playerDodgeSystem.Update(registry, elapsedTime, context);
+	}
 	//// プレイヤースプリント処理
 	//{
 	//	ZoneScopedN("PlayerSprintSystem");

@@ -12,7 +12,7 @@
 
 #include "Game/ECS/Systems/PlayerIdleSystem.h"
 #include "Game/ECS/Systems/PlayerMoveSystem.h"
-//#include "Game/ECS/Systems/PlayerDodgeSystem.h"
+#include "Game/ECS/Systems/PlayerDodgeSystem.h"
 //#include "Game/ECS/Systems/PlayerSprintSystem.h"
 #include "Game/ECS/Systems/PlayerJumpSystem.h"
 
@@ -60,7 +60,7 @@ private:
 
 	PlayerIdleSystem   playerIdleSystem;
 	PlayerMoveSystem   playerMoveSystem;
-	//PlayerDodgeSystem  playerDodgeSystem;
+	PlayerDodgeSystem  playerDodgeSystem;
 	//PlayerSprintSystem playerSprintSystem;
 	PlayerJumpSystem   playerJumpSystem;
 

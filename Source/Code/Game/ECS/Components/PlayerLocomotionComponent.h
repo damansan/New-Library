@@ -5,9 +5,10 @@
 // 水平移動をどう計算するか
 enum class LocomotionMode
 {
-	Ground,   // 地上：体の向きに沿って進む
-	Air,      // 空中：速度のベクトルを保ち入力方向に寄せる
-	External, // 外部
+	Ground,      // 地上：体の向きに沿って進む
+	Air,         // 空中：速度のベクトルを保ち入力方向に寄せる
+	Directional, // 向きとは別に進む
+	External,    // 外部
 };
 
 // ステートから Locomotion への指示
@@ -20,6 +21,7 @@ struct LocomotionCommand
 	float  decelHalfLife = 0.06f; // 速さを下げる時の半減期
 	float  turnSpeed = 0.0f;      // 旋回速度
 	float  carryHalfLife = 0.2f;  // 持ち越しの速度が減る半減期
+	bool   faceMoveDir = false;   // 体の向きを 向かいたい方向 に一気に向ける
 };
 
 // 水平移動の運転手と、体の状態
