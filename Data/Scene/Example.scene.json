@@ -19,20 +19,6 @@
         },
         {
             "name": "Player",
-            "overrides": {
-                "TransformComponent": {
-                    "position": [
-                        0.0,
-                        -0.16267479956150055,
-                        0.0
-                    ],
-                    "rotation": [
-                        0.0,
-                        0.0,
-                        0.0
-                    ]
-                }
-            },
             "prefab": "Data/Prefab/Player/Player.prefab.json"
         },
         {

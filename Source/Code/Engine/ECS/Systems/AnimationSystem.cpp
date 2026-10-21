@@ -23,210 +23,82 @@ void AnimationSystem::Update(
 			if (!skinned.model) return;
 			if (!animator.isPlaying) return;
 
+			// 遷移した直後なら、前のフレームの最終ポーズを「混ぜる元」として保存する
+			if (animator.blendSnapshotPending)
+			{
+				animator.blendSnapshotPending = false;
+
+				if (skinned.localPositions.empty())
+				{
+					// まだ一度もポーズを作っていないので、混ぜる元が無い
+					animator.isBlending = false;
+				}
+				else
+				{
+					animator.blendFromPositions = skinned.localPositions;
+					animator.blendFromRotations = skinned.localRotations;
+					animator.blendFromScales = skinned.localScales;
+				}
+			}
+
 			const auto& animations = skinned.model->GetAnimations();
 			if (animations.empty()) return;
 
-			// 新クリップの時間を進める
-			int animIndex = -1;
-			for (int i = 0; i < (int)animations.size(); i++)
-			{
-				if (animations[i].name == animator.currentAnimation) { animIndex = i; break; }
-			}
+			// 再生するクリップを決める
+			int animIndex = FindAnimationIndex(animations, animator.currentAnimation);
 			if (animIndex < 0)
 			{
 				animIndex = 0;
 				animator.currentAnimation = animations[0].name;
 			}
-
 			const auto& animation = animations[animIndex];
-			
-			// トリミングを秒数に変換
-			if (!animator.trimResolved)
-			{
-				if (animator.trimEnd >= 0.0f)
-				{
-					animator.trimStart *= animation.secondsLength;
-					animator.trimEnd *= animation.secondsLength;
-					animator.animationTime = animator.trimStart;
-				}
-				animator.trimResolved = true;
-			}
 
-			const float effectiveEnd = (animator.trimEnd >= 0.0f) ? animator.trimEnd : animation.secondsLength;
-			const float effectiveStart = (animator.trimEnd >= 0.0f) ? animator.trimStart : 0.0f;
-			
-			const float oldTime = animator.animationTime;
+			// 時間を進める
+			const ClipTimeStep step = AdvanceClipTime(animator, animation, elapsedTime);
 
-			animator.animationTime += elapsedTime * animator.playSpeed * animator.speedCurveMultiplier;
-			// ループ処理
-			if (animator.loop)
-			{
-				if (animator.animationTime > effectiveEnd)
-				{
-					animator.animationTime = effectiveStart + (animator.animationTime - effectiveEnd);
-					animator.isEnd = false;
-				}
-			}
-			else
-			{
-				if (animator.animationTime >= effectiveEnd)
-				{
-					animator.animationTime = effectiveEnd;
-					animator.isPlaying = false;
-					animator.isEnd = true;
-				}
-			}
+			// ルートモーションの移動量
+			const int rootMotionNodeIndex = animator.rootMotionNodeName.empty()
+				? -1
+				: FindNodeIndex(*skinned.model, animator.rootMotionNodeName);
 
-			// 新クリップのルートモーション量とポーズを計算
-			animator.rootMotionDelta = { 0.0f, 0.0f, 0.0f };
-			int rootMotionNodeIndex = -1;
-			if (!animator.rootMotionNodeName.empty())
-			{
-				rootMotionNodeIndex = FindNodeIndex(*skinned.model, animator.rootMotionNodeName);
-				if (rootMotionNodeIndex >= 0)
-				{
-					animator.rootMotionDelta = CalcRootMotionDelta(
-						*skinned.model, animation, rootMotionNodeIndex, oldTime, animator.animationTime,
-						effectiveStart, effectiveEnd);
-				}
-			}
+			animator.rootMotionDelta = (rootMotionNodeIndex >= 0)
+				? CalcRootMotionDelta(*skinned.model, animation, rootMotionNodeIndex,
+					step.oldTime, step.newTime, step.rangeStart, step.rangeEnd)
+				: DirectX::XMFLOAT3{ 0.0f, 0.0f, 0.0f };
 
-			// ボーン行列を計算
+			// ポーズを作る
 			CalcBoneTransforms(
 				*skinned.model, animation, animator.animationTime,
 				skinned.localPositions, skinned.localRotations, skinned.localScales,
 				rootMotionNodeIndex);
 
-			// 新クリップ由来のワールド速度
+			// ルートモーション由来の速度
 			auto* transform = registry.try_get<TransformComponent>(entity);
 			auto* movement = registry.try_get<MovementComponent>(entity);
 
-			DirectX::XMFLOAT3 newVelocity = { 0.0f, 0.0f, 0.0f };
-			bool newHasVelocity = false;
-
+			RootMotionVelocity velocity;
 			if (animator.useRootMotion && rootMotionNodeIndex >= 0 && elapsedTime > 0.0f && transform && movement)
 			{
-				DirectX::XMMATRIX rotationMatrix = DirectX::XMMatrixRotationRollPitchYaw(
-					transform->rotation.x, transform->rotation.y, transform->rotation.z);
-				DirectX::XMVECTOR localDelta = DirectX::XMLoadFloat3(&animator.rootMotionDelta);
-				DirectX::XMVECTOR worldDelta = DirectX::XMVector3TransformNormal(localDelta, rotationMatrix);
-				DirectX::XMFLOAT3 worldDeltaF;
-				DirectX::XMStoreFloat3(&worldDeltaF, worldDelta);
-
-				newVelocity.x = worldDeltaF.x / elapsedTime;
-				newVelocity.z = worldDeltaF.z / elapsedTime;
-				if (animator.useRootMotionY)
-				{
-					newVelocity.y = worldDeltaF.y / elapsedTime;
-				}
-				newHasVelocity = true;
+				velocity.value = ToWorldVelocity(animator.rootMotionDelta, *transform, elapsedTime, animator.useRootMotionY);
+				velocity.valid = true;
+				velocity.writeY = animator.useRootMotionY;
 			}
 
-			// ブレンド中なら旧クリップも計算して混ぜる
+			// クロスフェード
 			if (animator.isBlending)
 			{
-				int oldAnimIndex = -1;
-				for (int i = 0; i < (int)animations.size(); i++)
-				{
-					if (animations[i].name == animator.blendAnimation) { oldAnimIndex = i; break; }
-				}
-
-				if (oldAnimIndex >= 0)
-				{
-					const auto& oldAnimation = animations[oldAnimIndex];
-					const float oldOldTime = animator.blendAnimationTime;
-
-					// トリミングされていた場合、そこを超えて進めない
-					float oldEffectiveEnd = (animator.blendTrimEnd >= 0.0f) ? animator.blendTrimEnd : oldAnimation.secondsLength;
-
-					animator.blendAnimationTime += elapsedTime * animator.playSpeed;
-					if (animator.blendAnimationTime > oldEffectiveEnd)
-					{
-						animator.blendAnimationTime = oldEffectiveEnd;
-					}
-
-					int oldRootMotionNodeIndex = -1;
-					DirectX::XMFLOAT3 oldRootMotionDelta = { 0.0f, 0.0f, 0.0f };
-					if (!animator.rootMotionNodeName.empty())
-					{
-						oldRootMotionNodeIndex = FindNodeIndex(*skinned.model, animator.rootMotionNodeName);
-						if (oldRootMotionNodeIndex >= 0)
-						{
-							oldRootMotionDelta = CalcRootMotionDelta(
-								*skinned.model, oldAnimation, oldRootMotionNodeIndex, oldOldTime, animator.blendAnimationTime);
-						}
-					}
-
-					std::vector<DirectX::XMFLOAT3> blendPositions;
-					std::vector<DirectX::XMFLOAT4> blendRotations;
-					std::vector<DirectX::XMFLOAT3> blendScales;
-					CalcBoneTransforms(
-						*skinned.model, oldAnimation, animator.blendAnimationTime,
-						blendPositions, blendRotations, blendScales,
-						oldRootMotionNodeIndex);
-
-					// 進捗を進める
-					animator.blendRate += (animator.blendTime > 0.0f) ? (elapsedTime / animator.blendTime) : 1.0f;
-					float rate = std::clamp(animator.blendRate, 0.0f, 1.0f);
-
-					// ボーン行列を混ぜる
-					BlendPoses(
-						blendPositions, blendRotations, blendScales,
-						skinned.localPositions, skinned.localRotations, skinned.localScales,
-						rate,
-						skinned.localPositions, skinned.localRotations, skinned.localScales);
-
-					// ルートモーションブレンド(旧新でルートモーション使用)
-					if (animator.blendUseRootMotion && newHasVelocity && transform && movement)
-					{
-						DirectX::XMMATRIX rotationMatrix = DirectX::XMMatrixRotationRollPitchYaw(
-							transform->rotation.x, transform->rotation.y, transform->rotation.z);
-						DirectX::XMVECTOR localDelta = DirectX::XMLoadFloat3(&oldRootMotionDelta);
-						DirectX::XMVECTOR worldDelta = DirectX::XMVector3TransformNormal(localDelta, rotationMatrix);
-						DirectX::XMFLOAT3 worldDeltaF;
-						DirectX::XMStoreFloat3(&worldDeltaF, worldDelta);
-
-						DirectX::XMFLOAT3 oldVelocity = { worldDeltaF.x / elapsedTime, 0.0f, worldDeltaF.z / elapsedTime };
-						if (animator.blendUseRootMotionY) oldVelocity.y = worldDeltaF.y / elapsedTime;
-
-						movement->velocity.x = oldVelocity.x * (1.0f - rate) + newVelocity.x * rate;
-						movement->velocity.z = oldVelocity.z * (1.0f - rate) + newVelocity.z * rate;
-						if (animator.blendUseRootMotionY || animator.useRootMotionY)
-							movement->velocity.y = oldVelocity.y * (1.0f - rate) + newVelocity.y * rate;
-					}
-					else if (newHasVelocity && movement)
-					{
-						// 片側だけルートモーション使用の場合は
-						// 新クリップの速度を使用
-						movement->velocity.x = newVelocity.x;
-						movement->velocity.z = newVelocity.z;
-						if (animator.useRootMotionY) movement->velocity.y = newVelocity.y;
-					}
-
-					if (animator.blendRate >= 1.0f)
-					{
-						animator.isBlending = false;
-					}
-				}
-				else
-				{
-					// 旧クリップが見つからない場合はブレンドを諦める
-					animator.isBlending = false;
-					if (newHasVelocity && movement)
-					{
-						movement->velocity.x = newVelocity.x;
-						movement->velocity.z = newVelocity.z;
-						if (animator.useRootMotionY) movement->velocity.y = newVelocity.y;
-					}
-				}
+				UpdateCrossfade(animator, skinned, elapsedTime);
 			}
-			else if (newHasVelocity && movement)
+
+			// 速度を書く
+			if (velocity.valid && movement)
 			{
-				movement->velocity.x = newVelocity.x;
-				movement->velocity.z = newVelocity.z;
-				if (animator.useRootMotionY) movement->velocity.y = newVelocity.y;
+				movement->velocity.x = velocity.value.x;
+				movement->velocity.z = velocity.value.z;
+				if (velocity.writeY) movement->velocity.y = velocity.value.y;
 			}
 
+			// スキニング
 			SkeletonUtils::CalcGlobalTransforms(
 				skinned.model->GetNodes(), skinned.localPositions, skinned.localRotations, skinned.localScales,
 				skinned.nodeGlobalTransforms);
@@ -234,8 +106,6 @@ void AnimationSystem::Update(
 			SkeletonUtils::CalcSkinningMatrices(
 				*skinned.model, skinned.nodeGlobalTransforms, skinned.boneTransforms);
 		});
-
-
 }
 
 // 時間を進めずに、指定した時刻のポーズだけ計算する
@@ -252,11 +122,7 @@ void AnimationSystem::EvaluatePose(entt::registry& registry)
 			const auto& animations = skinned.model->GetAnimations();
 			if (animations.empty()) return;
 
-			int animIndex = -1;
-			for (int i = 0; i < (int)animations.size(); i++)
-			{
-				if (animations[i].name == animator.currentAnimation) { animIndex = i; break; }
-			}
+			int animIndex = FindAnimationIndex(animations, animator.currentAnimation);
 			if (animIndex < 0) return;
 
 			const auto& animation = animations[animIndex];
@@ -272,6 +138,101 @@ void AnimationSystem::EvaluatePose(entt::registry& registry)
 			SkeletonUtils::CalcSkinningMatrices(
 				*skinned.model, skinned.nodeGlobalTransforms, skinned.boneTransforms);
 		});
+}
+
+// 名前からクリップの番号を探す
+int AnimationSystem::FindAnimationIndex(const std::vector<Model::Animation>& animations, const std::string& name)
+{
+	for (int i = 0; i < (int)animations.size(); i++)
+	{
+		if (animations[i].name == name) return i;
+	}
+	return -1;
+}
+
+// クリップの時間を1フレーム分進める
+AnimationSystem::ClipTimeStep AnimationSystem::AdvanceClipTime(AnimatorComponent& animator, const Model::Animation& animation, float elapsedTime)
+{
+	// トリミングを秒数に変換
+	if (!animator.trimResolved)
+	{
+		if (animator.trimEnd >= 0.0f)
+		{
+			animator.trimStart *= animation.secondsLength;
+			animator.trimEnd *= animation.secondsLength;
+			animator.animationTime = animator.trimStart;
+		}
+		animator.trimResolved = true;
+	}
+
+	ClipTimeStep step;
+	step.rangeEnd = (animator.trimEnd >= 0.0f) ? animator.trimEnd : animation.secondsLength;
+	step.rangeStart = (animator.trimEnd >= 0.0f) ? animator.trimStart : 0.0f;
+	step.oldTime = animator.animationTime;
+
+	animator.animationTime += elapsedTime * animator.playSpeed * animator.speedCurveMultiplier;
+
+	if (animator.loop)
+	{
+		// ループ：終わりを越えたら、越えた分だけ頭から
+		if (animator.animationTime > step.rangeEnd)
+		{
+			animator.animationTime = step.rangeStart + (animator.animationTime - step.rangeEnd);
+			animator.isEnd = false;
+		}
+	}
+	else
+	{
+		// ループしない：終わりで止める
+		if (animator.animationTime >= step.rangeEnd)
+		{
+			animator.animationTime = step.rangeEnd;
+			animator.isPlaying = false;
+			animator.isEnd = true;
+		}
+	}
+
+	step.newTime = animator.animationTime;
+	return step;
+}
+
+// ルートモーションのローカルの移動量を、ワールドの速度に変換する
+DirectX::XMFLOAT3 AnimationSystem::ToWorldVelocity(const DirectX::XMFLOAT3& localDelta, const TransformComponent& transform, float elapsedTime, bool useY)
+{
+	DirectX::XMMATRIX rotationMatrix = DirectX::XMMatrixRotationRollPitchYaw(
+		transform.rotation.x, transform.rotation.y, transform.rotation.z);
+
+	DirectX::XMFLOAT3 worldDelta;
+	DirectX::XMStoreFloat3(&worldDelta,
+		DirectX::XMVector3TransformNormal(DirectX::XMLoadFloat3(&localDelta), rotationMatrix));
+
+	return {
+		worldDelta.x / elapsedTime,
+		useY ? worldDelta.y / elapsedTime : 0.0f,
+		worldDelta.z / elapsedTime };
+}
+
+// クロスフェード：保存したポーズから、今のポーズへ混ぜる
+void AnimationSystem::UpdateCrossfade(AnimatorComponent& animator, SkinnedMeshComponent& skinned, float elapsedTime)
+{
+	// 進み具合を進める
+	animator.blendRate += (animator.blendTime > 0.0f) ? (elapsedTime / animator.blendTime) : 1.0f;
+
+	// 進み具合は一定の速さで進め、混ぜる割合にだけ緩急を付ける
+	const float linear = std::clamp(animator.blendRate, 0.0f, 1.0f);
+	const float rate = linear * linear * (3.0f - 2.0f * linear);
+	
+	// 混ぜる元 → 今のポーズ
+	BlendPoses(
+		animator.blendFromPositions, animator.blendFromRotations, animator.blendFromScales,
+		skinned.localPositions, skinned.localRotations, skinned.localScales,
+		rate,
+		skinned.localPositions, skinned.localRotations, skinned.localScales);
+
+	if (animator.blendRate >= 1.0f)
+	{
+		animator.isBlending = false;
+	}
 }
 
 // キーフレーム補間（位置）

@@ -23,20 +23,31 @@
         "type": "Character"
     },
     "PlayerDodgeComponent": {
-        "directionBufferTime": 0.11999999731779099
+        "accelHalfLife": 0.019999999552965164,
+        "dodgeSpeed": 10.0,
+        "maxTime": 0.6000000238418579,
+        "minTime": 0.4000000059604645,
+        "turnSpeed": 10.0
     },
     "PlayerIdleComponent": {
         "stopHalfLife": 0.05999999865889549
     },
     "PlayerIntentComponent": {
+        "dodgeBufferTime": 0.15000000596046448,
+        "jumpBufferTime": 0.15000000596046448,
         "moveGraceTime": 0.10000000149011612,
         "runEnterThreshold": 0.8999999761581421,
         "runExitThreshold": 0.699999988079071
     },
     "PlayerJumpComponent": {
-        "jumpPower": 8.0
+        "airControlHalfLife": 0.5,
+        "airSpeed": 4.199999809265137,
+        "airTurnSpeed": 5.0,
+        "jumpSpeed": 8.0
     },
-    "PlayerLocomotionComponent": {},
+    "PlayerLocomotionComponent": {
+        "fallGraceTime": 0.10000000149011612
+    },
     "PlayerMoveComponent": {
         "accelHalfLife": 0.05000000074505806,
         "decelHalfLife": 0.07999999821186066,
@@ -56,13 +67,13 @@
     },
     "TransformComponent": {
         "position": [
-            -9.095367431640625,
-            -0.17514830827713013,
-            74.4071044921875
+            0.0,
+            -0.16267479956150055,
+            0.0
         ],
         "rotation": [
             0.0,
-            2.843014717102051,
+            0.0,
             0.0
         ],
         "scale": [

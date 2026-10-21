@@ -34,12 +34,14 @@ void PlayerDodgeSystem::Update(entt::registry& registry, float elapsedTime, cons
 	(void)context;
 
 	auto view = registry.view<PlayerIntentComponent, PlayerDodgeComponent, StateMachineComponent, PlayerLocomotionComponent, TransformComponent>();
+	
 	view.each([&](PlayerIntentComponent& intent, PlayerDodgeComponent& dodge, const StateMachineComponent& stateMachine,
 		PlayerLocomotionComponent& loco, const TransformComponent& transform)
 		{
+
 			if (!stateMachine.IsIn("Dodge")) return;
 
-			// 入った瞬間：回避方向を決める
+			// 入った瞬間 回避方向を決める
 			if (stateMachine.enteredThisFrame)
 			{
 				// スティック入力があればその方向、無ければ体の後ろ
@@ -61,7 +63,7 @@ void PlayerDodgeSystem::Update(entt::registry& registry, float elapsedTime, cons
 				// 入ったステートが入力を消費する
 				intent.dodge.Consume();
 			}
-			// 回避中：スティック入力があれば、回避方向を入力のほうへ曲げる
+			// 回避中 スティック入力があれば、回避方向を入力のほうへ曲げる
 			else if (intent.wantsMove)
 			{
 				float dodgeYaw = PlayerMovementUtils::CalcFacingYaw(dodge.dodgeDir.x, dodge.dodgeDir.z);
@@ -70,7 +72,7 @@ void PlayerDodgeSystem::Update(entt::registry& registry, float elapsedTime, cons
 				dodge.dodgeDir = PlayerMovementUtils::YawToForward(dodgeYaw);
 			}
 
-			// 毎フレーム：時間を進め、体から見た回避方向を求める(将来のブレンドの比率)
+			// 毎フレーム 時間を進め、体から見た回避方向を求める
 			dodge.elapsed += elapsedTime;
 
 			float localDiff = PlayerMovementUtils::AngleDiff(
@@ -79,7 +81,7 @@ void PlayerDodgeSystem::Update(entt::registry& registry, float elapsedTime, cons
 			dodge.localX = sinf(localDiff);
 			dodge.localZ = cosf(localDiff);
 
-			// 終わりの判定：最低時間を過ぎてR2を離した、または最大時間に達した(一度終わったら戻らない)
+			// 終わりの判定：最低時間を過ぎてR2を離した、または最大時間に達した
 			if (!dodge.finished)
 			{
 				bool released = !intent.dodge.held && dodge.elapsed >= dodge.minTime;
@@ -94,7 +96,7 @@ void PlayerDodgeSystem::Update(entt::registry& registry, float elapsedTime, cons
 			cmd.targetSpeed = dodge.dodgeSpeed;
 			cmd.accelHalfLife = dodge.accelHalfLife;
 
-			// 走り出す時は、抜ける前に向きを回避方向へ合わせておく(次のフレームの取り込みで勢いが全部「走る速さ」に入る)
+			// 走り出す時は、抜ける前に向きを回避方向へ合わせておく
 			cmd.faceMoveDir = dodge.finished && intent.wantsMove;
 		});
 }

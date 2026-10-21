@@ -13,9 +13,8 @@ struct AnimatorComponent
         REFLECT_FIELD(bool,  isEnd,     (false), ("Is End",     0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // 再生終了フラグ
 
         // ブレンド関連
-        REFLECT_FIELD(std::string, blendAnimation, (""),    ("Blend From (Old Clip)", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // 旧クリップ名
-        REFLECT_FIELD(float,       blendRate,      (0.0f),  ("Blend Rate",            0.0f, 1.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // ブレンドの進捗
-        REFLECT_FIELD(bool,        isBlending,     (false), ("Is Blending",           0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // ブレンド中フラグ
+        REFLECT_FIELD(float, blendRate, (0.0f),  ("Blend Rate",  0.0f, 1.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // ブレンドの進み具合
+        REFLECT_FIELD(bool, isBlending, (false), ("Is Blending", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // ブレンド中か
 
         // ルートモーション関連
         REFLECT_FIELD(bool, useRootMotionY,            (false), ("Use Root Motion Y")) // Y軸適応
@@ -31,11 +30,13 @@ struct AnimatorComponent
     bool        isPlaying{ true };     // 再生中フラグ
 
     // ブレンド関連
-    float       blendAnimationTime{ 0.0f };  // 旧クリップの、ブレンド中の再生時間
-    bool        blendUseRootMotion{ false }; // 旧クリップがルートモーションを使っていたか
-    bool        blendUseRootMotionY{ false };// 旧クリップがY軸ルートモーションを使っていたか
-    float       blendTrimEnd{ -1.0f };       // 旧クリップのトリミング終端
-    float       blendTime{ 0.0f };   // ブレンドの合計時間
+    float blendTime{ 0.0f };              // ブレンドにかける時間
+    bool  blendSnapshotPending{ false };  // 次の更新で、前のフレームの最終ポーズを保存するか
+    
+    // 混ぜる元のポーズ
+    std::vector<DirectX::XMFLOAT3> blendFromPositions;
+    std::vector<DirectX::XMFLOAT4> blendFromRotations;
+    std::vector<DirectX::XMFLOAT3> blendFromScales;
 
     // ルートモーション関連
     DirectX::XMFLOAT3 rootMotionDelta{ 0.0f, 0.0f, 0.0f }; // ルートモーション移動量

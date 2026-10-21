@@ -266,15 +266,12 @@ void StateMachineSystem::PlayClip(AnimatorComponent& animator, const ClipNode& c
 		animator.useRootMotion = clip.rootMotion;
 		animator.loop = clip.loop;
 		animator.isBlending = false;
+		animator.blendSnapshotPending = false;
 		return;
 	}
 
-	// 旧クリップの情報を退避してからブレンド開始
-	animator.blendAnimation = animator.currentAnimation;
-	animator.blendAnimationTime = animator.animationTime;
-	animator.blendUseRootMotion = animator.useRootMotion;
-	animator.blendUseRootMotionY = animator.useRootMotionY;
-	animator.blendTrimEnd = animator.trimEnd;
+	// ブレンド開始
+	animator.blendSnapshotPending = true;
 	animator.blendTime = blendDuration;
 	animator.blendRate = 0.0f;
 	animator.isBlending = true;
