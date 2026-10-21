@@ -41,14 +41,14 @@ namespace
 		loco.carryVelocity.z = movement.velocity.z - forward.z * loco.currentSpeed;
 	}
 
-	// 地上：体の向きに沿って進む。持ち越しの速度は0へ減っていく
+	// 地上：体の向きに沿って進む
 	void DriveGround(PlayerLocomotionComponent& loco, const LocomotionCommand& cmd,
 		MovementComponent& movement, TransformComponent& transform, float elapsedTime)
 	{
-		// 1) 向き
+		// 向き
 		float facingError = TurnTowards(cmd, transform, elapsedTime);
 
-		// 2) 自分で走っている速さ：ずれが大きいほど目標を下げ(90°以上で0)、ダンパーで近づける
+		// 自分で走っている速さ
 		float alignment = (std::max)(0.0f, cosf(facingError));
 		float desiredSpeed = cmd.targetSpeed * alignment;
 
@@ -59,7 +59,7 @@ namespace
 			loco.currentSpeed = 0.0f;
 		}
 
-		// 3) 持ち越しの速度：0へ減らす
+		// 持ち越しの速度
 		loco.carryVelocity.x = PlayerMovementUtils::Damper(loco.carryVelocity.x, 0.0f, cmd.carryHalfLife, elapsedTime);
 		loco.carryVelocity.z = PlayerMovementUtils::Damper(loco.carryVelocity.z, 0.0f, cmd.carryHalfLife, elapsedTime);
 		if (PlanarLength(loco.carryVelocity.x, loco.carryVelocity.z) < kStopSpeed)
@@ -67,7 +67,7 @@ namespace
 			loco.carryVelocity = { 0.0f, 0.0f, 0.0f };
 		}
 
-		// 4) 速度 = 体の向き × 速さ ＋ 持ち越し
+		// 速度 = 体の向き × 速さ ＋ 持ち越し
 		DirectX::XMFLOAT3 forward = PlayerMovementUtils::YawToForward(transform.rotation.y);
 		movement.velocity.x = forward.x * loco.currentSpeed + loco.carryVelocity.x;
 		movement.velocity.z = forward.z * loco.currentSpeed + loco.carryVelocity.z;
@@ -77,14 +77,14 @@ namespace
 		loco.facingErrorDeg = DirectX::XMConvertToDegrees(facingError);
 	}
 
-	// 空中：速度のベクトルを保つ。入力がある時だけ、理想の速度へ少しずつ寄せる
+	// 空中：速度のベクトルを保つ
 	void DriveAir(PlayerLocomotionComponent& loco, const LocomotionCommand& cmd,
 		MovementComponent& movement, TransformComponent& transform, float elapsedTime)
 	{
-		// 1) 向き
+		// 向き
 		float facingError = TurnTowards(cmd, transform, elapsedTime);
 
-		// 2) 速度：入力が無ければ勢いをそのまま保つ
+		// 速度：入力が無ければ勢いをそのまま保つ
 		if (HasDirection(cmd.moveDir))
 		{
 			float targetX = cmd.moveDir.x * cmd.targetSpeed;
@@ -93,8 +93,7 @@ namespace
 			movement.velocity.z = PlayerMovementUtils::Damper(movement.velocity.z, targetZ, cmd.accelHalfLife, elapsedTime);
 		}
 
-		// 着地した後でも参照できるように、空中にいる間の勢いを記録する
-		// (着地したフレームで、縦の速度は地面に押し付ける値に書き換えられるため)
+		// 着地した後でも参照できるように
 		loco.landingHorizontalSpeed = PlanarLength(movement.velocity.x, movement.velocity.z);
 		loco.landingVerticalSpeed = movement.velocity.y;
 
@@ -108,7 +107,7 @@ namespace
 	void DriveDirectional(PlayerLocomotionComponent& loco, const LocomotionCommand& cmd,
 		MovementComponent& movement, float elapsedTime)
 	{
-		// 速度：指示された方向 × 速さ へダンパーで近づける(方向が無ければ止まる)
+		// 速度：指示された方向 × 速さ へダンパーで近づける
 		float targetX = cmd.moveDir.x * cmd.targetSpeed;
 		float targetZ = cmd.moveDir.z * cmd.targetSpeed;
 		movement.velocity.x = PlayerMovementUtils::Damper(movement.velocity.x, targetX, cmd.accelHalfLife, elapsedTime);
@@ -128,12 +127,11 @@ void PlayerLocomotionSystem::Update(entt::registry& registry, float elapsedTime)
 		{
 			const LocomotionCommand& cmd = loco.command;
 
-			// 体の状態：接地していない時間(モードに関係なく毎フレーム)
+			// 体の状態：接地していない時間
 			loco.airTime = movement.isGrounded ? 0.0f : loco.airTime + elapsedTime;
 			loco.isAirborne = (loco.airTime >= loco.fallGraceTime);
 
 			// 指示があれば、向きを進む方向へ一気に合わせる
-			// (Ground への取り込みより先に行う。向きと速度がそろっていれば、勢いが全部「走る速さ」に入る)
 			if (cmd.faceMoveDir && HasDirection(cmd.moveDir))
 			{
 				transform.rotation.y = PlayerMovementUtils::CalcFacingYaw(cmd.moveDir.x, cmd.moveDir.z);
@@ -166,11 +164,11 @@ void PlayerLocomotionSystem::Update(entt::registry& registry, float elapsedTime)
 				break;
 			}
 
-			// 体の状態：今の勢い(モードに関係なく毎フレーム)
+			// 体の状態：今の勢い
 			loco.horizontalSpeed = PlanarLength(movement.velocity.x, movement.velocity.z);
 			loco.verticalSpeed = movement.velocity.y;
 
-			// 指示は1フレーム限り。書き忘れたら止まるように、初期値に戻す
+			// 指示は1フレーム限り
 			loco.lastMode = cmd.mode;
 			loco.command = LocomotionCommand{};
 		});

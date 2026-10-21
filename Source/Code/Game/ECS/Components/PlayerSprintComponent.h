@@ -1,25 +1,15 @@
 #pragma once
 #include "Engine/ECS/Reflect.h"
 
-enum class PlayerSprintSubState
-{
-	None,
-	Sprint, // ダッシュ
-};
-
 struct PlayerSprintComponent
 {
-	// 状態
-	PlayerSprintSubState state = PlayerSprintSubState::None;
-	
 	REFLECT_BEGIN(PlayerSprintComponent, "Player Sprint")
 
-		// 設定値
-		REFLECT_FIELD(float, sprintSpeed, (15.0f), ("Sprint Speed", 0.0f, 20.0f))
-		REFLECT_FIELD(float, turnSpeed,   (15.0f), ("Turn Speed",   0.0f, 30.0f))
-
-		// 状態フラグ
-		REFLECT_FIELD(bool, isSprinting, (false), ("Is Sprinting", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient))
+		REFLECT_FIELD(float, sprintSpeed,   (7.4f),  ("Sprint Speed",    0.0f, 20.0f)) // 走る速さ
+		REFLECT_FIELD(float, enterSpeed,    (6.0f),  ("Enter Speed",     0.0f, 20.0f)) // 着地の速さがこれ以上なら Sprint に入る
+		REFLECT_FIELD(float, accelHalfLife, (0.1f),  ("Accel Half Life", 0.0f, 1.0f))  // 加速時の半減期
+		REFLECT_FIELD(float, decelHalfLife, (0.15f), ("Decel Half Life", 0.0f, 1.0f))  // 減速時の半減期
+		REFLECT_FIELD(float, turnSpeed,     (8.0f),  ("Turn Speed",      0.0f, 30.0f)) // 旋回速度
 
 	REFLECT_END()
 };

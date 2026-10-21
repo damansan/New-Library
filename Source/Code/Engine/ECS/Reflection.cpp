@@ -8,6 +8,7 @@ namespace
 	{
 		if (type == entt::resolve<bool>())              return ValueType::Bool;
 		if (type == entt::resolve<int>())               return ValueType::Int;
+		if (type == entt::resolve<float>())             return ValueType::Float;
 		if (type == entt::resolve<DirectX::XMFLOAT2>()) return ValueType::Float2;
 		if (type == entt::resolve<DirectX::XMFLOAT3>()) return ValueType::Float3;
 		if (type == entt::resolve<DirectX::XMFLOAT4>()) return ValueType::Float4;

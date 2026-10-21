@@ -185,6 +185,7 @@ void SceneGame::Render(const SceneContext& context)
 	}
 #endif
 
+#ifdef _DEBUG
 	if (DrawDebug)
 	{
 		physicsDebugRenderer.Render(
@@ -204,6 +205,7 @@ void SceneGame::Render(const SceneContext& context)
 			context.projection,
 			lightDir3);
 	}
+#endif
 }
 
 // ゲームプレイ系
@@ -245,11 +247,11 @@ void SceneGame::UpdateGameplay(float elapsedTime, const SceneContext& context)
 		ZoneScopedN("PlayerDodgeSystem");
 		playerDodgeSystem.Update(registry, elapsedTime, context);
 	}
-	//// プレイヤースプリント処理
-	//{
-	//	ZoneScopedN("PlayerSprintSystem");
-	//	playerSprintSystem.Update(registry, elapsedTime, context);
-	//}
+	// プレイヤースプリント処理
+	{
+		ZoneScopedN("PlayerSprintSystem");
+		playerSprintSystem.Update(registry, elapsedTime, context);
+	}
 	// プレイヤージャンプ処理
 	{
 		ZoneScopedN("PlayerJumpSystem");
