@@ -91,6 +91,146 @@ namespace
 		}
 		return false; // 端なので動かせない
 	}
+
+	// IDで要素を探す
+	template<typename T>
+	const T* FindById(const std::vector<T>& list, int id)
+	{
+		for (const auto& e : list)
+		{
+			if (e.id == id) return &e;
+		}
+		return nullptr;
+	}
+
+	// 成分(X/Y/Z/W)の文字列変換(条件グラフの保存と同じ文字列)
+	std::string FloatComponentToString(FloatComponent c)
+	{
+		switch (c)
+		{
+		case FloatComponent::X: return "X";
+		case FloatComponent::Y: return "Y";
+		case FloatComponent::Z: return "Z";
+		case FloatComponent::W: return "W";
+		default:                return "None";
+		}
+	}
+	FloatComponent FloatComponentFromString(const std::string& s)
+	{
+		if (s == "X") return FloatComponent::X;
+		if (s == "Y") return FloatComponent::Y;
+		if (s == "Z") return FloatComponent::Z;
+		if (s == "W") return FloatComponent::W;
+		return FloatComponent::None;
+	}
+
+	// 比率の出どころの文字列変換
+	std::string BlendRateSourceToString(BlendRateSource s)
+	{
+		return (s == BlendRateSource::Variable) ? "Variable" : "Fixed";
+	}
+	BlendRateSource BlendRateSourceFromString(const std::string& s)
+	{
+		return (s == "Variable") ? BlendRateSource::Variable : BlendRateSource::Fixed;
+	}
+
+	// Blend の中のグラフ
+	nlohmann::ordered_json ToJson(const BlendGraph& g)
+	{
+		nlohmann::ordered_json j;
+		j["output"]["editor"] = ToJson(g.outputNode.editorPos);
+
+		j["sources"] = nlohmann::json::array();
+		for (const auto& s : g.sources)
+		{
+			nlohmann::ordered_json js;
+			js["id"] = s.id;
+			js["clip"] = s.clipName;
+			js["editor"] = ToJson(s.editorPos);
+			j["sources"].push_back(js);
+		}
+
+		j["pairLinks"] = nlohmann::json::array();
+		for (const auto& p : g.pairLinks)
+		{
+			nlohmann::ordered_json jp;
+			jp["id"] = p.id;
+			jp["from"] = p.fromId;
+			jp["to"] = p.toId;
+			jp["rateSource"] = BlendRateSourceToString(p.rateSource);
+			jp["fixedRate"] = p.fixedRate;
+			jp["componentName"] = p.componentName;
+			jp["fieldName"] = p.fieldName;
+			jp["selectedComponent"] = FloatComponentToString(p.selectedComponent);
+			j["pairLinks"].push_back(jp);
+		}
+
+		j["outputLinks"] = nlohmann::json::array();
+		for (const auto& l : g.outputLinks)
+		{
+			nlohmann::ordered_json jl;
+			jl["id"] = l.id;
+			jl["from"] = l.fromId;
+			WriteCommon(jl, l.always, l.condition);
+			j["outputLinks"].push_back(jl);
+		}
+
+		return j;
+	}
+	BlendGraph BlendGraphFromJson(const nlohmann::json& j)
+	{
+		BlendGraph g;
+
+		if (j.contains("output") && j["output"].contains("editor"))
+		{
+			g.outputNode.editorPos = PositionFromJson(j["output"]["editor"]);
+		}
+
+		if (j.contains("sources"))
+		{
+			for (const auto& js : j["sources"])
+			{
+				BlendSourceNode s;
+				s.id = js.value("id", -1);
+				s.clipName = js.value("clip", "");
+				if (js.contains("editor")) s.editorPos = PositionFromJson(js["editor"]);
+				g.sources.push_back(s);
+			}
+		}
+
+		if (j.contains("pairLinks"))
+		{
+			for (const auto& jp : j["pairLinks"])
+			{
+				BlendPairLink p;
+				p.id = jp.value("id", -1);
+				p.fromId = jp.value("from", -1);
+				p.toId = jp.value("to", -1);
+				p.rateSource = BlendRateSourceFromString(jp.value("rateSource", "Fixed"));
+				p.fixedRate = jp.value("fixedRate", 0.5f);
+				p.componentName = jp.value("componentName", "");
+				p.fieldName = jp.value("fieldName", "");
+				p.selectedComponent = FloatComponentFromString(jp.value("selectedComponent", "None"));
+				g.pairLinks.push_back(p);
+			}
+		}
+
+		if (j.contains("outputLinks"))
+		{
+			for (const auto& jl : j["outputLinks"])
+			{
+				BlendOutputLink l;
+				l.id = jl.value("id", -1);
+				l.fromId = jl.value("from", -1);
+				ReadCommon(jl, l.always, l.condition);
+				g.outputLinks.push_back(l);
+			}
+		}
+
+		// 読み込んだIDの続きから採番する
+		g.RecalculateNextId();
+		return g;
+	}
 }
 
 // 検索 
@@ -101,6 +241,41 @@ const ClipNode* ChildGraph::FindClip(int clipId) const
 		if (c.id == clipId) return &c;
 	}
 	return nullptr;
+}
+const BlendNode* ChildGraph::FindBlend(int blendId) const
+{
+	return FindById(blends, blendId);
+}
+// ノードの種類
+ChildNodeKind ChildGraph::GetNodeKind(int nodeId) const
+{
+	if (FindClip(nodeId))  return ChildNodeKind::Clip;
+	if (FindBlend(nodeId)) return ChildNodeKind::Blend;
+	return ChildNodeKind::None;
+}
+
+// Blend の中：検索
+const BlendSourceNode* BlendGraph::FindSource(int id) const { return FindById(sources, id); }
+const BlendPairLink* BlendGraph::FindPairLink(int id) const { return FindById(pairLinks, id); }
+const BlendOutputLink* BlendGraph::FindOutputLink(int id) const { return FindById(outputLinks, id); }
+
+// ノードの種類
+BlendNodeKind BlendGraph::GetNodeKind(int id) const
+{
+	if (id == outputNode.id)     return BlendNodeKind::Output;
+	if (FindById(sources, id))   return BlendNodeKind::Source;
+	if (FindById(pairLinks, id)) return BlendNodeKind::PairLink;
+	return BlendNodeKind::None;
+}
+
+// 使用中のIDの最大値+1に、採番をそろえる
+void BlendGraph::RecalculateNextId()
+{
+	int maxId = outputNode.id;
+	for (const auto& s : sources)     maxId = (std::max)(maxId, s.id);
+	for (const auto& p : pairLinks)   maxId = (std::max)(maxId, p.id);
+	for (const auto& l : outputLinks) maxId = (std::max)(maxId, l.id);
+	nextId = maxId + 1;
 }
 
 const StateNode* StateMachineData::FindState(int stateId) const
@@ -602,6 +777,18 @@ nlohmann::ordered_json StateMachineData::ToJson() const
 			jc["clips"].push_back(jclip);
 		}
 
+		jc["blends"] = nlohmann::json::array();
+		for (const auto& b : s.child.blends)
+		{
+			nlohmann::ordered_json jb;
+			jb["id"] = b.id;
+			jb["name"] = b.name;
+			jb["loop"] = b.loop;
+			jb["editor"] = ::ToJson(b.editorPos);
+			jb["graph"] = ::ToJson(b.graph);
+			jc["blends"].push_back(jb);
+		}
+
 		jc["entryLinks"] = nlohmann::json::array();
 		for (const auto& l : s.child.entryLinks)
 		{
@@ -703,6 +890,20 @@ bool StateMachineData::FromJson(const nlohmann::json& j, const std::string& sour
 					}
 				}
 
+				if (jc.contains("blends"))
+				{
+					for (const auto& jb : jc["blends"])
+					{
+						BlendNode b;
+						b.id = jb.value("id", -1);
+						b.name = jb.value("name", "");
+						b.loop = jb.value("loop", true);
+						if (jb.contains("editor")) b.editorPos = PositionFromJson(jb["editor"]);
+						if (jb.contains("graph"))  b.graph = BlendGraphFromJson(jb["graph"]);
+						s.child.blends.push_back(b);
+					}
+				}
+
 				if (jc.contains("entryLinks"))
 				{
 					for (const auto& jl : jc["entryLinks"])
@@ -763,6 +964,7 @@ bool StateMachineData::FromJson(const nlohmann::json& j, const std::string& sour
 		maxId = (std::max)(maxId, s.id);
 		for (const auto& t : s.transitions)      maxId = (std::max)(maxId, t.id);
 		for (const auto& c : s.child.clips)      maxId = (std::max)(maxId, c.id);
+		for (const auto& b : s.child.blends)     maxId = (std::max)(maxId, b.id);
 		for (const auto& l : s.child.entryLinks) maxId = (std::max)(maxId, l.id);
 		for (const auto& l : s.child.clipLinks)  maxId = (std::max)(maxId, l.id);
 	}
