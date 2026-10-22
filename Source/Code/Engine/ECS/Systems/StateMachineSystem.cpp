@@ -1,4 +1,5 @@
 #include "StateMachineSystem.h"
+#include <algorithm>
 #include "ConditionGraphEvaluator.h"
 #include "Engine/Core/Log.h"
 #include "Engine/ECS/Components/AnimatorComponent.h"
@@ -26,95 +27,30 @@ namespace
 		animator.crossfadeRate = 0.0f;
 		animator.isCrossfading = true;
 	}
-}
 
-// グラフを取得する
-const StateMachineData* StateMachineSystem::Load(const std::string& path)
-{
-	LoadedStateMachine& loaded = graphCache.GetOrLoad(path,
-		[this, &path](LoadedStateMachine& l, const nlohmann::json& j)
-		{
-			l.loaded = true;
-			l.valid = l.data.FromJson(j, path);
-
-			// 読み込み直したら、このパスの「Stateが無い」の報告済みを消して、確かめ直せるようにする
-			std::string prefix = path + "\n";
-			for (auto it = reportedMissingStates.begin(); it != reportedMissingStates.end(); )
-			{
-				if (it->compare(0, prefix.size(), prefix) == 0) it = reportedMissingStates.erase(it);
-				else ++it;
-			}
-		});
-
-	if (!loaded.loaded || !loaded.valid)
+	// 先頭が prefix の報告済みを消す
+	void EraseReports(std::set<std::string>& reported, const std::string& prefix)
 	{
-		// 同じパスについては1回だけ報告する
-		if (reportedPaths.insert(path).second)
+		for (auto it = reported.begin(); it != reported.end(); )
 		{
-			Log(u8"[StateMachine] %s を使用できません(読み込みに失敗したか、検証でエラーがあります)", path.c_str());
-		}
-		return nullptr;
-	}
-
-	// 直った後に、再び壊れたときにも報告できるようにする
-	reportedPaths.erase(path);
-	return &loaded.data;
-}
-
-// 条件が成立した最初の遷移を返す(優先度順)
-const StateTransition* StateMachineSystem::FindPassedTransition(
-	const std::vector<StateTransition>& transitions, entt::registry& registry, entt::entity entity)
-{
-	for (const auto& t : transitions)
-	{
-		if (t.always || ConditionGraphEvaluator::Evaluate(t.condition, registry, entity))
-		{
-			return &t;
+			if (it->compare(0, prefix.size(), prefix) == 0) it = reported.erase(it);
+			else ++it;
 		}
 	}
-	return nullptr;
-}
 
-// Stateに入る
-void StateMachineSystem::EnterState(StateMachineComponent& sm, const StateNode& state, const StateTransition& via)
-{
-	sm.currentStateId = state.id;
-	sm.currentStateName = state.name;
-	sm.enteredTransitionId = via.id;
-	sm.enteredThisFrame = true;
-
-	// 最初のクリップは、ゲームプレイの各Systemが動いた後に決める
-	sm.pendingEntry = true;
-}
-
-// ノードを再生する
-bool StateMachineSystem::PlayNode(StateMachineComponent& sm, AnimatorComponent& animator, const ChildGraph& child, int nodeId, const CrossfadeSetting& crossfade, SequencerComponent* sequencer)
-{
-	switch (child.GetNodeKind(nodeId))
+	// ペアの比率を読む。0～1 に収める
+	float ReadPairRate(const BlendPairLink& pair, entt::registry& registry, entt::entity entity)
 	{
-	case ChildNodeKind::Clip:
-	{
-		const ClipNode* clip = child.FindClip(nodeId);
-		PlayClip(animator, *clip, crossfade, sequencer);
-		sm.currentNodeId = clip->id;
-		sm.currentNodeName = clip->name;
-		return true;
-	}
-
-	case ChildNodeKind::Blend:
-	{
-		const BlendNode* blend = child.FindBlend(nodeId);
-		PlayBlend(animator, *blend, crossfade);
-		sm.currentNodeId = blend->id;
-		sm.currentNodeName = blend->name;
-		sm.blendOutputLinkId = -1; // Blend に入った直後は、前の線が無い
-		return true;
-	}
-
-	default:
-		return false; // 見つからない
+		float rate = pair.fixedRate;
+		if (pair.rateSource == BlendRateSource::Variable)
+		{
+			rate = ConditionGraphEvaluator::ReadFieldAsFloat(
+				pair.componentName, pair.fieldName, pair.selectedComponent, registry, entity);
+		}
+		return std::clamp(rate, 0.0f, 1.0f);
 	}
 }
+
 
 // Stateの遷移を決める
 void StateMachineSystem::UpdateState(entt::registry& registry)
@@ -160,7 +96,7 @@ void StateMachineSystem::UpdateState(entt::registry& registry)
 	}
 }
 
-// 再生するクリップを決める
+// 再生するノード(Clip か Blend)を決める
 void StateMachineSystem::UpdateAnimation(entt::registry& registry)
 {
 	auto view = registry.view<StateMachineComponent, AnimatorComponent>();
@@ -178,9 +114,9 @@ void StateMachineSystem::UpdateAnimation(entt::registry& registry)
 
 		SequencerComponent* sequencer = registry.try_get<SequencerComponent>(entity);
 
-		// Stateに入った直後：入ってきた遷移のエントリーから、最初のクリップを決める
 		if (sm.pendingEntry)
 		{
+			// Stateに入った直後：入ってきた遷移のエントリーから、最初のノードを決める
 			sm.pendingEntry = false;
 
 			const StateTransition* via = data->FindTransition(sm.enteredTransitionId);
@@ -201,23 +137,31 @@ void StateMachineSystem::UpdateAnimation(entt::registry& registry)
 			if (!played)
 			{
 				// 条件が成立するつながりが無かった
-				Log(u8"[StateMachine] 「%s」に入りましたが、再生するノードが決まりませんでした(遷移ID %d)", 
+				Log(u8"[StateMachine] 「%s」に入りましたが、再生するノードが決まりませんでした(遷移ID %d)",
 					state->name.c_str(), sm.enteredTransitionId);
 			}
-			continue;
+		}
+		else
+		{
+			// State内：今のノードから出るつながりを、並び順に調べる
+			for (const auto& l : state->child.clipLinks)
+			{
+				if (l.fromNodeId != sm.currentNodeId) continue;
+				if (!l.always && !ConditionGraphEvaluator::Evaluate(l.condition, registry, entity)) continue;
+
+				if (!PlayNode(sm, animator, state->child, l.toNodeId, l.crossfade, sequencer)) continue;
+				break;
+			}
 		}
 
-		// State内：今のクリップから出るつながりを、並び順に調べる
-		for (const auto& l : state->child.clipLinks)
+		// 毎フレーム：今のノードが Blend なら、材料と比率を決める
+		if (const BlendNode* blend = state->child.FindBlend(sm.currentNodeId))
 		{
-			if (l.fromNodeId != sm.currentNodeId) continue;
-			if (!l.always && !ConditionGraphEvaluator::Evaluate(l.condition, registry, entity)) continue;
-
-			if (!PlayNode(sm, animator, state->child, l.toNodeId, l.crossfade, sequencer)) continue;
-			break;
+			UpdateBlend(sm, animator, *blend, registry, entity, sequencer);
 		}
 	}
 }
+
 
 // 申告されたState名の一覧
 std::vector<StateMachineSystem::RequiredState>& StateMachineSystem::GetRequiredStates()
@@ -226,12 +170,23 @@ std::vector<StateMachineSystem::RequiredState>& StateMachineSystem::GetRequiredS
 	return requiredStates;
 }
 
+// 申告を一覧に足す
+void StateMachineSystem::AddRequiredState(const std::string& stateName, const std::string& user, UsesStateFunc usesState)
+{
+	auto& list = GetRequiredStates();
+	for (const auto& r : list)
+	{
+		if (r.stateName == stateName && r.user == user) return; // 申告済み
+	}
+	list.push_back({ stateName, user, usesState });
+}
+
 // 申告されたState名が、このエンティティのグラフにあるかを確かめる
 void StateMachineSystem::CheckRequiredStates(const StateMachineData& data, const std::string& path, const entt::registry& registry, entt::entity entity)
 {
 	for (const auto& r : GetRequiredStates())
 	{
-		// 申告したSystemの対象でないエンティティ(Playerの申告に対するEnemyなど)は確かめない
+		// 申告したSystemの対象でないエンティティは確かめない
 		if (r.usesState && !r.usesState(registry, entity)) continue;
 		if (data.FindStateByName(r.stateName)) continue;
 
@@ -244,15 +199,119 @@ void StateMachineSystem::CheckRequiredStates(const StateMachineData& data, const
 	}
 }
 
-// 申告を一覧に足す
-void StateMachineSystem::AddRequiredState(const std::string& stateName, const std::string& user, UsesStateFunc usesState)
+// グラフを取得する
+const StateMachineData* StateMachineSystem::Load(const std::string& path)
 {
-	auto& list = GetRequiredStates();
-	for (const auto& r : list)
+	LoadedStateMachine& loaded = graphCache.GetOrLoad(path,
+		[this, &path](LoadedStateMachine& l, const nlohmann::json& j)
+		{
+			l.loaded = true;
+			l.valid = l.data.FromJson(j, path);
+
+			// 読み込み直したら、このパスの報告済みを消して、確かめ直せるようにする
+			std::string prefix = path + "\n";
+			EraseReports(reportedMissingStates, prefix);
+			EraseReports(reportedBlendNoMatch, prefix);
+		});
+
+	if (!loaded.loaded || !loaded.valid)
 	{
-		if (r.stateName == stateName && r.user == user) return; // 申告済み
+		// 同じパスについては1回だけ報告する
+		if (reportedPaths.insert(path).second)
+		{
+			Log(u8"[StateMachine] %s を使用できません(読み込みに失敗したか、検証でエラーがあります)", path.c_str());
+		}
+		return nullptr;
 	}
-	list.push_back({ stateName, user, usesState });
+
+	// 直った後に、再び壊れたときにも報告できるようにする
+	reportedPaths.erase(path);
+	return &loaded.data;
+}
+
+// 条件が成立した最初の遷移を返す
+const StateTransition* StateMachineSystem::FindPassedTransition(
+	const std::vector<StateTransition>& transitions, entt::registry& registry, entt::entity entity)
+{
+	for (const auto& t : transitions)
+	{
+		if (t.always || ConditionGraphEvaluator::Evaluate(t.condition, registry, entity))
+		{
+			return &t;
+		}
+	}
+	return nullptr;
+}
+
+// Stateに入る
+void StateMachineSystem::EnterState(StateMachineComponent& sm, const StateNode& state, const StateTransition& via)
+{
+	sm.currentStateId = state.id;
+	sm.currentStateName = state.name;
+	sm.enteredTransitionId = via.id;
+	sm.enteredThisFrame = true;
+
+	// 最初のノードは、ゲームプレイの各Systemが動いた後に決める
+	sm.pendingEntry = true;
+}
+
+
+// ノードを再生する
+bool StateMachineSystem::PlayNode(StateMachineComponent& sm, AnimatorComponent& animator, const ChildGraph& child, int nodeId,
+	const CrossfadeSetting& crossfade, SequencerComponent* sequencer)
+{
+	switch (child.GetNodeKind(nodeId))
+	{
+	case ChildNodeKind::Clip:
+	{
+		const ClipNode* clip = child.FindClip(nodeId);
+		PlayClip(animator, *clip, crossfade, sequencer);
+		sm.currentNodeId = clip->id;
+		sm.currentNodeName = clip->name;
+		return true;
+	}
+
+	case ChildNodeKind::Blend:
+	{
+		const BlendNode* blend = child.FindBlend(nodeId);
+		PlayBlend(animator, *blend, crossfade);
+		sm.currentNodeId = blend->id;
+		sm.currentNodeName = blend->name;
+		sm.blendOutputLinkId = -1; // Blend に入った直後は、前の線が無い
+		return true;
+	}
+
+	default:
+		return false; // 見つからない
+	}
+}
+
+// クリップを再生する
+void StateMachineSystem::PlayClip(AnimatorComponent& animator, const ClipNode& clip, const CrossfadeSetting& crossfade, SequencerComponent* sequencer)
+{
+	// トリミング範囲を調べる(無ければ trimEnd は -1 のまま = トリミングしない)
+	float trimStart = 0.0f;
+	float trimEnd = -1.0f;
+	float normStart = 0.0f, normEnd = 1.0f;
+	if (ResolveTrimmingRange(sequencer, clip.clipName, normStart, normEnd))
+	{
+		trimStart = normStart;
+		trimEnd = normEnd;
+	}
+
+	// クロスフェードを始める(再生するものを書き換える前に呼ぶ)
+	StartCrossfade(animator, crossfade);
+
+	animator.playMode = AnimPlayMode::Clip;
+	animator.currentAnimation = clip.clipName;
+	animator.trimStart = trimStart;
+	animator.trimEnd = trimEnd;
+	animator.trimResolved = false;
+	animator.animationTime = 0.0f;
+	animator.isPlaying = true;
+	animator.isEnd = false;
+	animator.useRootMotion = clip.rootMotion;
+	animator.loop = clip.loop;
 }
 
 // Blend を再生する
@@ -268,7 +327,7 @@ void StateMachineSystem::PlayBlend(AnimatorComponent& animator, const BlendNode&
 	animator.loop = blend.loop;
 	animator.useRootMotion = false; // Blend ではルートモーションを使わない
 
-	// 材料と比率は、毎フレームの評価(B2-3)で決める。それまでは空にしておく
+	// 材料と比率は UpdateBlend で決める。それまでは空にしておく
 	animator.blendClipA.clear();
 	animator.blendClipB.clear();
 	animator.blendWeight = 0.0f;
@@ -278,7 +337,89 @@ void StateMachineSystem::PlayBlend(AnimatorComponent& animator, const BlendNode&
 	animator.blendTrimEndB = 1.0f;
 }
 
-// トリミング範囲を探す
+// Blend の材料と比率を決めて、Animator に書く
+void StateMachineSystem::UpdateBlend(StateMachineComponent& sm, AnimatorComponent& animator, const BlendNode& blend,
+	entt::registry& registry, entt::entity entity, SequencerComponent* sequencer)
+{
+	const BlendGraph& g = blend.graph;
+
+	// Output への線を選ぶ
+	const BlendOutputLink* link = nullptr;
+	for (const auto& l : g.outputLinks)
+	{
+		if (l.always || ConditionGraphEvaluator::Evaluate(l.condition, registry, entity))
+		{
+			link = &l;
+			break;
+		}
+	}
+
+	// どれも成立しない：前のフレームの線を使い続ける
+	if (!link)
+	{
+		link = g.FindOutputLink(sm.blendOutputLinkId);
+		if (!link && !g.outputLinks.empty()) link = &g.outputLinks.front();
+
+		// 同じ Blend については1回だけ報告する
+		std::string key = sm.graphPath + "\n" + std::to_string(blend.id);
+		if (reportedBlendNoMatch.insert(key).second)
+		{
+			Log(u8"[StateMachine] 警告(%s): Blend「%s」で、Output への線の条件がどれも成立しませんでした。前の線を使い続けます",
+				sm.graphPath.c_str(), blend.name.c_str());
+		}
+	}
+
+	if (!link) return; // Output への線が無い
+	sm.blendOutputLinkId = link->id;
+
+	// 線の元から、材料と比率を決める
+	std::string clipA;
+	std::string clipB;
+	float weight = 0.0f;
+
+	switch (g.GetNodeKind(link->fromId))
+	{
+	case BlendNodeKind::Source:
+	{
+		// 材料1つを、そのまま使う
+		clipA = g.FindSource(link->fromId)->clipName;
+		break;
+	}
+	case BlendNodeKind::PairLink:
+	{
+		// 材料2つを、比率で混ぜる
+		const BlendPairLink* pair = g.FindPairLink(link->fromId);
+		const BlendSourceNode* a = g.FindSource(pair->fromId);
+		const BlendSourceNode* b = g.FindSource(pair->toId);
+		if (!a || !b) return; // 検証でエラーになるので、通常は来ない
+
+		clipA = a->clipName;
+		clipB = b->clipName;
+		weight = ReadPairRate(*pair, registry, entity);
+		break;
+	}
+	default:
+		return; // 検証でエラーになるので、通常は来ない
+	}
+
+	// 材料ごとのトリミング範囲
+	float trimStartA = 0.0f, trimEndA = 1.0f;
+	float trimStartB = 0.0f, trimEndB = 1.0f;
+	ResolveTrimmingRange(sequencer, clipA, trimStartA, trimEndA);
+	if (!clipB.empty()) ResolveTrimmingRange(sequencer, clipB, trimStartB, trimEndB);
+
+	// Animator に書く
+	animator.blendClipA = clipA;
+	animator.blendClipB = clipB;
+	animator.blendWeight = weight;
+	animator.blendTrimStartA = trimStartA;
+	animator.blendTrimEndA = trimEndA;
+	animator.blendTrimStartB = trimStartB;
+	animator.blendTrimEndB = trimEndB;
+}
+
+
+// 読み込み済みの Sequencer のデータから、クリップのトリミング範囲を探す
 bool StateMachineSystem::FindTrimmingRange(SequencerData& data, const std::string& clipName, float& outStart, float& outEnd)
 {
 	for (auto& clip : data.clips)
@@ -298,55 +439,13 @@ bool StateMachineSystem::FindTrimmingRange(SequencerData& data, const std::strin
 	return false;
 }
 
-// クリップを再生する
-void StateMachineSystem::PlayClip(AnimatorComponent& animator, const ClipNode& clip, const CrossfadeSetting& crossfade, SequencerComponent* sequencer)
+// クリップのトリミング範囲を調べる
+bool StateMachineSystem::ResolveTrimmingRange(SequencerComponent* sequencer, const std::string& clipName, float& outStart, float& outEnd)
 {
-	// トリミング範囲を調べる
-	float trimStart = 0.0f;
-	float trimEnd = -1.0f;
-	if (sequencer && !sequencer->sequencerPath.empty())
-	{
-		SequencerData& data = trimDataCache.GetOrLoad(sequencer->sequencerPath,
-			[](SequencerData& data, const nlohmann::json& j) { data.FromJson(j); });
+	if (!sequencer || sequencer->sequencerPath.empty()) return false;
 
-		float normStart = 0.0f, normEnd = 1.0f;
-		if (FindTrimmingRange(data, clip.clipName, normStart, normEnd))
-		{
-			trimStart = normStart;
-			trimEnd = normEnd;
-		}
-	}
+	SequencerData& data = trimDataCache.GetOrLoad(sequencer->sequencerPath,
+		[](SequencerData& data, const nlohmann::json& j) { data.FromJson(j); });
 
-	float crossfadeDuration = (crossfade.enabled && crossfade.duration > 0.0f) ? crossfade.duration : 0.0f;
-
-	// クロスフェードしない
-	if (animator.currentAnimation.empty() || crossfadeDuration <= 0.0f) 
-	{
-		animator.currentAnimation = clip.clipName;
-		animator.trimStart = trimStart;
-		animator.trimEnd = trimEnd;
-		animator.trimResolved = false;
-		animator.animationTime = 0.0f;
-		animator.isPlaying = true;
-		animator.isEnd = false;
-		animator.useRootMotion = clip.rootMotion;
-		animator.loop = clip.loop;
-		animator.isCrossfading = false;
-		animator.crossfadeSnapshotPending = false;
-		return;
-	}
-
-	// クロスフェードを始める
-	StartCrossfade(animator, crossfade);
-
-	animator.playMode = AnimPlayMode::Clip;
-	animator.currentAnimation = clip.clipName;
-	animator.trimStart = trimStart;
-	animator.trimEnd = trimEnd;
-	animator.trimResolved = false;
-	animator.animationTime = 0.0f;
-	animator.isPlaying = true;
-	animator.isEnd = false;
-	animator.useRootMotion = clip.rootMotion;
-	animator.loop = clip.loop;
+	return FindTrimmingRange(data, clipName, outStart, outEnd);
 }

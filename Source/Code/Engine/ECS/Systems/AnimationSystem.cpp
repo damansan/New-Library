@@ -1,4 +1,5 @@
 #include "AnimationSystem.h"
+#include <cmath>
 #include "tracy/Tracy.hpp"
 #include "Engine/Resource/SkeletonUtils.h"
 #include "Engine/ECS/Components/TransformComponent.h"
@@ -44,44 +45,22 @@ void AnimationSystem::Update(
 			const auto& animations = skinned.model->GetAnimations();
 			if (animations.empty()) return;
 
-			// 再生するクリップを決める
-			int animIndex = FindAnimationIndex(animations, animator.currentAnimation);
-			if (animIndex < 0)
-			{
-				animIndex = 0;
-				animator.currentAnimation = animations[0].name;
-			}
-			const auto& animation = animations[animIndex];
-
-			// 時間を進める
-			const ClipTimeStep step = AdvanceClipTime(animator, animation, elapsedTime);
-
-			// ルートモーションの移動量
-			const int rootMotionNodeIndex = animator.rootMotionNodeName.empty()
-				? -1
-				: FindNodeIndex(*skinned.model, animator.rootMotionNodeName);
-
-			animator.rootMotionDelta = (rootMotionNodeIndex >= 0)
-				? CalcRootMotionDelta(*skinned.model, animation, rootMotionNodeIndex,
-					step.oldTime, step.newTime, step.rangeStart, step.rangeEnd)
-				: DirectX::XMFLOAT3{ 0.0f, 0.0f, 0.0f };
-
-			// ポーズを作る
-			CalcBoneTransforms(
-				*skinned.model, animation, animator.animationTime,
-				skinned.localPositions, skinned.localRotations, skinned.localScales,
-				rootMotionNodeIndex);
-
-			// ルートモーション由来の速度
 			auto* transform = registry.try_get<TransformComponent>(entity);
 			auto* movement = registry.try_get<MovementComponent>(entity);
 
+			// ポーズを作る(再生の種類ごと)
 			RootMotionVelocity velocity;
-			if (animator.useRootMotion && rootMotionNodeIndex >= 0 && elapsedTime > 0.0f && transform && movement)
+			switch (animator.playMode)
 			{
-				velocity.value = ToWorldVelocity(animator.rootMotionDelta, *transform, elapsedTime, animator.useRootMotionY);
-				velocity.valid = true;
-				velocity.writeY = animator.useRootMotionY;
+			case AnimPlayMode::Clip:
+				velocity = UpdateClipPose(animator, skinned, animations, transform, movement, elapsedTime);
+				break;
+
+			case AnimPlayMode::Blend:
+				// Blend ではルートモーションを使わない
+				animator.rootMotionDelta = { 0.0f, 0.0f, 0.0f };
+				UpdateBlendPose(animator, skinned, animations, elapsedTime);
+				break;
 			}
 
 			// クロスフェード
@@ -233,6 +212,132 @@ void AnimationSystem::UpdateCrossfade(AnimatorComponent& animator, SkinnedMeshCo
 	{
 		animator.isCrossfading = false;
 	}
+}
+
+// クリップ1本：時間を進めて、ポーズを作る
+AnimationSystem::RootMotionVelocity AnimationSystem::UpdateClipPose(AnimatorComponent& animator, SkinnedMeshComponent& skinned,
+	const std::vector<Model::Animation>& animations,
+	const TransformComponent* transform, const MovementComponent* movement, float elapsedTime)
+{
+	// 再生するクリップを決める
+	int animIndex = FindAnimationIndex(animations, animator.currentAnimation);
+	if (animIndex < 0)
+	{
+		animIndex = 0;
+		animator.currentAnimation = animations[0].name;
+	}
+	const auto& animation = animations[animIndex];
+
+	// 時間を進める
+	const ClipTimeStep step = AdvanceClipTime(animator, animation, elapsedTime);
+
+	// ルートモーションの移動量
+	const int rootMotionNodeIndex = animator.rootMotionNodeName.empty()
+		? -1
+		: FindNodeIndex(*skinned.model, animator.rootMotionNodeName);
+
+	animator.rootMotionDelta = (rootMotionNodeIndex >= 0)
+		? CalcRootMotionDelta(*skinned.model, animation, rootMotionNodeIndex,
+			step.oldTime, step.newTime, step.rangeStart, step.rangeEnd)
+		: DirectX::XMFLOAT3{ 0.0f, 0.0f, 0.0f };
+
+	// ポーズを作る
+	CalcBoneTransforms(
+		*skinned.model, animation, animator.animationTime,
+		skinned.localPositions, skinned.localRotations, skinned.localScales,
+		rootMotionNodeIndex);
+
+	// ルートモーション由来の速度
+	RootMotionVelocity velocity;
+	if (animator.useRootMotion && rootMotionNodeIndex >= 0 && elapsedTime > 0.0f && transform && movement)
+	{
+		velocity.value = ToWorldVelocity(animator.rootMotionDelta, *transform, elapsedTime, animator.useRootMotionY);
+		velocity.valid = true;
+		velocity.writeY = animator.useRootMotionY;
+	}
+	return velocity;
+}
+
+// Blend：材料A・Bの再生位置(何割目)を1フレーム分進める
+void AnimationSystem::AdvanceBlendPhase(AnimatorComponent& animator, float lengthA, float lengthB, bool hasB, float elapsedTime)
+{
+	// 1周の長さ：比率で混ぜた長さ(Bの割合が 0 なら A の長さ、1 なら B の長さ)
+	const float cycleLength = hasB ? (lengthA + (lengthB - lengthA) * animator.blendWeight) : lengthA;
+	if (cycleLength <= 0.0001f) return;
+
+	animator.blendPhase += elapsedTime * animator.playSpeed * animator.speedCurveMultiplier / cycleLength;
+
+	if (animator.loop)
+	{
+		// ループ：1 を越えたら、越えた分だけ頭から
+		if (animator.blendPhase >= 1.0f)
+		{
+			animator.blendPhase -= std::floor(animator.blendPhase);
+			animator.isEnd = false;
+		}
+	}
+	else
+	{
+		// ループしない：終わりで止める
+		if (animator.blendPhase >= 1.0f)
+		{
+			animator.blendPhase = 1.0f;
+			animator.isPlaying = false;
+			animator.isEnd = true;
+		}
+	}
+}
+
+// Blend：時間を進めて、材料A・Bのポーズを比率で混ぜる
+void AnimationSystem::UpdateBlendPose(AnimatorComponent& animator, SkinnedMeshComponent& skinned, const std::vector<Model::Animation>& animations, float elapsedTime)
+{
+	// 材料のクリップを探す(A が見つからなければ、ポーズを作れないので前のポーズのまま)
+	const int indexA = FindAnimationIndex(animations, animator.blendClipA);
+	if (indexA < 0) return;
+
+	const int indexB = animator.blendClipB.empty() ? -1 : FindAnimationIndex(animations, animator.blendClipB);
+	const bool hasB = (indexB >= 0);
+
+	const auto& animationA = animations[indexA];
+	const auto& animationB = animations[hasB ? indexB : indexA];
+
+	// トリミング後の長さ(秒)
+	const float lengthA = (animator.blendTrimEndA - animator.blendTrimStartA) * animationA.secondsLength;
+	const float lengthB = hasB ? (animator.blendTrimEndB - animator.blendTrimStartB) * animationB.secondsLength : 0.0f;
+
+	// ① 再生位置(何割目)を進める
+	AdvanceBlendPhase(animator, lengthA, lengthB, hasB, elapsedTime);
+
+	// ② 同じ「何割目」を、それぞれのクリップの秒数に直す
+	const float timeA = animator.blendTrimStartA * animationA.secondsLength + animator.blendPhase * lengthA;
+	const float timeB = animator.blendTrimStartB * animationB.secondsLength + animator.blendPhase * lengthB;
+
+	// ルートノードは、Clip と同じく動かさない(ルートモーションの分を、見た目に出さない)
+	const int rootMotionNodeIndex = animator.rootMotionNodeName.empty()
+		? -1
+		: FindNodeIndex(*skinned.model, animator.rootMotionNodeName);
+
+	// A のポーズ
+	CalcBoneTransforms(
+		*skinned.model, animationA, timeA,
+		skinned.localPositions, skinned.localRotations, skinned.localScales,
+		rootMotionNodeIndex);
+
+	// B が無い、または B の割合が 0 なら、A だけで終わり
+	if (!hasB || animator.blendWeight <= 0.0f) return;
+
+	// B のポーズ
+	CalcBoneTransforms(
+		*skinned.model, animationB, timeB,
+		blendPositionsB, blendRotationsB, blendScalesB,
+		rootMotionNodeIndex);
+
+	// ③ 比率で混ぜる(A → B を blendWeight で)
+	BlendPoses(
+		skinned.localPositions, skinned.localRotations, skinned.localScales,
+		blendPositionsB, blendRotationsB, blendScalesB,
+		animator.blendWeight,
+		skinned.localPositions, skinned.localRotations, skinned.localScales);
 }
 
 // キーフレーム補間（位置）

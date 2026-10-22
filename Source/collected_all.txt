@@ -4863,6 +4863,12 @@ bool StateMachineData::Validate(const std::string& sourceName) const
 			checkCommon(l.always, l.condition, what);
 			checkCrossfade(l.crossfade, what);
 		}
+
+		// Blend ã®ä¸­
+		for (const auto& b : s.child.blends)
+		{
+			ValidateBlendGraph(b.graph, u8"ã€Œ" + s.name + u8"ã€ã®Blendã€Œ" + b.name + u8"ã€", blendReport);
+		}
 	}
 
 	return errorCount == 0; 
@@ -5716,6 +5722,13 @@ Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\ECS\Components\Anima
 #include <DirectXMath.h>
 #include "Engine/ECS/Reflect.h"
 
+// ä»Šå†ç”Ÿã—ã¦ã„ã‚‹ã‚‚ã®ã®ç¨®é¡
+enum class AnimPlayMode
+{
+    Clip,  // ã‚¯ãƒªãƒƒãƒ—ã‚’1æœ¬
+    Blend, // Blend ãƒãƒ¼ãƒ‰
+};
+
 struct AnimatorComponent
 {
     REFLECT_BEGIN(AnimatorComponent,"Animator")
@@ -5729,6 +5742,12 @@ struct AnimatorComponent
         REFLECT_FIELD(float, crossfadeRate, (0.0f), ("Cross FadeRate",  0.0f, 1.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // ãƒ–ãƒ¬ãƒ³ãƒ‰ã®é€²ã¿å…·åˆ
         REFLECT_FIELD(bool, isCrossfading, (false), ("Is Cross Fading", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // ãƒ–ãƒ¬ãƒ³ãƒ‰ä¸­ã‹
 
+        // Blend ãƒãƒ¼ãƒ‰é–¢é€£
+        REFLECT_FIELD(std::string, blendClipA, (""),   ("Blend Clip A", 0.0f, 0.0f, 0.1f,  "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // ææ–™Aã®ã‚¯ãƒªãƒƒãƒ—å
+        REFLECT_FIELD(std::string, blendClipB, (""),   ("Blend Clip B", 0.0f, 0.0f, 0.1f,  "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // ææ–™Bã®ã‚¯ãƒªãƒƒãƒ—å
+        REFLECT_FIELD(float, blendWeight,      (0.0f), ("Blend Weight", 0.0f, 1.0f, 0.01f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // Bã®å‰²åˆ
+        REFLECT_FIELD(float, blendPhase,       (0.0f), ("Blend Phase",  0.0f, 1.0f, 0.01f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // å…±æœ‰ã®ã€Œä½•å‰²ç›®ã€
+
         // ãƒ«ãƒ¼ãƒˆãƒ¢ãƒ¼ã‚·ãƒ§ãƒ³é–¢é€£
         REFLECT_FIELD(bool, useRootMotionY,            (false), ("Use Root Motion Y")) // Yè»¸é©å¿œ
         REFLECT_FIELD(bool, useRootMotion,             (false), ("Use Root Motion"))   // ãƒ«ãƒ¼ãƒˆãƒ¢ãƒ¼ã‚·ãƒ§ãƒ³ä½¿ç”¨
@@ -5741,6 +5760,14 @@ struct AnimatorComponent
     std::string currentAnimation;      // ç¾åœ¨ã®ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³å
     float       animationTime{ 0.0f }; // ç¾åœ¨ã®å†ç”Ÿæ™‚é–“
     bool        isPlaying{ true };     // å†ç”Ÿä¸­ãƒ•ãƒ©ã‚°
+
+    AnimPlayMode playMode{ AnimPlayMode::Clip }; // ä»Šå†ç”Ÿã—ã¦ã„ã‚‹ã‚‚ã®ã®ç¨®é¡
+
+    // Blend ã®ææ–™ã®ãƒˆãƒªãƒŸãƒ³ã‚°ç¯„å›²
+    float blendTrimStartA{ 0.0f };
+    float blendTrimEndA{ 1.0f };
+    float blendTrimStartB{ 0.0f };
+    float blendTrimEndB{ 1.0f };
 
     // ãƒ–ãƒ¬ãƒ³ãƒ‰é–¢é€£
     float crossfadeTime{ 0.0f };              // ãƒ–ãƒ¬ãƒ³ãƒ‰ã«ã‹ã‘ã‚‹æ™‚é–“
@@ -6193,6 +6220,9 @@ struct StateMachineComponent
 	int currentNodeId = -1;       // Ä¶’†‚Ìƒm[ƒh(Clip‚©Blend‚ÌID)
 	int enteredTransitionId = -1; // Œ»İ‚ÌState‚É“ü‚Á‚Ä‚«‚½‘JˆÚ
 
+	// Blend ‚Ì’†‚ÅA‘O‚ÌƒtƒŒ[ƒ€‚Ég‚Á‚½ Output ‚Ö‚Ìü‚ÌID
+	int blendOutputLinkId = -1;
+
 	// State‚É“ü‚Á‚½’¼Œã‚ÅAqƒOƒ‰ƒt‚ÌƒGƒ“ƒgƒŠ[‚ğ‚Ü‚¾ˆ—‚µ‚Ä‚¢‚È‚¢‚©
 	bool pendingEntry = false;
 
@@ -6283,6 +6313,7 @@ Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\ECS\Systems\Animatio
 #include "Engine/ECS/Components/SkinnedMeshComponent.h"
 
 struct TransformComponent;
+struct MovementComponent;
 
 class AnimationSystem
 {
@@ -6325,7 +6356,17 @@ private:
 	// ƒNƒƒXƒtƒF[ƒhF•Û‘¶‚µ‚½ƒ|[ƒY‚©‚çA¡‚Ìƒ|[ƒY‚Ö¬‚º‚é
 	static void UpdateCrossfade(AnimatorComponent& animator, SkinnedMeshComponent& skinned, float elapsedTime);
 
+	// ƒNƒŠƒbƒv1–{FŠÔ‚ği‚ß‚ÄAƒ|[ƒY‚ğì‚é
+	static RootMotionVelocity UpdateClipPose(AnimatorComponent& animator, SkinnedMeshComponent& skinned,
+		const std::vector<Model::Animation>& animations,
+		const TransformComponent* transform, const MovementComponent* movement, float elapsedTime);
 
+	// BlendFŞ—¿AEB‚ÌÄ¶ˆÊ’u(‰½Š„–Ú)‚ğ1ƒtƒŒ[ƒ€•ªi‚ß‚é
+	static void AdvanceBlendPhase(AnimatorComponent& animator, float lengthA, float lengthB, bool hasB, float elapsedTime);
+
+	// BlendFŠÔ‚ği‚ß‚ÄAŞ—¿AEB‚Ìƒ|[ƒY‚ğ”ä—¦‚Å¬‚º‚é
+	void UpdateBlendPose(AnimatorComponent& animator, SkinnedMeshComponent& skinned,
+		const std::vector<Model::Animation>& animations, float elapsedTime);
 
 	// ƒL[ƒtƒŒ[ƒ€•âŠÔiˆÊ’uj
 	static DirectX::XMFLOAT3 InterpolatePosition(
@@ -6380,6 +6421,11 @@ private:
 		float newTime,
 		float rangeStart = 0.0f,
 		float rangeEnd = -1.0f);
+
+	// Blend ‚ÌŞ—¿B‚Ìƒ|[ƒY
+	std::vector<DirectX::XMFLOAT3> blendPositionsB;
+	std::vector<DirectX::XMFLOAT4> blendRotationsB;
+	std::vector<DirectX::XMFLOAT3> blendScalesB;
 }; 
  
 ===== ConditionGraphEvaluator.h ===== 
@@ -6394,6 +6440,9 @@ public:
 	// ‘JˆÚğŒ‚ª¬—§‚µ‚Ä‚¢‚ê‚Îtrue‚ğ•Ô‚·
 	static bool Evaluate(const ConditionGraph& graph, entt::registry& registry, entt::entity entity);
 
+	// Component ‚Ì•Ï”‚ğ float ‚Æ‚µ‚Ä“Ç‚Ş
+	static float ReadFieldAsFloat(const std::string& componentName, const std::string& fieldName,
+		FloatComponent selectedComponent, entt::registry& registry, entt::entity entity);
 private:
 	// ƒQƒbƒ^[ƒm[ƒh‚Åæ“¾‚µ‚Ä‚¢‚é’l‚ğæ“¾‚·‚é
 	static float GetGetterValue(const ConditionGetterNode& node, entt::registry& registry, entt::entity entity);
@@ -6926,10 +6975,25 @@ private:
 	// State‚É“ü‚é
 	static void EnterState(StateMachineComponent& sm, const StateNode& state, const StateTransition& via);
 
+	// ƒm[ƒh‚ğÄ¶‚·‚é
+	bool PlayNode(StateMachineComponent& sm, AnimatorComponent& animator, const ChildGraph& child, int nodeId,
+		const CrossfadeSetting& crossfade, SequencerComponent* sequencer);
+
+
 	// ƒNƒŠƒbƒv‚ğÄ¶‚·‚é
 	void PlayClip(AnimatorComponent& animator, const ClipNode& clip, const CrossfadeSetting& crossfade, SequencerComponent* sequencer);
 
+	// Blend ‚ğÄ¶‚·‚é
+	void PlayBlend(AnimatorComponent& animator, const BlendNode& blend, const CrossfadeSetting& crossfade);
+
+	// Blend ‚ÌŞ—¿‚Æ”ä—¦‚ğŒˆ‚ß‚ÄAAnimator ‚É‘‚­
+	void UpdateBlend(StateMachineComponent& sm, AnimatorComponent& animator, const BlendNode& blend,
+		entt::registry& registry, entt::entity entity, SequencerComponent* sequencer);
+
 	static bool FindTrimmingRange(SequencerData& data, const std::string& clipName, float& outStart, float& outEnd);
+
+	// ƒNƒŠƒbƒv‚ÌƒgƒŠƒ~ƒ“ƒO”ÍˆÍ‚ğ’²‚×‚é
+	bool ResolveTrimmingRange(SequencerComponent* sequencer, const std::string& clipName, float& outStart, float& outEnd);
 
 	JsonFileCache<LoadedStateMachine> graphCache;
 	JsonFileCache<SequencerData> trimDataCache;
@@ -6938,6 +7002,8 @@ private:
 	std::set<std::string> reportedPaths;
 	// uState‚ª–³‚¢v‚Æ•ñÏ‚İ‚Ì‘g
 	std::set<std::string> reportedMissingStates;
+	// uBlend ‚Ì Output ‚Ö‚Ìü‚ªA‚Ç‚ê‚à¬—§‚µ‚È‚¢v‚Æ•ñÏ‚İ‚Ì‘g
+	std::set<std::string> reportedBlendNoMatch;
 }; 
  
 ===== TwoBoneIKSolver.h ===== 
@@ -6977,10 +7043,52 @@ namespace TwoBoneIKSolver
 ===== AnimationSpeedSystem.cpp ===== 
 Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\ECS\Systems\AnimationSpeedSystem.cpp 
 #include "AnimationSpeedSystem.h"
+#include <algorithm>
+#include <cmath>
+#include "Engine/Core/Log.h"
 #include "Engine/ECS/Components/SkinnedMeshComponent.h"
 #include "Engine/ECS/Components/AnimatorComponent.h"
 #include "Engine/ECS/Components/AnimationSpeedComponent.h"
 
+namespace
+{
+	const float sameEpsilon = 0.0001f; // “¯‚¶‚Æ‚İ‚È‚·Œë·
+
+	// ƒNƒŠƒbƒv–¼‚©‚ç‘¬“xƒJ[ƒu‚ğ’T‚·(–³‚¯‚ê‚Î nullptrBì‚ç‚È‚¢)
+	const AnimationSpeedClipData* FindSpeedClip(const AnimationSpeedData& data, const std::string& clipName)
+	{
+		for (const auto& c : data.clips)
+		{
+			if (c.clipName == clipName) return &c;
+		}
+		return nullptr;
+	}
+
+	// ƒJ[ƒu‚ª‚ ‚é‚©(“_‚ª1‚ÂˆÈã)
+	bool HasCurve(const AnimationSpeedClipData* curve)
+	{
+		return curve && !curve->points.empty();
+	}
+
+	// 2‚Â‚ÌƒJ[ƒu‚Ì“_‚ª“¯‚¶‚©(ID ‚Æ•À‚Ñ‡‚ÍŒ©‚È‚¢)
+	bool SameCurve(const AnimationSpeedClipData& a, const AnimationSpeedClipData& b)
+	{
+		if (a.points.size() != b.points.size()) return false;
+
+		auto byTime = [](const AnimationSpeedPoint& l, const AnimationSpeedPoint& r) { return l.time < r.time; };
+		std::vector<AnimationSpeedPoint> sortedA = a.points;
+		std::vector<AnimationSpeedPoint> sortedB = b.points;
+		std::sort(sortedA.begin(), sortedA.end(), byTime);
+		std::sort(sortedB.begin(), sortedB.end(), byTime);
+
+		for (size_t i = 0; i < sortedA.size(); ++i)
+		{
+			if (std::abs(sortedA[i].time - sortedB[i].time) > sameEpsilon) return false;
+			if (std::abs(sortedA[i].speed - sortedB[i].speed) > sameEpsilon) return false;
+		}
+		return true;
+	}
+}
 
 void AnimationSpeedSystem::Update(entt::registry& registry)
 {
@@ -7005,8 +7113,20 @@ void AnimationSpeedSystem::Update(entt::registry& registry)
 		}
 
 		AnimationSpeedData& data = dataCache.GetOrLoad(animSpeed.animationSpeedPath,
-			[](AnimationSpeedData& data, const nlohmann::json& j) { data.FromJson(j); });
+			[this](AnimationSpeedData& data, const nlohmann::json& j)
+			{
+				data.FromJson(j);
+				reportedMismatch.clear(); // “Ç‚İ‚İ’¼‚µ‚½‚çAŠm‚©‚ß’¼‚¹‚é‚æ‚¤‚É‚·‚é
+			});
 
+		// BlendFŞ—¿‚Ì‘¬“xƒJ[ƒu‚©‚çŒˆ‚ß‚é
+		if (animator.playMode == AnimPlayMode::Blend)
+		{
+			animator.speedCurveMultiplier = EvaluateBlendSpeed(data, animator);
+			continue;
+		}
+
+		// ClipF¡‚Ü‚Å‚Ç‚¨‚è
 		const AnimationSpeedClipData* clip = nullptr;
 		for (const auto& c : data.clips)
 		{
@@ -7034,11 +7154,54 @@ void AnimationSpeedSystem::Update(entt::registry& registry)
 
 		animator.speedCurveMultiplier = clip ? clip->EvaluateSpeed(normalizedTime) : 1.0f;
 	}
-} 
+}
+
+// Blend ‚Ì‘¬“xƒJ[ƒu‚Ì”{—¦‚ğ‹‚ß‚é
+float AnimationSpeedSystem::EvaluateBlendSpeed(const AnimationSpeedData& data, const AnimatorComponent& animator)
+{
+	// A ‚ÌuƒNƒŠƒbƒv‘S‘Ì‚ğ 0?1 ‚Æ‚µ‚½ˆÊ’uv(B ‚àƒJ[ƒu‚ÆƒgƒŠƒ~ƒ“ƒO‚ª“¯‚¶‚Æ‚«‚¾‚¯g‚¤‚Ì‚ÅAA ‚ÌˆÊ’u‚Å‘«‚è‚é)
+	const float normalizedTime = animator.blendTrimStartA
+		+ animator.blendPhase * (animator.blendTrimEndA - animator.blendTrimStartA);
+
+	const AnimationSpeedClipData* curveA = FindSpeedClip(data, animator.blendClipA);
+
+	// Ş—¿1‚ÂFA ‚ÌƒJ[ƒu‚ğg‚¤
+	if (animator.blendClipB.empty())
+	{
+		return HasCurve(curveA) ? curveA->EvaluateSpeed(normalizedTime) : 1.0f;
+	}
+
+	const AnimationSpeedClipData* curveB = FindSpeedClip(data, animator.blendClipB);
+
+	// 2‚Â‚Æ‚àƒJ[ƒu‚ª–³‚¢FŒ³XƒJ[ƒu‚ğg‚Á‚Ä‚¢‚È‚¢
+	if (!HasCurve(curveA) && !HasCurve(curveB)) return 1.0f;
+
+	// ƒJ[ƒu‚ÆƒgƒŠƒ~ƒ“ƒO‚ª“¯‚¶‚È‚çA‚»‚ÌƒJ[ƒu‚ğg‚¤
+	const bool sameTrim =
+		std::abs(animator.blendTrimStartA - animator.blendTrimStartB) <= sameEpsilon &&
+		std::abs(animator.blendTrimEndA - animator.blendTrimEndB) <= sameEpsilon;
+	const bool sameCurve = HasCurve(curveA) && HasCurve(curveB) && SameCurve(*curveA, *curveB);
+
+	if (sameTrim && sameCurve)
+	{
+		return curveA->EvaluateSpeed(normalizedTime);
+	}
+
+	// ˆá‚¤F—¼•û 1”{‚ÅÄ¶‚·‚é(“¯‚¶‘g‚É‚Â‚¢‚Ä‚Í1‰ñ‚¾‚¯•ñ‚·‚é)
+	std::string key = animator.blendClipA + "\n" + animator.blendClipB;
+	if (reportedMismatch.insert(key).second)
+	{
+		Log(u8"[AnimationSpeed] Œx: Blend ‚ÌŞ—¿u%sv‚Æu%sv‚ÍA‘¬“xƒJ[ƒu‚©ƒgƒŠƒ~ƒ“ƒO‚ªˆá‚¤‚½‚ßA‘¬“xƒJ[ƒu‚ğg‚¢‚Ü‚¹‚ñ(1”{‚ÅÄ¶‚µ‚Ü‚·)",
+			animator.blendClipA.c_str(), animator.blendClipB.c_str());
+	}
+	return 1.0f;
+}
+ 
  
 ===== AnimationSystem.cpp ===== 
 Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\ECS\Systems\AnimationSystem.cpp 
 #include "AnimationSystem.h"
+#include <cmath>
 #include "tracy/Tracy.hpp"
 #include "Engine/Resource/SkeletonUtils.h"
 #include "Engine/ECS/Components/TransformComponent.h"
@@ -7084,44 +7247,22 @@ void AnimationSystem::Update(
 			const auto& animations = skinned.model->GetAnimations();
 			if (animations.empty()) return;
 
-			// Ä¶‚·‚éƒNƒŠƒbƒv‚ğŒˆ‚ß‚é
-			int animIndex = FindAnimationIndex(animations, animator.currentAnimation);
-			if (animIndex < 0)
-			{
-				animIndex = 0;
-				animator.currentAnimation = animations[0].name;
-			}
-			const auto& animation = animations[animIndex];
-
-			// ŠÔ‚ği‚ß‚é
-			const ClipTimeStep step = AdvanceClipTime(animator, animation, elapsedTime);
-
-			// ƒ‹[ƒgƒ‚[ƒVƒ‡ƒ“‚ÌˆÚ“®—Ê
-			const int rootMotionNodeIndex = animator.rootMotionNodeName.empty()
-				? -1
-				: FindNodeIndex(*skinned.model, animator.rootMotionNodeName);
-
-			animator.rootMotionDelta = (rootMotionNodeIndex >= 0)
-				? CalcRootMotionDelta(*skinned.model, animation, rootMotionNodeIndex,
-					step.oldTime, step.newTime, step.rangeStart, step.rangeEnd)
-				: DirectX::XMFLOAT3{ 0.0f, 0.0f, 0.0f };
-
-			// ƒ|[ƒY‚ğì‚é
-			CalcBoneTransforms(
-				*skinned.model, animation, animator.animationTime,
-				skinned.localPositions, skinned.localRotations, skinned.localScales,
-				rootMotionNodeIndex);
-
-			// ƒ‹[ƒgƒ‚[ƒVƒ‡ƒ“—R—ˆ‚Ì‘¬“x
 			auto* transform = registry.try_get<TransformComponent>(entity);
 			auto* movement = registry.try_get<MovementComponent>(entity);
 
+			// ƒ|[ƒY‚ğì‚é(Ä¶‚Ìí—Ş‚²‚Æ)
 			RootMotionVelocity velocity;
-			if (animator.useRootMotion && rootMotionNodeIndex >= 0 && elapsedTime > 0.0f && transform && movement)
+			switch (animator.playMode)
 			{
-				velocity.value = ToWorldVelocity(animator.rootMotionDelta, *transform, elapsedTime, animator.useRootMotionY);
-				velocity.valid = true;
-				velocity.writeY = animator.useRootMotionY;
+			case AnimPlayMode::Clip:
+				velocity = UpdateClipPose(animator, skinned, animations, transform, movement, elapsedTime);
+				break;
+
+			case AnimPlayMode::Blend:
+				// Blend ‚Å‚Íƒ‹[ƒgƒ‚[ƒVƒ‡ƒ“‚ğg‚í‚È‚¢
+				animator.rootMotionDelta = { 0.0f, 0.0f, 0.0f };
+				UpdateBlendPose(animator, skinned, animations, elapsedTime);
+				break;
 			}
 
 			// ƒNƒƒXƒtƒF[ƒh
@@ -7273,6 +7414,132 @@ void AnimationSystem::UpdateCrossfade(AnimatorComponent& animator, SkinnedMeshCo
 	{
 		animator.isCrossfading = false;
 	}
+}
+
+// ƒNƒŠƒbƒv1–{FŠÔ‚ği‚ß‚ÄAƒ|[ƒY‚ğì‚é
+AnimationSystem::RootMotionVelocity AnimationSystem::UpdateClipPose(AnimatorComponent& animator, SkinnedMeshComponent& skinned,
+	const std::vector<Model::Animation>& animations,
+	const TransformComponent* transform, const MovementComponent* movement, float elapsedTime)
+{
+	// Ä¶‚·‚éƒNƒŠƒbƒv‚ğŒˆ‚ß‚é
+	int animIndex = FindAnimationIndex(animations, animator.currentAnimation);
+	if (animIndex < 0)
+	{
+		animIndex = 0;
+		animator.currentAnimation = animations[0].name;
+	}
+	const auto& animation = animations[animIndex];
+
+	// ŠÔ‚ği‚ß‚é
+	const ClipTimeStep step = AdvanceClipTime(animator, animation, elapsedTime);
+
+	// ƒ‹[ƒgƒ‚[ƒVƒ‡ƒ“‚ÌˆÚ“®—Ê
+	const int rootMotionNodeIndex = animator.rootMotionNodeName.empty()
+		? -1
+		: FindNodeIndex(*skinned.model, animator.rootMotionNodeName);
+
+	animator.rootMotionDelta = (rootMotionNodeIndex >= 0)
+		? CalcRootMotionDelta(*skinned.model, animation, rootMotionNodeIndex,
+			step.oldTime, step.newTime, step.rangeStart, step.rangeEnd)
+		: DirectX::XMFLOAT3{ 0.0f, 0.0f, 0.0f };
+
+	// ƒ|[ƒY‚ğì‚é
+	CalcBoneTransforms(
+		*skinned.model, animation, animator.animationTime,
+		skinned.localPositions, skinned.localRotations, skinned.localScales,
+		rootMotionNodeIndex);
+
+	// ƒ‹[ƒgƒ‚[ƒVƒ‡ƒ“—R—ˆ‚Ì‘¬“x
+	RootMotionVelocity velocity;
+	if (animator.useRootMotion && rootMotionNodeIndex >= 0 && elapsedTime > 0.0f && transform && movement)
+	{
+		velocity.value = ToWorldVelocity(animator.rootMotionDelta, *transform, elapsedTime, animator.useRootMotionY);
+		velocity.valid = true;
+		velocity.writeY = animator.useRootMotionY;
+	}
+	return velocity;
+}
+
+// BlendFŞ—¿AEB‚ÌÄ¶ˆÊ’u(‰½Š„–Ú)‚ğ1ƒtƒŒ[ƒ€•ªi‚ß‚é
+void AnimationSystem::AdvanceBlendPhase(AnimatorComponent& animator, float lengthA, float lengthB, bool hasB, float elapsedTime)
+{
+	// 1ü‚Ì’·‚³F”ä—¦‚Å¬‚º‚½’·‚³(B‚ÌŠ„‡‚ª 0 ‚È‚ç A ‚Ì’·‚³A1 ‚È‚ç B ‚Ì’·‚³)
+	const float cycleLength = hasB ? (lengthA + (lengthB - lengthA) * animator.blendWeight) : lengthA;
+	if (cycleLength <= 0.0001f) return;
+
+	animator.blendPhase += elapsedTime * animator.playSpeed * animator.speedCurveMultiplier / cycleLength;
+
+	if (animator.loop)
+	{
+		// ƒ‹[ƒvF1 ‚ğ‰z‚¦‚½‚çA‰z‚¦‚½•ª‚¾‚¯“ª‚©‚ç
+		if (animator.blendPhase >= 1.0f)
+		{
+			animator.blendPhase -= std::floor(animator.blendPhase);
+			animator.isEnd = false;
+		}
+	}
+	else
+	{
+		// ƒ‹[ƒv‚µ‚È‚¢FI‚í‚è‚Å~‚ß‚é
+		if (animator.blendPhase >= 1.0f)
+		{
+			animator.blendPhase = 1.0f;
+			animator.isPlaying = false;
+			animator.isEnd = true;
+		}
+	}
+}
+
+// BlendFŠÔ‚ği‚ß‚ÄAŞ—¿AEB‚Ìƒ|[ƒY‚ğ”ä—¦‚Å¬‚º‚é
+void AnimationSystem::UpdateBlendPose(AnimatorComponent& animator, SkinnedMeshComponent& skinned, const std::vector<Model::Animation>& animations, float elapsedTime)
+{
+	// Ş—¿‚ÌƒNƒŠƒbƒv‚ğ’T‚·(A ‚ªŒ©‚Â‚©‚ç‚È‚¯‚ê‚ÎAƒ|[ƒY‚ğì‚ê‚È‚¢‚Ì‚Å‘O‚Ìƒ|[ƒY‚Ì‚Ü‚Ü)
+	const int indexA = FindAnimationIndex(animations, animator.blendClipA);
+	if (indexA < 0) return;
+
+	const int indexB = animator.blendClipB.empty() ? -1 : FindAnimationIndex(animations, animator.blendClipB);
+	const bool hasB = (indexB >= 0);
+
+	const auto& animationA = animations[indexA];
+	const auto& animationB = animations[hasB ? indexB : indexA];
+
+	// ƒgƒŠƒ~ƒ“ƒOŒã‚Ì’·‚³(•b)
+	const float lengthA = (animator.blendTrimEndA - animator.blendTrimStartA) * animationA.secondsLength;
+	const float lengthB = hasB ? (animator.blendTrimEndB - animator.blendTrimStartB) * animationB.secondsLength : 0.0f;
+
+	// ‡@ Ä¶ˆÊ’u(‰½Š„–Ú)‚ği‚ß‚é
+	AdvanceBlendPhase(animator, lengthA, lengthB, hasB, elapsedTime);
+
+	// ‡A “¯‚¶u‰½Š„–Úv‚ğA‚»‚ê‚¼‚ê‚ÌƒNƒŠƒbƒv‚Ì•b”‚É’¼‚·
+	const float timeA = animator.blendTrimStartA * animationA.secondsLength + animator.blendPhase * lengthA;
+	const float timeB = animator.blendTrimStartB * animationB.secondsLength + animator.blendPhase * lengthB;
+
+	// ƒ‹[ƒgƒm[ƒh‚ÍAClip ‚Æ“¯‚¶‚­“®‚©‚³‚È‚¢(ƒ‹[ƒgƒ‚[ƒVƒ‡ƒ“‚Ì•ª‚ğAŒ©‚½–Ú‚Éo‚³‚È‚¢)
+	const int rootMotionNodeIndex = animator.rootMotionNodeName.empty()
+		? -1
+		: FindNodeIndex(*skinned.model, animator.rootMotionNodeName);
+
+	// A ‚Ìƒ|[ƒY
+	CalcBoneTransforms(
+		*skinned.model, animationA, timeA,
+		skinned.localPositions, skinned.localRotations, skinned.localScales,
+		rootMotionNodeIndex);
+
+	// B ‚ª–³‚¢A‚Ü‚½‚Í B ‚ÌŠ„‡‚ª 0 ‚È‚çAA ‚¾‚¯‚ÅI‚í‚è
+	if (!hasB || animator.blendWeight <= 0.0f) return;
+
+	// B ‚Ìƒ|[ƒY
+	CalcBoneTransforms(
+		*skinned.model, animationB, timeB,
+		blendPositionsB, blendRotationsB, blendScalesB,
+		rootMotionNodeIndex);
+
+	// ‡B ”ä—¦‚Å¬‚º‚é(A ¨ B ‚ğ blendWeight ‚Å)
+	BlendPoses(
+		skinned.localPositions, skinned.localRotations, skinned.localScales,
+		blendPositionsB, blendRotationsB, blendScalesB,
+		animator.blendWeight,
+		skinned.localPositions, skinned.localRotations, skinned.localScales);
 }
 
 // ƒL[ƒtƒŒ[ƒ€•âŠÔiˆÊ’uj
@@ -7574,18 +7841,19 @@ bool ConditionGraphEvaluator::Evaluate(const ConditionGraph& graph, entt::regist
 	return false; // ‚Ç‚ê‚É‚àŠY“–‚µ‚È‚¢ê‡
 }
 
-// ƒQƒbƒ^[ƒm[ƒh‚Åæ“¾‚µ‚Ä‚¢‚é’l‚ğæ“¾‚·‚é
-float ConditionGraphEvaluator::GetGetterValue(const ConditionGetterNode& node, entt::registry& registry, entt::entity entity)
+// Component ‚Ì•Ï”‚ğ float ‚Æ‚µ‚Ä“Ç‚Ş
+float ConditionGraphEvaluator::ReadFieldAsFloat(const std::string& componentName, const std::string& fieldName,
+	FloatComponent selectedComponent, entt::registry& registry, entt::entity entity) 
 {
 	// ƒRƒ“ƒ|[ƒlƒ“ƒg–¼‚ÆƒtƒB[ƒ‹ƒh‚ÌƒR[ƒhã‚Ì–¼‘O‚©‚çAFieldEntry‚ğ’T‚·
-	const FieldEntry* found = Reflection::FindField(node.componentName, node.fieldName);
+	const FieldEntry* found = Reflection::FindField(componentName, fieldName);
 	if (!found) return 0.0f;
 
 	// ƒRƒ“ƒ|[ƒlƒ“ƒg‚ÌÀ‘Ì‚ğæ“¾‚·‚é
 	entt::meta_any instance;
 
 	// ComponentRegistry‚É“o˜^‚³‚ê‚Ä‚¢‚ê‚ÎA‚»‚¿‚ç‚©‚çæ“¾‚·‚é
-	if (const ComponentInfo* info = ComponentRegistry::Get(node.componentName)) 
+	if (const ComponentInfo* info = ComponentRegistry::Get(componentName))
 	{
 		instance = info->getMeta(registry, entity);
 	}
@@ -7622,7 +7890,7 @@ float ConditionGraphEvaluator::GetGetterValue(const ConditionGetterNode& node, e
 
 	if (DirectX::XMFLOAT2* v = value.try_cast<DirectX::XMFLOAT2>())
 	{
-		switch (node.selectedComponent)
+		switch (selectedComponent)
 		{
 		case FloatComponent::X: return v->x;
 		case FloatComponent::Y: return v->y;
@@ -7631,7 +7899,7 @@ float ConditionGraphEvaluator::GetGetterValue(const ConditionGetterNode& node, e
 	}
 	if (DirectX::XMFLOAT3* v = value.try_cast<DirectX::XMFLOAT3>())
 	{
-		switch (node.selectedComponent)
+		switch (selectedComponent)
 		{
 		case FloatComponent::X: return v->x;
 		case FloatComponent::Y: return v->y;
@@ -7641,7 +7909,7 @@ float ConditionGraphEvaluator::GetGetterValue(const ConditionGetterNode& node, e
 	}
 	if (DirectX::XMFLOAT4* v = value.try_cast<DirectX::XMFLOAT4>())
 	{
-		switch (node.selectedComponent)
+		switch (selectedComponent)
 		{
 		case FloatComponent::X: return v->x;
 		case FloatComponent::Y: return v->y;
@@ -7653,6 +7921,13 @@ float ConditionGraphEvaluator::GetGetterValue(const ConditionGetterNode& node, e
 
 	return 0.0f;
 }
+
+// ƒQƒbƒ^[ƒm[ƒh‚Åæ“¾‚µ‚Ä‚¢‚é’l‚ğæ“¾‚·‚é
+float ConditionGraphEvaluator::GetGetterValue(const ConditionGetterNode& node, entt::registry& registry, entt::entity entity)
+{
+	return ReadFieldAsFloat(node.componentName, node.fieldName, node.selectedComponent, registry, entity);
+}
+
 // •Ï”ƒm[ƒh‚Å•Û‚µ‚Ä‚¢‚é’l‚ğæ“¾‚·‚é
 float ConditionGraphEvaluator::GetVariableValue(const ConditionVariableNode& node)
 {
@@ -9592,6 +9867,53 @@ Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\ECS\Systems\StateMac
 #include "Engine/ECS/Components/SequencerComponent.h"
 #include "Engine/ECS/Components/StateMachineComponent.h"
 
+#include <algorithm>
+
+namespace
+{
+	// ƒNƒƒXƒtƒF[ƒh‚ğn‚ß‚é
+	void StartCrossfade(AnimatorComponent& animator, const CrossfadeSetting& crossfade)
+	{
+		const float duration = (crossfade.enabled && crossfade.duration > 0.0f) ? crossfade.duration : 0.0f;
+		const bool nothingPlayedYet = animator.currentAnimation.empty() && animator.playMode == AnimPlayMode::Clip;
+
+		if (nothingPlayedYet || duration <= 0.0f)
+		{
+			animator.isCrossfading = false;
+			animator.crossfadeSnapshotPending = false;
+			return;
+		}
+
+		// ¬‚º‚éŒ³‚Ìƒ|[ƒY‚ÍAŸ‚Ì AnimationSystem ‚ÌXV‚Å•Û‘¶‚·‚é
+		animator.crossfadeSnapshotPending = true;
+		animator.crossfadeTime = duration;
+		animator.crossfadeRate = 0.0f;
+		animator.isCrossfading = true;
+	}
+
+	// æ“ª‚ª prefix ‚Ì•ñÏ‚İ‚ğÁ‚·
+		void EraseReports(std::set<std::string>&reported, const std::string & prefix)
+	{
+		for (auto it = reported.begin(); it != reported.end(); )
+		{
+			if (it->compare(0, prefix.size(), prefix) == 0) it = reported.erase(it);
+			else ++it;
+		}
+	}
+
+	// ƒyƒA‚Ì”ä—¦(B‚ÌŠ„‡)‚ğ“Ç‚ŞB0`1 ‚Éû‚ß‚é
+	float ReadPairRate(const BlendPairLink& pair, entt::registry& registry, entt::entity entity)
+	{
+		float rate = pair.fixedRate;
+		if (pair.rateSource == BlendRateSource::Variable)
+		{
+			rate = ConditionGraphEvaluator::ReadFieldAsFloat(
+				pair.componentName, pair.fieldName, pair.selectedComponent, registry, entity);
+		}
+		return std::clamp(rate, 0.0f, 1.0f);
+	}
+}
+
 // ƒOƒ‰ƒt‚ğæ“¾‚·‚é
 const StateMachineData* StateMachineSystem::Load(const std::string& path)
 {
@@ -9601,13 +9923,10 @@ const StateMachineData* StateMachineSystem::Load(const std::string& path)
 			l.loaded = true;
 			l.valid = l.data.FromJson(j, path);
 
-			// “Ç‚İ‚İ’¼‚µ‚½‚çA‚±‚ÌƒpƒX‚ÌuState‚ª–³‚¢v‚Ì•ñÏ‚İ‚ğÁ‚µ‚ÄAŠm‚©‚ß’¼‚¹‚é‚æ‚¤‚É‚·‚é
+			// “Ç‚İ‚İ’¼‚µ‚½‚çA‚±‚ÌƒpƒX‚Ì•ñÏ‚İ‚ğÁ‚µ‚ÄAŠm‚©‚ß’¼‚¹‚é‚æ‚¤‚É‚·‚é
 			std::string prefix = path + "\n";
-			for (auto it = reportedMissingStates.begin(); it != reportedMissingStates.end(); )
-			{
-				if (it->compare(0, prefix.size(), prefix) == 0) it = reportedMissingStates.erase(it);
-				else ++it;
-			}
+			EraseReports(reportedMissingStates, prefix);
+			EraseReports(reportedBlendNoMatch, prefix);
 		});
 
 	if (!loaded.loaded || !loaded.valid)
@@ -9649,6 +9968,35 @@ void StateMachineSystem::EnterState(StateMachineComponent& sm, const StateNode& 
 
 	// Å‰‚ÌƒNƒŠƒbƒv‚ÍAƒQ[ƒ€ƒvƒŒƒC‚ÌŠeSystem‚ª“®‚¢‚½Œã‚ÉŒˆ‚ß‚é
 	sm.pendingEntry = true;
+}
+
+// ƒm[ƒh‚ğÄ¶‚·‚é
+bool StateMachineSystem::PlayNode(StateMachineComponent& sm, AnimatorComponent& animator, const ChildGraph& child, int nodeId, const CrossfadeSetting& crossfade, SequencerComponent* sequencer)
+{
+	switch (child.GetNodeKind(nodeId))
+	{
+	case ChildNodeKind::Clip:
+	{
+		const ClipNode* clip = child.FindClip(nodeId);
+		PlayClip(animator, *clip, crossfade, sequencer);
+		sm.currentNodeId = clip->id;
+		sm.currentNodeName = clip->name;
+		return true;
+	}
+
+	case ChildNodeKind::Blend:
+	{
+		const BlendNode* blend = child.FindBlend(nodeId);
+		PlayBlend(animator, *blend, crossfade);
+		sm.currentNodeId = blend->id;
+		sm.currentNodeName = blend->name;
+		sm.blendOutputLinkId = -1; // Blend ‚É“ü‚Á‚½’¼Œã‚ÍA‘O‚Ìü‚ª–³‚¢
+		return true;
+	}
+
+	default:
+		return false; // Œ©‚Â‚©‚ç‚È‚¢
+	}
 }
 
 // State‚Ì‘JˆÚ‚ğŒˆ‚ß‚é
@@ -9727,38 +10075,36 @@ void StateMachineSystem::UpdateAnimation(entt::registry& registry)
 				if (l.entryTransitionId != sm.enteredTransitionId) continue;
 				if (!l.always && !ConditionGraphEvaluator::Evaluate(l.condition, registry, entity)) continue;
 
-				const ClipNode* clip = state->child.FindClip(l.toNodeId);
-				if (!clip) continue;
+				if (!PlayNode(sm, animator, state->child, l.toNodeId, crossfade, sequencer)) continue;
 
-				PlayClip(animator, *clip, crossfade, sequencer);
-				sm.currentNodeId = clip->id;
-				sm.currentNodeName = clip->name;
 				played = true;
 				break;
 			}
 
 			if (!played)
 			{
-				// ğŒ‚ª¬—§‚·‚é‚Â‚È‚ª‚è‚ª–³‚©‚Á‚½(‘O‚ÌƒNƒŠƒbƒv‚ğÄ¶‚µ‘±‚¯‚é)
-				Log(u8"[StateMachine] u%sv‚É“ü‚è‚Ü‚µ‚½‚ªAÄ¶‚·‚éƒNƒŠƒbƒv‚ªŒˆ‚Ü‚è‚Ü‚¹‚ñ‚Å‚µ‚½(‘JˆÚID %d)",
+				// ğŒ‚ª¬—§‚·‚é‚Â‚È‚ª‚è‚ª–³‚©‚Á‚½
+				Log(u8"[StateMachine] u%sv‚É“ü‚è‚Ü‚µ‚½‚ªAÄ¶‚·‚éƒm[ƒh‚ªŒˆ‚Ü‚è‚Ü‚¹‚ñ‚Å‚µ‚½(‘JˆÚID %d)",
 					state->name.c_str(), sm.enteredTransitionId);
 			}
-			continue;
+		}
+		else
+		{
+			// State“àF¡‚Ìƒm[ƒh‚©‚ço‚é‚Â‚È‚ª‚è‚ğA•À‚Ñ‡‚É’²‚×‚é
+			for (const auto& l : state->child.clipLinks)
+			{
+				if (l.fromNodeId != sm.currentNodeId) continue;
+				if (!l.always && !ConditionGraphEvaluator::Evaluate(l.condition, registry, entity)) continue;
+
+				if (!PlayNode(sm, animator, state->child, l.toNodeId, l.crossfade, sequencer)) continue;
+				break;
+			}
 		}
 
-		// State“àF¡‚ÌƒNƒŠƒbƒv‚©‚ço‚é‚Â‚È‚ª‚è‚ğA•À‚Ñ‡‚É’²‚×‚é
-		for (const auto& l : state->child.clipLinks)
+		// –ˆƒtƒŒ[ƒ€F¡‚Ìƒm[ƒh‚ª Blend ‚È‚çAŞ—¿‚Æ”ä—¦‚ğŒˆ‚ß‚é
+		if (const BlendNode* blend = state->child.FindBlend(sm.currentNodeId))
 		{
-			if (l.fromNodeId != sm.currentNodeId) continue;
-			if (!l.always && !ConditionGraphEvaluator::Evaluate(l.condition, registry, entity)) continue;
-
-			const ClipNode* clip = state->child.FindClip(l.toNodeId);
-			if (!clip) continue;
-
-			PlayClip(animator, *clip, l.crossfade, sequencer);
-			sm.currentNodeId = clip->id;
-			sm.currentNodeName = clip->name;
-			break;
+			UpdateBlend(sm, animator, *blend, registry, entity, sequencer);
 		}
 	}
 }
@@ -9799,6 +10145,109 @@ void StateMachineSystem::AddRequiredState(const std::string& stateName, const st
 	list.push_back({ stateName, user, usesState });
 }
 
+// Blend ‚ğÄ¶‚·‚é
+void StateMachineSystem::PlayBlend(AnimatorComponent& animator, const BlendNode& blend, const CrossfadeSetting& crossfade)
+{
+	// ƒNƒƒXƒtƒF[ƒh‚ğn‚ß‚é
+	StartCrossfade(animator, crossfade);
+
+	animator.playMode = AnimPlayMode::Blend;
+	animator.blendPhase = 0.0f;
+	animator.isPlaying = true;
+	animator.isEnd = false;
+	animator.loop = blend.loop;
+	animator.useRootMotion = false; // Blend ‚Å‚Íƒ‹[ƒgƒ‚[ƒVƒ‡ƒ“‚ğg‚í‚È‚¢
+
+	// Ş—¿‚Æ”ä—¦‚ÍA–ˆƒtƒŒ[ƒ€‚Ì•]‰¿(B2-3)‚ÅŒˆ‚ß‚éB‚»‚ê‚Ü‚Å‚Í‹ó‚É‚µ‚Ä‚¨‚­
+	animator.blendClipA.clear();
+	animator.blendClipB.clear();
+	animator.blendWeight = 0.0f;
+	animator.blendTrimStartA = 0.0f;
+	animator.blendTrimEndA = 1.0f;
+	animator.blendTrimStartB = 0.0f;
+	animator.blendTrimEndB = 1.0f;
+}
+
+// Blend ‚ÌŞ—¿‚Æ”ä—¦‚ğŒˆ‚ß‚ÄAAnimator ‚É‘‚­
+void StateMachineSystem::UpdateBlend(StateMachineComponent& sm, AnimatorComponent& animator, const BlendNode& blend, entt::registry& registry, entt::entity entity, SequencerComponent* sequencer)
+{
+	const BlendGraph& g = blend.graph;
+
+	// Output ‚Ö‚Ìü‚ğ‘I‚Ô
+	const BlendOutputLink* link = nullptr;
+	for (const auto& l : g.outputLinks)
+	{
+		if (l.always || ConditionGraphEvaluator::Evaluate(l.condition, registry, entity))
+		{
+			link = &l;
+			break;
+		}
+	}
+
+	// ‚Ç‚ê‚à¬—§‚µ‚È‚¢F‘O‚ÌƒtƒŒ[ƒ€‚Ìü‚ğg‚¢‘±‚¯‚é
+	if (!link)
+	{
+		link = g.FindOutputLink(sm.blendOutputLinkId);
+		if (!link && !g.outputLinks.empty()) link = &g.outputLinks.front();
+
+		// “¯‚¶ Blend ‚É‚Â‚¢‚Ä‚Í1‰ñ‚¾‚¯•ñ‚·‚é
+		std::string key = sm.graphPath + "\n" + std::to_string(blend.id);
+		if (reportedBlendNoMatch.insert(key).second)
+		{
+			Log(u8"[StateMachine] Œx(%s): Blendu%sv‚ÅAOutput ‚Ö‚Ìü‚ÌğŒ‚ª‚Ç‚ê‚à¬—§‚µ‚Ü‚¹‚ñ‚Å‚µ‚½B‘O‚Ìü‚ğg‚¢‘±‚¯‚Ü‚·",
+				sm.graphPath.c_str(), blend.name.c_str());
+		}
+	}
+
+	if (!link) return; // Output ‚Ö‚Ìü‚ª–³‚¢
+	sm.blendOutputLinkId = link->id;
+
+	// ü‚ÌŒ³‚©‚çAŞ—¿‚Æ”ä—¦‚ğŒˆ‚ß‚é
+	std::string clipA;
+	std::string clipB;
+	float weight = 0.0f;
+
+	switch (g.GetNodeKind(link->fromId))
+	{
+	case BlendNodeKind::Source:
+	{
+		// Ş—¿1‚Â‚ğA‚»‚Ì‚Ü‚Üg‚¤
+		clipA = g.FindSource(link->fromId)->clipName;
+		break;
+	}
+	case BlendNodeKind::PairLink:
+	{
+		// Ş—¿2‚Â‚ğA”ä—¦‚Å¬‚º‚é
+		const BlendPairLink* pair = g.FindPairLink(link->fromId);
+		const BlendSourceNode* a = g.FindSource(pair->fromId);
+		const BlendSourceNode* b = g.FindSource(pair->toId);
+		if (!a || !b) return; // ŒŸØ‚ÅƒGƒ‰[‚É‚È‚é‚Ì‚ÅA’Êí‚Í—ˆ‚È‚¢
+
+		clipA = a->clipName;
+		clipB = b->clipName;
+		weight = ReadPairRate(*pair, registry, entity);
+		break;
+	}
+	default:
+		return; // ŒŸØ‚ÅƒGƒ‰[‚É‚È‚é‚Ì‚ÅA’Êí‚Í—ˆ‚È‚¢
+	}
+
+	// Ş—¿‚²‚Æ‚ÌƒgƒŠƒ~ƒ“ƒO”ÍˆÍ
+	float trimStartA = 0.0f, trimEndA = 1.0f;
+	float trimStartB = 0.0f, trimEndB = 1.0f;
+	ResolveTrimmingRange(sequencer, clipA, trimStartA, trimEndA);
+	if (!clipB.empty()) ResolveTrimmingRange(sequencer, clipB, trimStartB, trimEndB);
+
+	// Animator ‚É‘‚­
+	animator.blendClipA = clipA;
+	animator.blendClipB = clipB;
+	animator.blendWeight = weight;
+	animator.blendTrimStartA = trimStartA;
+	animator.blendTrimEndA = trimEndA;
+	animator.blendTrimStartB = trimStartB;
+	animator.blendTrimEndB = trimEndB;
+}
+
 // ƒgƒŠƒ~ƒ“ƒO”ÍˆÍ‚ğ’T‚·
 bool StateMachineSystem::FindTrimmingRange(SequencerData& data, const std::string& clipName, float& outStart, float& outEnd)
 {
@@ -9819,50 +10268,34 @@ bool StateMachineSystem::FindTrimmingRange(SequencerData& data, const std::strin
 	return false;
 }
 
+// ƒNƒŠƒbƒv‚ÌƒgƒŠƒ~ƒ“ƒO”ÍˆÍ‚ğ’²‚×‚é
+bool StateMachineSystem::ResolveTrimmingRange(SequencerComponent* sequencer, const std::string& clipName, float& outStart, float& outEnd)
+{
+	if (!sequencer || sequencer->sequencerPath.empty()) return false;
+
+	SequencerData& data = trimDataCache.GetOrLoad(sequencer->sequencerPath,
+		[](SequencerData& data, const nlohmann::json& j) { data.FromJson(j); });
+
+	return FindTrimmingRange(data, clipName, outStart, outEnd);
+}
+
 // ƒNƒŠƒbƒv‚ğÄ¶‚·‚é
 void StateMachineSystem::PlayClip(AnimatorComponent& animator, const ClipNode& clip, const CrossfadeSetting& crossfade, SequencerComponent* sequencer)
 {
 	// ƒgƒŠƒ~ƒ“ƒO”ÍˆÍ‚ğ’²‚×‚é
 	float trimStart = 0.0f;
 	float trimEnd = -1.0f;
-	if (sequencer && !sequencer->sequencerPath.empty())
+	float normStart = 0.0f, normEnd = 1.0f;
+	if (ResolveTrimmingRange(sequencer, clip.clipName, normStart, normEnd))
 	{
-		SequencerData& data = trimDataCache.GetOrLoad(sequencer->sequencerPath,
-			[](SequencerData& data, const nlohmann::json& j) { data.FromJson(j); });
-
-		float normStart = 0.0f, normEnd = 1.0f;
-		if (FindTrimmingRange(data, clip.clipName, normStart, normEnd))
-		{
-			trimStart = normStart;
-			trimEnd = normEnd;
-		}
+		trimStart = normStart;
+		trimEnd = normEnd;
 	}
 
-	float crossfadeDuration = (crossfade.enabled && crossfade.duration > 0.0f) ? crossfade.duration : 0.0f;
+	// ƒNƒƒXƒtƒF[ƒh‚ğn‚ß‚é
+	StartCrossfade(animator, crossfade);
 
-	// ƒNƒƒXƒtƒF[ƒh‚µ‚È‚¢
-	if (animator.currentAnimation.empty() || crossfadeDuration <= 0.0f) 
-	{
-		animator.currentAnimation = clip.clipName;
-		animator.trimStart = trimStart;
-		animator.trimEnd = trimEnd;
-		animator.trimResolved = false;
-		animator.animationTime = 0.0f;
-		animator.isPlaying = true;
-		animator.isEnd = false;
-		animator.useRootMotion = clip.rootMotion;
-		animator.loop = clip.loop;
-		animator.isCrossfading = false;
-		animator.crossfadeSnapshotPending = false;
-		return;
-	}
-
-	// ƒNƒƒXƒtƒF[ƒhŠJn
-	animator.crossfadeSnapshotPending = true;
-	animator.crossfadeTime = crossfadeDuration;
-	animator.crossfadeRate = 0.0f;
-	animator.isCrossfading = true;
-
+	animator.playMode = AnimPlayMode::Clip;
 	animator.currentAnimation = clip.clipName;
 	animator.trimStart = trimStart;
 	animator.trimEnd = trimEnd;

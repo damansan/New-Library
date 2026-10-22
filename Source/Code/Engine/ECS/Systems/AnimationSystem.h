@@ -7,6 +7,7 @@
 #include "Engine/ECS/Components/SkinnedMeshComponent.h"
 
 struct TransformComponent;
+struct MovementComponent;
 
 class AnimationSystem
 {
@@ -49,7 +50,17 @@ private:
 	// クロスフェード：保存したポーズから、今のポーズへ混ぜる
 	static void UpdateCrossfade(AnimatorComponent& animator, SkinnedMeshComponent& skinned, float elapsedTime);
 
+	// クリップ1本：時間を進めて、ポーズを作る
+	static RootMotionVelocity UpdateClipPose(AnimatorComponent& animator, SkinnedMeshComponent& skinned,
+		const std::vector<Model::Animation>& animations,
+		const TransformComponent* transform, const MovementComponent* movement, float elapsedTime);
 
+	// Blend：材料A・Bの再生位置(何割目)を1フレーム分進める
+	static void AdvanceBlendPhase(AnimatorComponent& animator, float lengthA, float lengthB, bool hasB, float elapsedTime);
+
+	// Blend：時間を進めて、材料A・Bのポーズを比率で混ぜる
+	void UpdateBlendPose(AnimatorComponent& animator, SkinnedMeshComponent& skinned,
+		const std::vector<Model::Animation>& animations, float elapsedTime);
 
 	// キーフレーム補間（位置）
 	static DirectX::XMFLOAT3 InterpolatePosition(
@@ -104,4 +115,9 @@ private:
 		float newTime,
 		float rangeStart = 0.0f,
 		float rangeEnd = -1.0f);
+
+	// Blend の材料Bのポーズ
+	std::vector<DirectX::XMFLOAT3> blendPositionsB;
+	std::vector<DirectX::XMFLOAT4> blendRotationsB;
+	std::vector<DirectX::XMFLOAT3> blendScalesB;
 };

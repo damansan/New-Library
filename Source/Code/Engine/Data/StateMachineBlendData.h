@@ -26,6 +26,7 @@ enum class BlendNodeKind
 struct BlendSourceNode
 {
 	int id = -1;
+	std::string name;     // 表示名
 	std::string clipName;
 	EditorPosition editorPos;
 };
@@ -86,9 +87,26 @@ struct BlendGraph
 	const BlendSourceNode* FindSource(int id) const;
 	const BlendPairLink* FindPairLink(int id) const;
 	const BlendOutputLink* FindOutputLink(int id) const;
+	// 編集用の検索
+	BlendSourceNode* FindSource(int id);
+	BlendPairLink* FindPairLink(int id);
+	BlendOutputLink* FindOutputLink(int id);
 
 	// ノードの種類(Output への線の fromId が、材料かペアかを調べる)
 	BlendNodeKind GetNodeKind(int id) const;
+
+	// 材料
+	int  AddSource(const EditorPosition& pos); // 作成
+	void RemoveSource(int id);                 // 削除
+
+	// ペア
+	int  AddPairLink(int fromId, int toId); // 作成
+	void RemovePairLink(int id);            // 削除
+
+	// Output への線
+	int  AddOutputLink(int fromId);           // 作成
+	void RemoveOutputLink(int id);            // 削除
+	bool MoveOutputLink(int id, int offset);  // 優先度の入れ替え
 };
 
 // JSONとの変換

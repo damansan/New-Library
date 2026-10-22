@@ -45,6 +45,7 @@
     <ClCompile Include="..\..\Source\Code\Tool\NodeEditor\NodeEditorCanvas.cpp" />
     <ClCompile Include="..\..\Source\Code\Tool\Studio\StudioAnimationSpeed.cpp" />
     <ClCompile Include="..\..\Source\Code\Tool\Studio\StudioAnimator.cpp" />
+    <ClCompile Include="..\..\Source\Code\Tool\Studio\StudioBlendCanvas.cpp" />
     <ClCompile Include="..\..\Source\Code\Tool\Studio\StudioCamera.cpp" />
     <ClCompile Include="..\..\Source\Code\Tool\Studio\StudioConditionCanvas.cpp" />
     <ClCompile Include="..\..\Source\Code\Tool\Studio\StudioConditionCopyList.cpp" />
@@ -81,6 +82,7 @@
     <ClInclude Include="..\..\Source\Code\Tool\Studio\IStudioAttachment.h" />
     <ClInclude Include="..\..\Source\Code\Tool\Studio\StudioAnimationSpeed.h" />
     <ClInclude Include="..\..\Source\Code\Tool\Studio\StudioAnimator.h" />
+    <ClInclude Include="..\..\Source\Code\Tool\Studio\StudioBlendCanvas.h" />
     <ClInclude Include="..\..\Source\Code\Tool\Studio\StudioCamera.h" />
     <ClInclude Include="..\..\Source\Code\Tool\Studio\StudioConditionCanvas.h" />
     <ClInclude Include="..\..\Source\Code\Tool\Studio\StudioConditionCopyList.h" />

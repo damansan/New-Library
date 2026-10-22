@@ -45,11 +45,11 @@ namespace
 		return s ? s->name : "(missing)";
 	}
 
-	// クリップのIDから、表示用の名前を作る
-	std::string GetClipName(const ChildGraph& child, int clipId)
+	// ノードのIDから、表示用の名前を作る
+	std::string GetClipName(const ChildGraph& child, int nodeId)
 	{
-		const ClipNode* c = child.FindClip(clipId);
-		return c ? c->name : "(missing)";
+		const std::string* name = child.FindNodeName(nodeId);
+		return name ? *name : "(missing)";
 	}
 }
 

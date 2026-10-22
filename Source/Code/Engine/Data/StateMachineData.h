@@ -14,7 +14,7 @@ struct CrossfadeSetting
 	float duration = 0.2f; // クロスフェードの秒数(enabledがfalseなら使わない)
 };
 
-// 親階層 : 遷移(State → State)
+// 親階層：遷移(State → State)
 struct StateTransition
 {
 	int id = -1;
@@ -24,7 +24,7 @@ struct StateTransition
 	ConditionGraph condition;
 };
 
-// 子階層：再生するクリップ
+// 子階層：クリップを1本再生するノード
 struct ClipNode
 {
 	int id = -1;
@@ -35,22 +35,22 @@ struct ClipNode
 	EditorPosition editorPos;
 };
 
-// 複数のクリップをブレンドし再生するノード
+// 子階層：複数のクリップを混ぜて再生するノード
 struct BlendNode
 {
 	int id = -1;
 	std::string name;
-	bool loop = true;        
+	bool loop = true;
 	EditorPosition editorPos;
-	BlendGraph graph;         // 中のグラフ(材料・ペア・Output)
+	BlendGraph graph; // 中のグラフ
 };
 
-// 子階層の中のノードの種類
+// 子階層のノードの種類
 enum class ChildNodeKind
 {
 	None,  // 見つからない
-	Clip,  // アニメーションクリップ
-	Blend, // アニメーションブレンド
+	Clip,  // ClipNode
+	Blend, // BlendNode
 };
 
 // 子階層：遷移(エントリー → ノード)
@@ -58,7 +58,7 @@ struct EntryLink
 {
 	int id = -1;
 	int entryTransitionId = -1; // どの遷移から来たエントリーか
-	int toNodeId = -1;
+	int toNodeId = -1;          // 行き先のノード
 	bool always = false;
 	ConditionGraph condition;
 };
@@ -67,14 +67,14 @@ struct EntryLink
 struct ClipLink
 {
 	int id = -1;
-	int fromNodeId = -1;        // 遷移元のノード
-	int toNodeId = -1;          // 行き先のノード
+	int fromNodeId = -1; // 遷移元のノード
+	int toNodeId = -1;   // 行き先のノード
 	bool always = false;
 	CrossfadeSetting crossfade;
 	ConditionGraph condition;
 };
 
-// 子階層(そのStateで何を再生するか)
+// 子階層
 struct ChildGraph
 {
 	std::vector<ClipNode>  clips;
@@ -85,12 +85,16 @@ struct ChildGraph
 	// エントリーのエディタ上の位置
 	std::unordered_map<int, EditorPosition> entryEditorPos;
 
+	// 検索
 	const ClipNode* FindClip(int clipId) const;
 	const BlendNode* FindBlend(int blendId) const;
 
 	// ノードの種類
 	ChildNodeKind GetNodeKind(int nodeId) const;
+	// ノードの名前
+	const std::string* FindNodeName(int nodeId) const;
 };
+
 
 // State(親)
 struct StateNode
@@ -117,6 +121,9 @@ class StateMachineData
 public:
 	static constexpr int kVersion = 2;
 
+	// 遷移元にEntryを指定するときのID
+	static constexpr int kEntryId = 0;
+
 	StateMachineEntry entry;
 	std::vector<StateNode> states;
 
@@ -128,11 +135,6 @@ public:
 	const StateNode* FindStateByName(const std::string& name) const;
 	const StateTransition* FindTransition(int transitionId) const; // Entryの遷移も含む
 
-	// 遷移元にEntryを指定するときのID
-	static constexpr int kEntryId = 0;
-
-	
-	
 	// 空のグラフにする
 	void Clear();
 
@@ -150,16 +152,16 @@ public:
 	int  AddClip(int stateId, const std::string& name, const EditorPosition& pos); // 作成
 	void RemoveClip(int stateId, int clipId);                                      // 削除
 
-	// 子階層：ブレンド
+	// 子階層：Blend
 	int  AddBlend(int stateId, const std::string& name, const EditorPosition& pos); // 作成
 	void RemoveBlend(int stateId, int blendId);                                     // 削除
 
-	// 子階層：(エントリー → クリップ)
+	// 子階層：遷移(エントリー → ノード)
 	int  AddEntryLink(int stateId, int transitionId, int toNodeId); // 作成
 	void RemoveEntryLink(int stateId, int linkId);                  // 削除
 	bool MoveEntryLink(int stateId, int linkId, int offset);        // 優先度の入れ替え
 
-	// 子階層：(クリップ → クリップ)
+	// 子階層：遷移(ノード → ノード)
 	int  AddClipLink(int stateId, int fromNodeId, int toNodeId); // 作成
 	void RemoveClipLink(int stateId, int linkId);                // 削除
 	bool MoveClipLink(int stateId, int linkId, int offset);      // 優先度の入れ替え
@@ -171,8 +173,6 @@ public:
 	// 他のStateと重複しない名前を作る
 	std::string MakeUniqueStateName(const std::string& baseName) const;
 
-
-
 	// 整合性チェック
 	bool Validate(const std::string& sourceName) const;
 
@@ -183,6 +183,6 @@ public:
 private:
 	int nextId = 1;
 
-	// 遷移を持っているリスト(Entry、またはどれかのState)を探す
+	// 遷移を持っているリストを探す
 	std::vector<StateTransition>* FindTransitionOwner(int transitionId);
 };

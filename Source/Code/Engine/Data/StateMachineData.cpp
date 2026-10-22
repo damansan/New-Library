@@ -91,11 +91,7 @@ namespace
 // 検索 
 const ClipNode* ChildGraph::FindClip(int clipId) const
 {
-	for (const auto& c : clips)
-	{
-		if (c.id == clipId) return &c;
-	}
-	return nullptr;
+	return FindById(clips, clipId);
 }
 const BlendNode* ChildGraph::FindBlend(int blendId) const
 {
@@ -107,6 +103,13 @@ ChildNodeKind ChildGraph::GetNodeKind(int nodeId) const
 	if (FindClip(nodeId))  return ChildNodeKind::Clip;
 	if (FindBlend(nodeId)) return ChildNodeKind::Blend;
 	return ChildNodeKind::None;
+}
+// ノードの名前
+const std::string* ChildGraph::FindNodeName(int nodeId) const
+{
+	if (const ClipNode* c = FindClip(nodeId))   return &c->name;
+	if (const BlendNode* b = FindBlend(nodeId)) return &b->name;
+	return nullptr;
 }
 
 const StateNode* StateMachineData::FindState(int stateId) const

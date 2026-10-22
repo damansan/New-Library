@@ -1,6 +1,7 @@
 #include "StateMachineBlendData.h"
 #include <algorithm>
 #include <unordered_set>
+#include <utility>
 
 using namespace StateMachineCommon;
 
@@ -39,9 +40,31 @@ namespace
 }
 
 // 検索
-const BlendSourceNode* BlendGraph::FindSource(int id) const { return FindById(sources, id); }
-const BlendPairLink* BlendGraph::FindPairLink(int id) const { return FindById(pairLinks, id); }
-const BlendOutputLink* BlendGraph::FindOutputLink(int id) const { return FindById(outputLinks, id); }
+const BlendSourceNode* BlendGraph::FindSource(int id) const 
+{ 
+	return FindById(sources, id); 
+}
+const BlendPairLink* BlendGraph::FindPairLink(int id) const 
+{
+	return FindById(pairLinks, id);
+}
+const BlendOutputLink* BlendGraph::FindOutputLink(int id) const 
+{
+	return FindById(outputLinks, id); 
+}
+// 編集用の検索
+BlendSourceNode* BlendGraph::FindSource(int id)
+{
+	return const_cast<BlendSourceNode*>(std::as_const(*this).FindSource(id));
+}
+BlendPairLink* BlendGraph::FindPairLink(int id)
+{
+	return const_cast<BlendPairLink*>(std::as_const(*this).FindPairLink(id));
+}
+BlendOutputLink* BlendGraph::FindOutputLink(int id)
+{
+	return const_cast<BlendOutputLink*>(std::as_const(*this).FindOutputLink(id));
+}
 
 // ノードの種類
 BlendNodeKind BlendGraph::GetNodeKind(int id) const
@@ -50,6 +73,116 @@ BlendNodeKind BlendGraph::GetNodeKind(int id) const
 	if (FindById(sources, id))   return BlendNodeKind::Source;
 	if (FindById(pairLinks, id)) return BlendNodeKind::PairLink;
 	return BlendNodeKind::None;
+}
+
+// 材料：作成
+int BlendGraph::AddSource(const EditorPosition& pos)
+{
+	BlendSourceNode s;
+	s.id = GenerateId();
+	s.editorPos = pos;
+	sources.push_back(s);
+	return s.id;
+}
+// 材料：削除
+void BlendGraph::RemoveSource(int id)
+{
+	// この材料を使っているペアを消す(ペアから Output への線も一緒に消える)
+	std::vector<int> usedPairs;
+	for (const auto& p : pairLinks)
+	{
+		if (p.fromId == id || p.toId == id) usedPairs.push_back(p.id);
+	}
+	for (int pairId : usedPairs)
+	{
+		RemovePairLink(pairId);
+	}
+
+	// この材料から Output への線を消す
+	outputLinks.erase(
+		std::remove_if(outputLinks.begin(), outputLinks.end(),
+			[id](const BlendOutputLink& l) { return l.fromId == id; }),
+		outputLinks.end());
+
+	// 材料本体を消す
+	sources.erase(
+		std::remove_if(sources.begin(), sources.end(),
+			[id](const BlendSourceNode& s) { return s.id == id; }),
+		sources.end());
+}
+
+// ペア：作成
+int BlendGraph::AddPairLink(int fromId, int toId)
+{
+	// A・B は、別々の材料である必要がある
+	if (GetNodeKind(fromId) != BlendNodeKind::Source || GetNodeKind(toId) != BlendNodeKind::Source) return -1;
+	if (fromId == toId) return -1;
+
+	// 同じ2つの材料のペアは、向きに関係なく1本だけ
+	for (const auto& p : pairLinks)
+	{
+		bool same = (p.fromId == fromId && p.toId == toId) || (p.fromId == toId && p.toId == fromId);
+		if (same) return -1;
+	}
+
+	BlendPairLink p;
+	p.id = GenerateId();
+	p.fromId = fromId;
+	p.toId = toId;
+	pairLinks.push_back(p);
+	return p.id;
+}
+// ペア：削除
+void BlendGraph::RemovePairLink(int id)
+{
+	// このペアから Output への線を消す
+	outputLinks.erase(
+		std::remove_if(outputLinks.begin(), outputLinks.end(),
+			[id](const BlendOutputLink& l) { return l.fromId == id; }),
+		outputLinks.end());
+
+	// ペア本体を消す
+	pairLinks.erase(
+		std::remove_if(pairLinks.begin(), pairLinks.end(),
+			[id](const BlendPairLink& p) { return p.id == id; }),
+		pairLinks.end());
+}
+
+// Output への線：作成
+int BlendGraph::AddOutputLink(int fromId)
+{
+	// 元は、材料かペア
+	BlendNodeKind kind = GetNodeKind(fromId);
+	if (kind != BlendNodeKind::Source && kind != BlendNodeKind::PairLink) return -1;
+
+	BlendOutputLink l;
+	l.id = GenerateId();
+	l.fromId = fromId;
+	outputLinks.push_back(l); // 一番下 = 優先度が一番低い
+	return l.id;
+}
+// Output への線：削除
+void BlendGraph::RemoveOutputLink(int id)
+{
+	outputLinks.erase(
+		std::remove_if(outputLinks.begin(), outputLinks.end(),
+			[id](const BlendOutputLink& l) { return l.id == id; }),
+		outputLinks.end());
+}
+// Output への線：優先度の入れ替え
+bool BlendGraph::MoveOutputLink(int id, int offset)
+{
+	int index = -1;
+	for (int i = 0; i < static_cast<int>(outputLinks.size()); ++i)
+	{
+		if (outputLinks[i].id == id) index = i;
+	}
+
+	int newIndex = index + offset;
+	if (index < 0 || newIndex < 0 || newIndex >= static_cast<int>(outputLinks.size())) return false;
+
+	std::swap(outputLinks[index], outputLinks[newIndex]);
+	return true;
 }
 
 // 使用中のIDの最大値+1に、採番をそろえる
@@ -73,6 +206,7 @@ nlohmann::ordered_json BlendGraphToJson(const BlendGraph& g)
 	{
 		nlohmann::ordered_json js;
 		js["id"] = s.id;
+		js["name"] = s.name;
 		js["clip"] = s.clipName;
 		js["editor"] = PositionToJson(s.editorPos);
 		j["sources"].push_back(js);
@@ -122,6 +256,7 @@ void BlendGraphFromJson(BlendGraph& g, const nlohmann::json& j)
 		{
 			BlendSourceNode s;
 			s.id = js.value("id", -1);
+			s.name = js.value("name", "");
 			s.clipName = js.value("clip", "");
 			if (js.contains("editor")) s.editorPos = PositionFromJson(js["editor"]);
 			g.sources.push_back(s);

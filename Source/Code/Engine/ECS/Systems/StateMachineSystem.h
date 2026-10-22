@@ -1,6 +1,7 @@
 #pragma once
 #include <set>
 #include <string>
+#include <vector>
 #include "entt.hpp"
 #include "Engine/Core/JsonFileCache.h"
 #include "Engine/Data/StateMachineData.h"
@@ -22,13 +23,13 @@ struct LoadedStateMachine
 class StateMachineSystem
 {
 public:
-	// Stateの遷移を決める (ゲームプレイの各Systemより前に呼ぶ)
+	// Stateの遷移を決める
 	void UpdateState(entt::registry& registry);
 
-	// 再生するクリップを決める (ゲームプレイの各Systemより前に呼ぶ)
+	// 再生するノードを決める
 	void UpdateAnimation(entt::registry& registry);
 
-	// 使用するState名を申告する(グラフの読み込み時に、存在するかを確かめる)
+	// 使用するState名を申告する
 	template<typename UserComponent>
 	static void RequireState(const std::string& stateName, const std::string& user)
 	{
@@ -37,8 +38,7 @@ public:
 	}
 
 private:
-	
-	// エンティティが、申告したSystemの対象か(UserComponentを持っているか)
+	// エンティティが、申告したSystemの対象か
 	using UsesStateFunc = bool(*)(const entt::registry& registry, entt::entity entity);
 
 	// 申告されたState名と、申告した側の名前
@@ -49,6 +49,7 @@ private:
 		UsesStateFunc usesState = nullptr; // 申告したSystemの対象か
 	};
 	static std::vector<RequiredState>& GetRequiredStates();
+
 	// 申告を一覧に足す
 	static void AddRequiredState(const std::string& stateName, const std::string& user, UsesStateFunc usesState);
 
@@ -56,20 +57,20 @@ private:
 	void CheckRequiredStates(const StateMachineData& data, const std::string& path, const entt::registry& registry, entt::entity entity);
 
 
-	// グラフを取得する (読み込めない・検証エラーの場合はnullptr)
+	// グラフを取得する
 	const StateMachineData* Load(const std::string& path);
 
-	// 条件が成立した最初の遷移を返す(優先度順)
+	// 条件が成立した最初の遷移を返す
 	static const StateTransition* FindPassedTransition(
 		const std::vector<StateTransition>& transitions, entt::registry& registry, entt::entity entity);
 
 	// Stateに入る
 	static void EnterState(StateMachineComponent& sm, const StateNode& state, const StateTransition& via);
 
+
 	// ノードを再生する
 	bool PlayNode(StateMachineComponent& sm, AnimatorComponent& animator, const ChildGraph& child, int nodeId,
 		const CrossfadeSetting& crossfade, SequencerComponent* sequencer);
-
 
 	// クリップを再生する
 	void PlayClip(AnimatorComponent& animator, const ClipNode& clip, const CrossfadeSetting& crossfade, SequencerComponent* sequencer);
@@ -77,7 +78,17 @@ private:
 	// Blend を再生する
 	void PlayBlend(AnimatorComponent& animator, const BlendNode& blend, const CrossfadeSetting& crossfade);
 
+	// Blend の材料と比率を決めて、Animator に書く
+	void UpdateBlend(StateMachineComponent& sm, AnimatorComponent& animator, const BlendNode& blend,
+		entt::registry& registry, entt::entity entity, SequencerComponent* sequencer);
+
+
+	// 読み込み済みの Sequencer のデータから、クリップのトリミング範囲を探す
 	static bool FindTrimmingRange(SequencerData& data, const std::string& clipName, float& outStart, float& outEnd);
+
+	// クリップのトリミング範囲を調べる
+	bool ResolveTrimmingRange(SequencerComponent* sequencer, const std::string& clipName, float& outStart, float& outEnd);
+
 
 	JsonFileCache<LoadedStateMachine> graphCache;
 	JsonFileCache<SequencerData> trimDataCache;
@@ -86,4 +97,6 @@ private:
 	std::set<std::string> reportedPaths;
 	// 「Stateが無い」と報告済みの組
 	std::set<std::string> reportedMissingStates;
+	// 「Blend の Output への線が、どれも成立しない」と報告済みの組
+	std::set<std::string> reportedBlendNoMatch;
 };

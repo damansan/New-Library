@@ -43,6 +43,7 @@ void StudioStateChildCanvas::Draw(StateMachineData& data, const std::vector<std:
 	// ノード描画
 	DrawEntryNodes();
 	DrawClipNodes();
+	DrawBlendNodes();
 
 	// 位置の反映は、開いた直後の1フレームだけ
 	needsApplyPositions = false;
@@ -58,6 +59,7 @@ void StudioStateChildCanvas::Draw(StateMachineData& data, const std::vector<std:
 	// 入力更新
 	UpdateLinkCreation();
 	UpdateSelection();
+	UpdateDoubleClick();
 
 	// キャンバス終了
 	canvas.End();
@@ -95,12 +97,16 @@ void StudioStateChildCanvas::DeleteSelection(StateMachineData& data)
 		return;
 	}
 
-	// 選択中のクリップを削除 (Entryは削除不可)
+	// 選択中のノードを削除(Entryは削除不可)
 	for (int key : selectedNodeKeys)
 	{
-		if (!IsEntry(key))
+		if (IsEntry(key)) continue;
+
+		switch (state->child.GetNodeKind(key))
 		{
-			data.RemoveClip(stateId, key);
+		case ChildNodeKind::Clip:  data.RemoveClip(stateId, key);  break;
+		case ChildNodeKind::Blend: data.RemoveBlend(stateId, key); break;
+		default: break;
 		}
 	}
 	selectedNodeKeys.clear();
@@ -148,7 +154,7 @@ void StudioStateChildCanvas::DrawEntryNodes()
 			ed::SetNodePosition(nodeId, ImVec2(posMap[e.transitionId].x, posMap[e.transitionId].y));
 		}
 
-		// どのクリップにもつながっていないエントリーは、枠を赤くする
+		// どのノードにもつながっていないエントリーは、枠を赤くする
 		bool connected = std::any_of(state->child.entryLinks.begin(), state->child.entryLinks.end(),
 			[&e](const EntryLink& l) { return l.entryTransitionId == e.transitionId; });
 
@@ -185,7 +191,7 @@ void StudioStateChildCanvas::DrawClipNodes()
 
 		ed::BeginNode(nodeId);
 		ImGui::Text("%s", c.name.c_str());
-		// 再生するアニメーション(未設定なら灰色で表示)
+		// 再生するアニメーション
 		ImGui::TextDisabled("%s", c.clipName.empty() ? "(no clip)" : c.clipName.c_str());
 		ImGui::Dummy(ImVec2(80.0f, 0.0f)); // ノードの最小の幅
 		ed::EndNode();
@@ -196,6 +202,41 @@ void StudioStateChildCanvas::DrawClipNodes()
 		// ノードを動かしたら、データの位置に書き戻す
 		ImVec2 pos = ed::GetNodePosition(nodeId);
 		c.editorPos = { pos.x, pos.y };
+	}
+}
+
+// Blend ノード描画
+void StudioStateChildCanvas::DrawBlendNodes()
+{
+	for (auto& b : state->child.blends)
+	{
+		ed::NodeId nodeId(static_cast<uint64_t>(b.id));
+
+		// 読み込み直後はデータの位置にノードを反映
+		if (needsApplyPositions)
+		{
+			ed::SetNodePosition(nodeId, ImVec2(b.editorPos.x, b.editorPos.y));
+		}
+
+		// Output に何もつながっていないBlend は、枠を赤くする
+		bool playable = !b.graph.outputLinks.empty();
+
+		// Blend は紫で描く
+		ed::PushStyleColor(ed::StyleColor_NodeBg, ImColor(81, 45, 168, 255));
+		ed::PushStyleColor(ed::StyleColor_NodeBorder, playable ? ImColor(149, 117, 205, 255) : ImColor(230, 90, 90, 255));
+		ed::BeginNode(nodeId);
+		ImGui::Text("%s", b.name.c_str());
+		ImGui::TextDisabled("Blend (%d sources)", static_cast<int>(b.graph.sources.size()));
+		ImGui::Dummy(ImVec2(80.0f, 0.0f)); // ノードの最小の幅
+		ed::EndNode();
+		ed::PopStyleColor(2);
+
+		// リンクの計算に使う矩形を記録
+		nodeRects[b.id] = { ImGui::GetItemRectMin(), ImGui::GetItemRectMax() };
+
+		// ノードを動かしたら、データの位置に書き戻す
+		ImVec2 pos = ed::GetNodePosition(nodeId);
+		b.editorPos = { pos.x, pos.y };
 	}
 }
 
@@ -234,13 +275,13 @@ void StudioStateChildCanvas::DrawLinks()
 			linkSegments.push_back({ linkId, start, end });
 		};
 
-	// Entryから出るリンク
+	// エントリーから出るリンク
 	for (const auto& l : state->child.entryLinks)
 	{
 		drawOne(l.id, l.entryTransitionId, l.toNodeId, false, l.always, l.condition);
 	}
 
-	// 各Stateから出るリンク
+	// ノードから出るリンク
 	for (const auto& l : state->child.clipLinks)
 	{
 		drawOne(l.id, l.fromNodeId, l.toNodeId, HasClipLink(l.toNodeId, l.fromNodeId), l.always, l.condition);
@@ -276,15 +317,16 @@ void StudioStateChildCanvas::DrawBackgroundMenu()
 	// ポップ内容
 	if (ImGui::BeginPopup("StateChildBackgroundMenu"))
 	{
-		// 右クリックした位置にクリップを作る
-		if (ImGui::MenuItem("Clip"))
+		ImVec2 canvasPos = ed::ScreenToCanvas(pendingCreatePos);
+
+		// 右クリックした位置にノードを作る
+		int newId = -1;
+		if (ImGui::MenuItem("Clip"))  newId = data->AddClip(stateId, "New Clip", { canvasPos.x, canvasPos.y });
+		if (ImGui::MenuItem("Blend")) newId = data->AddBlend(stateId, "New Blend", { canvasPos.x, canvasPos.y });
+
+		if (newId != -1)
 		{
-			ImVec2 canvasPos = ed::ScreenToCanvas(pendingCreatePos);
-			int newId = data->AddClip(stateId, "New Clip", { canvasPos.x, canvasPos.y });
-			if (newId != -1)
-			{
-				ed::SetNodePosition(ed::NodeId(static_cast<uint64_t>(newId)), canvasPos);
-			}
+			ed::SetNodePosition(ed::NodeId(static_cast<uint64_t>(newId)), canvasPos);
 		}
 		ImGui::EndPopup();
 	}
@@ -300,7 +342,7 @@ void StudioStateChildCanvas::DrawNodeMenu()
 	ed::NodeId nodeId;
 	if (ed::ShowNodeContextMenu(&nodeId))
 	{
-		// メニューを閉じるまでどのクリップのメニューかを記録
+		// メニューを閉じるまでどのノードのメニューかを記録
 		contextNodeKey = static_cast<int>(nodeId.Get());
 
 		// ポップを開くリクエスト
@@ -313,6 +355,12 @@ void StudioStateChildCanvas::DrawNodeMenu()
 		if (ImGui::MenuItem("Link"))
 		{
 			pendingFromKey = contextNodeKey;
+		}
+
+		// Blend なら、中のグラフを開く
+		if (state->child.FindBlend(contextNodeKey) && ImGui::MenuItem("Open Blend Graph"))
+		{
+			openBlendRequest = contextNodeKey;
 		}
 		ImGui::EndPopup();
 	}
@@ -332,7 +380,7 @@ void StudioStateChildCanvas::UpdateLinkCreation()
 		return;
 	}
 
-	// 
+	// クリックしたときだけ処理する
 	if (!ImGui::IsMouseClicked(ImGuiMouseButton_Left)) return;
 
 	// クリックした位置にノードがあればそこを行き先にする
@@ -345,8 +393,8 @@ void StudioStateChildCanvas::UpdateLinkCreation()
 		if (!IsEntry(toKey) && toKey != pendingFromKey)
 		{
 			int newId = IsEntry(pendingFromKey)
-				? data->AddEntryLink(stateId, pendingFromKey, toKey)  // エントリー から クリップ
-				: data->AddClipLink(stateId, pendingFromKey, toKey);  // クリップ から クリップ
+				? data->AddEntryLink(stateId, pendingFromKey, toKey)  // エントリー → ノード
+				: data->AddClipLink(stateId, pendingFromKey, toKey);  // ノード → ノード
 
 			if (newId != -1)
 			{
@@ -393,10 +441,10 @@ void StudioStateChildCanvas::UpdateSelection()
 	if (pendingFromKey != -1) return;
 	if (!ed::IsBackgroundClicked()) return;
 
-	// ノードエディタの中では、マウスの位置はキャンバスの座標で返る(線の座標と同じ)
+	// ノードエディタの中では、マウスの位置はキャンバスの座標で返る
 	ImVec2 mouse = ImGui::GetMousePos();
 
-	// クリックした位置から一番近いリンクを探す(遠すぎる場合は選ばない)
+	// クリックした位置から一番近いリンクを探す
 	const float hitDistance = 6.0f;
 	int hitId = -1;
 	float best = hitDistance;
@@ -420,10 +468,20 @@ void StudioStateChildCanvas::UpdateSelection()
 	}
 }
 
+// ダブルクリック
+void StudioStateChildCanvas::UpdateDoubleClick()
+{
+	ed::NodeId doubleClicked = ed::GetDoubleClickedNode();
+	if (!doubleClicked) return;
+
+	int key = static_cast<int>(doubleClicked.Get());
+	if (state->child.FindBlend(key)) openBlendRequest = key;
+}
+
 // データに存在するノードか判定
 bool StudioStateChildCanvas::IsExistingNode(int key) const
 {
-	return IsEntry(key) || state->child.FindClip(key) != nullptr;
+	return IsEntry(key) || state->child.GetNodeKind(key) != ChildNodeKind::None;
 }
 // エントリーか判定
 bool StudioStateChildCanvas::IsEntry(int key) const
@@ -466,6 +524,14 @@ void StudioStateChildCanvas::DrawInspector(const std::vector<std::string>& anima
 				return;
 			}
 		}
+		for (auto& b : state->child.blends)
+		{
+			if (b.id == key)
+			{
+				DrawBlendInspector(b);
+				return;
+			}
+		}
 	}
 
 	// 未選択
@@ -486,7 +552,7 @@ void StudioStateChildCanvas::DrawEntryInspector(int transitionId)
 	}
 	ImGui::Text("From: %s", GetSourceName(fromKey).c_str());
 
-	// ブレンド表示
+	// クロスフェードの表示(親のリンクが持っている)
 	if (const StateTransition* t = std::as_const(*data).FindTransition(transitionId))
 	{
 		if (t->crossfade.enabled) ImGui::TextDisabled("Crossfade: %.2f s (parent link)", t->crossfade.duration);
@@ -504,23 +570,8 @@ void StudioStateChildCanvas::DrawClipInspector(ClipNode& clip, const std::vector
 	ImGui::Text("Clip");
 	ImGui::Separator();
 
-	// 選ぶクリップが変わったら、入力欄を今の名前で作り直す
-	if (nameEditingClipId != clip.id)
-	{
-		nameEditingClipId = clip.id;
-		strncpy_s(nameBuffer, clip.name.c_str(), sizeof(nameBuffer) - 1);
-	}
-
-	// 名前欄
-	if (ImGui::InputText("Name", nameBuffer, sizeof(nameBuffer), ImGuiInputTextFlags_EnterReturnsTrue))
-	{
-		if (nameBuffer[0] != '\0') clip.name = nameBuffer;
-	}
-	// 入力欄から離れたら、確定していない文字は今の名前に戻す
-	if (ImGui::IsItemDeactivated() && clip.name != nameBuffer)
-	{
-		strncpy_s(nameBuffer, clip.name.c_str(), sizeof(nameBuffer) - 1);
-	}
+	// 名前
+	DrawNameField(clip.id, clip.name);
 	ImGui::Separator();
 
 	// 再生するアニメーション
@@ -542,6 +593,50 @@ void StudioStateChildCanvas::DrawClipInspector(ClipNode& clip, const std::vector
 	}
 }
 
+// Blend の設定
+void StudioStateChildCanvas::DrawBlendInspector(BlendNode& blend)
+{
+	ImGui::Text("Blend");
+	ImGui::Separator();
+
+	// 名前
+	DrawNameField(blend.id, blend.name);
+	ImGui::Separator();
+
+	// 再生の設定
+	ImGui::Checkbox("Loop", &blend.loop);
+	ImGui::Separator();
+
+	// 中のグラフの概要
+	const BlendGraph& g = blend.graph;
+	ImGui::Text("Sources: %d", static_cast<int>(g.sources.size()));
+	ImGui::Text("Pairs: %d", static_cast<int>(g.pairLinks.size()));
+	if (g.outputLinks.empty())
+	{
+		ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f), "Output links: 0 (nothing to play)");
+	}
+	else
+	{
+		ImGui::Text("Output links: %d", static_cast<int>(g.outputLinks.size()));
+	}
+
+	// 中のグラフを開く
+	if (ImGui::Button("Open Blend Graph", ImVec2(-1.0f, 0.0f)))
+	{
+		openBlendRequest = blend.id;
+	}
+	ImGui::Separator();
+
+	// 出ていくリンクの一覧
+	DrawOutLinkList(blend.id, false);
+
+	// 削除
+	if (StateGraphDraw::DeleteButton("Delete Blend"))
+	{
+		DeleteSelection(*data);
+	}
+}
+
 // 複数選択時
 void StudioStateChildCanvas::DrawMultiInspector()
 {
@@ -549,7 +644,7 @@ void StudioStateChildCanvas::DrawMultiInspector()
 	ImGui::Separator();
 
 	// まとめて削除
-	if (StateGraphDraw::DeleteButton("Delete Clips"))
+	if (StateGraphDraw::DeleteButton("Delete Nodes"))
 	{
 		DeleteSelection(*data);
 	}
@@ -576,7 +671,7 @@ void StudioStateChildCanvas::DrawLinkInspector(int linkId)
 	{
 		ImGui::Text("Entry(%s)  ->  %s",
 			GetSourceName([&] { for (const auto& e : entries) if (e.transitionId == entryLink->entryTransitionId) return e.fromKey; return -1; }()).c_str(),
-			GetClipName(entryLink->toNodeId).c_str());
+			GetNodeName(entryLink->toNodeId).c_str());
 
 		for (const auto& l : state->child.entryLinks)
 		{
@@ -587,7 +682,7 @@ void StudioStateChildCanvas::DrawLinkInspector(int linkId)
 	}
 	else
 	{
-		ImGui::Text("%s  ->  %s", GetClipName(clipLink->fromNodeId).c_str(), GetClipName(clipLink->toNodeId).c_str());
+		ImGui::Text("%s  ->  %s", GetNodeName(clipLink->fromNodeId).c_str(), GetNodeName(clipLink->toNodeId).c_str());
 
 		for (const auto& l : state->child.clipLinks)
 		{
@@ -605,7 +700,7 @@ void StudioStateChildCanvas::DrawLinkInspector(int linkId)
 	bool& always = entryLink ? entryLink->always : clipLink->always;
 	ImGui::Checkbox("Always", &always);
 
-	// ブレンド
+	// クロスフェード
 	if (clipLink)
 	{
 		ImGui::Checkbox("Crossfade", &clipLink->crossfade.enabled);
@@ -631,9 +726,9 @@ void StudioStateChildCanvas::DrawLinkInspector(int linkId)
 	}
 
 	// 条件の編集へ
+	ConditionTarget::Kind kind = entryLink ? ConditionTarget::Kind::EntryLink : ConditionTarget::Kind::ClipLink;
 	if (ImGui::Button("Edit Condition", ImVec2(-1.0f, 0.0f)))
 	{
-		ConditionTarget::Kind kind = entryLink ? ConditionTarget::Kind::EntryLink : ConditionTarget::Kind::ClipLink;
 		editConditionRequest = { kind, stateId, linkId };
 	}
 
@@ -644,7 +739,6 @@ void StudioStateChildCanvas::DrawLinkInspector(int linkId)
 	}
 
 	// 同じ階層のリンクから、設定を写すためのリスト
-	ConditionTarget::Kind kind = entryLink ? ConditionTarget::Kind::EntryLink : ConditionTarget::Kind::ClipLink;
 	ConditionTarget self{ kind, stateId, linkId };
 	ImGui::Spacing();
 	ImGui::Separator();
@@ -657,6 +751,29 @@ void StudioStateChildCanvas::DrawLinkInspector(int linkId)
 	// 写す元のリスト
 	ConditionCopyList::Draw(ConditionCopyList::CollectChild(*data, self));
 }
+
+// ノードの名前の入力欄
+void StudioStateChildCanvas::DrawNameField(int nodeId, std::string& name)
+{
+	// 選ぶノードが変わったら、入力欄を今の名前で作り直す
+	if (nameEditingNodeId != nodeId)
+	{
+		nameEditingNodeId = nodeId;
+		strncpy_s(nameBuffer, name.c_str(), sizeof(nameBuffer) - 1);
+	}
+
+	// Enterで確定
+	if (ImGui::InputText("Name", nameBuffer, sizeof(nameBuffer), ImGuiInputTextFlags_EnterReturnsTrue))
+	{
+		if (nameBuffer[0] != '\0') name = nameBuffer;
+	}
+	// 入力欄から離れたら、確定していない文字は今の名前に戻す
+	if (ImGui::IsItemDeactivated() && name != nameBuffer)
+	{
+		strncpy_s(nameBuffer, name.c_str(), sizeof(nameBuffer) - 1);
+	}
+}
+
 
 // クリップのアニメーション一覧
 void StudioStateChildCanvas::DrawAnimationList(ClipNode& clip, const std::vector<std::string>& animations)
@@ -719,7 +836,6 @@ void StudioStateChildCanvas::DrawAnimationList(ClipNode& clip, const std::vector
 		// 絞り込みを変えたら、今のアニメーションが残っていればその位置へ
 		scrollToCurrent = true;
 	}
-
 }
 
 // 出ていくリンクの一覧
@@ -748,7 +864,7 @@ void StudioStateChildCanvas::DrawOutLinkList(int fromKey, bool fromEntry)
 			if (invalid) ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.4f, 0.4f, 1.0f));
 
 			// クリックでそのリンクを選ぶ
-			std::string label = std::to_string(++number) + ". -> " + GetClipName(toNodeId);
+			std::string label = std::to_string(++number) + ". -> " + GetNodeName(toNodeId);
 			if (ImGui::Selectable(label.c_str(), linkId == selectedLinkId))
 			{
 				selectedLinkId = linkId;
@@ -815,11 +931,11 @@ std::string StudioStateChildCanvas::GetSourceName(int fromKey) const
 	return "(missing)";
 }
 
-// クリップのIDから、表示用の名前を作る
-std::string StudioStateChildCanvas::GetClipName(int clipId) const
+// ノードのIDから、表示用の名前を作る
+std::string StudioStateChildCanvas::GetNodeName(int nodeId) const
 {
-	if (const ClipNode* c = state->child.FindClip(clipId)) return c->name;
-	return "(missing)";
+	const std::string* name = state->child.FindNodeName(nodeId);
+	return name ? *name : "(missing)";
 }
 
 // fromNodeIdからtoNodeIdへのリンクがあるか

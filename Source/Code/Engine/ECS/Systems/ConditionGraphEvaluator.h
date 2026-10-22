@@ -8,6 +8,9 @@ public:
 	// 遷移条件が成立していればtrueを返す
 	static bool Evaluate(const ConditionGraph& graph, entt::registry& registry, entt::entity entity);
 
+	// Component の変数を float として読む
+	static float ReadFieldAsFloat(const std::string& componentName, const std::string& fieldName,
+		FloatComponent selectedComponent, entt::registry& registry, entt::entity entity);
 private:
 	// ゲッターノードで取得している値を取得する
 	static float GetGetterValue(const ConditionGetterNode& node, entt::registry& registry, entt::entity entity);

@@ -111,6 +111,8 @@ void StudioStateGraph::DrawGUI(entt::registry& registry, StudioContext& context)
 
 	// 子階層ウィンドウ
 	DrawChildWindows(context.studioViewportId);
+	// Blend のウィンドウ
+	DrawBlendWindows(context.studioViewportId);
 	// 条件のウィンドウ
 	DrawConditionWindow(context.studioViewportId);
 
@@ -126,6 +128,7 @@ void StudioStateGraph::OnModelChanged(StudioContext& context)
 	// 選択などを戻す
 	parentCanvas.Reset();
 	childCanvases.clear();
+	blendCanvases.clear();
 	CloseConditionWindow();
 	pendingCopy = {};
 	openCopyConfirm = false;
@@ -262,6 +265,7 @@ void StudioStateGraph::Load(StudioContext& context)
 		// 選択などを戻す
 		parentCanvas.Reset();
 		childCanvases.clear();
+		blendCanvases.clear();
 		CloseConditionWindow();
 		pendingCopy = {};
 		openCopyConfirm = false;
@@ -385,8 +389,94 @@ void StudioStateGraph::DrawChildWindows(ImGuiID ownerViewportId)
 		ConditionCopyRequest copyRequest = child.ConsumeCopyRequest();
 		if (copyRequest.IsValid()) RequestCopy(copyRequest);
 
+		// Blend の中のグラフを開く依頼
+		int openBlendId = child.ConsumeOpenBlendRequest();
+		if (openBlendId != -1) OpenBlendWindow(child.GetStateId(), openBlendId);
+
 		// ×で閉じられたら、一覧から外す
 		if (!open) it = childCanvases.erase(it);
+		else ++it;
+	}
+}
+
+// Blend のウィンドウを開く
+void StudioStateGraph::OpenBlendWindow(int stateId, int blendId)
+{
+	// すでに開いていれば、新しく開かずに手前に出す
+	for (const auto& b : blendCanvases)
+	{
+		if (b->GetStateId() == stateId && b->GetBlendId() == blendId)
+		{
+			focusBlendStateId = stateId;
+			focusBlendId = blendId;
+			return;
+		}
+	}
+
+	auto canvas = std::make_unique<StudioBlendCanvas>(stateId, blendId);
+	canvas->Initialize();
+	blendCanvases.push_back(std::move(canvas));
+	focusBlendStateId = stateId;
+	focusBlendId = blendId;
+}
+
+// 開いている Blend のウィンドウを描く
+void StudioStateGraph::DrawBlendWindows(ImGuiID ownerViewportId)
+{
+	for (auto it = blendCanvases.begin(); it != blendCanvases.end(); )
+	{
+		StudioBlendCanvas& canvas = **it;
+
+		// State か Blend が消えていれば閉じる
+		const StateNode* state = std::as_const(data).FindState(canvas.GetStateId());
+		BlendNode* blend = StudioBlendCanvas::FindBlendNode(data, canvas.GetStateId(), canvas.GetBlendId());
+		if (!state || !blend)
+		{
+			it = blendCanvases.erase(it);
+			continue;
+		}
+
+		// 表示は State名 / Blend名、IDは State と Blend のIDで作る
+		std::string title = "Blend: " + state->name + " / " + blend->name +
+			"###StateBlend_" + std::to_string(windowId) + "_" + std::to_string(state->id) + "_" + std::to_string(blend->id);
+
+		// タイトルバーを State の色にする
+		const float* c = state->editorColor;
+		ImGui::PushStyleColor(ImGuiCol_TitleBg, ImVec4(c[0] * 0.7f, c[1] * 0.7f, c[2] * 0.7f, 1.0f));
+		ImGui::PushStyleColor(ImGuiCol_TitleBgActive, ImVec4(c[0], c[1], c[2], 1.0f));
+
+		// 開いた直後だけ大きさを決める
+		ImGui::SetNextWindowSize(ImVec2(800.0f, 500.0f), ImGuiCond_FirstUseEver);
+		if (focusBlendStateId == state->id && focusBlendId == blend->id)
+		{
+			ImGui::SetNextWindowFocus();
+			focusBlendStateId = -1;
+			focusBlendId = -1;
+		}
+
+		// アプリの外に出したとき、Studioより手前に出るようにする
+		SetNextWindowOwner(ownerViewportId);
+
+		bool open = true;
+		bool visible = ImGui::Begin(title.c_str(), &open);
+		ImGui::PopStyleColor(2);
+
+		if (visible)
+		{
+			canvas.Draw(*blend, animationNames);
+		}
+		ImGui::End();
+
+		// Output への線の条件を編集する依頼があれば開く
+		int linkId = canvas.ConsumeEditConditionRequest();
+		if (linkId != -1)
+		{
+			ConditionTarget target{ ConditionTarget::Kind::BlendOutputLink, canvas.GetStateId(), linkId, canvas.GetBlendId() };
+			OpenConditionWindow(target);
+		}
+
+		// ×で閉じられたら、一覧から外す
+		if (!open) it = blendCanvases.erase(it);
 		else ++it;
 	}
 }
@@ -505,10 +595,10 @@ ConditionGraph* StudioStateGraph::ResolveCondition(const ConditionTarget& target
 		const float* c = state->editorColor;
 		outColor = ImVec4(c[0], c[1], c[2], 1.0f);
 
-		auto clipName = [state](int clipId) -> std::string
+		auto clipName = [state](int nodeId) -> std::string
 			{
-				const ClipNode* clip = state->child.FindClip(clipId);
-				return clip ? clip->name : "(missing)";
+				const std::string* name = state->child.FindNodeName(nodeId);
+				return name ? *name : "(missing)";
 			};
 
 		if (target.kind == ConditionTarget::Kind::EntryLink)
@@ -535,6 +625,40 @@ ConditionGraph* StudioStateGraph::ResolveCondition(const ConditionTarget& target
 			}
 		}
 		return nullptr;
+	}
+
+	case ConditionTarget::Kind::BlendOutputLink:
+	{
+		// Blend の中のリンク：State名 / Blend名 / 元 → Output
+		StateNode* state = data.FindState(target.stateId);
+		BlendNode* blend = StudioBlendCanvas::FindBlendNode(data, target.stateId, target.blendId);
+		if (!state || !blend) return nullptr;
+
+		BlendOutputLink* link = blend->graph.FindOutputLink(target.linkId);
+		if (!link) return nullptr;
+
+		const float* c = state->editorColor;
+		outColor = ImVec4(c[0], c[1], c[2], 1.0f);
+
+		// 元の名前
+		auto sourceName = [blend](int sourceId) -> std::string
+			{
+				const BlendSourceNode* s = std::as_const(blend->graph).FindSource(sourceId);
+				if (!s) return "(missing)";
+				return s->name.empty() ? s->clipName : s->name;
+			};
+		std::string fromName = "(missing)";
+		if (const BlendPairLink* p = std::as_const(blend->graph).FindPairLink(link->fromId))
+		{
+			fromName = sourceName(p->fromId) + " + " + sourceName(p->toId);
+		}
+		else if (std::as_const(blend->graph).FindSource(link->fromId))
+		{
+			fromName = sourceName(link->fromId);
+		}
+
+		outTitle = state->name + " / " + blend->name + " / " + fromName + " -> Output";
+		return &link->condition;
 	}
 
 	default:
@@ -586,7 +710,7 @@ bool StudioStateGraph::ResolveLinkSettings(const ConditionTarget& target, LinkSe
 
 	case ConditionTarget::Kind::EntryLink:
 	{
-		// 子のエントリーのリンク：条件、always(ブレンドは親のリンクが持つので無い)
+		// 子のエントリーのリンク：条件、always
 		StateNode* state = data.FindState(target.stateId);
 		if (!state) return false;
 		for (auto& l : state->child.entryLinks)
@@ -600,7 +724,7 @@ bool StudioStateGraph::ResolveLinkSettings(const ConditionTarget& target, LinkSe
 
 	case ConditionTarget::Kind::ClipLink:
 	{
-		// 子のクリップのリンク：条件、always、ブレンド
+		// 子のノードのリンク：条件、always、クロスフェード
 		StateNode* state = data.FindState(target.stateId);
 		if (!state) return false;
 		for (auto& l : state->child.clipLinks)
@@ -610,6 +734,17 @@ bool StudioStateGraph::ResolveLinkSettings(const ConditionTarget& target, LinkSe
 			return true;
 		}
 		return false;
+	}
+
+	case ConditionTarget::Kind::BlendOutputLink:
+	{
+		// Blend の中のリンク：条件、always
+		BlendNode* blend = StudioBlendCanvas::FindBlendNode(data, target.stateId, target.blendId);
+		if (!blend) return false;
+		BlendOutputLink* link = blend->graph.FindOutputLink(target.linkId);
+		if (!link) return false;
+		out = { &link->condition, &link->always, nullptr };
+		return true;
 	}
 
 	default:

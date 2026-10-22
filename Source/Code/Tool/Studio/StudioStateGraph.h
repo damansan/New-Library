@@ -9,6 +9,7 @@
 
 #include "StudioStateParentCanvas.h"
 #include "StudioStateChildCanvas.h"
+#include "StudioBlendCanvas.h"
 
 #include "StudioConditionCanvas.h"
 #include "StudioConditionTarget.h"
@@ -94,6 +95,21 @@ private:
 
 	// モデルが持っているアニメーションの名前
 	std::vector<std::string> animationNames;
+
+
+	// --- Blend のキャンバス --- //
+
+	// Blend のウィンドウ
+	std::vector<std::unique_ptr<StudioBlendCanvas>> blendCanvases;
+
+	// 次に手前に出す Blend のウィンドウ
+	int focusBlendStateId = -1;
+	int focusBlendId = -1;
+
+	// Blend のウィンドウを開く
+	void OpenBlendWindow(int stateId, int blendId);
+	// 開いている Blend のウィンドウを描く
+	void DrawBlendWindows(ImGuiID ownerViewportId);
 
 
 	// --- 条件のウィンドウ --- //

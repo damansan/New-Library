@@ -37,18 +37,19 @@ bool ConditionGraphEvaluator::Evaluate(const ConditionGraph& graph, entt::regist
 	return false; // どれにも該当しない場合
 }
 
-// ゲッターノードで取得している値を取得する
-float ConditionGraphEvaluator::GetGetterValue(const ConditionGetterNode& node, entt::registry& registry, entt::entity entity)
+// Component の変数を float として読む
+float ConditionGraphEvaluator::ReadFieldAsFloat(const std::string& componentName, const std::string& fieldName,
+	FloatComponent selectedComponent, entt::registry& registry, entt::entity entity) 
 {
 	// コンポーネント名とフィールドのコード上の名前から、FieldEntryを探す
-	const FieldEntry* found = Reflection::FindField(node.componentName, node.fieldName);
+	const FieldEntry* found = Reflection::FindField(componentName, fieldName);
 	if (!found) return 0.0f;
 
 	// コンポーネントの実体を取得する
 	entt::meta_any instance;
 
 	// ComponentRegistryに登録されていれば、そちらから取得する
-	if (const ComponentInfo* info = ComponentRegistry::Get(node.componentName)) 
+	if (const ComponentInfo* info = ComponentRegistry::Get(componentName))
 	{
 		instance = info->getMeta(registry, entity);
 	}
@@ -85,7 +86,7 @@ float ConditionGraphEvaluator::GetGetterValue(const ConditionGetterNode& node, e
 
 	if (DirectX::XMFLOAT2* v = value.try_cast<DirectX::XMFLOAT2>())
 	{
-		switch (node.selectedComponent)
+		switch (selectedComponent)
 		{
 		case FloatComponent::X: return v->x;
 		case FloatComponent::Y: return v->y;
@@ -94,7 +95,7 @@ float ConditionGraphEvaluator::GetGetterValue(const ConditionGetterNode& node, e
 	}
 	if (DirectX::XMFLOAT3* v = value.try_cast<DirectX::XMFLOAT3>())
 	{
-		switch (node.selectedComponent)
+		switch (selectedComponent)
 		{
 		case FloatComponent::X: return v->x;
 		case FloatComponent::Y: return v->y;
@@ -104,7 +105,7 @@ float ConditionGraphEvaluator::GetGetterValue(const ConditionGetterNode& node, e
 	}
 	if (DirectX::XMFLOAT4* v = value.try_cast<DirectX::XMFLOAT4>())
 	{
-		switch (node.selectedComponent)
+		switch (selectedComponent)
 		{
 		case FloatComponent::X: return v->x;
 		case FloatComponent::Y: return v->y;
@@ -116,6 +117,13 @@ float ConditionGraphEvaluator::GetGetterValue(const ConditionGetterNode& node, e
 
 	return 0.0f;
 }
+
+// ゲッターノードで取得している値を取得する
+float ConditionGraphEvaluator::GetGetterValue(const ConditionGetterNode& node, entt::registry& registry, entt::entity entity)
+{
+	return ReadFieldAsFloat(node.componentName, node.fieldName, node.selectedComponent, registry, entity);
+}
+
 // 変数ノードで保持している値を取得する
 float ConditionGraphEvaluator::GetVariableValue(const ConditionVariableNode& node)
 {

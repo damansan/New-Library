@@ -1,5 +1,6 @@
-#include "PlayerDodgeSystem.h"
+ï»¿#include "PlayerDodgeSystem.h"
 #include <cmath>
+#include <algorithm>
 
 #include "Game/ECS/Components/PlayerIntentComponent.h"
 #include "Game/ECS/Components/PlayerDodgeComponent.h"
@@ -12,15 +13,52 @@
 
 namespace
 {
-	// ‘Ì‚ÌŒü‚«‚©‚çŒ©‚½Šp“x·‚©‚çA4•ûŒü‚Ì‚Ç‚ê‚©‚ğŒˆ‚ß‚é
+	// ä½“ã®å‘ãã‹ã‚‰è¦‹ãŸè§’åº¦å·®ã‹ã‚‰ã€4æ–¹å‘ã®ã©ã‚Œã‹ã‚’æ±ºã‚ã‚‹
 	PlayerDodgeDirection ClassifyDirection(float diff)
 	{
-		const float quarter = DirectX::XM_PIDIV4; // 45“x
+		const float quarter = DirectX::XM_PIDIV4; // 45åº¦
 
 		if (diff > -quarter && diff <= quarter)         return PlayerDodgeDirection::Front;
 		if (diff > quarter && diff <= quarter * 3.0f)   return PlayerDodgeDirection::Right;
 		if (diff > -quarter * 3.0f && diff <= -quarter) return PlayerDodgeDirection::Left;
 		return PlayerDodgeDirection::Back;
+	}
+	// ä½“ã‹ã‚‰è¦‹ãŸå›é¿æ–¹å‘ã‹ã‚‰ã€Blend ã®ãƒšã‚¢ã¨ B ã®å‰²åˆã‚’æ±ºã‚ã‚‹
+	void UpdateBlendPair(PlayerDodgeComponent& dodge)
+	{
+		const float quarter = DirectX::XM_PIDIV2; // 90åº¦
+
+		// å‰ã‚’ 0ã€å³å›ã‚Šã« +(-Ï€ã€œÏ€)
+		float angle = atan2f(dodge.localX, dodge.localZ);
+
+		dodge.isFrontRight = false;
+		dodge.isRightBack = false;
+		dodge.isBackLeft = false;
+		dodge.isLeftFront = false;
+
+		float rate = 0.0f;
+		if (angle >= 0.0f && angle < quarter)
+		{
+			dodge.isFrontRight = true;                 // å‰(0Â°) â†’ å³(90Â°)
+			rate = angle / quarter;
+		}
+		else if (angle >= quarter)
+		{
+			dodge.isRightBack = true;                  // å³(90Â°) â†’ å¾Œ(180Â°)
+			rate = (angle - quarter) / quarter;
+		}
+		else if (angle < -quarter)
+		{
+			dodge.isBackLeft = true;                   // å¾Œ(-180Â°) â†’ å·¦(-90Â°)
+			rate = (angle + DirectX::XM_PI) / quarter;
+		}
+		else
+		{
+			dodge.isLeftFront = true;                  // å·¦(-90Â°) â†’ å‰(0Â°)
+			rate = (angle + quarter) / quarter;
+		}
+
+		dodge.blendRate = (std::max)(0.0f, (std::min)(rate, 1.0f));
 	}
 }
 
@@ -41,16 +79,16 @@ void PlayerDodgeSystem::Update(entt::registry& registry, float elapsedTime, cons
 
 			if (!stateMachine.IsIn("Dodge")) return;
 
-			// “ü‚Á‚½uŠÔ ‰ñ”ğ•ûŒü‚ğŒˆ‚ß‚é
+			// å…¥ã£ãŸç¬é–“ å›é¿æ–¹å‘ã‚’æ±ºã‚ã‚‹
 			if (stateMachine.enteredThisFrame)
 			{
-				// ƒXƒeƒBƒbƒN“ü—Í‚ª‚ ‚ê‚Î‚»‚Ì•ûŒüA–³‚¯‚ê‚Î‘Ì‚ÌŒã‚ë
+				// ã‚¹ãƒ†ã‚£ãƒƒã‚¯å…¥åŠ›ãŒã‚ã‚Œã°ãã®æ–¹å‘ã€ç„¡ã‘ã‚Œã°ä½“ã®å¾Œã‚
 				float dodgeYaw = intent.wantsMove
 					? PlayerMovementUtils::CalcFacingYaw(intent.moveDir.x, intent.moveDir.z)
 					: transform.rotation.y + DirectX::XM_PI;
 				dodge.dodgeDir = PlayerMovementUtils::YawToForward(dodgeYaw);
 
-				// ƒNƒŠƒbƒv‚Ì‘I‘ğ—pF4•ûŒü‚Í“ü‚Á‚½uŠÔ‚¾‚¯Œˆ‚ßA‰ñ”ğ’†‚Í•Ï‚¦‚È‚¢
+				// ã‚¯ãƒªãƒƒãƒ—ã®é¸æŠç”¨ï¼š4æ–¹å‘ã¯å…¥ã£ãŸç¬é–“ã ã‘æ±ºã‚ã€å›é¿ä¸­ã¯å¤‰ãˆãªã„
 				dodge.direction = ClassifyDirection(PlayerMovementUtils::AngleDiff(transform.rotation.y, dodgeYaw));
 				dodge.isFront = (dodge.direction == PlayerDodgeDirection::Front);
 				dodge.isBack = (dodge.direction == PlayerDodgeDirection::Back);
@@ -60,10 +98,10 @@ void PlayerDodgeSystem::Update(entt::registry& registry, float elapsedTime, cons
 				dodge.elapsed = 0.0f;
 				dodge.finished = false;
 
-				// “ü‚Á‚½ƒXƒe[ƒg‚ª“ü—Í‚ğÁ”ï‚·‚é
+				// å…¥ã£ãŸã‚¹ãƒ†ãƒ¼ãƒˆãŒå…¥åŠ›ã‚’æ¶ˆè²»ã™ã‚‹
 				intent.dodge.Consume();
 			}
-			// ‰ñ”ğ’† ƒXƒeƒBƒbƒN“ü—Í‚ª‚ ‚ê‚ÎA‰ñ”ğ•ûŒü‚ğ“ü—Í‚Ì‚Ù‚¤‚Ö‹È‚°‚é
+			// å›é¿ä¸­ ã‚¹ãƒ†ã‚£ãƒƒã‚¯å…¥åŠ›ãŒã‚ã‚Œã°ã€å›é¿æ–¹å‘ã‚’å…¥åŠ›ã®ã»ã†ã¸æ›²ã’ã‚‹
 			else if (intent.wantsMove)
 			{
 				float dodgeYaw = PlayerMovementUtils::CalcFacingYaw(dodge.dodgeDir.x, dodge.dodgeDir.z);
@@ -72,16 +110,19 @@ void PlayerDodgeSystem::Update(entt::registry& registry, float elapsedTime, cons
 				dodge.dodgeDir = PlayerMovementUtils::YawToForward(dodgeYaw);
 			}
 
-			// –ˆƒtƒŒ[ƒ€ ŠÔ‚ği‚ßA‘Ì‚©‚çŒ©‚½‰ñ”ğ•ûŒü‚ğ‹‚ß‚é
+			// æ¯ãƒ•ãƒ¬ãƒ¼ãƒ  æ™‚é–“ã‚’é€²ã‚ã€ä½“ã‹ã‚‰è¦‹ãŸå›é¿æ–¹å‘ã‚’æ±‚ã‚ã‚‹
 			dodge.elapsed += elapsedTime;
 
 			float localDiff = PlayerMovementUtils::AngleDiff(
 				transform.rotation.y,
 				PlayerMovementUtils::CalcFacingYaw(dodge.dodgeDir.x, dodge.dodgeDir.z));
+			
 			dodge.localX = sinf(localDiff);
 			dodge.localZ = cosf(localDiff);
+			// Blend ç”¨ã®ãƒšã‚¢ã¨å‰²åˆ
+			UpdateBlendPair(dodge);
 
-			// I‚í‚è‚Ì”»’èFÅ’áŠÔ‚ğ‰ß‚¬‚ÄR2‚ğ—£‚µ‚½A‚Ü‚½‚ÍÅ‘åŠÔ‚É’B‚µ‚½
+			// çµ‚ã‚ã‚Šã®åˆ¤å®šï¼šæœ€ä½æ™‚é–“ã‚’éãã¦R2ã‚’é›¢ã—ãŸã€ã¾ãŸã¯æœ€å¤§æ™‚é–“ã«é”ã—ãŸ
 			if (!dodge.finished)
 			{
 				bool released = !intent.dodge.held && dodge.elapsed >= dodge.minTime;
@@ -89,14 +130,14 @@ void PlayerDodgeSystem::Update(entt::registry& registry, float elapsedTime, cons
 				dodge.finished = released || timeUp;
 			}
 
-			// –ˆƒtƒŒ[ƒ€FLocomotion ‚Ö‚Ìw¦
+			// æ¯ãƒ•ãƒ¬ãƒ¼ãƒ ï¼šLocomotion ã¸ã®æŒ‡ç¤º
 			LocomotionCommand& cmd = loco.command;
 			cmd.mode = LocomotionMode::Directional;
 			cmd.moveDir = dodge.dodgeDir;
 			cmd.targetSpeed = dodge.dodgeSpeed;
 			cmd.accelHalfLife = dodge.accelHalfLife;
 
-			// ‘–‚èo‚·‚ÍA”²‚¯‚é‘O‚ÉŒü‚«‚ğ‰ñ”ğ•ûŒü‚Ö‡‚í‚¹‚Ä‚¨‚­
+			// èµ°ã‚Šå‡ºã™æ™‚ã¯ã€æŠœã‘ã‚‹å‰ã«å‘ãã‚’å›é¿æ–¹å‘ã¸åˆã‚ã›ã¦ãŠã
 			cmd.faceMoveDir = dodge.finished && intent.wantsMove;
 		});
 }
