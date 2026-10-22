@@ -1,6 +1,6 @@
 {
     "version": 2,
-    "nextId": 501,
+    "nextId": 177,
     "entry": {
         "transitions": [
             {
@@ -2761,75 +2761,7 @@
             "transitions": [],
             "child": {
                 "clips": [],
-                "blends": [
-                    {
-                        "id": 500,
-                        "name": "TestBlend",
-                        "loop": true,
-                        "editor": {
-                            "x": 300.0,
-                            "y": 300.0
-                        },
-                        "graph": {
-                            "output": {
-                                "editor": {
-                                    "x": 500.0,
-                                    "y": 200.0
-                                }
-                            },
-                            "sources": [
-                                {
-                                    "id": 2,
-                                    "clip": "AS_Dodge_Front",
-                                    "editor": {
-                                        "x": 100.0,
-                                        "y": 100.0
-                                    }
-                                },
-                                {
-                                    "id": 3,
-                                    "clip": "AS_Dodge_Right",
-                                    "editor": {
-                                        "x": 100.0,
-                                        "y": 300.0
-                                    }
-                                }
-                            ],
-                            "pairLinks": [
-                                {
-                                    "id": 4,
-                                    "from": 2,
-                                    "to": 3,
-                                    "rateSource": "Fixed",
-                                    "fixedRate": 0.5,
-                                    "componentName": "",
-                                    "fieldName": "",
-                                    "selectedComponent": "None"
-                                }
-                            ],
-                            "outputLinks": [
-                                {
-                                    "id": 5,
-                                    "from": 4,
-                                    "always": true,
-                                    "condition": {
-                                        "returnNode": {
-                                            "id": 1,
-                                            "posX": 500.0,
-                                            "posY": 200.0
-                                        },
-                                        "variableNodes": [],
-                                        "operatorNodes": [],
-                                        "logicNodes": [],
-                                        "notNodes": [],
-                                        "getterNodes": [],
-                                        "links": []
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                ],
+                "blends": [],
                 "entryLinks": [],
                 "clipLinks": [],
                 "editor": {

@@ -66,8 +66,16 @@ private:
 	// Stateに入る
 	static void EnterState(StateMachineComponent& sm, const StateNode& state, const StateTransition& via);
 
+	// ノードを再生する
+	bool PlayNode(StateMachineComponent& sm, AnimatorComponent& animator, const ChildGraph& child, int nodeId,
+		const CrossfadeSetting& crossfade, SequencerComponent* sequencer);
+
+
 	// クリップを再生する
 	void PlayClip(AnimatorComponent& animator, const ClipNode& clip, const CrossfadeSetting& crossfade, SequencerComponent* sequencer);
+
+	// Blend を再生する
+	void PlayBlend(AnimatorComponent& animator, const BlendNode& blend, const CrossfadeSetting& crossfade);
 
 	static bool FindTrimmingRange(SequencerData& data, const std::string& clipName, float& outStart, float& outEnd);
 

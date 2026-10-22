@@ -30,6 +30,7 @@
     <ClCompile Include="..\..\Source\Code\Engine\Data\AnimationSpeedData.cpp" />
     <ClCompile Include="..\..\Source\Code\Engine\Data\ConditionGraphData.cpp" />
     <ClCompile Include="..\..\Source\Code\Engine\Data\SequencerData.cpp" />
+    <ClCompile Include="..\..\Source\Code\Engine\Data\StateMachineBlendData.cpp" />
     <ClCompile Include="..\..\Source\Code\Engine\Data\StateMachineData.cpp" />
     <ClCompile Include="..\..\Source\Code\Engine\ECS\EngineComponents.cpp" />
     <ClCompile Include="..\..\Source\Code\Engine\ECS\Reflection.cpp" />
@@ -79,6 +80,8 @@
     <ClInclude Include="..\..\Source\Code\Engine\Data\AnimationSpeedData.h" />
     <ClInclude Include="..\..\Source\Code\Engine\Data\ConditionGraphData.h" />
     <ClInclude Include="..\..\Source\Code\Engine\Data\SequencerData.h" />
+    <ClInclude Include="..\..\Source\Code\Engine\Data\StateMachineBlendData.h" />
+    <ClInclude Include="..\..\Source\Code\Engine\Data\StateMachineCommon.h" />
     <ClInclude Include="..\..\Source\Code\Engine\Data\StateMachineData.h" />
     <ClInclude Include="..\..\Source\Code\Engine\ECS\Components\AdaptiveTrigger.h" />
     <ClInclude Include="..\..\Source\Code\Engine\ECS\Components\AnimationSpeedComponent.h" />

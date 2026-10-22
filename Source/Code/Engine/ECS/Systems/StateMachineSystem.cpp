@@ -5,6 +5,29 @@
 #include "Engine/ECS/Components/SequencerComponent.h"
 #include "Engine/ECS/Components/StateMachineComponent.h"
 
+namespace
+{
+	// クロスフェードを始める
+	void StartCrossfade(AnimatorComponent& animator, const CrossfadeSetting& crossfade)
+	{
+		const float duration = (crossfade.enabled && crossfade.duration > 0.0f) ? crossfade.duration : 0.0f;
+		const bool nothingPlayedYet = animator.currentAnimation.empty() && animator.playMode == AnimPlayMode::Clip;
+
+		if (nothingPlayedYet || duration <= 0.0f)
+		{
+			animator.isCrossfading = false;
+			animator.crossfadeSnapshotPending = false;
+			return;
+		}
+
+		// 混ぜる元のポーズは、次の AnimationSystem の更新で保存する
+		animator.crossfadeSnapshotPending = true;
+		animator.crossfadeTime = duration;
+		animator.crossfadeRate = 0.0f;
+		animator.isCrossfading = true;
+	}
+}
+
 // グラフを取得する
 const StateMachineData* StateMachineSystem::Load(const std::string& path)
 {
@@ -62,6 +85,35 @@ void StateMachineSystem::EnterState(StateMachineComponent& sm, const StateNode& 
 
 	// 最初のクリップは、ゲームプレイの各Systemが動いた後に決める
 	sm.pendingEntry = true;
+}
+
+// ノードを再生する
+bool StateMachineSystem::PlayNode(StateMachineComponent& sm, AnimatorComponent& animator, const ChildGraph& child, int nodeId, const CrossfadeSetting& crossfade, SequencerComponent* sequencer)
+{
+	switch (child.GetNodeKind(nodeId))
+	{
+	case ChildNodeKind::Clip:
+	{
+		const ClipNode* clip = child.FindClip(nodeId);
+		PlayClip(animator, *clip, crossfade, sequencer);
+		sm.currentNodeId = clip->id;
+		sm.currentNodeName = clip->name;
+		return true;
+	}
+
+	case ChildNodeKind::Blend:
+	{
+		const BlendNode* blend = child.FindBlend(nodeId);
+		PlayBlend(animator, *blend, crossfade);
+		sm.currentNodeId = blend->id;
+		sm.currentNodeName = blend->name;
+		sm.blendOutputLinkId = -1; // Blend に入った直後は、前の線が無い
+		return true;
+	}
+
+	default:
+		return false; // 見つからない
+	}
 }
 
 // Stateの遷移を決める
@@ -140,20 +192,16 @@ void StateMachineSystem::UpdateAnimation(entt::registry& registry)
 				if (l.entryTransitionId != sm.enteredTransitionId) continue;
 				if (!l.always && !ConditionGraphEvaluator::Evaluate(l.condition, registry, entity)) continue;
 
-				const ClipNode* clip = state->child.FindClip(l.toNodeId);
-				if (!clip) continue;
+				if (!PlayNode(sm, animator, state->child, l.toNodeId, crossfade, sequencer)) continue;
 
-				PlayClip(animator, *clip, crossfade, sequencer);
-				sm.currentNodeId = clip->id;
-				sm.currentNodeName = clip->name;
 				played = true;
 				break;
 			}
 
 			if (!played)
 			{
-				// 条件が成立するつながりが無かった(前のクリップを再生し続ける)
-				Log(u8"[StateMachine] 「%s」に入りましたが、再生するクリップが決まりませんでした(遷移ID %d)",
+				// 条件が成立するつながりが無かった
+				Log(u8"[StateMachine] 「%s」に入りましたが、再生するノードが決まりませんでした(遷移ID %d)", 
 					state->name.c_str(), sm.enteredTransitionId);
 			}
 			continue;
@@ -165,12 +213,7 @@ void StateMachineSystem::UpdateAnimation(entt::registry& registry)
 			if (l.fromNodeId != sm.currentNodeId) continue;
 			if (!l.always && !ConditionGraphEvaluator::Evaluate(l.condition, registry, entity)) continue;
 
-			const ClipNode* clip = state->child.FindClip(l.toNodeId);
-			if (!clip) continue;
-
-			PlayClip(animator, *clip, l.crossfade, sequencer);
-			sm.currentNodeId = clip->id;
-			sm.currentNodeName = clip->name;
+			if (!PlayNode(sm, animator, state->child, l.toNodeId, l.crossfade, sequencer)) continue;
 			break;
 		}
 	}
@@ -210,6 +253,29 @@ void StateMachineSystem::AddRequiredState(const std::string& stateName, const st
 		if (r.stateName == stateName && r.user == user) return; // 申告済み
 	}
 	list.push_back({ stateName, user, usesState });
+}
+
+// Blend を再生する
+void StateMachineSystem::PlayBlend(AnimatorComponent& animator, const BlendNode& blend, const CrossfadeSetting& crossfade)
+{
+	// クロスフェードを始める
+	StartCrossfade(animator, crossfade);
+
+	animator.playMode = AnimPlayMode::Blend;
+	animator.blendPhase = 0.0f;
+	animator.isPlaying = true;
+	animator.isEnd = false;
+	animator.loop = blend.loop;
+	animator.useRootMotion = false; // Blend ではルートモーションを使わない
+
+	// 材料と比率は、毎フレームの評価(B2-3)で決める。それまでは空にしておく
+	animator.blendClipA.clear();
+	animator.blendClipB.clear();
+	animator.blendWeight = 0.0f;
+	animator.blendTrimStartA = 0.0f;
+	animator.blendTrimEndA = 1.0f;
+	animator.blendTrimStartB = 0.0f;
+	animator.blendTrimEndB = 1.0f;
 }
 
 // トリミング範囲を探す
@@ -270,12 +336,10 @@ void StateMachineSystem::PlayClip(AnimatorComponent& animator, const ClipNode& c
 		return;
 	}
 
-	// クロスフェード開始
-	animator.crossfadeSnapshotPending = true;
-	animator.crossfadeTime = crossfadeDuration;
-	animator.crossfadeRate = 0.0f;
-	animator.isCrossfading = true;
+	// クロスフェードを始める
+	StartCrossfade(animator, crossfade);
 
+	animator.playMode = AnimPlayMode::Clip;
 	animator.currentAnimation = clip.clipName;
 	animator.trimStart = trimStart;
 	animator.trimEnd = trimEnd;

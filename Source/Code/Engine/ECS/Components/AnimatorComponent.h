@@ -3,6 +3,13 @@
 #include <DirectXMath.h>
 #include "Engine/ECS/Reflect.h"
 
+// 今再生しているものの種類
+enum class AnimPlayMode
+{
+    Clip,  // クリップを1本
+    Blend, // Blend ノード
+};
+
 struct AnimatorComponent
 {
     REFLECT_BEGIN(AnimatorComponent,"Animator")
@@ -16,6 +23,12 @@ struct AnimatorComponent
         REFLECT_FIELD(float, crossfadeRate, (0.0f), ("Cross FadeRate",  0.0f, 1.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // ブレンドの進み具合
         REFLECT_FIELD(bool, isCrossfading, (false), ("Is Cross Fading", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // ブレンド中か
 
+        // Blend ノード関連
+        REFLECT_FIELD(std::string, blendClipA, (""),   ("Blend Clip A", 0.0f, 0.0f, 0.1f,  "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // 材料Aのクリップ名
+        REFLECT_FIELD(std::string, blendClipB, (""),   ("Blend Clip B", 0.0f, 0.0f, 0.1f,  "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // 材料Bのクリップ名
+        REFLECT_FIELD(float, blendWeight,      (0.0f), ("Blend Weight", 0.0f, 1.0f, 0.01f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // Bの割合
+        REFLECT_FIELD(float, blendPhase,       (0.0f), ("Blend Phase",  0.0f, 1.0f, 0.01f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // 共有の「何割目」
+
         // ルートモーション関連
         REFLECT_FIELD(bool, useRootMotionY,            (false), ("Use Root Motion Y")) // Y軸適応
         REFLECT_FIELD(bool, useRootMotion,             (false), ("Use Root Motion"))   // ルートモーション使用
@@ -28,6 +41,14 @@ struct AnimatorComponent
     std::string currentAnimation;      // 現在のアニメーション名
     float       animationTime{ 0.0f }; // 現在の再生時間
     bool        isPlaying{ true };     // 再生中フラグ
+
+    AnimPlayMode playMode{ AnimPlayMode::Clip }; // 今再生しているものの種類
+
+    // Blend の材料のトリミング範囲
+    float blendTrimStartA{ 0.0f };
+    float blendTrimEndA{ 1.0f };
+    float blendTrimStartB{ 0.0f };
+    float blendTrimEndB{ 1.0f };
 
     // ブレンド関連
     float crossfadeTime{ 0.0f };              // ブレンドにかける時間

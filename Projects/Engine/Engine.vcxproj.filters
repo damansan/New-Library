@@ -197,11 +197,20 @@
     <Filter Include="Sources\Engine\Data\ConditionGraphData">
       <UniqueIdentifier>{b9e6525e-8254-4912-9428-bdb8dddcea2c}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Sources\Engine\Data\StateMachineData">
-      <UniqueIdentifier>{cec77339-acd7-4d60-b161-349e51191ef7}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Sources\Engine\ECS\Systems\StateMachineSystem">
       <UniqueIdentifier>{9a905bd8-deb7-4ca7-a9d0-408d7a9f73ac}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Engine\Data\StateMachine">
+      <UniqueIdentifier>{fd7506e9-3be5-4cca-bca9-8559fd1628a4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Engine\Data\StateMachine\StateMachineCommon">
+      <UniqueIdentifier>{2cd03d94-2ad9-4750-8c0a-3c04ead8b15c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Engine\Data\StateMachine\StateMachineData">
+      <UniqueIdentifier>{cec77339-acd7-4d60-b161-349e51191ef7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Engine\Data\StateMachine\StateMachineBlendData">
+      <UniqueIdentifier>{69f99f44-7d1d-4c14-ba2c-acd4eebd0436}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -329,10 +338,13 @@
       <Filter>Sources\Engine\Data\ConditionGraphData</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\Code\Engine\Data\StateMachineData.cpp">
-      <Filter>Sources\Engine\Data\StateMachineData</Filter>
+      <Filter>Sources\Engine\Data\StateMachine\StateMachineData</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\Code\Engine\ECS\Systems\StateMachineSystem.cpp">
       <Filter>Sources\Engine\ECS\Systems\StateMachineSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Code\Engine\Data\StateMachineBlendData.cpp">
+      <Filter>Sources\Engine\Data\StateMachine\StateMachineBlendData</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -544,13 +556,19 @@
       <Filter>Sources\Engine\Data\ConditionGraphData</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\Code\Engine\Data\StateMachineData.h">
-      <Filter>Sources\Engine\Data\StateMachineData</Filter>
+      <Filter>Sources\Engine\Data\StateMachine\StateMachineData</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\Code\Engine\ECS\Components\StateMachineComponent.h">
       <Filter>Sources\Engine\ECS\Components</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\Code\Engine\ECS\Systems\StateMachineSystem.h">
       <Filter>Sources\Engine\ECS\Systems\StateMachineSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Code\Engine\Data\StateMachineCommon.h">
+      <Filter>Sources\Engine\Data\StateMachine\StateMachineCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Code\Engine\Data\StateMachineBlendData.h">
+      <Filter>Sources\Engine\Data\StateMachine\StateMachineBlendData</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -17,6 +17,9 @@ struct StateMachineComponent
 	int currentNodeId = -1;       // 再生中のノード(ClipかBlendのID)
 	int enteredTransitionId = -1; // 現在のStateに入ってきた遷移
 
+	// Blend の中で、前のフレームに使った Output への線のID
+	int blendOutputLinkId = -1;
+
 	// Stateに入った直後で、子グラフのエントリーをまだ処理していないか
 	bool pendingEntry = false;
 

@@ -4,13 +4,8 @@
 #include <unordered_map>
 #include <json.hpp>
 #include "Engine/Data/ConditionGraphData.h"
-
-// エディタ上の位置
-struct EditorPosition
-{
-	float x = 0.0f;
-	float y = 0.0f;
-};
+#include "Engine/Data/StateMachineCommon.h"
+#include "Engine/Data/StateMachineBlendData.h"
 
 // ブレンドの設定
 struct CrossfadeSetting
@@ -40,86 +35,6 @@ struct ClipNode
 	EditorPosition editorPos;
 };
 
-// 子階層：Blend の中
-
-// ブレンド比率をどこから取るか
-enum class BlendRateSource
-{
-	Fixed,    // その場で決めた値
-	Variable, // Component の変数から読む
-};
-// ブレンド の中のノードの種類
-enum class BlendNodeKind
-{
-	None,     // 見つからない
-	Output,   // 出力のノード
-	Source,   // アニメーションの元ノード
-	PairLink, // 2つのノードをブレンドするリンク
-};
-// ブレンドを行う材料(クリップを1本再生する)
-struct BlendSourceNode
-{
-	int id = -1;
-	std::string clipName;
-	EditorPosition editorPos;
-};
-// ブレンドを行うペア(材料2つ(A・B)を結ぶ線　比率で混ぜた結果を　線の真ん中から出す)
-struct BlendPairLink
-{
-	int id = -1;
-	int fromId = -1; // A(材料のID)
-	int toId = -1;   // B(材料のID)
-
-	BlendRateSource rateSource = BlendRateSource::Fixed;
-
-	// その場で決めた値 のときに使う
-	float fixedRate = 0.5f;
-
-	// コンポーネントの変数を取得する ときに使う
-	std::string componentName;
-	std::string fieldName;
-	FloatComponent selectedComponent = FloatComponent::None;
-};
-// Blend の終着点
-struct BlendOutputNode
-{
-	int id = -1;
-	EditorPosition editorPos{ 500.0f, 200.0f };
-};
-// Output への線(条件を持つと優先度を持つ)
-struct BlendOutputLink
-{
-	int id = -1;
-	int fromId = -1; // 材料かペアのID
-	bool always = false;
-	ConditionGraph condition;
-};
-// Blend のグラフ
-struct BlendGraph
-{
-	BlendOutputNode outputNode;
-	std::vector<BlendSourceNode> sources;
-	std::vector<BlendPairLink>   pairLinks;
-	std::vector<BlendOutputLink> outputLinks; // 並び順がそのまま優先度
-
-	// 次に割り当てるID
-	int nextId = 2;
-
-	BlendGraph() { outputNode.id = 1; }
-
-	int GenerateId() { return nextId++; }
-
-	// 使用中のIDの最大値+1に、採番をそろえる
-	void RecalculateNextId();
-
-	// 検索
-	const BlendSourceNode* FindSource(int id) const;
-	const BlendPairLink* FindPairLink(int id) const;
-	const BlendOutputLink* FindOutputLink(int id) const;
-
-	// ノードの種類
-	BlendNodeKind GetNodeKind(int id) const;
-};
 // 複数のクリップをブレンドし再生するノード
 struct BlendNode
 {
@@ -234,6 +149,10 @@ public:
 	// 子階層：クリップ
 	int  AddClip(int stateId, const std::string& name, const EditorPosition& pos); // 作成
 	void RemoveClip(int stateId, int clipId);                                      // 削除
+
+	// 子階層：ブレンド
+	int  AddBlend(int stateId, const std::string& name, const EditorPosition& pos); // 作成
+	void RemoveBlend(int stateId, int blendId);                                     // 削除
 
 	// 子階層：(エントリー → クリップ)
 	int  AddEntryLink(int stateId, int transitionId, int toNodeId); // 作成
