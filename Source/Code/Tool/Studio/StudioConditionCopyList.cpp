@@ -95,7 +95,7 @@ std::vector<ConditionCopyItem> ConditionCopyList::CollectChild(const StateMachin
 			if (target == self) continue; // 自分自身は出さない
 			if (!IsCopySource(l.always, l.condition)) continue;
 
-			std::string label = "Entry(" + GetTransitionSourceName(data, l.entryTransitionId) + ") -> " + GetClipName(s.child, l.toClipId);
+			std::string label = "Entry(" + GetTransitionSourceName(data, l.entryTransitionId) + ") -> " + GetClipName(s.child, l.toNodeId);
 			items.push_back({ target, s.name, label });
 		}
 
@@ -106,7 +106,7 @@ std::vector<ConditionCopyItem> ConditionCopyList::CollectChild(const StateMachin
 			if (target == self) continue; // 自分自身は出さない
 			if (!IsCopySource(l.always, l.condition)) continue;
 
-			std::string label = GetClipName(s.child, l.fromClipId) + " -> " + GetClipName(s.child, l.toClipId);
+			std::string label = GetClipName(s.child, l.fromNodeId) + " -> " + GetClipName(s.child, l.toNodeId);
 			items.push_back({ target, s.name, label });
 		}
 	}

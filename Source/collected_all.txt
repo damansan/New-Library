@@ -2848,7 +2848,7 @@ struct EntryLink
 {
 	int id = -1;
 	int entryTransitionId = -1; // どの遷移から来たエントリーか
-	int toClipId = -1;
+	int toNodeId = -1;
 	bool always = false;
 	ConditionGraph condition;
 };
@@ -2857,8 +2857,8 @@ struct EntryLink
 struct ClipLink
 {
 	int id = -1;
-	int fromClipId = -1;
-	int toClipId = -1;
+	int fromNodeId = -1;
+	int toNodeId = -1;
 	bool always = false;
 	BlendSetting blend;
 	ConditionGraph condition;
@@ -4113,13 +4113,13 @@ void StateMachineData::RemoveClip(int stateId, int clipId)
 	auto& entryLinks = s->child.entryLinks;
 	entryLinks.erase(
 		std::remove_if(entryLinks.begin(), entryLinks.end(),
-			[clipId](const EntryLink& l) { return l.toClipId == clipId; }),
+			[clipId](const EntryLink& l) { return l.toNodeId == clipId; }),
 		entryLinks.end());
 
 	auto& clipLinks = s->child.clipLinks;
 	clipLinks.erase(
 		std::remove_if(clipLinks.begin(), clipLinks.end(),
-			[clipId](const ClipLink& l) { return l.fromClipId == clipId || l.toClipId == clipId; }),
+			[clipId](const ClipLink& l) { return l.fromNodeId == clipId || l.toNodeId == clipId; }),
 		clipLinks.end());
 
 	// クリップ本体の削除
@@ -4143,7 +4143,7 @@ int StateMachineData::AddEntryLink(int stateId, int transitionId, int toClipId)
 	EntryLink l;
 	l.id = GenerateId();
 	l.entryTransitionId = transitionId;
-	l.toClipId = toClipId;
+	l.toNodeId = toClipId;
 	s->child.entryLinks.push_back(l);
 	return l.id;
 }
@@ -4179,8 +4179,8 @@ int StateMachineData::AddClipLink(int stateId, int fromClipId, int toClipId)
 
 	ClipLink l;
 	l.id = GenerateId();
-	l.fromClipId = fromClipId;
-	l.toClipId = toClipId;
+	l.fromNodeId = fromClipId;
+	l.toNodeId = toClipId;
 	s->child.clipLinks.push_back(l);
 	return l.id;
 }
@@ -4203,7 +4203,7 @@ bool StateMachineData::MoveClipLink(int stateId, int linkId, int offset)
 	if (!s) return false;
 
 	return MoveInGroup(s->child.clipLinks, linkId, offset,
-		[](const ClipLink& l) { return l.fromClipId; });
+		[](const ClipLink& l) { return l.fromNodeId; });
 }
 
 
@@ -4346,7 +4346,7 @@ bool StateMachineData::Validate(const std::string& sourceName) const
 			{
 				error(what + u8" に対応する、入ってくる遷移がありません");
 			}
-			if (!s.child.FindClip(l.toClipId))
+			if (!s.child.FindClip(l.toNodeId))
 			{
 				error(what + u8" の行き先のクリップがありません");
 			}
@@ -4368,11 +4368,11 @@ bool StateMachineData::Validate(const std::string& sourceName) const
 		for (const auto& l : s.child.clipLinks)
 		{
 			std::string what = u8"「" + s.name + u8"」のクリップのつながり(ID " + std::to_string(l.id) + u8")";
-			if (!s.child.FindClip(l.fromClipId))
+			if (!s.child.FindClip(l.fromNodeId))
 			{
 				error(what + u8" の元のクリップがありません");
 			}
-			if (!s.child.FindClip(l.toClipId))
+			if (!s.child.FindClip(l.toNodeId))
 			{
 				error(what + u8" の行き先のクリップがありません");
 			}
@@ -4430,7 +4430,7 @@ nlohmann::ordered_json StateMachineData::ToJson() const
 			nlohmann::ordered_json jl;
 			jl["id"] = l.id;
 			jl["entry"] = l.entryTransitionId;
-			jl["to"] = l.toClipId;
+			jl["to"] = l.toNodeId;
 			WriteCommon(jl, l.always, l.condition);
 			jc["entryLinks"].push_back(jl);
 		}
@@ -4440,8 +4440,8 @@ nlohmann::ordered_json StateMachineData::ToJson() const
 		{
 			nlohmann::ordered_json jl;
 			jl["id"] = l.id;
-			jl["from"] = l.fromClipId;
-			jl["to"] = l.toClipId;
+			jl["from"] = l.fromNodeId;
+			jl["to"] = l.toNodeId;
 			WriteCommon(jl, l.always, l.condition);
 			WriteBlend(jl, l.blend);
 			jc["clipLinks"].push_back(jl);
@@ -4532,7 +4532,7 @@ bool StateMachineData::FromJson(const nlohmann::json& j, const std::string& sour
 						EntryLink l;
 						l.id = jl.value("id", -1);
 						l.entryTransitionId = jl.value("entry", -1);
-						l.toClipId = jl.value("to", -1);
+						l.toNodeId = jl.value("to", -1);
 						ReadCommon(jl, l.always, l.condition);
 						s.child.entryLinks.push_back(l);
 					}
@@ -4544,8 +4544,8 @@ bool StateMachineData::FromJson(const nlohmann::json& j, const std::string& sour
 					{
 						ClipLink l;
 						l.id = jl.value("id", -1);
-						l.fromClipId = jl.value("from", -1);
-						l.toClipId = jl.value("to", -1);
+						l.fromNodeId = jl.value("from", -1);
+						l.toNodeId = jl.value("to", -1);
 						ReadCommon(jl, l.always, l.condition);
 						ReadBlend(jl, l.blend);
 						s.child.clipLinks.push_back(l);
@@ -4926,6 +4926,7 @@ namespace
 	{
 		if (type == entt::resolve<bool>())              return ValueType::Bool;
 		if (type == entt::resolve<int>())               return ValueType::Int;
+		if (type == entt::resolve<float>())             return ValueType::Float;
 		if (type == entt::resolve<DirectX::XMFLOAT2>()) return ValueType::Float2;
 		if (type == entt::resolve<DirectX::XMFLOAT3>()) return ValueType::Float3;
 		if (type == entt::resolve<DirectX::XMFLOAT4>()) return ValueType::Float4;
@@ -5673,12 +5674,12 @@ struct StateMachineComponent
 		
 		REFLECT_FIELD(std::string, graphPath,        (""), ("State Graph",   0.0f, 0.0f, 0.1f, "STATEGRAPH_PATH"))
 		REFLECT_FIELD(std::string, currentStateName, (""), ("Current State", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient))
-		REFLECT_FIELD(std::string, currentClipName,  (""), ("Current Clip",  0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient))
+		REFLECT_FIELD(std::string, currentNodeName,  (""), ("Current Clip",  0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient))
 		
 	REFLECT_END()
 
-		int currentStateId = -1;  // 現在のState
-	int currentClipId = -1;       // 現在再生中のクリップ(子グラフ)
+	int currentStateId = -1;      // 現在のState
+	int currentNodeId = -1;       // 再生中のノード(ClipかBlendのID)
 	int enteredTransitionId = -1; // 現在のStateに入ってきた遷移
 
 	// Stateに入った直後で、子グラフのエントリーをまだ処理していないか
@@ -9215,12 +9216,12 @@ void StateMachineSystem::UpdateAnimation(entt::registry& registry)
 				if (l.entryTransitionId != sm.enteredTransitionId) continue;
 				if (!l.always && !ConditionGraphEvaluator::Evaluate(l.condition, registry, entity)) continue;
 
-				const ClipNode* clip = state->child.FindClip(l.toClipId);
+				const ClipNode* clip = state->child.FindClip(l.toNodeId);
 				if (!clip) continue;
 
 				PlayClip(animator, *clip, blend, sequencer);
-				sm.currentClipId = clip->id;
-				sm.currentClipName = clip->name;
+				sm.currentNodeId = clip->id;
+				sm.currentNodeName = clip->name;
 				played = true;
 				break;
 			}
@@ -9237,15 +9238,15 @@ void StateMachineSystem::UpdateAnimation(entt::registry& registry)
 		// State内：今のクリップから出るつながりを、並び順に調べる
 		for (const auto& l : state->child.clipLinks)
 		{
-			if (l.fromClipId != sm.currentClipId) continue;
+			if (l.fromNodeId != sm.currentNodeId) continue;
 			if (!l.always && !ConditionGraphEvaluator::Evaluate(l.condition, registry, entity)) continue;
 
-			const ClipNode* clip = state->child.FindClip(l.toClipId);
+			const ClipNode* clip = state->child.FindClip(l.toNodeId);
 			if (!clip) continue;
 
 			PlayClip(animator, *clip, l.blend, sequencer);
-			sm.currentClipId = clip->id;
-			sm.currentClipName = clip->name;
+			sm.currentNodeId = clip->id;
+			sm.currentNodeName = clip->name;
 			break;
 		}
 	}
@@ -16857,7 +16858,7 @@ private:
 	WaveDemo waveDemo;
 
 	// デバッグ描画切り替えフラグ
-	bool DrawDebug = true;
+	bool DrawDebug = false;
 };
  
  
@@ -17050,7 +17051,6 @@ void SceneGame::Render(const SceneContext& context)
 	}
 #endif
 
-#ifdef _DEBUG
 	if (DrawDebug)
 	{
 		physicsDebugRenderer.Render(
@@ -17070,7 +17070,6 @@ void SceneGame::Render(const SceneContext& context)
 			context.projection,
 			lightDir3);
 	}
-#endif
 }
 
 // 繧ｲ繝ｼ繝繝励Ξ繧､邉ｻ
@@ -23990,7 +23989,7 @@ std::vector<ConditionCopyItem> ConditionCopyList::CollectChild(const StateMachin
 			if (target == self) continue; // 自分自身は出さない
 			if (!IsCopySource(l.always, l.condition)) continue;
 
-			std::string label = "Entry(" + GetTransitionSourceName(data, l.entryTransitionId) + ") -> " + GetClipName(s.child, l.toClipId);
+			std::string label = "Entry(" + GetTransitionSourceName(data, l.entryTransitionId) + ") -> " + GetClipName(s.child, l.toNodeId);
 			items.push_back({ target, s.name, label });
 		}
 
@@ -24001,7 +24000,7 @@ std::vector<ConditionCopyItem> ConditionCopyList::CollectChild(const StateMachin
 			if (target == self) continue; // 自分自身は出さない
 			if (!IsCopySource(l.always, l.condition)) continue;
 
-			std::string label = GetClipName(s.child, l.fromClipId) + " -> " + GetClipName(s.child, l.toClipId);
+			std::string label = GetClipName(s.child, l.fromNodeId) + " -> " + GetClipName(s.child, l.toNodeId);
 			items.push_back({ target, s.name, label });
 		}
 	}
@@ -24979,13 +24978,13 @@ void StudioStateChildCanvas::DrawLinks()
 	// Entryから出るリンク
 	for (const auto& l : state->child.entryLinks)
 	{
-		drawOne(l.id, l.entryTransitionId, l.toClipId, false, l.always, l.condition);
+		drawOne(l.id, l.entryTransitionId, l.toNodeId, false, l.always, l.condition);
 	}
 
 	// 各Stateから出るリンク
 	for (const auto& l : state->child.clipLinks)
 	{
-		drawOne(l.id, l.fromClipId, l.toClipId, HasClipLink(l.toClipId, l.fromClipId), l.always, l.condition);
+		drawOne(l.id, l.fromNodeId, l.toNodeId, HasClipLink(l.toNodeId, l.fromNodeId), l.always, l.condition);
 	}
 }
 
@@ -25318,7 +25317,7 @@ void StudioStateChildCanvas::DrawLinkInspector(int linkId)
 	{
 		ImGui::Text("Entry(%s)  ->  %s",
 			GetSourceName([&] { for (const auto& e : entries) if (e.transitionId == entryLink->entryTransitionId) return e.fromKey; return -1; }()).c_str(),
-			GetClipName(entryLink->toClipId).c_str());
+			GetClipName(entryLink->toNodeId).c_str());
 
 		for (const auto& l : state->child.entryLinks)
 		{
@@ -25329,11 +25328,11 @@ void StudioStateChildCanvas::DrawLinkInspector(int linkId)
 	}
 	else
 	{
-		ImGui::Text("%s  ->  %s", GetClipName(clipLink->fromClipId).c_str(), GetClipName(clipLink->toClipId).c_str());
+		ImGui::Text("%s  ->  %s", GetClipName(clipLink->fromNodeId).c_str(), GetClipName(clipLink->toNodeId).c_str());
 
 		for (const auto& l : state->child.clipLinks)
 		{
-			if (l.fromClipId != clipLink->fromClipId) continue;
+			if (l.fromNodeId != clipLink->fromNodeId) continue;
 			if (l.id == linkId) index = count;
 			++count;
 		}
@@ -25507,14 +25506,14 @@ void StudioStateChildCanvas::DrawOutLinkList(int fromKey, bool fromEntry)
 	{
 		for (const auto& l : state->child.entryLinks)
 		{
-			if (l.entryTransitionId == fromKey) drawRow(l.id, l.toClipId, l.always, l.condition);
+			if (l.entryTransitionId == fromKey) drawRow(l.id, l.toNodeId, l.always, l.condition);
 		}
 	}
 	else
 	{
 		for (const auto& l : state->child.clipLinks)
 		{
-			if (l.fromClipId == fromKey) drawRow(l.id, l.toClipId, l.always, l.condition);
+			if (l.fromNodeId == fromKey) drawRow(l.id, l.toNodeId, l.always, l.condition);
 		}
 	}
 
@@ -25568,7 +25567,7 @@ std::string StudioStateChildCanvas::GetClipName(int clipId) const
 bool StudioStateChildCanvas::HasClipLink(int fromClipId, int toClipId) const
 {
 	return std::any_of(state->child.clipLinks.begin(), state->child.clipLinks.end(),
-		[=](const ClipLink& l) { return l.fromClipId == fromClipId && l.toClipId == toClipId; });
+		[=](const ClipLink& l) { return l.fromNodeId == fromClipId && l.toNodeId == toClipId; });
 }
 
 // 線の始点と終点を求める
@@ -26111,7 +26110,7 @@ ConditionGraph* StudioStateGraph::ResolveCondition(const ConditionTarget& target
 				std::string fromName;
 				ImVec4 unused;
 				FindTransitionSource(l.entryTransitionId, fromName, unused);
-				outTitle = state->name + " / Entry(" + fromName + ") -> " + clipName(l.toClipId);
+				outTitle = state->name + " / Entry(" + fromName + ") -> " + clipName(l.toNodeId);
 				return &l.condition;
 			}
 		}
@@ -26121,7 +26120,7 @@ ConditionGraph* StudioStateGraph::ResolveCondition(const ConditionTarget& target
 			{
 				if (l.id != target.linkId) continue;
 
-				outTitle = state->name + " / " + clipName(l.fromClipId) + " -> " + clipName(l.toClipId);
+				outTitle = state->name + " / " + clipName(l.fromNodeId) + " -> " + clipName(l.toNodeId);
 				return &l.condition;
 			}
 		}

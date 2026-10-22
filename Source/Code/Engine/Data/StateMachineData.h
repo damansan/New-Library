@@ -40,22 +40,22 @@ struct ClipNode
 	EditorPosition editorPos;
 };
 
-// 子階層：遷移(エントリー → クリップ)
+// 子階層：遷移(エントリー → ノード)
 struct EntryLink
 {
 	int id = -1;
 	int entryTransitionId = -1; // どの遷移から来たエントリーか
-	int toClipId = -1;
+	int toNodeId = -1;
 	bool always = false;
 	ConditionGraph condition;
 };
 
-// 子階層：遷移(クリップ → クリップ)
+// 子階層：遷移(ノード → ノード)
 struct ClipLink
 {
 	int id = -1;
-	int fromClipId = -1;
-	int toClipId = -1;
+	int fromNodeId = -1;        // 遷移元のノード
+	int toNodeId = -1;          // 行き先のノード
 	bool always = false;
 	BlendSetting blend;
 	ConditionGraph condition;
@@ -133,12 +133,12 @@ public:
 	void RemoveClip(int stateId, int clipId);                                      // 削除
 
 	// 子階層：(エントリー → クリップ)
-	int  AddEntryLink(int stateId, int transitionId, int toClipId); // 作成
+	int  AddEntryLink(int stateId, int transitionId, int toNodeId); // 作成
 	void RemoveEntryLink(int stateId, int linkId);                  // 削除
 	bool MoveEntryLink(int stateId, int linkId, int offset);        // 優先度の入れ替え
 
 	// 子階層：(クリップ → クリップ)
-	int  AddClipLink(int stateId, int fromClipId, int toClipId); // 作成
+	int  AddClipLink(int stateId, int fromNodeId, int toNodeId); // 作成
 	void RemoveClipLink(int stateId, int linkId);                // 削除
 	bool MoveClipLink(int stateId, int linkId, int offset);      // 優先度の入れ替え
 

@@ -9,12 +9,12 @@ struct StateMachineComponent
 		
 		REFLECT_FIELD(std::string, graphPath,        (""), ("State Graph",   0.0f, 0.0f, 0.1f, "STATEGRAPH_PATH"))
 		REFLECT_FIELD(std::string, currentStateName, (""), ("Current State", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient))
-		REFLECT_FIELD(std::string, currentClipName,  (""), ("Current Clip",  0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient))
-		
+		REFLECT_FIELD(std::string, currentNodeName,  (""), ("Current Node",  0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // 再生中のノード(Clip か Blend)
+
 	REFLECT_END()
 
-		int currentStateId = -1;  // 現在のState
-	int currentClipId = -1;       // 現在再生中のクリップ(子グラフ)
+	int currentStateId = -1;      // 現在のState
+	int currentNodeId = -1;       // 再生中のノード(ClipかBlendのID)
 	int enteredTransitionId = -1; // 現在のStateに入ってきた遷移
 
 	// Stateに入った直後で、子グラフのエントリーをまだ処理していないか

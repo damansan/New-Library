@@ -520,7 +520,7 @@ ConditionGraph* StudioStateGraph::ResolveCondition(const ConditionTarget& target
 				std::string fromName;
 				ImVec4 unused;
 				FindTransitionSource(l.entryTransitionId, fromName, unused);
-				outTitle = state->name + " / Entry(" + fromName + ") -> " + clipName(l.toClipId);
+				outTitle = state->name + " / Entry(" + fromName + ") -> " + clipName(l.toNodeId);
 				return &l.condition;
 			}
 		}
@@ -530,7 +530,7 @@ ConditionGraph* StudioStateGraph::ResolveCondition(const ConditionTarget& target
 			{
 				if (l.id != target.linkId) continue;
 
-				outTitle = state->name + " / " + clipName(l.fromClipId) + " -> " + clipName(l.toClipId);
+				outTitle = state->name + " / " + clipName(l.fromNodeId) + " -> " + clipName(l.toNodeId);
 				return &l.condition;
 			}
 		}

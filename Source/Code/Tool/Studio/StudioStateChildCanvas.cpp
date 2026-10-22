@@ -237,13 +237,13 @@ void StudioStateChildCanvas::DrawLinks()
 	// Entryから出るリンク
 	for (const auto& l : state->child.entryLinks)
 	{
-		drawOne(l.id, l.entryTransitionId, l.toClipId, false, l.always, l.condition);
+		drawOne(l.id, l.entryTransitionId, l.toNodeId, false, l.always, l.condition);
 	}
 
 	// 各Stateから出るリンク
 	for (const auto& l : state->child.clipLinks)
 	{
-		drawOne(l.id, l.fromClipId, l.toClipId, HasClipLink(l.toClipId, l.fromClipId), l.always, l.condition);
+		drawOne(l.id, l.fromNodeId, l.toNodeId, HasClipLink(l.toNodeId, l.fromNodeId), l.always, l.condition);
 	}
 }
 
@@ -576,7 +576,7 @@ void StudioStateChildCanvas::DrawLinkInspector(int linkId)
 	{
 		ImGui::Text("Entry(%s)  ->  %s",
 			GetSourceName([&] { for (const auto& e : entries) if (e.transitionId == entryLink->entryTransitionId) return e.fromKey; return -1; }()).c_str(),
-			GetClipName(entryLink->toClipId).c_str());
+			GetClipName(entryLink->toNodeId).c_str());
 
 		for (const auto& l : state->child.entryLinks)
 		{
@@ -587,11 +587,11 @@ void StudioStateChildCanvas::DrawLinkInspector(int linkId)
 	}
 	else
 	{
-		ImGui::Text("%s  ->  %s", GetClipName(clipLink->fromClipId).c_str(), GetClipName(clipLink->toClipId).c_str());
+		ImGui::Text("%s  ->  %s", GetClipName(clipLink->fromNodeId).c_str(), GetClipName(clipLink->toNodeId).c_str());
 
 		for (const auto& l : state->child.clipLinks)
 		{
-			if (l.fromClipId != clipLink->fromClipId) continue;
+			if (l.fromNodeId != clipLink->fromNodeId) continue;
 			if (l.id == linkId) index = count;
 			++count;
 		}
@@ -733,7 +733,7 @@ void StudioStateChildCanvas::DrawOutLinkList(int fromKey, bool fromEntry)
 	int number = 0;
 
 	// リンク1本分
-	auto drawRow = [&](int linkId, int toClipId, bool always, const ConditionGraph& condition)
+	auto drawRow = [&](int linkId, int toNodeId, bool always, const ConditionGraph& condition)
 		{
 			ImGui::PushID(linkId);
 
@@ -748,7 +748,7 @@ void StudioStateChildCanvas::DrawOutLinkList(int fromKey, bool fromEntry)
 			if (invalid) ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.4f, 0.4f, 1.0f));
 
 			// クリックでそのリンクを選ぶ
-			std::string label = std::to_string(++number) + ". -> " + GetClipName(toClipId);
+			std::string label = std::to_string(++number) + ". -> " + GetClipName(toNodeId);
 			if (ImGui::Selectable(label.c_str(), linkId == selectedLinkId))
 			{
 				selectedLinkId = linkId;
@@ -765,14 +765,14 @@ void StudioStateChildCanvas::DrawOutLinkList(int fromKey, bool fromEntry)
 	{
 		for (const auto& l : state->child.entryLinks)
 		{
-			if (l.entryTransitionId == fromKey) drawRow(l.id, l.toClipId, l.always, l.condition);
+			if (l.entryTransitionId == fromKey) drawRow(l.id, l.toNodeId, l.always, l.condition);
 		}
 	}
 	else
 	{
 		for (const auto& l : state->child.clipLinks)
 		{
-			if (l.fromClipId == fromKey) drawRow(l.id, l.toClipId, l.always, l.condition);
+			if (l.fromNodeId == fromKey) drawRow(l.id, l.toNodeId, l.always, l.condition);
 		}
 	}
 
@@ -822,11 +822,11 @@ std::string StudioStateChildCanvas::GetClipName(int clipId) const
 	return "(missing)";
 }
 
-// fromClipIdからtoClipIdへのリンクがあるか
-bool StudioStateChildCanvas::HasClipLink(int fromClipId, int toClipId) const
+// fromNodeIdからtoNodeIdへのリンクがあるか
+bool StudioStateChildCanvas::HasClipLink(int fromNodeId, int toNodeId) const
 {
 	return std::any_of(state->child.clipLinks.begin(), state->child.clipLinks.end(),
-		[=](const ClipLink& l) { return l.fromClipId == fromClipId && l.toClipId == toClipId; });
+		[=](const ClipLink& l) { return l.fromNodeId == fromNodeId && l.toNodeId == toNodeId; });
 }
 
 // 線の始点と終点を求める

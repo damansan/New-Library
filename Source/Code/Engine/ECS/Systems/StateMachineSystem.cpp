@@ -140,12 +140,12 @@ void StateMachineSystem::UpdateAnimation(entt::registry& registry)
 				if (l.entryTransitionId != sm.enteredTransitionId) continue;
 				if (!l.always && !ConditionGraphEvaluator::Evaluate(l.condition, registry, entity)) continue;
 
-				const ClipNode* clip = state->child.FindClip(l.toClipId);
+				const ClipNode* clip = state->child.FindClip(l.toNodeId);
 				if (!clip) continue;
 
 				PlayClip(animator, *clip, blend, sequencer);
-				sm.currentClipId = clip->id;
-				sm.currentClipName = clip->name;
+				sm.currentNodeId = clip->id;
+				sm.currentNodeName = clip->name;
 				played = true;
 				break;
 			}
@@ -162,15 +162,15 @@ void StateMachineSystem::UpdateAnimation(entt::registry& registry)
 		// State内：今のクリップから出るつながりを、並び順に調べる
 		for (const auto& l : state->child.clipLinks)
 		{
-			if (l.fromClipId != sm.currentClipId) continue;
+			if (l.fromNodeId != sm.currentNodeId) continue;
 			if (!l.always && !ConditionGraphEvaluator::Evaluate(l.condition, registry, entity)) continue;
 
-			const ClipNode* clip = state->child.FindClip(l.toClipId);
+			const ClipNode* clip = state->child.FindClip(l.toNodeId);
 			if (!clip) continue;
 
 			PlayClip(animator, *clip, l.blend, sequencer);
-			sm.currentClipId = clip->id;
-			sm.currentClipName = clip->name;
+			sm.currentNodeId = clip->id;
+			sm.currentNodeName = clip->name;
 			break;
 		}
 	}

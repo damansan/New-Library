@@ -291,13 +291,13 @@ void StateMachineData::RemoveClip(int stateId, int clipId)
 	auto& entryLinks = s->child.entryLinks;
 	entryLinks.erase(
 		std::remove_if(entryLinks.begin(), entryLinks.end(),
-			[clipId](const EntryLink& l) { return l.toClipId == clipId; }),
+			[clipId](const EntryLink& l) { return l.toNodeId == clipId; }),
 		entryLinks.end());
 
 	auto& clipLinks = s->child.clipLinks;
 	clipLinks.erase(
 		std::remove_if(clipLinks.begin(), clipLinks.end(),
-			[clipId](const ClipLink& l) { return l.fromClipId == clipId || l.toClipId == clipId; }),
+			[clipId](const ClipLink& l) { return l.fromNodeId == clipId || l.toNodeId == clipId; }),
 		clipLinks.end());
 
 	// クリップ本体の削除
@@ -308,11 +308,11 @@ void StateMachineData::RemoveClip(int stateId, int clipId)
 		clips.end());
 }
 
-// 子階層：(エントリー → クリップ)
-int StateMachineData::AddEntryLink(int stateId, int transitionId, int toClipId)
+// 子階層：(エントリー → ノード)
+int StateMachineData::AddEntryLink(int stateId, int transitionId, int toNodeId)
 {
 	StateNode* s = FindState(stateId);
-	if (!s || !s->child.FindClip(toClipId)) return -1;
+	if (!s || !s->child.FindClip(toNodeId)) return -1;
 
 	// このStateに入ってくる遷移でなければ、エントリーは存在しない
 	const StateTransition* t = FindTransition(transitionId);
@@ -321,7 +321,7 @@ int StateMachineData::AddEntryLink(int stateId, int transitionId, int toClipId)
 	EntryLink l;
 	l.id = GenerateId();
 	l.entryTransitionId = transitionId;
-	l.toClipId = toClipId;
+	l.toNodeId = toNodeId;
 	s->child.entryLinks.push_back(l);
 	return l.id;
 }
@@ -347,18 +347,18 @@ bool StateMachineData::MoveEntryLink(int stateId, int linkId, int offset)
 		[](const EntryLink& l) { return l.entryTransitionId; });
 }
 
-// 子階層：(クリップ → クリップ)
-int StateMachineData::AddClipLink(int stateId, int fromClipId, int toClipId)
+// 子階層：(ノード → ノード)
+int StateMachineData::AddClipLink(int stateId, int fromNodeId, int toNodeId)
 {
 	StateNode* s = FindState(stateId);
 	if (!s) return -1;
-	if (fromClipId == toClipId) return -1; // 自分自身へのつながりは作らない
-	if (!s->child.FindClip(fromClipId) || !s->child.FindClip(toClipId)) return -1;
+	if (fromNodeId == toNodeId) return -1; // 自分自身へのつながりは作らない
+	if (!s->child.FindClip(fromNodeId) || !s->child.FindClip(toNodeId)) return -1;
 
 	ClipLink l;
 	l.id = GenerateId();
-	l.fromClipId = fromClipId;
-	l.toClipId = toClipId;
+	l.fromNodeId = fromNodeId;
+	l.toNodeId = toNodeId;
 	s->child.clipLinks.push_back(l);
 	return l.id;
 }
@@ -381,7 +381,7 @@ bool StateMachineData::MoveClipLink(int stateId, int linkId, int offset)
 	if (!s) return false;
 
 	return MoveInGroup(s->child.clipLinks, linkId, offset,
-		[](const ClipLink& l) { return l.fromClipId; });
+		[](const ClipLink& l) { return l.fromNodeId; });
 }
 
 
@@ -524,7 +524,7 @@ bool StateMachineData::Validate(const std::string& sourceName) const
 			{
 				error(what + u8" に対応する、入ってくる遷移がありません");
 			}
-			if (!s.child.FindClip(l.toClipId))
+			if (!s.child.FindClip(l.toNodeId))
 			{
 				error(what + u8" の行き先のクリップがありません");
 			}
@@ -546,11 +546,11 @@ bool StateMachineData::Validate(const std::string& sourceName) const
 		for (const auto& l : s.child.clipLinks)
 		{
 			std::string what = u8"「" + s.name + u8"」のクリップのつながり(ID " + std::to_string(l.id) + u8")";
-			if (!s.child.FindClip(l.fromClipId))
+			if (!s.child.FindClip(l.fromNodeId))
 			{
 				error(what + u8" の元のクリップがありません");
 			}
-			if (!s.child.FindClip(l.toClipId))
+			if (!s.child.FindClip(l.toNodeId))
 			{
 				error(what + u8" の行き先のクリップがありません");
 			}
@@ -608,7 +608,7 @@ nlohmann::ordered_json StateMachineData::ToJson() const
 			nlohmann::ordered_json jl;
 			jl["id"] = l.id;
 			jl["entry"] = l.entryTransitionId;
-			jl["to"] = l.toClipId;
+			jl["to"] = l.toNodeId;
 			WriteCommon(jl, l.always, l.condition);
 			jc["entryLinks"].push_back(jl);
 		}
@@ -618,8 +618,8 @@ nlohmann::ordered_json StateMachineData::ToJson() const
 		{
 			nlohmann::ordered_json jl;
 			jl["id"] = l.id;
-			jl["from"] = l.fromClipId;
-			jl["to"] = l.toClipId;
+			jl["from"] = l.fromNodeId;
+			jl["to"] = l.toNodeId;
 			WriteCommon(jl, l.always, l.condition);
 			WriteBlend(jl, l.blend);
 			jc["clipLinks"].push_back(jl);
@@ -710,7 +710,7 @@ bool StateMachineData::FromJson(const nlohmann::json& j, const std::string& sour
 						EntryLink l;
 						l.id = jl.value("id", -1);
 						l.entryTransitionId = jl.value("entry", -1);
-						l.toClipId = jl.value("to", -1);
+						l.toNodeId = jl.value("to", -1);
 						ReadCommon(jl, l.always, l.condition);
 						s.child.entryLinks.push_back(l);
 					}
@@ -722,8 +722,8 @@ bool StateMachineData::FromJson(const nlohmann::json& j, const std::string& sour
 					{
 						ClipLink l;
 						l.id = jl.value("id", -1);
-						l.fromClipId = jl.value("from", -1);
-						l.toClipId = jl.value("to", -1);
+						l.fromNodeId = jl.value("from", -1);
+						l.toNodeId = jl.value("to", -1);
 						ReadCommon(jl, l.always, l.condition);
 						ReadBlend(jl, l.blend);
 						s.child.clipLinks.push_back(l);

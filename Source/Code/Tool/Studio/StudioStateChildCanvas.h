@@ -103,8 +103,8 @@ private:
 
 	// --- リンクの計算 --- //
 
-	// fromClipIdからtoClipIdへのリンクがあるか
-	bool HasClipLink(int fromClipId, int toClipId) const;
+	// fromNodeIdからtoNodeIdへのリンクがあるか
+	bool HasClipLink(int fromNodeId, int toNodeId) const;
 	// 線の始点と終点を求める
 	bool CalcLinkPoints(int fromKey, int toKey, bool hasReverse, int lane, ImVec2& outStart, ImVec2& outEnd) const;
 	
