@@ -1,6 +1,6 @@
 {
     "version": 2,
-    "nextId": 131,
+    "nextId": 177,
     "entry": {
         "transitions": [
             {
@@ -1071,8 +1071,8 @@
                         "loop": false,
                         "rootMotion": false,
                         "editor": {
-                            "x": 208.0,
-                            "y": 96.0
+                            "x": 176.0,
+                            "y": 16.0
                         }
                     },
                     {
@@ -1082,8 +1082,8 @@
                         "loop": false,
                         "rootMotion": false,
                         "editor": {
-                            "x": 208.0,
-                            "y": 336.0
+                            "x": 352.0,
+                            "y": 192.0
                         }
                     },
                     {
@@ -1093,8 +1093,8 @@
                         "loop": false,
                         "rootMotion": false,
                         "editor": {
-                            "x": 208.0,
-                            "y": 256.0
+                            "x": 0.0,
+                            "y": 192.0
                         }
                     },
                     {
@@ -1104,8 +1104,107 @@
                         "loop": false,
                         "rootMotion": false,
                         "editor": {
-                            "x": 208.0,
-                            "y": 176.0
+                            "x": 176.0,
+                            "y": 352.0
+                        }
+                    },
+                    {
+                        "id": 146,
+                        "name": "Output",
+                        "clip": "",
+                        "loop": true,
+                        "rootMotion": false,
+                        "editor": {
+                            "x": 176.0,
+                            "y": -272.0
+                        }
+                    },
+                    {
+                        "id": 147,
+                        "name": "Front",
+                        "clip": "",
+                        "loop": true,
+                        "rootMotion": false,
+                        "editor": {
+                            "x": 176.0,
+                            "y": -432.0
+                        }
+                    },
+                    {
+                        "id": 148,
+                        "name": "Left",
+                        "clip": "",
+                        "loop": true,
+                        "rootMotion": false,
+                        "editor": {
+                            "x": -16.0,
+                            "y": -272.0
+                        }
+                    },
+                    {
+                        "id": 149,
+                        "name": "Right",
+                        "clip": "",
+                        "loop": true,
+                        "rootMotion": false,
+                        "editor": {
+                            "x": 352.0,
+                            "y": -272.0
+                        }
+                    },
+                    {
+                        "id": 150,
+                        "name": "Back",
+                        "clip": "",
+                        "loop": true,
+                        "rootMotion": false,
+                        "editor": {
+                            "x": 176.0,
+                            "y": -112.0
+                        }
+                    },
+                    {
+                        "id": 159,
+                        "name": "Blend",
+                        "clip": "",
+                        "loop": true,
+                        "rootMotion": false,
+                        "editor": {
+                            "x": 48.0,
+                            "y": -368.0
+                        }
+                    },
+                    {
+                        "id": 160,
+                        "name": "Blend",
+                        "clip": "",
+                        "loop": true,
+                        "rootMotion": false,
+                        "editor": {
+                            "x": 48.0,
+                            "y": -176.0
+                        }
+                    },
+                    {
+                        "id": 161,
+                        "name": "Blend",
+                        "clip": "",
+                        "loop": true,
+                        "rootMotion": false,
+                        "editor": {
+                            "x": 288.0,
+                            "y": -368.0
+                        }
+                    },
+                    {
+                        "id": 162,
+                        "name": "Blend",
+                        "clip": "",
+                        "loop": true,
+                        "rootMotion": false,
+                        "editor": {
+                            "x": 288.0,
+                            "y": -176.0
                         }
                     }
                 ],
@@ -1531,22 +1630,275 @@
                         }
                     }
                 ],
-                "clipLinks": [],
+                "clipLinks": [
+                    {
+                        "id": 151,
+                        "from": 148,
+                        "to": 147,
+                        "always": true,
+                        "condition": {
+                            "returnNode": {
+                                "id": 1,
+                                "posX": 500.0,
+                                "posY": 200.0
+                            },
+                            "variableNodes": [],
+                            "operatorNodes": [],
+                            "logicNodes": [],
+                            "notNodes": [],
+                            "getterNodes": [],
+                            "links": []
+                        },
+                        "blend": true,
+                        "blendDuration": 0.20000000298023224
+                    },
+                    {
+                        "id": 152,
+                        "from": 147,
+                        "to": 149,
+                        "always": true,
+                        "condition": {
+                            "returnNode": {
+                                "id": 1,
+                                "posX": 500.0,
+                                "posY": 200.0
+                            },
+                            "variableNodes": [],
+                            "operatorNodes": [],
+                            "logicNodes": [],
+                            "notNodes": [],
+                            "getterNodes": [],
+                            "links": []
+                        },
+                        "blend": true,
+                        "blendDuration": 0.20000000298023224
+                    },
+                    {
+                        "id": 153,
+                        "from": 149,
+                        "to": 150,
+                        "always": true,
+                        "condition": {
+                            "returnNode": {
+                                "id": 1,
+                                "posX": 500.0,
+                                "posY": 200.0
+                            },
+                            "variableNodes": [],
+                            "operatorNodes": [],
+                            "logicNodes": [],
+                            "notNodes": [],
+                            "getterNodes": [],
+                            "links": []
+                        },
+                        "blend": true,
+                        "blendDuration": 0.20000000298023224
+                    },
+                    {
+                        "id": 154,
+                        "from": 150,
+                        "to": 148,
+                        "always": true,
+                        "condition": {
+                            "returnNode": {
+                                "id": 1,
+                                "posX": 500.0,
+                                "posY": 200.0
+                            },
+                            "variableNodes": [],
+                            "operatorNodes": [],
+                            "logicNodes": [],
+                            "notNodes": [],
+                            "getterNodes": [],
+                            "links": []
+                        },
+                        "blend": true,
+                        "blendDuration": 0.20000000298023224
+                    },
+                    {
+                        "id": 163,
+                        "from": 159,
+                        "to": 146,
+                        "always": true,
+                        "condition": {
+                            "returnNode": {
+                                "id": 1,
+                                "posX": 500.0,
+                                "posY": 200.0
+                            },
+                            "variableNodes": [],
+                            "operatorNodes": [],
+                            "logicNodes": [],
+                            "notNodes": [],
+                            "getterNodes": [],
+                            "links": []
+                        },
+                        "blend": true,
+                        "blendDuration": 0.20000000298023224
+                    },
+                    {
+                        "id": 164,
+                        "from": 160,
+                        "to": 146,
+                        "always": true,
+                        "condition": {
+                            "returnNode": {
+                                "id": 1,
+                                "posX": 500.0,
+                                "posY": 200.0
+                            },
+                            "variableNodes": [],
+                            "operatorNodes": [],
+                            "logicNodes": [],
+                            "notNodes": [],
+                            "getterNodes": [],
+                            "links": []
+                        },
+                        "blend": true,
+                        "blendDuration": 0.20000000298023224
+                    },
+                    {
+                        "id": 165,
+                        "from": 162,
+                        "to": 146,
+                        "always": true,
+                        "condition": {
+                            "returnNode": {
+                                "id": 1,
+                                "posX": 500.0,
+                                "posY": 200.0
+                            },
+                            "variableNodes": [],
+                            "operatorNodes": [],
+                            "logicNodes": [],
+                            "notNodes": [],
+                            "getterNodes": [],
+                            "links": []
+                        },
+                        "blend": true,
+                        "blendDuration": 0.20000000298023224
+                    },
+                    {
+                        "id": 166,
+                        "from": 161,
+                        "to": 146,
+                        "always": true,
+                        "condition": {
+                            "returnNode": {
+                                "id": 1,
+                                "posX": 500.0,
+                                "posY": 200.0
+                            },
+                            "variableNodes": [],
+                            "operatorNodes": [],
+                            "logicNodes": [],
+                            "notNodes": [],
+                            "getterNodes": [],
+                            "links": []
+                        },
+                        "blend": true,
+                        "blendDuration": 0.20000000298023224
+                    },
+                    {
+                        "id": 167,
+                        "from": 147,
+                        "to": 146,
+                        "always": true,
+                        "condition": {
+                            "returnNode": {
+                                "id": 1,
+                                "posX": 500.0,
+                                "posY": 200.0
+                            },
+                            "variableNodes": [],
+                            "operatorNodes": [],
+                            "logicNodes": [],
+                            "notNodes": [],
+                            "getterNodes": [],
+                            "links": []
+                        },
+                        "blend": true,
+                        "blendDuration": 0.20000000298023224
+                    },
+                    {
+                        "id": 168,
+                        "from": 148,
+                        "to": 146,
+                        "always": true,
+                        "condition": {
+                            "returnNode": {
+                                "id": 1,
+                                "posX": 500.0,
+                                "posY": 200.0
+                            },
+                            "variableNodes": [],
+                            "operatorNodes": [],
+                            "logicNodes": [],
+                            "notNodes": [],
+                            "getterNodes": [],
+                            "links": []
+                        },
+                        "blend": true,
+                        "blendDuration": 0.20000000298023224
+                    },
+                    {
+                        "id": 169,
+                        "from": 150,
+                        "to": 146,
+                        "always": true,
+                        "condition": {
+                            "returnNode": {
+                                "id": 1,
+                                "posX": 500.0,
+                                "posY": 200.0
+                            },
+                            "variableNodes": [],
+                            "operatorNodes": [],
+                            "logicNodes": [],
+                            "notNodes": [],
+                            "getterNodes": [],
+                            "links": []
+                        },
+                        "blend": true,
+                        "blendDuration": 0.20000000298023224
+                    },
+                    {
+                        "id": 170,
+                        "from": 149,
+                        "to": 146,
+                        "always": true,
+                        "condition": {
+                            "returnNode": {
+                                "id": 1,
+                                "posX": 500.0,
+                                "posY": 200.0
+                            },
+                            "variableNodes": [],
+                            "operatorNodes": [],
+                            "logicNodes": [],
+                            "notNodes": [],
+                            "getterNodes": [],
+                            "links": []
+                        },
+                        "blend": true,
+                        "blendDuration": 0.20000000298023224
+                    }
+                ],
                 "editor": {
                     "entries": [
                         {
                             "x": 48.0,
-                            "y": 240.0,
+                            "y": 320.0,
                             "entry": 7
                         },
                         {
-                            "x": 400.0,
-                            "y": 240.0,
+                            "x": 48.0,
+                            "y": 80.0,
                             "entry": 10
                         },
                         {
-                            "x": 528.0,
-                            "y": 240.0,
+                            "x": 304.0,
+                            "y": 80.0,
                             "entry": 117
                         }
                     ]
@@ -2096,7 +2448,7 @@
                 "clips": [
                     {
                         "id": 81,
-                        "name": "Jump",
+                        "name": "JumpLoop",
                         "clip": "AS_Jump_Loop",
                         "loop": true,
                         "rootMotion": false,
@@ -2113,7 +2465,18 @@
                         "rootMotion": false,
                         "editor": {
                             "x": 192.0,
-                            "y": 384.0
+                            "y": 432.0
+                        }
+                    },
+                    {
+                        "id": 132,
+                        "name": "JumpFall",
+                        "clip": "AS_Jump_End",
+                        "loop": true,
+                        "rootMotion": false,
+                        "editor": {
+                            "x": 416.0,
+                            "y": 288.0
                         }
                     }
                 ],
@@ -2176,6 +2539,41 @@
                         }
                     },
                     {
+                        "id": 131,
+                        "entry": 125,
+                        "to": 81,
+                        "always": false,
+                        "condition": {
+                            "returnNode": {
+                                "id": 1,
+                                "posX": 498.0,
+                                "posY": 192.0
+                            },
+                            "variableNodes": [],
+                            "operatorNodes": [],
+                            "logicNodes": [],
+                            "notNodes": [],
+                            "getterNodes": [
+                                {
+                                    "id": 2,
+                                    "posX": 269.0,
+                                    "posY": 172.0,
+                                    "componentName": "PlayerLocomotionComponent",
+                                    "fieldName": "isAirborne",
+                                    "selectedComponent": "None"
+                                }
+                            ],
+                            "links": [
+                                {
+                                    "id": 3,
+                                    "fromId": 2,
+                                    "toId": 1,
+                                    "toPinB": false
+                                }
+                            ]
+                        }
+                    },
+                    {
                         "id": 128,
                         "entry": 125,
                         "to": 127,
@@ -2183,15 +2581,31 @@
                         "condition": {
                             "returnNode": {
                                 "id": 1,
-                                "posX": 500.0,
-                                "posY": 200.0
+                                "posX": 434.0,
+                                "posY": 192.0
                             },
                             "variableNodes": [],
                             "operatorNodes": [],
                             "logicNodes": [],
                             "notNodes": [],
-                            "getterNodes": [],
-                            "links": []
+                            "getterNodes": [
+                                {
+                                    "id": 2,
+                                    "posX": 253.0,
+                                    "posY": 172.0,
+                                    "componentName": "PlayerIntentComponent",
+                                    "fieldName": "jump.buffered",
+                                    "selectedComponent": "None"
+                                }
+                            ],
+                            "links": [
+                                {
+                                    "id": 3,
+                                    "fromId": 2,
+                                    "toId": 1,
+                                    "toPinB": false
+                                }
+                            ]
                         }
                     }
                 ],
@@ -2232,6 +2646,73 @@
                         },
                         "blend": true,
                         "blendDuration": 0.20000000298023224
+                    },
+                    {
+                        "id": 133,
+                        "from": 81,
+                        "to": 132,
+                        "always": false,
+                        "condition": {
+                            "returnNode": {
+                                "id": 1,
+                                "posX": 498.0,
+                                "posY": 240.0
+                            },
+                            "variableNodes": [
+                                {
+                                    "id": 7,
+                                    "posX": 134.0,
+                                    "posY": 272.0,
+                                    "name": "",
+                                    "type": "Float",
+                                    "intValue": 0,
+                                    "floatValue": 1.5,
+                                    "boolValue": false
+                                }
+                            ],
+                            "operatorNodes": [
+                                {
+                                    "id": 4,
+                                    "posX": 350.0,
+                                    "posY": 184.0,
+                                    "op": "GreaterEqual"
+                                }
+                            ],
+                            "logicNodes": [],
+                            "notNodes": [],
+                            "getterNodes": [
+                                {
+                                    "id": 2,
+                                    "posX": 125.0,
+                                    "posY": 140.0,
+                                    "componentName": "PlayerLocomotionComponent",
+                                    "fieldName": "airTime",
+                                    "selectedComponent": "None"
+                                }
+                            ],
+                            "links": [
+                                {
+                                    "id": 5,
+                                    "fromId": 4,
+                                    "toId": 1,
+                                    "toPinB": false
+                                },
+                                {
+                                    "id": 6,
+                                    "fromId": 2,
+                                    "toId": 4,
+                                    "toPinB": false
+                                },
+                                {
+                                    "id": 8,
+                                    "fromId": 7,
+                                    "toId": 4,
+                                    "toPinB": true
+                                }
+                            ]
+                        },
+                        "blend": true,
+                        "blendDuration": 0.20000000298023224
                     }
                 ],
                 "editor": {
@@ -2252,8 +2733,8 @@
                             "entry": 98
                         },
                         {
-                            "x": 48.0,
-                            "y": 400.0,
+                            "x": 32.0,
+                            "y": 448.0,
                             "entry": 125
                         }
                     ]
@@ -2306,28 +2787,6 @@
             "editor": {
                 "x": -128.0,
                 "y": 368.0,
-                "color": [
-                    0.27000001072883606,
-                    0.3499999940395355,
-                    0.4699999988079071
-                ]
-            }
-        },
-        {
-            "id": 52,
-            "name": "LightAirAttack",
-            "transitions": [],
-            "child": {
-                "clips": [],
-                "entryLinks": [],
-                "clipLinks": [],
-                "editor": {
-                    "entries": []
-                }
-            },
-            "editor": {
-                "x": -128.0,
-                "y": 272.0,
                 "color": [
                     0.27000001072883606,
                     0.3499999940395355,

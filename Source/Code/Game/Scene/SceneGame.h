@@ -86,5 +86,5 @@ private:
 	WaveDemo waveDemo;
 
 	// デバッグ描画切り替えフラグ
-	bool DrawDebug = true;
+	bool DrawDebug = false;
 };

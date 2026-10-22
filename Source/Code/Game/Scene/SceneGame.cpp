@@ -185,7 +185,6 @@ void SceneGame::Render(const SceneContext& context)
 	}
 #endif
 
-#ifdef _DEBUG
 	if (DrawDebug)
 	{
 		physicsDebugRenderer.Render(
@@ -205,7 +204,6 @@ void SceneGame::Render(const SceneContext& context)
 			context.projection,
 			lightDir3);
 	}
-#endif
 }
 
 // ゲームプレイ系
