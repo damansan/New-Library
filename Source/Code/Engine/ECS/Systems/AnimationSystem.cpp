@@ -24,20 +24,20 @@ void AnimationSystem::Update(
 			if (!animator.isPlaying) return;
 
 			// 遷移した直後なら、前のフレームの最終ポーズを「混ぜる元」として保存する
-			if (animator.blendSnapshotPending)
+			if (animator.crossfadeSnapshotPending)
 			{
-				animator.blendSnapshotPending = false;
+				animator.crossfadeSnapshotPending = false;
 
 				if (skinned.localPositions.empty())
 				{
 					// まだ一度もポーズを作っていないので、混ぜる元が無い
-					animator.isBlending = false;
+					animator.isCrossfading = false;
 				}
 				else
 				{
-					animator.blendFromPositions = skinned.localPositions;
-					animator.blendFromRotations = skinned.localRotations;
-					animator.blendFromScales = skinned.localScales;
+					animator.crossfadeFromPositions = skinned.localPositions;
+					animator.crossfadeFromRotations = skinned.localRotations;
+					animator.crossfadeFromScales = skinned.localScales;
 				}
 			}
 
@@ -85,7 +85,7 @@ void AnimationSystem::Update(
 			}
 
 			// クロスフェード
-			if (animator.isBlending)
+			if (animator.isCrossfading)
 			{
 				UpdateCrossfade(animator, skinned, elapsedTime);
 			}
@@ -216,22 +216,22 @@ DirectX::XMFLOAT3 AnimationSystem::ToWorldVelocity(const DirectX::XMFLOAT3& loca
 void AnimationSystem::UpdateCrossfade(AnimatorComponent& animator, SkinnedMeshComponent& skinned, float elapsedTime)
 {
 	// 進み具合を進める
-	animator.blendRate += (animator.blendTime > 0.0f) ? (elapsedTime / animator.blendTime) : 1.0f;
+	animator.crossfadeRate += (animator.crossfadeTime > 0.0f) ? (elapsedTime / animator.crossfadeTime) : 1.0f;
 
 	// 進み具合は一定の速さで進め、混ぜる割合にだけ緩急を付ける
-	const float linear = std::clamp(animator.blendRate, 0.0f, 1.0f);
+	const float linear = std::clamp(animator.crossfadeRate, 0.0f, 1.0f);
 	const float rate = linear * linear * (3.0f - 2.0f * linear);
 	
 	// 混ぜる元 → 今のポーズ
 	BlendPoses(
-		animator.blendFromPositions, animator.blendFromRotations, animator.blendFromScales,
+		animator.crossfadeFromPositions, animator.crossfadeFromRotations, animator.crossfadeFromScales,
 		skinned.localPositions, skinned.localRotations, skinned.localScales,
 		rate,
 		skinned.localPositions, skinned.localRotations, skinned.localScales);
 
-	if (animator.blendRate >= 1.0f)
+	if (animator.crossfadeRate >= 1.0f)
 	{
-		animator.isBlending = false;
+		animator.isCrossfading = false;
 	}
 }
 

@@ -580,7 +580,7 @@ bool StudioStateGraph::ResolveLinkSettings(const ConditionTarget& target, LinkSe
 		// 親のリンク：条件、always、ブレンド
 		StateTransition* t = data.FindTransition(target.linkId);
 		if (!t) return false;
-		out = { &t->condition, &t->always, &t->blend };
+		out = { &t->condition, &t->always, &t->crossfade };
 		return true;
 	}
 
@@ -606,7 +606,7 @@ bool StudioStateGraph::ResolveLinkSettings(const ConditionTarget& target, LinkSe
 		for (auto& l : state->child.clipLinks)
 		{
 			if (l.id != target.linkId) continue;
-			out = { &l.condition, &l.always, &l.blend };
+			out = { &l.condition, &l.always, &l.crossfade };
 			return true;
 		}
 		return false;
@@ -649,7 +649,7 @@ void StudioStateGraph::CopyLinkSettings(const ConditionCopyRequest& request)
 	*dst.always = *src.always;
 
 	// ブレンドは、両方が持っているときだけ写す
-	if (src.blend && dst.blend) *dst.blend = *src.blend;
+	if (src.crossfade && dst.crossfade) *dst.crossfade = *src.crossfade;
 
 	// 写した先を条件ウィンドウで開いていれば、画面を付け直す
 	if (conditionTarget == request.target) conditionPointer = nullptr;

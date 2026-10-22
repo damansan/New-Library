@@ -489,8 +489,8 @@ void StudioStateChildCanvas::DrawEntryInspector(int transitionId)
 	// ブレンド表示
 	if (const StateTransition* t = std::as_const(*data).FindTransition(transitionId))
 	{
-		if (t->blend.enabled) ImGui::TextDisabled("Blend: %.2f s (parent link)", t->blend.duration);
-		else                  ImGui::TextDisabled("Blend: Off (parent link)");
+		if (t->crossfade.enabled) ImGui::TextDisabled("Crossfade: %.2f s (parent link)", t->crossfade.duration);
+		else                      ImGui::TextDisabled("Crossfade: Off (parent link)");
 	}
 	ImGui::Separator();
 
@@ -608,9 +608,9 @@ void StudioStateChildCanvas::DrawLinkInspector(int linkId)
 	// ブレンド
 	if (clipLink)
 	{
-		ImGui::Checkbox("Blend", &clipLink->blend.enabled);
-		ImGui::BeginDisabled(!clipLink->blend.enabled);
-		ImGui::DragFloat("Blend Duration", &clipLink->blend.duration, 0.01f, 0.0f, 5.0f, "%.2f s");
+		ImGui::Checkbox("Crossfade", &clipLink->crossfade.enabled);
+		ImGui::BeginDisabled(!clipLink->crossfade.enabled);
+		ImGui::DragFloat("Crossfade Duration", &clipLink->crossfade.duration, 0.01f, 0.0f, 5.0f, "%.2f s");
 		ImGui::EndDisabled();
 	}
 	ImGui::Spacing();

@@ -514,9 +514,9 @@ void StudioStateParentCanvas::DrawLinkInspector(int linkId)
 	ImGui::Checkbox("Always", &link->always);
 
 	// ƒuƒŒƒ“ƒh
-	ImGui::Checkbox("Blend", &link->blend.enabled);
-	ImGui::BeginDisabled(!link->blend.enabled);
-	ImGui::DragFloat("Blend Duration", &link->blend.duration, 0.01f, 0.0f, 5.0f, "%.2f s");
+	ImGui::Checkbox("Crossfade", &link->crossfade.enabled);
+	ImGui::BeginDisabled(!link->crossfade.enabled);
+	ImGui::DragFloat("Crossfade Duration", &link->crossfade.duration, 0.01f, 0.0f, 5.0f, "%.2f s");
 	ImGui::EndDisabled();
 	ImGui::Spacing();
 

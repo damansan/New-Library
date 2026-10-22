@@ -132,7 +132,7 @@ void StateMachineSystem::UpdateAnimation(entt::registry& registry)
 			sm.pendingEntry = false;
 
 			const StateTransition* via = data->FindTransition(sm.enteredTransitionId);
-			BlendSetting blend = via ? via->blend : BlendSetting{};
+			CrossfadeSetting crossfade = via ? via->crossfade : CrossfadeSetting{};
 
 			bool played = false;
 			for (const auto& l : state->child.entryLinks)
@@ -143,7 +143,7 @@ void StateMachineSystem::UpdateAnimation(entt::registry& registry)
 				const ClipNode* clip = state->child.FindClip(l.toNodeId);
 				if (!clip) continue;
 
-				PlayClip(animator, *clip, blend, sequencer);
+				PlayClip(animator, *clip, crossfade, sequencer);
 				sm.currentNodeId = clip->id;
 				sm.currentNodeName = clip->name;
 				played = true;
@@ -168,7 +168,7 @@ void StateMachineSystem::UpdateAnimation(entt::registry& registry)
 			const ClipNode* clip = state->child.FindClip(l.toNodeId);
 			if (!clip) continue;
 
-			PlayClip(animator, *clip, l.blend, sequencer);
+			PlayClip(animator, *clip, l.crossfade, sequencer);
 			sm.currentNodeId = clip->id;
 			sm.currentNodeName = clip->name;
 			break;
@@ -233,7 +233,7 @@ bool StateMachineSystem::FindTrimmingRange(SequencerData& data, const std::strin
 }
 
 // クリップを再生する
-void StateMachineSystem::PlayClip(AnimatorComponent& animator, const ClipNode& clip, const BlendSetting& blend, SequencerComponent* sequencer)
+void StateMachineSystem::PlayClip(AnimatorComponent& animator, const ClipNode& clip, const CrossfadeSetting& crossfade, SequencerComponent* sequencer)
 {
 	// トリミング範囲を調べる
 	float trimStart = 0.0f;
@@ -251,10 +251,10 @@ void StateMachineSystem::PlayClip(AnimatorComponent& animator, const ClipNode& c
 		}
 	}
 
-	float blendDuration = (blend.enabled && blend.duration > 0.0f) ? blend.duration : 0.0f;
+	float crossfadeDuration = (crossfade.enabled && crossfade.duration > 0.0f) ? crossfade.duration : 0.0f;
 
-	// ブレンドしない
-	if (animator.currentAnimation.empty() || blendDuration <= 0.0f)
+	// クロスフェードしない
+	if (animator.currentAnimation.empty() || crossfadeDuration <= 0.0f) 
 	{
 		animator.currentAnimation = clip.clipName;
 		animator.trimStart = trimStart;
@@ -265,16 +265,16 @@ void StateMachineSystem::PlayClip(AnimatorComponent& animator, const ClipNode& c
 		animator.isEnd = false;
 		animator.useRootMotion = clip.rootMotion;
 		animator.loop = clip.loop;
-		animator.isBlending = false;
-		animator.blendSnapshotPending = false;
+		animator.isCrossfading = false;
+		animator.crossfadeSnapshotPending = false;
 		return;
 	}
 
-	// ブレンド開始
-	animator.blendSnapshotPending = true;
-	animator.blendTime = blendDuration;
-	animator.blendRate = 0.0f;
-	animator.isBlending = true;
+	// クロスフェード開始
+	animator.crossfadeSnapshotPending = true;
+	animator.crossfadeTime = crossfadeDuration;
+	animator.crossfadeRate = 0.0f;
+	animator.isCrossfading = true;
 
 	animator.currentAnimation = clip.clipName;
 	animator.trimStart = trimStart;

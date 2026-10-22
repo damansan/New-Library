@@ -2816,10 +2816,10 @@ struct EditorPosition
 };
 
 // ƒuƒŒƒ“ƒh‚ÌÝ’è
-struct BlendSetting
+struct CrossfadeSetting
 {
-	bool enabled = true;   // ƒuƒŒƒ“ƒh‚·‚é‚©
-	float duration = 0.2f; // ƒuƒŒƒ“ƒh‚Ì•b”(enabled‚ªfalse‚È‚çŽg‚í‚È‚¢)
+	bool enabled = true;   // ƒNƒƒXƒtƒF[ƒh‚·‚é‚©
+	float duration = 0.2f; // ƒNƒƒXƒtƒF[ƒh‚Ì•b”(enabled‚ªfalse‚È‚çŽg‚í‚È‚¢)
 };
 
 // eŠK‘w : ‘JˆÚ(State ¨ State)
@@ -2828,7 +2828,7 @@ struct StateTransition
 	int id = -1;
 	int toStateId = -1;
 	bool always = false; // true‚È‚çðŒ‚ÉŠÖŒW‚È‚­¬—§‚·‚é
-	BlendSetting blend;
+	CrossfadeSetting crossfade;
 	ConditionGraph condition;
 };
 
@@ -2843,7 +2843,7 @@ struct ClipNode
 	EditorPosition editorPos;
 };
 
-// ŽqŠK‘wF‘JˆÚ(ƒGƒ“ƒgƒŠ[ ¨ ƒNƒŠƒbƒv)
+// ŽqŠK‘wF‘JˆÚ(ƒGƒ“ƒgƒŠ[ ¨ ƒm[ƒh)
 struct EntryLink
 {
 	int id = -1;
@@ -2853,14 +2853,14 @@ struct EntryLink
 	ConditionGraph condition;
 };
 
-// ŽqŠK‘wF‘JˆÚ(ƒNƒŠƒbƒv ¨ ƒNƒŠƒbƒv)
+// ŽqŠK‘wF‘JˆÚ(ƒm[ƒh ¨ ƒm[ƒh)
 struct ClipLink
 {
 	int id = -1;
-	int fromNodeId = -1;
-	int toNodeId = -1;
+	int fromNodeId = -1;        // ‘JˆÚŒ³‚Ìƒm[ƒh
+	int toNodeId = -1;          // s‚«æ‚Ìƒm[ƒh
 	bool always = false;
-	BlendSetting blend;
+	CrossfadeSetting crossfade;
 	ConditionGraph condition;
 };
 
@@ -2936,12 +2936,12 @@ public:
 	void RemoveClip(int stateId, int clipId);                                      // íœ
 
 	// ŽqŠK‘wF(ƒGƒ“ƒgƒŠ[ ¨ ƒNƒŠƒbƒv)
-	int  AddEntryLink(int stateId, int transitionId, int toClipId); // ì¬
+	int  AddEntryLink(int stateId, int transitionId, int toNodeId); // ì¬
 	void RemoveEntryLink(int stateId, int linkId);                  // íœ
 	bool MoveEntryLink(int stateId, int linkId, int offset);        // —Dæ“x‚Ì“ü‚ê‘Ö‚¦
 
 	// ŽqŠK‘wF(ƒNƒŠƒbƒv ¨ ƒNƒŠƒbƒv)
-	int  AddClipLink(int stateId, int fromClipId, int toClipId); // ì¬
+	int  AddClipLink(int stateId, int fromNodeId, int toNodeId); // ì¬
 	void RemoveClipLink(int stateId, int linkId);                // íœ
 	bool MoveClipLink(int stateId, int linkId, int offset);      // —Dæ“x‚Ì“ü‚ê‘Ö‚¦
 
@@ -3857,13 +3857,13 @@ namespace
 		if (j.contains("condition")) ConditionGraphFromJson(condition, j["condition"]);
 	}
 
-	// ƒuƒŒƒ“ƒh‚ÌÝ’è
-	void WriteBlend(nlohmann::ordered_json& j, const BlendSetting& blend)
+	// ‘JˆÚ‚ÌƒNƒƒXƒtƒF[ƒh‚ÌÝ’è
+	void WriteCrossfade(nlohmann::ordered_json& j, const CrossfadeSetting& blend)
 	{
 		j["blend"] = blend.enabled;
 		j["blendDuration"] = blend.duration;
 	}
-	void ReadBlend(const nlohmann::json& j, BlendSetting& blend)
+	void ReadCrossfade(const nlohmann::json& j, CrossfadeSetting& blend)
 	{
 		blend.enabled = j.value("blend", true);
 		blend.duration = j.value("blendDuration", 0.2f);
@@ -3876,7 +3876,7 @@ namespace
 		j["id"] = t.id;
 		j["to"] = t.toStateId;
 		WriteCommon(j, t.always, t.condition);
-		WriteBlend(j, t.blend);
+		WriteCrossfade(j, t.crossfade);
 		return j;
 	}
 	StateTransition TransitionFromJson(const nlohmann::json& j)
@@ -3885,7 +3885,7 @@ namespace
 		t.id = j.value("id", -1);
 		t.toStateId = j.value("to", -1);
 		ReadCommon(j, t.always, t.condition);
-		ReadBlend(j, t.blend);
+		ReadCrossfade(j, t.crossfade);
 		return t;
 	}
 
@@ -4130,11 +4130,11 @@ void StateMachineData::RemoveClip(int stateId, int clipId)
 		clips.end());
 }
 
-// ŽqŠK‘wF(ƒGƒ“ƒgƒŠ[ ¨ ƒNƒŠƒbƒv)
-int StateMachineData::AddEntryLink(int stateId, int transitionId, int toClipId)
+// ŽqŠK‘wF(ƒGƒ“ƒgƒŠ[ ¨ ƒm[ƒh)
+int StateMachineData::AddEntryLink(int stateId, int transitionId, int toNodeId)
 {
 	StateNode* s = FindState(stateId);
-	if (!s || !s->child.FindClip(toClipId)) return -1;
+	if (!s || !s->child.FindClip(toNodeId)) return -1;
 
 	// ‚±‚ÌState‚É“ü‚Á‚Ä‚­‚é‘JˆÚ‚Å‚È‚¯‚ê‚ÎAƒGƒ“ƒgƒŠ[‚Í‘¶Ý‚µ‚È‚¢
 	const StateTransition* t = FindTransition(transitionId);
@@ -4143,7 +4143,7 @@ int StateMachineData::AddEntryLink(int stateId, int transitionId, int toClipId)
 	EntryLink l;
 	l.id = GenerateId();
 	l.entryTransitionId = transitionId;
-	l.toNodeId = toClipId;
+	l.toNodeId = toNodeId;
 	s->child.entryLinks.push_back(l);
 	return l.id;
 }
@@ -4169,18 +4169,18 @@ bool StateMachineData::MoveEntryLink(int stateId, int linkId, int offset)
 		[](const EntryLink& l) { return l.entryTransitionId; });
 }
 
-// ŽqŠK‘wF(ƒNƒŠƒbƒv ¨ ƒNƒŠƒbƒv)
-int StateMachineData::AddClipLink(int stateId, int fromClipId, int toClipId)
+// ŽqŠK‘wF(ƒm[ƒh ¨ ƒm[ƒh)
+int StateMachineData::AddClipLink(int stateId, int fromNodeId, int toNodeId)
 {
 	StateNode* s = FindState(stateId);
 	if (!s) return -1;
-	if (fromClipId == toClipId) return -1; // Ž©•ªŽ©g‚Ö‚Ì‚Â‚È‚ª‚è‚Íì‚ç‚È‚¢
-	if (!s->child.FindClip(fromClipId) || !s->child.FindClip(toClipId)) return -1;
+	if (fromNodeId == toNodeId) return -1; // Ž©•ªŽ©g‚Ö‚Ì‚Â‚È‚ª‚è‚Íì‚ç‚È‚¢
+	if (!s->child.FindClip(fromNodeId) || !s->child.FindClip(toNodeId)) return -1;
 
 	ClipLink l;
 	l.id = GenerateId();
-	l.fromNodeId = fromClipId;
-	l.toNodeId = toClipId;
+	l.fromNodeId = fromNodeId;
+	l.toNodeId = toNodeId;
 	s->child.clipLinks.push_back(l);
 	return l.id;
 }
@@ -4296,11 +4296,11 @@ bool StateMachineData::Validate(const std::string& sourceName) const
 			}
 		};
 
-	auto checkBlend = [&](const BlendSetting& blend, const std::string& what)
+	auto checkCrossfade = [&](const CrossfadeSetting& crossfade, const std::string& what)
 		{
-			if (blend.enabled && blend.duration <= 0.0f)
+			if (crossfade.enabled && crossfade.duration <= 0.0f)
 			{
-				warning(what + u8" ‚ÌƒuƒŒƒ“ƒhŽžŠÔ‚ª0ˆÈ‰º‚Å‚·(ƒuƒŒƒ“ƒh‚µ‚È‚¢ˆµ‚¢‚É‚È‚è‚Ü‚·)");
+				warning(what + u8" ‚ÌƒNƒƒXƒtƒF[ƒhŽžŠÔ‚ª0ˆÈ‰º‚Å‚·(ƒNƒƒXƒtƒF[ƒh‚µ‚È‚¢ˆµ‚¢‚É‚È‚è‚Ü‚·)");
 			}
 		};
 
@@ -4312,7 +4312,7 @@ bool StateMachineData::Validate(const std::string& sourceName) const
 				error(what + u8" ‚Ìs‚«æ‚ÌState‚ª‚ ‚è‚Ü‚¹‚ñ");
 			}
 			checkCommon(t.always, t.condition, what);
-			checkBlend(t.blend, what);
+			checkCrossfade(t.crossfade, what);
 		};
 
 	for (const auto& t : entry.transitions) checkTransition(t, u8"Entry");
@@ -4377,7 +4377,7 @@ bool StateMachineData::Validate(const std::string& sourceName) const
 				error(what + u8" ‚Ìs‚«æ‚ÌƒNƒŠƒbƒv‚ª‚ ‚è‚Ü‚¹‚ñ");
 			}
 			checkCommon(l.always, l.condition, what);
-			checkBlend(l.blend, what);
+			checkCrossfade(l.crossfade, what);
 		}
 	}
 
@@ -4443,7 +4443,7 @@ nlohmann::ordered_json StateMachineData::ToJson() const
 			jl["from"] = l.fromNodeId;
 			jl["to"] = l.toNodeId;
 			WriteCommon(jl, l.always, l.condition);
-			WriteBlend(jl, l.blend);
+			WriteCrossfade(jl, l.crossfade);
 			jc["clipLinks"].push_back(jl);
 		}
 
@@ -4547,7 +4547,7 @@ bool StateMachineData::FromJson(const nlohmann::json& j, const std::string& sour
 						l.fromNodeId = jl.value("from", -1);
 						l.toNodeId = jl.value("to", -1);
 						ReadCommon(jl, l.always, l.condition);
-						ReadBlend(jl, l.blend);
+						ReadCrossfade(jl, l.crossfade);
 						s.child.clipLinks.push_back(l);
 					}
 				}
@@ -5215,8 +5215,8 @@ struct AnimatorComponent
         REFLECT_FIELD(bool,  isEnd,     (false), ("Is End",     0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // å†ç”Ÿçµ‚äº†ãƒ•ãƒ©ã‚°
 
         // ãƒ–ãƒ¬ãƒ³ãƒ‰é–¢é€£
-        REFLECT_FIELD(float, blendRate, (0.0f),  ("Blend Rate",  0.0f, 1.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // ãƒ–ãƒ¬ãƒ³ãƒ‰ã®é€²ã¿å…·åˆ
-        REFLECT_FIELD(bool, isBlending, (false), ("Is Blending", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // ãƒ–ãƒ¬ãƒ³ãƒ‰ä¸­ã‹
+        REFLECT_FIELD(float, crossfadeRate, (0.0f), ("Cross FadeRate",  0.0f, 1.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // ãƒ–ãƒ¬ãƒ³ãƒ‰ã®é€²ã¿å…·åˆ
+        REFLECT_FIELD(bool, isCrossfading, (false), ("Is Cross Fading", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // ãƒ–ãƒ¬ãƒ³ãƒ‰ä¸­ã‹
 
         // ãƒ«ãƒ¼ãƒˆãƒ¢ãƒ¼ã‚·ãƒ§ãƒ³é–¢é€£
         REFLECT_FIELD(bool, useRootMotionY,            (false), ("Use Root Motion Y")) // Yè»¸é©å¿œ
@@ -5232,13 +5232,13 @@ struct AnimatorComponent
     bool        isPlaying{ true };     // å†ç”Ÿä¸­ãƒ•ãƒ©ã‚°
 
     // ãƒ–ãƒ¬ãƒ³ãƒ‰é–¢é€£
-    float blendTime{ 0.0f };              // ãƒ–ãƒ¬ãƒ³ãƒ‰ã«ã‹ã‘ã‚‹æ™‚é–“
-    bool  blendSnapshotPending{ false };  // æ¬¡ã®æ›´æ–°ã§ã€å‰ã®ãƒ•ãƒ¬ãƒ¼ãƒ ã®æœ€çµ‚ãƒãƒ¼ã‚ºã‚’ä¿å­˜ã™ã‚‹ã‹
+    float crossfadeTime{ 0.0f };              // ãƒ–ãƒ¬ãƒ³ãƒ‰ã«ã‹ã‘ã‚‹æ™‚é–“
+    bool  crossfadeSnapshotPending{ false };  // æ¬¡ã®æ›´æ–°ã§ã€å‰ã®ãƒ•ãƒ¬ãƒ¼ãƒ ã®æœ€çµ‚ãƒãƒ¼ã‚ºã‚’ä¿å­˜ã™ã‚‹ã‹
     
     // æ··ãœã‚‹å…ƒã®ãƒãƒ¼ã‚º
-    std::vector<DirectX::XMFLOAT3> blendFromPositions;
-    std::vector<DirectX::XMFLOAT4> blendFromRotations;
-    std::vector<DirectX::XMFLOAT3> blendFromScales;
+    std::vector<DirectX::XMFLOAT3> crossfadeFromPositions;
+    std::vector<DirectX::XMFLOAT4> crossfadeFromRotations;
+    std::vector<DirectX::XMFLOAT3> crossfadeFromScales;
 
     // ãƒ«ãƒ¼ãƒˆãƒ¢ãƒ¼ã‚·ãƒ§ãƒ³é–¢é€£
     DirectX::XMFLOAT3 rootMotionDelta{ 0.0f, 0.0f, 0.0f }; // ãƒ«ãƒ¼ãƒˆãƒ¢ãƒ¼ã‚·ãƒ§ãƒ³ç§»å‹•é‡
@@ -5674,8 +5674,8 @@ struct StateMachineComponent
 		
 		REFLECT_FIELD(std::string, graphPath,        (""), ("State Graph",   0.0f, 0.0f, 0.1f, "STATEGRAPH_PATH"))
 		REFLECT_FIELD(std::string, currentStateName, (""), ("Current State", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient))
-		REFLECT_FIELD(std::string, currentNodeName,  (""), ("Current Clip",  0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient))
-		
+		REFLECT_FIELD(std::string, currentNodeName,  (""), ("Current Node",  0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // Ä¶’†‚Ìƒm[ƒh(Clip ‚© Blend)
+
 	REFLECT_END()
 
 	int currentStateId = -1;      // Œ»Ý‚ÌState
@@ -6416,7 +6416,7 @@ private:
 	static void EnterState(StateMachineComponent& sm, const StateNode& state, const StateTransition& via);
 
 	// ƒNƒŠƒbƒv‚ðÄ¶‚·‚é
-	void PlayClip(AnimatorComponent& animator, const ClipNode& clip, const BlendSetting& blend, SequencerComponent* sequencer);
+	void PlayClip(AnimatorComponent& animator, const ClipNode& clip, const CrossfadeSetting& crossfade, SequencerComponent* sequencer);
 
 	static bool FindTrimmingRange(SequencerData& data, const std::string& clipName, float& outStart, float& outEnd);
 
@@ -6553,20 +6553,20 @@ void AnimationSystem::Update(
 			if (!animator.isPlaying) return;
 
 			// ‘JˆÚ‚µ‚½’¼Œã‚È‚çA‘O‚ÌƒtƒŒ[ƒ€‚ÌÅIƒ|[ƒY‚ðu¬‚º‚éŒ³v‚Æ‚µ‚Ä•Û‘¶‚·‚é
-			if (animator.blendSnapshotPending)
+			if (animator.crossfadeSnapshotPending)
 			{
-				animator.blendSnapshotPending = false;
+				animator.crossfadeSnapshotPending = false;
 
 				if (skinned.localPositions.empty())
 				{
 					// ‚Ü‚¾ˆê“x‚àƒ|[ƒY‚ðì‚Á‚Ä‚¢‚È‚¢‚Ì‚ÅA¬‚º‚éŒ³‚ª–³‚¢
-					animator.isBlending = false;
+					animator.isCrossfading = false;
 				}
 				else
 				{
-					animator.blendFromPositions = skinned.localPositions;
-					animator.blendFromRotations = skinned.localRotations;
-					animator.blendFromScales = skinned.localScales;
+					animator.crossfadeFromPositions = skinned.localPositions;
+					animator.crossfadeFromRotations = skinned.localRotations;
+					animator.crossfadeFromScales = skinned.localScales;
 				}
 			}
 
@@ -6614,7 +6614,7 @@ void AnimationSystem::Update(
 			}
 
 			// ƒNƒƒXƒtƒF[ƒh
-			if (animator.isBlending)
+			if (animator.isCrossfading)
 			{
 				UpdateCrossfade(animator, skinned, elapsedTime);
 			}
@@ -6745,22 +6745,22 @@ DirectX::XMFLOAT3 AnimationSystem::ToWorldVelocity(const DirectX::XMFLOAT3& loca
 void AnimationSystem::UpdateCrossfade(AnimatorComponent& animator, SkinnedMeshComponent& skinned, float elapsedTime)
 {
 	// i‚Ý‹ï‡‚ði‚ß‚é
-	animator.blendRate += (animator.blendTime > 0.0f) ? (elapsedTime / animator.blendTime) : 1.0f;
+	animator.crossfadeRate += (animator.crossfadeTime > 0.0f) ? (elapsedTime / animator.crossfadeTime) : 1.0f;
 
 	// i‚Ý‹ï‡‚Íˆê’è‚Ì‘¬‚³‚Åi‚ßA¬‚º‚éŠ„‡‚É‚¾‚¯ŠÉ‹}‚ð•t‚¯‚é
-	const float linear = std::clamp(animator.blendRate, 0.0f, 1.0f);
+	const float linear = std::clamp(animator.crossfadeRate, 0.0f, 1.0f);
 	const float rate = linear * linear * (3.0f - 2.0f * linear);
 	
 	// ¬‚º‚éŒ³ ¨ ¡‚Ìƒ|[ƒY
 	BlendPoses(
-		animator.blendFromPositions, animator.blendFromRotations, animator.blendFromScales,
+		animator.crossfadeFromPositions, animator.crossfadeFromRotations, animator.crossfadeFromScales,
 		skinned.localPositions, skinned.localRotations, skinned.localScales,
 		rate,
 		skinned.localPositions, skinned.localRotations, skinned.localScales);
 
-	if (animator.blendRate >= 1.0f)
+	if (animator.crossfadeRate >= 1.0f)
 	{
-		animator.isBlending = false;
+		animator.isCrossfading = false;
 	}
 }
 
@@ -9208,7 +9208,7 @@ void StateMachineSystem::UpdateAnimation(entt::registry& registry)
 			sm.pendingEntry = false;
 
 			const StateTransition* via = data->FindTransition(sm.enteredTransitionId);
-			BlendSetting blend = via ? via->blend : BlendSetting{};
+			CrossfadeSetting crossfade = via ? via->crossfade : CrossfadeSetting{};
 
 			bool played = false;
 			for (const auto& l : state->child.entryLinks)
@@ -9219,7 +9219,7 @@ void StateMachineSystem::UpdateAnimation(entt::registry& registry)
 				const ClipNode* clip = state->child.FindClip(l.toNodeId);
 				if (!clip) continue;
 
-				PlayClip(animator, *clip, blend, sequencer);
+				PlayClip(animator, *clip, crossfade, sequencer);
 				sm.currentNodeId = clip->id;
 				sm.currentNodeName = clip->name;
 				played = true;
@@ -9244,7 +9244,7 @@ void StateMachineSystem::UpdateAnimation(entt::registry& registry)
 			const ClipNode* clip = state->child.FindClip(l.toNodeId);
 			if (!clip) continue;
 
-			PlayClip(animator, *clip, l.blend, sequencer);
+			PlayClip(animator, *clip, l.crossfade, sequencer);
 			sm.currentNodeId = clip->id;
 			sm.currentNodeName = clip->name;
 			break;
@@ -9309,7 +9309,7 @@ bool StateMachineSystem::FindTrimmingRange(SequencerData& data, const std::strin
 }
 
 // ƒNƒŠƒbƒv‚ðÄ¶‚·‚é
-void StateMachineSystem::PlayClip(AnimatorComponent& animator, const ClipNode& clip, const BlendSetting& blend, SequencerComponent* sequencer)
+void StateMachineSystem::PlayClip(AnimatorComponent& animator, const ClipNode& clip, const CrossfadeSetting& crossfade, SequencerComponent* sequencer)
 {
 	// ƒgƒŠƒ~ƒ“ƒO”ÍˆÍ‚ð’²‚×‚é
 	float trimStart = 0.0f;
@@ -9327,10 +9327,10 @@ void StateMachineSystem::PlayClip(AnimatorComponent& animator, const ClipNode& c
 		}
 	}
 
-	float blendDuration = (blend.enabled && blend.duration > 0.0f) ? blend.duration : 0.0f;
+	float crossfadeDuration = (crossfade.enabled && crossfade.duration > 0.0f) ? crossfade.duration : 0.0f;
 
-	// ƒuƒŒƒ“ƒh‚µ‚È‚¢
-	if (animator.currentAnimation.empty() || blendDuration <= 0.0f)
+	// ƒNƒƒXƒtƒF[ƒh‚µ‚È‚¢
+	if (animator.currentAnimation.empty() || crossfadeDuration <= 0.0f) 
 	{
 		animator.currentAnimation = clip.clipName;
 		animator.trimStart = trimStart;
@@ -9341,16 +9341,16 @@ void StateMachineSystem::PlayClip(AnimatorComponent& animator, const ClipNode& c
 		animator.isEnd = false;
 		animator.useRootMotion = clip.rootMotion;
 		animator.loop = clip.loop;
-		animator.isBlending = false;
-		animator.blendSnapshotPending = false;
+		animator.isCrossfading = false;
+		animator.crossfadeSnapshotPending = false;
 		return;
 	}
 
-	// ƒuƒŒƒ“ƒhŠJŽn
-	animator.blendSnapshotPending = true;
-	animator.blendTime = blendDuration;
-	animator.blendRate = 0.0f;
-	animator.isBlending = true;
+	// ƒNƒƒXƒtƒF[ƒhŠJŽn
+	animator.crossfadeSnapshotPending = true;
+	animator.crossfadeTime = crossfadeDuration;
+	animator.crossfadeRate = 0.0f;
+	animator.isCrossfading = true;
 
 	animator.currentAnimation = clip.clipName;
 	animator.trimStart = trimStart;
@@ -21651,8 +21651,8 @@ private:
 
 	// --- ƒŠƒ“ƒN‚ÌŒvŽZ --- //
 
-	// fromClipId‚©‚çtoClipId‚Ö‚ÌƒŠƒ“ƒN‚ª‚ ‚é‚©
-	bool HasClipLink(int fromClipId, int toClipId) const;
+	// fromNodeId‚©‚çtoNodeId‚Ö‚ÌƒŠƒ“ƒN‚ª‚ ‚é‚©
+	bool HasClipLink(int fromNodeId, int toNodeId) const;
 	// ü‚ÌŽn“_‚ÆI“_‚ð‹‚ß‚é
 	bool CalcLinkPoints(int fromKey, int toKey, bool hasReverse, int lane, ImVec2& outStart, ImVec2& outEnd) const;
 	
@@ -21838,12 +21838,12 @@ private:
 
 	// --- ƒŠƒ“ƒN‚ÌÝ’è‚ðŽÊ‚· --- //
 
-	// ƒŠƒ“ƒN‚ªŽ‚ÂÝ’è‚ÌêŠ(ƒuƒŒƒ“ƒh‚ðŽ‚½‚È‚¢ƒŠƒ“ƒN‚Ínullptr)
+	// ƒŠƒ“ƒN‚ªŽ‚ÂÝ’è‚ÌêŠ(ƒNƒƒXƒtƒF[ƒh‚ðŽ‚½‚È‚¢ƒŠƒ“ƒN‚Ínullptr)
 	struct LinkSettingsRef
 	{
 		ConditionGraph* condition = nullptr;
 		bool* always = nullptr;
-		BlendSetting* blend = nullptr;
+		CrossfadeSetting* crossfade = nullptr;
 	};
 
 	// ƒŠƒ“ƒN‚ÌÝ’è‚ÌêŠ‚ð’T‚·
@@ -25230,8 +25230,8 @@ void StudioStateChildCanvas::DrawEntryInspector(int transitionId)
 	// ƒuƒŒƒ“ƒh•\Ž¦
 	if (const StateTransition* t = std::as_const(*data).FindTransition(transitionId))
 	{
-		if (t->blend.enabled) ImGui::TextDisabled("Blend: %.2f s (parent link)", t->blend.duration);
-		else                  ImGui::TextDisabled("Blend: Off (parent link)");
+		if (t->crossfade.enabled) ImGui::TextDisabled("Crossfade: %.2f s (parent link)", t->crossfade.duration);
+		else                      ImGui::TextDisabled("Crossfade: Off (parent link)");
 	}
 	ImGui::Separator();
 
@@ -25349,9 +25349,9 @@ void StudioStateChildCanvas::DrawLinkInspector(int linkId)
 	// ƒuƒŒƒ“ƒh
 	if (clipLink)
 	{
-		ImGui::Checkbox("Blend", &clipLink->blend.enabled);
-		ImGui::BeginDisabled(!clipLink->blend.enabled);
-		ImGui::DragFloat("Blend Duration", &clipLink->blend.duration, 0.01f, 0.0f, 5.0f, "%.2f s");
+		ImGui::Checkbox("Crossfade", &clipLink->crossfade.enabled);
+		ImGui::BeginDisabled(!clipLink->crossfade.enabled);
+		ImGui::DragFloat("Crossfade Duration", &clipLink->crossfade.duration, 0.01f, 0.0f, 5.0f, "%.2f s");
 		ImGui::EndDisabled();
 	}
 	ImGui::Spacing();
@@ -25474,7 +25474,7 @@ void StudioStateChildCanvas::DrawOutLinkList(int fromKey, bool fromEntry)
 	int number = 0;
 
 	// ƒŠƒ“ƒN1–{•ª
-	auto drawRow = [&](int linkId, int toClipId, bool always, const ConditionGraph& condition)
+	auto drawRow = [&](int linkId, int toNodeId, bool always, const ConditionGraph& condition)
 		{
 			ImGui::PushID(linkId);
 
@@ -25489,7 +25489,7 @@ void StudioStateChildCanvas::DrawOutLinkList(int fromKey, bool fromEntry)
 			if (invalid) ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.4f, 0.4f, 1.0f));
 
 			// ƒNƒŠƒbƒN‚Å‚»‚ÌƒŠƒ“ƒN‚ð‘I‚Ô
-			std::string label = std::to_string(++number) + ". -> " + GetClipName(toClipId);
+			std::string label = std::to_string(++number) + ". -> " + GetClipName(toNodeId);
 			if (ImGui::Selectable(label.c_str(), linkId == selectedLinkId))
 			{
 				selectedLinkId = linkId;
@@ -25563,11 +25563,11 @@ std::string StudioStateChildCanvas::GetClipName(int clipId) const
 	return "(missing)";
 }
 
-// fromClipId‚©‚çtoClipId‚Ö‚ÌƒŠƒ“ƒN‚ª‚ ‚é‚©
-bool StudioStateChildCanvas::HasClipLink(int fromClipId, int toClipId) const
+// fromNodeId‚©‚çtoNodeId‚Ö‚ÌƒŠƒ“ƒN‚ª‚ ‚é‚©
+bool StudioStateChildCanvas::HasClipLink(int fromNodeId, int toNodeId) const
 {
 	return std::any_of(state->child.clipLinks.begin(), state->child.clipLinks.end(),
-		[=](const ClipLink& l) { return l.fromNodeId == fromClipId && l.toNodeId == toClipId; });
+		[=](const ClipLink& l) { return l.fromNodeId == fromNodeId && l.toNodeId == toNodeId; });
 }
 
 // ü‚ÌŽn“_‚ÆI“_‚ð‹‚ß‚é
@@ -26170,7 +26170,7 @@ bool StudioStateGraph::ResolveLinkSettings(const ConditionTarget& target, LinkSe
 		// e‚ÌƒŠƒ“ƒNFðŒAalwaysAƒuƒŒƒ“ƒh
 		StateTransition* t = data.FindTransition(target.linkId);
 		if (!t) return false;
-		out = { &t->condition, &t->always, &t->blend };
+		out = { &t->condition, &t->always, &t->crossfade };
 		return true;
 	}
 
@@ -26196,7 +26196,7 @@ bool StudioStateGraph::ResolveLinkSettings(const ConditionTarget& target, LinkSe
 		for (auto& l : state->child.clipLinks)
 		{
 			if (l.id != target.linkId) continue;
-			out = { &l.condition, &l.always, &l.blend };
+			out = { &l.condition, &l.always, &l.crossfade };
 			return true;
 		}
 		return false;
@@ -26239,7 +26239,7 @@ void StudioStateGraph::CopyLinkSettings(const ConditionCopyRequest& request)
 	*dst.always = *src.always;
 
 	// ƒuƒŒƒ“ƒh‚ÍA—¼•û‚ªŽ‚Á‚Ä‚¢‚é‚Æ‚«‚¾‚¯ŽÊ‚·
-	if (src.blend && dst.blend) *dst.blend = *src.blend;
+	if (src.crossfade && dst.crossfade) *dst.crossfade = *src.crossfade;
 
 	// ŽÊ‚µ‚½æ‚ððŒƒEƒBƒ“ƒhƒE‚ÅŠJ‚¢‚Ä‚¢‚ê‚ÎA‰æ–Ê‚ð•t‚¯’¼‚·
 	if (conditionTarget == request.target) conditionPointer = nullptr;
@@ -26929,9 +26929,9 @@ void StudioStateParentCanvas::DrawLinkInspector(int linkId)
 	ImGui::Checkbox("Always", &link->always);
 
 	// ƒuƒŒƒ“ƒh
-	ImGui::Checkbox("Blend", &link->blend.enabled);
-	ImGui::BeginDisabled(!link->blend.enabled);
-	ImGui::DragFloat("Blend Duration", &link->blend.duration, 0.01f, 0.0f, 5.0f, "%.2f s");
+	ImGui::Checkbox("Crossfade", &link->crossfade.enabled);
+	ImGui::BeginDisabled(!link->crossfade.enabled);
+	ImGui::DragFloat("Crossfade Duration", &link->crossfade.duration, 0.01f, 0.0f, 5.0f, "%.2f s");
 	ImGui::EndDisabled();
 	ImGui::Spacing();
 

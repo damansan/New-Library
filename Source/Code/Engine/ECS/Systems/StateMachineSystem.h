@@ -67,7 +67,7 @@ private:
 	static void EnterState(StateMachineComponent& sm, const StateNode& state, const StateTransition& via);
 
 	// ƒNƒŠƒbƒv‚ğÄ¶‚·‚é
-	void PlayClip(AnimatorComponent& animator, const ClipNode& clip, const BlendSetting& blend, SequencerComponent* sequencer);
+	void PlayClip(AnimatorComponent& animator, const ClipNode& clip, const CrossfadeSetting& crossfade, SequencerComponent* sequencer);
 
 	static bool FindTrimmingRange(SequencerData& data, const std::string& clipName, float& outStart, float& outEnd);
 

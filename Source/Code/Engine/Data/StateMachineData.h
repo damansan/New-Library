@@ -13,10 +13,10 @@ struct EditorPosition
 };
 
 // ブレンドの設定
-struct BlendSetting
+struct CrossfadeSetting
 {
-	bool enabled = true;   // ブレンドするか
-	float duration = 0.2f; // ブレンドの秒数(enabledがfalseなら使わない)
+	bool enabled = true;   // クロスフェードするか
+	float duration = 0.2f; // クロスフェードの秒数(enabledがfalseなら使わない)
 };
 
 // 親階層 : 遷移(State → State)
@@ -25,7 +25,7 @@ struct StateTransition
 	int id = -1;
 	int toStateId = -1;
 	bool always = false; // trueなら条件に関係なく成立する
-	BlendSetting blend;
+	CrossfadeSetting crossfade;
 	ConditionGraph condition;
 };
 
@@ -57,7 +57,7 @@ struct ClipLink
 	int fromNodeId = -1;        // 遷移元のノード
 	int toNodeId = -1;          // 行き先のノード
 	bool always = false;
-	BlendSetting blend;
+	CrossfadeSetting crossfade;
 	ConditionGraph condition;
 };
 

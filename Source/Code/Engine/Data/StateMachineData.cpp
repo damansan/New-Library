@@ -35,13 +35,13 @@ namespace
 		if (j.contains("condition")) ConditionGraphFromJson(condition, j["condition"]);
 	}
 
-	// ブレンドの設定
-	void WriteBlend(nlohmann::ordered_json& j, const BlendSetting& blend)
+	// 遷移のクロスフェードの設定
+	void WriteCrossfade(nlohmann::ordered_json& j, const CrossfadeSetting& blend)
 	{
 		j["blend"] = blend.enabled;
 		j["blendDuration"] = blend.duration;
 	}
-	void ReadBlend(const nlohmann::json& j, BlendSetting& blend)
+	void ReadCrossfade(const nlohmann::json& j, CrossfadeSetting& blend)
 	{
 		blend.enabled = j.value("blend", true);
 		blend.duration = j.value("blendDuration", 0.2f);
@@ -54,7 +54,7 @@ namespace
 		j["id"] = t.id;
 		j["to"] = t.toStateId;
 		WriteCommon(j, t.always, t.condition);
-		WriteBlend(j, t.blend);
+		WriteCrossfade(j, t.crossfade);
 		return j;
 	}
 	StateTransition TransitionFromJson(const nlohmann::json& j)
@@ -63,7 +63,7 @@ namespace
 		t.id = j.value("id", -1);
 		t.toStateId = j.value("to", -1);
 		ReadCommon(j, t.always, t.condition);
-		ReadBlend(j, t.blend);
+		ReadCrossfade(j, t.crossfade);
 		return t;
 	}
 
@@ -474,11 +474,11 @@ bool StateMachineData::Validate(const std::string& sourceName) const
 			}
 		};
 
-	auto checkBlend = [&](const BlendSetting& blend, const std::string& what)
+	auto checkCrossfade = [&](const CrossfadeSetting& crossfade, const std::string& what)
 		{
-			if (blend.enabled && blend.duration <= 0.0f)
+			if (crossfade.enabled && crossfade.duration <= 0.0f)
 			{
-				warning(what + u8" のブレンド時間が0以下です(ブレンドしない扱いになります)");
+				warning(what + u8" のクロスフェード時間が0以下です(クロスフェードしない扱いになります)");
 			}
 		};
 
@@ -490,7 +490,7 @@ bool StateMachineData::Validate(const std::string& sourceName) const
 				error(what + u8" の行き先のStateがありません");
 			}
 			checkCommon(t.always, t.condition, what);
-			checkBlend(t.blend, what);
+			checkCrossfade(t.crossfade, what);
 		};
 
 	for (const auto& t : entry.transitions) checkTransition(t, u8"Entry");
@@ -555,7 +555,7 @@ bool StateMachineData::Validate(const std::string& sourceName) const
 				error(what + u8" の行き先のクリップがありません");
 			}
 			checkCommon(l.always, l.condition, what);
-			checkBlend(l.blend, what);
+			checkCrossfade(l.crossfade, what);
 		}
 	}
 
@@ -621,7 +621,7 @@ nlohmann::ordered_json StateMachineData::ToJson() const
 			jl["from"] = l.fromNodeId;
 			jl["to"] = l.toNodeId;
 			WriteCommon(jl, l.always, l.condition);
-			WriteBlend(jl, l.blend);
+			WriteCrossfade(jl, l.crossfade);
 			jc["clipLinks"].push_back(jl);
 		}
 
@@ -725,7 +725,7 @@ bool StateMachineData::FromJson(const nlohmann::json& j, const std::string& sour
 						l.fromNodeId = jl.value("from", -1);
 						l.toNodeId = jl.value("to", -1);
 						ReadCommon(jl, l.always, l.condition);
-						ReadBlend(jl, l.blend);
+						ReadCrossfade(jl, l.crossfade);
 						s.child.clipLinks.push_back(l);
 					}
 				}

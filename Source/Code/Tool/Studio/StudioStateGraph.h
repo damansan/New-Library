@@ -112,12 +112,12 @@ private:
 
 	// --- リンクの設定を写す --- //
 
-	// リンクが持つ設定の場所(ブレンドを持たないリンクはnullptr)
+	// リンクが持つ設定の場所(クロスフェードを持たないリンクはnullptr)
 	struct LinkSettingsRef
 	{
 		ConditionGraph* condition = nullptr;
 		bool* always = nullptr;
-		BlendSetting* blend = nullptr;
+		CrossfadeSetting* crossfade = nullptr;
 	};
 
 	// リンクの設定の場所を探す
