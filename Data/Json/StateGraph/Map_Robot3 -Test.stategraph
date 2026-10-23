@@ -1,6 +1,6 @@
 {
     "version": 2,
-    "nextId": 177,
+    "nextId": 179,
     "entry": {
         "transitions": [
             {
@@ -25,8 +25,8 @@
             }
         ],
         "editor": {
-            "x": 320.0,
-            "y": 32.0
+            "x": 304.0,
+            "y": 112.0
         }
     },
     "states": [
@@ -225,25 +225,6 @@
                 ],
                 "entryLinks": [
                     {
-                        "id": 20,
-                        "entry": 6,
-                        "to": 19,
-                        "always": true,
-                        "condition": {
-                            "returnNode": {
-                                "id": 1,
-                                "posX": 500.0,
-                                "posY": 200.0
-                            },
-                            "variableNodes": [],
-                            "operatorNodes": [],
-                            "logicNodes": [],
-                            "notNodes": [],
-                            "getterNodes": [],
-                            "links": []
-                        }
-                    },
-                    {
                         "id": 21,
                         "entry": 12,
                         "to": 19,
@@ -303,6 +284,25 @@
                     {
                         "id": 24,
                         "entry": 18,
+                        "to": 19,
+                        "always": true,
+                        "condition": {
+                            "returnNode": {
+                                "id": 1,
+                                "posX": 500.0,
+                                "posY": 200.0
+                            },
+                            "variableNodes": [],
+                            "operatorNodes": [],
+                            "logicNodes": [],
+                            "notNodes": [],
+                            "getterNodes": [],
+                            "links": []
+                        }
+                    },
+                    {
+                        "id": 178,
+                        "entry": 6,
                         "to": 19,
                         "always": true,
                         "condition": {
