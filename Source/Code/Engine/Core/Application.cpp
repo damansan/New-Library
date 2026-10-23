@@ -159,6 +159,7 @@ void Application::UpdateSceneContext()
 	sceneContext.screenWidth = gameView.GetRenderWidth();
 	sceneContext.screenHeight = gameView.GetRenderHeight();
 	sceneContext.gameInputActive = IsGameInputActive();
+	sceneContext.debugDrawAllowed = IsDebugDrawAllowed();
 }
 
 // ƒtƒŒ[ƒ€ŒvZ

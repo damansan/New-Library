@@ -1,11 +1,15 @@
 #pragma once
 #include <vector>
+#include "entt.hpp"
 #include "Engine/ECS/Components/ControllerComponent.h"
 
 class AdaptiveTriggerToolWindow
 {
 public:
-    void Draw(ControllerComponent& ctrl);
+    // registry から ControllerComponent を探して表示する
+    void Draw(entt::registry& registry);
+
+    bool isOpen = false; // メニューから開閉する
 
 private:
     // ゾーンの状態

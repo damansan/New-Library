@@ -185,7 +185,7 @@ void SceneGame::Render(const SceneContext& context)
 	}
 #endif
 
-	if (DrawDebug)
+	if (DrawDebug && context.debugDrawAllowed)
 	{
 		physicsDebugRenderer.Render(
 			context.deviceContext,

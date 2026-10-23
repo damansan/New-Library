@@ -9,13 +9,32 @@ namespace
     constexpr ImU32 IndicatorColor = IM_COL32(255, 70, 70, 255); // 現在地の赤線
 }
 
-void AdaptiveTriggerToolWindow::Draw(ControllerComponent& ctrl)
+void AdaptiveTriggerToolWindow::Draw(entt::registry& registry)
 {
-    if (!ImGui::Begin("Adaptive Trigger Tool"))
+    if (!isOpen) return;
+
+    if (!ImGui::Begin("Adaptive Trigger Tool", &isOpen))
     {
         ImGui::End();
         return;
     }
+
+    // 最初に見つかったコントローラーを編集対象にする
+    ControllerComponent* found = nullptr;
+    auto view = registry.view<ControllerComponent>();
+    for (auto entity : view)
+    {
+        found = &view.get<ControllerComponent>(entity);
+        break;
+    }
+
+    if (!found)
+    {
+        ImGui::TextDisabled(u8"ControllerComponent を持つエンティティがありません");
+        ImGui::End();
+        return;
+    }
+    ControllerComponent& ctrl = *found;
 
     if (ImGui::BeginTable("##layout", 2, ImGuiTableFlags_None))
     {

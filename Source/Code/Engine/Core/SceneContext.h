@@ -30,4 +30,6 @@ struct SceneContext
 
 	// Gameへの入力を受け付けてよいか
 	bool gameInputActive = false;
+	// デバッグ描画を出してよいか
+	bool debugDrawAllowed = false;
 };

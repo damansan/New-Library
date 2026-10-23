@@ -100,6 +100,7 @@ void EditorApp::OnFrame()
 		hierarchyWindow.Draw(scene->GetRegistry(), editorContext);
 		inspectorWindow.Draw(scene->GetRegistry(), editorContext);
 		prefabWindow.Draw(scene->GetRegistry(), editorContext);
+		adaptiveTriggerTool.Draw(scene->GetRegistry());
 	}
 	// シーンが無くても、ログは見られるようにする
 	logWindow.Draw();
@@ -307,6 +308,7 @@ void EditorApp::DrawMainMenu()
 		if (ImGui::BeginMenu("Tool"))
 		{
 			ImGui::MenuItem("Movement Monitor", nullptr, &movementMonitor.isOpen);
+			ImGui::MenuItem("Adaptive Trigger Tool", nullptr, &adaptiveTriggerTool.isOpen);
 			ImGui::EndMenu();
 		}
 

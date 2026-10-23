@@ -34,7 +34,7 @@ void PlayerDodgeSystem::Update(entt::registry& registry, float elapsedTime, cons
 	(void)context;
 
 	auto view = registry.view<PlayerIntentComponent, PlayerDodgeComponent, StateMachineComponent, PlayerLocomotionComponent, TransformComponent>();
-	
+
 	view.each([&](PlayerIntentComponent& intent, PlayerDodgeComponent& dodge, const StateMachineComponent& stateMachine,
 		PlayerLocomotionComponent& loco, const TransformComponent& transform)
 		{
@@ -44,14 +44,38 @@ void PlayerDodgeSystem::Update(entt::registry& registry, float elapsedTime, cons
 			// 入った瞬間 回避方向を決める
 			if (stateMachine.enteredThisFrame)
 			{
-				// スティック入力があればその方向、無ければ体の後ろ
-				float dodgeYaw = intent.wantsMove
-					? PlayerMovementUtils::CalcFacingYaw(intent.moveDir.x, intent.moveDir.z)
-					: transform.rotation.y + DirectX::XM_PI;
+				const float bodyYaw = transform.rotation.y;
+
+				// スティック入力が無ければ、体の後ろ
+				float dodgeYaw = bodyYaw + DirectX::XM_PI;
+				dodge.faceDodgeDir = false;
+
+				if (intent.wantsMove)
+				{
+					float inputYaw = PlayerMovementUtils::CalcFacingYaw(intent.moveDir.x, intent.moveDir.z);
+					float diff = PlayerMovementUtils::AngleDiff(bodyYaw, inputYaw);
+
+					// 体から見た8方向(-4?4。0 が前、+ が右回り)
+					int sector = static_cast<int>(std::round(diff / DirectX::XM_PIDIV4));
+
+					if (sector >= -1 && sector <= 1)
+					{
+						// 前左・前・前右：45度刻みに丸めた方向を向いて、前回避
+						dodgeYaw = bodyYaw + DirectX::XM_PIDIV4 * static_cast<float>(sector);
+						dodge.faceDodgeDir = true;
+					}
+					else
+					{
+						// 横・後ろ：今までどおり、スティックの方向へ(右後ろ・左後ろは保留)
+						dodgeYaw = inputYaw;
+					}
+				}
 				dodge.dodgeDir = PlayerMovementUtils::YawToForward(dodgeYaw);
 
-				// クリップの選択用：4方向は入った瞬間だけ決め、回避中は変えない
-				dodge.direction = ClassifyDirection(PlayerMovementUtils::AngleDiff(transform.rotation.y, dodgeYaw));
+				// クリップの選択用：入った瞬間だけ決め、回避中は変えない
+				dodge.direction = dodge.faceDodgeDir
+					? PlayerDodgeDirection::Front
+					: ClassifyDirection(PlayerMovementUtils::AngleDiff(bodyYaw, dodgeYaw));
 				dodge.isFront = (dodge.direction == PlayerDodgeDirection::Front);
 				dodge.isBack = (dodge.direction == PlayerDodgeDirection::Back);
 				dodge.isLeft = (dodge.direction == PlayerDodgeDirection::Left);
@@ -96,7 +120,8 @@ void PlayerDodgeSystem::Update(entt::registry& registry, float elapsedTime, cons
 			cmd.targetSpeed = dodge.dodgeSpeed;
 			cmd.accelHalfLife = dodge.accelHalfLife;
 
-			// 走り出す時は、抜ける前に向きを回避方向へ合わせておく
-			cmd.faceMoveDir = dodge.finished && intent.wantsMove;
+			// 前方3方向：回避中ずっと、体を回避方向へ向ける
+			// それ以外：走り出す時だけ、抜ける前に向きを回避方向へ合わせておく
+			cmd.faceMoveDir = dodge.faceDodgeDir || (dodge.finished && intent.wantsMove);
 		});
 }

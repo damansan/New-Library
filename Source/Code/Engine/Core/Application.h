@@ -53,6 +53,8 @@ protected:
 
 	// Gameへの入力を受け付けてよいか(既定は常に受け付ける)
 	virtual bool IsGameInputActive() const { return true; }
+	// デバッグ描画を許可するか(既定は不許可。エディタだけ許可する)
+	virtual bool IsDebugDrawAllowed() const { return false; }
 
 	// SceneContextを最新状態に更新する
 	void UpdateSceneContext();

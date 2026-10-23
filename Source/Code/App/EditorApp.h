@@ -17,6 +17,7 @@
 #include "Tool/Studio/StudioWindow.h"
 
 #include "GameTool/MovementMonitorWindow.h"
+#include "Tool/AdaptiveTriggerToolWindow.h"
 
 // エディタのアプリケーション
 class EditorApp : public Application
@@ -33,7 +34,7 @@ protected:
 	bool OnMessage(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) override;
 	Camera& GetRenderCamera() override;
 	bool IsGameInputActive() const override;
-
+	bool IsDebugDrawAllowed() const override { return true; }
 private:
 	// エディタのUIを表示しているか
 	bool IsEditorActive() const;
@@ -62,6 +63,7 @@ private:
 	LogWindow       logWindow;
 
 	MovementMonitorWindow movementMonitor;
+	AdaptiveTriggerToolWindow adaptiveTriggerTool;
 
 	StudioSharedContext studioShared;
 	std::vector<std::unique_ptr<StudioWindow>> studioWindows;
