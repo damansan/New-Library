@@ -127,9 +127,15 @@ void AnimationSystem::EvaluatePose(entt::registry& registry)
 
 			const auto& animation = animations[animIndex];
 
+			// ルートモーション対象ノードを固定する
+			const int rootMotionNodeIndex = animator.rootMotionNodeName.empty()
+				? -1
+				: FindNodeIndex(*skinned.model, animator.rootMotionNodeName);
+
 			CalcBoneTransforms(
 				*skinned.model, animation, animator.animationTime,
-				skinned.localPositions, skinned.localRotations, skinned.localScales);
+				skinned.localPositions, skinned.localRotations, skinned.localScales,
+				rootMotionNodeIndex);
 
 			SkeletonUtils::CalcGlobalTransforms(
 				skinned.model->GetNodes(), skinned.localPositions, skinned.localRotations, skinned.localScales,
@@ -371,9 +377,10 @@ void AnimationSystem::CalcBoneTransforms(
 			}
 		}
 
+		// ルートモーション対象ノードはバインドポーズの位置に固定する
 		if (i == rootMotionNodeIndex)
 		{
-			outPositions[i] = CalcNodeLocalPosition(animation, i, nodes[i], 0.0f);
+			outPositions[i] = nodes[i].position;
 		}
 	}
 }

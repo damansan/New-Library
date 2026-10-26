@@ -203,6 +203,12 @@
     <Filter Include="Sources\Engine\ECS\Systems\StateMachineSystem">
       <UniqueIdentifier>{9a905bd8-deb7-4ca7-a9d0-408d7a9f73ac}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\Engine\Data\AnimationEditData">
+      <UniqueIdentifier>{576c8fac-123a-490a-9eb8-d23caf1bb920}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Engine\Resource\AnimationEditBaker">
+      <UniqueIdentifier>{a4486186-6597-4795-81c2-bee13ce3c0e2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Source\Code\Engine\Core\Application.cpp">
@@ -333,6 +339,12 @@
     </ClCompile>
     <ClCompile Include="..\..\Source\Code\Engine\ECS\Systems\StateMachineSystem.cpp">
       <Filter>Sources\Engine\ECS\Systems\StateMachineSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Code\Engine\Data\AnimationEditData.cpp">
+      <Filter>Sources\Engine\Data\AnimationEditData</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Code\Engine\Resource\AnimationEditBaker.cpp">
+      <Filter>Sources\Engine\Resource\AnimationEditBaker</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -551,6 +563,12 @@
     </ClInclude>
     <ClInclude Include="..\..\Source\Code\Engine\ECS\Systems\StateMachineSystem.h">
       <Filter>Sources\Engine\ECS\Systems\StateMachineSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Code\Engine\Data\AnimationEditData.h">
+      <Filter>Sources\Engine\Data\AnimationEditData</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Code\Engine\Resource\AnimationEditBaker.h">
+      <Filter>Sources\Engine\Resource\AnimationEditBaker</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
