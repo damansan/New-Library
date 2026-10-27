@@ -226,6 +226,7 @@ void StudioWindow::DrawWindow(const char* windowName)
 			ImGui::MenuItem("Sequencer", nullptr, &context.showSequencer);
 			ImGui::MenuItem("State Graph", nullptr, &context.showStateGraph);
 			ImGui::MenuItem("AnimationSpeed", nullptr, &context.showAnimationSpeed);
+			ImGui::MenuItem("Animation Edit", nullptr, &context.showAnimationEdit);
 
 			ImGui::EndMenu();
 		}
@@ -332,6 +333,12 @@ void StudioWindow::DrawWindow(const char* windowName)
 	if (context.showAnimationSpeed)
 	{
 		studioAnimationSpeed.DrawGUI(studioRegistry, context);
+	}
+	
+	// Animation Editパネル
+	if (context.showAnimationEdit)
+	{
+		studioAnimationEdit.DrawGUI(studioRegistry, context);
 	}
 
 	stadoiModelViewer.DrawGUI(studioRegistry, context);

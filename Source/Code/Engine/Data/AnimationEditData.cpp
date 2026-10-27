@@ -36,7 +36,9 @@ nlohmann::ordered_json AnimationEditData::ToJson() const
 	{
 		nlohmann::ordered_json jc;
 		jc["clipName"] = clip.clipName;
-		jc["yawOffsetDegrees"] = clip.yawOffsetDegrees;
+		jc["yawOffsetDegrees"] =  clip.yawOffsetDegrees;
+		jc["rootMotionScaleXZ"] = clip.rootMotionScaleXZ;
+		jc["rootMotionScaleY"] =  clip.rootMotionScaleY;
 		j["clips"].push_back(jc);
 	}
 
@@ -46,7 +48,7 @@ nlohmann::ordered_json AnimationEditData::ToJson() const
 // ì«Ç›çûÇ›
 void AnimationEditData::FromJson(const nlohmann::json& j)
 {
-	rootNodeName = j.value("rootNodeName", "root");
+	rootNodeName = j.value("rootNodeName", "");
 	clips.clear();
 
 	if (!j.contains("clips")) return;
@@ -55,7 +57,9 @@ void AnimationEditData::FromJson(const nlohmann::json& j)
 	{
 		AnimationEditClipData clip;
 		clip.clipName = jc.value("clipName", "");
-		clip.yawOffsetDegrees = jc.value("yawOffsetDegrees", 0.0f);
+		clip.yawOffsetDegrees =  jc.value("yawOffsetDegrees",  0.0f);
+		clip.rootMotionScaleXZ = jc.value("rootMotionScaleXZ", 1.0f);
+		clip.rootMotionScaleY =  jc.value("rootMotionScaleY",  1.0f);
 		clips.push_back(clip);
 	}
 }

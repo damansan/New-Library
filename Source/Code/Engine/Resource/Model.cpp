@@ -1,4 +1,5 @@
 #include "Model.h"
+#include "Engine/Resource/AnimationEditBaker.h"
 
 // 入力レイアウト定義
 const std::vector<D3D11_INPUT_ELEMENT_DESC> Model::InputElementDescs =
@@ -10,3 +11,15 @@ const std::vector<D3D11_INPUT_ELEMENT_DESC> Model::InputElementDescs =
     { "WEIGHTS",    0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
     { "BONES",      0, DXGI_FORMAT_R32G32B32A32_UINT,  0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 };
+
+// 編集設定を焼き込む
+void Model::ApplyAnimationEdit(const AnimationEditData& editData)
+{
+    // 初回だけ、今のアニメーションを生データとして控えておく
+        if (rawAnimations.empty())
+        {
+            rawAnimations = animations;
+        }
+
+    animations = AnimationEditBaker::Bake(rawAnimations, nodes, editData);
+}

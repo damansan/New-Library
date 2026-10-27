@@ -1,0 +1,17 @@
+{
+    "rootNodeName": "root",
+    "clips": [
+        {
+            "clipName": "AS_CA_WallRun_Right_Loop",
+            "yawOffsetDegrees": 90.0,
+            "rootMotionScaleXZ": 1.0,
+            "rootMotionScaleY": 1.0
+        },
+        {
+            "clipName": "AS_CA_WallRun_Left_Loop",
+            "yawOffsetDegrees": -90.0,
+            "rootMotionScaleXZ": 1.0,
+            "rootMotionScaleY": 1.0
+        }
+    ]
+}

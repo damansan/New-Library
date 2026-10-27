@@ -24,6 +24,7 @@
 #include "StudioSequencer.h"
 #include "StudioStateGraph.h"
 #include "StudioAnimationSpeed.h"
+#include "StudioAnimationEdit.h"
 
 class StudioWindow
 {
@@ -58,7 +59,7 @@ public:
         studioSequencer.SetWindowId(id);
         stateGraph.SetWindowId(id);
         studioAnimationSpeed.SetWindowId(id);
-
+        studioAnimationEdit.SetWindowId(id);
     }
     int  GetWindowId()  const { return windowId; }
 
@@ -102,6 +103,7 @@ private:
     StudioSequencer   studioSequencer;
     StudioStateGraph  stateGraph;
     StudioAnimationSpeed studioAnimationSpeed;
+    StudioAnimationEdit  studioAnimationEdit;
 
     // ウィンドウ状態
     int   windowId = 0;

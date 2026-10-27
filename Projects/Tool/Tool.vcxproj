@@ -43,6 +43,7 @@
     <ClCompile Include="..\..\Source\Code\Tool\Editor\ProjectWindow.cpp" />
     <ClCompile Include="..\..\Source\Code\Tool\Editor\ViewportWindow.cpp" />
     <ClCompile Include="..\..\Source\Code\Tool\NodeEditor\NodeEditorCanvas.cpp" />
+    <ClCompile Include="..\..\Source\Code\Tool\Studio\StudioAnimationEdit.cpp" />
     <ClCompile Include="..\..\Source\Code\Tool\Studio\StudioAnimationSpeed.cpp" />
     <ClCompile Include="..\..\Source\Code\Tool\Studio\StudioAnimator.cpp" />
     <ClCompile Include="..\..\Source\Code\Tool\Studio\StudioCamera.cpp" />
@@ -79,6 +80,7 @@
     <ClInclude Include="..\..\Source\Code\Tool\Editor\ViewportWindow.h" />
     <ClInclude Include="..\..\Source\Code\Tool\NodeEditor\NodeEditorCanvas.h" />
     <ClInclude Include="..\..\Source\Code\Tool\Studio\IStudioAttachment.h" />
+    <ClInclude Include="..\..\Source\Code\Tool\Studio\StudioAnimationEdit.h" />
     <ClInclude Include="..\..\Source\Code\Tool\Studio\StudioAnimationSpeed.h" />
     <ClInclude Include="..\..\Source\Code\Tool\Studio\StudioAnimator.h" />
     <ClInclude Include="..\..\Source\Code\Tool\Studio\StudioCamera.h" />

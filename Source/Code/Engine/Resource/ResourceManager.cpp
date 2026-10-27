@@ -5,6 +5,9 @@
 #include "GpuResourceUtils.h" //（GPU再生成用）
 
 #include "Engine/Core/Log.h"
+#include "Engine/Data/AnimationEditData.h"
+#include "Engine/Resource/AnimationEditBaker.h"
+#include <fstream>
 
 // モデル取得
 std::shared_ptr<Model> ResourceManager::GetModel(ID3D11Device* device, const std::string& filename)
@@ -16,12 +19,6 @@ std::shared_ptr<Model> ResourceManager::GetModel(ID3D11Device* device, const std
 		// キャッシュが有効なら使い回す
 		return it->second;
 	}
-
-	//// GLTFImporter でファイルを読み込み GLTFData を生成
-	//auto gltfData = GLTFImporter::Load(filename);
-
-	//// GLTFConverter で GLTFData を Model に変換
-	//auto model = GLTFConverter::Convert(device, gltfData);
 
 	std::shared_ptr<Model> model;
 
@@ -44,6 +41,33 @@ std::shared_ptr<Model> ResourceManager::GetModel(ID3D11Device* device, const std
 		auto gltfData = GLTFImporter::Load(filename);
 		model = GLTFConverter::Convert(device, gltfData);
 		ModelSerializer::Save(*model, ModelSerializer::ToCerealPath(filename));
+	}
+	// アニメーションの編集設定を焼き込む
+	if (model->HasSkin())
+	{
+		AnimationEditData editData;
+
+		const std::string editPath = AnimationEditData::GetFilePath(filename);
+		std::ifstream ifs(editPath);
+		if (ifs.is_open())
+		{
+			try
+			{
+				nlohmann::json j;
+				ifs >> j;
+				editData.FromJson(j);
+				Log(u8" アニメーション編集設定を読み込み: %s", editPath.c_str());
+			}
+			catch (const std::exception&) {}
+		}
+
+		// ルートノードが未設定なら、モデルから探す
+		if (editData.rootNodeName.empty())
+		{
+			editData.rootNodeName = AnimationEditBaker::FindDefaultRootNodeName(*model);
+		}
+
+		model->ApplyAnimationEdit(editData);
 	}
 
 	// キャッシュに登録

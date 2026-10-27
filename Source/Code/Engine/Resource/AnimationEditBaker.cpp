@@ -21,15 +21,56 @@ std::vector<Model::Animation> AnimationEditBaker::Bake(
 		// オフセット除去
 		RemoveRootOffset(rootAnim, rootNode);
 
-		// 向きの補正
 		const AnimationEditClipData* clip = editData.FindClip(animation.name);
-		if (clip && clip->yawOffsetDegrees != 0.0f)
+		if (!clip) continue; // 設定が無いクリップはオフセット除去だけ
+
+		// 移動量の倍率
+		if (clip->rootMotionScaleXZ != 1.0f || clip->rootMotionScaleY != 1.0f)
+		{
+			ApplyRootMotionScale(rootAnim, rootNode, clip->rootMotionScaleXZ, clip->rootMotionScaleY);
+		}
+
+		// 向きの補正
+		if (clip->yawOffsetDegrees != 0.0f)
 		{
 			ApplyYawOffset(rootAnim, rootNode, clip->yawOffsetDegrees);
 		}
 	}
 
 	return result;
+}
+
+// RootNodeの名前を探す
+std::string AnimationEditBaker::FindDefaultRootNodeName(const Model& model)
+{
+	const auto& nodes = model.GetNodes();
+
+	// どのノードがボーンかを調べる
+	std::vector<bool> isBone(nodes.size(), false);
+	for (const auto& mesh : model.GetMeshes())
+	{
+		for (const auto& bone : mesh.bones)
+		{
+			if (bone.nodeIndex >= 0 && bone.nodeIndex < (int)nodes.size())
+			{
+				isBone[bone.nodeIndex] = true;
+			}
+		}
+	}
+
+	// 親がいない、または親がボーンではないボーンが一番上
+	for (int i = 0; i < (int)nodes.size(); i++)
+	{
+		if (!isBone[i]) continue;
+
+		const int parent = nodes[i].parentIndex;
+		if (parent < 0 || !isBone[parent])
+		{
+			return nodes[i].name;
+		}
+	}
+
+	return "";
 }
 
 // 名前からルートノードの番号を探す
@@ -62,6 +103,20 @@ void AnimationEditBaker::RemoveRootOffset(Model::NodeAnim& rootAnim, const Model
 		key.value.x -= offset.x;
 		key.value.y -= offset.y;
 		key.value.z -= offset.z;
+	}
+}
+
+// ルートの移動量に倍率を掛ける
+void AnimationEditBaker::ApplyRootMotionScale(Model::NodeAnim& rootAnim, const Model::Node& rootNode, float scaleXZ, float scaleY)
+{
+	const DirectX::XMFLOAT3& pivot = rootNode.position;
+
+	// バインドポーズの位置を基準に伸び縮みさせる
+	for (auto& key : rootAnim.positionKeyframes)
+	{
+		key.value.x = pivot.x + (key.value.x - pivot.x) * scaleXZ;
+		key.value.y = pivot.y + (key.value.y - pivot.y) * scaleY;
+		key.value.z = pivot.z + (key.value.z - pivot.z) * scaleXZ;
 	}
 }
 

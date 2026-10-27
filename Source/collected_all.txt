@@ -199,6 +199,7 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Code\App\EditorApp.h
 #include "Tool/Studio/StudioWindow.h"
 
 #include "GameTool/MovementMonitorWindow.h"
+#include "Tool/AdaptiveTriggerToolWindow.h"
 
 // エディタのアプリケーション
 class EditorApp : public Application
@@ -215,7 +216,7 @@ protected:
 	bool OnMessage(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) override;
 	Camera& GetRenderCamera() override;
 	bool IsGameInputActive() const override;
-
+	bool IsDebugDrawAllowed() const override { return true; }
 private:
 	// エディタのUIを表示しているか
 	bool IsEditorActive() const;
@@ -244,6 +245,7 @@ private:
 	LogWindow       logWindow;
 
 	MovementMonitorWindow movementMonitor;
+	AdaptiveTriggerToolWindow adaptiveTriggerTool;
 
 	StudioSharedContext studioShared;
 	std::vector<std::unique_ptr<StudioWindow>> studioWindows;
@@ -387,6 +389,7 @@ void EditorApp::OnFrame()
 		hierarchyWindow.Draw(scene->GetRegistry(), editorContext);
 		inspectorWindow.Draw(scene->GetRegistry(), editorContext);
 		prefabWindow.Draw(scene->GetRegistry(), editorContext);
+		adaptiveTriggerTool.Draw(scene->GetRegistry());
 	}
 	// シーンが無くても、ログは見られるようにする
 	logWindow.Draw();
@@ -594,6 +597,7 @@ void EditorApp::DrawMainMenu()
 		if (ImGui::BeginMenu("Tool"))
 		{
 			ImGui::MenuItem("Movement Monitor", nullptr, &movementMonitor.isOpen);
+			ImGui::MenuItem("Adaptive Trigger Tool", nullptr, &adaptiveTriggerTool.isOpen);
 			ImGui::EndMenu();
 		}
 
@@ -810,6 +814,8 @@ protected:
 
 	// Gameへの入力を受け付けてよいか(既定は常に受け付ける)
 	virtual bool IsGameInputActive() const { return true; }
+	// デバッグ描画を許可するか(既定は不許可。エディタだけ許可する)
+	virtual bool IsDebugDrawAllowed() const { return false; }
 
 	// SceneContextを最新状態に更新する
 	void UpdateSceneContext();
@@ -1420,6 +1426,8 @@ struct SceneContext
 
 	// Gameへの入力を受け付けてよいか
 	bool gameInputActive = false;
+	// デバッグ描画を出してよいか
+	bool debugDrawAllowed = false;
 }; 
  
 ===== SceneManager.h ===== 
@@ -1623,6 +1631,7 @@ void Application::UpdateSceneContext()
 	sceneContext.screenWidth = gameView.GetRenderWidth();
 	sceneContext.screenHeight = gameView.GetRenderHeight();
 	sceneContext.gameInputActive = IsGameInputActive();
+	sceneContext.debugDrawAllowed = IsDebugDrawAllowed();
 }
 
 // フレーム計算
@@ -2522,6 +2531,44 @@ void SceneManager::ClearScene()
 }
  
  
+===== AnimationEditData.h ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Data\AnimationEditData.h 
+#pragma once
+#pragma once
+#include <string>
+#include <vector>
+#include <json.hpp>
+
+// 1クリップ分の編集設定
+struct AnimationEditClipData
+{
+	std::string clipName;
+	float yawOffsetDegrees = 0.0f;   // 向きの補正（Y軸回り、度）
+	float rootMotionScaleXZ = 1.0f;  // ルートモーションの水平移動の倍率
+	float rootMotionScaleY = 1.0f;   // ルートモーションの上下移動の倍率
+};
+
+// モデル1体分、全クリップの編集設定をまとめたもの
+class AnimationEditData
+{
+public:
+	std::string rootNodeName; // 焼き込み対象のルートノード名
+	std::vector<AnimationEditClipData> clips;
+
+	// 指定したクリップ名のデータを探す
+	const AnimationEditClipData* FindClip(const std::string& clipName) const;
+
+	// 指定したクリップ名のデータを探す
+	AnimationEditClipData* FindOrCreateClip(const std::string& clipName);
+
+	// 保存/読み込み
+	nlohmann::ordered_json ToJson() const;
+	void FromJson(const nlohmann::json& j);
+
+	// モデルパスから保存先のパスを組み立てる
+	static std::string GetFilePath(const std::string& modelPath);
+}; 
+ 
 ===== AnimationSpeedData.h ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Data\AnimationSpeedData.h 
 #pragma once
@@ -2967,6 +3014,81 @@ private:
 	// 遷移を持っているリスト(Entry、またはどれかのState)を探す
 	std::vector<StateTransition>* FindTransitionOwner(int transitionId);
 }; 
+ 
+===== AnimationEditData.cpp ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Data\AnimationEditData.cpp 
+#include "AnimationEditData.h"
+#include <filesystem>
+
+// 指定したクリップ名のデータを探す
+const AnimationEditClipData* AnimationEditData::FindClip(const std::string& clipName) const
+{
+	for (const auto& clip : clips)
+	{
+		if (clip.clipName == clipName) return &clip;
+	}
+	return nullptr;
+}
+
+// 指定したクリップ名のデータを探す
+AnimationEditClipData* AnimationEditData::FindOrCreateClip(const std::string& clipName)
+{
+	for (auto& clip : clips)
+	{
+		if (clip.clipName == clipName) return &clip;
+	}
+
+	AnimationEditClipData newClip;
+	newClip.clipName = clipName;
+	clips.push_back(newClip);
+	return &clips.back();
+}
+
+// 保存
+nlohmann::ordered_json AnimationEditData::ToJson() const
+{
+	nlohmann::ordered_json j;
+	j["rootNodeName"] = rootNodeName;
+	j["clips"] = nlohmann::json::array();
+
+	for (const auto& clip : clips)
+	{
+		nlohmann::ordered_json jc;
+		jc["clipName"] = clip.clipName;
+		jc["yawOffsetDegrees"] =  clip.yawOffsetDegrees;
+		jc["rootMotionScaleXZ"] = clip.rootMotionScaleXZ;
+		jc["rootMotionScaleY"] =  clip.rootMotionScaleY;
+		j["clips"].push_back(jc);
+	}
+
+	return j;
+}
+
+// 読み込み
+void AnimationEditData::FromJson(const nlohmann::json& j)
+{
+	rootNodeName = j.value("rootNodeName", "");
+	clips.clear();
+
+	if (!j.contains("clips")) return;
+
+	for (const auto& jc : j["clips"])
+	{
+		AnimationEditClipData clip;
+		clip.clipName = jc.value("clipName", "");
+		clip.yawOffsetDegrees =  jc.value("yawOffsetDegrees",  0.0f);
+		clip.rootMotionScaleXZ = jc.value("rootMotionScaleXZ", 1.0f);
+		clip.rootMotionScaleY =  jc.value("rootMotionScaleY",  1.0f);
+		clips.push_back(clip);
+	}
+}
+
+// モデルパスから保存先のパスを組み立てる
+std::string AnimationEditData::GetFilePath(const std::string& modelPath)
+{
+	std::filesystem::path p(modelPath);
+	return "Data/Json/Animation/" + p.stem().string() + ".animedit";
+} 
  
 ===== AnimationSpeedData.cpp ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Data\AnimationSpeedData.cpp 
@@ -6656,9 +6778,15 @@ void AnimationSystem::EvaluatePose(entt::registry& registry)
 
 			const auto& animation = animations[animIndex];
 
+			// ルートモーション対象ノードを固定する
+			const int rootMotionNodeIndex = animator.rootMotionNodeName.empty()
+				? -1
+				: FindNodeIndex(*skinned.model, animator.rootMotionNodeName);
+
 			CalcBoneTransforms(
 				*skinned.model, animation, animator.animationTime,
-				skinned.localPositions, skinned.localRotations, skinned.localScales);
+				skinned.localPositions, skinned.localRotations, skinned.localScales,
+				rootMotionNodeIndex);
 
 			SkeletonUtils::CalcGlobalTransforms(
 				skinned.model->GetNodes(), skinned.localPositions, skinned.localRotations, skinned.localScales,
@@ -6900,9 +7028,10 @@ void AnimationSystem::CalcBoneTransforms(
 			}
 		}
 
+		// ルートモーション対象ノードはバインドポーズの位置に固定する
 		if (i == rootMotionNodeIndex)
 		{
-			outPositions[i] = CalcNodeLocalPosition(animation, i, nodes[i], 0.0f);
+			outPositions[i] = nodes[i].position;
 		}
 	}
 }
@@ -11345,6 +11474,39 @@ void SkyBox::Render(
 }
  
  
+===== AnimationEditBaker.h ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Resource\AnimationEditBaker.h 
+#pragma once
+#include <string>
+#include <vector>
+#include "Engine/Resource/Model.h"
+#include "Engine/Data/AnimationEditData.h"
+
+// アニメーションを編集する
+class AnimationEditBaker
+{
+public:
+	static std::vector<Model::Animation> Bake(
+		const std::vector<Model::Animation>& rawAnimations,
+		const std::vector<Model::Node>& nodes,
+		const AnimationEditData& editData);
+
+	// RootNodeの名前を探す
+	static std::string FindDefaultRootNodeName(const Model& model);
+private:
+	// 名前からルートノードの番号を探す
+	static int FindNodeIndex(const std::vector<Model::Node>& nodes, const std::string& name);
+
+	// 0フレーム目のルート位置が、バインドポーズの位置になるようにずらす
+	static void RemoveRootOffset(Model::NodeAnim& rootAnim, const Model::Node& rootNode);
+
+	// ルートの移動量に倍率を掛ける
+	static void ApplyRootMotionScale(Model::NodeAnim& rootAnim, const Model::Node& rootNode, float scaleXZ, float scaleY);
+
+	// ルートをY軸回りに回す
+	static void ApplyYawOffset(Model::NodeAnim& rootAnim, const Model::Node& rootNode, float yawDegrees);
+}; 
+ 
 ===== ComponentRegistry.h ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Resource\ComponentRegistry.h 
 #pragma once
@@ -11761,6 +11923,8 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Resource\Model.h
 #include <wrl.h>
 #include <d3d11.h>
 
+class AnimationEditData;
+
 class Model
 {
 public:
@@ -11883,7 +12047,11 @@ public:
     const std::vector<Node>& GetNodes()      const { return nodes; }
     const std::vector<Mesh>& GetMeshes()     const { return meshes; }
     const std::vector<Material>& GetMaterials()  const { return materials; }
-    const std::vector<Animation>& GetAnimations() const { return animations; }
+    const std::vector<Animation>& GetAnimations() const { return animations; } // 編集済み
+    const std::vector<Animation>& GetRawAnimations() const { return rawAnimations; } // 生データ
+
+    // 編集設定を焼き込む
+    void ApplyAnimationEdit(const AnimationEditData& editData);
 
     std::vector<Node>& GetNodes() { return nodes; }
     std::vector<Mesh>& GetMeshes() { return meshes; }
@@ -11926,7 +12094,9 @@ private:
     std::vector<Node>      nodes;
     std::vector<Mesh>      meshes;
     std::vector<Material>  materials;
-    std::vector<Animation> animations;
+    std::vector<Animation> animations;    // 編集済み
+    std::vector<Animation> rawAnimations; // 生データ
+
     bool                   hasSkin = false;
 
 
@@ -11998,7 +12168,6 @@ public:
 
 private:
     // モデルキャッシュ
-    //std::unordered_map<std::string, std::weak_ptr<Model>> modelCache;
     std::unordered_map<std::string, std::shared_ptr<Model>> modelCache;
 
 }; 
@@ -12065,6 +12234,161 @@ namespace SkeletonUtils
 		const std::vector<DirectX::XMFLOAT4X4>& globalTransforms,
 		std::vector<std::vector<DirectX::XMFLOAT4X4>>& outBoneTransforms);
 } 
+ 
+===== AnimationEditBaker.cpp ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Resource\AnimationEditBaker.cpp 
+#include "AnimationEditBaker.h"
+
+std::vector<Model::Animation> AnimationEditBaker::Bake(
+	const std::vector<Model::Animation>& rawAnimations,
+	const std::vector<Model::Node>& nodes,
+	const AnimationEditData& editData)
+{
+	// 生データをコピーして、コピーしたものに加工を加える
+	std::vector<Model::Animation> result = rawAnimations;
+
+	const int rootIndex = FindNodeIndex(nodes, editData.rootNodeName);
+	if (rootIndex < 0) return result; // ルートが見つからなければ加工しない
+
+	const Model::Node& rootNode = nodes[rootIndex];
+
+	for (auto& animation : result)
+	{
+		if (rootIndex >= (int)animation.nodeAnims.size()) continue;
+		Model::NodeAnim& rootAnim = animation.nodeAnims[rootIndex];
+
+		// オフセット除去
+		RemoveRootOffset(rootAnim, rootNode);
+
+		const AnimationEditClipData* clip = editData.FindClip(animation.name);
+		if (!clip) continue; // 設定が無いクリップはオフセット除去だけ
+
+		// 移動量の倍率
+		if (clip->rootMotionScaleXZ != 1.0f || clip->rootMotionScaleY != 1.0f)
+		{
+			ApplyRootMotionScale(rootAnim, rootNode, clip->rootMotionScaleXZ, clip->rootMotionScaleY);
+		}
+
+		// 向きの補正
+		if (clip->yawOffsetDegrees != 0.0f)
+		{
+			ApplyYawOffset(rootAnim, rootNode, clip->yawOffsetDegrees);
+		}
+	}
+
+	return result;
+}
+
+// RootNodeの名前を探す
+std::string AnimationEditBaker::FindDefaultRootNodeName(const Model& model)
+{
+	const auto& nodes = model.GetNodes();
+
+	// どのノードがボーンかを調べる
+	std::vector<bool> isBone(nodes.size(), false);
+	for (const auto& mesh : model.GetMeshes())
+	{
+		for (const auto& bone : mesh.bones)
+		{
+			if (bone.nodeIndex >= 0 && bone.nodeIndex < (int)nodes.size())
+			{
+				isBone[bone.nodeIndex] = true;
+			}
+		}
+	}
+
+	// 親がいない、または親がボーンではないボーンが一番上
+	for (int i = 0; i < (int)nodes.size(); i++)
+	{
+		if (!isBone[i]) continue;
+
+		const int parent = nodes[i].parentIndex;
+		if (parent < 0 || !isBone[parent])
+		{
+			return nodes[i].name;
+		}
+	}
+
+	return "";
+}
+
+// 名前からルートノードの番号を探す
+int AnimationEditBaker::FindNodeIndex(const std::vector<Model::Node>& nodes, const std::string& name)
+{
+	for (int i = 0; i < (int)nodes.size(); i++)
+	{
+		if (nodes[i].name == name) return i;
+	}
+	return -1;
+}
+
+// 0フレーム目のルート位置が、バインドポーズの位置になるようにずらす
+void AnimationEditBaker::RemoveRootOffset(Model::NodeAnim& rootAnim, const Model::Node& rootNode)
+{
+	if (rootAnim.positionKeyframes.empty()) return;
+
+	// 0フレーム目がバインドポーズからどれだけずれているか
+	const DirectX::XMFLOAT3& first = rootAnim.positionKeyframes.front().value;
+	const DirectX::XMFLOAT3 offset =
+	{
+		first.x - rootNode.position.x,
+		first.y - rootNode.position.y,
+		first.z - rootNode.position.z
+	};
+
+	// 全キーから同じ量を引く
+	for (auto& key : rootAnim.positionKeyframes)
+	{
+		key.value.x -= offset.x;
+		key.value.y -= offset.y;
+		key.value.z -= offset.z;
+	}
+}
+
+// ルートの移動量に倍率を掛ける
+void AnimationEditBaker::ApplyRootMotionScale(Model::NodeAnim& rootAnim, const Model::Node& rootNode, float scaleXZ, float scaleY)
+{
+	const DirectX::XMFLOAT3& pivot = rootNode.position;
+
+	// バインドポーズの位置を基準に伸び縮みさせる
+	for (auto& key : rootAnim.positionKeyframes)
+	{
+		key.value.x = pivot.x + (key.value.x - pivot.x) * scaleXZ;
+		key.value.y = pivot.y + (key.value.y - pivot.y) * scaleY;
+		key.value.z = pivot.z + (key.value.z - pivot.z) * scaleXZ;
+	}
+}
+
+// ルートをY軸回りに回す
+void AnimationEditBaker::ApplyYawOffset(Model::NodeAnim& rootAnim, const Model::Node& rootNode, float yawDegrees)
+{
+	const DirectX::XMVECTOR yaw = DirectX::XMQuaternionRotationRollPitchYaw(0.0f, DirectX::XMConvertToRadians(yawDegrees), 0.0f);
+	const DirectX::XMVECTOR pivot = XMLoadFloat3(&rootNode.position);
+
+	// バインドポーズの位置を中心に回す
+	for (auto& key : rootAnim.positionKeyframes)
+	{
+		DirectX::XMVECTOR p = DirectX::XMVectorSubtract(XMLoadFloat3(&key.value), pivot);
+		p = DirectX::XMVector3Rotate(p, yaw);
+		XMStoreFloat3(&key.value, DirectX::XMVectorAdd(p, pivot));
+	}
+
+	// 回転キーが無いクリップは、バインドポーズの回転を1キーとして足しておく
+	if (rootAnim.rotationKeyframes.empty())
+	{
+		rootAnim.rotationKeyframes.push_back({ 0.0f, rootNode.rotation });
+	}
+
+	// 元の回転の「後に」Yawを掛ける
+	for (auto& key : rootAnim.rotationKeyframes)
+	{
+		DirectX::XMVECTOR q = DirectX::XMLoadFloat4(&key.value);
+		q = DirectX::XMQuaternionNormalize(DirectX::XMQuaternionMultiply(q, yaw));
+		XMStoreFloat4(&key.value, q);
+	}
+}
+
+ 
  
 ===== ComponentRegistry.cpp ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Resource\ComponentRegistry.cpp 
@@ -13819,6 +14143,7 @@ HRESULT GpuResourceUtils::CreateConstantBuffer(
 ===== Model.cpp ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Resource\Model.cpp 
 #include "Model.h"
+#include "Engine/Resource/AnimationEditBaker.h"
 
 // 入力レイアウト定義
 const std::vector<D3D11_INPUT_ELEMENT_DESC> Model::InputElementDescs =
@@ -13829,7 +14154,20 @@ const std::vector<D3D11_INPUT_ELEMENT_DESC> Model::InputElementDescs =
     { "TEXCOORD",   0, DXGI_FORMAT_R32G32_FLOAT,       0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
     { "WEIGHTS",    0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
     { "BONES",      0, DXGI_FORMAT_R32G32B32A32_UINT,  0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-}; 
+};
+
+// 編集設定を焼き込む
+void Model::ApplyAnimationEdit(const AnimationEditData& editData)
+{
+    // 初回だけ、今のアニメーションを生データとして控えておく
+        if (rawAnimations.empty())
+        {
+            rawAnimations = animations;
+        }
+
+    animations = AnimationEditBaker::Bake(rawAnimations, nodes, editData);
+}
+ 
  
 ===== ModelSerializer.cpp ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Resource\ModelSerializer.cpp 
@@ -14000,6 +14338,9 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Resource\ResourceM
 #include "GpuResourceUtils.h" //（GPU再生成用）
 
 #include "Engine/Core/Log.h"
+#include "Engine/Data/AnimationEditData.h"
+#include "Engine/Resource/AnimationEditBaker.h"
+#include <fstream>
 
 // モデル取得
 std::shared_ptr<Model> ResourceManager::GetModel(ID3D11Device* device, const std::string& filename)
@@ -14011,12 +14352,6 @@ std::shared_ptr<Model> ResourceManager::GetModel(ID3D11Device* device, const std
 		// キャッシュが有効なら使い回す
 		return it->second;
 	}
-
-	//// GLTFImporter でファイルを読み込み GLTFData を生成
-	//auto gltfData = GLTFImporter::Load(filename);
-
-	//// GLTFConverter で GLTFData を Model に変換
-	//auto model = GLTFConverter::Convert(device, gltfData);
 
 	std::shared_ptr<Model> model;
 
@@ -14039,6 +14374,33 @@ std::shared_ptr<Model> ResourceManager::GetModel(ID3D11Device* device, const std
 		auto gltfData = GLTFImporter::Load(filename);
 		model = GLTFConverter::Convert(device, gltfData);
 		ModelSerializer::Save(*model, ModelSerializer::ToCerealPath(filename));
+	}
+	// アニメーションの編集設定を焼き込む
+	if (model->HasSkin())
+	{
+		AnimationEditData editData;
+
+		const std::string editPath = AnimationEditData::GetFilePath(filename);
+		std::ifstream ifs(editPath);
+		if (ifs.is_open())
+		{
+			try
+			{
+				nlohmann::json j;
+				ifs >> j;
+				editData.FromJson(j);
+				Log(u8" アニメーション編集設定を読み込み: %s", editPath.c_str());
+			}
+			catch (const std::exception&) {}
+		}
+
+		// ルートノードが未設定なら、モデルから探す
+		if (editData.rootNodeName.empty())
+		{
+			editData.rootNodeName = AnimationEditBaker::FindDefaultRootNodeName(*model);
+		}
+
+		model->ApplyAnimationEdit(editData);
 	}
 
 	// キャッシュに登録
@@ -15016,11 +15378,11 @@ struct PlayerDodgeComponent
 	REFLECT_BEGIN(PlayerDodgeComponent, "Player Dodge")
 
 		// 設定値
-		REFLECT_FIELD(float, dodgeSpeed,    (8.0f),  ("Dodge Speed",     0.0f, 20.0f)) // 回避中の速さ
-		REFLECT_FIELD(float, minTime,       (0.15f), ("Min Time",        0.0f, 2.0f))  // R2を短く押した時の長さ
-		REFLECT_FIELD(float, maxTime,       (0.5f),  ("Max Time",        0.0f, 2.0f))  // R2を押し続けた時の長さ
+		REFLECT_FIELD(float, dodgeSpeed, (8.0f), ("Dodge Speed", 0.0f, 20.0f)) // 回避中の速さ
+		REFLECT_FIELD(float, minTime, (0.15f), ("Min Time", 0.0f, 2.0f))  // R2を短く押した時の長さ
+		REFLECT_FIELD(float, maxTime, (0.5f), ("Max Time", 0.0f, 2.0f))  // R2を押し続けた時の長さ
 		REFLECT_FIELD(float, accelHalfLife, (0.02f), ("Accel Half Life", 0.0f, 1.0f))  // 回避の速さに達するまでの半減期
-		REFLECT_FIELD(float, turnSpeed,     (10.0f), ("Turn Speed",      0.0f, 30.0f)) // 回避方向を曲げる速さ
+		REFLECT_FIELD(float, turnSpeed, (10.0f), ("Turn Speed", 0.0f, 30.0f)) // 回避方向を曲げる速さ
 
 		// 状態
 		REFLECT_FIELD(bool, isFront,  (false), ("Is Front", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // 前へ回避
@@ -15028,6 +15390,7 @@ struct PlayerDodgeComponent
 		REFLECT_FIELD(bool, isLeft,   (false), ("Is Left",  0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // 左へ回避
 		REFLECT_FIELD(bool, isRight,  (false), ("Is Right", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // 右へ回避
 		REFLECT_FIELD(bool, finished, (false), ("Finished", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // 回避が終わったか
+		REFLECT_FIELD(bool, faceDodgeDir, (false), ("Face Dodge Dir", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // 回避方向を向いて回避するか(前方3方向のとき)
 
 		// 体から見た回避方向
 		REFLECT_FIELD(float, localX,  (0.0f), ("Local X", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // 右が +
@@ -15036,8 +15399,8 @@ struct PlayerDodgeComponent
 
 		REFLECT_END()
 
-	// 内部実装用
-	PlayerDodgeDirection direction = PlayerDodgeDirection::Back; // 入った時に決めた方向
+		// 内部実装用
+		PlayerDodgeDirection direction = PlayerDodgeDirection::Back; // 入った時に決めた方向
 	DirectX::XMFLOAT3    dodgeDir = { 0.0f, 0.0f, 0.0f };        // 今進んでいる方向
 }; 
  
@@ -16148,7 +16511,7 @@ void PlayerDodgeSystem::Update(entt::registry& registry, float elapsedTime, cons
 	(void)context;
 
 	auto view = registry.view<PlayerIntentComponent, PlayerDodgeComponent, StateMachineComponent, PlayerLocomotionComponent, TransformComponent>();
-	
+
 	view.each([&](PlayerIntentComponent& intent, PlayerDodgeComponent& dodge, const StateMachineComponent& stateMachine,
 		PlayerLocomotionComponent& loco, const TransformComponent& transform)
 		{
@@ -16158,14 +16521,38 @@ void PlayerDodgeSystem::Update(entt::registry& registry, float elapsedTime, cons
 			// 入った瞬間 回避方向を決める
 			if (stateMachine.enteredThisFrame)
 			{
-				// スティック入力があればその方向、無ければ体の後ろ
-				float dodgeYaw = intent.wantsMove
-					? PlayerMovementUtils::CalcFacingYaw(intent.moveDir.x, intent.moveDir.z)
-					: transform.rotation.y + DirectX::XM_PI;
+				const float bodyYaw = transform.rotation.y;
+
+				// スティック入力が無ければ、体の後ろ
+				float dodgeYaw = bodyYaw + DirectX::XM_PI;
+				dodge.faceDodgeDir = false;
+
+				if (intent.wantsMove)
+				{
+					float inputYaw = PlayerMovementUtils::CalcFacingYaw(intent.moveDir.x, intent.moveDir.z);
+					float diff = PlayerMovementUtils::AngleDiff(bodyYaw, inputYaw);
+
+					// 体から見た8方向(-4?4。0 が前、+ が右回り)
+					int sector = static_cast<int>(std::round(diff / DirectX::XM_PIDIV4));
+
+					if (sector >= -1 && sector <= 1)
+					{
+						// 前左・前・前右：45度刻みに丸めた方向を向いて、前回避
+						dodgeYaw = bodyYaw + DirectX::XM_PIDIV4 * static_cast<float>(sector);
+						dodge.faceDodgeDir = true;
+					}
+					else
+					{
+						// 横・後ろ：今までどおり、スティックの方向へ(右後ろ・左後ろは保留)
+						dodgeYaw = inputYaw;
+					}
+				}
 				dodge.dodgeDir = PlayerMovementUtils::YawToForward(dodgeYaw);
 
-				// クリップの選択用：4方向は入った瞬間だけ決め、回避中は変えない
-				dodge.direction = ClassifyDirection(PlayerMovementUtils::AngleDiff(transform.rotation.y, dodgeYaw));
+				// クリップの選択用：入った瞬間だけ決め、回避中は変えない
+				dodge.direction = dodge.faceDodgeDir
+					? PlayerDodgeDirection::Front
+					: ClassifyDirection(PlayerMovementUtils::AngleDiff(bodyYaw, dodgeYaw));
 				dodge.isFront = (dodge.direction == PlayerDodgeDirection::Front);
 				dodge.isBack = (dodge.direction == PlayerDodgeDirection::Back);
 				dodge.isLeft = (dodge.direction == PlayerDodgeDirection::Left);
@@ -16210,8 +16597,9 @@ void PlayerDodgeSystem::Update(entt::registry& registry, float elapsedTime, cons
 			cmd.targetSpeed = dodge.dodgeSpeed;
 			cmd.accelHalfLife = dodge.accelHalfLife;
 
-			// 走り出す時は、抜ける前に向きを回避方向へ合わせておく
-			cmd.faceMoveDir = dodge.finished && intent.wantsMove;
+			// 前方3方向：回避中ずっと、体を回避方向へ向ける
+			// それ以外：走り出す時だけ、抜ける前に向きを回避方向へ合わせておく
+			cmd.faceMoveDir = dodge.faceDodgeDir || (dodge.finished && intent.wantsMove);
 		});
 } 
  
@@ -16858,7 +17246,7 @@ private:
 	WaveDemo waveDemo;
 
 	// デバッグ描画切り替えフラグ
-	bool DrawDebug = false;
+	bool DrawDebug = true;
 };
  
  
@@ -17051,7 +17439,7 @@ void SceneGame::Render(const SceneContext& context)
 	}
 #endif
 
-	if (DrawDebug)
+	if (DrawDebug && context.debugDrawAllowed)
 	{
 		physicsDebugRenderer.Render(
 			context.deviceContext,
@@ -17688,12 +18076,16 @@ int WINAPI wWinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPWSTR, _In_ int)
 Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\AdaptiveTriggerToolWindow.h 
 #pragma once
 #include <vector>
+#include "entt.hpp"
 #include "Engine/ECS/Components/ControllerComponent.h"
 
 class AdaptiveTriggerToolWindow
 {
 public:
-    void Draw(ControllerComponent& ctrl);
+    // registry から ControllerComponent を探して表示する
+    void Draw(entt::registry& registry);
+
+    bool isOpen = false; // メニューから開閉する
 
 private:
     // ゾーンの状態
@@ -17739,13 +18131,32 @@ namespace
     constexpr ImU32 IndicatorColor = IM_COL32(255, 70, 70, 255); // 現在地の赤線
 }
 
-void AdaptiveTriggerToolWindow::Draw(ControllerComponent& ctrl)
+void AdaptiveTriggerToolWindow::Draw(entt::registry& registry)
 {
-    if (!ImGui::Begin("Adaptive Trigger Tool"))
+    if (!isOpen) return;
+
+    if (!ImGui::Begin("Adaptive Trigger Tool", &isOpen))
     {
         ImGui::End();
         return;
     }
+
+    // 最初に見つかったコントローラーを編集対象にする
+    ControllerComponent* found = nullptr;
+    auto view = registry.view<ControllerComponent>();
+    for (auto entity : view)
+    {
+        found = &view.get<ControllerComponent>(entity);
+        break;
+    }
+
+    if (!found)
+    {
+        ImGui::TextDisabled(u8"ControllerComponent を持つエンティティがありません");
+        ImGui::End();
+        return;
+    }
+    ControllerComponent& ctrl = *found;
 
     if (ImGui::BeginTable("##layout", 2, ImGuiTableFlags_None))
     {
@@ -21033,6 +21444,46 @@ public:
     {}
 }; 
  
+===== StudioAnimationEdit.h ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Studio\StudioAnimationEdit.h 
+#pragma once
+#include "IStudioAttachment.h"
+#include "Engine/Data/AnimationEditData.h"
+#include <imgui.h>
+#include <string>
+
+class Model;
+
+class StudioAnimationEdit : public IStudioAttachment
+{
+public:
+	StudioAnimationEdit() = default;
+	~StudioAnimationEdit() = default;
+
+	void SetWindowId(int id) { windowId = id; }
+
+	// ImGui描画
+	void DrawGUI(entt::registry& registry, StudioContext& context) override;
+
+private:
+	// 内部状態
+	int windowId = 0;
+
+	AnimationEditData editData;   // 編集中の設定
+	std::string loadedModelPath;  // 最後に読み込んだモデルパス
+	bool isDirty = false;         // 未保存の変更があるか
+
+	// クリップ設定
+	bool DrawClipSettings(const std::string& clipName);       
+	// 焼き込み後のルート移動量
+	void DrawRootMotionInfo(const Model& model, const std::string& clipName); 
+
+
+	// 保存読み込み
+	void Load(const std::string& modelPath, const Model& model);
+	void Save(const std::string& modelPath);
+}; 
+ 
 ===== StudioAnimationSpeed.h ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Studio\StudioAnimationSpeed.h 
 #pragma once
@@ -21392,6 +21843,7 @@ struct StudioContext
     bool showStateGraph = false;
     bool showSequencer = false;
     bool showAnimationSpeed = false;
+    bool showAnimationEdit = false;
 
     std::string attachedGraphPath;
     std::string currentModelPath;
@@ -22098,6 +22550,7 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Studio\StudioWindow.
 #include "StudioSequencer.h"
 #include "StudioStateGraph.h"
 #include "StudioAnimationSpeed.h"
+#include "StudioAnimationEdit.h"
 
 class StudioWindow
 {
@@ -22132,7 +22585,7 @@ public:
         studioSequencer.SetWindowId(id);
         stateGraph.SetWindowId(id);
         studioAnimationSpeed.SetWindowId(id);
-
+        studioAnimationEdit.SetWindowId(id);
     }
     int  GetWindowId()  const { return windowId; }
 
@@ -22176,6 +22629,7 @@ private:
     StudioSequencer   studioSequencer;
     StudioStateGraph  stateGraph;
     StudioAnimationSpeed studioAnimationSpeed;
+    StudioAnimationEdit  studioAnimationEdit;
 
     // ウィンドウ状態
     int   windowId = 0;
@@ -22201,6 +22655,209 @@ private:
     ImVec2 restorePos{};             // 元に戻す位置
     ImVec2 restoreSize{};            // 元に戻す大きさ
 }; 
+ 
+===== StudioAnimationEdit.cpp ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Studio\StudioAnimationEdit.cpp 
+#include "StudioAnimationEdit.h"
+#include "Engine/ECS/Components/SkinnedMeshComponent.h"
+#include "Engine/ECS/Components/AnimatorComponent.h"
+#include "Engine/Resource/AnimationEditBaker.h"
+#include <fstream>
+#include <filesystem>
+
+// ImGui描画
+void StudioAnimationEdit::DrawGUI(entt::registry& registry, StudioContext& context)
+{
+	if (!context.showAnimationEdit) return;
+
+	std::string panelName = "Animation Edit##" + std::to_string(windowId);
+	ImGui::Begin(panelName.c_str());
+
+	auto view = registry.view<SkinnedMeshComponent, AnimatorComponent>();
+	if (view.begin() == view.end())
+	{
+		ImGui::Text("No skinned model.");
+		ImGui::End();
+		return;
+	}
+
+	auto entity = *view.begin();
+	auto& skinned = view.get<SkinnedMeshComponent>(entity);
+	auto& animator = view.get<AnimatorComponent>(entity);
+
+	if (!skinned.model)
+	{
+		ImGui::End();
+		return;
+	}
+
+	// モデルが切り替わったら、そのモデル用の設定を読み込み直す
+	if (loadedModelPath != context.currentModelPath)
+	{
+		Load(context.currentModelPath, *skinned.model);
+	}
+
+	if (animator.currentAnimation.empty())
+	{
+		ImGui::TextDisabled("Select an animation from the Animator panel.");
+		ImGui::End();
+		return;
+	}
+
+	// モデル共通の設定
+	ImGui::Text("Root Node: %s", editData.rootNodeName.c_str());
+	ImGui::Separator();
+
+	// クリップごとの設定
+	ImGui::Text("Clip: %s", animator.currentAnimation.c_str());
+
+	if (DrawClipSettings(animator.currentAnimation))
+	{
+		// 値が変わったら、生データから焼き直す
+		skinned.model->ApplyAnimationEdit(editData);
+		context.requestPoseUpdate = true;
+		isDirty = true;
+	}
+
+	ImGui::Separator();
+	DrawRootMotionInfo(*skinned.model, animator.currentAnimation);
+
+	ImGui::End();
+}
+
+// クリップ設定
+bool StudioAnimationEdit::DrawClipSettings(const std::string& clipName)
+{
+	// 設定が無いクリップは既定値で表示する
+	const AnimationEditClipData* existing = editData.FindClip(clipName);
+	AnimationEditClipData clip = existing ? *existing : AnimationEditClipData{};
+	clip.clipName = clipName;
+
+	bool changed = false;
+
+	// 向きの補正
+	changed |= ImGui::DragFloat("Yaw Offset", &clip.yawOffsetDegrees, 1.0f, -180.0f, 180.0f, "%.1f deg");
+
+	const float presets[] = { -90.0f, 0.0f, 90.0f, 180.0f };
+	const char* presetLabels[] = { "-90", "0", "+90", "180" };
+	for (int i = 0; i < 4; i++)
+	{
+		if (i > 0) ImGui::SameLine();
+		if (ImGui::Button(presetLabels[i]))
+		{
+			clip.yawOffsetDegrees = presets[i];
+			changed = true;
+		}
+	}
+
+	// 移動量の倍率
+	changed |= ImGui::DragFloat("Root Motion XZ", &clip.rootMotionScaleXZ, 0.01f, 0.0f, 10.0f, "%.2f");
+	changed |= ImGui::DragFloat("Root Motion Y", &clip.rootMotionScaleY, 0.01f, 0.0f, 10.0f, "%.2f");
+
+	// リセット
+	if (existing && ImGui::Button("Reset Clip"))
+	{
+		auto& clips = editData.clips;
+		clips.erase(
+			std::remove_if(clips.begin(), clips.end(),
+				[&](const AnimationEditClipData& c) { return c.clipName == clipName; }),
+			clips.end());
+		return true;
+	}
+
+	// 変更があったときだけ、データに書き戻す
+	if (changed)
+	{
+		*editData.FindOrCreateClip(clipName) = clip;
+	}
+
+	return changed;
+}
+
+// 焼き込み後のルート移動量
+void StudioAnimationEdit::DrawRootMotionInfo(const Model& model, const std::string& clipName)
+{
+	// ルートノードの番号を探す
+	const auto& nodes = model.GetNodes();
+	int rootIndex = -1;
+	for (int i = 0; i < (int)nodes.size(); i++)
+	{
+		if (nodes[i].name == editData.rootNodeName) { rootIndex = i; break; }
+	}
+	if (rootIndex < 0)
+	{
+		ImGui::TextDisabled("Root node not found.");
+		return;
+	}
+
+	// 焼き込み後のクリップを探す
+	for (const auto& anim : model.GetAnimations())
+	{
+		if (anim.name != clipName) continue;
+
+		if (rootIndex >= (int)anim.nodeAnims.size() || anim.nodeAnims[rootIndex].positionKeyframes.empty())
+		{
+			ImGui::TextDisabled("Root Motion: none");
+			return;
+		}
+
+		// 最初と最後のキーの差＝1回再生したときの移動量
+		const auto& keys = anim.nodeAnims[rootIndex].positionKeyframes;
+		const DirectX::XMFLOAT3& a = keys.front().value;
+		const DirectX::XMFLOAT3& b = keys.back().value;
+		const float dx = b.x - a.x;
+		const float dy = b.y - a.y;
+		const float dz = b.z - a.z;
+		const float horizontal = sqrtf(dx * dx + dz * dz);
+		const float speed = (anim.secondsLength > 0.0f) ? horizontal / anim.secondsLength : 0.0f;
+
+		ImGui::Text("Root Motion (1 loop)");
+		ImGui::Text("  Delta : %.2f, %.2f, %.2f", dx, dy, dz);
+		ImGui::Text("  XZ    : %.2f m / %.2f s  (%.2f m/s)", horizontal, anim.secondsLength, speed);
+		return;
+	}
+}
+
+// 読み込み
+void StudioAnimationEdit::Load(const std::string& modelPath, const Model& model)
+{
+	editData = AnimationEditData();
+
+	std::ifstream ifs(AnimationEditData::GetFilePath(modelPath));
+	if (ifs.is_open())
+	{
+		try
+		{
+			nlohmann::json j;
+			ifs >> j;
+			editData.FromJson(j);
+		}
+		catch (const std::exception&) {}
+	}
+
+	loadedModelPath = modelPath;
+	isDirty = false;
+
+	// ルートノードが未設定なら、モデルから探してファイルに書き込む
+	if (editData.rootNodeName.empty())
+	{
+		editData.rootNodeName = AnimationEditBaker::FindDefaultRootNodeName(model);
+		Save(modelPath);
+	}
+}
+void StudioAnimationEdit::Save(const std::string& modelPath)
+{
+	// フォルダが無ければ作成する
+	std::filesystem::create_directories("Data/Json/Animation");
+
+	std::ofstream ofs(AnimationEditData::GetFilePath(modelPath));
+	if (ofs.is_open())
+	{
+		ofs << editData.ToJson().dump(4);
+		isDirty = false;
+	}
+}
+ 
  
 ===== StudioAnimationSpeed.cpp ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Studio\StudioAnimationSpeed.cpp 
@@ -27440,6 +28097,7 @@ void StudioWindow::DrawWindow(const char* windowName)
 			ImGui::MenuItem("Sequencer", nullptr, &context.showSequencer);
 			ImGui::MenuItem("State Graph", nullptr, &context.showStateGraph);
 			ImGui::MenuItem("AnimationSpeed", nullptr, &context.showAnimationSpeed);
+			ImGui::MenuItem("Animation Edit", nullptr, &context.showAnimationEdit);
 
 			ImGui::EndMenu();
 		}
@@ -27546,6 +28204,12 @@ void StudioWindow::DrawWindow(const char* windowName)
 	if (context.showAnimationSpeed)
 	{
 		studioAnimationSpeed.DrawGUI(studioRegistry, context);
+	}
+	
+	// Animation Edit繝代ロ繝ｫ
+	if (context.showAnimationEdit)
+	{
+		studioAnimationEdit.DrawGUI(studioRegistry, context);
 	}
 
 	stadoiModelViewer.DrawGUI(studioRegistry, context);

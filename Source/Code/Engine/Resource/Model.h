@@ -6,6 +6,8 @@
 #include <wrl.h>
 #include <d3d11.h>
 
+class AnimationEditData;
+
 class Model
 {
 public:
@@ -128,7 +130,11 @@ public:
     const std::vector<Node>& GetNodes()      const { return nodes; }
     const std::vector<Mesh>& GetMeshes()     const { return meshes; }
     const std::vector<Material>& GetMaterials()  const { return materials; }
-    const std::vector<Animation>& GetAnimations() const { return animations; }
+    const std::vector<Animation>& GetAnimations() const { return animations; } // 編集済み
+    const std::vector<Animation>& GetRawAnimations() const { return rawAnimations; } // 生データ
+
+    // 編集設定を焼き込む
+    void ApplyAnimationEdit(const AnimationEditData& editData);
 
     std::vector<Node>& GetNodes() { return nodes; }
     std::vector<Mesh>& GetMeshes() { return meshes; }
@@ -171,7 +177,9 @@ private:
     std::vector<Node>      nodes;
     std::vector<Mesh>      meshes;
     std::vector<Material>  materials;
-    std::vector<Animation> animations;
+    std::vector<Animation> animations;    // 編集済み
+    std::vector<Animation> rawAnimations; // 生データ
+
     bool                   hasSkin = false;
 
 

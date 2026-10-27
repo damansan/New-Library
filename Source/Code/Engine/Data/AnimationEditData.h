@@ -8,14 +8,16 @@
 struct AnimationEditClipData
 {
 	std::string clipName;
-	float yawOffsetDegrees = 0.0f; // 向きの補正（Y軸回り、度）
+	float yawOffsetDegrees = 0.0f;   // 向きの補正（Y軸回り、度）
+	float rootMotionScaleXZ = 1.0f;  // ルートモーションの水平移動の倍率
+	float rootMotionScaleY = 1.0f;   // ルートモーションの上下移動の倍率
 };
 
 // モデル1体分、全クリップの編集設定をまとめたもの
 class AnimationEditData
 {
 public:
-	std::string rootNodeName = "root"; // 焼き込み対象のルートノード名
+	std::string rootNodeName; // 焼き込み対象のルートノード名
 	std::vector<AnimationEditClipData> clips;
 
 	// 指定したクリップ名のデータを探す
