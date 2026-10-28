@@ -4,9 +4,18 @@
 #include "StudioTimelineWidget.h"
 #include <imgui.h>
 #include <string>
+#include <vector>
 
 class Model;
 struct AnimatorComponent;
+
+// ルートモーションのグラフ用の値
+struct RootMotionCurve
+{
+	std::vector<float> times; // 時刻
+	std::vector<float> xz;    // 水平に進んだ距離の累計
+	std::vector<float> y;     // 開始時からの高さ
+};
 
 class StudioAnimationEdit : public IStudioAttachment
 {
@@ -38,6 +47,11 @@ private:
 	bool bakedUntrimmed = false;     // トリミングなしで焼かれているか
 	bool rangePlaying = false;       // トリミングモードで、使う範囲を再生中か
 
+	RootMotionCurve originalCurve;   // 区間を外したもの
+	RootMotionCurve editedCurve;     // 編集後
+	std::string curveClipName;       // 今のグラフがどのクリップのものか
+	bool curveDirty = true;          // グラフを作り直す必要があるか
+
 	// タイムライン
 	bool DrawTimelineArea(const Model& model, AnimatorComponent& animator, StudioContext& context);
 	// 数値
@@ -48,6 +62,14 @@ private:
 	bool DrawTrimTrack(const std::string& clipName, float rawLength, float frameStep);
 	// トリミングのボタン
 	bool DrawTrimButtons(const std::string& clipName, float rawLength, float frameStep, float pinTime); 
+
+
+	// ルートモーションのグラフ
+	void DrawRootMotionTracks(const Model& model, const std::string& clipName);
+	// グラフの値を作り直す
+	void RebuildCurves(const Model& model, const std::string& clipName);
+	// グラフのトラックを1本描く
+	void DrawCurveTrack(const char* label, bool isY, float height, ImU32 color);
 
 
 	// クリップ設定
