@@ -1,51 +1,158 @@
-#include "AnimationEditBaker.h"
+ï»¿#include "AnimationEditBaker.h"
+#include <algorithm>
+#include <DirectXMath.h>
+
+namespace
+{
+	// æŒ‡å®šæ™‚åˆ»ã®å€¤ã‚’è£œé–“ã§æ±‚ã‚ã‚‹
+	DirectX::XMFLOAT3 SampleVector(const std::vector<Model::VectorKeyframe>& keys, float time)
+	{
+		if (time <= keys.front().seconds) return keys.front().value;
+
+		for (size_t i = 0; i + 1 < keys.size(); i++)
+		{
+			const auto& a = keys[i];
+			const auto& b = keys[i + 1];
+			if (time <= b.seconds)
+			{
+				const float span = b.seconds - a.seconds;
+				const float t = (span > 0.0f) ? (time - a.seconds) / span : 0.0f;
+				DirectX::XMFLOAT3 result;
+				DirectX::XMStoreFloat3(&result, DirectX::XMVectorLerp(DirectX::XMLoadFloat3(&a.value), DirectX::XMLoadFloat3(&b.value), t));
+				return result;
+			}
+		}
+		return keys.back().value;
+	}
+
+	// æŒ‡å®šæ™‚åˆ»ã®å€¤ã‚’è£œé–“ã§æ±‚ã‚ã‚‹
+	DirectX::XMFLOAT4 SampleQuaternion(const std::vector<Model::QuaternionKeyframe>& keys, float time)
+	{
+		if (time <= keys.front().seconds) return keys.front().value;
+
+		for (size_t i = 0; i + 1 < keys.size(); i++)
+		{
+			const auto& a = keys[i];
+			const auto& b = keys[i + 1];
+			if (time <= b.seconds)
+			{
+				const float span = b.seconds - a.seconds;
+				const float t = (span > 0.0f) ? (time - a.seconds) / span : 0.0f;
+				DirectX::XMFLOAT4 result;
+				DirectX::XMStoreFloat4(&result, DirectX::XMQuaternionSlerp(DirectX::XMLoadFloat4(&a.value), DirectX::XMLoadFloat4(&b.value), t));
+				return result;
+			}
+		}
+		return keys.back().value;
+	}
+
+	// ã‚­ãƒ¼åˆ—ã‚’ startã€œend ã ã‘æ®‹ã—ã¦ã€0ç§’å§‹ã¾ã‚Šã«è©°ã‚ã‚‹
+	template<class Key, class Sampler>
+	void TrimKeys(std::vector<Key>& keys, float start, float end, Sampler sample)
+	{
+		if (keys.empty()) return;
+
+		// 1ã‚­ãƒ¼ã ã‘ãªã‚‰æ™‚é–“ã«é–¢ä¿‚ãªãåŒã˜å€¤ãªã®ã§ã€æ™‚åˆ»ã ã‘0ã«ã™ã‚‹
+		if (keys.size() == 1)
+		{
+			keys[0].seconds = 0.0f;
+			return;
+		}
+
+		std::vector<Key> result;
+
+		// åˆ‡ã‚Šå£ã®å€¤ã¯è£œé–“ã§ä½œã‚‹
+		result.push_back({ 0.0f, sample(keys, start) });
+		for (const auto& key : keys)
+		{
+			if (key.seconds > start && key.seconds < end)
+			{
+				result.push_back({ key.seconds - start, key.value });
+			}
+		}
+		result.push_back({ end - start, sample(keys, end) });
+
+		keys = std::move(result);
+	}
+}
+
 
 std::vector<Model::Animation> AnimationEditBaker::Bake(
 	const std::vector<Model::Animation>& rawAnimations,
 	const std::vector<Model::Node>& nodes,
 	const AnimationEditData& editData)
 {
-	// ¶ƒf[ƒ^‚ğƒRƒs[‚µ‚ÄAƒRƒs[‚µ‚½‚à‚Ì‚É‰ÁH‚ğ‰Á‚¦‚é
-	std::vector<Model::Animation> result = rawAnimations;
-
 	const int rootIndex = FindNodeIndex(nodes, editData.rootNodeName);
-	if (rootIndex < 0) return result; // ƒ‹[ƒg‚ªŒ©‚Â‚©‚ç‚È‚¯‚ê‚Î‰ÁH‚µ‚È‚¢
 
-	const Model::Node& rootNode = nodes[rootIndex];
+	std::vector<Model::Animation> result;
+	result.reserve(rawAnimations.size());
 
-	for (auto& animation : result)
+	for (const auto& raw : rawAnimations)
 	{
-		if (rootIndex >= (int)animation.nodeAnims.size()) continue;
-		Model::NodeAnim& rootAnim = animation.nodeAnims[rootIndex];
-
-		// ƒIƒtƒZƒbƒgœ‹
-		RemoveRootOffset(rootAnim, rootNode);
-
-		const AnimationEditClipData* clip = editData.FindClip(animation.name);
-		if (!clip) continue; // İ’è‚ª–³‚¢ƒNƒŠƒbƒv‚ÍƒIƒtƒZƒbƒgœ‹‚¾‚¯
-
-		// ˆÚ“®—Ê‚Ì”{—¦
-		if (clip->rootMotionScaleXZ != 1.0f || clip->rootMotionScaleY != 1.0f)
-		{
-			ApplyRootMotionScale(rootAnim, rootNode, clip->rootMotionScaleXZ, clip->rootMotionScaleY);
-		}
-
-		// Œü‚«‚Ì•â³
-		if (clip->yawOffsetDegrees != 0.0f)
-		{
-			ApplyYawOffset(rootAnim, rootNode, clip->yawOffsetDegrees);
-		}
+		result.push_back(BakeClip(raw, nodes, rootIndex, editData.FindClip(raw.name)));
 	}
 
 	return result;
 }
 
-// RootNode‚Ì–¼‘O‚ğ’T‚·
+// 1ã‚¯ãƒªãƒƒãƒ—åˆ†ã ã‘ç„¼ã
+Model::Animation AnimationEditBaker::BakeClip(
+	const Model::Animation& rawAnimation,
+	const std::vector<Model::Node>& nodes,
+	int rootIndex,
+	const AnimationEditClipData* clip)
+{
+	// ç”Ÿãƒ‡ãƒ¼ã‚¿ã‚’ã‚³ãƒ”ãƒ¼ã—ã¦ã€ãã“ã«åŠ å·¥ã‚’åŠ ãˆã‚‹
+	Model::Animation animation = rawAnimation;
+
+	// ã‚«ãƒƒãƒˆ
+	float trimStart = 0.0f;
+	if (clip)
+	{
+		const float length = animation.secondsLength;
+		const float start = std::clamp(clip->trimStart, 0.0f, length);
+		const float end = (clip->trimEnd < 0.0f) ? length : std::clamp(clip->trimEnd, start, length);
+
+		// ç¯„å›²ãŒæœ‰åŠ¹ã§ã€å®Ÿéš›ã«åˆ‡ã‚‹éƒ¨åˆ†ãŒã‚ã‚‹ã¨ãã ã‘
+		if (end - start > 0.0f && (start > 0.0f || end < length))
+		{
+			TrimAnimation(animation, start, end);
+			trimStart = start;
+		}
+	}
+
+	// ã“ã“ã‹ã‚‰å…ˆã¯ãƒ«ãƒ¼ãƒˆã ã‘ã‚’åŠ å·¥ã™ã‚‹
+	if (rootIndex < 0 || rootIndex >= (int)animation.nodeAnims.size()) return animation;
+	Model::NodeAnim& rootAnim = animation.nodeAnims[rootIndex];
+	const Model::Node& rootNode = nodes[rootIndex];
+
+	// ã‚ªãƒ•ã‚»ãƒƒãƒˆé™¤å»
+	RemoveRootOffset(rootAnim, rootNode);
+
+	if (!clip) return animation;
+
+	// åŒºé–“ã®ç§»å‹•é‡
+	if (!clip->sections.empty())
+	{
+		ApplySections(rootAnim, clip->sections, trimStart);
+	}
+
+	// å‘ãã®è£œæ­£
+	if (clip->yawOffsetDegrees != 0.0f)
+	{
+		ApplyYawOffset(rootAnim, rootNode, clip->yawOffsetDegrees);
+	}
+
+	return animation;
+}
+
+
+// RootNodeã®åå‰ã‚’æ¢ã™
 std::string AnimationEditBaker::FindDefaultRootNodeName(const Model& model)
 {
 	const auto& nodes = model.GetNodes();
 
-	// ‚Ç‚Ìƒm[ƒh‚ªƒ{[ƒ“‚©‚ğ’²‚×‚é
+	// ã©ã®ãƒãƒ¼ãƒ‰ãŒãƒœãƒ¼ãƒ³ã‹ã‚’èª¿ã¹ã‚‹
 	std::vector<bool> isBone(nodes.size(), false);
 	for (const auto& mesh : model.GetMeshes())
 	{
@@ -58,7 +165,7 @@ std::string AnimationEditBaker::FindDefaultRootNodeName(const Model& model)
 		}
 	}
 
-	// e‚ª‚¢‚È‚¢A‚Ü‚½‚Íe‚ªƒ{[ƒ“‚Å‚Í‚È‚¢ƒ{[ƒ“‚ªˆê”Ôã
+	// è¦ªãŒã„ãªã„ã€ã¾ãŸã¯è¦ªãŒãƒœãƒ¼ãƒ³ã§ã¯ãªã„ãƒœãƒ¼ãƒ³ãŒä¸€ç•ªä¸Š
 	for (int i = 0; i < (int)nodes.size(); i++)
 	{
 		if (!isBone[i]) continue;
@@ -73,7 +180,7 @@ std::string AnimationEditBaker::FindDefaultRootNodeName(const Model& model)
 	return "";
 }
 
-// –¼‘O‚©‚çƒ‹[ƒgƒm[ƒh‚Ì”Ô†‚ğ’T‚·
+// åå‰ã‹ã‚‰ãƒ«ãƒ¼ãƒˆãƒãƒ¼ãƒ‰ã®ç•ªå·ã‚’æ¢ã™
 int AnimationEditBaker::FindNodeIndex(const std::vector<Model::Node>& nodes, const std::string& name)
 {
 	for (int i = 0; i < (int)nodes.size(); i++)
@@ -83,12 +190,24 @@ int AnimationEditBaker::FindNodeIndex(const std::vector<Model::Node>& nodes, con
 	return -1;
 }
 
-// 0ƒtƒŒ[ƒ€–Ú‚Ìƒ‹[ƒgˆÊ’u‚ªAƒoƒCƒ“ƒhƒ|[ƒY‚ÌˆÊ’u‚É‚È‚é‚æ‚¤‚É‚¸‚ç‚·
+// æŒ‡å®šç¯„å›²ã ã‘æ®‹ã—ã¦ã€æ™‚é–“ã‚’0ç§’å§‹ã¾ã‚Šã«è©°ã‚ã‚‹
+void AnimationEditBaker::TrimAnimation(Model::Animation& animation, float start, float end)
+{
+	for (auto& nodeAnim : animation.nodeAnims)
+	{
+		TrimKeys(nodeAnim.positionKeyframes, start, end, SampleVector);
+		TrimKeys(nodeAnim.rotationKeyframes, start, end, SampleQuaternion);
+		TrimKeys(nodeAnim.scaleKeyframes, start, end, SampleVector);
+	}
+	animation.secondsLength = end - start;
+}
+
+// 0ãƒ•ãƒ¬ãƒ¼ãƒ ç›®ã®ãƒ«ãƒ¼ãƒˆä½ç½®ãŒã€ãƒã‚¤ãƒ³ãƒ‰ãƒãƒ¼ã‚ºã®ä½ç½®ã«ãªã‚‹ã‚ˆã†ã«ãšã‚‰ã™
 void AnimationEditBaker::RemoveRootOffset(Model::NodeAnim& rootAnim, const Model::Node& rootNode)
 {
 	if (rootAnim.positionKeyframes.empty()) return;
 
-	// 0ƒtƒŒ[ƒ€–Ú‚ªƒoƒCƒ“ƒhƒ|[ƒY‚©‚ç‚Ç‚ê‚¾‚¯‚¸‚ê‚Ä‚¢‚é‚©
+	// 0ãƒ•ãƒ¬ãƒ¼ãƒ ç›®ãŒãƒã‚¤ãƒ³ãƒ‰ãƒãƒ¼ã‚ºã‹ã‚‰ã©ã‚Œã ã‘ãšã‚Œã¦ã„ã‚‹ã‹
 	const DirectX::XMFLOAT3& first = rootAnim.positionKeyframes.front().value;
 	const DirectX::XMFLOAT3 offset =
 	{
@@ -97,7 +216,7 @@ void AnimationEditBaker::RemoveRootOffset(Model::NodeAnim& rootAnim, const Model
 		first.z - rootNode.position.z
 	};
 
-	// ‘SƒL[‚©‚ç“¯‚¶—Ê‚ğˆø‚­
+	// å…¨ã‚­ãƒ¼ã‹ã‚‰åŒã˜é‡ã‚’å¼•ã
 	for (auto& key : rootAnim.positionKeyframes)
 	{
 		key.value.x -= offset.x;
@@ -106,27 +225,49 @@ void AnimationEditBaker::RemoveRootOffset(Model::NodeAnim& rootAnim, const Model
 	}
 }
 
-// ƒ‹[ƒg‚ÌˆÚ“®—Ê‚É”{—¦‚ğŠ|‚¯‚é
-void AnimationEditBaker::ApplyRootMotionScale(Model::NodeAnim& rootAnim, const Model::Node& rootNode, float scaleXZ, float scaleY)
+// åŒºé–“ã”ã¨ã«ã€ãƒ«ãƒ¼ãƒˆã®ç§»å‹•é‡ã«å€ç‡ã‚’æ›ã‘ã‚‹
+void AnimationEditBaker::ApplySections(Model::NodeAnim& rootAnim, const std::vector<AnimationEditSection>& sections, float trimStart)
 {
-	const DirectX::XMFLOAT3& pivot = rootNode.position;
+	auto& keys = rootAnim.positionKeyframes;
+	if (keys.size() < 2) return;
 
-	// ƒoƒCƒ“ƒhƒ|[ƒY‚ÌˆÊ’u‚ğŠî€‚ÉL‚Ñk‚İ‚³‚¹‚é
-	for (auto& key : rootAnim.positionKeyframes)
+	// å…ƒã®ä½ç½®ã‚’æ§ãˆã¦ãŠã
+	std::vector<DirectX::XMFLOAT3> original(keys.size());
+	for (size_t i = 0; i < keys.size(); i++) original[i] = keys[i].value;
+
+	for (size_t i = 1; i < keys.size(); i++)
 	{
-		key.value.x = pivot.x + (key.value.x - pivot.x) * scaleXZ;
-		key.value.y = pivot.y + (key.value.y - pivot.y) * scaleY;
-		key.value.z = pivot.z + (key.value.z - pivot.z) * scaleXZ;
+		// ã“ã®ã‚­ãƒ¼é–“ã®çœŸã‚“ä¸­ã®æ™‚åˆ»ã‚’ã€ç”Ÿãƒ‡ãƒ¼ã‚¿ã®æ™‚é–“ã«æˆ»ã™
+		const float mid = (keys[i - 1].seconds + keys[i].seconds) * 0.5f + trimStart;
+
+		// ãã®æ™‚åˆ»ã‚’å«ã‚€åŒºé–“ã®å€ç‡
+		float scaleXZ = 1.0f;
+		float scaleY = 1.0f;
+		for (const auto& s : sections)
+		{
+			if (mid >= s.start && mid < s.end)
+			{
+				scaleXZ = s.scaleXZ;
+				scaleY = s.scaleY;
+				break;
+			}
+		}
+
+		// å…ƒã®ç§»å‹•é‡ã«å€ç‡ã‚’æ›ã‘ã¦ã€ã²ã¨ã¤å‰ã®ã‚­ãƒ¼ã«ç©ã¿ä¸Šã’ã‚‹
+		keys[i].value.x = keys[i - 1].value.x + (original[i].x - original[i - 1].x) * scaleXZ;
+		keys[i].value.y = keys[i - 1].value.y + (original[i].y - original[i - 1].y) * scaleY;
+		keys[i].value.z = keys[i - 1].value.z + (original[i].z - original[i - 1].z) * scaleXZ;
 	}
 }
 
-// ƒ‹[ƒg‚ğY²‰ñ‚è‚É‰ñ‚·
+
+// ãƒ«ãƒ¼ãƒˆã‚’Yè»¸å›ã‚Šã«å›ã™
 void AnimationEditBaker::ApplyYawOffset(Model::NodeAnim& rootAnim, const Model::Node& rootNode, float yawDegrees)
 {
 	const DirectX::XMVECTOR yaw = DirectX::XMQuaternionRotationRollPitchYaw(0.0f, DirectX::XMConvertToRadians(yawDegrees), 0.0f);
 	const DirectX::XMVECTOR pivot = XMLoadFloat3(&rootNode.position);
 
-	// ƒoƒCƒ“ƒhƒ|[ƒY‚ÌˆÊ’u‚ğ’†S‚É‰ñ‚·
+	// ãƒã‚¤ãƒ³ãƒ‰ãƒãƒ¼ã‚ºã®ä½ç½®ã‚’ä¸­å¿ƒã«å›ã™
 	for (auto& key : rootAnim.positionKeyframes)
 	{
 		DirectX::XMVECTOR p = DirectX::XMVectorSubtract(XMLoadFloat3(&key.value), pivot);
@@ -134,13 +275,13 @@ void AnimationEditBaker::ApplyYawOffset(Model::NodeAnim& rootAnim, const Model::
 		XMStoreFloat3(&key.value, DirectX::XMVectorAdd(p, pivot));
 	}
 
-	// ‰ñ“]ƒL[‚ª–³‚¢ƒNƒŠƒbƒv‚ÍAƒoƒCƒ“ƒhƒ|[ƒY‚Ì‰ñ“]‚ğ1ƒL[‚Æ‚µ‚Ä‘«‚µ‚Ä‚¨‚­
+	// å›è»¢ã‚­ãƒ¼ãŒç„¡ã„ã‚¯ãƒªãƒƒãƒ—ã¯ã€ãƒã‚¤ãƒ³ãƒ‰ãƒãƒ¼ã‚ºã®å›è»¢ã‚’1ã‚­ãƒ¼ã¨ã—ã¦è¶³ã—ã¦ãŠã
 	if (rootAnim.rotationKeyframes.empty())
 	{
 		rootAnim.rotationKeyframes.push_back({ 0.0f, rootNode.rotation });
 	}
 
-	// Œ³‚Ì‰ñ“]‚ÌuŒã‚ÉvYaw‚ğŠ|‚¯‚é
+	// å…ƒã®å›è»¢ã®ã€Œå¾Œã«ã€Yawã‚’æ›ã‘ã‚‹
 	for (auto& key : rootAnim.rotationKeyframes)
 	{
 		DirectX::XMVECTOR q = DirectX::XMLoadFloat4(&key.value);

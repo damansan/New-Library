@@ -1,16 +1,29 @@
 #pragma once
-#pragma once
 #include <string>
 #include <vector>
 #include <json.hpp>
+
+// ルートモーションの移動量を変える区間
+struct AnimationEditSection
+{
+	float start = 0.0f;
+	float end = 0.0f;
+	float scaleXZ = 1.0f; // 水平移動の倍率
+	float scaleY = 1.0f;  // 上下移動の倍率
+};
 
 // 1クリップ分の編集設定
 struct AnimationEditClipData
 {
 	std::string clipName;
-	float yawOffsetDegrees = 0.0f;   // 向きの補正（Y軸回り、度）
-	float rootMotionScaleXZ = 1.0f;  // ルートモーションの水平移動の倍率
-	float rootMotionScaleY = 1.0f;   // ルートモーションの上下移動の倍率
+	float yawOffsetDegrees = 0.0f; // 向きの補正
+
+	// トリミング
+	float trimStart = 0.0f;
+	float trimEnd = -1.0f;
+
+	// ルートモーションの移動量を変える区間
+	std::vector<AnimationEditSection> sections;
 };
 
 // モデル1体分、全クリップの編集設定をまとめたもの

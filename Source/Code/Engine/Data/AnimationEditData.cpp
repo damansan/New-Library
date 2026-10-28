@@ -1,6 +1,7 @@
 #include "AnimationEditData.h"
 #include <filesystem>
 
+
 // 指定したクリップ名のデータを探す
 const AnimationEditClipData* AnimationEditData::FindClip(const std::string& clipName) const
 {
@@ -36,9 +37,21 @@ nlohmann::ordered_json AnimationEditData::ToJson() const
 	{
 		nlohmann::ordered_json jc;
 		jc["clipName"] = clip.clipName;
-		jc["yawOffsetDegrees"] =  clip.yawOffsetDegrees;
-		jc["rootMotionScaleXZ"] = clip.rootMotionScaleXZ;
-		jc["rootMotionScaleY"] =  clip.rootMotionScaleY;
+		jc["yawOffsetDegrees"] = clip.yawOffsetDegrees;
+		jc["trimStart"] = clip.trimStart;
+		jc["trimEnd"] = clip.trimEnd;
+
+		jc["sections"] = nlohmann::json::array();
+		for (const auto& s : clip.sections)
+		{
+			nlohmann::ordered_json js;
+			js["start"] = s.start;
+			js["end"] = s.end;
+			js["scaleXZ"] = s.scaleXZ;
+			js["scaleY"] = s.scaleY;
+			jc["sections"].push_back(js);
+		}
+
 		j["clips"].push_back(jc);
 	}
 
@@ -57,9 +70,23 @@ void AnimationEditData::FromJson(const nlohmann::json& j)
 	{
 		AnimationEditClipData clip;
 		clip.clipName = jc.value("clipName", "");
-		clip.yawOffsetDegrees =  jc.value("yawOffsetDegrees",  0.0f);
-		clip.rootMotionScaleXZ = jc.value("rootMotionScaleXZ", 1.0f);
-		clip.rootMotionScaleY =  jc.value("rootMotionScaleY",  1.0f);
+		clip.yawOffsetDegrees = jc.value("yawOffsetDegrees", 0.0f);
+		clip.trimStart = jc.value("trimStart", 0.0f);
+		clip.trimEnd = jc.value("trimEnd", -1.0f);
+
+		if (jc.contains("sections"))
+		{
+			for (const auto& js : jc["sections"])
+			{
+				AnimationEditSection s;
+				s.start = js.value("start", 0.0f);
+				s.end = js.value("end", 0.0f);
+				s.scaleXZ = js.value("scaleXZ", 1.0f);
+				s.scaleY = js.value("scaleY", 1.0f);
+				clip.sections.push_back(s);
+			}
+		}
+
 		clips.push_back(clip);
 	}
 }

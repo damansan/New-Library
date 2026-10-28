@@ -124,6 +124,9 @@
     <Filter Include="Sources\Tool\Studio\StudioAnimationEdit">
       <UniqueIdentifier>{5ecf3403-e1d2-4519-92f6-8ef5e4a562ce}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\Tool\Studio\StudioTimelineWidget">
+      <UniqueIdentifier>{5b317cf6-606d-439c-8c2c-ffc9319ad8d7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\External\imgui-docking\imgui.cpp">
@@ -240,6 +243,9 @@
     <ClCompile Include="..\..\Source\Code\Tool\Studio\StudioAnimationEdit.cpp">
       <Filter>Sources\Tool\Studio\StudioAnimationEdit</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Source\Code\Tool\Studio\StudioTimelineWidget.cpp">
+      <Filter>Sources\Tool\Studio\StudioTimelineWidget</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Source\Code\Tool\NodeEditor\NodeEditorCanvas.h">
@@ -340,6 +346,9 @@
     </ClInclude>
     <ClInclude Include="..\..\Source\Code\Tool\Studio\StudioAnimationEdit.h">
       <Filter>Sources\Tool\Studio\StudioAnimationEdit</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Code\Tool\Studio\StudioTimelineWidget.h">
+      <Filter>Sources\Tool\Studio\StudioTimelineWidget</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

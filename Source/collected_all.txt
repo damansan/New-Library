@@ -2534,18 +2534,31 @@ void SceneManager::ClearScene()
 ===== AnimationEditData.h ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Data\AnimationEditData.h 
 #pragma once
-#pragma once
 #include <string>
 #include <vector>
 #include <json.hpp>
+
+// ƒ‹[ƒgƒ‚[ƒVƒ‡ƒ“‚ÌˆÚ“®—Ê‚ğ•Ï‚¦‚é‹æŠÔ
+struct AnimationEditSection
+{
+	float start = 0.0f;
+	float end = 0.0f;
+	float scaleXZ = 1.0f; // …•½ˆÚ“®‚Ì”{—¦
+	float scaleY = 1.0f;  // ã‰ºˆÚ“®‚Ì”{—¦
+};
 
 // 1ƒNƒŠƒbƒv•ª‚Ì•ÒWİ’è
 struct AnimationEditClipData
 {
 	std::string clipName;
-	float yawOffsetDegrees = 0.0f;   // Œü‚«‚Ì•â³iY²‰ñ‚èA“xj
-	float rootMotionScaleXZ = 1.0f;  // ƒ‹[ƒgƒ‚[ƒVƒ‡ƒ“‚Ì…•½ˆÚ“®‚Ì”{—¦
-	float rootMotionScaleY = 1.0f;   // ƒ‹[ƒgƒ‚[ƒVƒ‡ƒ“‚Ìã‰ºˆÚ“®‚Ì”{—¦
+	float yawOffsetDegrees = 0.0f; // Œü‚«‚Ì•â³
+
+	// ƒgƒŠƒ~ƒ“ƒO
+	float trimStart = 0.0f;
+	float trimEnd = -1.0f;
+
+	// ƒ‹[ƒgƒ‚[ƒVƒ‡ƒ“‚ÌˆÚ“®—Ê‚ğ•Ï‚¦‚é‹æŠÔ
+	std::vector<AnimationEditSection> sections;
 };
 
 // ƒ‚ƒfƒ‹1‘Ì•ªA‘SƒNƒŠƒbƒv‚Ì•ÒWİ’è‚ğ‚Ü‚Æ‚ß‚½‚à‚Ì
@@ -3020,6 +3033,7 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Data\AnimationEdit
 #include "AnimationEditData.h"
 #include <filesystem>
 
+
 // w’è‚µ‚½ƒNƒŠƒbƒv–¼‚Ìƒf[ƒ^‚ğ’T‚·
 const AnimationEditClipData* AnimationEditData::FindClip(const std::string& clipName) const
 {
@@ -3055,9 +3069,21 @@ nlohmann::ordered_json AnimationEditData::ToJson() const
 	{
 		nlohmann::ordered_json jc;
 		jc["clipName"] = clip.clipName;
-		jc["yawOffsetDegrees"] =  clip.yawOffsetDegrees;
-		jc["rootMotionScaleXZ"] = clip.rootMotionScaleXZ;
-		jc["rootMotionScaleY"] =  clip.rootMotionScaleY;
+		jc["yawOffsetDegrees"] = clip.yawOffsetDegrees;
+		jc["trimStart"] = clip.trimStart;
+		jc["trimEnd"] = clip.trimEnd;
+
+		jc["sections"] = nlohmann::json::array();
+		for (const auto& s : clip.sections)
+		{
+			nlohmann::ordered_json js;
+			js["start"] = s.start;
+			js["end"] = s.end;
+			js["scaleXZ"] = s.scaleXZ;
+			js["scaleY"] = s.scaleY;
+			jc["sections"].push_back(js);
+		}
+
 		j["clips"].push_back(jc);
 	}
 
@@ -3076,9 +3102,23 @@ void AnimationEditData::FromJson(const nlohmann::json& j)
 	{
 		AnimationEditClipData clip;
 		clip.clipName = jc.value("clipName", "");
-		clip.yawOffsetDegrees =  jc.value("yawOffsetDegrees",  0.0f);
-		clip.rootMotionScaleXZ = jc.value("rootMotionScaleXZ", 1.0f);
-		clip.rootMotionScaleY =  jc.value("rootMotionScaleY",  1.0f);
+		clip.yawOffsetDegrees = jc.value("yawOffsetDegrees", 0.0f);
+		clip.trimStart = jc.value("trimStart", 0.0f);
+		clip.trimEnd = jc.value("trimEnd", -1.0f);
+
+		if (jc.contains("sections"))
+		{
+			for (const auto& js : jc["sections"])
+			{
+				AnimationEditSection s;
+				s.start = js.value("start", 0.0f);
+				s.end = js.value("end", 0.0f);
+				s.scaleXZ = js.value("scaleXZ", 1.0f);
+				s.scaleY = js.value("scaleY", 1.0f);
+				clip.sections.push_back(s);
+			}
+		}
+
 		clips.push_back(clip);
 	}
 }
@@ -11493,15 +11533,20 @@ public:
 
 	// RootNode‚Ì–¼‘O‚ğ’T‚·
 	static std::string FindDefaultRootNodeName(const Model& model);
+
 private:
+
 	// –¼‘O‚©‚çƒ‹[ƒgƒm[ƒh‚Ì”Ô†‚ğ’T‚·
 	static int FindNodeIndex(const std::vector<Model::Node>& nodes, const std::string& name);
+
+	// w’è”ÍˆÍ‚¾‚¯c‚µ‚ÄAŠÔ‚ğ0•bn‚Ü‚è‚É‹l‚ß‚é
+	static void TrimAnimation(Model::Animation& animation, float start, float end);
 
 	// 0ƒtƒŒ[ƒ€–Ú‚Ìƒ‹[ƒgˆÊ’u‚ªAƒoƒCƒ“ƒhƒ|[ƒY‚ÌˆÊ’u‚É‚È‚é‚æ‚¤‚É‚¸‚ç‚·
 	static void RemoveRootOffset(Model::NodeAnim& rootAnim, const Model::Node& rootNode);
 
-	// ƒ‹[ƒg‚ÌˆÚ“®—Ê‚É”{—¦‚ğŠ|‚¯‚é
-	static void ApplyRootMotionScale(Model::NodeAnim& rootAnim, const Model::Node& rootNode, float scaleXZ, float scaleY);
+	// ‹æŠÔ‚²‚Æ‚ÉAƒ‹[ƒg‚ÌˆÚ“®—Ê‚É”{—¦‚ğŠ|‚¯‚é
+	static void ApplySections(Model::NodeAnim& rootAnim, const std::vector<AnimationEditSection>& sections, float trimStart);
 
 	// ƒ‹[ƒg‚ğY²‰ñ‚è‚É‰ñ‚·
 	static void ApplyYawOffset(Model::NodeAnim& rootAnim, const Model::Node& rootNode, float yawDegrees);
@@ -12238,6 +12283,83 @@ namespace SkeletonUtils
 ===== AnimationEditBaker.cpp ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Resource\AnimationEditBaker.cpp 
 #include "AnimationEditBaker.h"
+#include <algorithm>
+#include <DirectXMath.h>
+
+namespace
+{
+	// w’è‚Ì’l‚ğ•âŠÔ‚Å‹‚ß‚é
+	DirectX::XMFLOAT3 SampleVector(const std::vector<Model::VectorKeyframe>& keys, float time)
+	{
+		if (time <= keys.front().seconds) return keys.front().value;
+
+		for (size_t i = 0; i + 1 < keys.size(); i++)
+		{
+			const auto& a = keys[i];
+			const auto& b = keys[i + 1];
+			if (time <= b.seconds)
+			{
+				const float span = b.seconds - a.seconds;
+				const float t = (span > 0.0f) ? (time - a.seconds) / span : 0.0f;
+				DirectX::XMFLOAT3 result;
+				DirectX::XMStoreFloat3(&result, DirectX::XMVectorLerp(DirectX::XMLoadFloat3(&a.value), DirectX::XMLoadFloat3(&b.value), t));
+				return result;
+			}
+		}
+		return keys.back().value;
+	}
+
+	// w’è‚Ì’l‚ğ•âŠÔ‚Å‹‚ß‚é
+	DirectX::XMFLOAT4 SampleQuaternion(const std::vector<Model::QuaternionKeyframe>& keys, float time)
+	{
+		if (time <= keys.front().seconds) return keys.front().value;
+
+		for (size_t i = 0; i + 1 < keys.size(); i++)
+		{
+			const auto& a = keys[i];
+			const auto& b = keys[i + 1];
+			if (time <= b.seconds)
+			{
+				const float span = b.seconds - a.seconds;
+				const float t = (span > 0.0f) ? (time - a.seconds) / span : 0.0f;
+				DirectX::XMFLOAT4 result;
+				DirectX::XMStoreFloat4(&result, DirectX::XMQuaternionSlerp(DirectX::XMLoadFloat4(&a.value), DirectX::XMLoadFloat4(&b.value), t));
+				return result;
+			}
+		}
+		return keys.back().value;
+	}
+
+	// ƒL[—ñ‚ğ start?end ‚¾‚¯c‚µ‚ÄA0•bn‚Ü‚è‚É‹l‚ß‚é
+	template<class Key, class Sampler>
+	void TrimKeys(std::vector<Key>& keys, float start, float end, Sampler sample)
+	{
+		if (keys.empty()) return;
+
+		// 1ƒL[‚¾‚¯‚È‚çŠÔ‚ÉŠÖŒW‚È‚­“¯‚¶’l‚È‚Ì‚ÅA‚¾‚¯0‚É‚·‚é
+		if (keys.size() == 1)
+		{
+			keys[0].seconds = 0.0f;
+			return;
+		}
+
+		std::vector<Key> result;
+
+		// Ø‚èŒû‚Ì’l‚Í•âŠÔ‚Åì‚é
+		result.push_back({ 0.0f, sample(keys, start) });
+		for (const auto& key : keys)
+		{
+			if (key.seconds > start && key.seconds < end)
+			{
+				result.push_back({ key.seconds - start, key.value });
+			}
+		}
+		result.push_back({ end - start, sample(keys, end) });
+
+		keys = std::move(result);
+	}
+}
+
 
 std::vector<Model::Animation> AnimationEditBaker::Bake(
 	const std::vector<Model::Animation>& rawAnimations,
@@ -12248,28 +12370,44 @@ std::vector<Model::Animation> AnimationEditBaker::Bake(
 	std::vector<Model::Animation> result = rawAnimations;
 
 	const int rootIndex = FindNodeIndex(nodes, editData.rootNodeName);
-	if (rootIndex < 0) return result; // ƒ‹[ƒg‚ªŒ©‚Â‚©‚ç‚È‚¯‚ê‚Î‰ÁH‚µ‚È‚¢
-
-	const Model::Node& rootNode = nodes[rootIndex];
 
 	for (auto& animation : result)
 	{
-		if (rootIndex >= (int)animation.nodeAnims.size()) continue;
-		Model::NodeAnim& rootAnim = animation.nodeAnims[rootIndex];
-
-		// ƒIƒtƒZƒbƒgœ‹
-		RemoveRootOffset(rootAnim, rootNode);
-
 		const AnimationEditClipData* clip = editData.FindClip(animation.name);
-		if (!clip) continue; // İ’è‚ª–³‚¢ƒNƒŠƒbƒv‚ÍƒIƒtƒZƒbƒgœ‹‚¾‚¯
 
-		// ˆÚ“®—Ê‚Ì”{—¦
-		if (clip->rootMotionScaleXZ != 1.0f || clip->rootMotionScaleY != 1.0f)
+		// 1. ƒJƒbƒg
+		float trimStart = 0.0f;
+		if (clip)
 		{
-			ApplyRootMotionScale(rootAnim, rootNode, clip->rootMotionScaleXZ, clip->rootMotionScaleY);
+			const float length = animation.secondsLength;
+			const float start = std::clamp(clip->trimStart, 0.0f, length);
+			const float end = (clip->trimEnd < 0.0f) ? length : std::clamp(clip->trimEnd, start, length);
+
+			// ”ÍˆÍ‚ª—LŒø‚ÅAÀÛ‚ÉØ‚é•”•ª‚ª‚ ‚é‚Æ‚«‚¾‚¯
+			if (end - start > 0.0f && (start > 0.0f || end < length))
+			{
+				TrimAnimation(animation, start, end);
+				trimStart = start;
+			}
 		}
 
-		// Œü‚«‚Ì•â³
+		// ‚±‚±‚©‚çæ‚Íƒ‹[ƒg‚¾‚¯‚ğ‰ÁH‚·‚é
+		if (rootIndex < 0 || rootIndex >= (int)animation.nodeAnims.size()) continue;
+		Model::NodeAnim& rootAnim = animation.nodeAnims[rootIndex];
+		const Model::Node& rootNode = nodes[rootIndex];
+
+		// 2. ƒIƒtƒZƒbƒgœ‹
+		RemoveRootOffset(rootAnim, rootNode);
+
+		if (!clip) continue;
+
+		// 3. ‹æŠÔ‚ÌˆÚ“®—Ê
+		if (!clip->sections.empty())
+		{
+			ApplySections(rootAnim, clip->sections, trimStart);
+		}
+
+		// 4. Œü‚«‚Ì•â³
 		if (clip->yawOffsetDegrees != 0.0f)
 		{
 			ApplyYawOffset(rootAnim, rootNode, clip->yawOffsetDegrees);
@@ -12322,6 +12460,18 @@ int AnimationEditBaker::FindNodeIndex(const std::vector<Model::Node>& nodes, con
 	return -1;
 }
 
+// w’è”ÍˆÍ‚¾‚¯c‚µ‚ÄAŠÔ‚ğ0•bn‚Ü‚è‚É‹l‚ß‚é
+void AnimationEditBaker::TrimAnimation(Model::Animation& animation, float start, float end)
+{
+	for (auto& nodeAnim : animation.nodeAnims)
+	{
+		TrimKeys(nodeAnim.positionKeyframes, start, end, SampleVector);
+		TrimKeys(nodeAnim.rotationKeyframes, start, end, SampleQuaternion);
+		TrimKeys(nodeAnim.scaleKeyframes, start, end, SampleVector);
+	}
+	animation.secondsLength = end - start;
+}
+
 // 0ƒtƒŒ[ƒ€–Ú‚Ìƒ‹[ƒgˆÊ’u‚ªAƒoƒCƒ“ƒhƒ|[ƒY‚ÌˆÊ’u‚É‚È‚é‚æ‚¤‚É‚¸‚ç‚·
 void AnimationEditBaker::RemoveRootOffset(Model::NodeAnim& rootAnim, const Model::Node& rootNode)
 {
@@ -12345,19 +12495,41 @@ void AnimationEditBaker::RemoveRootOffset(Model::NodeAnim& rootAnim, const Model
 	}
 }
 
-// ƒ‹[ƒg‚ÌˆÚ“®—Ê‚É”{—¦‚ğŠ|‚¯‚é
-void AnimationEditBaker::ApplyRootMotionScale(Model::NodeAnim& rootAnim, const Model::Node& rootNode, float scaleXZ, float scaleY)
+// ‹æŠÔ‚²‚Æ‚ÉAƒ‹[ƒg‚ÌˆÚ“®—Ê‚É”{—¦‚ğŠ|‚¯‚é
+void AnimationEditBaker::ApplySections(Model::NodeAnim& rootAnim, const std::vector<AnimationEditSection>& sections, float trimStart)
 {
-	const DirectX::XMFLOAT3& pivot = rootNode.position;
+	auto& keys = rootAnim.positionKeyframes;
+	if (keys.size() < 2) return;
 
-	// ƒoƒCƒ“ƒhƒ|[ƒY‚ÌˆÊ’u‚ğŠî€‚ÉL‚Ñk‚İ‚³‚¹‚é
-	for (auto& key : rootAnim.positionKeyframes)
+	// Œ³‚ÌˆÊ’u‚ğT‚¦‚Ä‚¨‚­
+	std::vector<DirectX::XMFLOAT3> original(keys.size());
+	for (size_t i = 0; i < keys.size(); i++) original[i] = keys[i].value;
+
+	for (size_t i = 1; i < keys.size(); i++)
 	{
-		key.value.x = pivot.x + (key.value.x - pivot.x) * scaleXZ;
-		key.value.y = pivot.y + (key.value.y - pivot.y) * scaleY;
-		key.value.z = pivot.z + (key.value.z - pivot.z) * scaleXZ;
+		// ‚±‚ÌƒL[ŠÔ‚Ì^‚ñ’†‚Ì‚ğA¶ƒf[ƒ^‚ÌŠÔ‚É–ß‚·
+		const float mid = (keys[i - 1].seconds + keys[i].seconds) * 0.5f + trimStart;
+
+		// ‚»‚Ì‚ğŠÜ‚Ş‹æŠÔ‚Ì”{—¦
+		float scaleXZ = 1.0f;
+		float scaleY = 1.0f;
+		for (const auto& s : sections)
+		{
+			if (mid >= s.start && mid < s.end)
+			{
+				scaleXZ = s.scaleXZ;
+				scaleY = s.scaleY;
+				break;
+			}
+		}
+
+		// Œ³‚ÌˆÚ“®—Ê‚É”{—¦‚ğŠ|‚¯‚ÄA‚Ğ‚Æ‚Â‘O‚ÌƒL[‚ÉÏ‚İã‚°‚é
+		keys[i].value.x = keys[i - 1].value.x + (original[i].x - original[i - 1].x) * scaleXZ;
+		keys[i].value.y = keys[i - 1].value.y + (original[i].y - original[i - 1].y) * scaleY;
+		keys[i].value.z = keys[i - 1].value.z + (original[i].z - original[i - 1].z) * scaleXZ;
 	}
 }
+
 
 // ƒ‹[ƒg‚ğY²‰ñ‚è‚É‰ñ‚·
 void AnimationEditBaker::ApplyYawOffset(Model::NodeAnim& rootAnim, const Model::Node& rootNode, float yawDegrees)
@@ -21449,10 +21621,12 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Studio\StudioAnimati
 #pragma once
 #include "IStudioAttachment.h"
 #include "Engine/Data/AnimationEditData.h"
+#include "StudioTimelineWidget.h"
 #include <imgui.h>
 #include <string>
 
 class Model;
+struct AnimatorComponent;
 
 class StudioAnimationEdit : public IStudioAttachment
 {
@@ -21466,17 +21640,58 @@ public:
 	void DrawGUI(entt::registry& registry, StudioContext& context) override;
 
 private:
+	// •ÒWƒ‚[ƒh
+	enum class EditMode
+	{
+		Trim,       // ƒgƒŠƒ~ƒ“ƒO
+		RootMotion, // ƒ‹[ƒgƒ‚[ƒVƒ‡ƒ“
+	};
+
 	// “à•”ó‘Ô
 	int windowId = 0;
 
-	AnimationEditData editData;   // •ÒW’†‚Ìİ’è
-	std::string loadedModelPath;  // ÅŒã‚É“Ç‚İ‚ñ‚¾ƒ‚ƒfƒ‹ƒpƒX
-	bool isDirty = false;         // –¢•Û‘¶‚Ì•ÏX‚ª‚ ‚é‚©
+	AnimationEditData editData;      // •ÒW’†‚Ìİ’è
+	std::string loadedModelPath;     // ÅŒã‚É“Ç‚İ‚ñ‚¾ƒ‚ƒfƒ‹ƒpƒX
+	bool isDirty = false;            // –¢•Û‘¶‚Ì•ÏX‚ª‚ ‚é‚©
+	EditMode mode = EditMode::Trim;  // ¡‚Ìƒ‚[ƒh
+	StudioTimelineWidget timeline;   // ƒ^ƒCƒ€ƒ‰ƒCƒ“•”•i
+	bool bakedUntrimmed = false;     // ƒgƒŠƒ~ƒ“ƒO‚È‚µ‚ÅÄ‚©‚ê‚Ä‚¢‚é‚©
+	bool rangePlaying = false;       // ƒgƒŠƒ~ƒ“ƒOƒ‚[ƒh‚ÅAg‚¤”ÍˆÍ‚ğÄ¶’†‚©
+
+	// ƒ^ƒCƒ€ƒ‰ƒCƒ“
+	bool DrawTimelineArea(const Model& model, AnimatorComponent& animator, StudioContext& context);
+	// ”’l
+	bool DrawDetailArea(const Model& model, const std::string& clipName, const std::string& modelPath);
+
+
+	// ƒgƒŠƒ~ƒ“ƒO‚Ìƒgƒ‰ƒbƒN
+	bool DrawTrimTrack(const std::string& clipName, float rawLength, float frameStep);
+	// ƒgƒŠƒ~ƒ“ƒO‚Ìƒ{ƒ^ƒ“
+	bool DrawTrimButtons(const std::string& clipName, float rawLength, float frameStep, float pinTime); 
+
 
 	// ƒNƒŠƒbƒvİ’è
-	bool DrawClipSettings(const std::string& clipName);       
-	// Ä‚«‚İŒã‚Ìƒ‹[ƒgˆÚ“®—Ê
-	void DrawRootMotionInfo(const Model& model, const std::string& clipName); 
+	bool DrawClipSettings(const Model& model, const std::string& clipName); 
+
+
+	// g‚¤”ÍˆÍ‚Ì’†‚Å‚ği‚ß‚é
+	void AdvanceRangePlayback(AnimatorComponent& animator, StudioContext& context, float start, float end); 
+	// ”ÍˆÍ‚ğæ‚èo‚·
+	void GetTrimRange(const std::string& clipName, float rawLength, float& outStart, float& outEnd) const;
+	// ”ÍˆÍ‚ğ‘‚«‚Ş
+	bool SetTrimRange(const std::string& clipName, float rawLength, float start, float end);            
+
+
+	// 1ƒtƒŒ[ƒ€‚Ì•b”
+	static float CalcFrameStep(const Model& model, const std::string& clipName); 
+	// ¶ƒf[ƒ^‚Ì’·‚³
+	static float FindRawLength(const Model& model, const std::string& clipName); 
+
+
+	// ƒ‚[ƒh‚É‡‚í‚¹‚ÄÄ‚«’¼‚·
+	void Rebake(Model& model) const;  
+	// ƒ‚[ƒh‚ÆÄ‚«•û‚ª‚¸‚ê‚Ä‚¢‚½‚ç‡‚í‚¹‚é
+	void SyncBakeWithMode(Model& model, AnimatorComponent& animator, StudioContext& context); 
 
 
 	// •Û‘¶“Ç‚İ‚İ
@@ -22522,6 +22737,58 @@ private:
     int windowId = 0;
 }; 
  
+===== StudioTimelineWidget.h ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Studio\StudioTimelineWidget.h 
+#pragma once
+#include <imgui.h>
+
+class StudioTimelineWidget
+{
+public:
+	// –Ú·‚è‚ğ•`‚¢‚ÄAƒsƒ“‚Ìƒhƒ‰ƒbƒO‚ğˆ—‚·‚é
+	bool Begin(const char* id, float clipLength, float frameStep, float& inOutTime);
+	// ƒgƒ‰ƒbƒN‚ğ•`‚«I‚¦‚½‚çŒÄ‚Ô
+	void End();
+
+	// Ä¶ƒ{ƒ^ƒ“‚ÆŒ»İ
+	static bool DrawToolbar(bool& isPlaying, float time, float frameStep);
+	// ƒtƒŒ[ƒ€‚É‹z‚¢•t‚©‚¹‚é
+	static float SnapToFrame(float t, float frameStep, float clipLength);
+
+	// ”ÍˆÍ‚Ì’[‚Ìƒsƒ“
+	bool DrawRangeHandles(const char* id, float handleY, float frameStep, float minLength, float& inOutStart, float& inOutEnd);
+	static constexpr float RangeHandleHeight = 16.0f; // ”ÍˆÍ‚Ì’[‚Ìƒsƒ“‚Ì“ª‚Ì‚‚³
+
+	// ‚ÆXÀ•W‚Ì•ÏŠ·
+	float TimeToX(float t) const;
+	float XToTime(float x) const;
+
+	// ƒgƒ‰ƒbƒN‚ğ•`‚¯‚é¶‰E‚Ì’[
+	float GetLeft() const { return left; }
+	float GetRight() const { return left + width; }
+
+private:
+	static constexpr float PinHeadHeight = 16.0f; // –Ú·‚è‚Ìã‚ÉAƒsƒ“‚Ì“ª‚ğ’u‚­—]”’
+	static constexpr float RulerHeight = 24.0f;   // –Ú·‚è‚Ì‘Ñ‚Ì‚‚³
+	static constexpr float LeftPadding = 12.0f;   // ¶‚Ì—]”’
+	static constexpr float RightPadding = 28.0f;  // ‰E‚Ì—]”’
+
+	float left = 0.0f;   // 0•b‚ÌˆÊ’u
+	float width = 1.0f;  // 0•b‚©‚çÅŒã‚Ü‚Å‚Ì•
+	float top = 0.0f;    // –Ú·‚è‚Ìã’[
+	float length = 1.0f; // ƒNƒŠƒbƒv‚Ì’·‚³
+	float time = 0.0f;   // ƒsƒ“‚Ì
+
+	// –Ú·‚è
+	void DrawRuler(ImDrawList* drawList, float frameStep) const;
+	// ƒsƒ“‚Ì“ª
+	void DrawPinHead(ImDrawList* drawList) const;
+	void DrawRangeHandle(ImDrawList* drawList, float x, float handleY, bool highlighted) const;
+
+	// ”ÍˆÍ‚Ì’[‚Ìƒsƒ“‚ğ‚Â‚©‚ß‚é•‚Ì”¼•ª
+	static constexpr float RangeHandleHalfWidth = 7.0f;
+}; 
+ 
 ===== StudioWindow.h ===== 
 Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Studio\StudioWindow.h 
 #pragma once
@@ -22662,8 +22929,10 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Studio\StudioAnimati
 #include "Engine/ECS/Components/SkinnedMeshComponent.h"
 #include "Engine/ECS/Components/AnimatorComponent.h"
 #include "Engine/Resource/AnimationEditBaker.h"
+#include <algorithm>
 #include <fstream>
 #include <filesystem>
+#include <cmath>
 
 // ImGui•`‰æ
 void StudioAnimationEdit::DrawGUI(entt::registry& registry, StudioContext& context)
@@ -22704,29 +22973,237 @@ void StudioAnimationEdit::DrawGUI(entt::registry& registry, StudioContext& conte
 		return;
 	}
 
-	// ƒ‚ƒfƒ‹‹¤’Ê‚Ìİ’è
-	ImGui::Text("Root Node: %s", editData.rootNodeName.c_str());
-	ImGui::Separator();
+	// ƒ‚[ƒh‚ÆÄ‚«•û‚ğ‡‚í‚¹‚é
+	SyncBakeWithMode(*skinned.model, animator, context);
 
-	// ƒNƒŠƒbƒv‚²‚Æ‚Ìİ’è
-	ImGui::Text("Clip: %s", animator.currentAnimation.c_str());
+	const std::string& clipName = animator.currentAnimation;
+	const float detailWidth = 260.0f;
 
-	if (DrawClipSettings(animator.currentAnimation))
+	// ¶Fƒ^ƒCƒ€ƒ‰ƒCƒ“
+	ImGui::BeginChild("AnimEditTimeline", ImVec2(-detailWidth, 0.0f));
+	bool changed = DrawTimelineArea(*skinned.model, animator, context);
+	ImGui::EndChild();
+
+	ImGui::SameLine();
+
+	// ‰EF”’l
+	ImGui::BeginChild("AnimEditDetail", ImVec2(detailWidth, 0.0f), true);
+	changed |= DrawDetailArea(*skinned.model, clipName, context.currentModelPath);
+	ImGui::EndChild();
+
+	// ‚Ç‚¿‚ç‚©‚Å’l‚ª•Ï‚í‚Á‚½‚çA¶ƒf[ƒ^‚©‚çÄ‚«’¼‚·
+	if (changed)
 	{
-		// ’l‚ª•Ï‚í‚Á‚½‚çA¶ƒf[ƒ^‚©‚çÄ‚«’¼‚·
-		skinned.model->ApplyAnimationEdit(editData);
+		Rebake(*skinned.model);
 		context.requestPoseUpdate = true;
 		isDirty = true;
 	}
 
-	ImGui::Separator();
-	DrawRootMotionInfo(*skinned.model, animator.currentAnimation);
-
 	ImGui::End();
 }
 
-// ƒNƒŠƒbƒvİ’è
-bool StudioAnimationEdit::DrawClipSettings(const std::string& clipName)
+
+
+// ƒ^ƒCƒ€ƒ‰ƒCƒ“
+bool StudioAnimationEdit::DrawTimelineArea(const Model& model, AnimatorComponent& animator, StudioContext& context)
+{
+	const std::string& clipName = animator.currentAnimation;
+
+	// ƒ‚[ƒhØ‚è‘Ö‚¦
+	if (ImGui::RadioButton("Trim", mode == EditMode::Trim)) mode = EditMode::Trim;
+	ImGui::SameLine();
+	if (ImGui::RadioButton("Root Motion", mode == EditMode::RootMotion)) mode = EditMode::RootMotion;
+	ImGui::Separator();
+
+	// ‰¼F’iŠK5‚Ü‚Å‚ÍAÄ‚«‚İŒã‚ÌƒNƒŠƒbƒv‚Ì’·‚³‚Å•\¦‚·‚é
+	float length = 0.0f;
+	for (const auto& anim : model.GetAnimations())
+	{
+		if (anim.name == clipName)
+		{
+			length = anim.secondsLength;
+			break;
+		}
+	}
+
+	const float frameStep = CalcFrameStep(model, clipName);
+
+	// Ä¶ƒ{ƒ^ƒ“‚ÆŒ»İ
+	if (mode == EditMode::Trim)
+	{
+		// ƒgƒŠƒ~ƒ“ƒOƒ‚[ƒhFg‚¤”ÍˆÍ‚¾‚¯‚ğA‚±‚Ìƒc[ƒ‹‚ª‚ği‚ß‚ÄÄ¶‚·‚é
+		float trimStart = 0.0f;
+		float trimEnd = 0.0f;
+		GetTrimRange(clipName, length, trimStart, trimEnd);
+
+		if (StudioTimelineWidget::DrawToolbar(rangePlaying, animator.animationTime, frameStep))
+		{
+			if (rangePlaying)
+			{
+				// ”ÍˆÍ‚ÌŠO‚©‚çÄ¶‚µ‚½‚çAStart ‚©‚ç
+				if (animator.animationTime < trimStart || animator.animationTime >= trimEnd)
+				{
+					animator.animationTime = trimStart;
+				}
+				animator.isPlaying = false; // Animator ‚É‚Íi‚ß‚³‚¹‚È‚¢
+				animator.isEnd = false;
+				context.requestPoseUpdate = true;
+			}
+		}
+
+		if (rangePlaying)
+		{
+			AdvanceRangePlayback(animator, context, trimStart, trimEnd);
+		}
+	}
+	else
+	{
+		// ƒ‹[ƒgƒ‚[ƒVƒ‡ƒ“ƒ‚[ƒhFAnimator ‚ÉÄ¶‚³‚¹‚é
+		if (StudioTimelineWidget::DrawToolbar(animator.isPlaying, animator.animationTime, frameStep))
+		{
+			// ÅŒã‚Ü‚ÅÄ¶‚µ‚«‚Á‚½ó‘Ô‚©‚çÄ¶‚µ‚½‚çA“ª‚É–ß‚·
+			if (animator.isPlaying && animator.animationTime >= length)
+			{
+				animator.animationTime = 0.0f;
+			}
+			animator.isEnd = false;
+		}
+	}
+
+	// ƒ^ƒCƒ€ƒ‰ƒCƒ“
+	if (timeline.Begin("##AnimEditRuler", length, frameStep, animator.animationTime))
+	{
+		animator.isPlaying = false;
+		animator.isEnd = false;
+		rangePlaying = false;
+		context.requestPoseUpdate = true;
+	}
+
+	// ƒgƒ‰ƒbƒN
+	bool changed = false;
+	if (mode == EditMode::Trim)
+	{
+		changed |= DrawTrimTrack(clipName, length, frameStep);
+	}
+	else
+	{
+		ImGui::Dummy(ImVec2(0.0f, 80.0f)); // ’iŠK6‚ÅƒOƒ‰ƒt‚ğ’Ç‰Á‚·‚é
+	}
+
+	timeline.End();
+
+	// ƒsƒ“‚ÌˆÊ’u‚ÅƒJƒbƒg‚·‚é
+	if (mode == EditMode::Trim) 
+	{
+		changed |= DrawTrimButtons(clipName, length, frameStep, animator.animationTime);
+	}
+
+	return changed;
+}
+// ”’l
+bool StudioAnimationEdit::DrawDetailArea(const Model& model, const std::string& clipName, const std::string& modelPath)
+{
+	ImGui::Text("Clip: %s", clipName.c_str());
+	ImGui::TextDisabled("Root Node: %s", editData.rootNodeName.c_str());
+
+	bool changed = DrawClipSettings(model, clipName);
+
+	ImGui::Separator();
+
+	// ƒŠƒZƒbƒgF‚±‚ÌƒNƒŠƒbƒv‚Ìİ’è‚ğÁ‚·
+	if (editData.FindClip(clipName) && ImGui::Button("Reset Clip"))
+	{
+		auto& clips = editData.clips;
+		clips.erase(
+			std::remove_if(clips.begin(), clips.end(),
+				[&](const AnimationEditClipData& c) { return c.clipName == clipName; }),
+			clips.end());
+		changed = true;
+	}
+
+	// •Û‘¶
+	if (ImGui::Button("Save"))
+	{
+		Save(modelPath);
+	}
+	if (isDirty)
+	{
+		ImGui::SameLine();
+		ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.3f, 1.0f), "* unsaved");
+	}
+
+	return changed;
+}
+
+
+
+// ƒgƒŠƒ~ƒ“ƒO‚Ìƒgƒ‰ƒbƒN
+bool StudioAnimationEdit::DrawTrimTrack(const std::string& clipName, float rawLength, float frameStep)
+{
+	float start = 0.0f;
+	float end = 0.0f;
+	GetTrimRange(clipName, rawLength, start, end);
+
+	ImDrawList* drawList = ImGui::GetWindowDrawList();
+	const float margin = 4.0f;
+	const float trackHeight = 28.0f;
+	const float top = ImGui::GetCursorScreenPos().y + margin;
+	const float bottom = top + trackHeight;
+
+	// Œ³‚Ì’·‚³‘S‘ÌiˆÃ‚¢‘Ñj
+	drawList->AddRectFilled(ImVec2(timeline.GetLeft(), top), ImVec2(timeline.GetRight(), bottom), IM_COL32(50, 52, 56, 255), 3.0f);
+	// g‚¤”ÍˆÍi–¾‚é‚¢‘Ñj
+	drawList->AddRectFilled(ImVec2(timeline.TimeToX(start), top), ImVec2(timeline.TimeToX(end), bottom), IM_COL32(79, 195, 247, 200), 3.0f);
+
+	// ”ÍˆÍ‚Ì’[‚Ìƒsƒ“
+	const float minLength = (frameStep > 0.0f) ? frameStep : 0.001f;
+	bool changed = false;
+	if (timeline.DrawRangeHandles("##TrimRange", bottom, frameStep, minLength, start, end))
+	{
+		changed = SetTrimRange(clipName, rawLength, start, end);
+	}
+
+	// ‘Ñ‚Æƒsƒ“‚Ì“ª‚Ì•ª‚Ì‚‚³‚ğŠm•Û‚·‚é
+	ImGui::Dummy(ImVec2(0.0f, margin + trackHeight + StudioTimelineWidget::RangeHandleHeight + margin));
+
+	return changed;
+}
+// ƒgƒŠƒ~ƒ“ƒO‚Ìƒ{ƒ^ƒ“
+bool StudioAnimationEdit::DrawTrimButtons(const std::string& clipName, float rawLength, float frameStep, float pinTime)
+{
+	float start = 0.0f;
+	float end = 0.0f;
+	GetTrimRange(clipName, rawLength, start, end);
+
+	// Å’á1ƒtƒŒ[ƒ€•ª‚Ì’·‚³‚ğc‚·
+	const float minLength = (frameStep > 0.0f) ? frameStep : 0.001f;
+	const float tolerance = minLength * 0.5f;
+
+	bool changed = false;
+
+	ImGui::BeginDisabled(pinTime > end - minLength + tolerance);
+	if (ImGui::Button("Set Start"))
+	{
+		changed |= SetTrimRange(clipName, rawLength, pinTime, end);
+	}
+	ImGui::EndDisabled();
+
+	ImGui::SameLine();
+
+	ImGui::BeginDisabled(pinTime < start + minLength - tolerance);
+	if (ImGui::Button("Set End"))
+	{
+		changed |= SetTrimRange(clipName, rawLength, start, pinTime);
+	}
+	ImGui::EndDisabled();
+
+	return changed;
+}
+
+
+
+// ƒNƒŠƒbƒv‚Ìİ’è
+bool StudioAnimationEdit::DrawClipSettings(const Model& model, const std::string& clipName)
 {
 	// İ’è‚ª–³‚¢ƒNƒŠƒbƒv‚ÍŠù’è’l‚Å•\¦‚·‚é
 	const AnimationEditClipData* existing = editData.FindClip(clipName);
@@ -22736,33 +23213,48 @@ bool StudioAnimationEdit::DrawClipSettings(const std::string& clipName)
 	bool changed = false;
 
 	// Œü‚«‚Ì•â³
+	ImGui::Separator();
+	ImGui::TextDisabled("Orientation");
 	changed |= ImGui::DragFloat("Yaw Offset", &clip.yawOffsetDegrees, 1.0f, -180.0f, 180.0f, "%.1f deg");
 
-	const float presets[] = { -90.0f, 0.0f, 90.0f, 180.0f };
-	const char* presetLabels[] = { "-90", "0", "+90", "180" };
-	for (int i = 0; i < 4; i++)
+	// ƒ‚[ƒh‚²‚Æ‚Ì€–Ú
+	ImGui::Separator();
+	if (mode == EditMode::Trim)
 	{
-		if (i > 0) ImGui::SameLine();
-		if (ImGui::Button(presetLabels[i]))
+		ImGui::TextDisabled("Trimming");
+
+		const float rawLength = FindRawLength(model, clipName);
+		const float frameStep = CalcFrameStep(model, clipName);
+		const float minLength = (frameStep > 0.0f) ? frameStep : 0.001f;
+		const float dragSpeed = (frameStep > 0.0f) ? frameStep : 0.001f;
+
+		float start = clip.trimStart;
+		float end = (clip.trimEnd < 0.0f) ? rawLength : clip.trimEnd;
+
+		bool trimChanged = false;
+		trimChanged |= ImGui::DragFloat("Start", &start, dragSpeed, 0.0f, end - minLength, "%.3f s");
+		trimChanged |= ImGui::DragFloat("End", &end, dragSpeed, start + minLength, rawLength, "%.3f s");
+
+		if (trimChanged)
 		{
-			clip.yawOffsetDegrees = presets[i];
+			// ƒtƒŒ[ƒ€‚É‹z‚¢•t‚©‚¹‚Ä‚©‚ç‘‚«–ß‚·
+			start = StudioTimelineWidget::SnapToFrame(start, frameStep, rawLength);
+			end = StudioTimelineWidget::SnapToFrame(end, frameStep, rawLength);
+			clip.trimStart = start;
+			clip.trimEnd = (end >= rawLength - 0.0001f) ? -1.0f : end; // ÅŒã‚Ü‚Å‚È‚çuÅŒã‚Ü‚Åv‚Æ‚µ‚Ä•Û‘¶
 			changed = true;
 		}
+
+		// ƒtƒŒ[ƒ€‚Æ’·‚³‚Ì•\¦
+		const int startFrame = (frameStep > 0.0f) ? (int)std::round(start / frameStep) : 0;
+		const int endFrame = (frameStep > 0.0f) ? (int)std::round(end / frameStep) : 0;
+		ImGui::TextDisabled("F%d - F%d", startFrame, endFrame);
+		ImGui::TextDisabled("Length %.3f s (raw %.3f s)", end - start, rawLength);
 	}
-
-	// ˆÚ“®—Ê‚Ì”{—¦
-	changed |= ImGui::DragFloat("Root Motion XZ", &clip.rootMotionScaleXZ, 0.01f, 0.0f, 10.0f, "%.2f");
-	changed |= ImGui::DragFloat("Root Motion Y", &clip.rootMotionScaleY, 0.01f, 0.0f, 10.0f, "%.2f");
-
-	// ƒŠƒZƒbƒg
-	if (existing && ImGui::Button("Reset Clip"))
+	else
 	{
-		auto& clips = editData.clips;
-		clips.erase(
-			std::remove_if(clips.begin(), clips.end(),
-				[&](const AnimationEditClipData& c) { return c.clipName == clipName; }),
-			clips.end());
-		return true;
+		ImGui::TextDisabled("Section");
+		// ’iŠK6‚Å’Ç‰Á‚·‚é
 	}
 
 	// •ÏX‚ª‚ ‚Á‚½‚Æ‚«‚¾‚¯Aƒf[ƒ^‚É‘‚«–ß‚·
@@ -22774,49 +23266,153 @@ bool StudioAnimationEdit::DrawClipSettings(const std::string& clipName)
 	return changed;
 }
 
-// Ä‚«‚İŒã‚Ìƒ‹[ƒgˆÚ“®—Ê
-void StudioAnimationEdit::DrawRootMotionInfo(const Model& model, const std::string& clipName)
+
+
+// g‚¤”ÍˆÍ‚Ì’†‚Å‚ği‚ß‚é
+void StudioAnimationEdit::AdvanceRangePlayback(AnimatorComponent& animator, StudioContext& context, float start, float end)
 {
-	// ƒ‹[ƒgƒm[ƒh‚Ì”Ô†‚ğ’T‚·
-	const auto& nodes = model.GetNodes();
-	int rootIndex = -1;
-	for (int i = 0; i < (int)nodes.size(); i++)
+	const float rangeLength = end - start;
+	if (rangeLength <= 0.0f)
 	{
-		if (nodes[i].name == editData.rootNodeName) { rootIndex = i; break; }
-	}
-	if (rootIndex < 0)
-	{
-		ImGui::TextDisabled("Root node not found.");
+		rangePlaying = false;
 		return;
 	}
 
-	// Ä‚«‚İŒã‚ÌƒNƒŠƒbƒv‚ğ’T‚·
-	for (const auto& anim : model.GetAnimations())
+	// •Ê‚Ìƒpƒlƒ‹‚ÌÄ¶‚ªn‚Ü‚Á‚½‚çA‚»‚¿‚ç‚ğ—Dæ‚µ‚Ä~‚Ü‚é
+	if (animator.isPlaying)
+	{
+		rangePlaying = false;
+		return;
+	}
+
+	float t = animator.animationTime + ImGui::GetIO().DeltaTime * animator.playSpeed;
+
+	// ”ÍˆÍ‚ÌI‚í‚è‚ğ‰z‚¦‚½‚çA‰z‚¦‚½•ª‚ğc‚µ‚Ä Start ‘¤‚Ö–ß‚·
+	if (t >= end) t = start + std::fmod(t - start, rangeLength);
+	if (t < start) t = start;
+
+	animator.animationTime = t;
+	context.requestPoseUpdate = true;
+}
+// ”ÍˆÍ‚ğæ‚èo‚·
+void StudioAnimationEdit::GetTrimRange(const std::string& clipName, float rawLength, float& outStart, float& outEnd) const
+{
+	outStart = 0.0f;
+	outEnd = rawLength;
+
+	if (const AnimationEditClipData* clip = editData.FindClip(clipName))
+	{
+		outStart = std::clamp(clip->trimStart, 0.0f, rawLength);
+		outEnd = (clip->trimEnd < 0.0f) ? rawLength : std::clamp(clip->trimEnd, outStart, rawLength);
+	}
+}
+// ”ÍˆÍ‚ğ‘‚«‚Ş
+bool StudioAnimationEdit::SetTrimRange(const std::string& clipName, float rawLength, float start, float end)
+{
+	// ÅŒã‚Ü‚Å‚È‚çu-1iÅŒã‚Ü‚Åjv‚Æ‚µ‚Ä•Û‘¶‚·‚é
+	const float storedEnd = (end >= rawLength - 0.0001f) ? -1.0f : end;
+
+	// •Ï‚í‚ç‚È‚¢‚È‚çAİ’è‚ğì‚ç‚¸‚ÉI‚í‚é
+	const AnimationEditClipData* existing = editData.FindClip(clipName);
+	const float oldStart = existing ? existing->trimStart : 0.0f;
+	const float oldEnd = existing ? existing->trimEnd : -1.0f;
+	if (oldStart == start && oldEnd == storedEnd) return false;
+
+	AnimationEditClipData* clip = editData.FindOrCreateClip(clipName);
+	clip->trimStart = start;
+	clip->trimEnd = storedEnd;
+	return true;
+}
+
+
+
+// 1ƒtƒŒ[ƒ€‚Ì•b”
+float StudioAnimationEdit::CalcFrameStep(const Model& model, const std::string& clipName)
+{
+	for (const auto& anim : model.GetRawAnimations())
 	{
 		if (anim.name != clipName) continue;
 
-		if (rootIndex >= (int)anim.nodeAnims.size() || anim.nodeAnims[rootIndex].positionKeyframes.empty())
+		// ˆê”ÔƒL[‚Ì‘½‚¢ƒ`ƒƒƒ“ƒlƒ‹‚ÌŠÔŠu‚ğA1ƒtƒŒ[ƒ€‚Æ‚İ‚È‚·
+		size_t maxKeys = 0;
+		for (const auto& nodeAnim : anim.nodeAnims)
 		{
-			ImGui::TextDisabled("Root Motion: none");
-			return;
+			maxKeys = (std::max)(maxKeys, nodeAnim.positionKeyframes.size());
+			maxKeys = (std::max)(maxKeys, nodeAnim.rotationKeyframes.size());
 		}
 
-		// Å‰‚ÆÅŒã‚ÌƒL[‚Ì·1‰ñÄ¶‚µ‚½‚Æ‚«‚ÌˆÚ“®—Ê
-		const auto& keys = anim.nodeAnims[rootIndex].positionKeyframes;
-		const DirectX::XMFLOAT3& a = keys.front().value;
-		const DirectX::XMFLOAT3& b = keys.back().value;
-		const float dx = b.x - a.x;
-		const float dy = b.y - a.y;
-		const float dz = b.z - a.z;
-		const float horizontal = sqrtf(dx * dx + dz * dz);
-		const float speed = (anim.secondsLength > 0.0f) ? horizontal / anim.secondsLength : 0.0f;
+		if (maxKeys < 2 || anim.secondsLength <= 0.0f) return 0.0f;
+		return anim.secondsLength / (float)(maxKeys - 1);
+	}
+	return 0.0f;
+}
+// ¶ƒf[ƒ^‚Ì’·‚³
+float StudioAnimationEdit::FindRawLength(const Model& model, const std::string& clipName)
+{
+	for (const auto& anim : model.GetRawAnimations())
+	{
+		if (anim.name == clipName) return anim.secondsLength;
+	}
+	return 0.0f;
+}
 
-		ImGui::Text("Root Motion (1 loop)");
-		ImGui::Text("  Delta : %.2f, %.2f, %.2f", dx, dy, dz);
-		ImGui::Text("  XZ    : %.2f m / %.2f s  (%.2f m/s)", horizontal, anim.secondsLength, speed);
-		return;
+
+
+// ƒ‚[ƒh‚É‡‚í‚¹‚ÄÄ‚«’¼‚·
+void StudioAnimationEdit::Rebake(Model& model) const
+{
+	if (mode == EditMode::Trim)
+	{
+		// ƒgƒŠƒ~ƒ“ƒOƒ‚[ƒh
+		AnimationEditData preview = editData;
+		for (auto& clip : preview.clips)
+		{
+			clip.trimStart = 0.0f;
+			clip.trimEnd = -1.0f;
+		}
+		model.ApplyAnimationEdit(preview);
+	}
+	else
+	{
+		// ƒ‹[ƒgƒ‚[ƒVƒ‡ƒ“ƒ‚[ƒh
+		model.ApplyAnimationEdit(editData);
 	}
 }
+// ƒ‚[ƒh‚ÆÄ‚«•û‚ª‚¸‚ê‚Ä‚¢‚½‚ç‡‚í‚¹‚é
+void StudioAnimationEdit::SyncBakeWithMode(Model& model, AnimatorComponent& animator, StudioContext& context)
+{
+	const bool wantUntrimmed = (mode == EditMode::Trim);
+	if (wantUntrimmed == bakedUntrimmed) return;
+
+	// ¡‚ÌƒNƒŠƒbƒv‚ÌƒJƒbƒg”ÍˆÍ
+	float trimStart = 0.0f;
+	float trimEnd = -1.0f;
+	if (const AnimationEditClipData* clip = editData.FindClip(animator.currentAnimation))
+	{
+		trimStart = clip->trimStart;
+		trimEnd = clip->trimEnd;
+	}
+
+	const float rawLength = FindRawLength(model, animator.currentAnimation);
+	if (trimEnd < 0.0f) trimEnd = rawLength;
+
+	// ƒsƒ“‚ª“¯‚¶ƒ|[ƒY‚ğw‚·‚æ‚¤‚ÉA‚ğ•ÏŠ·‚·‚é
+	if (wantUntrimmed)
+	{
+		animator.animationTime += trimStart;
+	}
+	else
+	{
+		animator.animationTime = std::clamp(animator.animationTime - trimStart, 0.0f, trimEnd - trimStart);
+	}
+
+	Rebake(model);
+	bakedUntrimmed = wantUntrimmed;
+	rangePlaying = false; // ƒ‚[ƒh‚ª•Ï‚í‚Á‚½‚çA”ÍˆÍ‚ÌÄ¶‚Í~‚ß‚é
+	context.requestPoseUpdate = true;
+}
+
+
 
 // “Ç‚İ‚İ
 void StudioAnimationEdit::Load(const std::string& modelPath, const Model& model)
@@ -22837,6 +23433,7 @@ void StudioAnimationEdit::Load(const std::string& modelPath, const Model& model)
 
 	loadedModelPath = modelPath;
 	isDirty = false;
+	bakedUntrimmed = false; // “Ç‚İ‚ñ‚¾‚Î‚©‚è‚Ìƒ‚ƒfƒ‹‚ÍAResourceManager‚Å‘S•”Ä‚©‚ê‚Ä‚¢‚é
 
 	// ƒ‹[ƒgƒm[ƒh‚ª–¢İ’è‚È‚çAƒ‚ƒfƒ‹‚©‚ç’T‚µ‚Äƒtƒ@ƒCƒ‹‚É‘‚«‚Ş
 	if (editData.rootNodeName.empty())
@@ -27864,6 +28461,229 @@ void StudioTimeline::DrawGUI(entt::registry& registry, StudioContext& context)
     }
 
     ImGui::End();
+}
+ 
+ 
+===== StudioTimelineWidget.cpp ===== 
+Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Studio\StudioTimelineWidget.cpp 
+ï»¿#include "StudioTimelineWidget.h"
+#include <algorithm>
+#include <cmath>
+#include <cstdio>
+
+namespace
+{
+	const ImU32 RulerBgColor = IM_COL32(40, 42, 46, 255);
+	const ImU32 TickColor = IM_COL32(120, 120, 120, 255);
+	const ImU32 LabelColor = IM_COL32(200, 200, 200, 255);
+	const ImU32 PinColor = IM_COL32(255, 82, 82, 255);
+	const ImU32 RangeHandleColor = IM_COL32(255, 255, 255, 255);
+	const ImU32 RangeHandleActiveColor = IM_COL32(255, 213, 79, 255);
+}
+
+// ç›®ç››ã‚Šã‚’æã„ã¦ã€ãƒ”ãƒ³ã®ãƒ‰ãƒ©ãƒƒã‚°ã‚’å‡¦ç†ã™ã‚‹
+bool StudioTimelineWidget::Begin(const char* id, float clipLength, float frameStep, float& inOutTime)
+{
+	ImDrawList* drawList = ImGui::GetWindowDrawList();
+	const ImVec2 cursor = ImGui::GetCursorScreenPos();
+	const float availWidth = ImGui::GetContentRegionAvail().x;
+
+	left = cursor.x + LeftPadding;
+	width = std::max(availWidth - LeftPadding - RightPadding, 1.0f);
+	top = cursor.y;
+	length = std::max(clipLength, 0.0001f);
+
+	// ç›®ç››ã‚Šã®é ˜åŸŸã‚’ã¤ã‹ã‚ã‚‹ã‚ˆã†ã«ã™ã‚‹
+	ImGui::InvisibleButton(id, ImVec2(availWidth, PinHeadHeight + RulerHeight));
+
+	bool changed = false;
+	if (ImGui::IsItemActive())
+	{
+		const float t = SnapToFrame(XToTime(ImGui::GetIO().MousePos.x), frameStep, length);
+		if (t != inOutTime)
+		{
+			inOutTime = t;
+			changed = true;
+		}
+	}
+	time = inOutTime;
+
+	DrawRuler(drawList, frameStep);
+	return changed;
+}
+
+// ãƒˆãƒ©ãƒƒã‚¯ã‚’æãçµ‚ãˆãŸã‚‰å‘¼ã¶
+void StudioTimelineWidget::End()
+{
+	ImDrawList* drawList = ImGui::GetWindowDrawList();
+	const float bottom = ImGui::GetCursorScreenPos().y;
+	const float x = TimeToX(time);
+
+	// ç´°ã„ç·šï¼šé ­ã®ä¸‹ã‹ã‚‰ã€ãƒˆãƒ©ãƒƒã‚¯ã®ä¸‹ç«¯ã¾ã§
+	drawList->AddLine(ImVec2(x, top + PinHeadHeight), ImVec2(x, bottom), PinColor, 1.0f);
+
+	// é ­ã¯æœ€å¾Œã«æã„ã¦ã€ä¸€ç•ªæ‰‹å‰ã«å‡ºã™
+	DrawPinHead(drawList);
+}
+// å†ç”Ÿãƒœã‚¿ãƒ³ã¨ç¾åœ¨æ™‚åˆ»
+bool StudioTimelineWidget::DrawToolbar(bool& isPlaying, float time, float frameStep)
+{
+	bool changed = false;
+
+	if (ImGui::Button(isPlaying ? u8"â– " : u8"â–¶", ImVec2(28.0f, 0.0f)))
+	{
+		isPlaying = !isPlaying;
+		changed = true;
+	}
+
+	ImGui::SameLine();
+	const int frame = (frameStep > 0.0f) ? (int)std::round(time / frameStep) : 0;
+	ImGui::Text("%.3f s / F%d", time, frame);
+
+	return changed;
+}
+
+// ãƒ•ãƒ¬ãƒ¼ãƒ ã«å¸ã„ä»˜ã‹ã›ã‚‹
+float StudioTimelineWidget::SnapToFrame(float t, float frameStep, float clipLength)
+{
+	if (frameStep <= 0.0f) return std::clamp(t, 0.0f, clipLength);
+	return std::clamp(std::round(t / frameStep) * frameStep, 0.0f, clipLength);
+}
+
+// ç¯„å›²ã®ç«¯ã®ãƒ”ãƒ³
+bool StudioTimelineWidget::DrawRangeHandles(const char* id, float handleY, float frameStep, float minLength, float& inOutStart, float& inOutEnd)
+{
+	ImDrawList* drawList = ImGui::GetWindowDrawList();
+
+	// é ­ã®ä½ç½®ã«ã¤ã‹ã‚ã‚‹é ˜åŸŸã‚’ç½®ããŸã‚ã€ã‚«ãƒ¼ã‚½ãƒ«ã‚’ä¸€æ™‚çš„ã«å‹•ã‹ã™
+	const ImVec2 savedCursor = ImGui::GetCursorScreenPos();
+	bool changed = false;
+
+	ImGui::PushID(id);
+	for (int i = 0; i < 2; i++)
+	{
+		const bool isStart = (i == 0);
+		float& value = isStart ? inOutStart : inOutEnd;
+
+		ImGui::PushID(i);
+		ImGui::SetCursorScreenPos(ImVec2(TimeToX(value) - RangeHandleHalfWidth, handleY));
+		ImGui::InvisibleButton("##RangeHandle", ImVec2(RangeHandleHalfWidth * 2.0f, RangeHandleHeight));
+		const bool active = ImGui::IsItemActive();
+		const bool hovered = ImGui::IsItemHovered();
+		ImGui::PopID();
+
+		if (active)
+		{
+			float t = SnapToFrame(XToTime(ImGui::GetIO().MousePos.x), frameStep, length);
+
+			// ã‚‚ã†ä¸€æ–¹ã®ç«¯ã¨ã€æœ€ä½ minLength ã¯ç©ºã‘ã‚‹
+			if (isStart) t = std::min(t, inOutEnd - minLength);
+			else         t = std::max(t, inOutStart + minLength);
+			t = std::clamp(t, 0.0f, length);
+
+			if (t != value)
+			{
+				value = t;
+				changed = true;
+			}
+		}
+
+		DrawRangeHandle(drawList, TimeToX(value), handleY, active || hovered);
+	}
+	ImGui::PopID();
+
+	ImGui::SetCursorScreenPos(savedCursor);
+	return changed;
+}
+
+// æ™‚åˆ»ã¨Xåº§æ¨™ã®å¤‰æ›
+float StudioTimelineWidget::TimeToX(float t) const
+{
+	return left + (t / length) * width;
+}
+float StudioTimelineWidget::XToTime(float x) const
+{
+	return std::clamp((x - left) / width * length, 0.0f, length);
+}
+
+
+// ç›®ç››ã‚Š
+void StudioTimelineWidget::DrawRuler(ImDrawList* drawList, float frameStep) const
+{
+	const float rulerTop = top + PinHeadHeight;
+	const float bottom = rulerTop + RulerHeight;
+	drawList->AddRectFilled(
+		ImVec2(left - LeftPadding, rulerTop),
+		ImVec2(left + width + RightPadding, bottom),
+		RulerBgColor);
+
+	// ãƒ•ãƒ¬ãƒ¼ãƒ ã”ã¨ã®ç´°ã‹ã„ç›®ç››ã‚Š
+	if (frameStep > 0.0f && width * frameStep / length >= 4.0f)
+	{
+		const int frameCount = (int)std::round(length / frameStep);
+		for (int i = 0; i <= frameCount; i++)
+		{
+			const float x = TimeToX(i * frameStep);
+			drawList->AddLine(ImVec2(x, bottom - 4.0f), ImVec2(x, bottom), TickColor);
+		}
+	}
+
+	// ç§’ã®ç›®ç››ã‚Š
+	const float candidates[] = { 0.1f, 0.2f, 0.5f, 1.0f, 2.0f, 5.0f, 10.0f };
+	float major = candidates[6];
+	for (float c : candidates)
+	{
+		if (width * c / length >= 60.0f)
+		{
+			major = c;
+			break;
+		}
+	}
+
+	const int majorCount = (int)std::floor(length / major + 0.0001f);
+	for (int i = 0; i <= majorCount; i++)
+	{
+		const float t = i * major;
+		const float x = TimeToX(t);
+		drawList->AddLine(ImVec2(x, bottom - 12.0f), ImVec2(x, bottom), TickColor);
+
+		char label[16];
+		snprintf(label, sizeof(label), "%.1f", t);
+		drawList->AddText(ImVec2(x + 3.0f, rulerTop + 2.0f), LabelColor, label);
+	}
+}
+
+// ãƒ”ãƒ³ã®é ­
+void StudioTimelineWidget::DrawPinHead(ImDrawList* drawList) const
+{
+	const float x = TimeToX(time);
+	const float radius = 6.0f;
+	const float headY = top + radius;       // ä¸¸ã®ä¸­å¿ƒ  
+	const float tipY = top + PinHeadHeight; // ã¨ãŒã£ãŸå…ˆ
+
+	drawList->AddTriangleFilled(
+		ImVec2(x - radius * 0.8f, headY + 2.0f),
+		ImVec2(x + radius * 0.8f, headY + 2.0f),
+		ImVec2(x, tipY),
+		PinColor);
+	drawList->AddCircleFilled(ImVec2(x, headY), radius, PinColor);
+}
+void StudioTimelineWidget::DrawRangeHandle(ImDrawList* drawList, float x, float handleY, bool highlighted) const
+{
+	const ImU32 color = highlighted ? RangeHandleActiveColor : RangeHandleColor;
+	const float radius = 6.0f;
+	const float headY = handleY + RangeHandleHeight - radius; // ä¸¸ã®ä¸­å¿ƒ
+
+	// ç·šï¼šé ­ã®ã¨ãŒã£ãŸå…ˆã‹ã‚‰ã€ç›®ç››ã‚Šã®å¸¯ã®ä¸Šç«¯ã¾ã§
+	drawList->AddLine(ImVec2(x, handleY), ImVec2(x, top + PinHeadHeight), color, 1.5f);
+
+	// é ­ï¼šä¸Šå‘ãã«ã¨ãŒã£ãŸå½¢
+	drawList->AddTriangleFilled(
+		ImVec2(x - radius * 0.8f, headY - 2.0f),
+		ImVec2(x + radius * 0.8f, headY - 2.0f),
+		ImVec2(x, handleY),
+		color);
+	drawList->AddCircleFilled(ImVec2(x, headY), radius, color);
 }
  
  

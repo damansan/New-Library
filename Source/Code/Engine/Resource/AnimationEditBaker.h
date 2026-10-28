@@ -13,17 +13,28 @@ public:
 		const std::vector<Model::Node>& nodes,
 		const AnimationEditData& editData);
 
+	// 1クリップ分だけ焼く
+	static Model::Animation BakeClip(
+		const Model::Animation& rawAnimation,
+		const std::vector<Model::Node>& nodes,
+		int rootIndex,
+		const AnimationEditClipData* clip);
+
 	// RootNodeの名前を探す
 	static std::string FindDefaultRootNodeName(const Model& model);
-private:
 	// 名前からルートノードの番号を探す
 	static int FindNodeIndex(const std::vector<Model::Node>& nodes, const std::string& name);
+
+private:
+
+	// 指定範囲だけ残して、時間を0秒始まりに詰める
+	static void TrimAnimation(Model::Animation& animation, float start, float end);
 
 	// 0フレーム目のルート位置が、バインドポーズの位置になるようにずらす
 	static void RemoveRootOffset(Model::NodeAnim& rootAnim, const Model::Node& rootNode);
 
-	// ルートの移動量に倍率を掛ける
-	static void ApplyRootMotionScale(Model::NodeAnim& rootAnim, const Model::Node& rootNode, float scaleXZ, float scaleY);
+	// 区間ごとに、ルートの移動量に倍率を掛ける
+	static void ApplySections(Model::NodeAnim& rootAnim, const std::vector<AnimationEditSection>& sections, float trimStart);
 
 	// ルートをY軸回りに回す
 	static void ApplyYawOffset(Model::NodeAnim& rootAnim, const Model::Node& rootNode, float yawDegrees);

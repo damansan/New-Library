@@ -1,11 +1,11 @@
 #pragma once
 #include "IStudioAttachment.h"
 #include "Engine/Data/AnimationEditData.h"
+#include "StudioTimelineWidget.h"
 #include <imgui.h>
 #include <string>
 
 class Model;
-struct SkinnedMeshComponent;
 struct AnimatorComponent;
 
 class StudioAnimationEdit : public IStudioAttachment
@@ -20,28 +20,58 @@ public:
 	void DrawGUI(entt::registry& registry, StudioContext& context) override;
 
 private:
+	// 編集モード
+	enum class EditMode
+	{
+		Trim,       // トリミング
+		RootMotion, // ルートモーション
+	};
+
 	// 内部状態
 	int windowId = 0;
 
-	AnimationEditData editData;   // 編集中の設定
-	std::string loadedModelPath;  // 最後に読み込んだモデルパス
-	bool isDirty = false;         // 未保存の変更があるか
+	AnimationEditData editData;      // 編集中の設定
+	std::string loadedModelPath;     // 最後に読み込んだモデルパス
+	bool isDirty = false;            // 未保存の変更があるか
+	EditMode mode = EditMode::Trim;  // 今のモード
+	StudioTimelineWidget timeline;   // タイムライン部品
+	bool bakedUntrimmed = false;     // トリミングなしで焼かれているか
+	bool rangePlaying = false;       // トリミングモードで、使う範囲を再生中か
 
-	// 各パネル
-	void DrawInspectorPanel(SkinnedMeshComponent* skinned, AnimatorComponent* animator, StudioContext& context); // パネル1：数値
-	void DrawTimelinePanel(SkinnedMeshComponent* skinned, AnimatorComponent* animator, StudioContext& context);  // パネル2：タイムライン
-	static bool DrawNotReadyMessage(SkinnedMeshComponent* skinned, AnimatorComponent* animator);                 // 表示できないとき
+	// タイムライン
+	bool DrawTimelineArea(const Model& model, AnimatorComponent& animator, StudioContext& context);
+	// 数値
+	bool DrawDetailArea(const Model& model, const std::string& clipName, const std::string& modelPath);
 
-	// 各項目 
-	bool DrawClipSettings(const std::string& clipName); // クリップ設定（変更があればtrue）
 
-	// 編集後の処理
-	void OnEdited(SkinnedMeshComponent& skinned, StudioContext& context); // 焼き直し・プレビュー更新・未保存フラグ
+	// トリミングのトラック
+	bool DrawTrimTrack(const std::string& clipName, float rawLength, float frameStep);
+	// トリミングのボタン
+	bool DrawTrimButtons(const std::string& clipName, float rawLength, float frameStep, float pinTime); 
+
 
 	// クリップ設定
-	bool DrawClipSettings(const std::string& clipName);       
-	// 焼き込み後のルート移動量
-	void DrawRootMotionInfo(const Model& model, const std::string& clipName); 
+	bool DrawClipSettings(const Model& model, const std::string& clipName); 
+
+
+	// 使う範囲の中で時刻を進める
+	void AdvanceRangePlayback(AnimatorComponent& animator, StudioContext& context, float start, float end); 
+	// 範囲を取り出す
+	void GetTrimRange(const std::string& clipName, float rawLength, float& outStart, float& outEnd) const;
+	// 範囲を書き込む
+	bool SetTrimRange(const std::string& clipName, float rawLength, float start, float end);            
+
+
+	// 1フレームの秒数
+	static float CalcFrameStep(const Model& model, const std::string& clipName); 
+	// 生データの長さ
+	static float FindRawLength(const Model& model, const std::string& clipName); 
+
+
+	// モードに合わせて焼き直す
+	void Rebake(Model& model) const;  
+	// モードと焼き方がずれていたら合わせる
+	void SyncBakeWithMode(Model& model, AnimatorComponent& animator, StudioContext& context); 
 
 
 	// 保存読み込み
