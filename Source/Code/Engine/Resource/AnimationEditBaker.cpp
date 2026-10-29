@@ -132,9 +132,9 @@ Model::Animation AnimationEditBaker::BakeClip(
 	if (!clip) return animation;
 
 	// 区間の移動量
-	if (!clip->sections.empty())
+	if (!clip->sectionsXZ.empty() || !clip->sectionsY.empty())
 	{
-		ApplySections(rootAnim, clip->sections, trimStart);
+		ApplySections(rootAnim, clip->sectionsXZ, clip->sectionsY, trimStart);
 	}
 
 	// 向きの補正
@@ -226,10 +226,24 @@ void AnimationEditBaker::RemoveRootOffset(Model::NodeAnim& rootAnim, const Model
 }
 
 // 区間ごとに、ルートの移動量に倍率を掛ける
-void AnimationEditBaker::ApplySections(Model::NodeAnim& rootAnim, const std::vector<AnimationEditSection>& sections, float trimStart)
+void AnimationEditBaker::ApplySections(
+	Model::NodeAnim& rootAnim,
+	const std::vector<AnimationEditSection>& sectionsXZ,
+	const std::vector<AnimationEditSection>& sectionsY,
+	float trimStart) 
 {
 	auto& keys = rootAnim.positionKeyframes;
 	if (keys.size() < 2) return;
+
+	// その時刻を含む区間の倍率
+	auto findScale = [](const std::vector<AnimationEditSection>& sections, float time)
+		{
+			for (const auto& s : sections)
+			{
+				if (time >= s.start && time < s.end) return s.scale;
+			}
+			return 1.0f;
+		};
 
 	// 元の位置を控えておく
 	std::vector<DirectX::XMFLOAT3> original(keys.size());
@@ -240,18 +254,8 @@ void AnimationEditBaker::ApplySections(Model::NodeAnim& rootAnim, const std::vec
 		// このキー間の真ん中の時刻を、生データの時間に戻す
 		const float mid = (keys[i - 1].seconds + keys[i].seconds) * 0.5f + trimStart;
 
-		// その時刻を含む区間の倍率
-		float scaleXZ = 1.0f;
-		float scaleY = 1.0f;
-		for (const auto& s : sections)
-		{
-			if (mid >= s.start && mid < s.end)
-			{
-				scaleXZ = s.scaleXZ;
-				scaleY = s.scaleY;
-				break;
-			}
-		}
+		const float scaleXZ = findScale(sectionsXZ, mid);
+		const float scaleY = findScale(sectionsY, mid);
 
 		// 元の移動量に倍率を掛けて、ひとつ前のキーに積み上げる
 		keys[i].value.x = keys[i - 1].value.x + (original[i].x - original[i - 1].x) * scaleXZ;

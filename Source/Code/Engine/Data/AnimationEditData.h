@@ -8,8 +8,7 @@ struct AnimationEditSection
 {
 	float start = 0.0f;
 	float end = 0.0f;
-	float scaleXZ = 1.0f; // 水平移動の倍率
-	float scaleY = 1.0f;  // 上下移動の倍率
+	float scale = 1.0f; // 移動量の倍率
 };
 
 // 1クリップ分の編集設定
@@ -23,7 +22,8 @@ struct AnimationEditClipData
 	float trimEnd = -1.0f;
 
 	// ルートモーションの移動量を変える区間
-	std::vector<AnimationEditSection> sections;
+	std::vector<AnimationEditSection> sectionsXZ; // 水平移動
+	std::vector<AnimationEditSection> sectionsY;  // 上下移動
 };
 
 // モデル1体分、全クリップの編集設定をまとめたもの

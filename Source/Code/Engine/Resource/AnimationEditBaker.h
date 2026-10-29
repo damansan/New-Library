@@ -34,7 +34,11 @@ private:
 	static void RemoveRootOffset(Model::NodeAnim& rootAnim, const Model::Node& rootNode);
 
 	// 区間ごとに、ルートの移動量に倍率を掛ける
-	static void ApplySections(Model::NodeAnim& rootAnim, const std::vector<AnimationEditSection>& sections, float trimStart);
+	static void ApplySections(
+		Model::NodeAnim& rootAnim,
+		const std::vector<AnimationEditSection>& sectionsXZ,
+		const std::vector<AnimationEditSection>& sectionsY,
+		float trimStart);
 
 	// ルートをY軸回りに回す
 	static void ApplyYawOffset(Model::NodeAnim& rootAnim, const Model::Node& rootNode, float yawDegrees);

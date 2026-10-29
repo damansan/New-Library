@@ -1,6 +1,40 @@
 #include "AnimationEditData.h"
 #include <filesystem>
 
+namespace
+{
+	// 区間のリストを保存用に変換する
+	nlohmann::ordered_json SectionsToJson(const std::vector<AnimationEditSection>& sections)
+	{
+		nlohmann::ordered_json array = nlohmann::json::array();
+		for (const auto& s : sections)
+		{
+			nlohmann::ordered_json js;
+			js["start"] = s.start;
+			js["end"] = s.end;
+			js["scale"] = s.scale;
+			array.push_back(js);
+		}
+		return array;
+	}
+
+	// 保存用の形から区間のリストを読み込む
+	std::vector<AnimationEditSection> SectionsFromJson(const nlohmann::json& jc, const char* key)
+	{
+		std::vector<AnimationEditSection> sections;
+		if (!jc.contains(key)) return sections;
+
+		for (const auto& js : jc[key])
+		{
+			AnimationEditSection s;
+			s.start = js.value("start", 0.0f);
+			s.end = js.value("end", 0.0f);
+			s.scale = js.value("scale", 1.0f);
+			sections.push_back(s);
+		}
+		return sections;
+	}
+}
 
 // 指定したクリップ名のデータを探す
 const AnimationEditClipData* AnimationEditData::FindClip(const std::string& clipName) const
@@ -41,16 +75,8 @@ nlohmann::ordered_json AnimationEditData::ToJson() const
 		jc["trimStart"] = clip.trimStart;
 		jc["trimEnd"] = clip.trimEnd;
 
-		jc["sections"] = nlohmann::json::array();
-		for (const auto& s : clip.sections)
-		{
-			nlohmann::ordered_json js;
-			js["start"] = s.start;
-			js["end"] = s.end;
-			js["scaleXZ"] = s.scaleXZ;
-			js["scaleY"] = s.scaleY;
-			jc["sections"].push_back(js);
-		}
+		jc["sectionsXZ"] = SectionsToJson(clip.sectionsXZ);
+		jc["sectionsY"] = SectionsToJson(clip.sectionsY);
 
 		j["clips"].push_back(jc);
 	}
@@ -74,18 +100,8 @@ void AnimationEditData::FromJson(const nlohmann::json& j)
 		clip.trimStart = jc.value("trimStart", 0.0f);
 		clip.trimEnd = jc.value("trimEnd", -1.0f);
 
-		if (jc.contains("sections"))
-		{
-			for (const auto& js : jc["sections"])
-			{
-				AnimationEditSection s;
-				s.start = js.value("start", 0.0f);
-				s.end = js.value("end", 0.0f);
-				s.scaleXZ = js.value("scaleXZ", 1.0f);
-				s.scaleY = js.value("scaleY", 1.0f);
-				clip.sections.push_back(s);
-			}
-		}
+		clip.sectionsXZ = SectionsFromJson(jc, "sectionsXZ");
+		clip.sectionsY = SectionsFromJson(jc, "sectionsY");
 
 		clips.push_back(clip);
 	}

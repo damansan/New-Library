@@ -6,28 +6,26 @@
             "yawOffsetDegrees": -90.0,
             "trimStart": 0.0,
             "trimEnd": -1.0,
-            "sections": []
+            "sectionsXZ": [],
+            "sectionsY": []
         },
         {
             "clipName": "AS_CA_WallRun_Left_Loop",
             "yawOffsetDegrees": 90.0,
             "trimStart": 0.0,
             "trimEnd": -1.0,
-            "sections": []
+            "sectionsXZ": [],
+            "sectionsY": []
         },
         {
             "clipName": "AS_Dodge_Front",
             "yawOffsetDegrees": 0.0,
             "trimStart": 0.20000000298023224,
             "trimEnd": -1.0,
-            "sections": [
-                {
-                    "start": 0.20000000298023224,
-                    "end": 1.2000000476837158,
-                    "scaleXZ": 0.5,
-                    "scaleY": 1.0
-                }
-            ]
+            "sectionsXZ": [
+                { "start": 0.2, "end": 1.2, "scale": 0.5 }
+            ],
+            "sectionsY": []
         }
     ]
 }

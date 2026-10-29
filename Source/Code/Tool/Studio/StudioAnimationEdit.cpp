@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <fstream>
 #include <filesystem>
+#include <cstdio>
 #include <cmath>
 
 namespace
@@ -140,6 +141,7 @@ void StudioAnimationEdit::DrawGUI(entt::registry& registry, StudioContext& conte
 		Rebake(*skinned.model);
 		context.requestPoseUpdate = true;
 		isDirty = true;
+		curveDirty = true;
 	}
 
 	ImGui::End();
@@ -230,7 +232,7 @@ bool StudioAnimationEdit::DrawTimelineArea(const Model& model, AnimatorComponent
 	}
 	else
 	{
-		ImGui::Dummy(ImVec2(0.0f, 80.0f)); // 段階6でグラフを追加する
+		DrawRootMotionTracks(model, clipName);
 	}
 
 	timeline.End();
@@ -348,14 +350,151 @@ bool StudioAnimationEdit::DrawTrimButtons(const std::string& clipName, float raw
 // ルートモーションのグラフ
 void StudioAnimationEdit::DrawRootMotionTracks(const Model& model, const std::string& clipName)
 {
+	// 必要なときだけ作り直す
+	if (curveDirty || curveClipName != clipName)
+	{
+		RebuildCurves(model, clipName);
+	}
+
+	DrawCurveTrack("XZ", false, 120.0f, IM_COL32(79, 195, 247, 255));
+	DrawCurveTrack("Y", true, 50.0f, IM_COL32(255, 183, 77, 255));
 }
 // グラフの値を作り直す
 void StudioAnimationEdit::RebuildCurves(const Model& model, const std::string& clipName)
 {
+	originalCurve = RootMotionCurve{};
+	editedCurve = RootMotionCurve{};
+	curveClipName = clipName;
+	curveDirty = false;
+
+	const int rootIndex = AnimationEditBaker::FindNodeIndex(model.GetNodes(), editData.rootNodeName);
+	if (rootIndex < 0) return;
+
+	// 編集後：焼き込み後のクリップ
+	for (const auto& anim : model.GetAnimations())
+	{
+		if (anim.name == clipName)
+		{
+			editedCurve = BuildCurve(anim, rootIndex);
+			break;
+		}
+	}
+
+	// 元：同じ設定から、区間だけを外して焼いたもの
+	for (const auto& raw : model.GetRawAnimations())
+	{
+		if (raw.name != clipName) continue;
+
+		const AnimationEditClipData* existing = editData.FindClip(clipName);
+		AnimationEditClipData withoutSections = existing ? *existing : AnimationEditClipData{};
+		withoutSections.sectionsXZ.clear();
+		withoutSections.sectionsY.clear();
+
+		const Model::Animation baked = AnimationEditBaker::BakeClip(raw, model.GetNodes(), rootIndex, &withoutSections);
+		originalCurve = BuildCurve(baked, rootIndex);
+		break;
+	}
 }
 // グラフのトラックを1本描く
 void StudioAnimationEdit::DrawCurveTrack(const char* label, bool isY, float height, ImU32 color)
 {
+	const std::vector<float>& original = isY ? originalCurve.y : originalCurve.xz;
+	const std::vector<float>& edited = isY ? editedCurve.y : editedCurve.xz;
+
+	// 縦の範囲
+	float minValue = 0.0f;
+	float maxValue = 0.0f;
+	for (float v : original) { minValue = (std::min)(minValue, v); maxValue = (std::max)(maxValue, v); }
+	for (float v : edited) { minValue = (std::min)(minValue, v); maxValue = (std::max)(maxValue, v); }
+
+	// ほとんど動かないときは、線が真ん中に来るように範囲を広げる
+	if (maxValue - minValue < 0.1f)
+	{
+		const float center = (minValue + maxValue) * 0.5f;
+		minValue = center - 0.05f;
+		maxValue = center + 0.05f;
+	}
+
+	ImDrawList* drawList = ImGui::GetWindowDrawList();
+	const float margin = 4.0f;
+	const float padding = 6.0f; // 線が枠に張り付かないための余白
+	const float top = ImGui::GetCursorScreenPos().y + margin;
+	const float bottom = top + height;
+
+	// 背景
+	// 背景
+	drawList->AddRectFilled(ImVec2(timeline.GetLeft(), top), ImVec2(timeline.GetRight(), bottom), IM_COL32(43, 45, 49, 255), 3.0f);
+
+	// 画面のY座標
+	const float usableHeight = height - padding * 2.0f;
+	auto toY = [&](float value)
+		{
+			const float rate = (value - minValue) / (maxValue - minValue);
+			return bottom - padding - rate * usableHeight;
+		};
+
+	// 横線の目盛り
+	const float candidates[] = { 0.01f, 0.02f, 0.05f, 0.1f, 0.2f, 0.5f, 1.0f, 2.0f, 5.0f, 10.0f };
+	float interval = candidates[9];
+	for (float c : candidates)
+	{
+		if (usableHeight * c / (maxValue - minValue) >= 24.0f)
+		{
+			interval = c;
+			break;
+		}
+	}
+
+	// 間隔に合わせて小数の桁を決める
+	const char* gridFormat = (interval < 0.1f) ? "%.2f" : (interval < 1.0f) ? "%.1f" : "%.0f";
+
+	const int firstLine = (int)std::ceil(minValue / interval - 0.0001f);
+	const int lastLine = (int)std::floor(maxValue / interval + 0.0001f);
+	for (int i = firstLine; i <= lastLine; i++)
+	{
+		const float value = i * interval;
+		const float y = toY(value);
+
+		// 0m の線は少し明るくして、基準にする
+		const ImU32 lineColor = (i == 0) ? IM_COL32(90, 92, 98, 255) : IM_COL32(60, 62, 68, 255);
+		drawList->AddLine(ImVec2(timeline.GetLeft(), y), ImVec2(timeline.GetRight(), y), lineColor, 1.0f);
+
+		// 値のラベル（右端、線の上。上にはみ出すときは線の下）
+		char gridLabel[16];
+		snprintf(gridLabel, sizeof(gridLabel), gridFormat, value);
+		const ImVec2 textSize = ImGui::CalcTextSize(gridLabel);
+		const float labelY = (y - textSize.y - 1.0f < top) ? (y + 1.0f) : (y - textSize.y - 1.0f);
+		drawList->AddText(ImVec2(timeline.GetRight() - textSize.x - 4.0f, labelY), IM_COL32(130, 130, 130, 255), gridLabel);
+	}
+
+	// 画面の点
+	auto toPoints = [&](const std::vector<float>& times, const std::vector<float>& values)
+		{
+			std::vector<ImVec2> points;
+			points.reserve(values.size());
+			for (size_t i = 0; i < values.size(); i++)
+			{
+				points.push_back(ImVec2(timeline.TimeToX(times[i]), toY(values[i])));
+			}
+			return points;
+		};
+
+	// 元（点線）を先に、編集後（実線）を上に重ねる
+	const std::vector<ImVec2> originalPoints = toPoints(originalCurve.times, original);
+	const std::vector<ImVec2> editedPoints = toPoints(editedCurve.times, edited);
+	AddDashedPolyline(drawList, originalPoints, IM_COL32(140, 140, 140, 255), 1.5f);
+	if (editedPoints.size() >= 2)
+	{
+		drawList->AddPolyline(editedPoints.data(), (int)editedPoints.size(), color, 0, 2.0f);
+	}
+
+	// ラベル：トラック名と、最後の値
+	char text[32];
+	snprintf(text, sizeof(text), "%s  %.2f m", label, edited.empty() ? 0.0f : edited.back());
+	drawList->AddText(ImVec2(timeline.GetLeft() + 4.0f, top + 2.0f), IM_COL32(200, 200, 200, 255), text);
+
+	// 描いた分の高さを確保する
+	ImGui::Dummy(ImVec2(0.0f, height + margin * 2.0f));
 }
 
 
@@ -566,7 +705,8 @@ void StudioAnimationEdit::SyncBakeWithMode(Model& model, AnimatorComponent& anim
 
 	Rebake(model);
 	bakedUntrimmed = wantUntrimmed;
-	rangePlaying = false; // モードが変わったら、範囲の再生は止める
+	rangePlaying = false; // モードが変わったら、範囲の再生は止め
+	curveDirty = true;    // 焼き方が変わったので、グラフも作り直す
 	context.requestPoseUpdate = true;
 }
 
@@ -592,6 +732,7 @@ void StudioAnimationEdit::Load(const std::string& modelPath, const Model& model)
 	loadedModelPath = modelPath;
 	isDirty = false;
 	bakedUntrimmed = false; // 読み込んだばかりのモデルは、ResourceManagerで全部焼かれている
+	curveDirty = true;
 
 	// ルートノードが未設定なら、モデルから探してファイルに書き込む
 	if (editData.rootNodeName.empty())
