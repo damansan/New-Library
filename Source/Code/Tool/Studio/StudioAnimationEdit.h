@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include "IStudioAttachment.h"
 #include "Engine/Data/AnimationEditData.h"
 #include "StudioTimelineWidget.h"
@@ -9,12 +9,12 @@
 class Model;
 struct AnimatorComponent;
 
-// ƒ‹[ƒgƒ‚[ƒVƒ‡ƒ“‚ÌƒOƒ‰ƒt—p‚Ì’l
+// ãƒ«ãƒ¼ãƒˆãƒ¢ãƒ¼ã‚·ãƒ§ãƒ³ã®ã‚°ãƒ©ãƒ•ç”¨ã®å€¤
 struct RootMotionCurve
 {
-	std::vector<float> times; // 
-	std::vector<float> xz;    // …•½‚Éi‚ñ‚¾‹——£‚Ì—İŒv
-	std::vector<float> y;     // ŠJn‚©‚ç‚Ì‚‚³
+	std::vector<float> times; // æ™‚åˆ»
+	std::vector<float> xz;    // æ°´å¹³ã«é€²ã‚“ã è·é›¢ã®ç´¯è¨ˆ
+	std::vector<float> y;     // é–‹å§‹æ™‚ã‹ã‚‰ã®é«˜ã•
 };
 
 class StudioAnimationEdit : public IStudioAttachment
@@ -25,78 +25,97 @@ public:
 
 	void SetWindowId(int id) { windowId = id; }
 
-	// ImGui•`‰æ
+	// ImGuiæç”»
 	void DrawGUI(entt::registry& registry, StudioContext& context) override;
 
 private:
-	// •ÒWƒ‚[ƒh
+	// ç·¨é›†ãƒ¢ãƒ¼ãƒ‰
 	enum class EditMode
 	{
-		Trim,       // ƒgƒŠƒ~ƒ“ƒO
-		RootMotion, // ƒ‹[ƒgƒ‚[ƒVƒ‡ƒ“
+		Trim,       // ãƒˆãƒªãƒŸãƒ³ã‚°
+		RootMotion, // ãƒ«ãƒ¼ãƒˆãƒ¢ãƒ¼ã‚·ãƒ§ãƒ³
 	};
 
-	// “à•”ó‘Ô
+	// å†…éƒ¨çŠ¶æ…‹
 	int windowId = 0;
 
-	AnimationEditData editData;      // •ÒW’†‚Ìİ’è
-	std::string loadedModelPath;     // ÅŒã‚É“Ç‚İ‚ñ‚¾ƒ‚ƒfƒ‹ƒpƒX
-	bool isDirty = false;            // –¢•Û‘¶‚Ì•ÏX‚ª‚ ‚é‚©
-	EditMode mode = EditMode::Trim;  // ¡‚Ìƒ‚[ƒh
-	StudioTimelineWidget timeline;   // ƒ^ƒCƒ€ƒ‰ƒCƒ“•”•i
-	bool bakedUntrimmed = false;     // ƒgƒŠƒ~ƒ“ƒO‚È‚µ‚ÅÄ‚©‚ê‚Ä‚¢‚é‚©
-	bool rangePlaying = false;       // ƒgƒŠƒ~ƒ“ƒOƒ‚[ƒh‚ÅAg‚¤”ÍˆÍ‚ğÄ¶’†‚©
+	AnimationEditData editData;      // ç·¨é›†ä¸­ã®è¨­å®š
+	std::string loadedModelPath;     // æœ€å¾Œã«èª­ã¿è¾¼ã‚“ã ãƒ¢ãƒ‡ãƒ«ãƒ‘ã‚¹
+	bool isDirty = false;            // æœªä¿å­˜ã®å¤‰æ›´ãŒã‚ã‚‹ã‹
+	EditMode mode = EditMode::Trim;  // ä»Šã®ãƒ¢ãƒ¼ãƒ‰
+	StudioTimelineWidget timeline;   // ã‚¿ã‚¤ãƒ ãƒ©ã‚¤ãƒ³éƒ¨å“
+	bool bakedUntrimmed = false;     // ãƒˆãƒªãƒŸãƒ³ã‚°ãªã—ã§ç„¼ã‹ã‚Œã¦ã„ã‚‹ã‹
+	bool rangePlaying = false;       // ãƒˆãƒªãƒŸãƒ³ã‚°ãƒ¢ãƒ¼ãƒ‰ã§ã€ä½¿ã†ç¯„å›²ã‚’å†ç”Ÿä¸­ã‹
 
-	RootMotionCurve originalCurve;   // ‹æŠÔ‚ğŠO‚µ‚½‚à‚Ì
-	RootMotionCurve editedCurve;     // •ÒWŒã
-	std::string curveClipName;       // ¡‚ÌƒOƒ‰ƒt‚ª‚Ç‚ÌƒNƒŠƒbƒv‚Ì‚à‚Ì‚©
-	bool curveDirty = true;          // ƒOƒ‰ƒt‚ğì‚è’¼‚·•K—v‚ª‚ ‚é‚©
+	// åŒºé–“ã®è»¸
+	enum class SectionAxis
+	{
+		XZ, // æ°´å¹³ç§»å‹•
+		Y,  // ä¸Šä¸‹ç§»å‹•
+	};
+	SectionAxis selectedAxis = SectionAxis::XZ; // é¸ã‚“ã§ã„ã‚‹åŒºé–“ã®è»¸
+	int selectedSection = -1;                   // é¸ã‚“ã§ã„ã‚‹åŒºé–“ã®ç•ªå·
 
-	// ƒ^ƒCƒ€ƒ‰ƒCƒ“
+	RootMotionCurve originalCurve;   // åŒºé–“ã‚’å¤–ã—ãŸã‚‚ã®
+	RootMotionCurve editedCurve;     // ç·¨é›†å¾Œ
+	std::string curveClipName;       // ä»Šã®ã‚°ãƒ©ãƒ•ãŒã©ã®ã‚¯ãƒªãƒƒãƒ—ã®ã‚‚ã®ã‹
+	bool curveDirty = true;          // ã‚°ãƒ©ãƒ•ã‚’ä½œã‚Šç›´ã™å¿…è¦ãŒã‚ã‚‹ã‹
+
+	// ã‚¿ã‚¤ãƒ ãƒ©ã‚¤ãƒ³
 	bool DrawTimelineArea(const Model& model, AnimatorComponent& animator, StudioContext& context);
-	// ”’l
+	// æ•°å€¤
 	bool DrawDetailArea(const Model& model, const std::string& clipName, const std::string& modelPath);
 
 
-	// ƒgƒŠƒ~ƒ“ƒO‚Ìƒgƒ‰ƒbƒN
+	// ãƒˆãƒªãƒŸãƒ³ã‚°ã®ãƒˆãƒ©ãƒƒã‚¯
 	bool DrawTrimTrack(const std::string& clipName, float rawLength, float frameStep);
-	// ƒgƒŠƒ~ƒ“ƒO‚Ìƒ{ƒ^ƒ“
+	// ãƒˆãƒªãƒŸãƒ³ã‚°ã®ãƒœã‚¿ãƒ³
 	bool DrawTrimButtons(const std::string& clipName, float rawLength, float frameStep, float pinTime); 
 
 
-	// ƒ‹[ƒgƒ‚[ƒVƒ‡ƒ“‚ÌƒOƒ‰ƒt
-	void DrawRootMotionTracks(const Model& model, const std::string& clipName);
-	// ƒOƒ‰ƒt‚Ì’l‚ğì‚è’¼‚·
+	// ãƒ«ãƒ¼ãƒˆãƒ¢ãƒ¼ã‚·ãƒ§ãƒ³ã®ã‚°ãƒ©ãƒ•
+	bool DrawRootMotionTracks(const Model& model, const std::string& clipName, float length, float frameStep);
+	// ã‚°ãƒ©ãƒ•ã®å€¤ã‚’ä½œã‚Šç›´ã™
 	void RebuildCurves(const Model& model, const std::string& clipName);
-	// ƒOƒ‰ƒt‚Ìƒgƒ‰ƒbƒN‚ğ1–{•`‚­
-	void DrawCurveTrack(const char* label, bool isY, float height, ImU32 color);
+	// ã‚°ãƒ©ãƒ•ã®ãƒˆãƒ©ãƒƒã‚¯ã‚’1æœ¬æãï¼ˆisYï¼šfalseãªã‚‰XZã€trueãªã‚‰Yï¼‰ã€‚tintStartã€œtintEnd ã‚’è–„ãè‰²ä»˜ã‘ã™ã‚‹ï¼ˆè² ãªã‚‰ç„¡ã—ï¼‰ã€‚æˆ»ã‚Šå€¤ã¯ãƒˆãƒ©ãƒƒã‚¯ã®ä¸Šç«¯
+	float DrawCurveTrack(const char* label, bool isY, float height, ImU32 color, float tintStart, float tintEnd);
+	// åŒºé–“ã®å¸¯ã‚’æã„ã¦ã€ã‚¯ãƒªãƒƒã‚¯ã§é¸æŠã™ã‚‹
+	bool DrawSectionBand(const char* id, SectionAxis axis, const std::string& clipName, float trimStart, float length, float frameStep, float graphTop);
+	// é¸ã‚“ã§ã„ã‚‹åŒºé–“ã®ç¯„å›²
+	bool GetSelectedSectionRange(SectionAxis axis, const std::string& clipName, float trimStart, float& outStart, float& outEnd) const;
+	// ä»Šã®ã‚¯ãƒªãƒƒãƒ—ã®ã‚«ãƒƒãƒˆã®å§‹ã¾ã‚Š
+	float GetTrimStart(const std::string& clipName) const;
+	// åŒºé–“ã®è¿½åŠ ã¨Set Start / Set End
+	bool DrawSectionButtons(const std::string& clipName, float length, float frameStep, float pinTime);
+	// åŒºé–“ãŒå‹•ã‘ã‚‹ç¯„å›²
+	static void GetSectionLimits(const std::vector<AnimationEditSection>& sections, int index, float trimStart, float length, float& outLower, float& outUpper);
 
 
-	// ƒNƒŠƒbƒvİ’è
+	// ã‚¯ãƒªãƒƒãƒ—è¨­å®š
 	bool DrawClipSettings(const Model& model, const std::string& clipName); 
 
 
-	// g‚¤”ÍˆÍ‚Ì’†‚Å‚ği‚ß‚é
+	// ä½¿ã†ç¯„å›²ã®ä¸­ã§æ™‚åˆ»ã‚’é€²ã‚ã‚‹
 	void AdvanceRangePlayback(AnimatorComponent& animator, StudioContext& context, float start, float end); 
-	// ”ÍˆÍ‚ğæ‚èo‚·
+	// ç¯„å›²ã‚’å–ã‚Šå‡ºã™
 	void GetTrimRange(const std::string& clipName, float rawLength, float& outStart, float& outEnd) const;
-	// ”ÍˆÍ‚ğ‘‚«‚Ş
+	// ç¯„å›²ã‚’æ›¸ãè¾¼ã‚€
 	bool SetTrimRange(const std::string& clipName, float rawLength, float start, float end);            
 
 
-	// 1ƒtƒŒ[ƒ€‚Ì•b”
+	// 1ãƒ•ãƒ¬ãƒ¼ãƒ ã®ç§’æ•°
 	static float CalcFrameStep(const Model& model, const std::string& clipName); 
-	// ¶ƒf[ƒ^‚Ì’·‚³
+	// ç”Ÿãƒ‡ãƒ¼ã‚¿ã®é•·ã•
 	static float FindRawLength(const Model& model, const std::string& clipName); 
 
 
-	// ƒ‚[ƒh‚É‡‚í‚¹‚ÄÄ‚«’¼‚·
+	// ãƒ¢ãƒ¼ãƒ‰ã«åˆã‚ã›ã¦ç„¼ãç›´ã™
 	void Rebake(Model& model) const;  
-	// ƒ‚[ƒh‚ÆÄ‚«•û‚ª‚¸‚ê‚Ä‚¢‚½‚ç‡‚í‚¹‚é
+	// ãƒ¢ãƒ¼ãƒ‰ã¨ç„¼ãæ–¹ãŒãšã‚Œã¦ã„ãŸã‚‰åˆã‚ã›ã‚‹
 	void SyncBakeWithMode(Model& model, AnimatorComponent& animator, StudioContext& context); 
 
 
-	// •Û‘¶“Ç‚İ‚İ
+	// ä¿å­˜èª­ã¿è¾¼ã¿
 	void Load(const std::string& modelPath, const Model& model);
 	void Save(const std::string& modelPath);
 };

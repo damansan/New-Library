@@ -15,7 +15,8 @@ public:
 	static float SnapToFrame(float t, float frameStep, float clipLength);
 
 	// 範囲の端のピン
-	bool DrawRangeHandles(const char* id, float handleY, float frameStep, float minLength, float& inOutStart, float& inOutEnd);
+	bool DrawRangeHandles(const char* id, float handleY, float frameStep, float minLength, float& inOutStart, float& inOutEnd,
+		float lowerLimit = 0.0f, float upperLimit = -1.0f, float lineTopY = -1.0f);
 	static constexpr float RangeHandleHeight = 16.0f; // 範囲の端のピンの頭の高さ
 
 	// 時刻とX座標の変換
@@ -42,7 +43,7 @@ private:
 	void DrawRuler(ImDrawList* drawList, float frameStep) const;
 	// ピンの頭
 	void DrawPinHead(ImDrawList* drawList) const;
-	void DrawRangeHandle(ImDrawList* drawList, float x, float handleY, bool highlighted) const;
+	void DrawRangeHandle(ImDrawList* drawList, float x, float handleY, float lineTopY, bool highlighted) const;
 
 	// 範囲の端のピンをつかめる幅の半分
 	static constexpr float RangeHandleHalfWidth = 7.0f;

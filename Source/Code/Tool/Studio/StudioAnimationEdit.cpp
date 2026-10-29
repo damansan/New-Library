@@ -75,6 +75,45 @@ namespace
 			}
 		}
 	}
+
+	// グラフの値を、指定時刻で補間して取り出す
+	float SampleCurve(const std::vector<float>& times, const std::vector<float>& values, float t)
+	{
+		if (values.empty()) return 0.0f;
+		if (t <= times.front()) return values.front();
+
+		for (size_t i = 1; i < times.size(); i++)
+		{
+			if (t <= times[i])
+			{
+				const float span = times[i] - times[i - 1];
+				const float rate = (span > 0.0f) ? (t - times[i - 1]) / span : 0.0f;
+				return values[i - 1] + (values[i] - values[i - 1]) * rate;
+			}
+		}
+		return values.back();
+	}
+
+	// XZ：区間の中で水平に進んだ距離
+	float MeasureXZ(const RootMotionCurve& curve, float start, float end)
+	{
+		return SampleCurve(curve.times, curve.xz, end) - SampleCurve(curve.times, curve.xz, start);
+	}
+
+	// Y：区間の中での最高点
+	float MeasureYPeak(const RootMotionCurve& curve, float start, float end)
+	{
+		const float base = SampleCurve(curve.times, curve.y, start);
+		float peak = SampleCurve(curve.times, curve.y, end) - base;
+
+		for (size_t i = 0; i < curve.times.size(); i++)
+		{
+			if (curve.times[i] <= start || curve.times[i] >= end) continue;
+			const float d = curve.y[i] - base;
+			if (std::fabs(d) > std::fabs(peak)) peak = d;
+		}
+		return peak;
+	}
 }
 
 
@@ -232,7 +271,7 @@ bool StudioAnimationEdit::DrawTimelineArea(const Model& model, AnimatorComponent
 	}
 	else
 	{
-		DrawRootMotionTracks(model, clipName);
+		changed |= DrawRootMotionTracks(model, clipName, length, frameStep);
 	}
 
 	timeline.End();
@@ -348,16 +387,36 @@ bool StudioAnimationEdit::DrawTrimButtons(const std::string& clipName, float raw
 
 
 // ルートモーションのグラフ
-void StudioAnimationEdit::DrawRootMotionTracks(const Model& model, const std::string& clipName)
+bool StudioAnimationEdit::DrawRootMotionTracks(const Model& model, const std::string& clipName, float length, float frameStep)
 {
+	// クリップが変わったら、区間の選択を外す
+	if (curveClipName != clipName)
+	{
+		selectedSection = -1;
+	}
+
 	// 必要なときだけ作り直す
 	if (curveDirty || curveClipName != clipName)
 	{
 		RebuildCurves(model, clipName);
 	}
 
-	DrawCurveTrack("XZ", false, 120.0f, IM_COL32(79, 195, 247, 255));
-	DrawCurveTrack("Y", true, 50.0f, IM_COL32(255, 183, 77, 255));
+	const float trimStart = GetTrimStart(clipName);
+	bool changed = false;
+	float tintStart = -1.0f;
+	float tintEnd = -1.0f;
+
+	// XZ：グラフ
+	GetSelectedSectionRange(SectionAxis::XZ, clipName, trimStart, tintStart, tintEnd);
+	const float xzTop = DrawCurveTrack("XZ", false, 120.0f, IM_COL32(79, 195, 247, 255), tintStart, tintEnd);
+	changed |= DrawSectionBand("##SectionsXZ", SectionAxis::XZ, clipName, trimStart, length, frameStep, xzTop);
+
+	// Y：グラフ
+	GetSelectedSectionRange(SectionAxis::Y, clipName, trimStart, tintStart, tintEnd);
+	const float yTop = DrawCurveTrack("Y", true, 80.0f, IM_COL32(255, 183, 77, 255), tintStart, tintEnd);
+	changed |= DrawSectionBand("##SectionsY", SectionAxis::Y, clipName, trimStart, length, frameStep, yTop);
+
+	return changed;
 }
 // グラフの値を作り直す
 void StudioAnimationEdit::RebuildCurves(const Model& model, const std::string& clipName)
@@ -396,7 +455,7 @@ void StudioAnimationEdit::RebuildCurves(const Model& model, const std::string& c
 	}
 }
 // グラフのトラックを1本描く
-void StudioAnimationEdit::DrawCurveTrack(const char* label, bool isY, float height, ImU32 color)
+float StudioAnimationEdit::DrawCurveTrack(const char* label, bool isY, float height, ImU32 color, float tintStart, float tintEnd)
 {
 	const std::vector<float>& original = isY ? originalCurve.y : originalCurve.xz;
 	const std::vector<float>& edited = isY ? editedCurve.y : editedCurve.xz;
@@ -422,7 +481,6 @@ void StudioAnimationEdit::DrawCurveTrack(const char* label, bool isY, float heig
 	const float bottom = top + height;
 
 	// 背景
-	// 背景
 	drawList->AddRectFilled(ImVec2(timeline.GetLeft(), top), ImVec2(timeline.GetRight(), bottom), IM_COL32(43, 45, 49, 255), 3.0f);
 
 	// 画面のY座標
@@ -442,6 +500,18 @@ void StudioAnimationEdit::DrawCurveTrack(const char* label, bool isY, float heig
 		{
 			interval = c;
 			break;
+		}
+	}
+
+	// 選んでいる区間の範囲を薄く色付けする
+	if (tintEnd > tintStart)
+	{
+		const float x0 = (std::max)(timeline.TimeToX(tintStart), timeline.GetLeft());
+		const float x1 = (std::min)(timeline.TimeToX(tintEnd), timeline.GetRight());
+		if (x1 > x0)
+		{
+			const ImU32 tintColor = (color & 0x00FFFFFF) | (40u << 24); // 線の色を薄くしたもの
+			drawList->AddRectFilled(ImVec2(x0, top), ImVec2(x1, bottom), tintColor);
 		}
 	}
 
@@ -495,6 +565,138 @@ void StudioAnimationEdit::DrawCurveTrack(const char* label, bool isY, float heig
 
 	// 描いた分の高さを確保する
 	ImGui::Dummy(ImVec2(0.0f, height + margin * 2.0f));
+
+	return top; 
+}
+// 区間の帯を描いて、クリックで選択する
+bool StudioAnimationEdit::DrawSectionBand(const char* id, SectionAxis axis, const std::string& clipName, float trimStart, float length, float frameStep, float graphTop)
+{
+	const AnimationEditClipData* clip = editData.FindClip(clipName);
+	const std::vector<AnimationEditSection>* sections = nullptr;
+	if (clip) sections = (axis == SectionAxis::XZ) ? &clip->sectionsXZ : &clip->sectionsY;
+
+	const ImU32 color = (axis == SectionAxis::XZ) ? IM_COL32(79, 195, 247, 255) : IM_COL32(255, 183, 77, 255);
+	const ImU32 dimColor = (axis == SectionAxis::XZ) ? IM_COL32(79, 195, 247, 110) : IM_COL32(255, 183, 77, 110);
+
+	ImDrawList* drawList = ImGui::GetWindowDrawList();
+	const float margin = 2.0f;
+	const float bandHeight = 22.0f;
+	const ImVec2 cursor = ImGui::GetCursorScreenPos();
+	const float top = cursor.y + margin;
+	const float bottom = top + bandHeight;
+
+	// 帯の全体をクリックできるようにする
+	ImGui::SetCursorScreenPos(ImVec2(timeline.GetLeft(), top));
+	const bool clicked = ImGui::InvisibleButton(id, ImVec2(timeline.GetRight() - timeline.GetLeft(), bandHeight));
+	const float mouseX = ImGui::GetIO().MousePos.x;
+
+	// 背景
+	drawList->AddRectFilled(ImVec2(timeline.GetLeft(), top), ImVec2(timeline.GetRight(), bottom), IM_COL32(50, 52, 56, 255), 3.0f);
+
+	int hitIndex = -1;
+	if (sections)
+	{
+		for (int i = 0; i < (int)sections->size(); i++)
+		{
+			const AnimationEditSection& s = (*sections)[i];
+
+			// 区間の時間を、カット後の時間に直す
+			const float start = s.start - trimStart;
+			const float end = s.end - trimStart;
+
+			// カットの範囲外にはみ出した部分は描かない
+			const float x0 = (std::max)(timeline.TimeToX(start), timeline.GetLeft());
+			const float x1 = (std::min)(timeline.TimeToX(end), timeline.GetRight());
+			if (x1 <= x0) continue;
+
+			const bool selected = (selectedAxis == axis && selectedSection == i);
+			drawList->AddRectFilled(ImVec2(x0, top + 2.0f), ImVec2(x1, bottom - 2.0f), selected ? color : dimColor, 3.0f);
+
+			// 距離のラベル
+			const float value = (axis == SectionAxis::XZ) ? MeasureXZ(editedCurve, start, end) : MeasureYPeak(editedCurve, start, end);
+			char label[32];
+			snprintf(label, sizeof(label), "%.2f m", value);
+			const ImVec2 textSize = ImGui::CalcTextSize(label);
+			if (textSize.x + 6.0f < x1 - x0)
+			{
+				drawList->AddText(
+					ImVec2((x0 + x1 - textSize.x) * 0.5f, (top + bottom - textSize.y) * 0.5f),
+					selected ? IM_COL32(0, 0, 0, 255) : IM_COL32(220, 220, 220, 255),
+					label);
+			}
+
+			if (mouseX >= x0 && mouseX <= x1) hitIndex = i;
+		}
+	}
+
+	// クリックした所の区間を選ぶ
+	if (clicked)
+	{
+		selectedAxis = axis;
+		selectedSection = hitIndex;
+	}
+
+	// 選んでいる区間の端のピン
+	bool changed = false;
+	if (sections && selectedAxis == axis && selectedSection >= 0 && selectedSection < (int)sections->size())
+	{
+		const AnimationEditSection& s = (*sections)[selectedSection];
+		float start = std::clamp(s.start - trimStart, 0.0f, length);
+		float end = std::clamp(s.end - trimStart, 0.0f, length);
+
+		// 隣の区間にぶつかったら止まる
+		float lower = 0.0f;
+		float upper = length;
+		for (int i = 0; i < (int)sections->size(); i++)
+		{
+			if (i == selectedSection) continue;
+			const float otherStart = (*sections)[i].start - trimStart;
+			const float otherEnd = (*sections)[i].end - trimStart;
+			if (otherEnd <= start + 0.0001f) lower = (std::max)(lower, otherEnd);   // 前にある区間
+			if (otherStart >= end - 0.0001f) upper = (std::min)(upper, otherStart); // 後ろにある区間
+		}
+
+		const float minLength = (frameStep > 0.0f) ? frameStep : 0.001f;
+		const std::string handleId = std::string(id) + "Handles";
+		if (timeline.DrawRangeHandles(handleId.c_str(), bottom, frameStep, minLength, start, end, lower, upper, graphTop))
+		{
+			// 生データの時間に戻して書き込む
+			AnimationEditClipData* editable = editData.FindOrCreateClip(clipName);
+			auto& list = (axis == SectionAxis::XZ) ? editable->sectionsXZ : editable->sectionsY;
+			list[selectedSection].start = start + trimStart;
+			list[selectedSection].end = end + trimStart;
+			changed = true;
+		}
+	}
+
+	// 帯とピンの頭の分の高さを確保する
+	ImGui::SetCursorScreenPos(ImVec2(cursor.x, bottom + StudioTimelineWidget::RangeHandleHeight + margin));
+	ImGui::Dummy(ImVec2(0.0f, 0.0f));
+
+	return changed;
+}
+// 選んでいる区間の範囲
+bool StudioAnimationEdit::GetSelectedSectionRange(SectionAxis axis, const std::string& clipName, float trimStart, float& outStart, float& outEnd) const
+{
+	outStart = -1.0f;
+	outEnd = -1.0f;
+	if (selectedAxis != axis || selectedSection < 0) return false;
+
+	const AnimationEditClipData* clip = editData.FindClip(clipName);
+	if (!clip) return false;
+
+	const auto& sections = (axis == SectionAxis::XZ) ? clip->sectionsXZ : clip->sectionsY;
+	if (selectedSection >= (int)sections.size()) return false;
+
+	outStart = sections[selectedSection].start - trimStart;
+	outEnd = sections[selectedSection].end - trimStart;
+	return true;
+}
+// 今のクリップのカットの始まり
+float StudioAnimationEdit::GetTrimStart(const std::string& clipName) const
+{
+	const AnimationEditClipData* clip = editData.FindClip(clipName);
+	return clip ? (std::max)(clip->trimStart, 0.0f) : 0.0f;
 }
 
 
@@ -733,6 +935,7 @@ void StudioAnimationEdit::Load(const std::string& modelPath, const Model& model)
 	isDirty = false;
 	bakedUntrimmed = false; // 読み込んだばかりのモデルは、ResourceManagerで全部焼かれている
 	curveDirty = true;
+	selectedSection = -1;
 
 	// ルートノードが未設定なら、モデルから探してファイルに書き込む
 	if (editData.rootNodeName.empty())

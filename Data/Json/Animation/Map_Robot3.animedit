@@ -23,8 +23,20 @@
             "trimStart": 0.20000000298023224,
             "trimEnd": -1.0,
             "sectionsXZ": [
-                { "start": 0.2, "end": 1.2, "scale": 0.5 }
+                {
+                    "start": 0.20000000298023224,
+                    "end": 1.2000000476837158,
+                    "scale": 0.5
+                }
             ],
+            "sectionsY": []
+        },
+        {
+            "clipName": "AS_Idle",
+            "yawOffsetDegrees": 0.0,
+            "trimStart": 0.0,
+            "trimEnd": -1.0,
+            "sectionsXZ": [],
             "sectionsY": []
         }
     ]

@@ -83,9 +83,15 @@ float StudioTimelineWidget::SnapToFrame(float t, float frameStep, float clipLeng
 }
 
 // 範囲の端のピン
-bool StudioTimelineWidget::DrawRangeHandles(const char* id, float handleY, float frameStep, float minLength, float& inOutStart, float& inOutEnd)
+bool StudioTimelineWidget::DrawRangeHandles(const char* id, float handleY, float frameStep, float minLength, float& inOutStart, float& inOutEnd,
+	float lowerLimit, float upperLimit, float lineTopY) 
 {
 	ImDrawList* drawList = ImGui::GetWindowDrawList();
+
+	// 動ける範囲と、線の上端
+	const float lower = lowerLimit;
+	const float upper = (upperLimit < 0.0f) ? length : upperLimit;
+	const float lineTop = (lineTopY < 0.0f) ? (top + PinHeadHeight) : lineTopY;
 
 	// 頭の位置につかめる領域を置くため、カーソルを一時的に動かす
 	const ImVec2 savedCursor = ImGui::GetCursorScreenPos();
@@ -111,7 +117,7 @@ bool StudioTimelineWidget::DrawRangeHandles(const char* id, float handleY, float
 			// もう一方の端と、最低 minLength は空ける
 			if (isStart) t = std::min(t, inOutEnd - minLength);
 			else         t = std::max(t, inOutStart + minLength);
-			t = std::clamp(t, 0.0f, length);
+			t = std::clamp(t, lower, upper);
 
 			if (t != value)
 			{
@@ -120,7 +126,7 @@ bool StudioTimelineWidget::DrawRangeHandles(const char* id, float handleY, float
 			}
 		}
 
-		DrawRangeHandle(drawList, TimeToX(value), handleY, active || hovered);
+		DrawRangeHandle(drawList, TimeToX(value), handleY, lineTop, active || hovered);
 	}
 	ImGui::PopID();
 
@@ -200,14 +206,14 @@ void StudioTimelineWidget::DrawPinHead(ImDrawList* drawList) const
 		PinColor);
 	drawList->AddCircleFilled(ImVec2(x, headY), radius, PinColor);
 }
-void StudioTimelineWidget::DrawRangeHandle(ImDrawList* drawList, float x, float handleY, bool highlighted) const
+void StudioTimelineWidget::DrawRangeHandle(ImDrawList* drawList, float x, float handleY, float lineTopY, bool highlighted) const
 {
 	const ImU32 color = highlighted ? RangeHandleActiveColor : RangeHandleColor;
 	const float radius = 6.0f;
 	const float headY = handleY + RangeHandleHeight - radius; // 丸の中心
 
-	// 線：頭のとがった先から、目盛りの帯の上端まで
-	drawList->AddLine(ImVec2(x, handleY), ImVec2(x, top + PinHeadHeight), color, 1.5f);
+	// 線：頭のとがった先から、指定された上端まで
+	drawList->AddLine(ImVec2(x, handleY), ImVec2(x, lineTopY), color, 1.5f);
 
 	// 頭：上向きにとがった形
 	drawList->AddTriangleFilled(
