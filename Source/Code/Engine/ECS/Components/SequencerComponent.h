@@ -30,5 +30,5 @@ struct SequencerComponent
 
 	REFLECT_END()
 
-	float previousNormalizedTime = 0.0f; // 前フレームの正規化時間
+		float previousRawTime = 0.0f; // 前フレームの再生時刻
 };

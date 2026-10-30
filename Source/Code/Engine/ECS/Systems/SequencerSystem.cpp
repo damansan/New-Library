@@ -4,7 +4,7 @@
 #include <fstream>
 
 // 1体のエンティティについて、フラグを更新する
-void SequencerSystem::UpdateFlags(SequencerComponent& seq, const SequencerClipData* clip, float normalizedTime)
+void SequencerSystem::UpdateFlags(SequencerComponent& seq, const SequencerClipData* clip, float rawTime) 
 {
 	// フラグを一旦全部falseに戻す
 	seq.animExit = false;
@@ -24,20 +24,20 @@ void SequencerSystem::UpdateFlags(SequencerComponent& seq, const SequencerClipDa
 		// Range:今の時刻が範囲内ならtrue
 		for (const auto& r : clip->ranges)
 		{
-			bool inRange = (normalizedTime >= r.start && normalizedTime <= r.end);
+			bool inRange = (rawTime >= r.start && rawTime <= r.end);
 			setFlag(r.flag, inRange);
 		}
 
 		// Point:前フレームから今フレームの間を、この時刻が通過していればtrue
 		for (const auto& p : clip->points)
 		{
-			bool passed = (seq.previousNormalizedTime < p.time && normalizedTime >= p.time);
+			bool passed = (seq.previousRawTime < p.time && rawTime >= p.time);
 			setFlag(p.flag, passed);
 		}
 	}
 
 	// 今回の時刻を、次のフレームのために保存しておく
-	seq.previousNormalizedTime = normalizedTime;
+	seq.previousRawTime = rawTime;
 }
 
 void SequencerSystem::Update(entt::registry& registry)
@@ -70,24 +70,25 @@ void SequencerSystem::Update(entt::registry& registry)
 			if (c.clipName == animator.currentAnimation) { clip = &c; break; }
 		}
 
-		// クリップの長さを取得する
-		float clipLength = 0.0f;
+		// 焼き込み後のクリップを探す
+		const Model::Animation* animation = nullptr;
 		for (const auto& anim : skinned.model->GetAnimations())
 		{
 			if (anim.name == animator.currentAnimation)
 			{
-				clipLength = anim.secondsLength;
+				animation = &anim;
 				break;
 			}
 		}
 
-		if (clipLength <= 0.0001f)
+		if (!animation)
 		{
 			continue;
 		}
 
-		float normalizedTime = animator.animationTime / clipLength;
+		// 今の再生時刻を、生データの時刻に直す
+		const float rawTime = animation->ToRawTime(animator.animationTime);
 
-		UpdateFlags(seq, clip, normalizedTime);
+		UpdateFlags(seq, clip, rawTime);
 	}
 }

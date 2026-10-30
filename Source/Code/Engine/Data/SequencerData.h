@@ -9,8 +9,8 @@
 struct SequencerRange
 {
 	int id = -1;
-	float start = 0.0f; // 開始位置
-	float end = 1.0f;   // 終了位置
+	float start = 0.0f; // 開始時刻
+	float end = 0.0f;   // 終了時刻
 	SequencerFlag flag = SequencerFlag::AnimExit;
 };
 

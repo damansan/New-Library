@@ -1,4 +1,6 @@
 #pragma once
+#include "Engine/Core/Log.h"
+
 #include <string>
 #include <unordered_map>
 #include <functional>
@@ -14,16 +16,19 @@ public:
 	{
 		std::error_code ec;
 		auto writeTime = std::filesystem::last_write_time(path, ec);
+		const bool exists = !ec;
 
 		auto it = cache.find(path);
 		if (it != cache.end())
 		{
-			// ファイル自体が消えている場合は、今のキャッシュをそのまま返す
-			if (!ec && writeTime == it->second.lastWriteTime)
+			const Entry& cached = it->second;
+
+			// 前回と同じ状態なら、キャッシュをそのまま返す
+			if (exists == cached.exists && (!exists || writeTime == cached.lastWriteTime))
 			{
 				return it->second.data;
 			}
-			// 更新されていた場合は、既存のエントリを一旦消して、下の新規読み込みへ進む
+			// ファイルが更新された・現れた・消えた場合は、読み込みをやり直す
 			cache.erase(it);
 		}
 
@@ -31,17 +36,31 @@ public:
 		auto result = cache.try_emplace(path);
 		Entry& entry = result.first->second;
 		entry.lastWriteTime = writeTime;
+		entry.exists = exists;
+
+		// 状態が変わったときだけここに来るので、ログは1回だけ出る
+		if (!exists)
+		{
+			Log(u8" ファイルが見つかりません: %s", path.c_str());
+			return entry.data;
+		}
 
 		std::ifstream ifs(path);
-		if (ifs.is_open())
+		if (!ifs.is_open())
 		{
-			try
-			{
-				nlohmann::json j;
-				ifs >> j;
-				loadFunc(entry.data, j);
-			}
-			catch (const std::exception&) {}
+			Log(u8" ファイルを開けません: %s", path.c_str());
+			return entry.data;
+		}
+
+		try
+		{
+			nlohmann::json j;
+			ifs >> j;
+			loadFunc(entry.data, j);
+		}
+		catch (const std::exception& e)
+		{
+			Log(u8" JSONの読み込みに失敗: %s (%s)", path.c_str(), e.what());
 		}
 
 		return entry.data;
@@ -52,6 +71,7 @@ private:
 	{
 		T data;
 		std::filesystem::file_time_type lastWriteTime;
+		bool exists = false; // 読み込んだときにファイルがあったか
 	};
 
 	std::unordered_map<std::string, Entry> cache;
