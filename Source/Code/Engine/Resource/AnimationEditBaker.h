@@ -22,6 +22,8 @@ public:
 
 	// RootNodeの名前を探す
 	static std::string FindDefaultRootNodeName(const Model& model);
+	// スキンのボーンになっているノードの番号の一覧
+	static std::vector<int> CollectBoneIndices(const Model& model);
 	// 名前からルートノードの番号を探す
 	static int FindNodeIndex(const std::vector<Model::Node>& nodes, const std::string& name);
 

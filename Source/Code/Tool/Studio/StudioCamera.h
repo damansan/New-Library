@@ -28,7 +28,7 @@ private:
     DirectX::XMFLOAT4X4 view = {};
     DirectX::XMFLOAT4X4 projection = {};
 
-    DirectX::XMFLOAT3 eye = { 0.0f, 1.5f, -3.0f };
+    DirectX::XMFLOAT3 eye = { 0.0f, 3.0f, -4.0f };
     DirectX::XMFLOAT3 target = { 0.0f, 1.0f, 0.0f };
 
     float yaw = 0.0f;

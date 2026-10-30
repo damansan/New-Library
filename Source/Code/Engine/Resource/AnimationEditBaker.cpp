@@ -151,6 +151,30 @@ Model::Animation AnimationEditBaker::BakeClip(
 std::string AnimationEditBaker::FindDefaultRootNodeName(const Model& model)
 {
 	const auto& nodes = model.GetNodes();
+	const std::vector<int> bones = CollectBoneIndices(model);
+
+	auto isBone = [&](int index)
+		{
+			return std::find(bones.begin(), bones.end(), index) != bones.end();
+		};
+
+	// 親がいない、または親がボーンではないボーンが一番上
+	for (int i : bones)
+	{
+		const int parent = nodes[i].parentIndex;
+		if (parent < 0 || !isBone(parent))
+		{
+			return nodes[i].name;
+		}
+	}
+
+	return "";
+}
+
+// スキンのボーンになっているノードの番号の一覧
+std::vector<int> AnimationEditBaker::CollectBoneIndices(const Model& model)
+{
+	const auto& nodes = model.GetNodes();
 
 	// どのノードがボーンかを調べる
 	std::vector<bool> isBone(nodes.size(), false);
@@ -165,19 +189,12 @@ std::string AnimationEditBaker::FindDefaultRootNodeName(const Model& model)
 		}
 	}
 
-	// 親がいない、または親がボーンではないボーンが一番上
+	std::vector<int> result;
 	for (int i = 0; i < (int)nodes.size(); i++)
 	{
-		if (!isBone[i]) continue;
-
-		const int parent = nodes[i].parentIndex;
-		if (parent < 0 || !isBone[parent])
-		{
-			return nodes[i].name;
-		}
+		if (isBone[i]) result.push_back(i);
 	}
-
-	return "";
+	return result;
 }
 
 // 名前からルートノードの番号を探す
@@ -200,6 +217,10 @@ void AnimationEditBaker::TrimAnimation(Model::Animation& animation, float start,
 		TrimKeys(nodeAnim.scaleKeyframes, start, end, SampleVector);
 	}
 	animation.secondsLength = end - start;
+
+	// 時刻の対応表
+	animation.bakedTimes = { 0.0f, end - start };
+	animation.rawTimes = { start, end };
 }
 
 // 0フレーム目のルート位置が、バインドポーズの位置になるようにずらす

@@ -19,9 +19,9 @@ struct AnimatorComponent
         // ルートモーション関連
         REFLECT_FIELD(bool, useRootMotionY,            (false), ("Use Root Motion Y")) // Y軸適応
         REFLECT_FIELD(bool, useRootMotion,             (false), ("Use Root Motion"))   // ルートモーション使用
-        REFLECT_FIELD(std::string, rootMotionNodeName, (""),    ("Root Motion Node"))  // ルートノード名
-      
-    REFLECT_END()
+        REFLECT_FIELD(std::string, activeRootMotionNode, (""), ("Active Root Node", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // 実際に使っているルートノード名
+    
+        REFLECT_END()
 
 
     // 再生関連

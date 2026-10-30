@@ -49,7 +49,8 @@ private:
 	// クロスフェード：保存したポーズから、今のポーズへ混ぜる
 	static void UpdateCrossfade(AnimatorComponent& animator, SkinnedMeshComponent& skinned, float elapsedTime);
 
-
+	// ルートモーション対象ノードの番号
+	static int ResolveRootMotionNodeIndex(const Model& model, AnimatorComponent& animator);
 
 	// キーフレーム補間（位置）
 	static DirectX::XMFLOAT3 InterpolatePosition(

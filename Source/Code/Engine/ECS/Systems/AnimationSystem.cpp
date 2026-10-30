@@ -57,9 +57,7 @@ void AnimationSystem::Update(
 			const ClipTimeStep step = AdvanceClipTime(animator, animation, elapsedTime);
 
 			// ルートモーションの移動量
-			const int rootMotionNodeIndex = animator.rootMotionNodeName.empty()
-				? -1
-				: FindNodeIndex(*skinned.model, animator.rootMotionNodeName);
+			const int rootMotionNodeIndex = ResolveRootMotionNodeIndex(*skinned.model, animator);
 
 			animator.rootMotionDelta = (rootMotionNodeIndex >= 0)
 				? CalcRootMotionDelta(*skinned.model, animation, rootMotionNodeIndex,
@@ -128,9 +126,7 @@ void AnimationSystem::EvaluatePose(entt::registry& registry)
 			const auto& animation = animations[animIndex];
 
 			// ルートモーション対象ノードを固定する
-			const int rootMotionNodeIndex = animator.rootMotionNodeName.empty()
-				? -1
-				: FindNodeIndex(*skinned.model, animator.rootMotionNodeName);
+			const int rootMotionNodeIndex = ResolveRootMotionNodeIndex(*skinned.model, animator);
 
 			CalcBoneTransforms(
 				*skinned.model, animation, animator.animationTime,
@@ -239,6 +235,17 @@ void AnimationSystem::UpdateCrossfade(AnimatorComponent& animator, SkinnedMeshCo
 	{
 		animator.isBlending = false;
 	}
+}
+
+// ルートモーション対象ノードの番号
+int AnimationSystem::ResolveRootMotionNodeIndex(const Model& model, AnimatorComponent& animator)
+{
+	const std::string& name = model.GetRootNodeName();
+
+	// Inspectorに「実際に使っているボーン」を表示する
+	animator.activeRootMotionNode = name;
+
+	return name.empty() ? -1 : FindNodeIndex(model, name);
 }
 
 // キーフレーム補間（位置）

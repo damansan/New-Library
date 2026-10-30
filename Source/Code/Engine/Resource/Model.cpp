@@ -1,6 +1,30 @@
 #include "Model.h"
 #include "Engine/Resource/AnimationEditBaker.h"
 
+namespace
+{
+	// 対応表を使って、片方の時刻をもう片方に直す
+	float MapTime(const std::vector<float>& from, const std::vector<float>& to, float t)
+	{
+		// 対応表が無ければ、同じ時刻
+		if (from.empty() || from.size() != to.size()) return t;
+
+		if (t <= from.front()) return to.front();
+
+		for (size_t i = 1; i < from.size(); i++)
+		{
+			if (t <= from[i])
+			{
+				const float span = from[i] - from[i - 1];
+				const float rate = (span > 0.0f) ? (t - from[i - 1]) / span : 0.0f;
+				return to[i - 1] + (to[i] - to[i - 1]) * rate;
+			}
+		}
+		return to.back();
+	}
+}
+
+
 // 入力レイアウト定義
 const std::vector<D3D11_INPUT_ELEMENT_DESC> Model::InputElementDescs =
 {
@@ -22,4 +46,18 @@ void Model::ApplyAnimationEdit(const AnimationEditData& editData)
         }
 
     animations = AnimationEditBaker::Bake(rawAnimations, nodes, editData);
+
+    // 焼き込みと同じボーンを、ランタイムでも固定するために覚えておく
+    rootNodeName = editData.rootNodeName;
+}
+
+// 焼き込み後から生データに
+float Model::Animation::ToRawTime(float bakedTime) const
+{
+	return MapTime(bakedTimes, rawTimes, bakedTime);
+}
+// 生データから焼き込み後に
+float Model::Animation::ToBakedTime(float rawTime) const
+{
+	return MapTime(rawTimes, bakedTimes, rawTime);
 }

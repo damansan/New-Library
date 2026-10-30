@@ -197,6 +197,24 @@ bool StudioAnimationEdit::DrawTimelineArea(const Model& model, AnimatorComponent
 	if (ImGui::RadioButton("Trim", mode == EditMode::Trim)) mode = EditMode::Trim;
 	ImGui::SameLine();
 	if (ImGui::RadioButton("Root Motion", mode == EditMode::RootMotion)) mode = EditMode::RootMotion;
+
+	// ルートモーションモードでは、表示する軸を切り替える
+	if (mode == EditMode::RootMotion)
+	{
+		auto setViewAxis = [&](SectionAxis axis)
+			{
+				viewAxis = axis;
+				// 見えなくなる軸の区間を選んでいたら、選択を外す
+				if (selectedAxis != viewAxis) selectedSection = -1;
+			};
+
+		ImGui::SameLine();
+		ImGui::TextDisabled("|");
+		ImGui::SameLine();
+		if (ImGui::RadioButton("XZ##ViewAxis", viewAxis == SectionAxis::XZ)) setViewAxis(SectionAxis::XZ);
+		ImGui::SameLine();
+		if (ImGui::RadioButton("Y##ViewAxis", viewAxis == SectionAxis::Y)) setViewAxis(SectionAxis::Y);
+	}
 	ImGui::Separator();
 
 	// 仮：段階5までは、焼き込み後のクリップの長さで表示する
@@ -276,10 +294,14 @@ bool StudioAnimationEdit::DrawTimelineArea(const Model& model, AnimatorComponent
 
 	timeline.End();
 
-	// ピンの位置でカットする
-	if (mode == EditMode::Trim) 
+	// ピンの位置で操作するボタン
+	if (mode == EditMode::Trim)
 	{
 		changed |= DrawTrimButtons(clipName, length, frameStep, animator.animationTime);
+	}
+	else
+	{
+		changed |= DrawSectionButtons(clipName, length, frameStep, animator.animationTime);
 	}
 
 	return changed;
@@ -287,10 +309,13 @@ bool StudioAnimationEdit::DrawTimelineArea(const Model& model, AnimatorComponent
 // 数値
 bool StudioAnimationEdit::DrawDetailArea(const Model& model, const std::string& clipName, const std::string& modelPath)
 {
-	ImGui::Text("Clip: %s", clipName.c_str());
-	ImGui::TextDisabled("Root Node: %s", editData.rootNodeName.c_str());
+	// モデル全体の設定
+	bool changed = DrawRootNodeCombo(model);
+	ImGui::Separator();
 
-	bool changed = DrawClipSettings(model, clipName);
+	// クリップごとの設定
+	ImGui::Text("Clip: %s", clipName.c_str());
+	changed |= DrawClipSettings(model, clipName);
 
 	ImGui::Separator();
 
@@ -406,15 +431,13 @@ bool StudioAnimationEdit::DrawRootMotionTracks(const Model& model, const std::st
 	float tintStart = -1.0f;
 	float tintEnd = -1.0f;
 
-	// XZ：グラフ
-	GetSelectedSectionRange(SectionAxis::XZ, clipName, trimStart, tintStart, tintEnd);
-	const float xzTop = DrawCurveTrack("XZ", false, 120.0f, IM_COL32(79, 195, 247, 255), tintStart, tintEnd);
-	changed |= DrawSectionBand("##SectionsXZ", SectionAxis::XZ, clipName, trimStart, length, frameStep, xzTop);
+	// 表示している軸だけ表示
+	const bool isY = (viewAxis == SectionAxis::Y);
+	const ImU32 color = isY ? IM_COL32(255, 183, 77, 255) : IM_COL32(79, 195, 247, 255);
 
-	// Y：グラフ
-	GetSelectedSectionRange(SectionAxis::Y, clipName, trimStart, tintStart, tintEnd);
-	const float yTop = DrawCurveTrack("Y", true, 80.0f, IM_COL32(255, 183, 77, 255), tintStart, tintEnd);
-	changed |= DrawSectionBand("##SectionsY", SectionAxis::Y, clipName, trimStart, length, frameStep, yTop);
+	GetSelectedSectionRange(viewAxis, clipName, trimStart, tintStart, tintEnd);
+	const float graphTop = DrawCurveTrack(isY ? "Y" : "XZ", isY, 160.0f, color, tintStart, tintEnd);
+	changed |= DrawSectionBand(isY ? "##SectionsY" : "##SectionsXZ", viewAxis, clipName, trimStart, length, frameStep, graphTop);
 
 	return changed;
 }
@@ -647,14 +670,7 @@ bool StudioAnimationEdit::DrawSectionBand(const char* id, SectionAxis axis, cons
 		// 隣の区間にぶつかったら止まる
 		float lower = 0.0f;
 		float upper = length;
-		for (int i = 0; i < (int)sections->size(); i++)
-		{
-			if (i == selectedSection) continue;
-			const float otherStart = (*sections)[i].start - trimStart;
-			const float otherEnd = (*sections)[i].end - trimStart;
-			if (otherEnd <= start + 0.0001f) lower = (std::max)(lower, otherEnd);   // 前にある区間
-			if (otherStart >= end - 0.0001f) upper = (std::min)(upper, otherStart); // 後ろにある区間
-		}
+		GetSectionLimits(*sections, selectedSection, trimStart, length, lower, upper);
 
 		const float minLength = (frameStep > 0.0f) ? frameStep : 0.001f;
 		const std::string handleId = std::string(id) + "Handles";
@@ -698,9 +714,171 @@ float StudioAnimationEdit::GetTrimStart(const std::string& clipName) const
 	const AnimationEditClipData* clip = editData.FindClip(clipName);
 	return clip ? (std::max)(clip->trimStart, 0.0f) : 0.0f;
 }
+// 区間の追加とSet Start / Set End
+bool StudioAnimationEdit::DrawSectionButtons(const std::string& clipName, float length, float frameStep, float pinTime)
+{
+	const float trimStart = GetTrimStart(clipName);
+	const float minLength = (frameStep > 0.0f) ? frameStep : 0.001f;
+	const float tolerance = minLength * 0.5f; // 小数の誤差として許す量
+
+	const AnimationEditClipData* clip = editData.FindClip(clipName);
+	bool changed = false;
+
+	// ピンの位置に区間を追加できるか
+	auto canAdd = [&](const std::vector<AnimationEditSection>* list, float& outEnd)
+		{
+			float end = length;
+			if (list)
+			{
+				for (const auto& s : *list)
+				{
+					const float st = s.start - trimStart;
+					const float en = s.end - trimStart;
+					if (pinTime >= st - tolerance && pinTime < en - tolerance) return false; // 既存の区間の中
+					if (st >= pinTime - tolerance) end = (std::min)(end, st);                // 次の区間の始まりまで
+				}
+			}
+			outEnd = end;
+			return (end - pinTime) >= (minLength - tolerance);
+		};
+
+	// 区間を追加して、作った区間を選ぶ
+	auto addSection = [&](SectionAxis axis, float end)
+		{
+			AnimationEditClipData* editable = editData.FindOrCreateClip(clipName);
+			auto& list = (axis == SectionAxis::XZ) ? editable->sectionsXZ : editable->sectionsY;
+
+			AnimationEditSection section;
+			section.start = pinTime + trimStart; // 生データの時間で保存する
+			section.end = end + trimStart;
+			section.scale = 1.0f;
+
+			// 開始時刻の順になるように差し込む
+			auto it = std::find_if(list.begin(), list.end(),
+				[&](const AnimationEditSection& s) { return s.start > section.start; });
+			const int index = (int)(it - list.begin());
+			list.insert(it, section);
+
+			selectedAxis = axis;
+			selectedSection = index;
+			changed = true;
+		};
+
+	// 追加
+	{
+		const std::vector<AnimationEditSection>* list = nullptr;
+		if (clip) list = (viewAxis == SectionAxis::XZ) ? &clip->sectionsXZ : &clip->sectionsY;
+
+		float end = 0.0f;
+		const bool enabled = canAdd(list, end);
+
+		ImGui::BeginDisabled(!enabled);
+		if (ImGui::Button("Add Section"))
+		{
+			addSection(viewAxis, end);
+			clip = editData.FindClip(clipName); // 追加で中身が変わったので取り直す
+		}
+		ImGui::EndDisabled();
+	}
+
+	// 選んでいる区間の SetStart/SetEnd
+	const std::vector<AnimationEditSection>* selectedList = nullptr;
+	if (clip) selectedList = (selectedAxis == SectionAxis::XZ) ? &clip->sectionsXZ : &clip->sectionsY;
+	const bool hasSelection = selectedList && selectedSection >= 0 && selectedSection < (int)selectedList->size();
+
+	float start = 0.0f;
+	float end = 0.0f;
+	float lower = 0.0f;
+	float upper = length;
+	if (hasSelection)
+	{
+		start = (*selectedList)[selectedSection].start - trimStart;
+		end = (*selectedList)[selectedSection].end - trimStart;
+		GetSectionLimits(*selectedList, selectedSection, trimStart, length, lower, upper);
+	}
+
+	ImGui::SameLine();
+	ImGui::Dummy(ImVec2(16.0f, 0.0f)); // 追加ボタンとの間を空ける
+	ImGui::SameLine();
+
+	// Set Start：前の区間に食い込まず、終わりとの間を1フレーム残す
+	ImGui::BeginDisabled(!hasSelection || pinTime < lower - tolerance || pinTime > end - minLength + tolerance);
+	if (ImGui::Button("Set Start##Section"))
+	{
+		AnimationEditClipData* editable = editData.FindOrCreateClip(clipName);
+		auto& list = (selectedAxis == SectionAxis::XZ) ? editable->sectionsXZ : editable->sectionsY;
+		list[selectedSection].start = pinTime + trimStart;
+		changed = true;
+	}
+	ImGui::EndDisabled();
+
+	ImGui::SameLine();
+
+	// Set End：後ろの区間に食い込まず、始まりとの間を1フレーム残す
+	ImGui::BeginDisabled(!hasSelection || pinTime > upper + tolerance || pinTime < start + minLength - tolerance);
+	if (ImGui::Button("Set End##Section"))
+	{
+		AnimationEditClipData* editable = editData.FindOrCreateClip(clipName);
+		auto& list = (selectedAxis == SectionAxis::XZ) ? editable->sectionsXZ : editable->sectionsY;
+		list[selectedSection].end = pinTime + trimStart;
+		changed = true;
+	}
+	ImGui::EndDisabled();
+
+	return changed;
+}
+// 区間が動ける範囲
+void StudioAnimationEdit::GetSectionLimits(const std::vector<AnimationEditSection>& sections, int index, float trimStart, float length, float& outLower, float& outUpper)
+{
+	outLower = 0.0f;
+	outUpper = length;
+
+	const float start = sections[index].start - trimStart;
+	const float end = sections[index].end - trimStart;
+
+	for (int i = 0; i < (int)sections.size(); i++)
+	{
+		if (i == index) continue;
+		const float otherStart = sections[i].start - trimStart;
+		const float otherEnd = sections[i].end - trimStart;
+		if (otherEnd <= start + 0.0001f) outLower = (std::max)(outLower, otherEnd);   // 前にある区間
+		if (otherStart >= end - 0.0001f) outUpper = (std::min)(outUpper, otherStart); // 後ろにある区間
+	}
+}
 
 
+// Root Node の選択
+bool StudioAnimationEdit::DrawRootNodeCombo(const Model& model)
+{
+	bool changed = false;
 
+	if (ImGui::BeginCombo("Root Node", editData.rootNodeName.c_str()))
+	{
+		// 一覧と自動の値は、開いている間だけ調べる
+		const auto& nodes = model.GetNodes();
+		const std::string defaultName = AnimationEditBaker::FindDefaultRootNodeName(model);
+
+		for (int index : AnimationEditBaker::CollectBoneIndices(model))
+		{
+			const std::string& name = nodes[index].name;
+			const bool selected = (name == editData.rootNodeName);
+
+			// 自動で見つけたボーンには目印を付ける
+			const std::string label = (name == defaultName) ? name + "  (auto)" : name;
+
+			if (ImGui::Selectable(label.c_str(), selected) && !selected)
+			{
+				editData.rootNodeName = name;
+				changed = true;
+			}
+			if (selected) ImGui::SetItemDefaultFocus();
+		}
+
+		ImGui::EndCombo();
+	}
+
+	return changed;
+}
 // クリップの設定
 bool StudioAnimationEdit::DrawClipSettings(const Model& model, const std::string& clipName)
 {
@@ -752,14 +930,81 @@ bool StudioAnimationEdit::DrawClipSettings(const Model& model, const std::string
 	}
 	else
 	{
-		ImGui::TextDisabled("Section");
-		// 段階6で追加する
+		ImGui::TextDisabled((viewAxis == SectionAxis::XZ) ? "Section (XZ)" : "Section (Y)");
+		changed |= DrawSectionSettings(model, clip);
 	}
 
 	// 変更があったときだけ、データに書き戻す
 	if (changed)
 	{
 		*editData.FindOrCreateClip(clipName) = clip;
+	}
+
+	return changed;
+}
+// 選んでいる区間の数値
+bool StudioAnimationEdit::DrawSectionSettings(const Model& model, AnimationEditClipData& clip)
+{
+	auto& list = (selectedAxis == SectionAxis::XZ) ? clip.sectionsXZ : clip.sectionsY;
+	if (selectedAxis != viewAxis || selectedSection < 0 || selectedSection >= (int)list.size())
+	{
+		ImGui::TextDisabled("No section selected.");
+		return false;
+	}
+
+	AnimationEditSection& section = list[selectedSection];
+	const bool isY = (selectedAxis == SectionAxis::Y);
+
+	// 範囲
+	const float trimStart = (std::max)(clip.trimStart, 0.0f);
+	const float start = section.start - trimStart;
+	const float end = section.end - trimStart;
+	const float frameStep = CalcFrameStep(model, clip.clipName);
+	const int startFrame = (frameStep > 0.0f) ? (int)std::round(start / frameStep) : 0;
+	const int endFrame = (frameStep > 0.0f) ? (int)std::round(end / frameStep) : 0;
+
+	ImGui::Text("Range     %.3f - %.3f s", start, end);
+	ImGui::TextDisabled("          F%d - F%d", startFrame, endFrame);
+
+	// 元の値
+	const float original = isY ? MeasureYPeak(originalCurve, start, end) : MeasureXZ(originalCurve, start, end);
+	ImGui::Text(isY ? "Original peak  %.2f m" : "Original  %.2f m", original);
+
+	bool changed = false;
+
+	// 元がほぼ0なら、倍率が計算できないので入力できない
+	const bool canEdit = std::fabs(original) > 0.001f;
+
+	// 入力は「距離」、保存は「倍率」（距離 = 元の値 × 倍率）
+	float target = original * section.scale;
+
+	// 元と逆向きの値は入れられないようにする
+	const float minValue = (original >= 0.0f) ? 0.0f : -100.0f;
+	const float maxValue = (original >= 0.0f) ? 100.0f : 0.0f;
+
+	ImGui::BeginDisabled(!canEdit);
+	if (ImGui::DragFloat(isY ? "Peak" : "Distance", &target, 0.01f, minValue, maxValue, "%.2f m"))
+	{
+		section.scale = (std::max)(target / original, 0.0f);
+		changed = true;
+	}
+	ImGui::EndDisabled();
+
+	if (canEdit)
+	{
+		ImGui::TextDisabled("          x%.2f", section.scale);
+	}
+	else
+	{
+		ImGui::TextDisabled("No motion in this section.");
+	}
+
+	// 削除
+	if (ImGui::Button("Delete Section"))
+	{
+		list.erase(list.begin() + selectedSection);
+		selectedSection = -1;
+		changed = true;
 	}
 
 	return changed;

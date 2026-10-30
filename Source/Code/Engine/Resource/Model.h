@@ -117,6 +117,15 @@ public:
         std::string           name;
         float                 secondsLength;
         std::vector<NodeAnim> nodeAnims;
+
+        // 焼き込み後の時刻と、生データの時刻の対応表
+        std::vector<float>    bakedTimes;
+        std::vector<float>    rawTimes;
+
+        // 焼き込み後から生データに
+        float ToRawTime(float bakedTime) const;
+        // 生データから焼き込み後に
+        float ToBakedTime(float rawTime) const;
     };
 
     // 入力レイアウト
@@ -135,6 +144,8 @@ public:
 
     // 編集設定を焼き込む
     void ApplyAnimationEdit(const AnimationEditData& editData);
+    // 焼き込みに使ったルートノード名
+    const std::string& GetRootNodeName() const { return rootNodeName; }
 
     std::vector<Node>& GetNodes() { return nodes; }
     std::vector<Mesh>& GetMeshes() { return meshes; }
@@ -179,9 +190,9 @@ private:
     std::vector<Material>  materials;
     std::vector<Animation> animations;    // 編集済み
     std::vector<Animation> rawAnimations; // 生データ
+    std::string            rootNodeName;  // 焼き込みに使ったルートノード名
 
     bool                   hasSkin = false;
-
 
     BoundingBox boundingBox;
 };

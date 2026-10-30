@@ -53,6 +53,7 @@ private:
 		XZ, // 水平移動
 		Y,  // 上下移動
 	};
+	SectionAxis viewAxis = SectionAxis::XZ;     // 表示している軸
 	SectionAxis selectedAxis = SectionAxis::XZ; // 選んでいる区間の軸
 	int selectedSection = -1;                   // 選んでいる区間の番号
 
@@ -77,7 +78,7 @@ private:
 	bool DrawRootMotionTracks(const Model& model, const std::string& clipName, float length, float frameStep);
 	// グラフの値を作り直す
 	void RebuildCurves(const Model& model, const std::string& clipName);
-	// グラフのトラックを1本描く（isY：falseならXZ、trueならY）。tintStart〜tintEnd を薄く色付けする（負なら無し）。戻り値はトラックの上端
+	// グラフのトラックを1本描く
 	float DrawCurveTrack(const char* label, bool isY, float height, ImU32 color, float tintStart, float tintEnd);
 	// 区間の帯を描いて、クリックで選択する
 	bool DrawSectionBand(const char* id, SectionAxis axis, const std::string& clipName, float trimStart, float length, float frameStep, float graphTop);
@@ -90,9 +91,12 @@ private:
 	// 区間が動ける範囲
 	static void GetSectionLimits(const std::vector<AnimationEditSection>& sections, int index, float trimStart, float length, float& outLower, float& outUpper);
 
-
+	// Root Node の選択
+	bool DrawRootNodeCombo(const Model& model);
 	// クリップ設定
-	bool DrawClipSettings(const Model& model, const std::string& clipName); 
+	bool DrawClipSettings(const Model& model, const std::string& clipName);
+	// 選んでいる区間の数値
+	bool DrawSectionSettings(const Model& model, AnimationEditClipData& clip);
 
 
 	// 使う範囲の中で時刻を進める
