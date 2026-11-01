@@ -340,6 +340,10 @@ void StudioWindow::DrawWindow(const char* windowName)
 	{
 		studioAnimationEdit.DrawGUI(studioRegistry, context);
 	}
+	else
+	{
+		studioAnimationEdit.OnHidden(studioRegistry, context);
+	}
 
 	stadoiModelViewer.DrawGUI(studioRegistry, context);
 

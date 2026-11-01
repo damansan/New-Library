@@ -246,6 +246,12 @@
     <ClCompile Include="..\..\Source\Code\Tool\Studio\StudioTimelineWidget.cpp">
       <Filter>Sources\Tool\Studio\StudioTimelineWidget</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Source\Code\Tool\Studio\StudioAnimationEditTrimming.cpp">
+      <Filter>Sources\Tool\Studio\StudioAnimationEdit</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Code\Tool\Studio\StudioAnimationEditRootMotion.cpp">
+      <Filter>Sources\Tool\Studio\StudioAnimationEdit</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Source\Code\Tool\NodeEditor\NodeEditorCanvas.h">

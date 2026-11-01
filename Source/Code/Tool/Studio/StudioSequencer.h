@@ -1,10 +1,13 @@
 #pragma once
 #include "IStudioAttachment.h"
 #include "Engine/Data/SequencerData.h"
+#include "StudioTimelineWidget.h"
 #include <imgui.h>
-#include <functional>
 #include <string>
 #include <vector>
+
+class Model;
+struct AnimatorComponent;
 
 class StudioSequencer : public IStudioAttachment
 {
@@ -18,38 +21,51 @@ public:
 	void DrawGUI(entt::registry& registry, StudioContext& context) override;
 
 private:
+	// 選んでいるものの種類
+	enum class SelectionType
+	{
+		None,  // トラックだけを選んでいる
+		Point, // Point を選んでいる
+		Range, // Range を選んでいる
+	};
+
 	// == 内部状態 == //
 	int windowId = 0;
 
-	SequencerData sequencerData;   // 編集中のSequencerデータ
-	std::string selectedClipName;  // 今編集しているクリップ名
-	std::vector<std::string> availableAnimations; // モデルが持つアニメーション名一覧
+	SequencerData sequencerData;    // 編集中のデータ
+	std::string loadedModelPath;    // 最後に読み込んだモデルパス
+	bool isDirty = false;           // 未保存の変更があるか
+	StudioTimelineWidget timeline;  // タイムライン部品
 
-	enum class SelectionType { None, Range, Point };
-	SelectionType selectedType = SelectionType::None;
-	int selectedId = -1; // 選択中のRange/PointのID
-	std::string loadedModelPath; // 最後に読み込んだモデルパス
+	SequencerFlag selectedTrack = SequencerFlag::AnimExit; // 選んでいるトラック
+	SelectionType selectedType = SelectionType::None;      // 選んでいるものの種類
+	int selectedId = -1;                                   // 選んでいる Point / Range の id
+	std::string selectedClipName;
 
-	// == 各トラックの描画 == //
-	void DrawToolbar(SequencerClipData& clip, float previewTime); // ツールバー
-	void DrawPointTrack(SequencerClipData& clip, float previewTime, float clipLength); // Pointのトラック描画
-	void DrawRangeTrack(SequencerClipData& clip, float previewTime, float clipLength); // Rangeのトラック描画
-	void DrawDetailPanel(SequencerClipData& clip, const std::string& modelPath); // 詳細パネル
 
-	// == 削除 == //
-	void DeleteRange(SequencerClipData& clip, int id); // Range削除
-	void DeletePoint(SequencerClipData& clip, int id); // Point削除
-	void DrawDeleteButton(const char* label, const std::function<void()>& onDelete); // 削除ボタン
+	// タイムライン
+	bool DrawTimelineArea(const Model& model, AnimatorComponent& animator, StudioContext& context);
+	// 数値
+	bool DrawDetailArea(const Model& model, const std::string& clipName, const std::string& modelPath); // 右：詳細（変更があればtrue）
+	// 詳細
+	bool DrawSelectedItem(const Model& model, const std::string& clipName); 
 
-	// == 座標変換ヘルパー == //
-	static float TimeToNormalized(float time, float clipLength);       // 秒数を0.0～1.0に
-	static float NormalizedToTime(float normalized, float clipLength); // 0.0～1.0を秒数に
+	// トラックの描画
+	bool DrawTrack(SequencerFlag flag, const Model& model, const std::string& clipName, float frameStep);
+	// Point の行
+	bool DrawPointLane(SequencerFlag flag, const Model& model, const std::string& clipName, float frameStep); 
+	// Range の行
+	bool DrawRangeLane(SequencerFlag flag, const Model& model, const std::string& clipName, float frameStep);
+	// 閉じているときの細い行
+	void DrawCollapsedLane(SequencerFlag flag, const Model& model, const std::string& clipName);
 
-	// == 保存 == //
-	void Save(const std::string& modelPath); // 保存
-	static std::string GetSequencerFilePath(const std::string& modelPath); // モデルパスから保存先のパスを組み立てる
+	// ボタン
+	bool DrawItemButtons(const Model& model, const std::string& clipName, float pinTime, float frameStep);
+	
+	// フラグの表示名
+	static const char* GetFlagName(SequencerFlag flag);
 
-	// == その他 == //
-	void RefreshAvailableAnimations(entt::registry& registry);   // アニメーション一覧を更新する
-	static const char* GetSequencerFlagName(SequencerFlag flag); // シーケンサーフラグの表示名を返す
+	// 保存 / 読み込み
+	void Load(const std::string& modelPath);
+	void Save(const std::string& modelPath);
 }; 

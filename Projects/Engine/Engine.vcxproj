@@ -70,6 +70,7 @@
     <ClInclude Include="..\..\Source\Code\Engine\Core\Camera.h" />
     <ClInclude Include="..\..\Source\Code\Engine\Core\GameView.h" />
     <ClInclude Include="..\..\Source\Code\Engine\Core\Graphics.h" />
+    <ClInclude Include="..\..\Source\Code\Engine\Core\JsonFile.h" />
     <ClInclude Include="..\..\Source\Code\Engine\Core\JsonFileCache.h" />
     <ClInclude Include="..\..\Source\Code\Engine\Core\Log.h" />
     <ClInclude Include="..\..\Source\Code\Engine\Core\PhysicsDestroyQueue.h" />

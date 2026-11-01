@@ -4,40 +4,44 @@
 #include <fstream>
 
 // 1体のエンティティについて、フラグを更新する
-void SequencerSystem::UpdateFlags(SequencerComponent& seq, const SequencerClipData* clip, float rawTime) 
+void SequencerSystem::UpdateFlags(SequencerComponent& seq, const SequencerClipData* clip, const PlayedSpan& span)
 {
 	// フラグを一旦全部falseに戻す
 	seq.animExit = false;
-	seq.attack = false;
 
-	if (clip)
-	{
-		auto setFlag = [&](SequencerFlag flag, bool value)
+	if (!clip) return;
+
+	auto setFlag = [&](SequencerFlag flag, bool value)
+		{
+			switch (flag)
 			{
-				switch (flag)
-				{
-				case SequencerFlag::AnimExit: seq.animExit = seq.animExit || value; break;
-				case SequencerFlag::Attack:   seq.attack = seq.attack || value; break;
-				}
-			};
+			case SequencerFlag::AnimExit: seq.animExit = seq.animExit || value; break;
+			default: break;
+			}
+		};
 
-		// Range:今の時刻が範囲内ならtrue
-		for (const auto& r : clip->ranges)
-		{
-			bool inRange = (rawTime >= r.start && rawTime <= r.end);
-			setFlag(r.flag, inRange);
-		}
-
-		// Point:前フレームから今フレームの間を、この時刻が通過していればtrue
-		for (const auto& p : clip->points)
-		{
-			bool passed = (seq.previousRawTime < p.time && rawTime >= p.time);
-			setFlag(p.flag, passed);
-		}
+	// Range：今の時刻が範囲内ならtrue
+	for (const auto& r : clip->ranges)
+	{
+		setFlag(r.flag, span.current >= r.start && span.current <= r.end);
 	}
 
-	// 今回の時刻を、次のフレームのために保存しておく
-	seq.previousRawTime = rawTime;
+	// Point：今回のフレームで再生した区間に入っていればtrue
+	for (const auto& p : clip->points)
+	{
+		bool passed = false;
+		if (!span.wrapped)
+		{
+			passed = (span.from < p.time && p.time <= span.to);
+		}
+		else
+		{
+			// ループしたフレーム：進む前からクリップの最後 と、クリップの頭から進んだ後
+			passed = (span.from < p.time && p.time <= span.clipEnd)
+				|| (span.clipStart <= p.time && p.time <= span.to);
+		}
+		setFlag(p.flag, passed);
+	}
 }
 
 void SequencerSystem::Update(entt::registry& registry)
@@ -50,18 +54,13 @@ void SequencerSystem::Update(entt::registry& registry)
 		auto& animator = view.get<AnimatorComponent>(entity);
 		auto& seq = view.get<SequencerComponent>(entity);
 
-		// パスが未設定なら、このエンティティはSequencerを使わない
-		if (seq.sequencerPath.empty())
+		if (!skinned.model || skinned.modelPath.empty())
 		{
 			continue;
 		}
 
-		if (!skinned.model)
-		{
-			continue;
-		}
-
-		SequencerData& data = dataCache.GetOrLoad(seq.sequencerPath,
+		// モデルごとのファイルを読む
+		SequencerData& data = dataCache.GetOrLoad(SequencerData::GetFilePath(skinned.modelPath),
 			[](SequencerData& data, const nlohmann::json& j) { data.FromJson(j); });
 
 		SequencerClipData* clip = nullptr;
@@ -71,24 +70,26 @@ void SequencerSystem::Update(entt::registry& registry)
 		}
 
 		// 焼き込み後のクリップを探す
-		const Model::Animation* animation = nullptr;
-		for (const auto& anim : skinned.model->GetAnimations())
-		{
-			if (anim.name == animator.currentAnimation)
-			{
-				animation = &anim;
-				break;
-			}
-		}
+		const Model::Animation* animation = skinned.model->FindAnimation(animator.currentAnimation);
 
 		if (!animation)
 		{
 			continue;
 		}
 
-		// 今の再生時刻を、生データの時刻に直す
-		const float rawTime = animation->ToRawTime(animator.animationTime);
+		// 今回のフレームで再生した区間を、生データの時刻に直す
+		PlayedSpan span;
+		span.current = animation->ToRawTime(animator.animationTime);
+		span.clipStart = animation->ToRawTime(0.0f);
+		span.clipEnd = animation->ToRawTime(animation->secondsLength);
+		span.to = animation->ToRawTime(animator.stepToTime);
+		span.wrapped = animator.stepWrapped;
 
-		UpdateFlags(seq, clip, rawTime);
+		// 始まった直後は、頭の時刻ちょうども含むように、頭より少し前にする
+		span.from = (animator.stepFromTime < 0.0f)
+			? span.clipStart - 0.0001f
+			: animation->ToRawTime(animator.stepFromTime);
+
+		UpdateFlags(seq, clip, span);
 	}
 }

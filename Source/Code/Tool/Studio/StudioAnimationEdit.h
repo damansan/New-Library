@@ -27,6 +27,8 @@ public:
 
 	// ImGui描画
 	void DrawGUI(entt::registry& registry, StudioContext& context) override;
+	// ウィンドウを閉じている間に呼ぶ
+	void OnHidden(entt::registry& registry, StudioContext& context);
 
 private:
 	// 編集モード
@@ -44,7 +46,7 @@ private:
 	bool isDirty = false;            // 未保存の変更があるか
 	EditMode mode = EditMode::Trim;  // 今のモード
 	StudioTimelineWidget timeline;   // タイムライン部品
-	bool bakedUntrimmed = false;     // トリミングなしで焼かれているか
+	bool previewActive = false;      // トリミングのプレビュー
 	bool rangePlaying = false;       // トリミングモードで、使う範囲を再生中か
 
 	// 区間の軸
@@ -57,22 +59,61 @@ private:
 	SectionAxis selectedAxis = SectionAxis::XZ; // 選んでいる区間の軸
 	int selectedSection = -1;                   // 選んでいる区間の番号
 
-	RootMotionCurve originalCurve;   // 区間を外したもの
-	RootMotionCurve editedCurve;     // 編集後
-	std::string curveClipName;       // 今のグラフがどのクリップのものか
-	bool curveDirty = true;          // グラフを作り直す必要があるか
+	RootMotionCurve originalCurve; // 区間を外したもの
+	RootMotionCurve editedCurve;   // 編集後
+	std::string curveClipName;     // 今のグラフがどのクリップのものか
+	bool curveDirty = true;        // グラフを作り直す必要があるか
+
+
+
+	// --- 全体 --- //
 
 	// タイムライン
 	bool DrawTimelineArea(const Model& model, AnimatorComponent& animator, StudioContext& context);
 	// 数値
 	bool DrawDetailArea(const Model& model, const std::string& clipName, const std::string& modelPath);
+	// Root Node の選択
+	bool DrawRootNodeCombo(const Model& model);
+	// クリップ設定（モードに合わせて、トリミングか区間の数値を出す）
+	bool DrawClipSettings(const Model& model, const std::string& clipName);
 
+	// 1フレームの秒数
+	static float CalcFrameStep(const Model& model, const std::string& clipName);
+	// 生データの長さ
+	static float FindRawLength(const Model& model, const std::string& clipName);
+
+	// モードに合わせて焼き直す
+	void Rebake(Model& model) const;
+	// モードと焼き方がずれていたら合わせる
+	void SyncBakeWithMode(Model& model, AnimatorComponent& animator, StudioContext& context);
+	// トリミングのプレビューを使う／やめる
+	void SetPreviewActive(Model& model, AnimatorComponent& animator, StudioContext& context, bool active);
+
+	// 保存読み込み
+	void Load(const std::string& modelPath, const Model& model);
+	void Save(const std::string& modelPath);
+
+
+
+	// --- トリミングモード --- //
 
 	// トリミングのトラック
 	bool DrawTrimTrack(const std::string& clipName, float rawLength, float frameStep);
 	// トリミングのボタン
-	bool DrawTrimButtons(const std::string& clipName, float rawLength, float frameStep, float pinTime); 
+	bool DrawTrimButtons(const std::string& clipName, float rawLength, float frameStep, float pinTime);
+	// トリミングの数値
+	bool DrawTrimSettings(const Model& model, AnimationEditClipData& clip);
 
+	// 使う範囲の中で時刻を進める
+	void AdvanceRangePlayback(AnimatorComponent& animator, StudioContext& context, float start, float end);
+	// 範囲を取り出す
+	void GetTrimRange(const std::string& clipName, float rawLength, float& outStart, float& outEnd) const;
+	// 範囲を書き込む
+	bool SetTrimRange(const std::string& clipName, float rawLength, float start, float end);
+
+
+
+	// --- ルートモーションモード --- //
 
 	// ルートモーションのグラフ
 	bool DrawRootMotionTracks(const Model& model, const std::string& clipName, float length, float frameStep);
@@ -82,44 +123,15 @@ private:
 	float DrawCurveTrack(const char* label, bool isY, float height, ImU32 color, float tintStart, float tintEnd);
 	// 区間の帯を描いて、クリックで選択する
 	bool DrawSectionBand(const char* id, SectionAxis axis, const std::string& clipName, float trimStart, float length, float frameStep, float graphTop);
+	// 区間の追加とSet Start / Set End
+	bool DrawSectionButtons(const std::string& clipName, float length, float frameStep, float pinTime);
+	// 選んでいる区間の数値（clip は編集中のコピー）
+	bool DrawSectionSettings(const Model& model, AnimationEditClipData& clip);
+
 	// 選んでいる区間の範囲
 	bool GetSelectedSectionRange(SectionAxis axis, const std::string& clipName, float trimStart, float& outStart, float& outEnd) const;
 	// 今のクリップのカットの始まり
 	float GetTrimStart(const std::string& clipName) const;
-	// 区間の追加とSet Start / Set End
-	bool DrawSectionButtons(const std::string& clipName, float length, float frameStep, float pinTime);
 	// 区間が動ける範囲
 	static void GetSectionLimits(const std::vector<AnimationEditSection>& sections, int index, float trimStart, float length, float& outLower, float& outUpper);
-
-	// Root Node の選択
-	bool DrawRootNodeCombo(const Model& model);
-	// クリップ設定
-	bool DrawClipSettings(const Model& model, const std::string& clipName);
-	// 選んでいる区間の数値
-	bool DrawSectionSettings(const Model& model, AnimationEditClipData& clip);
-
-
-	// 使う範囲の中で時刻を進める
-	void AdvanceRangePlayback(AnimatorComponent& animator, StudioContext& context, float start, float end); 
-	// 範囲を取り出す
-	void GetTrimRange(const std::string& clipName, float rawLength, float& outStart, float& outEnd) const;
-	// 範囲を書き込む
-	bool SetTrimRange(const std::string& clipName, float rawLength, float start, float end);            
-
-
-	// 1フレームの秒数
-	static float CalcFrameStep(const Model& model, const std::string& clipName); 
-	// 生データの長さ
-	static float FindRawLength(const Model& model, const std::string& clipName); 
-
-
-	// モードに合わせて焼き直す
-	void Rebake(Model& model) const;  
-	// モードと焼き方がずれていたら合わせる
-	void SyncBakeWithMode(Model& model, AnimatorComponent& animator, StudioContext& context); 
-
-
-	// 保存読み込み
-	void Load(const std::string& modelPath, const Model& model);
-	void Save(const std::string& modelPath);
 };

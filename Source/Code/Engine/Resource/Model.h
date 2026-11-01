@@ -126,6 +126,9 @@ public:
         float ToRawTime(float bakedTime) const;
         // 生データから焼き込み後に
         float ToBakedTime(float rawTime) const;
+
+        // 1フレームの秒数
+        float CalcFrameStep() const;
     };
 
     // 入力レイアウト
@@ -139,8 +142,21 @@ public:
     const std::vector<Node>& GetNodes()      const { return nodes; }
     const std::vector<Mesh>& GetMeshes()     const { return meshes; }
     const std::vector<Material>& GetMaterials()  const { return materials; }
-    const std::vector<Animation>& GetAnimations() const { return animations; } // 編集済み
+    const std::vector<Animation>& GetAnimations() const { return animations; }       // 編集済み
     const std::vector<Animation>& GetRawAnimations() const { return rawAnimations; } // 生データ
+    
+    // 名前からクリップを探す
+    const Animation* FindAnimation(const std::string& name) const;        // 編集済み
+    const Animation* FindRawAnimation(const std::string& name) const;     // 生データ
+    const Animation* FindPreviewAnimation(const std::string& name) const; // プレビュー用
+
+	// 編集設定をプレビュー用に適用する
+    void ApplyAnimationEditPreview(const AnimationEditData& editData);
+    // プレビュー用を消す
+    void ClearAnimationPreview();
+
+    // 再生に使うクリップの並び
+    const std::vector<Animation>& GetPlaybackAnimations(bool usePreview) const;
 
     // 編集設定を焼き込む
     void ApplyAnimationEdit(const AnimationEditData& editData);
@@ -188,8 +204,9 @@ private:
     std::vector<Node>      nodes;
     std::vector<Mesh>      meshes;
     std::vector<Material>  materials;
-    std::vector<Animation> animations;    // 編集済み
-    std::vector<Animation> rawAnimations; // 生データ
+    std::vector<Animation> animations;        // 編集済み
+    std::vector<Animation> rawAnimations;     // 生データ
+    std::vector<Animation> previewAnimations; // プレビュー用
     std::string            rootNodeName;  // 焼き込みに使ったルートノード名
 
     bool                   hasSkin = false;

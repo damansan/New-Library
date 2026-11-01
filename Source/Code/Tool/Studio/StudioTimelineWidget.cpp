@@ -1,4 +1,6 @@
 ﻿#include "StudioTimelineWidget.h"
+#include "StudioContext.h"
+#include "Engine/ECS/Components/AnimatorComponent.h"
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
@@ -21,9 +23,9 @@ bool StudioTimelineWidget::Begin(const char* id, float clipLength, float frameSt
 	const float availWidth = ImGui::GetContentRegionAvail().x;
 
 	left = cursor.x + LeftPadding;
-	width = std::max(availWidth - LeftPadding - RightPadding, 1.0f);
+	width = (std::max)(availWidth - LeftPadding - RightPadding, 1.0f);
 	top = cursor.y;
-	length = std::max(clipLength, 0.0001f);
+	length = (std::max)(clipLength, 0.0001f);
 
 	// 目盛りの領域をつかめるようにする
 	ImGui::InvisibleButton(id, ImVec2(availWidth, PinHeadHeight + RulerHeight));
@@ -42,6 +44,29 @@ bool StudioTimelineWidget::Begin(const char* id, float clipLength, float frameSt
 
 	DrawRuler(drawList, frameStep);
 	return changed;
+}
+
+// ドラッグしたら animator を止めてポーズだけ更新する
+bool StudioTimelineWidget::BeginWithAnimator(const char* id, float clipLength, float frameStep, AnimatorComponent& animator, StudioContext& context)
+{
+	if (!Begin(id, clipLength, frameStep, animator.animationTime)) return false;
+
+	// スクラブ中は止めて、ポーズだけ更新する
+	animator.isPlaying = false;
+	animator.isEnd = false;
+	context.requestPoseUpdate = true;
+	return true;
+}
+// animator を再生するボタン
+void StudioTimelineWidget::DrawAnimatorToolbar(AnimatorComponent& animator, float clipLength, float frameStep)
+{
+	if (!DrawToolbar(animator.isPlaying, animator.animationTime, frameStep)) return;
+
+	if (animator.isPlaying && animator.animationTime >= clipLength)
+	{
+		animator.animationTime = 0.0f;
+	}
+	animator.isEnd = false;
 }
 
 // トラックを描き終えたら呼ぶ
@@ -69,8 +94,7 @@ bool StudioTimelineWidget::DrawToolbar(bool& isPlaying, float time, float frameS
 	}
 
 	ImGui::SameLine();
-	const int frame = (frameStep > 0.0f) ? (int)std::round(time / frameStep) : 0;
-	ImGui::Text("%.3f s / F%d", time, frame);
+	ImGui::Text("%.3f s / F%d", time, ToFrame(time, frameStep));
 
 	return changed;
 }
@@ -80,6 +104,44 @@ float StudioTimelineWidget::SnapToFrame(float t, float frameStep, float clipLeng
 {
 	if (frameStep <= 0.0f) return std::clamp(t, 0.0f, clipLength);
 	return std::clamp(std::round(t / frameStep) * frameStep, 0.0f, clipLength);
+}
+// 時刻からフレームの番号
+int StudioTimelineWidget::ToFrame(float t, float frameStep)
+{
+	return (frameStep > 0.0f) ? (int)std::round(t / frameStep) : 0;
+}
+
+// 重ならない範囲の並びで、index 番目が動ける所
+void StudioTimelineWidget::GetSpanLimits(const std::vector<TimeSpan>& spans, int index, float clipLength, float& outLower, float& outUpper)
+{
+	outLower = 0.0f;
+	outUpper = clipLength;
+	if (index < 0 || index >= (int)spans.size()) return;
+
+	const float start = spans[index].start;
+	const float end = spans[index].end;
+
+	for (int i = 0; i < (int)spans.size(); i++)
+	{
+		if (i == index) continue;
+		if (spans[i].end <= start + 0.0001f) outLower = (std::max)(outLower, spans[i].end);   // 前にある範囲
+		if (spans[i].start >= end - 0.0001f) outUpper = (std::min)(outUpper, spans[i].start); // 後ろにある範囲
+	}
+}
+// pinTime に新しい範囲を追加できるか
+bool StudioTimelineWidget::FindAddEnd(const std::vector<TimeSpan>& spans, float pinTime, float clipLength, float minLength, float& outEnd)
+{
+	const float tolerance = minLength * 0.5f; // 小数の誤差として許す量
+
+	float end = clipLength;
+	for (const auto& s : spans)
+	{
+		if (pinTime >= s.start - tolerance && pinTime < s.end - tolerance) return false; // 既存の範囲の中
+		if (s.start >= pinTime - tolerance) end = (std::min)(end, s.start);              // 次の範囲の始まりまで
+	}
+
+	outEnd = end;
+	return (end - pinTime) >= (minLength - tolerance);
 }
 
 // 範囲の端のピン
@@ -115,8 +177,8 @@ bool StudioTimelineWidget::DrawRangeHandles(const char* id, float handleY, float
 			float t = SnapToFrame(XToTime(ImGui::GetIO().MousePos.x), frameStep, length);
 
 			// もう一方の端と、最低 minLength は空ける
-			if (isStart) t = std::min(t, inOutEnd - minLength);
-			else         t = std::max(t, inOutStart + minLength);
+			if (isStart) t = (std::min)(t, inOutEnd - minLength);
+			else         t = (std::max)(t, inOutStart + minLength);
 			t = std::clamp(t, lower, upper);
 
 			if (t != value)
@@ -132,6 +194,22 @@ bool StudioTimelineWidget::DrawRangeHandles(const char* id, float handleY, float
 
 	ImGui::SetCursorScreenPos(savedCursor);
 	return changed;
+}
+
+// ピンを1本描く
+void StudioTimelineWidget::DrawPin(ImDrawList* drawList, float x, float tipY, float headHeight, float radius, ImU32 color, PinDirection direction)
+{
+	// 頭の丸の中心と、三角形の底辺の位置
+	const float sign = (direction == PinDirection::Down) ? -1.0f : 1.0f;
+	const float headY = tipY + sign * (headHeight - radius);
+	const float baseY = headY - sign * 2.0f;
+
+	drawList->AddTriangleFilled(
+		ImVec2(x - radius * 0.8f, baseY),
+		ImVec2(x + radius * 0.8f, baseY),
+		ImVec2(x, tipY),
+		color);
+	drawList->AddCircleFilled(ImVec2(x, headY), radius, color);
 }
 
 // 時刻とX座標の変換
@@ -194,32 +272,16 @@ void StudioTimelineWidget::DrawRuler(ImDrawList* drawList, float frameStep) cons
 // ピンの頭
 void StudioTimelineWidget::DrawPinHead(ImDrawList* drawList) const
 {
-	const float x = TimeToX(time);
-	const float radius = 6.0f;
-	const float headY = top + radius;       // 丸の中心  
-	const float tipY = top + PinHeadHeight; // とがった先
-
-	drawList->AddTriangleFilled(
-		ImVec2(x - radius * 0.8f, headY + 2.0f),
-		ImVec2(x + radius * 0.8f, headY + 2.0f),
-		ImVec2(x, tipY),
-		PinColor);
-	drawList->AddCircleFilled(ImVec2(x, headY), radius, PinColor);
+	// 再生位置のピン：下向き、とがった先が目盛りの帯の上端
+	DrawPin(drawList, TimeToX(time), top + PinHeadHeight, PinHeadHeight, 6.0f, PinColor, PinDirection::Down);
 }
 void StudioTimelineWidget::DrawRangeHandle(ImDrawList* drawList, float x, float handleY, float lineTopY, bool highlighted) const
 {
 	const ImU32 color = highlighted ? RangeHandleActiveColor : RangeHandleColor;
-	const float radius = 6.0f;
-	const float headY = handleY + RangeHandleHeight - radius; // 丸の中心
 
 	// 線：頭のとがった先から、指定された上端まで
 	drawList->AddLine(ImVec2(x, handleY), ImVec2(x, lineTopY), color, 1.5f);
 
-	// 頭：上向きにとがった形
-	drawList->AddTriangleFilled(
-		ImVec2(x - radius * 0.8f, headY - 2.0f),
-		ImVec2(x + radius * 0.8f, headY - 2.0f),
-		ImVec2(x, handleY),
-		color);
-	drawList->AddCircleFilled(ImVec2(x, headY), radius, color);
+	// 頭：上向き、とがった先が帯の下端
+	DrawPin(drawList, x, handleY, RangeHandleHeight, 6.0f, color, PinDirection::Up);
 }

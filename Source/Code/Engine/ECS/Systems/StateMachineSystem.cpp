@@ -2,7 +2,6 @@
 #include "ConditionGraphEvaluator.h"
 #include "Engine/Core/Log.h"
 #include "Engine/ECS/Components/AnimatorComponent.h"
-#include "Engine/ECS/Components/SequencerComponent.h"
 #include "Engine/ECS/Components/StateMachineComponent.h"
 
 // グラフを取得する
@@ -124,7 +123,6 @@ void StateMachineSystem::UpdateAnimation(entt::registry& registry)
 		const StateNode* state = data->FindState(sm.currentStateId);
 		if (!state) continue;
 
-		SequencerComponent* sequencer = registry.try_get<SequencerComponent>(entity);
 
 		// Stateに入った直後：入ってきた遷移のエントリーから、最初のクリップを決める
 		if (sm.pendingEntry)
@@ -143,7 +141,7 @@ void StateMachineSystem::UpdateAnimation(entt::registry& registry)
 				const ClipNode* clip = state->child.FindClip(l.toClipId);
 				if (!clip) continue;
 
-				PlayClip(animator, *clip, blend, sequencer);
+				PlayClip(animator, *clip, blend);
 				sm.currentClipId = clip->id;
 				sm.currentClipName = clip->name;
 				played = true;
@@ -168,7 +166,7 @@ void StateMachineSystem::UpdateAnimation(entt::registry& registry)
 			const ClipNode* clip = state->child.FindClip(l.toClipId);
 			if (!clip) continue;
 
-			PlayClip(animator, *clip, l.blend, sequencer);
+			PlayClip(animator, *clip, l.blend);
 			sm.currentClipId = clip->id;
 			sm.currentClipName = clip->name;
 			break;
@@ -212,56 +210,19 @@ void StateMachineSystem::AddRequiredState(const std::string& stateName, const st
 	list.push_back({ stateName, user, usesState });
 }
 
-// トリミング範囲を探す
-bool StateMachineSystem::FindTrimmingRange(SequencerData& data, const std::string& clipName, float& outStart, float& outEnd)
-{
-	for (auto& clip : data.clips)
-	{
-		if (clip.clipName != clipName) continue;
-		for (auto& range : clip.ranges)
-		{
-			if (range.flag == SequencerFlag::Trimming)
-			{
-				outStart = range.start;
-				outEnd = range.end;
-				return true;
-			}
-		}
-		break;
-	}
-	return false;
-}
 
 // クリップを再生する
-void StateMachineSystem::PlayClip(AnimatorComponent& animator, const ClipNode& clip, const BlendSetting& blend, SequencerComponent* sequencer)
+void StateMachineSystem::PlayClip(AnimatorComponent& animator, const ClipNode& clip, const BlendSetting& blend)
 {
-	// トリミング範囲を調べる
-	float trimStart = 0.0f;
-	float trimEnd = -1.0f;
-	if (sequencer && !sequencer->sequencerPath.empty())
-	{
-		SequencerData& data = trimDataCache.GetOrLoad(sequencer->sequencerPath,
-			[](SequencerData& data, const nlohmann::json& j) { data.FromJson(j); });
-
-		float normStart = 0.0f, normEnd = 1.0f;
-		if (FindTrimmingRange(data, clip.clipName, normStart, normEnd))
-		{
-			trimStart = normStart;
-			trimEnd = normEnd;
-		}
-	}
-
 	float blendDuration = (blend.enabled && blend.duration > 0.0f) ? blend.duration : 0.0f;
 
 	// ブレンドしない
 	if (animator.currentAnimation.empty() || blendDuration <= 0.0f)
 	{
 		animator.currentAnimation = clip.clipName;
-		animator.trimStart = trimStart;
-		animator.trimEnd = trimEnd;
-		animator.trimResolved = false;
 		animator.animationTime = 0.0f;
 		animator.isPlaying = true;
+		animator.clipStarted = true;
 		animator.isEnd = false;
 		animator.useRootMotion = clip.rootMotion;
 		animator.loop = clip.loop;
@@ -277,11 +238,9 @@ void StateMachineSystem::PlayClip(AnimatorComponent& animator, const ClipNode& c
 	animator.isBlending = true;
 
 	animator.currentAnimation = clip.clipName;
-	animator.trimStart = trimStart;
-	animator.trimEnd = trimEnd;
-	animator.trimResolved = false;
 	animator.animationTime = 0.0f;
 	animator.isPlaying = true;
+	animator.clipStarted = true;
 	animator.isEnd = false;
 	animator.useRootMotion = clip.rootMotion;
 	animator.loop = clip.loop;

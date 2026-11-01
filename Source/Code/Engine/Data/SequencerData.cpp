@@ -1,4 +1,5 @@
 #include "SequencerData.h"
+#include <filesystem>
 
 namespace
 {
@@ -6,19 +7,17 @@ namespace
 	{
 		switch (flag)
 		{
-		case SequencerFlag::AnimExit:   return "AnimExit";
-		case SequencerFlag::SuperArmor: return "SuperArmor";
-		case SequencerFlag::Attack:     return "Attack";
-		case SequencerFlag::Trimming:   return "Trimming";
+		case SequencerFlag::AnimExit: return "AnimExit";
+		default: break;
 		}
 		return "AnimExit";
 	}
-	SequencerFlag ToSequencerFlag(const std::string& s)
+
+	// 名前からフラグに直す
+	bool TryParseSequencerFlag(const std::string& s, SequencerFlag& outFlag)
 	{
-		if (s == "SuperArmor") return SequencerFlag::SuperArmor;
-		if (s == "Attack")     return SequencerFlag::Attack;
-		if (s == "Trimming")   return SequencerFlag::Trimming;
-		return SequencerFlag::AnimExit;
+		if (s == "AnimExit") { outFlag = SequencerFlag::AnimExit; return true; }
+		return false;
 	}
 }
 
@@ -36,7 +35,14 @@ SequencerClipData* SequencerData::FindOrCreateClip(const std::string& clipName)
 	clips.push_back(newClip);
 	return &clips.back();
 }
-
+SequencerClipData* SequencerData::FindClip(const std::string& clipName)
+{
+	for (auto& clip : clips)
+	{
+		if (clip.clipName == clipName) return &clip;
+	}
+	return nullptr;
+}
 
 // 保存
 nlohmann::ordered_json SequencerData::ToJson() const
@@ -97,8 +103,7 @@ void SequencerData::FromJson(const nlohmann::json& j)
 				SequencerRange r;
 				r.id = jr.value("id", -1);
 				r.start = jr.value("start", 0.0f);
-				r.end = jr.value("end", 1.0f);
-				r.flag = ToSequencerFlag(jr.value("flag", "AnimExit"));
+				r.end = jr.value("end", 0.0f);
 				clip.ranges.push_back(r);
 			}
 		}
@@ -110,11 +115,17 @@ void SequencerData::FromJson(const nlohmann::json& j)
 				SequencerPoint p;
 				p.id = jp.value("id", -1);
 				p.time = jp.value("time", 0.0f);
-				p.flag = ToSequencerFlag(jp.value("flag", "AnimExit"));
 				clip.points.push_back(p);
 			}
 		}
 
 		clips.push_back(clip);
 	}
+}
+
+// モデルパスから保存先のパスを組み立てる
+std::string SequencerData::GetFilePath(const std::string& modelPath)
+{
+	std::filesystem::path p(modelPath);
+	return "Data/Json/Sequencer/" + p.stem().string() + ".sequencer";
 }

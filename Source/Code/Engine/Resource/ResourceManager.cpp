@@ -7,7 +7,7 @@
 #include "Engine/Core/Log.h"
 #include "Engine/Data/AnimationEditData.h"
 #include "Engine/Resource/AnimationEditBaker.h"
-#include <fstream>
+#include "Engine/Core/JsonFile.h"
 
 // モデル取得
 std::shared_ptr<Model> ResourceManager::GetModel(ID3D11Device* device, const std::string& filename)
@@ -48,17 +48,9 @@ std::shared_ptr<Model> ResourceManager::GetModel(ID3D11Device* device, const std
 		AnimationEditData editData;
 
 		const std::string editPath = AnimationEditData::GetFilePath(filename);
-		std::ifstream ifs(editPath);
-		if (ifs.is_open())
+		if (JsonFile::Load(editPath, editData))
 		{
-			try
-			{
-				nlohmann::json j;
-				ifs >> j;
-				editData.FromJson(j);
-				Log(u8" アニメーション編集設定を読み込み: %s", editPath.c_str());
-			}
-			catch (const std::exception&) {}
+			Log(u8" アニメーション編集設定を読み込み: %s", editPath.c_str());
 		}
 
 		// ルートノードが未設定なら、モデルから探す

@@ -44,6 +44,8 @@
     <ClCompile Include="..\..\Source\Code\Tool\Editor\ViewportWindow.cpp" />
     <ClCompile Include="..\..\Source\Code\Tool\NodeEditor\NodeEditorCanvas.cpp" />
     <ClCompile Include="..\..\Source\Code\Tool\Studio\StudioAnimationEdit.cpp" />
+    <ClCompile Include="..\..\Source\Code\Tool\Studio\StudioAnimationEditRootMotion.cpp" />
+    <ClCompile Include="..\..\Source\Code\Tool\Studio\StudioAnimationEditTrimming.cpp" />
     <ClCompile Include="..\..\Source\Code\Tool\Studio\StudioAnimationSpeed.cpp" />
     <ClCompile Include="..\..\Source\Code\Tool\Studio\StudioAnimator.cpp" />
     <ClCompile Include="..\..\Source\Code\Tool\Studio\StudioCamera.cpp" />

@@ -1,11 +1,21 @@
 #pragma once
 #include <imgui.h>
+#include <vector>
+
+struct AnimatorComponent;
+struct StudioContext;
 
 class StudioTimelineWidget
 {
 public:
 	// 目盛りを描いて、ピンのドラッグを処理する
 	bool Begin(const char* id, float clipLength, float frameStep, float& inOutTime);
+	
+	// ドラッグしたら animator を止めてポーズだけ更新する
+	bool BeginWithAnimator(const char* id, float clipLength, float frameStep, AnimatorComponent& animator, StudioContext& context);
+	// animator を再生するボタン
+	static void DrawAnimatorToolbar(AnimatorComponent& animator, float clipLength, float frameStep);
+
 	// トラックを描き終えたら呼ぶ
 	void End();
 
@@ -14,9 +24,37 @@ public:
 	// フレームに吸い付かせる
 	static float SnapToFrame(float t, float frameStep, float clipLength);
 
+	// 範囲の最低の長さ
+	static float MinLength(float frameStep) { return (frameStep > 0.0f) ? frameStep : 0.001f; }
+	// 時刻からフレームの番号
+	static int ToFrame(float t, float frameStep);
+
+	// タイムライン上の範囲
+	struct TimeSpan
+	{
+		float start = 0.0f;
+		float end = 0.0f;
+	};
+
+	// 重ならない範囲の並びで、index 番目が動ける所
+	static void GetSpanLimits(const std::vector<TimeSpan>& spans, int index, float clipLength, float& outLower, float& outUpper);
+	// pinTime に新しい範囲を追加できるか
+	static bool FindAddEnd(const std::vector<TimeSpan>& spans, float pinTime, float clipLength, float minLength, float& outEnd);
+
 	// 範囲の端のピン
 	bool DrawRangeHandles(const char* id, float handleY, float frameStep, float minLength, float& inOutStart, float& inOutEnd,
 		float lowerLimit = 0.0f, float upperLimit = -1.0f, float lineTopY = -1.0f);
+
+	// ピンの向き
+	enum class PinDirection
+	{
+		Down, // 頭が上、とがった先が下
+		Up,   // 頭が下、とがった先が上
+	};
+
+	// ピンを1本描く
+	static void DrawPin(ImDrawList* drawList, float x, float tipY, float headHeight, float radius, ImU32 color, PinDirection direction);
+
 	static constexpr float RangeHandleHeight = 16.0f; // 範囲の端のピンの頭の高さ
 
 	// 時刻とX座標の変換

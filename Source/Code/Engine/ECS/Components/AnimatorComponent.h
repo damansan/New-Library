@@ -28,7 +28,14 @@ struct AnimatorComponent
     std::string currentAnimation;      // 現在のアニメーション名
     float       animationTime{ 0.0f }; // 現在の再生時間
     bool        isPlaying{ true };     // 再生中フラグ
+    bool        usePreview{ false };   // プレビュー用のクリップで再生する
 
+    // 直前の Update で再生した区間
+    float stepFromTime{ 0.0f };  // 進む前の時刻
+    float stepToTime{ 0.0f };    // 進んだ後の時刻
+    bool  stepWrapped{ false };  // ループで頭に戻ったか
+    bool  clipStarted{ true };   // クリップを頭から再生し始めたばかりか
+    
     // ブレンド関連
     float blendTime{ 0.0f };              // ブレンドにかける時間
     bool  blendSnapshotPending{ false };  // 次の更新で、前のフレームの最終ポーズを保存するか
@@ -44,11 +51,6 @@ struct AnimatorComponent
     // アニメーショングラフ
 	int currentParentStateId{ -1 }; // 現在の親ステートID
 	int currentChildStateId{ -1 };  // 現在の子ステートID
-
-    // トリミング範囲
-    float trimStart{ 0.0f };
-    float trimEnd{ -1.0f };
-    bool  trimResolved{ false };
 
     // 速度カーブ
     float speedCurveMultiplier{ 1.0f };

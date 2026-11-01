@@ -21,7 +21,14 @@ void AnimationSystem::Update(
 
 			// モデルが無効なら何もしない
 			if (!skinned.model) return;
-			if (!animator.isPlaying) return;
+			if (!animator.isPlaying)
+			{
+				// 止まっている間は、何も通過していない
+				animator.stepFromTime = animator.animationTime;
+				animator.stepToTime = animator.animationTime;
+				animator.stepWrapped = false;
+				return;
+			}
 
 			// 遷移した直後なら、前のフレームの最終ポーズを「混ぜる元」として保存する
 			if (animator.blendSnapshotPending)
@@ -41,7 +48,7 @@ void AnimationSystem::Update(
 				}
 			}
 
-			const auto& animations = skinned.model->GetAnimations();
+			const auto& animations = skinned.model->GetPlaybackAnimations(animator.usePreview);
 			if (animations.empty()) return;
 
 			// 再生するクリップを決める
@@ -55,6 +62,12 @@ void AnimationSystem::Update(
 
 			// 時間を進める
 			const ClipTimeStep step = AdvanceClipTime(animator, animation, elapsedTime);
+			
+			// 今回再生した区間を残す
+			animator.stepFromTime = animator.clipStarted ? -1.0f : step.oldTime;
+			animator.stepToTime = step.newTime;
+			animator.stepWrapped = step.oldTime > step.newTime;
+			animator.clipStarted = false;
 
 			// ルートモーションの移動量
 			const int rootMotionNodeIndex = ResolveRootMotionNodeIndex(*skinned.model, animator);
@@ -117,7 +130,7 @@ void AnimationSystem::EvaluatePose(entt::registry& registry)
 		{
 			if (!skinned.model) return;
 
-			const auto& animations = skinned.model->GetAnimations();
+			const auto& animations = skinned.model->GetPlaybackAnimations(animator.usePreview);
 			if (animations.empty()) return;
 
 			int animIndex = FindAnimationIndex(animations, animator.currentAnimation);
@@ -155,22 +168,12 @@ int AnimationSystem::FindAnimationIndex(const std::vector<Model::Animation>& ani
 // クリップの時間を1フレーム分進める
 AnimationSystem::ClipTimeStep AnimationSystem::AdvanceClipTime(AnimatorComponent& animator, const Model::Animation& animation, float elapsedTime)
 {
-	// トリミングを秒数に変換
-	if (!animator.trimResolved)
-	{
-		if (animator.trimEnd >= 0.0f)
-		{
-			animator.trimStart *= animation.secondsLength;
-			animator.trimEnd *= animation.secondsLength;
-			animator.animationTime = animator.trimStart;
-		}
-		animator.trimResolved = true;
-	}
-
+	// 再生範囲はクリップ全体
 	ClipTimeStep step;
-	step.rangeEnd = (animator.trimEnd >= 0.0f) ? animator.trimEnd : animation.secondsLength;
-	step.rangeStart = (animator.trimEnd >= 0.0f) ? animator.trimStart : 0.0f;
+	step.rangeStart = 0.0f;
+	step.rangeEnd = animation.secondsLength;
 	step.oldTime = animator.animationTime;
+
 
 	animator.animationTime += elapsedTime * animator.playSpeed * animator.speedCurveMultiplier;
 
