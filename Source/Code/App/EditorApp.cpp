@@ -50,6 +50,28 @@ void EditorApp::OnPreUpdate(float elapsedTime)
 		previewRelease = !previewRelease;
 	}
 	prevF1 = currF1;
+	// ウィンドウの縦横比をカメラに当てる
+	if (previewRelease)
+	{
+		RECT rc{};
+		GetClientRect(hwnd, &rc);
+		float width = static_cast<float>(rc.right - rc.left);
+		float height = static_cast<float>(rc.bottom - rc.top);
+		if (width > 0.0f && height > 0.0f)
+		{
+			float aspect = width / height;
+
+			// ゲームカメラ
+			gameView.SetAspect(aspect);
+
+			// デバッグカメラ(Debugモードのままプレビューしたときも引き伸ばされないように)
+			Camera& debugCamera = viewportWindow.GetDebugCamera();
+			debugCamera.SetPerspectiveFov(
+				DirectX::XMConvertToRadians(debugCamera.GetViewingAngle()),
+				aspect, 0.1f, 1000.0f);
+		}
+	}
+
 
 	// 右クリックを押した瞬間、Gameへの入力が有効であればDebugモードに切り替え
 	static bool prevRButton = false;
