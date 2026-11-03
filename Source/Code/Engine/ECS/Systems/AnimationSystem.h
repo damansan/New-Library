@@ -23,10 +23,8 @@ private:
 	// 1フレーム分、クリップの時間を進めた結果
 	struct ClipTimeStep
 	{
-		float oldTime = 0.0f;    // 進める前の時間
-		float newTime = 0.0f;    // 進めた後の時間
-		float rangeStart = 0.0f; // 再生範囲の始まり
-		float rangeEnd = 0.0f;   // 再生範囲の終わり
+		float oldTime = 0.0f; // 進める前の時間
+		float newTime = 0.0f; // 進めた後の時間
 	};
 
 	// ルートモーション由来の速度
@@ -49,8 +47,6 @@ private:
 	// クロスフェード：保存したポーズから、今のポーズへ混ぜる
 	static void UpdateCrossfade(AnimatorComponent& animator, SkinnedMeshComponent& skinned, float elapsedTime);
 
-	// ルートモーション対象ノードの番号
-	static int ResolveRootMotionNodeIndex(const Model& model, AnimatorComponent& animator);
 
 	// キーフレーム補間（位置）
 	static DirectX::XMFLOAT3 InterpolatePosition(
@@ -86,9 +82,6 @@ private:
 		std::vector<DirectX::XMFLOAT4>& outRotations,
 		std::vector<DirectX::XMFLOAT3>& outScales);
 
-	// 名前からルートノードインデックスを探す
-	static int FindNodeIndex(const Model& model, const std::string& name);
-
 	// 指定時刻のローカル位置を求める
 	static DirectX::XMFLOAT3 CalcNodeLocalPosition(
 		const Model::Animation& animation,
@@ -102,7 +95,5 @@ private:
 		const Model::Animation& animation,
 		int rootMotionNodeIndex,
 		float oldTime,
-		float newTime,
-		float rangeStart = 0.0f,
-		float rangeEnd = -1.0f);
+		float newTime);
 };

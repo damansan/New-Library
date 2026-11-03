@@ -231,7 +231,8 @@ bool StudioSequencer::DrawTimelineArea(const Model& model, AnimatorComponent& an
 	timeline.End();
 
 	// 再生位置で操作するボタン
-	changed |= DrawItemButtons(model, clipName, viewTime, frameStep);
+	const float pinTime = StudioTimelineWidget::SnapToFrame(viewTime, frameStep, length);
+	changed |= DrawItemButtons(model, clipName, pinTime, frameStep);
 
 	return changed;
 }
@@ -461,7 +462,7 @@ bool StudioSequencer::DrawPointLane(SequencerFlag flag, const Model& model, cons
 			}
 
 			// ドラッグで動かす
-			if (ImGui::IsItemActive())
+			if (ImGui::IsItemActive() && ImGui::IsMouseDragging(ImGuiMouseButton_Left))
 			{
 				const float t = StudioTimelineWidget::SnapToFrame(timeline.XToTime(ImGui::GetIO().MousePos.x), frameStep, length);
 				const float raw = animation->ToRawTime(t);

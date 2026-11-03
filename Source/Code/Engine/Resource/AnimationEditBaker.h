@@ -37,10 +37,10 @@ private:
 
 	// 区間ごとに、ルートの移動量に倍率を掛ける
 	static void ApplySections(
-		Model::NodeAnim& rootAnim,
+		Model::Animation& animation,
+		int rootIndex,
 		const std::vector<AnimationEditSection>& sectionsXZ,
-		const std::vector<AnimationEditSection>& sectionsY,
-		float trimStart);
+		const std::vector<AnimationEditSection>& sectionsY);
 
 	// ルートをY軸回りに回す
 	static void ApplyYawOffset(Model::NodeAnim& rootAnim, const Model::Node& rootNode, float yawDegrees);

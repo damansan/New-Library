@@ -136,6 +136,8 @@ bool StudioTimelineWidget::FindAddEnd(const std::vector<TimeSpan>& spans, float 
 	float end = clipLength;
 	for (const auto& s : spans)
 	{
+		if (s.end - s.start < tolerance) continue; // カットされて長さが無くなった範囲は、無いものとして扱う
+
 		if (pinTime >= s.start - tolerance && pinTime < s.end - tolerance) return false; // 既存の範囲の中
 		if (s.start >= pinTime - tolerance) end = (std::min)(end, s.start);              // 次の範囲の始まりまで
 	}
@@ -172,7 +174,8 @@ bool StudioTimelineWidget::DrawRangeHandles(const char* id, float handleY, float
 		const bool hovered = ImGui::IsItemHovered();
 		ImGui::PopID();
 
-		if (active)
+		// ドラッグで動かす
+		if (active && ImGui::IsMouseDragging(ImGuiMouseButton_Left))
 		{
 			float t = SnapToFrame(XToTime(ImGui::GetIO().MousePos.x), frameStep, length);
 

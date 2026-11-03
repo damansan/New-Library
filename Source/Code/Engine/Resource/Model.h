@@ -160,8 +160,9 @@ public:
 
     // 編集設定を焼き込む
     void ApplyAnimationEdit(const AnimationEditData& editData);
-    // 焼き込みに使ったルートノード名
+    // 焼き込みに使ったルートノード名と番号
     const std::string& GetRootNodeName() const { return rootNodeName; }
+    int GetRootNodeIndex() const { return rootNodeIndex; }
 
     std::vector<Node>& GetNodes() { return nodes; }
     std::vector<Mesh>& GetMeshes() { return meshes; }
@@ -201,13 +202,17 @@ private:
     friend class GLTFConverter;
     friend class ModelSerializer;
 
+    // 生データがまだ控えられていなければ、今のアニメーションを控える
+    void EnsureRawAnimations();
+
     std::vector<Node>      nodes;
     std::vector<Mesh>      meshes;
     std::vector<Material>  materials;
     std::vector<Animation> animations;        // 編集済み
     std::vector<Animation> rawAnimations;     // 生データ
     std::vector<Animation> previewAnimations; // プレビュー用
-    std::string            rootNodeName;  // 焼き込みに使ったルートノード名
+    std::string            rootNodeName;       // 焼き込みに使ったルートノード名
+    int                    rootNodeIndex = -1; // その番号
 
     bool                   hasSkin = false;
 

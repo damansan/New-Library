@@ -1,13 +1,12 @@
 #pragma once
 #include <set>
 #include <string>
+#include <vector>
 #include "entt.hpp"
 #include "Engine/Core/JsonFileCache.h"
 #include "Engine/Data/StateMachineData.h"
-#include "Engine/Data/SequencerData.h"
 
 struct AnimatorComponent;
-struct SequencerComponent;
 struct StateMachineComponent;
 
 // 読み込んだグラフと、その結果
@@ -70,7 +69,6 @@ private:
 	static void PlayClip(AnimatorComponent& animator, const ClipNode& clip, const BlendSetting& blend);
 
 	JsonFileCache<LoadedStateMachine> graphCache;
-	JsonFileCache<SequencerData> trimDataCache;
 
 	// 使えないことをLogに報告済みのパス
 	std::set<std::string> reportedPaths;

@@ -1,12 +1,12 @@
 ﻿#pragma once
 #include "IStudioAttachment.h"
 #include "Engine/Data/AnimationEditData.h"
+#include "Engine/Resource/Model.h"
 #include "StudioTimelineWidget.h"
 #include <imgui.h>
 #include <string>
 #include <vector>
 
-class Model;
 struct AnimatorComponent;
 
 // ルートモーションのグラフ用の値
@@ -68,6 +68,8 @@ private:
 
 	// --- 全体 --- //
 
+	// モードの切り替え
+	void DrawModeBar();
 	// タイムライン
 	bool DrawTimelineArea(const Model& model, AnimatorComponent& animator, StudioContext& context);
 	// 数値
@@ -116,22 +118,20 @@ private:
 	// --- ルートモーションモード --- //
 
 	// ルートモーションのグラフ
-	bool DrawRootMotionTracks(const Model& model, const std::string& clipName, float length, float frameStep);
+	bool DrawRootMotionTracks(const Model& model, const Model::Animation& animation, const std::string& clipName, float frameStep);
 	// グラフの値を作り直す
 	void RebuildCurves(const Model& model, const std::string& clipName);
 	// グラフのトラックを1本描く
 	float DrawCurveTrack(const char* label, bool isY, float height, ImU32 color, float tintStart, float tintEnd);
 	// 区間の帯を描いて、クリックで選択する
-	bool DrawSectionBand(const char* id, SectionAxis axis, const std::string& clipName, float trimStart, float length, float frameStep, float graphTop);
+	bool DrawSectionBand(const char* id, SectionAxis axis, const Model::Animation& animation, const std::string& clipName, float frameStep, float graphTop);
 	// 区間の追加とSet Start / Set End
-	bool DrawSectionButtons(const std::string& clipName, float length, float frameStep, float pinTime);
-	// 選んでいる区間の数値（clip は編集中のコピー）
+	bool DrawSectionButtons(const Model::Animation& animation, const std::string& clipName, float frameStep, float pinTime);
+	// 選んでいる区間の数値
 	bool DrawSectionSettings(const Model& model, AnimationEditClipData& clip);
 
 	// 選んでいる区間の範囲
-	bool GetSelectedSectionRange(SectionAxis axis, const std::string& clipName, float trimStart, float& outStart, float& outEnd) const;
-	// 今のクリップのカットの始まり
-	float GetTrimStart(const std::string& clipName) const;
+	bool GetSelectedSectionRange(SectionAxis axis, const Model::Animation& animation, const std::string& clipName, float& outStart, float& outEnd) const;
 	// 区間が動ける範囲
-	static void GetSectionLimits(const std::vector<AnimationEditSection>& sections, int index, float trimStart, float length, float& outLower, float& outUpper);
+	static void GetSectionLimits(const std::vector<AnimationEditSection>& sections, int index, const Model::Animation& animation, float& outLower, float& outUpper); 
 };

@@ -64,11 +64,7 @@ const Model::Animation* Model::FindPreviewAnimation(const std::string& name) con
 // 編集設定をプレビュー用に適用する
 void Model::ApplyAnimationEditPreview(const AnimationEditData& editData)
 {
-	// 生データがまだ控えられていなければ控える
-	if (rawAnimations.empty())
-	{
-		rawAnimations = animations;
-	}
+	EnsureRawAnimations();
 
 	// カットだけを外す
 	AnimationEditData preview = editData;
@@ -95,16 +91,23 @@ const std::vector<Model::Animation>& Model::GetPlaybackAnimations(bool usePrevie
 // 編集設定を焼き込む
 void Model::ApplyAnimationEdit(const AnimationEditData& editData)
 {
-    // 初回だけ、今のアニメーションを生データとして控えておく
-        if (rawAnimations.empty())
-        {
-            rawAnimations = animations;
-        }
+	EnsureRawAnimations();
 
     animations = AnimationEditBaker::Bake(rawAnimations, nodes, editData);
 
-    // 焼き込みと同じボーンを、ランタイムでも固定するために覚えておく
-    rootNodeName = editData.rootNodeName;
+	// 焼き込みと同じボーンを、ランタイムでも固定するために覚えておく
+	rootNodeName = editData.rootNodeName;
+	rootNodeIndex = AnimationEditBaker::FindNodeIndex(nodes, rootNodeName);
+}
+
+// 生データがまだ控えられていなければ、今のアニメーションを控える
+void Model::EnsureRawAnimations()
+{
+	// 初回の焼き込みより前なら、animations はまだ加工されていない生データ
+	if (rawAnimations.empty())
+	{
+		rawAnimations = animations;
+	}
 }
 
 // 焼き込み後から生データに

@@ -40,6 +40,7 @@ public:
 	std::vector<SequencerClipData> clips;
 
 	// 指定したクリップ名のデータを探す
+	const SequencerClipData* FindClip(const std::string& clipName) const;
 	SequencerClipData* FindClip(const std::string& clipName);
 	SequencerClipData* FindOrCreateClip(const std::string& clipName);
 

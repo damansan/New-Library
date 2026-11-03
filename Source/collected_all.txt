@@ -339,6 +339,28 @@ void EditorApp::OnPreUpdate(float elapsedTime)
 		previewRelease = !previewRelease;
 	}
 	prevF1 = currF1;
+	// ƒEƒBƒ“ƒhƒE‚Ìc‰¡”ä‚ğƒJƒƒ‰‚É“–‚Ä‚é
+	if (previewRelease)
+	{
+		RECT rc{};
+		GetClientRect(hwnd, &rc);
+		float width = static_cast<float>(rc.right - rc.left);
+		float height = static_cast<float>(rc.bottom - rc.top);
+		if (width > 0.0f && height > 0.0f)
+		{
+			float aspect = width / height;
+
+			// ƒQ[ƒ€ƒJƒƒ‰
+			gameView.SetAspect(aspect);
+
+			// ƒfƒoƒbƒOƒJƒƒ‰(Debugƒ‚[ƒh‚Ì‚Ü‚ÜƒvƒŒƒrƒ…[‚µ‚½‚Æ‚«‚àˆø‚«L‚Î‚³‚ê‚È‚¢‚æ‚¤‚É)
+			Camera& debugCamera = viewportWindow.GetDebugCamera();
+			debugCamera.SetPerspectiveFov(
+				DirectX::XMConvertToRadians(debugCamera.GetViewingAngle()),
+				aspect, 0.1f, 1000.0f);
+		}
+	}
+
 
 	// ‰EƒNƒŠƒbƒN‚ğ‰Ÿ‚µ‚½uŠÔAGame‚Ö‚Ì“ü—Í‚ª—LŒø‚Å‚ ‚ê‚ÎDebugƒ‚[ƒh‚ÉØ‚è‘Ö‚¦
 	static bool prevRButton = false;
@@ -2923,6 +2945,7 @@ public:
 	std::vector<SequencerClipData> clips;
 
 	// w’è‚µ‚½ƒNƒŠƒbƒv–¼‚Ìƒf[ƒ^‚ğ’T‚·
+	const SequencerClipData* FindClip(const std::string& clipName) const;
 	SequencerClipData* FindClip(const std::string& clipName);
 	SequencerClipData* FindOrCreateClip(const std::string& clipName);
 
@@ -3951,6 +3974,7 @@ bool IsGetterAxisValid(const ConditionGetterNode& node)
 ===== SequencerData.cpp ===== 
 Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\Data\SequencerData.cpp 
 #include "SequencerData.h"
+#include "Engine/Core/Log.h"
 #include <filesystem>
 
 namespace
@@ -3975,25 +3999,26 @@ namespace
 
 
 // w’è‚µ‚½ƒNƒŠƒbƒv–¼‚Ìƒf[ƒ^‚ğ’T‚·
-SequencerClipData* SequencerData::FindOrCreateClip(const std::string& clipName)
+const SequencerClipData* SequencerData::FindClip(const std::string& clipName) const
 {
-	for (auto& clip : clips)
+	for (const auto& clip : clips)
 	{
 		if (clip.clipName == clipName) return &clip;
 	}
+	return nullptr;
+}
+SequencerClipData* SequencerData::FindClip(const std::string& clipName)
+{
+	return const_cast<SequencerClipData*>(static_cast<const SequencerData&>(*this).FindClip(clipName));
+}
+SequencerClipData* SequencerData::FindOrCreateClip(const std::string& clipName)
+{
+	if (SequencerClipData* clip = FindClip(clipName)) return clip;
 
 	SequencerClipData newClip;
 	newClip.clipName = clipName;
 	clips.push_back(newClip);
 	return &clips.back();
-}
-SequencerClipData* SequencerData::FindClip(const std::string& clipName)
-{
-	for (auto& clip : clips)
-	{
-		if (clip.clipName == clipName) return &clip;
-	}
-	return nullptr;
 }
 
 // •Û‘¶
@@ -4056,6 +4081,14 @@ void SequencerData::FromJson(const nlohmann::json& j)
 				r.id = jr.value("id", -1);
 				r.start = jr.value("start", 0.0f);
 				r.end = jr.value("end", 0.0f);
+
+				// ’m‚ç‚È‚¢ƒtƒ‰ƒO–¼‚Í“Ç‚İ”ò‚Î‚·
+				const std::string flagName = jr.value("flag", "");
+				if (!TryParseSequencerFlag(flagName, r.flag))
+				{
+					Log(u8" Sequencer: •s–¾‚Èƒtƒ‰ƒOu%sv", flagName.c_str());
+					continue;
+				}
 				clip.ranges.push_back(r);
 			}
 		}
@@ -4067,6 +4100,14 @@ void SequencerData::FromJson(const nlohmann::json& j)
 				SequencerPoint p;
 				p.id = jp.value("id", -1);
 				p.time = jp.value("time", 0.0f);
+
+				// ’m‚ç‚È‚¢ƒtƒ‰ƒO–¼‚Í“Ç‚İ”ò‚Î‚·
+				const std::string flagName = jp.value("flag", "");
+				if (!TryParseSequencerFlag(flagName, p.flag))
+				{
+					Log(u8" Sequencer: •s–¾‚Èƒtƒ‰ƒOu%sv", flagName.c_str());
+					continue;
+				}
 				clip.points.push_back(p);
 			}
 		}
@@ -6045,10 +6086,8 @@ private:
 	// 1ƒtƒŒ[ƒ€•ªAƒNƒŠƒbƒv‚ÌŠÔ‚ği‚ß‚½Œ‹‰Ê
 	struct ClipTimeStep
 	{
-		float oldTime = 0.0f;    // i‚ß‚é‘O‚ÌŠÔ
-		float newTime = 0.0f;    // i‚ß‚½Œã‚ÌŠÔ
-		float rangeStart = 0.0f; // Ä¶”ÍˆÍ‚Ìn‚Ü‚è
-		float rangeEnd = 0.0f;   // Ä¶”ÍˆÍ‚ÌI‚í‚è
+		float oldTime = 0.0f; // i‚ß‚é‘O‚ÌŠÔ
+		float newTime = 0.0f; // i‚ß‚½Œã‚ÌŠÔ
 	};
 
 	// ƒ‹[ƒgƒ‚[ƒVƒ‡ƒ“—R—ˆ‚Ì‘¬“x
@@ -6071,8 +6110,6 @@ private:
 	// ƒNƒƒXƒtƒF[ƒhF•Û‘¶‚µ‚½ƒ|[ƒY‚©‚çA¡‚Ìƒ|[ƒY‚Ö¬‚º‚é
 	static void UpdateCrossfade(AnimatorComponent& animator, SkinnedMeshComponent& skinned, float elapsedTime);
 
-	// ƒ‹[ƒgƒ‚[ƒVƒ‡ƒ“‘ÎÛƒm[ƒh‚Ì”Ô†
-	static int ResolveRootMotionNodeIndex(const Model& model, AnimatorComponent& animator);
 
 	// ƒL[ƒtƒŒ[ƒ€•âŠÔiˆÊ’uj
 	static DirectX::XMFLOAT3 InterpolatePosition(
@@ -6108,9 +6145,6 @@ private:
 		std::vector<DirectX::XMFLOAT4>& outRotations,
 		std::vector<DirectX::XMFLOAT3>& outScales);
 
-	// –¼‘O‚©‚çƒ‹[ƒgƒm[ƒhƒCƒ“ƒfƒbƒNƒX‚ğ’T‚·
-	static int FindNodeIndex(const Model& model, const std::string& name);
-
 	// w’è‚Ìƒ[ƒJƒ‹ˆÊ’u‚ğ‹‚ß‚é
 	static DirectX::XMFLOAT3 CalcNodeLocalPosition(
 		const Model::Animation& animation,
@@ -6124,9 +6158,7 @@ private:
 		const Model::Animation& animation,
 		int rootMotionNodeIndex,
 		float oldTime,
-		float newTime,
-		float rangeStart = 0.0f,
-		float rangeEnd = -1.0f);
+		float newTime);
 }; 
  
 ===== ConditionGraphEvaluator.h ===== 
@@ -6620,13 +6652,12 @@ Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\ECS\Systems\StateMac
 #pragma once
 #include <set>
 #include <string>
+#include <vector>
 #include "entt.hpp"
 #include "Engine/Core/JsonFileCache.h"
 #include "Engine/Data/StateMachineData.h"
-#include "Engine/Data/SequencerData.h"
 
 struct AnimatorComponent;
-struct SequencerComponent;
 struct StateMachineComponent;
 
 // “Ç‚İ‚ñ‚¾ƒOƒ‰ƒt‚ÆA‚»‚ÌŒ‹‰Ê
@@ -6689,7 +6720,6 @@ private:
 	static void PlayClip(AnimatorComponent& animator, const ClipNode& clip, const BlendSetting& blend);
 
 	JsonFileCache<LoadedStateMachine> graphCache;
-	JsonFileCache<SequencerData> trimDataCache;
 
 	// g‚¦‚È‚¢‚±‚Æ‚ğLog‚É•ñÏ‚İ‚ÌƒpƒX
 	std::set<std::string> reportedPaths;
@@ -6818,6 +6848,11 @@ void AnimationSystem::Update(
 
 			// ƒ‚ƒfƒ‹‚ª–³Œø‚È‚ç‰½‚à‚µ‚È‚¢
 			if (!skinned.model) return;
+
+			// Inspector ‚ÉÀÛ‚Ég‚Á‚Ä‚¢‚éƒ‹[ƒgƒm[ƒh‚ğ•\¦‚·‚é
+			const int rootMotionNodeIndex = skinned.model->GetRootNodeIndex();
+			animator.activeRootMotionNode = (rootMotionNodeIndex >= 0) ? skinned.model->GetRootNodeName() : "";
+
 			if (!animator.isPlaying)
 			{
 				// ~‚Ü‚Á‚Ä‚¢‚éŠÔ‚ÍA‰½‚à’Ê‰ß‚µ‚Ä‚¢‚È‚¢
@@ -6867,11 +6902,8 @@ void AnimationSystem::Update(
 			animator.clipStarted = false;
 
 			// ƒ‹[ƒgƒ‚[ƒVƒ‡ƒ“‚ÌˆÚ“®—Ê
-			const int rootMotionNodeIndex = ResolveRootMotionNodeIndex(*skinned.model, animator);
-
-			animator.rootMotionDelta = (rootMotionNodeIndex >= 0)
-				? CalcRootMotionDelta(*skinned.model, animation, rootMotionNodeIndex,
-					step.oldTime, step.newTime, step.rangeStart, step.rangeEnd)
+			animator.rootMotionDelta = (rootMotionNodeIndex >= 0) 
+				? CalcRootMotionDelta(*skinned.model, animation, rootMotionNodeIndex, step.oldTime, step.newTime)
 				: DirectX::XMFLOAT3{ 0.0f, 0.0f, 0.0f };
 
 			// ƒ|[ƒY‚ğì‚é
@@ -6927,6 +6959,10 @@ void AnimationSystem::EvaluatePose(entt::registry& registry)
 		{
 			if (!skinned.model) return;
 
+			// Inspector ‚ÉÀÛ‚Ég‚Á‚Ä‚¢‚éƒ‹[ƒgƒm[ƒh‚ğ•\¦‚·‚é
+			const int rootMotionNodeIndex = skinned.model->GetRootNodeIndex();
+			animator.activeRootMotionNode = (rootMotionNodeIndex >= 0) ? skinned.model->GetRootNodeName() : "";
+
 			const auto& animations = skinned.model->GetPlaybackAnimations(animator.usePreview);
 			if (animations.empty()) return;
 
@@ -6934,9 +6970,6 @@ void AnimationSystem::EvaluatePose(entt::registry& registry)
 			if (animIndex < 0) return;
 
 			const auto& animation = animations[animIndex];
-
-			// ƒ‹[ƒgƒ‚[ƒVƒ‡ƒ“‘ÎÛƒm[ƒh‚ğŒÅ’è‚·‚é
-			const int rootMotionNodeIndex = ResolveRootMotionNodeIndex(*skinned.model, animator);
 
 			CalcBoneTransforms(
 				*skinned.model, animation, animator.animationTime,
@@ -6965,30 +6998,28 @@ int AnimationSystem::FindAnimationIndex(const std::vector<Model::Animation>& ani
 // ƒNƒŠƒbƒv‚ÌŠÔ‚ğ1ƒtƒŒ[ƒ€•ªi‚ß‚é
 AnimationSystem::ClipTimeStep AnimationSystem::AdvanceClipTime(AnimatorComponent& animator, const Model::Animation& animation, float elapsedTime)
 {
-	// Ä¶”ÍˆÍ‚ÍƒNƒŠƒbƒv‘S‘Ì
-	ClipTimeStep step;
-	step.rangeStart = 0.0f;
-	step.rangeEnd = animation.secondsLength;
-	step.oldTime = animator.animationTime;
+	const float length = animation.secondsLength;
 
+	ClipTimeStep step;
+	step.oldTime = animator.animationTime;
 
 	animator.animationTime += elapsedTime * animator.playSpeed * animator.speedCurveMultiplier;
 
 	if (animator.loop)
 	{
 		// ƒ‹[ƒvFI‚í‚è‚ğ‰z‚¦‚½‚çA‰z‚¦‚½•ª‚¾‚¯“ª‚©‚ç
-		if (animator.animationTime > step.rangeEnd)
+		if (animator.animationTime > length)
 		{
-			animator.animationTime = step.rangeStart + (animator.animationTime - step.rangeEnd);
+			animator.animationTime -= length;
 			animator.isEnd = false;
 		}
 	}
 	else
 	{
 		// ƒ‹[ƒv‚µ‚È‚¢FI‚í‚è‚Å~‚ß‚é
-		if (animator.animationTime >= step.rangeEnd)
+		if (animator.animationTime >= length)
 		{
-			animator.animationTime = step.rangeEnd;
+			animator.animationTime = length;
 			animator.isPlaying = false;
 			animator.isEnd = true;
 		}
@@ -7035,17 +7066,6 @@ void AnimationSystem::UpdateCrossfade(AnimatorComponent& animator, SkinnedMeshCo
 	{
 		animator.isBlending = false;
 	}
-}
-
-// ƒ‹[ƒgƒ‚[ƒVƒ‡ƒ“‘ÎÛƒm[ƒh‚Ì”Ô†
-int AnimationSystem::ResolveRootMotionNodeIndex(const Model& model, AnimatorComponent& animator)
-{
-	const std::string& name = model.GetRootNodeName();
-
-	// Inspector‚ÉuÀÛ‚Ég‚Á‚Ä‚¢‚éƒ{[ƒ“v‚ğ•\¦‚·‚é
-	animator.activeRootMotionNode = name;
-
-	return name.empty() ? -1 : FindNodeIndex(model, name);
 }
 
 // ƒL[ƒtƒŒ[ƒ€•âŠÔiˆÊ’uj
@@ -7228,17 +7248,6 @@ void AnimationSystem::BlendPoses(
 	outScales = std::move(tempScale);
 }
 
-// –¼‘O‚©‚çƒ‹[ƒgƒm[ƒhƒCƒ“ƒfƒbƒNƒX‚ğ’T‚·
-int AnimationSystem::FindNodeIndex(const Model& model, const std::string& name)
-{
-	const auto& nodes = model.GetNodes();
-	for (int i = 0; i < (int)nodes.size(); i++)
-	{
-		if (nodes[i].name == name) return i;
-	}
-	return -1;
-}
-
 // w’è‚Ìƒ[ƒJƒ‹ˆÊ’u‚ğ‹‚ß‚é
 DirectX::XMFLOAT3 AnimationSystem::CalcNodeLocalPosition(
 	const Model::Animation& animation,
@@ -7267,9 +7276,7 @@ DirectX::XMFLOAT3 AnimationSystem::CalcRootMotionDelta(
 	const Model::Animation& animation,
 	int rootMotionNodeIndex,
 	float oldTime,
-	float newTime,
-	float rangeStart,
-	float rangeEnd) 
+	float newTime)
 {
 	const auto& node = model.GetNodes()[rootMotionNodeIndex];
 
@@ -7280,13 +7287,13 @@ DirectX::XMFLOAT3 AnimationSystem::CalcRootMotionDelta(
 		};
 
 	DirectX::XMFLOAT3 delta{ 0.0f, 0.0f, 0.0f };
-	float actualRangeEnd = (rangeEnd >= 0.0f) ? rangeEnd : animation.secondsLength;
 
 	if (oldTime > newTime)
 	{
-		DirectX::XMFLOAT3 beginPos = getPos(rangeStart);
+		// ƒ‹[ƒv‚µ‚½Fi‚Ş‘O‚©‚çƒNƒŠƒbƒv‚ÌÅŒã‚Ü‚Å { ƒNƒŠƒbƒv‚Ì“ª‚©‚çi‚ñ‚¾Œã‚Ü‚Å
+		DirectX::XMFLOAT3 beginPos = getPos(0.0f);
 		DirectX::XMFLOAT3 oldPos = getPos(oldTime);
-		DirectX::XMFLOAT3 endPos = getPos(actualRangeEnd);
+		DirectX::XMFLOAT3 endPos = getPos(animation.secondsLength);
 		DirectX::XMFLOAT3 newPos = getPos(newTime);
 
 		delta.x = (endPos.x - oldPos.x) + (newPos.x - beginPos.x);
@@ -9266,7 +9273,6 @@ Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\ECS\Systems\Sequence
 #include "SequencerSystem.h"
 #include "Engine/ECS/Components/SkinnedMeshComponent.h"
 #include "Engine/ECS/Components/AnimatorComponent.h"
-#include <fstream>
 
 // 1‘Ì‚ÌƒGƒ“ƒeƒBƒeƒB‚É‚Â‚¢‚ÄAƒtƒ‰ƒO‚ğXV‚·‚é
 void SequencerSystem::UpdateFlags(SequencerComponent& seq, const SequencerClipData* clip, const PlayedSpan& span)
@@ -9325,14 +9331,10 @@ void SequencerSystem::Update(entt::registry& registry)
 		}
 
 		// ƒ‚ƒfƒ‹‚²‚Æ‚Ìƒtƒ@ƒCƒ‹‚ğ“Ç‚Ş
-		SequencerData& data = dataCache.GetOrLoad(SequencerData::GetFilePath(skinned.modelPath),
+		const SequencerData& data = dataCache.GetOrLoad(SequencerData::GetFilePath(skinned.modelPath),
 			[](SequencerData& data, const nlohmann::json& j) { data.FromJson(j); });
 
-		SequencerClipData* clip = nullptr;
-		for (auto& c : data.clips)
-		{
-			if (c.clipName == animator.currentAnimation) { clip = &c; break; }
-		}
+		const SequencerClipData* clip = data.FindClip(animator.currentAnimation);
 
 		// Ä‚«‚İŒã‚ÌƒNƒŠƒbƒv‚ğ’T‚·
 		const Model::Animation* animation = skinned.model->FindAnimation(animator.currentAnimation);
@@ -11632,10 +11634,10 @@ private:
 
 	// ‹æŠÔ‚²‚Æ‚ÉAƒ‹[ƒg‚ÌˆÚ“®—Ê‚É”{—¦‚ğŠ|‚¯‚é
 	static void ApplySections(
-		Model::NodeAnim& rootAnim,
+		Model::Animation& animation,
+		int rootIndex,
 		const std::vector<AnimationEditSection>& sectionsXZ,
-		const std::vector<AnimationEditSection>& sectionsY,
-		float trimStart);
+		const std::vector<AnimationEditSection>& sectionsY);
 
 	// ƒ‹[ƒg‚ğY²‰ñ‚è‚É‰ñ‚·
 	static void ApplyYawOffset(Model::NodeAnim& rootAnim, const Model::Node& rootNode, float yawDegrees);
@@ -12211,8 +12213,9 @@ public:
 
     // •ÒWİ’è‚ğÄ‚«‚Ş
     void ApplyAnimationEdit(const AnimationEditData& editData);
-    // Ä‚«‚İ‚Ég‚Á‚½ƒ‹[ƒgƒm[ƒh–¼
+    // Ä‚«‚İ‚Ég‚Á‚½ƒ‹[ƒgƒm[ƒh–¼‚Æ”Ô†
     const std::string& GetRootNodeName() const { return rootNodeName; }
+    int GetRootNodeIndex() const { return rootNodeIndex; }
 
     std::vector<Node>& GetNodes() { return nodes; }
     std::vector<Mesh>& GetMeshes() { return meshes; }
@@ -12252,13 +12255,17 @@ private:
     friend class GLTFConverter;
     friend class ModelSerializer;
 
+    // ¶ƒf[ƒ^‚ª‚Ü‚¾T‚¦‚ç‚ê‚Ä‚¢‚È‚¯‚ê‚ÎA¡‚ÌƒAƒjƒ[ƒVƒ‡ƒ“‚ğT‚¦‚é
+    void EnsureRawAnimations();
+
     std::vector<Node>      nodes;
     std::vector<Mesh>      meshes;
     std::vector<Material>  materials;
     std::vector<Animation> animations;        // •ÒWÏ‚İ
     std::vector<Animation> rawAnimations;     // ¶ƒf[ƒ^
     std::vector<Animation> previewAnimations; // ƒvƒŒƒrƒ…[—p
-    std::string            rootNodeName;  // Ä‚«‚İ‚Ég‚Á‚½ƒ‹[ƒgƒm[ƒh–¼
+    std::string            rootNodeName;       // Ä‚«‚İ‚Ég‚Á‚½ƒ‹[ƒgƒm[ƒh–¼
+    int                    rootNodeIndex = -1; // ‚»‚Ì”Ô†
 
     bool                   hasSkin = false;
 
@@ -12507,7 +12514,6 @@ Model::Animation AnimationEditBaker::BakeClip(
 	Model::Animation animation = rawAnimation;
 
 	// ã‚«ãƒƒãƒˆ
-	float trimStart = 0.0f;
 	if (clip)
 	{
 		const float length = animation.secondsLength;
@@ -12518,7 +12524,6 @@ Model::Animation AnimationEditBaker::BakeClip(
 		if (end - start > 0.0f && (start > 0.0f || end < length))
 		{
 			TrimAnimation(animation, start, end);
-			trimStart = start;
 		}
 	}
 
@@ -12535,7 +12540,7 @@ Model::Animation AnimationEditBaker::BakeClip(
 	// åŒºé–“ã®ç§»å‹•é‡
 	if (!clip->sectionsXZ.empty() || !clip->sectionsY.empty())
 	{
-		ApplySections(rootAnim, clip->sectionsXZ, clip->sectionsY, trimStart);
+		ApplySections(animation, rootIndex, clip->sectionsXZ, clip->sectionsY);
 	}
 
 	// å‘ãã®è£œæ­£
@@ -12649,12 +12654,12 @@ void AnimationEditBaker::RemoveRootOffset(Model::NodeAnim& rootAnim, const Model
 
 // åŒºé–“ã”ã¨ã«ã€ãƒ«ãƒ¼ãƒˆã®ç§»å‹•é‡ã«å€ç‡ã‚’æ›ã‘ã‚‹
 void AnimationEditBaker::ApplySections(
-	Model::NodeAnim& rootAnim,
+	Model::Animation& animation,
+	int rootIndex,
 	const std::vector<AnimationEditSection>& sectionsXZ,
-	const std::vector<AnimationEditSection>& sectionsY,
-	float trimStart) 
+	const std::vector<AnimationEditSection>& sectionsY)
 {
-	auto& keys = rootAnim.positionKeyframes;
+	auto& keys = animation.nodeAnims[rootIndex].positionKeyframes;
 	if (keys.size() < 2) return;
 
 	// ãã®æ™‚åˆ»ã‚’å«ã‚€åŒºé–“ã®å€ç‡
@@ -12673,8 +12678,8 @@ void AnimationEditBaker::ApplySections(
 
 	for (size_t i = 1; i < keys.size(); i++)
 	{
-		// ã“ã®ã‚­ãƒ¼é–“ã®çœŸã‚“ä¸­ã®æ™‚åˆ»ã‚’ã€ç”Ÿãƒ‡ãƒ¼ã‚¿ã®æ™‚é–“ã«æˆ»ã™
-		const float mid = (keys[i - 1].seconds + keys[i].seconds) * 0.5f + trimStart;
+		// ã“ã®ã‚­ãƒ¼é–“ã®çœŸã‚“ä¸­ã®æ™‚åˆ»ã‚’ã€ç”Ÿãƒ‡ãƒ¼ã‚¿ã®æ™‚åˆ»ã«ç›´ã™
+		const float mid = animation.ToRawTime((keys[i - 1].seconds + keys[i].seconds) * 0.5f);
 
 		const float scaleXZ = findScale(sectionsXZ, mid);
 		const float scaleY = findScale(sectionsY, mid);
@@ -12691,14 +12696,14 @@ void AnimationEditBaker::ApplySections(
 void AnimationEditBaker::ApplyYawOffset(Model::NodeAnim& rootAnim, const Model::Node& rootNode, float yawDegrees)
 {
 	const DirectX::XMVECTOR yaw = DirectX::XMQuaternionRotationRollPitchYaw(0.0f, DirectX::XMConvertToRadians(yawDegrees), 0.0f);
-	const DirectX::XMVECTOR pivot = XMLoadFloat3(&rootNode.position);
+	const DirectX::XMVECTOR pivot = DirectX::XMLoadFloat3(&rootNode.position);
 
 	// ãƒã‚¤ãƒ³ãƒ‰ãƒãƒ¼ã‚ºã®ä½ç½®ã‚’ä¸­å¿ƒã«å›ã™
 	for (auto& key : rootAnim.positionKeyframes)
 	{
-		DirectX::XMVECTOR p = DirectX::XMVectorSubtract(XMLoadFloat3(&key.value), pivot);
+		DirectX::XMVECTOR p = DirectX::XMVectorSubtract(DirectX::XMLoadFloat3(&key.value), pivot);
 		p = DirectX::XMVector3Rotate(p, yaw);
-		XMStoreFloat3(&key.value, DirectX::XMVectorAdd(p, pivot));
+		DirectX::XMStoreFloat3(&key.value, DirectX::XMVectorAdd(p, pivot));
 	}
 
 	// å›è»¢ã‚­ãƒ¼ãŒç„¡ã„ã‚¯ãƒªãƒƒãƒ—ã¯ã€ãƒã‚¤ãƒ³ãƒ‰ãƒãƒ¼ã‚ºã®å›è»¢ã‚’1ã‚­ãƒ¼ã¨ã—ã¦è¶³ã—ã¦ãŠã
@@ -12712,7 +12717,7 @@ void AnimationEditBaker::ApplyYawOffset(Model::NodeAnim& rootAnim, const Model::
 	{
 		DirectX::XMVECTOR q = DirectX::XMLoadFloat4(&key.value);
 		q = DirectX::XMQuaternionNormalize(DirectX::XMQuaternionMultiply(q, yaw));
-		XMStoreFloat4(&key.value, q);
+		DirectX::XMStoreFloat4(&key.value, q);
 	}
 }
 
@@ -14536,11 +14541,7 @@ const Model::Animation* Model::FindPreviewAnimation(const std::string& name) con
 // •ÒWİ’è‚ğƒvƒŒƒrƒ…[—p‚É“K—p‚·‚é
 void Model::ApplyAnimationEditPreview(const AnimationEditData& editData)
 {
-	// ¶ƒf[ƒ^‚ª‚Ü‚¾T‚¦‚ç‚ê‚Ä‚¢‚È‚¯‚ê‚ÎT‚¦‚é
-	if (rawAnimations.empty())
-	{
-		rawAnimations = animations;
-	}
+	EnsureRawAnimations();
 
 	// ƒJƒbƒg‚¾‚¯‚ğŠO‚·
 	AnimationEditData preview = editData;
@@ -14567,16 +14568,23 @@ const std::vector<Model::Animation>& Model::GetPlaybackAnimations(bool usePrevie
 // •ÒWİ’è‚ğÄ‚«‚Ş
 void Model::ApplyAnimationEdit(const AnimationEditData& editData)
 {
-    // ‰‰ñ‚¾‚¯A¡‚ÌƒAƒjƒ[ƒVƒ‡ƒ“‚ğ¶ƒf[ƒ^‚Æ‚µ‚ÄT‚¦‚Ä‚¨‚­
-        if (rawAnimations.empty())
-        {
-            rawAnimations = animations;
-        }
+	EnsureRawAnimations();
 
     animations = AnimationEditBaker::Bake(rawAnimations, nodes, editData);
 
-    // Ä‚«‚İ‚Æ“¯‚¶ƒ{[ƒ“‚ğAƒ‰ƒ“ƒ^ƒCƒ€‚Å‚àŒÅ’è‚·‚é‚½‚ß‚ÉŠo‚¦‚Ä‚¨‚­
-    rootNodeName = editData.rootNodeName;
+	// Ä‚«‚İ‚Æ“¯‚¶ƒ{[ƒ“‚ğAƒ‰ƒ“ƒ^ƒCƒ€‚Å‚àŒÅ’è‚·‚é‚½‚ß‚ÉŠo‚¦‚Ä‚¨‚­
+	rootNodeName = editData.rootNodeName;
+	rootNodeIndex = AnimationEditBaker::FindNodeIndex(nodes, rootNodeName);
+}
+
+// ¶ƒf[ƒ^‚ª‚Ü‚¾T‚¦‚ç‚ê‚Ä‚¢‚È‚¯‚ê‚ÎA¡‚ÌƒAƒjƒ[ƒVƒ‡ƒ“‚ğT‚¦‚é
+void Model::EnsureRawAnimations()
+{
+	// ‰‰ñ‚ÌÄ‚«‚İ‚æ‚è‘O‚È‚çAanimations ‚Í‚Ü‚¾‰ÁH‚³‚ê‚Ä‚¢‚È‚¢¶ƒf[ƒ^
+	if (rawAnimations.empty())
+	{
+		rawAnimations = animations;
+	}
 }
 
 // Ä‚«‚İŒã‚©‚ç¶ƒf[ƒ^‚É
@@ -21877,12 +21885,12 @@ Path: C:\Users\offri\Desktop\New-Library\Source\Code\Tool\Studio\StudioAnimation
 ï»¿#pragma once
 #include "IStudioAttachment.h"
 #include "Engine/Data/AnimationEditData.h"
+#include "Engine/Resource/Model.h"
 #include "StudioTimelineWidget.h"
 #include <imgui.h>
 #include <string>
 #include <vector>
 
-class Model;
 struct AnimatorComponent;
 
 // ãƒ«ãƒ¼ãƒˆãƒ¢ãƒ¼ã‚·ãƒ§ãƒ³ã®ã‚°ãƒ©ãƒ•ç”¨ã®å€¤
@@ -21944,6 +21952,8 @@ private:
 
 	// --- å…¨ä½“ --- //
 
+	// ãƒ¢ãƒ¼ãƒ‰ã®åˆ‡ã‚Šæ›¿ãˆ
+	void DrawModeBar();
 	// ã‚¿ã‚¤ãƒ ãƒ©ã‚¤ãƒ³
 	bool DrawTimelineArea(const Model& model, AnimatorComponent& animator, StudioContext& context);
 	// æ•°å€¤
@@ -21992,24 +22002,22 @@ private:
 	// --- ãƒ«ãƒ¼ãƒˆãƒ¢ãƒ¼ã‚·ãƒ§ãƒ³ãƒ¢ãƒ¼ãƒ‰ --- //
 
 	// ãƒ«ãƒ¼ãƒˆãƒ¢ãƒ¼ã‚·ãƒ§ãƒ³ã®ã‚°ãƒ©ãƒ•
-	bool DrawRootMotionTracks(const Model& model, const std::string& clipName, float length, float frameStep);
+	bool DrawRootMotionTracks(const Model& model, const Model::Animation& animation, const std::string& clipName, float frameStep);
 	// ã‚°ãƒ©ãƒ•ã®å€¤ã‚’ä½œã‚Šç›´ã™
 	void RebuildCurves(const Model& model, const std::string& clipName);
 	// ã‚°ãƒ©ãƒ•ã®ãƒˆãƒ©ãƒƒã‚¯ã‚’1æœ¬æã
 	float DrawCurveTrack(const char* label, bool isY, float height, ImU32 color, float tintStart, float tintEnd);
 	// åŒºé–“ã®å¸¯ã‚’æã„ã¦ã€ã‚¯ãƒªãƒƒã‚¯ã§é¸æŠã™ã‚‹
-	bool DrawSectionBand(const char* id, SectionAxis axis, const std::string& clipName, float trimStart, float length, float frameStep, float graphTop);
+	bool DrawSectionBand(const char* id, SectionAxis axis, const Model::Animation& animation, const std::string& clipName, float frameStep, float graphTop);
 	// åŒºé–“ã®è¿½åŠ ã¨Set Start / Set End
-	bool DrawSectionButtons(const std::string& clipName, float length, float frameStep, float pinTime);
-	// é¸ã‚“ã§ã„ã‚‹åŒºé–“ã®æ•°å€¤ï¼ˆclip ã¯ç·¨é›†ä¸­ã®ã‚³ãƒ”ãƒ¼ï¼‰
+	bool DrawSectionButtons(const Model::Animation& animation, const std::string& clipName, float frameStep, float pinTime);
+	// é¸ã‚“ã§ã„ã‚‹åŒºé–“ã®æ•°å€¤
 	bool DrawSectionSettings(const Model& model, AnimationEditClipData& clip);
 
 	// é¸ã‚“ã§ã„ã‚‹åŒºé–“ã®ç¯„å›²
-	bool GetSelectedSectionRange(SectionAxis axis, const std::string& clipName, float trimStart, float& outStart, float& outEnd) const;
-	// ä»Šã®ã‚¯ãƒªãƒƒãƒ—ã®ã‚«ãƒƒãƒˆã®å§‹ã¾ã‚Š
-	float GetTrimStart(const std::string& clipName) const;
+	bool GetSelectedSectionRange(SectionAxis axis, const Model::Animation& animation, const std::string& clipName, float& outStart, float& outEnd) const;
 	// åŒºé–“ãŒå‹•ã‘ã‚‹ç¯„å›²
-	static void GetSectionLimits(const std::vector<AnimationEditSection>& sections, int index, float trimStart, float length, float& outLower, float& outUpper);
+	static void GetSectionLimits(const std::vector<AnimationEditSection>& sections, int index, const Model::Animation& animation, float& outLower, float& outUpper); 
 }; 
  
 ===== StudioAnimationSpeed.h ===== 
@@ -23342,7 +23350,8 @@ void StudioAnimationEdit::DrawGUI(entt::registry& registry, StudioContext& conte
 		return;
 	}
 
-	// ƒ‚[ƒh‚ÆÄ‚«•û‚ğ‡‚í‚¹‚é
+	// ƒ‚[ƒh‚ğŒˆ‚ß‚Ä‚©‚çAÄ‚«•û‚ğ‡‚í‚¹‚é
+	DrawModeBar();
 	SyncBakeWithMode(*skinned.model, animator, context);
 
 	const std::string& clipName = animator.currentAnimation;
@@ -23397,12 +23406,9 @@ void StudioAnimationEdit::OnHidden(entt::registry& registry, StudioContext& cont
 	SetPreviewActive(*skinned.model, animator, context, false);
 }
 
-// ƒ^ƒCƒ€ƒ‰ƒCƒ“
-bool StudioAnimationEdit::DrawTimelineArea(const Model& model, AnimatorComponent& animator, StudioContext& context)
+// ƒ‚[ƒh‚ÌØ‚è‘Ö‚¦
+void StudioAnimationEdit::DrawModeBar()
 {
-	const std::string& clipName = animator.currentAnimation;
-
-	// ƒ‚[ƒhØ‚è‘Ö‚¦
 	if (ImGui::RadioButton("Trim", mode == EditMode::Trim)) mode = EditMode::Trim;
 	ImGui::SameLine();
 	if (ImGui::RadioButton("Root Motion", mode == EditMode::RootMotion)) mode = EditMode::RootMotion;
@@ -23425,6 +23431,11 @@ bool StudioAnimationEdit::DrawTimelineArea(const Model& model, AnimatorComponent
 		if (ImGui::RadioButton("Y##ViewAxis", viewAxis == SectionAxis::Y)) setViewAxis(SectionAxis::Y);
 	}
 	ImGui::Separator();
+}
+// ƒ^ƒCƒ€ƒ‰ƒCƒ“
+bool StudioAnimationEdit::DrawTimelineArea(const Model& model, AnimatorComponent& animator, StudioContext& context)
+{
+	const std::string& clipName = animator.currentAnimation;
 
 	// ƒNƒŠƒbƒv‚Ì’·‚³
 	const Model::Animation* animation = previewActive ? model.FindPreviewAnimation(clipName) : model.FindAnimation(clipName);
@@ -23478,9 +23489,9 @@ bool StudioAnimationEdit::DrawTimelineArea(const Model& model, AnimatorComponent
 	{
 		changed |= DrawTrimTrack(clipName, length, frameStep);
 	}
-	else
+	else if (animation)
 	{
-		changed |= DrawRootMotionTracks(model, clipName, length, frameStep);
+		changed |= DrawRootMotionTracks(model, *animation, clipName, frameStep);
 	}
 
 	timeline.End();
@@ -23490,9 +23501,9 @@ bool StudioAnimationEdit::DrawTimelineArea(const Model& model, AnimatorComponent
 	{
 		changed |= DrawTrimButtons(clipName, length, frameStep, animator.animationTime);
 	}
-	else
+	else if (animation)
 	{
-		changed |= DrawSectionButtons(clipName, length, frameStep, animator.animationTime);
+		changed |= DrawSectionButtons(*animation, clipName, frameStep, animator.animationTime);
 	}
 
 	return changed;
@@ -23589,32 +23600,7 @@ bool StudioAnimationEdit::DrawClipSettings(const Model& model, const std::string
 	if (mode == EditMode::Trim)
 	{
 		ImGui::TextDisabled("Trimming");
-
-		const float rawLength = FindRawLength(model, clipName);
-		const float frameStep = CalcFrameStep(model, clipName);
-		const float minLength = StudioTimelineWidget::MinLength(frameStep);
-		const float dragSpeed = minLength;
-
-		float start = clip.trimStart;
-		float end = (clip.trimEnd < 0.0f) ? rawLength : clip.trimEnd;
-
-		bool trimChanged = false;
-		trimChanged |= ImGui::DragFloat("Start", &start, dragSpeed, 0.0f, end - minLength, "%.3f s");
-		trimChanged |= ImGui::DragFloat("End", &end, dragSpeed, start + minLength, rawLength, "%.3f s");
-
-		if (trimChanged)
-		{
-			// ƒtƒŒ[ƒ€‚É‹z‚¢•t‚©‚¹‚Ä‚©‚ç‘‚«–ß‚·
-			start = StudioTimelineWidget::SnapToFrame(start, frameStep, rawLength);
-			end = StudioTimelineWidget::SnapToFrame(end, frameStep, rawLength);
-			clip.trimStart = start;
-			clip.trimEnd = (end >= rawLength - 0.0001f) ? -1.0f : end; // ÅŒã‚Ü‚Å‚È‚çuÅŒã‚Ü‚Åv‚Æ‚µ‚Ä•Û‘¶
-			changed = true;
-		}
-
-		// ƒtƒŒ[ƒ€‚Æ’·‚³‚Ì•\¦
-		ImGui::TextDisabled("F%d - F%d", StudioTimelineWidget::ToFrame(start, frameStep), StudioTimelineWidget::ToFrame(end, frameStep));
-		ImGui::TextDisabled("Length %.3f s (raw %.3f s)", end - start, rawLength);
+		changed |= DrawTrimSettings(model, clip);
 	}
 	else
 	{
@@ -23696,7 +23682,11 @@ void StudioAnimationEdit::SetPreviewActive(Model& model, AnimatorComponent& anim
 void StudioAnimationEdit::Load(const std::string& modelPath, const Model& model)
 {
 	editData = AnimationEditData();
-	JsonFile::Load(AnimationEditData::GetFilePath(modelPath), editData);
+	if (!JsonFile::Load(AnimationEditData::GetFilePath(modelPath), editData))
+	{
+		// –³‚¢E‰ó‚ê‚Ä‚¢‚éF“r’†‚Ü‚Å“Ç‚ñ‚¾•ª‚ÍÌ‚Ä‚é
+		editData = AnimationEditData();
+	}
 
 	loadedModelPath = modelPath;
 	isDirty = false;
@@ -23704,11 +23694,10 @@ void StudioAnimationEdit::Load(const std::string& modelPath, const Model& model)
 	curveDirty = true;
 	selectedSection = -1;
 
-	// ƒ‹[ƒgƒm[ƒh‚ª–¢İ’è‚È‚çAƒ‚ƒfƒ‹‚©‚ç’T‚µ‚Äƒtƒ@ƒCƒ‹‚É‘‚«‚Ş
+	// ƒ‹[ƒgƒm[ƒh‚ª–¢İ’è‚È‚çAƒ‚ƒfƒ‹‚©‚ç’T‚·
 	if (editData.rootNodeName.empty())
 	{
 		editData.rootNodeName = AnimationEditBaker::FindDefaultRootNodeName(model);
-		Save(modelPath);
 	}
 }
 void StudioAnimationEdit::Save(const std::string& modelPath)
@@ -23836,20 +23825,20 @@ namespace
 	}
 
 	// ‹æŠÔ‚Ì•À‚Ñ‚ğAƒ^ƒCƒ€ƒ‰ƒCƒ“‚Ì‚Ì”ÍˆÍ‚Ì•À‚Ñ‚É‚·‚é
-	std::vector<StudioTimelineWidget::TimeSpan> ToSpans(const std::vector<AnimationEditSection>& sections, float trimStart)
+	std::vector<StudioTimelineWidget::TimeSpan> ToSpans(const std::vector<AnimationEditSection>& sections, const Model::Animation& animation)
 	{
 		std::vector<StudioTimelineWidget::TimeSpan> spans;
 		spans.reserve(sections.size());
 		for (const auto& s : sections)
 		{
-			spans.push_back({ s.start - trimStart, s.end - trimStart });
+			// ¶ƒf[ƒ^‚Ì ¨ ƒ^ƒCƒ€ƒ‰ƒCƒ“‚Ì
+			spans.push_back({ animation.ToBakedTime(s.start), animation.ToBakedTime(s.end) });
 		}
 		return spans;
 	}
 }
 
-// ƒ‹[ƒgƒ‚[ƒVƒ‡ƒ“‚ÌƒOƒ‰ƒt
-bool StudioAnimationEdit::DrawRootMotionTracks(const Model& model, const std::string& clipName, float length, float frameStep)
+bool StudioAnimationEdit::DrawRootMotionTracks(const Model& model, const Model::Animation& animation, const std::string& clipName, float frameStep)
 {
 	// ƒNƒŠƒbƒv‚ª•Ï‚í‚Á‚½‚çA‹æŠÔ‚Ì‘I‘ğ‚ğŠO‚·
 	if (curveClipName != clipName)
@@ -23863,7 +23852,6 @@ bool StudioAnimationEdit::DrawRootMotionTracks(const Model& model, const std::st
 		RebuildCurves(model, clipName);
 	}
 
-	const float trimStart = GetTrimStart(clipName);
 	bool changed = false;
 	float tintStart = -1.0f;
 	float tintEnd = -1.0f;
@@ -23872,9 +23860,9 @@ bool StudioAnimationEdit::DrawRootMotionTracks(const Model& model, const std::st
 	const bool isY = (viewAxis == SectionAxis::Y);
 	const ImU32 color = isY ? IM_COL32(255, 183, 77, 255) : IM_COL32(79, 195, 247, 255);
 
-	GetSelectedSectionRange(viewAxis, clipName, trimStart, tintStart, tintEnd);
+	GetSelectedSectionRange(viewAxis, animation, clipName, tintStart, tintEnd);
 	const float graphTop = DrawCurveTrack(isY ? "Y" : "XZ", isY, 160.0f, color, tintStart, tintEnd);
-	changed |= DrawSectionBand(isY ? "##SectionsY" : "##SectionsXZ", viewAxis, clipName, trimStart, length, frameStep, graphTop);
+	changed |= DrawSectionBand(isY ? "##SectionsY" : "##SectionsXZ", viewAxis, animation, clipName, frameStep, graphTop);
 
 	return changed;
 }
@@ -24025,8 +24013,9 @@ float StudioAnimationEdit::DrawCurveTrack(const char* label, bool isY, float hei
 }
 
 // ‹æŠÔ‚Ì‘Ñ‚ğ•`‚¢‚ÄAƒNƒŠƒbƒN‚Å‘I‘ğ‚·‚é
-bool StudioAnimationEdit::DrawSectionBand(const char* id, SectionAxis axis, const std::string& clipName, float trimStart, float length, float frameStep, float graphTop)
+bool StudioAnimationEdit::DrawSectionBand(const char* id, SectionAxis axis, const Model::Animation& animation, const std::string& clipName, float frameStep, float graphTop)
 {
+	const float length = animation.secondsLength;
 	const AnimationEditClipData* clip = editData.FindClip(clipName);
 	const std::vector<AnimationEditSection>* sections = nullptr;
 	if (clip) sections = (axis == SectionAxis::XZ) ? &clip->sectionsXZ : &clip->sectionsY;
@@ -24056,9 +24045,9 @@ bool StudioAnimationEdit::DrawSectionBand(const char* id, SectionAxis axis, cons
 		{
 			const AnimationEditSection& s = (*sections)[i];
 
-			// ‹æŠÔ‚ÌŠÔ‚ğAƒJƒbƒgŒã‚ÌŠÔ‚É’¼‚·
-			const float start = s.start - trimStart;
-			const float end = s.end - trimStart;
+			// ¶ƒf[ƒ^‚Ì ¨ ƒ^ƒCƒ€ƒ‰ƒCƒ“‚Ì
+			const float start = animation.ToBakedTime(s.start);
+			const float end = animation.ToBakedTime(s.end);
 
 			// ƒJƒbƒg‚Ì”ÍˆÍŠO‚É‚Í‚İo‚µ‚½•”•ª‚Í•`‚©‚È‚¢
 			const float x0 = (std::max)(timeline.TimeToX(start), timeline.GetLeft());
@@ -24097,23 +24086,23 @@ bool StudioAnimationEdit::DrawSectionBand(const char* id, SectionAxis axis, cons
 	if (sections && selectedAxis == axis && selectedSection >= 0 && selectedSection < (int)sections->size())
 	{
 		const AnimationEditSection& s = (*sections)[selectedSection];
-		float start = std::clamp(s.start - trimStart, 0.0f, length);
-		float end = std::clamp(s.end - trimStart, 0.0f, length);
+		float start = animation.ToBakedTime(s.start);
+		float end = animation.ToBakedTime(s.end);
 
 		// —×‚Ì‹æŠÔ‚É‚Ô‚Â‚©‚Á‚½‚ç~‚Ü‚é
 		float lower = 0.0f;
 		float upper = length;
-		GetSectionLimits(*sections, selectedSection, trimStart, length, lower, upper);
+		GetSectionLimits(*sections, selectedSection, animation, lower, upper);
 
 		const float minLength = StudioTimelineWidget::MinLength(frameStep);
 		const std::string handleId = std::string(id) + "Handles";
 		if (timeline.DrawRangeHandles(handleId.c_str(), bottom, frameStep, minLength, start, end, lower, upper, graphTop))
 		{
-			// ¶ƒf[ƒ^‚ÌŠÔ‚É–ß‚µ‚Ä‘‚«‚Ş
+			// ¶ƒf[ƒ^‚Ì‚É–ß‚µ‚Ä‘‚«‚Ş
 			AnimationEditClipData* editable = editData.FindOrCreateClip(clipName);
 			auto& list = (axis == SectionAxis::XZ) ? editable->sectionsXZ : editable->sectionsY;
-			list[selectedSection].start = start + trimStart;
-			list[selectedSection].end = end + trimStart;
+			list[selectedSection].start = animation.ToRawTime(start);
+			list[selectedSection].end = animation.ToRawTime(end);
 			changed = true;
 		}
 	}
@@ -24126,9 +24115,9 @@ bool StudioAnimationEdit::DrawSectionBand(const char* id, SectionAxis axis, cons
 }
 
 // ‹æŠÔ‚Ì’Ç‰Á‚ÆSet Start / Set End
-bool StudioAnimationEdit::DrawSectionButtons(const std::string& clipName, float length, float frameStep, float pinTime)
+bool StudioAnimationEdit::DrawSectionButtons(const Model::Animation& animation, const std::string& clipName, float frameStep, float pinTime)
 {
-	const float trimStart = GetTrimStart(clipName);
+	const float length = animation.secondsLength;
 	const float minLength = StudioTimelineWidget::MinLength(frameStep);
 	const float tolerance = minLength * 0.5f; // ¬”‚ÌŒë·‚Æ‚µ‚Ä‹–‚·—Ê
 
@@ -24143,8 +24132,8 @@ bool StudioAnimationEdit::DrawSectionButtons(const std::string& clipName, float 
 			auto& list = (axis == SectionAxis::XZ) ? editable->sectionsXZ : editable->sectionsY;
 
 			AnimationEditSection section;
-			section.start = pinTime + trimStart; // ¶ƒf[ƒ^‚ÌŠÔ‚Å•Û‘¶‚·‚é
-			section.end = end + trimStart;
+			section.start = animation.ToRawTime(pinTime); // ¶ƒf[ƒ^‚Ì‚Å•Û‘¶‚·‚é
+			section.end = animation.ToRawTime(end);
 			section.scale = 1.0f;
 
 			// ŠJn‚Ì‡‚É‚È‚é‚æ‚¤‚É·‚µ‚Ş
@@ -24165,7 +24154,7 @@ bool StudioAnimationEdit::DrawSectionButtons(const std::string& clipName, float 
 
 		float end = 0.0f;
 		const bool enabled = StudioTimelineWidget::FindAddEnd(
-			list ? ToSpans(*list, trimStart) : std::vector<StudioTimelineWidget::TimeSpan>{},
+			list ? ToSpans(*list, animation) : std::vector<StudioTimelineWidget::TimeSpan>{}, 
 			pinTime, length, minLength, end);
 
 		ImGui::BeginDisabled(!enabled);
@@ -24188,9 +24177,9 @@ bool StudioAnimationEdit::DrawSectionButtons(const std::string& clipName, float 
 	float upper = length;
 	if (hasSelection)
 	{
-		start = (*selectedList)[selectedSection].start - trimStart;
-		end = (*selectedList)[selectedSection].end - trimStart;
-		GetSectionLimits(*selectedList, selectedSection, trimStart, length, lower, upper);
+		start = animation.ToBakedTime((*selectedList)[selectedSection].start);
+		end = animation.ToBakedTime((*selectedList)[selectedSection].end);
+		GetSectionLimits(*selectedList, selectedSection, animation, lower, upper);
 	}
 
 	ImGui::SameLine();
@@ -24203,7 +24192,7 @@ bool StudioAnimationEdit::DrawSectionButtons(const std::string& clipName, float 
 	{
 		AnimationEditClipData* editable = editData.FindOrCreateClip(clipName);
 		auto& list = (selectedAxis == SectionAxis::XZ) ? editable->sectionsXZ : editable->sectionsY;
-		list[selectedSection].start = pinTime + trimStart;
+		list[selectedSection].start = animation.ToRawTime(pinTime);
 		changed = true;
 	}
 	ImGui::EndDisabled();
@@ -24216,7 +24205,7 @@ bool StudioAnimationEdit::DrawSectionButtons(const std::string& clipName, float 
 	{
 		AnimationEditClipData* editable = editData.FindOrCreateClip(clipName);
 		auto& list = (selectedAxis == SectionAxis::XZ) ? editable->sectionsXZ : editable->sectionsY;
-		list[selectedSection].end = pinTime + trimStart;
+		list[selectedSection].end = animation.ToRawTime(pinTime);
 		changed = true;
 	}
 	ImGui::EndDisabled();
@@ -24227,8 +24216,9 @@ bool StudioAnimationEdit::DrawSectionButtons(const std::string& clipName, float 
 // ‘I‚ñ‚Å‚¢‚é‹æŠÔ‚Ì”’l
 bool StudioAnimationEdit::DrawSectionSettings(const Model& model, AnimationEditClipData& clip)
 {
+	const Model::Animation* animation = model.FindAnimation(clip.clipName);
 	auto& list = (selectedAxis == SectionAxis::XZ) ? clip.sectionsXZ : clip.sectionsY;
-	if (selectedAxis != viewAxis || selectedSection < 0 || selectedSection >= (int)list.size())
+	if (!animation || selectedAxis != viewAxis || selectedSection < 0 || selectedSection >= (int)list.size())
 	{
 		ImGui::TextDisabled("No section selected.");
 		return false;
@@ -24237,10 +24227,9 @@ bool StudioAnimationEdit::DrawSectionSettings(const Model& model, AnimationEditC
 	AnimationEditSection& section = list[selectedSection];
 	const bool isY = (selectedAxis == SectionAxis::Y);
 
-	// ”ÍˆÍ
-	const float trimStart = (std::max)(clip.trimStart, 0.0f);
-	const float start = section.start - trimStart;
-	const float end = section.end - trimStart;
+	// ”ÍˆÍi¶ƒf[ƒ^‚Ì ¨ ƒ^ƒCƒ€ƒ‰ƒCƒ“‚Ìj
+	const float start = animation->ToBakedTime(section.start);
+	const float end = animation->ToBakedTime(section.end);
 	const float frameStep = CalcFrameStep(model, clip.clipName);
 
 	ImGui::Text("Range     %.3f - %.3f s", start, end);
@@ -24291,7 +24280,7 @@ bool StudioAnimationEdit::DrawSectionSettings(const Model& model, AnimationEditC
 }
 
 // ‘I‚ñ‚Å‚¢‚é‹æŠÔ‚Ì”ÍˆÍ
-bool StudioAnimationEdit::GetSelectedSectionRange(SectionAxis axis, const std::string& clipName, float trimStart, float& outStart, float& outEnd) const
+bool StudioAnimationEdit::GetSelectedSectionRange(SectionAxis axis, const Model::Animation& animation, const std::string& clipName, float& outStart, float& outEnd) const
 {
 	outStart = -1.0f;
 	outEnd = -1.0f;
@@ -24303,24 +24292,17 @@ bool StudioAnimationEdit::GetSelectedSectionRange(SectionAxis axis, const std::s
 	const auto& sections = (axis == SectionAxis::XZ) ? clip->sectionsXZ : clip->sectionsY;
 	if (selectedSection >= (int)sections.size()) return false;
 
-	outStart = sections[selectedSection].start - trimStart;
-	outEnd = sections[selectedSection].end - trimStart;
+	outStart = animation.ToBakedTime(sections[selectedSection].start);
+	outEnd = animation.ToBakedTime(sections[selectedSection].end);
+
 	return true;
 }
 
-// ¡‚ÌƒNƒŠƒbƒv‚ÌƒJƒbƒg‚Ìn‚Ü‚è
-float StudioAnimationEdit::GetTrimStart(const std::string& clipName) const
-{
-	const AnimationEditClipData* clip = editData.FindClip(clipName);
-	return clip ? (std::max)(clip->trimStart, 0.0f) : 0.0f;
-}
-
 // ‹æŠÔ‚ª“®‚¯‚é”ÍˆÍ
-void StudioAnimationEdit::GetSectionLimits(const std::vector<AnimationEditSection>& sections, int index, float trimStart, float length, float& outLower, float& outUpper)
+void StudioAnimationEdit::GetSectionLimits(const std::vector<AnimationEditSection>& sections, int index, const Model::Animation& animation, float& outLower, float& outUpper)
 {
-	StudioTimelineWidget::GetSpanLimits(ToSpans(sections, trimStart), index, length, outLower, outUpper);
-}
- 
+	StudioTimelineWidget::GetSpanLimits(ToSpans(sections, animation), index, animation.secondsLength, outLower, outUpper);
+} 
  
 ===== StudioAnimationEditTrimming.cpp ===== 
 Path: C:\Users\offri\Desktop\New-Library\Source\Code\Tool\Studio\StudioAnimationEditTrimming.cpp 
@@ -29902,6 +29884,8 @@ bool StudioTimelineWidget::FindAddEnd(const std::vector<TimeSpan>& spans, float 
 	float end = clipLength;
 	for (const auto& s : spans)
 	{
+		if (s.end - s.start < tolerance) continue; // ã‚«ãƒƒãƒˆã•ã‚Œã¦é•·ã•ãŒç„¡ããªã£ãŸç¯„å›²ã¯ã€ç„¡ã„ã‚‚ã®ã¨ã—ã¦æ‰±ã†
+
 		if (pinTime >= s.start - tolerance && pinTime < s.end - tolerance) return false; // æ—¢å­˜ã®ç¯„å›²ã®ä¸­
 		if (s.start >= pinTime - tolerance) end = (std::min)(end, s.start);              // æ¬¡ã®ç¯„å›²ã®å§‹ã¾ã‚Šã¾ã§
 	}

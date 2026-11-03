@@ -106,7 +106,6 @@ Model::Animation AnimationEditBaker::BakeClip(
 	Model::Animation animation = rawAnimation;
 
 	// カット
-	float trimStart = 0.0f;
 	if (clip)
 	{
 		const float length = animation.secondsLength;
@@ -117,7 +116,6 @@ Model::Animation AnimationEditBaker::BakeClip(
 		if (end - start > 0.0f && (start > 0.0f || end < length))
 		{
 			TrimAnimation(animation, start, end);
-			trimStart = start;
 		}
 	}
 
@@ -134,7 +132,7 @@ Model::Animation AnimationEditBaker::BakeClip(
 	// 区間の移動量
 	if (!clip->sectionsXZ.empty() || !clip->sectionsY.empty())
 	{
-		ApplySections(rootAnim, clip->sectionsXZ, clip->sectionsY, trimStart);
+		ApplySections(animation, rootIndex, clip->sectionsXZ, clip->sectionsY);
 	}
 
 	// 向きの補正
@@ -248,12 +246,12 @@ void AnimationEditBaker::RemoveRootOffset(Model::NodeAnim& rootAnim, const Model
 
 // 区間ごとに、ルートの移動量に倍率を掛ける
 void AnimationEditBaker::ApplySections(
-	Model::NodeAnim& rootAnim,
+	Model::Animation& animation,
+	int rootIndex,
 	const std::vector<AnimationEditSection>& sectionsXZ,
-	const std::vector<AnimationEditSection>& sectionsY,
-	float trimStart) 
+	const std::vector<AnimationEditSection>& sectionsY)
 {
-	auto& keys = rootAnim.positionKeyframes;
+	auto& keys = animation.nodeAnims[rootIndex].positionKeyframes;
 	if (keys.size() < 2) return;
 
 	// その時刻を含む区間の倍率
@@ -272,8 +270,8 @@ void AnimationEditBaker::ApplySections(
 
 	for (size_t i = 1; i < keys.size(); i++)
 	{
-		// このキー間の真ん中の時刻を、生データの時間に戻す
-		const float mid = (keys[i - 1].seconds + keys[i].seconds) * 0.5f + trimStart;
+		// このキー間の真ん中の時刻を、生データの時刻に直す
+		const float mid = animation.ToRawTime((keys[i - 1].seconds + keys[i].seconds) * 0.5f);
 
 		const float scaleXZ = findScale(sectionsXZ, mid);
 		const float scaleY = findScale(sectionsY, mid);
@@ -290,14 +288,14 @@ void AnimationEditBaker::ApplySections(
 void AnimationEditBaker::ApplyYawOffset(Model::NodeAnim& rootAnim, const Model::Node& rootNode, float yawDegrees)
 {
 	const DirectX::XMVECTOR yaw = DirectX::XMQuaternionRotationRollPitchYaw(0.0f, DirectX::XMConvertToRadians(yawDegrees), 0.0f);
-	const DirectX::XMVECTOR pivot = XMLoadFloat3(&rootNode.position);
+	const DirectX::XMVECTOR pivot = DirectX::XMLoadFloat3(&rootNode.position);
 
 	// バインドポーズの位置を中心に回す
 	for (auto& key : rootAnim.positionKeyframes)
 	{
-		DirectX::XMVECTOR p = DirectX::XMVectorSubtract(XMLoadFloat3(&key.value), pivot);
+		DirectX::XMVECTOR p = DirectX::XMVectorSubtract(DirectX::XMLoadFloat3(&key.value), pivot);
 		p = DirectX::XMVector3Rotate(p, yaw);
-		XMStoreFloat3(&key.value, DirectX::XMVectorAdd(p, pivot));
+		DirectX::XMStoreFloat3(&key.value, DirectX::XMVectorAdd(p, pivot));
 	}
 
 	// 回転キーが無いクリップは、バインドポーズの回転を1キーとして足しておく
@@ -311,7 +309,7 @@ void AnimationEditBaker::ApplyYawOffset(Model::NodeAnim& rootAnim, const Model::
 	{
 		DirectX::XMVECTOR q = DirectX::XMLoadFloat4(&key.value);
 		q = DirectX::XMQuaternionNormalize(DirectX::XMQuaternionMultiply(q, yaw));
-		XMStoreFloat4(&key.value, q);
+		DirectX::XMStoreFloat4(&key.value, q);
 	}
 }
 

@@ -21,6 +21,11 @@ void AnimationSystem::Update(
 
 			// モデルが無効なら何もしない
 			if (!skinned.model) return;
+
+			// Inspector に実際に使っているルートノードを表示する
+			const int rootMotionNodeIndex = skinned.model->GetRootNodeIndex();
+			animator.activeRootMotionNode = (rootMotionNodeIndex >= 0) ? skinned.model->GetRootNodeName() : "";
+
 			if (!animator.isPlaying)
 			{
 				// 止まっている間は、何も通過していない
@@ -70,11 +75,8 @@ void AnimationSystem::Update(
 			animator.clipStarted = false;
 
 			// ルートモーションの移動量
-			const int rootMotionNodeIndex = ResolveRootMotionNodeIndex(*skinned.model, animator);
-
-			animator.rootMotionDelta = (rootMotionNodeIndex >= 0)
-				? CalcRootMotionDelta(*skinned.model, animation, rootMotionNodeIndex,
-					step.oldTime, step.newTime, step.rangeStart, step.rangeEnd)
+			animator.rootMotionDelta = (rootMotionNodeIndex >= 0) 
+				? CalcRootMotionDelta(*skinned.model, animation, rootMotionNodeIndex, step.oldTime, step.newTime)
 				: DirectX::XMFLOAT3{ 0.0f, 0.0f, 0.0f };
 
 			// ポーズを作る
@@ -130,6 +132,10 @@ void AnimationSystem::EvaluatePose(entt::registry& registry)
 		{
 			if (!skinned.model) return;
 
+			// Inspector に実際に使っているルートノードを表示する
+			const int rootMotionNodeIndex = skinned.model->GetRootNodeIndex();
+			animator.activeRootMotionNode = (rootMotionNodeIndex >= 0) ? skinned.model->GetRootNodeName() : "";
+
 			const auto& animations = skinned.model->GetPlaybackAnimations(animator.usePreview);
 			if (animations.empty()) return;
 
@@ -137,9 +143,6 @@ void AnimationSystem::EvaluatePose(entt::registry& registry)
 			if (animIndex < 0) return;
 
 			const auto& animation = animations[animIndex];
-
-			// ルートモーション対象ノードを固定する
-			const int rootMotionNodeIndex = ResolveRootMotionNodeIndex(*skinned.model, animator);
 
 			CalcBoneTransforms(
 				*skinned.model, animation, animator.animationTime,
@@ -168,30 +171,28 @@ int AnimationSystem::FindAnimationIndex(const std::vector<Model::Animation>& ani
 // クリップの時間を1フレーム分進める
 AnimationSystem::ClipTimeStep AnimationSystem::AdvanceClipTime(AnimatorComponent& animator, const Model::Animation& animation, float elapsedTime)
 {
-	// 再生範囲はクリップ全体
-	ClipTimeStep step;
-	step.rangeStart = 0.0f;
-	step.rangeEnd = animation.secondsLength;
-	step.oldTime = animator.animationTime;
+	const float length = animation.secondsLength;
 
+	ClipTimeStep step;
+	step.oldTime = animator.animationTime;
 
 	animator.animationTime += elapsedTime * animator.playSpeed * animator.speedCurveMultiplier;
 
 	if (animator.loop)
 	{
 		// ループ：終わりを越えたら、越えた分だけ頭から
-		if (animator.animationTime > step.rangeEnd)
+		if (animator.animationTime > length)
 		{
-			animator.animationTime = step.rangeStart + (animator.animationTime - step.rangeEnd);
+			animator.animationTime -= length;
 			animator.isEnd = false;
 		}
 	}
 	else
 	{
 		// ループしない：終わりで止める
-		if (animator.animationTime >= step.rangeEnd)
+		if (animator.animationTime >= length)
 		{
-			animator.animationTime = step.rangeEnd;
+			animator.animationTime = length;
 			animator.isPlaying = false;
 			animator.isEnd = true;
 		}
@@ -238,17 +239,6 @@ void AnimationSystem::UpdateCrossfade(AnimatorComponent& animator, SkinnedMeshCo
 	{
 		animator.isBlending = false;
 	}
-}
-
-// ルートモーション対象ノードの番号
-int AnimationSystem::ResolveRootMotionNodeIndex(const Model& model, AnimatorComponent& animator)
-{
-	const std::string& name = model.GetRootNodeName();
-
-	// Inspectorに「実際に使っているボーン」を表示する
-	animator.activeRootMotionNode = name;
-
-	return name.empty() ? -1 : FindNodeIndex(model, name);
 }
 
 // キーフレーム補間（位置）
@@ -431,17 +421,6 @@ void AnimationSystem::BlendPoses(
 	outScales = std::move(tempScale);
 }
 
-// 名前からルートノードインデックスを探す
-int AnimationSystem::FindNodeIndex(const Model& model, const std::string& name)
-{
-	const auto& nodes = model.GetNodes();
-	for (int i = 0; i < (int)nodes.size(); i++)
-	{
-		if (nodes[i].name == name) return i;
-	}
-	return -1;
-}
-
 // 指定時刻のローカル位置を求める
 DirectX::XMFLOAT3 AnimationSystem::CalcNodeLocalPosition(
 	const Model::Animation& animation,
@@ -470,9 +449,7 @@ DirectX::XMFLOAT3 AnimationSystem::CalcRootMotionDelta(
 	const Model::Animation& animation,
 	int rootMotionNodeIndex,
 	float oldTime,
-	float newTime,
-	float rangeStart,
-	float rangeEnd) 
+	float newTime)
 {
 	const auto& node = model.GetNodes()[rootMotionNodeIndex];
 
@@ -483,13 +460,13 @@ DirectX::XMFLOAT3 AnimationSystem::CalcRootMotionDelta(
 		};
 
 	DirectX::XMFLOAT3 delta{ 0.0f, 0.0f, 0.0f };
-	float actualRangeEnd = (rangeEnd >= 0.0f) ? rangeEnd : animation.secondsLength;
 
 	if (oldTime > newTime)
 	{
-		DirectX::XMFLOAT3 beginPos = getPos(rangeStart);
+		// ループした：進む前からクリップの最後まで ＋ クリップの頭から進んだ後まで
+		DirectX::XMFLOAT3 beginPos = getPos(0.0f);
 		DirectX::XMFLOAT3 oldPos = getPos(oldTime);
-		DirectX::XMFLOAT3 endPos = getPos(actualRangeEnd);
+		DirectX::XMFLOAT3 endPos = getPos(animation.secondsLength);
 		DirectX::XMFLOAT3 newPos = getPos(newTime);
 
 		delta.x = (endPos.x - oldPos.x) + (newPos.x - beginPos.x);

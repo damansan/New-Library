@@ -47,7 +47,8 @@ void StudioAnimationEdit::DrawGUI(entt::registry& registry, StudioContext& conte
 		return;
 	}
 
-	// モードと焼き方を合わせる
+	// モードを決めてから、焼き方を合わせる
+	DrawModeBar();
 	SyncBakeWithMode(*skinned.model, animator, context);
 
 	const std::string& clipName = animator.currentAnimation;
@@ -102,12 +103,9 @@ void StudioAnimationEdit::OnHidden(entt::registry& registry, StudioContext& cont
 	SetPreviewActive(*skinned.model, animator, context, false);
 }
 
-// タイムライン
-bool StudioAnimationEdit::DrawTimelineArea(const Model& model, AnimatorComponent& animator, StudioContext& context)
+// モードの切り替え
+void StudioAnimationEdit::DrawModeBar()
 {
-	const std::string& clipName = animator.currentAnimation;
-
-	// モード切り替え
 	if (ImGui::RadioButton("Trim", mode == EditMode::Trim)) mode = EditMode::Trim;
 	ImGui::SameLine();
 	if (ImGui::RadioButton("Root Motion", mode == EditMode::RootMotion)) mode = EditMode::RootMotion;
@@ -130,6 +128,11 @@ bool StudioAnimationEdit::DrawTimelineArea(const Model& model, AnimatorComponent
 		if (ImGui::RadioButton("Y##ViewAxis", viewAxis == SectionAxis::Y)) setViewAxis(SectionAxis::Y);
 	}
 	ImGui::Separator();
+}
+// タイムライン
+bool StudioAnimationEdit::DrawTimelineArea(const Model& model, AnimatorComponent& animator, StudioContext& context)
+{
+	const std::string& clipName = animator.currentAnimation;
 
 	// クリップの長さ
 	const Model::Animation* animation = previewActive ? model.FindPreviewAnimation(clipName) : model.FindAnimation(clipName);
@@ -183,21 +186,22 @@ bool StudioAnimationEdit::DrawTimelineArea(const Model& model, AnimatorComponent
 	{
 		changed |= DrawTrimTrack(clipName, length, frameStep);
 	}
-	else
+	else if (animation)
 	{
-		changed |= DrawRootMotionTracks(model, clipName, length, frameStep);
+		changed |= DrawRootMotionTracks(model, *animation, clipName, frameStep);
 	}
 
 	timeline.End();
 
 	// ピンの位置で操作するボタン
+	const float pinTime = StudioTimelineWidget::SnapToFrame(animator.animationTime, frameStep, length);
 	if (mode == EditMode::Trim)
 	{
-		changed |= DrawTrimButtons(clipName, length, frameStep, animator.animationTime);
+		changed |= DrawTrimButtons(clipName, length, frameStep, pinTime);
 	}
-	else
+	else if (animation)
 	{
-		changed |= DrawSectionButtons(clipName, length, frameStep, animator.animationTime);
+		changed |= DrawSectionButtons(*animation, clipName, frameStep, pinTime);
 	}
 
 	return changed;
@@ -294,32 +298,7 @@ bool StudioAnimationEdit::DrawClipSettings(const Model& model, const std::string
 	if (mode == EditMode::Trim)
 	{
 		ImGui::TextDisabled("Trimming");
-
-		const float rawLength = FindRawLength(model, clipName);
-		const float frameStep = CalcFrameStep(model, clipName);
-		const float minLength = StudioTimelineWidget::MinLength(frameStep);
-		const float dragSpeed = minLength;
-
-		float start = clip.trimStart;
-		float end = (clip.trimEnd < 0.0f) ? rawLength : clip.trimEnd;
-
-		bool trimChanged = false;
-		trimChanged |= ImGui::DragFloat("Start", &start, dragSpeed, 0.0f, end - minLength, "%.3f s");
-		trimChanged |= ImGui::DragFloat("End", &end, dragSpeed, start + minLength, rawLength, "%.3f s");
-
-		if (trimChanged)
-		{
-			// フレームに吸い付かせてから書き戻す
-			start = StudioTimelineWidget::SnapToFrame(start, frameStep, rawLength);
-			end = StudioTimelineWidget::SnapToFrame(end, frameStep, rawLength);
-			clip.trimStart = start;
-			clip.trimEnd = (end >= rawLength - 0.0001f) ? -1.0f : end; // 最後までなら「最後まで」として保存
-			changed = true;
-		}
-
-		// フレームと長さの表示
-		ImGui::TextDisabled("F%d - F%d", StudioTimelineWidget::ToFrame(start, frameStep), StudioTimelineWidget::ToFrame(end, frameStep));
-		ImGui::TextDisabled("Length %.3f s (raw %.3f s)", end - start, rawLength);
+		changed |= DrawTrimSettings(model, clip);
 	}
 	else
 	{
@@ -401,7 +380,11 @@ void StudioAnimationEdit::SetPreviewActive(Model& model, AnimatorComponent& anim
 void StudioAnimationEdit::Load(const std::string& modelPath, const Model& model)
 {
 	editData = AnimationEditData();
-	JsonFile::Load(AnimationEditData::GetFilePath(modelPath), editData);
+	if (!JsonFile::Load(AnimationEditData::GetFilePath(modelPath), editData))
+	{
+		// 無い・壊れている：途中まで読んだ分は捨てる
+		editData = AnimationEditData();
+	}
 
 	loadedModelPath = modelPath;
 	isDirty = false;
@@ -409,11 +392,10 @@ void StudioAnimationEdit::Load(const std::string& modelPath, const Model& model)
 	curveDirty = true;
 	selectedSection = -1;
 
-	// ルートノードが未設定なら、モデルから探してファイルに書き込む
+	// ルートノードが未設定なら、モデルから探す
 	if (editData.rootNodeName.empty())
 	{
 		editData.rootNodeName = AnimationEditBaker::FindDefaultRootNodeName(model);
-		Save(modelPath);
 	}
 }
 void StudioAnimationEdit::Save(const std::string& modelPath)

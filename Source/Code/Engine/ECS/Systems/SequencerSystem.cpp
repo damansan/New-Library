@@ -1,7 +1,6 @@
 #include "SequencerSystem.h"
 #include "Engine/ECS/Components/SkinnedMeshComponent.h"
 #include "Engine/ECS/Components/AnimatorComponent.h"
-#include <fstream>
 
 // 1体のエンティティについて、フラグを更新する
 void SequencerSystem::UpdateFlags(SequencerComponent& seq, const SequencerClipData* clip, const PlayedSpan& span)
@@ -60,14 +59,10 @@ void SequencerSystem::Update(entt::registry& registry)
 		}
 
 		// モデルごとのファイルを読む
-		SequencerData& data = dataCache.GetOrLoad(SequencerData::GetFilePath(skinned.modelPath),
+		const SequencerData& data = dataCache.GetOrLoad(SequencerData::GetFilePath(skinned.modelPath),
 			[](SequencerData& data, const nlohmann::json& j) { data.FromJson(j); });
 
-		SequencerClipData* clip = nullptr;
-		for (auto& c : data.clips)
-		{
-			if (c.clipName == animator.currentAnimation) { clip = &c; break; }
-		}
+		const SequencerClipData* clip = data.FindClip(animator.currentAnimation);
 
 		// 焼き込み後のクリップを探す
 		const Model::Animation* animation = skinned.model->FindAnimation(animator.currentAnimation);

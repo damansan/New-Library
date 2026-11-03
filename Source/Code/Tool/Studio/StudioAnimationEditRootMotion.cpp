@@ -112,20 +112,20 @@ namespace
 	}
 
 	// 区間の並びを、タイムラインの時刻の範囲の並びにする
-	std::vector<StudioTimelineWidget::TimeSpan> ToSpans(const std::vector<AnimationEditSection>& sections, float trimStart)
+	std::vector<StudioTimelineWidget::TimeSpan> ToSpans(const std::vector<AnimationEditSection>& sections, const Model::Animation& animation)
 	{
 		std::vector<StudioTimelineWidget::TimeSpan> spans;
 		spans.reserve(sections.size());
 		for (const auto& s : sections)
 		{
-			spans.push_back({ s.start - trimStart, s.end - trimStart });
+			// 生データの時刻 → タイムラインの時刻
+			spans.push_back({ animation.ToBakedTime(s.start), animation.ToBakedTime(s.end) });
 		}
 		return spans;
 	}
 }
 
-// ルートモーションのグラフ
-bool StudioAnimationEdit::DrawRootMotionTracks(const Model& model, const std::string& clipName, float length, float frameStep)
+bool StudioAnimationEdit::DrawRootMotionTracks(const Model& model, const Model::Animation& animation, const std::string& clipName, float frameStep)
 {
 	// クリップが変わったら、区間の選択を外す
 	if (curveClipName != clipName)
@@ -139,7 +139,6 @@ bool StudioAnimationEdit::DrawRootMotionTracks(const Model& model, const std::st
 		RebuildCurves(model, clipName);
 	}
 
-	const float trimStart = GetTrimStart(clipName);
 	bool changed = false;
 	float tintStart = -1.0f;
 	float tintEnd = -1.0f;
@@ -148,9 +147,9 @@ bool StudioAnimationEdit::DrawRootMotionTracks(const Model& model, const std::st
 	const bool isY = (viewAxis == SectionAxis::Y);
 	const ImU32 color = isY ? IM_COL32(255, 183, 77, 255) : IM_COL32(79, 195, 247, 255);
 
-	GetSelectedSectionRange(viewAxis, clipName, trimStart, tintStart, tintEnd);
+	GetSelectedSectionRange(viewAxis, animation, clipName, tintStart, tintEnd);
 	const float graphTop = DrawCurveTrack(isY ? "Y" : "XZ", isY, 160.0f, color, tintStart, tintEnd);
-	changed |= DrawSectionBand(isY ? "##SectionsY" : "##SectionsXZ", viewAxis, clipName, trimStart, length, frameStep, graphTop);
+	changed |= DrawSectionBand(isY ? "##SectionsY" : "##SectionsXZ", viewAxis, animation, clipName, frameStep, graphTop);
 
 	return changed;
 }
@@ -301,8 +300,9 @@ float StudioAnimationEdit::DrawCurveTrack(const char* label, bool isY, float hei
 }
 
 // 区間の帯を描いて、クリックで選択する
-bool StudioAnimationEdit::DrawSectionBand(const char* id, SectionAxis axis, const std::string& clipName, float trimStart, float length, float frameStep, float graphTop)
+bool StudioAnimationEdit::DrawSectionBand(const char* id, SectionAxis axis, const Model::Animation& animation, const std::string& clipName, float frameStep, float graphTop)
 {
+	const float length = animation.secondsLength;
 	const AnimationEditClipData* clip = editData.FindClip(clipName);
 	const std::vector<AnimationEditSection>* sections = nullptr;
 	if (clip) sections = (axis == SectionAxis::XZ) ? &clip->sectionsXZ : &clip->sectionsY;
@@ -332,9 +332,9 @@ bool StudioAnimationEdit::DrawSectionBand(const char* id, SectionAxis axis, cons
 		{
 			const AnimationEditSection& s = (*sections)[i];
 
-			// 区間の時間を、カット後の時間に直す
-			const float start = s.start - trimStart;
-			const float end = s.end - trimStart;
+			// 生データの時刻 → タイムラインの時刻
+			const float start = animation.ToBakedTime(s.start);
+			const float end = animation.ToBakedTime(s.end);
 
 			// カットの範囲外にはみ出した部分は描かない
 			const float x0 = (std::max)(timeline.TimeToX(start), timeline.GetLeft());
@@ -373,23 +373,23 @@ bool StudioAnimationEdit::DrawSectionBand(const char* id, SectionAxis axis, cons
 	if (sections && selectedAxis == axis && selectedSection >= 0 && selectedSection < (int)sections->size())
 	{
 		const AnimationEditSection& s = (*sections)[selectedSection];
-		float start = std::clamp(s.start - trimStart, 0.0f, length);
-		float end = std::clamp(s.end - trimStart, 0.0f, length);
+		float start = animation.ToBakedTime(s.start);
+		float end = animation.ToBakedTime(s.end);
 
 		// 隣の区間にぶつかったら止まる
 		float lower = 0.0f;
 		float upper = length;
-		GetSectionLimits(*sections, selectedSection, trimStart, length, lower, upper);
+		GetSectionLimits(*sections, selectedSection, animation, lower, upper);
 
 		const float minLength = StudioTimelineWidget::MinLength(frameStep);
 		const std::string handleId = std::string(id) + "Handles";
 		if (timeline.DrawRangeHandles(handleId.c_str(), bottom, frameStep, minLength, start, end, lower, upper, graphTop))
 		{
-			// 生データの時間に戻して書き込む
+			// 生データの時刻に戻して書き込む
 			AnimationEditClipData* editable = editData.FindOrCreateClip(clipName);
 			auto& list = (axis == SectionAxis::XZ) ? editable->sectionsXZ : editable->sectionsY;
-			list[selectedSection].start = start + trimStart;
-			list[selectedSection].end = end + trimStart;
+			list[selectedSection].start = animation.ToRawTime(start);
+			list[selectedSection].end = animation.ToRawTime(end);
 			changed = true;
 		}
 	}
@@ -402,9 +402,9 @@ bool StudioAnimationEdit::DrawSectionBand(const char* id, SectionAxis axis, cons
 }
 
 // 区間の追加とSet Start / Set End
-bool StudioAnimationEdit::DrawSectionButtons(const std::string& clipName, float length, float frameStep, float pinTime)
+bool StudioAnimationEdit::DrawSectionButtons(const Model::Animation& animation, const std::string& clipName, float frameStep, float pinTime)
 {
-	const float trimStart = GetTrimStart(clipName);
+	const float length = animation.secondsLength;
 	const float minLength = StudioTimelineWidget::MinLength(frameStep);
 	const float tolerance = minLength * 0.5f; // 小数の誤差として許す量
 
@@ -419,8 +419,8 @@ bool StudioAnimationEdit::DrawSectionButtons(const std::string& clipName, float 
 			auto& list = (axis == SectionAxis::XZ) ? editable->sectionsXZ : editable->sectionsY;
 
 			AnimationEditSection section;
-			section.start = pinTime + trimStart; // 生データの時間で保存する
-			section.end = end + trimStart;
+			section.start = animation.ToRawTime(pinTime); // 生データの時刻で保存する
+			section.end = animation.ToRawTime(end);
 			section.scale = 1.0f;
 
 			// 開始時刻の順になるように差し込む
@@ -441,7 +441,7 @@ bool StudioAnimationEdit::DrawSectionButtons(const std::string& clipName, float 
 
 		float end = 0.0f;
 		const bool enabled = StudioTimelineWidget::FindAddEnd(
-			list ? ToSpans(*list, trimStart) : std::vector<StudioTimelineWidget::TimeSpan>{},
+			list ? ToSpans(*list, animation) : std::vector<StudioTimelineWidget::TimeSpan>{}, 
 			pinTime, length, minLength, end);
 
 		ImGui::BeginDisabled(!enabled);
@@ -464,9 +464,9 @@ bool StudioAnimationEdit::DrawSectionButtons(const std::string& clipName, float 
 	float upper = length;
 	if (hasSelection)
 	{
-		start = (*selectedList)[selectedSection].start - trimStart;
-		end = (*selectedList)[selectedSection].end - trimStart;
-		GetSectionLimits(*selectedList, selectedSection, trimStart, length, lower, upper);
+		start = animation.ToBakedTime((*selectedList)[selectedSection].start);
+		end = animation.ToBakedTime((*selectedList)[selectedSection].end);
+		GetSectionLimits(*selectedList, selectedSection, animation, lower, upper);
 	}
 
 	ImGui::SameLine();
@@ -479,7 +479,7 @@ bool StudioAnimationEdit::DrawSectionButtons(const std::string& clipName, float 
 	{
 		AnimationEditClipData* editable = editData.FindOrCreateClip(clipName);
 		auto& list = (selectedAxis == SectionAxis::XZ) ? editable->sectionsXZ : editable->sectionsY;
-		list[selectedSection].start = pinTime + trimStart;
+		list[selectedSection].start = animation.ToRawTime(pinTime);
 		changed = true;
 	}
 	ImGui::EndDisabled();
@@ -492,7 +492,7 @@ bool StudioAnimationEdit::DrawSectionButtons(const std::string& clipName, float 
 	{
 		AnimationEditClipData* editable = editData.FindOrCreateClip(clipName);
 		auto& list = (selectedAxis == SectionAxis::XZ) ? editable->sectionsXZ : editable->sectionsY;
-		list[selectedSection].end = pinTime + trimStart;
+		list[selectedSection].end = animation.ToRawTime(pinTime);
 		changed = true;
 	}
 	ImGui::EndDisabled();
@@ -503,8 +503,9 @@ bool StudioAnimationEdit::DrawSectionButtons(const std::string& clipName, float 
 // 選んでいる区間の数値
 bool StudioAnimationEdit::DrawSectionSettings(const Model& model, AnimationEditClipData& clip)
 {
+	const Model::Animation* animation = model.FindAnimation(clip.clipName);
 	auto& list = (selectedAxis == SectionAxis::XZ) ? clip.sectionsXZ : clip.sectionsY;
-	if (selectedAxis != viewAxis || selectedSection < 0 || selectedSection >= (int)list.size())
+	if (!animation || selectedAxis != viewAxis || selectedSection < 0 || selectedSection >= (int)list.size())
 	{
 		ImGui::TextDisabled("No section selected.");
 		return false;
@@ -513,10 +514,9 @@ bool StudioAnimationEdit::DrawSectionSettings(const Model& model, AnimationEditC
 	AnimationEditSection& section = list[selectedSection];
 	const bool isY = (selectedAxis == SectionAxis::Y);
 
-	// 範囲
-	const float trimStart = (std::max)(clip.trimStart, 0.0f);
-	const float start = section.start - trimStart;
-	const float end = section.end - trimStart;
+	// 範囲（生データの時刻 → タイムラインの時刻）
+	const float start = animation->ToBakedTime(section.start);
+	const float end = animation->ToBakedTime(section.end);
 	const float frameStep = CalcFrameStep(model, clip.clipName);
 
 	ImGui::Text("Range     %.3f - %.3f s", start, end);
@@ -567,7 +567,7 @@ bool StudioAnimationEdit::DrawSectionSettings(const Model& model, AnimationEditC
 }
 
 // 選んでいる区間の範囲
-bool StudioAnimationEdit::GetSelectedSectionRange(SectionAxis axis, const std::string& clipName, float trimStart, float& outStart, float& outEnd) const
+bool StudioAnimationEdit::GetSelectedSectionRange(SectionAxis axis, const Model::Animation& animation, const std::string& clipName, float& outStart, float& outEnd) const
 {
 	outStart = -1.0f;
 	outEnd = -1.0f;
@@ -579,20 +579,14 @@ bool StudioAnimationEdit::GetSelectedSectionRange(SectionAxis axis, const std::s
 	const auto& sections = (axis == SectionAxis::XZ) ? clip->sectionsXZ : clip->sectionsY;
 	if (selectedSection >= (int)sections.size()) return false;
 
-	outStart = sections[selectedSection].start - trimStart;
-	outEnd = sections[selectedSection].end - trimStart;
+	outStart = animation.ToBakedTime(sections[selectedSection].start);
+	outEnd = animation.ToBakedTime(sections[selectedSection].end);
+
 	return true;
 }
 
-// 今のクリップのカットの始まり
-float StudioAnimationEdit::GetTrimStart(const std::string& clipName) const
-{
-	const AnimationEditClipData* clip = editData.FindClip(clipName);
-	return clip ? (std::max)(clip->trimStart, 0.0f) : 0.0f;
-}
-
 // 区間が動ける範囲
-void StudioAnimationEdit::GetSectionLimits(const std::vector<AnimationEditSection>& sections, int index, float trimStart, float length, float& outLower, float& outUpper)
+void StudioAnimationEdit::GetSectionLimits(const std::vector<AnimationEditSection>& sections, int index, const Model::Animation& animation, float& outLower, float& outUpper)
 {
-	StudioTimelineWidget::GetSpanLimits(ToSpans(sections, trimStart), index, length, outLower, outUpper);
+	StudioTimelineWidget::GetSpanLimits(ToSpans(sections, animation), index, animation.secondsLength, outLower, outUpper);
 }

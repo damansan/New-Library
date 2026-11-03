@@ -1,4 +1,5 @@
 #include "SequencerData.h"
+#include "Engine/Core/Log.h"
 #include <filesystem>
 
 namespace
@@ -23,25 +24,26 @@ namespace
 
 
 // 指定したクリップ名のデータを探す
-SequencerClipData* SequencerData::FindOrCreateClip(const std::string& clipName)
+const SequencerClipData* SequencerData::FindClip(const std::string& clipName) const
 {
-	for (auto& clip : clips)
+	for (const auto& clip : clips)
 	{
 		if (clip.clipName == clipName) return &clip;
 	}
+	return nullptr;
+}
+SequencerClipData* SequencerData::FindClip(const std::string& clipName)
+{
+	return const_cast<SequencerClipData*>(static_cast<const SequencerData&>(*this).FindClip(clipName));
+}
+SequencerClipData* SequencerData::FindOrCreateClip(const std::string& clipName)
+{
+	if (SequencerClipData* clip = FindClip(clipName)) return clip;
 
 	SequencerClipData newClip;
 	newClip.clipName = clipName;
 	clips.push_back(newClip);
 	return &clips.back();
-}
-SequencerClipData* SequencerData::FindClip(const std::string& clipName)
-{
-	for (auto& clip : clips)
-	{
-		if (clip.clipName == clipName) return &clip;
-	}
-	return nullptr;
 }
 
 // 保存
@@ -104,6 +106,14 @@ void SequencerData::FromJson(const nlohmann::json& j)
 				r.id = jr.value("id", -1);
 				r.start = jr.value("start", 0.0f);
 				r.end = jr.value("end", 0.0f);
+
+				// 知らないフラグ名は読み飛ばす
+				const std::string flagName = jr.value("flag", "");
+				if (!TryParseSequencerFlag(flagName, r.flag))
+				{
+					Log(u8" Sequencer: 不明なフラグ「%s」", flagName.c_str());
+					continue;
+				}
 				clip.ranges.push_back(r);
 			}
 		}
@@ -115,6 +125,14 @@ void SequencerData::FromJson(const nlohmann::json& j)
 				SequencerPoint p;
 				p.id = jp.value("id", -1);
 				p.time = jp.value("time", 0.0f);
+
+				// 知らないフラグ名は読み飛ばす
+				const std::string flagName = jp.value("flag", "");
+				if (!TryParseSequencerFlag(flagName, p.flag))
+				{
+					Log(u8" Sequencer: 不明なフラグ「%s」", flagName.c_str());
+					continue;
+				}
 				clip.points.push_back(p);
 			}
 		}
