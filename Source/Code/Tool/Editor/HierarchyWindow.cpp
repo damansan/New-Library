@@ -25,7 +25,7 @@ void HierarchyWindow::Draw(entt::registry& registry, EditorContext& context)
     {
         entt::entity e = registry.create();
 
-        registry.emplace<ComponentCategory>(e);
+        registry.emplace<CategoryComponent>(e);
         registry.emplace<TransformComponent>(e);
 
         // ñºëOÇé©ìÆê›íË
@@ -122,7 +122,7 @@ void HierarchyWindow::Draw(entt::registry& registry, EditorContext& context)
             // Entity ê∂ê¨
             entt::entity e = registry.create();
 
-            registry.emplace<ComponentCategory>(e);
+            registry.emplace<CategoryComponent>(e);
 
             auto& t = registry.emplace<TransformComponent>(e);
             t.position = { 0.0f, 0.0f, 0.0f };

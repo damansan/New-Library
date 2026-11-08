@@ -99,12 +99,6 @@ void StudioWindow::Update(float elapsedTime)
 	{
 		animationSystem.Update(studioRegistry, elapsedTime);
 	}
-
-	// アタッチメント更新
-	for (auto& attachment : attachments)
-	{
-		attachment->Update(elapsedTime, context);
-	}
 }
 
 // 描画
@@ -165,18 +159,6 @@ void StudioWindow::Render()
 			context.device,
 			renderWidth,
 			renderHeight
-		);
-	}
-
-	// アタッチメントの3D描画
-	for (auto& attachment : attachments)
-	{
-		attachment->OnRender(
-			context.deviceContext,
-			camera.GetView(),
-			camera.GetProjection(),
-			studioRegistry,
-			context
 		);
 	}
 
@@ -347,16 +329,7 @@ void StudioWindow::DrawWindow(const char* windowName)
 
 	stadoiModelViewer.DrawGUI(studioRegistry, context);
 
-	for (auto& attachment : attachments)
-		attachment->DrawGUI(studioRegistry, context);
-
 	ImGui::End(); // Studio
-}
-
-// アタッチメント追加
-void StudioWindow::AddAttachment(std::unique_ptr<IStudioAttachment> attachment)
-{
-	attachments.push_back(std::move(attachment));
 }
 
 // アセット読み込み

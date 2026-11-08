@@ -13,13 +13,4 @@ struct MovementComponent
 		REFLECT_FIELD(float,             planarSpeed, (0.0f),             ("Planar Speed", 0.0f, 0.0f, 0.01f, "", FieldFlags::VisibleOnly | FieldFlags::Transient))
 
 	REFLECT_END()
-
-
-	// ˆÚ“®‚Ì§ŒäŒ 
-    bool movementLocked = false;
-    // Œü‚«‚Ì§ŒäŒ 
-    bool facingLocked = false;
-
-    // XZ•ûŒü‚Ì§Œä‚ğ‰¡æ‚è‚µ‚Ä‚¢‚éÅ’†‚©
-    bool xzControlLocked = false;  
 };

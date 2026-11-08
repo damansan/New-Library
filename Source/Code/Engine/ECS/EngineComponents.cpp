@@ -17,7 +17,7 @@
 
 void EngineComponents::Register()
 {
-	REGISTER_COMPONENT_TYPE(ComponentCategory, "Category");
+	REGISTER_COMPONENT_TYPE(CategoryComponent, "Category");
 	REGISTER_COMPONENT_TYPE(TransformComponent, "Transform");
 	REGISTER_COMPONENT_TYPE(MeshComponent, "Mesh");
 	REGISTER_COMPONENT_TYPE(MaterialComponent, "Material");

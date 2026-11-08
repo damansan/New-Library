@@ -400,6 +400,8 @@ void StudioAnimationEdit::Load(const std::string& modelPath, const Model& model)
 }
 void StudioAnimationEdit::Save(const std::string& modelPath)
 {
+	if (modelPath.empty()) return;
+
 	if (JsonFile::Save(AnimationEditData::GetFilePath(modelPath), editData))
 	{
 		isDirty = false;

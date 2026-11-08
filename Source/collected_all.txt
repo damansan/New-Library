@@ -1,107 +1,149 @@
 ===== DESIGN_NOTES.md ===== 
-\# 設計メモ（New-Library）
+# 設計メモ（New-Library）
 
+このファイルは collect_all.bat で collected_all.txt の先頭に書き出される。
+構成のルールはここが正。コードと食い違ったら、このメモを更新する。
 
+## 0. 目的と判断の物差し
 
-このファイルは collect\_all.bat で collected\_all.txt の先頭に書き出される。
+- 目的：パルクールゲーム（構想まとめ）を実現する
+- 新しい仕組みを作る・決めるのは、構想の優先度の高い項目に必要なときだけ。それ以外は 9章に書いて今は作らない
+- 迷ったら Unity を参考にする（データ・アセット・Prefab の扱い）
 
-構成のルールはここが正。コードと食い違ったらこのメモを更新する。
-
-
-
-\## 1. 層（プロジェクト）と依存
+## 1. 層（プロジェクト）と依存
 
 | 層 | 種類 | 参照してよい層 |
-
 |---|---|---|
-
-| Engine   | lib | Engine |
-
-| Game     | lib | Engine, Game |
-
-| Tool     | lib | Engine, Tool |
-
+| Engine | lib | Engine |
+| Game | lib | Engine, Game |
+| Tool | lib | Engine, Tool |
 | GameTool | lib | Engine, Game, Tool, GameTool |
-
 | App（GameApp / EditorApp） | exe | すべて |
+| Launcher | exe（3dgp.exe） | なし |
 
-| Launcher | exe（3dgp.exe） | なし（単独） |
+- GameApp = Engine + Game（RUN_GAME_APP 定義あり）、EditorApp = Engine + Game + Tool + GameTool
+- 依存の向きは Projects/Scripts/CheckIncludes.ps1 がビルド前に検査する（違反は LAYER001）
 
+## 2. ファイルの置き場所と include
 
+- ソースは Source/Code/<層>/ 以下。vcxproj は Projects/<層>/
+- include の起点は Source/Code。層の名前から書く（例：#include "Engine/ECS/Components/MovementComponent.h"）
+- VS で新規追加するときは、場所を Source/Code/<層>/... に変える
+- 共通のビルド設定は Projects/Common.props
 
-\- GameApp = Engine + Game（RUN\_GAME\_APP 定義あり）
+## 3. 層ごとのテーマ
 
-\- EditorApp = Engine + Game + Tool + GameTool
+| 層 | テーマ |
+|---|---|
+| Engine / Game | ECS らしく（4章） |
+| Tool / GameTool | ゲームを止めずに触る。再生／停止は作らない。Studio は別の世界（自分の registry・System・ResourceManager）で確かめ、保存したファイルで動いているゲームへ届ける |
 
-\- 依存の向きはビルド前に Projects/Scripts/CheckIncludes.ps1 が検査する（違反は LAYER001）
+## 4. ECS の決まり
 
+### 4.1 原則
 
+| # | 原則 | 例外・注意 |
+|---|---|---|
+| E1 | データは Component、処理は System | System がキャッシュやログの重複防止を持つのはよい |
+| E2 | 設定と状態を分ける | 設定＝人が決める（保存する）、状態＝System が決める（保存しない） |
+| E3 | 「今〜中」は Component の有無で表す | 毎フレーム切り替わる値には使わない |
+| E4 | 識別は型で行う。文字列で探さない | エンティティは EntityCategory で探す |
+| E5 | 1つの値の書き手は1人 | 譲るときはデータで明示（例：LocomotionMode::External） |
+| E6 | System どうしはデータで伝え合う | 別の System を直接呼ばない |
 
-\## 2. ファイルの置き場所と include
+### 4.2 Component の付け外し
 
-\- ソースはすべて Source/Code/<層>/ 以下。vcxproj は Projects/<層>/ にある
+| 関係 | 例 | ルール |
+|---|---|---|
+| 派生 | Mesh → SkinnedMesh / StaticMesh、Physics(Character) → CharacterController＋Movement | 作った System が外す。元が変わる・外れたら一緒に外す |
+| 依存 | Animator は SkinnedMesh が必要 | 自動で付けない・外さない。足りなければ Inspector で知らせる |
+| 排他 | StaticBody と CharacterController | 種類を決める設定が1つだけを派生させる |
 
-\- include の起点は Source/Code のみ。必ず層の名前から書く
+- 人が付けたものは人しか外さない
+- 派生した Component は状態だけを持つ。設定（重力、カプセルの大きさなど）は元の Component に置く
 
-&#x20; 例: #include "Engine/ECS/Components/MovementComponent.h"
+### 4.3 宣言と登録
 
-\- Visual Studio で新規追加するときは、場所を Source/Code/<層>/... に変更すること
+- Component は <層>/ECS/Components/、System は <層>/ECS/Systems/
+- 調整値・Inspector に出す値は REFLECT_FIELD。見せるだけの状態は FieldFlags::VisibleOnly | FieldFlags::Transient
+- 登録は EngineComponents::Register() / GameComponents::Register()。Game 独自の Inspector は GameTool の GameInspectors
 
-&#x20; （初期値の Projects/<層>/ に置くと、CheckIncludes の検査対象から外れる）
+### 4.4 名前と識別
 
-\- 共通のビルド設定（include パス、出力先、定義）は Projects/Common.props に集約
+- エンティティの名前は人が確かめるためのもの。EditorContext が持ち、ゲームのコードは読まない
+- コードでの識別は EntityCategory
 
+## 5. 1フレームの流れ（SceneGame::Update）
 
+1. PhysX の更新
+2. Gameplay：Controller → GameInput → PlayerIntent → StateMachine.UpdateState → Player の各 State の System → PlayerLocomotion → Movement
+3. Animation：StateMachine.UpdateAnimation → Animation → Sequencer → IK
+4. Resources：MeshLoader → Physics（CCT を velocity × dt で動かす、isGrounded）
+5. Camera
 
-\## 3. ECS の決まり
+**書き手**
+- velocity.xz・rotation.y：PlayerLocomotion（ルートモーション中は AnimationSystem が書く）
+- velocity.y：Jump（入った瞬間）→ Movement（重力）→ Physics（接地の押し付け）
 
-\- Component: <層>/ECS/Components/、System: <層>/ECS/Systems/
+**1フレーム遅れ（意図通り）**
+- Sequencer のフラグ、Physics の isGrounded・接触の結果は、次のフレームの StateMachine から使う
 
-\- 調整値・インスペクターに出す値は REFLECT\_FIELD で宣言する
+## 6. データファイル
 
-\- 実行中だけの値は FieldFlags::VisibleOnly | FieldFlags::Transient
+| | 決まり |
+|---|---|
+| 区分 | Scene＝どこに何を置くか（Prefab の参照＋差分）／Prefab＝そのエンティティは何者か（全部の値）／Studio の Json＝どう動くか |
+| 読み書き | JsonFileCache 1つ（読む・保存する）。結果は「読み込み済み／ファイルなし／壊れている」 |
+| 壊れている | ログを出し、データは初期値 |
+| ログ | 「指定したのに無い」と「壊れている」だけ。無いのが普通のものは Inspector で確かめる |
+| 保存 | 一時ファイルに書いてから置き換える |
+| 読み直し | 更新日時が変わったら読み直す。シーンは読み直さない |
+| 拡張子 | `.種類.json`（scene、prefab、stategraph、animedit、sequencer）。種類の判断は GetDataFileKind の1か所 |
+| 先頭 | type、version。モデルに属するものは model（モデルのパス） |
+| 例外 | ProjectSettings.json（固定のパス、手書き） |
 
-\- Game の Component は GameComponents::Register() で登録する
+**モデルに属するデータ**
+- .animedit、.sequencer、.stategraph は 1モデルに1種ずつ
+- 置き場所は Data/Model/<モデル名>/Json/。名前は自由
+- そのフォルダから、先頭の model が一致するものに自動で結び付く。Inspector には表示だけ
+- 同じ種類が2つあれば警告し、どちらも使わない
 
-\- Game 独自のインスペクターは GameTool の GameInspectors に置く
+**アニメーション**
+- 読み込み時に、生データ ＋ .animedit から焼き込む（トリミング → ルートのずれ除去 → 区間 → 向き）。生データは控えておく
+- .animedit・.sequencer の時刻は生データの時刻で保存する。変換は Animation::ToRawTime / ToBakedTime だけ
 
-\- windows.h の min/max マクロとぶつかるため、(std::max) のように括弧で囲む
+## 7. ツール
 
+| ツール | 単位 | やること |
+|---|---|---|
+| Studio | モデル1つ | アニメ・シーケンサー・ステートグラフ・判定を作る |
+| ステージ作成ツール（メインのエディタ） | シーン1つ | パーツを置く・保存する・試す |
 
+- Studio のタイムラインは共通の部品（StudioTimelineWidget）を使う
 
-\## 4. 1フレームの実行順（SceneGame）
+## 8. 用語と書き方
 
-1\. PhysX シーン更新
+- ブレンド：上半身と下半身などに分けてポーズを混ぜること
+- レイヤー：物理の衝突の組み合わせ（レイヤー表）
+- ログは簡潔に。敬語を使わない
+- `using namespace DirectX;` は使わない。`DirectX::` を付ける
+- windows.h の max/min マクロを避けるため `(std::max)` と書く
 
-2\. ControllerSystem → GameInputSystem（生の入力）
+## 9. 作るときに決めること・保留
 
-3\. StateMachineSystem::UpdateState（ステート遷移）
+**作るときに決める**
+- Y を誰が書くか（壁走り・よじ登り・ワイヤー）。External で譲る形の作り
+- 設定と状態を分ける範囲（Animator、Sequencer、StateMachine、Movement、Physics の設定）
+- Any State（除外付き）、Exit → Entry
+- ブレンド（上下半身）
 
-4\. Player の各ステート System
-
-5\. MovementSystem（重力）
-
-6\. StateMachineSystem::UpdateAnimation → AnimationSpeedSystem → AnimationSystem（ルートモーションは velocity を上書き）
-
-7\. SequencerSystem → IKSystem
-
-8\. MeshLoaderSystem → PhysicsSystem（CCT が velocity × dt で移動）
-
-9\. GameCameraSystem
-
-
-
-\## 5. 誰が何を書くか（Player 移動の作り直しで決定中）
-
-\- 【予定】velocity の XZ と rotation.y を書くのは PlayerLocomotionSystem の1か所だけ
-
-\- 【予定】各ステートの System は「どう動きたいか」の設定を渡すだけで、velocity は書かない
-
-\- 【予定】ステートグラフの遷移条件は生の入力ではなく、集約済みの意図（PlayerIntent）を見る
-
-\- 例外: ルートモーションのクリップ再生中は AnimationSystem が velocity を書く
-
- 
+**保留**
+- 自動の結び付けの上書き（ドロップ）
+- 武器によるステートの切り替え
+- 派生キャッシュ（.cereal、.dds）の自動作り直し
+- State 名・クリップ名の守り方
+- ECS の登録忘れの検出、表示名の一本化、名前の付け方
+- Studio・Editor の作りの整理（パネルの登録、時計、伝え方） 
  
 ===== main.cpp ===== 
 Path: C:\Users\offri\Desktop\New-Library\Source\Code\main.cpp 
@@ -4961,10 +5003,10 @@ Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\ECS\EntityFinder.h
 // �w�肵�����������ŏ���Entity���
 inline entt::entity FindFirstByCategory(entt::registry& registry, EntityCategory category)
 {
-	auto view = registry.view<ComponentCategory>();
+	auto view = registry.view<CategoryComponent>();
 	for (auto entity : view)
 	{
-		if (view.get<ComponentCategory>(entity).category == category)
+		if (view.get<CategoryComponent>(entity).category == category)
 		{
 			return entity;
 		}
@@ -4977,10 +5019,10 @@ inline std::vector<entt::entity> FindAllByCategory(entt::registry& registry, Ent
 {
 	std::vector<entt::entity> result;
 
-	auto view = registry.view<ComponentCategory>();
+	auto view = registry.view<CategoryComponent>();
 	for (auto entity : view)
 	{
-		if (view.get<ComponentCategory>(entity).category == category)
+		if (view.get<CategoryComponent>(entity).category == category)
 		{
 			result.push_back(entity);
 		}
@@ -5169,7 +5211,7 @@ Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\ECS\EngineComponents
 
 void EngineComponents::Register()
 {
-	REGISTER_COMPONENT_TYPE(ComponentCategory, "Category");
+	REGISTER_COMPONENT_TYPE(CategoryComponent, "Category");
 	REGISTER_COMPONENT_TYPE(TransformComponent, "Transform");
 	REGISTER_COMPONENT_TYPE(MeshComponent, "Mesh");
 	REGISTER_COMPONENT_TYPE(MaterialComponent, "Material");
@@ -5598,9 +5640,9 @@ REFLECT_ENUM(EntityCategory)
 
 REFLECT_ENUM_END()
 
-struct ComponentCategory
+struct CategoryComponent
 {
-    REFLECT_BEGIN(ComponentCategory, "Category")
+    REFLECT_BEGIN(CategoryComponent, "Category")
         
         REFLECT_FIELD(EntityCategory, category, (EntityCategory::None), ("Category"))
 
@@ -5831,15 +5873,6 @@ struct MovementComponent
 		REFLECT_FIELD(float,             planarSpeed, (0.0f),             ("Planar Speed", 0.0f, 0.0f, 0.01f, "", FieldFlags::VisibleOnly | FieldFlags::Transient))
 
 	REFLECT_END()
-
-
-	// �ړ��̐��䌠
-    bool movementLocked = false;
-    // �����̐��䌠
-    bool facingLocked = false;
-
-    // XZ�����̐��������肵�Ă���Œ���
-    bool xzControlLocked = false;  
 }; 
  
 ===== PhysicsComponents.h ===== 
@@ -6321,7 +6354,6 @@ Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\ECS\Systems\MeshLoad
 #include "Engine/ECS/Components/MeshComponent.h"
 #include "Engine/ECS/Components/StaticMeshComponent.h"
 #include "Engine/ECS/Components/SkinnedMeshComponent.h"
-#include "Engine/ECS/Components/AnimatorComponent.h"
 #include "Engine/ECS/Components/Tags.h"
 
 #include "Engine/Resource/ResourceManager.h"
@@ -7048,6 +7080,13 @@ DirectX::XMFLOAT3 AnimationSystem::ToWorldVelocity(const DirectX::XMFLOAT3& loca
 // �N���X�t�F�[�h�F�ۑ������|�[�Y����A���̃|�[�Y�֍�����
 void AnimationSystem::UpdateCrossfade(AnimatorComponent& animator, SkinnedMeshComponent& skinned, float elapsedTime)
 {
+	// �����錳�̃|�[�Y�ƁA���̃|�[�Y�̃{�[�������Ⴄ�ꍇ�́A������̂���߂�
+	if (animator.blendFromPositions.size() != skinned.localPositions.size())
+	{
+		animator.isBlending = false;
+		return;
+	}
+
 	// �i�݋��i�߂�
 	animator.blendRate += (animator.blendTime > 0.0f) ? (elapsedTime / animator.blendTime) : 1.0f;
 
@@ -8128,13 +8167,12 @@ void MeshLoaderSystem::Update(
         auto& mesh = loadedView.get<MeshComponent>(entity);
         if (mesh.modelPath != mesh.previousPath)
         {
+            // ������������h���������O��
             registry.remove<MeshLoadedTag>(entity);
             if (registry.any_of<SkinnedMeshComponent>(entity))
                 registry.remove<SkinnedMeshComponent>(entity);
             if (registry.any_of<StaticMeshComponent>(entity))
                 registry.remove<StaticMeshComponent>(entity);
-            if (registry.any_of<AnimatorComponent>(entity))
-                registry.remove<AnimatorComponent>(entity);
         }
     }
 
@@ -8173,13 +8211,6 @@ void MeshLoaderSystem::Update(
                     { 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 }
                 );
             }
-            //// �A�j���[�V���������ݒ�
-            //auto& animator = registry.emplace<AnimatorComponent>(entity);
-            //if (!model->GetAnimations().empty())
-            //{
-            //    animator.currentAnimation =
-            //        model->GetAnimations()[0].name;
-            //}
         }
         else
         {
@@ -8205,7 +8236,6 @@ Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\ECS\Systems\Movement
 #include "Engine/ECS/Components/PhysicsComponents.h"
 
 #include "entt.hpp"
-#include <windows.h>
 
 void MovementSystem::Update(entt::registry& registry, float elapsedTime, const SceneContext& context)
 {
@@ -8214,9 +8244,6 @@ void MovementSystem::Update(entt::registry& registry, float elapsedTime, const S
         MovementComponent& movement,
         TransformComponent& transform)
         {
-            // �ړ������b�N����Ă���Ԃ́A�d�́E�W�����v���܂߂ĉ������Ȃ�
-            if (movement.movementLocked) return;
-
             // �d��
             movement.velocity.y += movement.gravity * elapsedTime;
         });
@@ -19999,7 +20026,7 @@ void HierarchyWindow::Draw(entt::registry& registry, EditorContext& context)
     {
         entt::entity e = registry.create();
 
-        registry.emplace<ComponentCategory>(e);
+        registry.emplace<CategoryComponent>(e);
         registry.emplace<TransformComponent>(e);
 
         // ���O�������ݒ�
@@ -20096,7 +20123,7 @@ void HierarchyWindow::Draw(entt::registry& registry, EditorContext& context)
             // Entity ����
             entt::entity e = registry.create();
 
-            registry.emplace<ComponentCategory>(e);
+            registry.emplace<CategoryComponent>(e);
 
             auto& t = registry.emplace<TransformComponent>(e);
             t.position = { 0.0f, 0.0f, 0.0f };
@@ -22367,12 +22394,6 @@ struct StudioContext
     ID3D11Device* device = nullptr;
     ID3D11DeviceContext* deviceContext = nullptr;
 
-    // �A�j���[�V������ԁi�A�^�b�`�����g�Ԃŋ��L�j
-    std::string currentAnimName;
-    float       animTime = 0.0f;
-    float       animLength = 0.0f;
-    bool        isPlaying = false;
-
     // �p�l���\���t���O
     bool showAnimator      = false;
     bool showTimeline      = false;
@@ -23209,9 +23230,6 @@ public:
     // ImGui�`��
     void DrawWindow(const char* windowName = "Studio");
 
-    // �A�^�b�`�����g�ǉ�
-    void AddAttachment(std::unique_ptr<IStudioAttachment> attachment);
-
     // context�ւ̃A�N�Z�X
     StudioContext& GetContext() { return context; }
 
@@ -23250,9 +23268,6 @@ private:
     // �J����
     StudioCamera camera;
 
-    // �A�^�b�`�����g�Q
-    std::vector<std::unique_ptr<IStudioAttachment>> attachments;
-
     // �A�^�b�`�����g�ԋ��L�f�[�^
     StudioContext context;
 
@@ -23261,7 +23276,6 @@ private:
     AnimationSystem   animationSystem;
     AnimationSpeedSystem  animationSpeedSystem;
     LightManager      lightManager;
-    ResourceManager   resourceManager;
     
     StudioSharedContext* shared = nullptr;
 
@@ -23497,13 +23511,14 @@ bool StudioAnimationEdit::DrawTimelineArea(const Model& model, AnimatorComponent
 	timeline.End();
 
 	// �s���̈ʒu�ő��삷��{�^��
+	const float pinTime = StudioTimelineWidget::SnapToFrame(animator.animationTime, frameStep, length);
 	if (mode == EditMode::Trim)
 	{
-		changed |= DrawTrimButtons(clipName, length, frameStep, animator.animationTime);
+		changed |= DrawTrimButtons(clipName, length, frameStep, pinTime);
 	}
 	else if (animation)
 	{
-		changed |= DrawSectionButtons(*animation, clipName, frameStep, animator.animationTime);
+		changed |= DrawSectionButtons(*animation, clipName, frameStep, pinTime);
 	}
 
 	return changed;
@@ -23702,6 +23717,8 @@ void StudioAnimationEdit::Load(const std::string& modelPath, const Model& model)
 }
 void StudioAnimationEdit::Save(const std::string& modelPath)
 {
+	if (modelPath.empty()) return;
+
 	if (JsonFile::Save(AnimationEditData::GetFilePath(modelPath), editData))
 	{
 		isDirty = false;
@@ -26737,7 +26754,8 @@ bool StudioSequencer::DrawTimelineArea(const Model& model, AnimatorComponent& an
 	timeline.End();
 
 	// �Đ��ʒu�ő��삷��{�^��
-	changed |= DrawItemButtons(model, clipName, viewTime, frameStep);
+	const float pinTime = StudioTimelineWidget::SnapToFrame(viewTime, frameStep, length);
+	changed |= DrawItemButtons(model, clipName, pinTime, frameStep);
 
 	return changed;
 }
@@ -26967,7 +26985,7 @@ bool StudioSequencer::DrawPointLane(SequencerFlag flag, const Model& model, cons
 			}
 
 			// �h���b�O�œ�����
-			if (ImGui::IsItemActive())
+			if (ImGui::IsItemActive() && ImGui::IsMouseDragging(ImGuiMouseButton_Left))
 			{
 				const float t = StudioTimelineWidget::SnapToFrame(timeline.XToTime(ImGui::GetIO().MousePos.x), frameStep, length);
 				const float raw = animation->ToRawTime(t);
@@ -29922,7 +29940,8 @@ bool StudioTimelineWidget::DrawRangeHandles(const char* id, float handleY, float
 		const bool hovered = ImGui::IsItemHovered();
 		ImGui::PopID();
 
-		if (active)
+		// ドラッグで動かす
+		if (active && ImGui::IsMouseDragging(ImGuiMouseButton_Left))
 		{
 			float t = SnapToFrame(XToTime(ImGui::GetIO().MousePos.x), frameStep, length);
 
@@ -30140,12 +30159,6 @@ void StudioWindow::Update(float elapsedTime)
 	{
 		animationSystem.Update(studioRegistry, elapsedTime);
 	}
-
-	// アタッチメント更新
-	for (auto& attachment : attachments)
-	{
-		attachment->Update(elapsedTime, context);
-	}
 }
 
 // 描画
@@ -30206,18 +30219,6 @@ void StudioWindow::Render()
 			context.device,
 			renderWidth,
 			renderHeight
-		);
-	}
-
-	// アタッチメントの3D描画
-	for (auto& attachment : attachments)
-	{
-		attachment->OnRender(
-			context.deviceContext,
-			camera.GetView(),
-			camera.GetProjection(),
-			studioRegistry,
-			context
 		);
 	}
 
@@ -30388,16 +30389,7 @@ void StudioWindow::DrawWindow(const char* windowName)
 
 	stadoiModelViewer.DrawGUI(studioRegistry, context);
 
-	for (auto& attachment : attachments)
-		attachment->DrawGUI(studioRegistry, context);
-
 	ImGui::End(); // Studio
-}
-
-// アタッチメント追加
-void StudioWindow::AddAttachment(std::unique_ptr<IStudioAttachment> attachment)
-{
-	attachments.push_back(std::move(attachment));
 }
 
 // アセット読み込み

@@ -5,7 +5,6 @@
 #include "Engine/ECS/Components/PhysicsComponents.h"
 
 #include "entt.hpp"
-#include <windows.h>
 
 void MovementSystem::Update(entt::registry& registry, float elapsedTime, const SceneContext& context)
 {
@@ -14,9 +13,6 @@ void MovementSystem::Update(entt::registry& registry, float elapsedTime, const S
         MovementComponent& movement,
         TransformComponent& transform)
         {
-            // 移動がロックされている間は、重力・ジャンプも含めて何もしない
-            if (movement.movementLocked) return;
-
             // 重力
             movement.velocity.y += movement.gravity * elapsedTime;
         });

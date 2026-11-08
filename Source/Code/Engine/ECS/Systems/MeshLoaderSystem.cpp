@@ -12,13 +12,12 @@ void MeshLoaderSystem::Update(
         auto& mesh = loadedView.get<MeshComponent>(entity);
         if (mesh.modelPath != mesh.previousPath)
         {
+            // 自分が作った派生だけを外す
             registry.remove<MeshLoadedTag>(entity);
             if (registry.any_of<SkinnedMeshComponent>(entity))
                 registry.remove<SkinnedMeshComponent>(entity);
             if (registry.any_of<StaticMeshComponent>(entity))
                 registry.remove<StaticMeshComponent>(entity);
-            if (registry.any_of<AnimatorComponent>(entity))
-                registry.remove<AnimatorComponent>(entity);
         }
     }
 
@@ -57,13 +56,6 @@ void MeshLoaderSystem::Update(
                     { 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 }
                 );
             }
-            //// アニメーション初期設定
-            //auto& animator = registry.emplace<AnimatorComponent>(entity);
-            //if (!model->GetAnimations().empty())
-            //{
-            //    animator.currentAnimation =
-            //        model->GetAnimations()[0].name;
-            //}
         }
         else
         {

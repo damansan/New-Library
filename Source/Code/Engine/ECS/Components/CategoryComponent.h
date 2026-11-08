@@ -18,9 +18,9 @@ REFLECT_ENUM(EntityCategory)
 
 REFLECT_ENUM_END()
 
-struct ComponentCategory
+struct CategoryComponent
 {
-    REFLECT_BEGIN(ComponentCategory, "Category")
+    REFLECT_BEGIN(CategoryComponent, "Category")
         
         REFLECT_FIELD(EntityCategory, category, (EntityCategory::None), ("Category"))
 

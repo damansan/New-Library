@@ -6,7 +6,6 @@
 #include "Engine/ECS/Components/MeshComponent.h"
 #include "Engine/ECS/Components/StaticMeshComponent.h"
 #include "Engine/ECS/Components/SkinnedMeshComponent.h"
-#include "Engine/ECS/Components/AnimatorComponent.h"
 #include "Engine/ECS/Components/Tags.h"
 
 #include "Engine/Resource/ResourceManager.h"

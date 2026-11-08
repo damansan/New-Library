@@ -221,6 +221,13 @@ DirectX::XMFLOAT3 AnimationSystem::ToWorldVelocity(const DirectX::XMFLOAT3& loca
 // クロスフェード：保存したポーズから、今のポーズへ混ぜる
 void AnimationSystem::UpdateCrossfade(AnimatorComponent& animator, SkinnedMeshComponent& skinned, float elapsedTime)
 {
+	// 混ぜる元のポーズと、今のポーズのボーン数が違う場合は、混ぜるのをやめる
+	if (animator.blendFromPositions.size() != skinned.localPositions.size())
+	{
+		animator.isBlending = false;
+		return;
+	}
+
 	// 進み具合を進める
 	animator.blendRate += (animator.blendTime > 0.0f) ? (elapsedTime / animator.blendTime) : 1.0f;
 

@@ -7,10 +7,10 @@
 // w’è‚µ‚½‘®«‚ğ‚ÂÅ‰‚ÌEntity‚ğ—ñ‹“
 inline entt::entity FindFirstByCategory(entt::registry& registry, EntityCategory category)
 {
-	auto view = registry.view<ComponentCategory>();
+	auto view = registry.view<CategoryComponent>();
 	for (auto entity : view)
 	{
-		if (view.get<ComponentCategory>(entity).category == category)
+		if (view.get<CategoryComponent>(entity).category == category)
 		{
 			return entity;
 		}
@@ -23,10 +23,10 @@ inline std::vector<entt::entity> FindAllByCategory(entt::registry& registry, Ent
 {
 	std::vector<entt::entity> result;
 
-	auto view = registry.view<ComponentCategory>();
+	auto view = registry.view<CategoryComponent>();
 	for (auto entity : view)
 	{
-		if (view.get<ComponentCategory>(entity).category == category)
+		if (view.get<CategoryComponent>(entity).category == category)
 		{
 			result.push_back(entity);
 		}

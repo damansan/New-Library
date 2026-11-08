@@ -40,9 +40,6 @@ public:
     // ImGui描画
     void DrawWindow(const char* windowName = "Studio");
 
-    // アタッチメント追加
-    void AddAttachment(std::unique_ptr<IStudioAttachment> attachment);
-
     // contextへのアクセス
     StudioContext& GetContext() { return context; }
 
@@ -81,9 +78,6 @@ private:
     // カメラ
     StudioCamera camera;
 
-    // アタッチメント群
-    std::vector<std::unique_ptr<IStudioAttachment>> attachments;
-
     // アタッチメント間共有データ
     StudioContext context;
 
@@ -92,7 +86,6 @@ private:
     AnimationSystem   animationSystem;
     AnimationSpeedSystem  animationSpeedSystem;
     LightManager      lightManager;
-    ResourceManager   resourceManager;
     
     StudioSharedContext* shared = nullptr;
 
