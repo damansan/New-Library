@@ -5,19 +5,29 @@ void MeshLoaderSystem::Update(
     ID3D11Device* device,
     ResourceManager& resourceManager)
 {
-    // パスが変わっていたら再ロードさせる
+
+    // 自分が作った派生を外す
+    auto removeDerived = [&](entt::entity entity)
+        {
+            registry.remove<MeshLoadedTag, SkinnedMeshComponent, StaticMeshComponent>(entity);
+        };
+
+    // Mesh が外されていたら、派生も外す
+    auto orphanView = registry.view<MeshLoadedTag>(entt::exclude<MeshComponent>);
+    const std::vector<entt::entity> orphans(orphanView.begin(), orphanView.end());
+    for (auto entity : orphans)
+    {
+        removeDerived(entity);
+    }
+
+    // パスが変わっていたら、派生を外して再ロードさせる
     auto loadedView = registry.view<MeshComponent, MeshLoadedTag>();
     for (auto entity : loadedView)
     {
         auto& mesh = loadedView.get<MeshComponent>(entity);
         if (mesh.modelPath != mesh.previousPath)
         {
-            // 自分が作った派生だけを外す
-            registry.remove<MeshLoadedTag>(entity);
-            if (registry.any_of<SkinnedMeshComponent>(entity))
-                registry.remove<SkinnedMeshComponent>(entity);
-            if (registry.any_of<StaticMeshComponent>(entity))
-                registry.remove<StaticMeshComponent>(entity);
+            removeDerived(entity);
         }
     }
 
@@ -41,7 +51,7 @@ void MeshLoaderSystem::Update(
         // スキニング有無で自動判定
         if (model->HasSkin())
         {
-            // スキニングあり (SkinnedMeshComponent + AnimatorComponent付与)
+            // スキニングあり  SkinnedMeshComponent 付与
             auto& skinned = registry.emplace<SkinnedMeshComponent>(entity);
             skinned.model = model;
             skinned.modelPath = mesh.modelPath;
