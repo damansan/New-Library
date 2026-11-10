@@ -26,17 +26,20 @@ void GameInputSystem::Update(entt::registry& registry, const ControllerSettings&
             input.cameraStick.y = 0.0f;
             input.cameraStick.hasInput = false;
 
-            input.dodgeTrigger.value = 0.0f;
-
-            input.attack = false;
+            input.lockOnTrigger.value = 0.0f;
+            input.grabTrigger.value = 0.0f;
 
             // ControllerComponent がなければスキップ
             if (!ctrl || !ctrl->connected)
             {
                 // 接続が切れた場合も、ボタンは押されていない状態にする
-                UpdateButtonState(input.dodgeTrigger, false);
                 UpdateButtonState(input.lockOnTrigger, false);
+                UpdateButtonState(input.grabTrigger, false);
                 UpdateButtonState(input.jump, false);
+                UpdateButtonState(input.dodge, false);
+                UpdateButtonState(input.lightAttack, false);
+                UpdateButtonState(input.heavyAttack, false);
+                UpdateButtonState(input.wire, false);
                 return;
             }
 
@@ -57,25 +60,19 @@ void GameInputSystem::Update(entt::registry& registry, const ControllerSettings&
             input.cameraStick.hasInput = (input.cameraStick.x != 0.0f || input.cameraStick.y != 0.0f);
 
             // トリガー（デッドゾーン適用後の値で判定）
-            float lt = ApplyTriggerDeadzone(ctrl->leftTrigger, settings.leftTriggerDeadzone);
-            float rt = ApplyTriggerDeadzone(ctrl->rightTrigger, settings.rightTriggerDeadzone);
-            (void)lt;
+            input.lockOnTrigger.value = ApplyTriggerDeadzone(ctrl->leftTrigger, settings.leftTriggerDeadzone);
+            input.grabTrigger.value = ApplyTriggerDeadzone(ctrl->rightTrigger, settings.rightTriggerDeadzone);
 
-            input.dodgeTrigger.value = rt;
-
-            // R2の押下判定(ヒステリシス込み)
-            bool r2Held = ctrl->IsPressed(ControllerButtons::R2);
-            UpdateButtonState(input.dodgeTrigger, r2Held);
-
-			// L2の押下判定(ヒステリシス込み)
-            bool l2Held = ctrl->IsPressed(ControllerButtons::L2);
-            UpdateButtonState(input.lockOnTrigger, l2Held);
+            // トリガーの押下判定（ヒステリシス込み）
+            UpdateButtonState(input.lockOnTrigger, ctrl->IsPressed(ControllerButtons::L2));
+            UpdateButtonState(input.grabTrigger, ctrl->IsPressed(ControllerButtons::R2));
 
             // ボタン判定
-            bool crossHeld = ctrl->IsPressed(ControllerButtons::Cross);
-            UpdateButtonState(input.jump, crossHeld);
-
-            input.attack = ctrl->IsPressed(ControllerButtons::Square);
+            UpdateButtonState(input.jump,        ctrl->IsPressed(ControllerButtons::Cross));
+            UpdateButtonState(input.dodge,       ctrl->IsPressed(ControllerButtons::Circle));
+            UpdateButtonState(input.lightAttack, ctrl->IsPressed(ControllerButtons::Square));
+            UpdateButtonState(input.heavyAttack, ctrl->IsPressed(ControllerButtons::Triangle));
+            UpdateButtonState(input.wire,        ctrl->IsPressed(ControllerButtons::R1));
         });
 }
 

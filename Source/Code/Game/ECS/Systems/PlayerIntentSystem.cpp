@@ -82,7 +82,7 @@ void PlayerIntentSystem::Update(entt::registry& registry, float elapsedTime, con
 			}
 
 			// ƒ{ƒ^ƒ“‚ÌˆÓ}
-			UpdateAction(intent.jump,  input.jump.pressed,         input.jump.held,         intent.jumpBufferTime,  elapsedTime);
-			UpdateAction(intent.dodge, input.dodgeTrigger.pressed, input.dodgeTrigger.held, intent.dodgeBufferTime, elapsedTime);
+			UpdateAction(intent.jump, input.jump.pressed, input.jump.held, intent.jumpBufferTime, elapsedTime);
+			UpdateAction(intent.dodge, input.dodge.pressed, input.dodge.held, intent.dodgeBufferTime, elapsedTime);
 		});
 }

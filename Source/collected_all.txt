@@ -2656,7 +2656,6 @@ private:
 Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Data\AnimationEditData.cpp
 #include "AnimationEditData.h"
 #include "Engine/Data/DataFileKind.h"
-#include <filesystem>
 
 namespace
 {
@@ -2767,8 +2766,7 @@ void AnimationEditData::FromJson(const nlohmann::json& j)
 // モデルパスから保存先のパスを組み立てる
 std::string AnimationEditData::GetFilePath(const std::string& modelPath)
 {
-	std::filesystem::path p(modelPath);
-	return "Data/Json/Animation/" + p.stem().string() + GetDataFileExtension(DataFileKind::AnimEdit);
+	return GetModelDataFilePath(modelPath, DataFileKind::AnimEdit);
 }
 
 
@@ -3845,6 +3843,15 @@ inline DataFileKind GetDataFileKind(const std::filesystem::path& path)
 }
 
 
+// モデルに属するデータの場所：モデルと同じフォルダの Json/<モデル名>.種類.json
+inline std::string GetModelDataFilePath(const std::string& modelPath, DataFileKind kind)
+{
+	const std::filesystem::path p(modelPath);
+	const std::filesystem::path result = p.parent_path() / "Json" / (p.stem().string() + GetDataFileExtension(kind));
+	return result.generic_string(); // 区切りは「/」にそろえる
+}
+
+
 ===== SequencerData.cpp =====
 Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Data\SequencerData.cpp
 #include "SequencerData.h"
@@ -3994,8 +4001,7 @@ void SequencerData::FromJson(const nlohmann::json& j)
 // モデルパスから保存先のパスを組み立てる
 std::string SequencerData::GetFilePath(const std::string& modelPath)
 {
-	std::filesystem::path p(modelPath);
-	return "Data/Json/Sequencer/" + p.stem().string() + GetDataFileExtension(DataFileKind::Sequencer);
+	return GetModelDataFilePath(modelPath, DataFileKind::Sequencer);
 }
 
 
@@ -4836,8 +4842,7 @@ bool StateMachineData::FromJson(const nlohmann::json& j, const std::string& sour
 // モデルパスから保存先のパスを組み立てる
 std::string StateMachineData::GetFilePath(const std::string& modelPath)
 {
-	std::filesystem::path p(modelPath);
-	return "Data/Json/StateGraph/" + p.stem().string() + GetDataFileExtension(DataFileKind::StateGraph);
+	return GetModelDataFilePath(modelPath, DataFileKind::StateGraph);
 }
 
 // 編集用の検索
