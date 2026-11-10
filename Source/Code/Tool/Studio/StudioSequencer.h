@@ -1,5 +1,6 @@
 #pragma once
 #include "IStudioAttachment.h"
+#include "Engine/Core/JsonFileCache.h"
 #include "Engine/Data/SequencerData.h"
 #include "StudioTimelineWidget.h"
 #include <imgui.h>
@@ -33,6 +34,7 @@ private:
 	int windowId = 0;
 
 	SequencerData sequencerData;    // 編集中のデータ
+	JsonFileCache<SequencerData> fileCache; // ファイルの読み書き
 	std::string loadedModelPath;    // 最後に読み込んだモデルパス
 	bool isDirty = false;           // 未保存の変更があるか
 	StudioTimelineWidget timeline;  // タイムライン部品

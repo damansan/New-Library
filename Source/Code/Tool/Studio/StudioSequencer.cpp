@@ -1,7 +1,6 @@
 #include "StudioSequencer.h"
 #include "Engine/ECS/Components/SkinnedMeshComponent.h"
 #include "Engine/ECS/Components/AnimatorComponent.h"
-#include "Engine/Core/JsonFile.h"
 #include <algorithm>
 #include <cmath>
 
@@ -747,8 +746,9 @@ const char* StudioSequencer::GetFlagName(SequencerFlag flag)
 // 読み込み
 void StudioSequencer::Load(const std::string& modelPath)
 {
-	sequencerData = SequencerData();
-	JsonFile::Load(SequencerData::GetFilePath(modelPath), sequencerData);
+	// 無い・壊れているときは初期値が返る。無くて普通のファイルなので、ログは出さない
+	sequencerData = fileCache.GetOrLoad(SequencerData::GetFilePath(modelPath),
+		[](SequencerData& data, const nlohmann::json& j) { data.FromJson(j); }, JsonMissingLog::Silent);
 
 	loadedModelPath = modelPath;
 	isDirty = false;
@@ -760,7 +760,8 @@ void StudioSequencer::Save(const std::string& modelPath)
 {
 	if (modelPath.empty()) return;
 
-	if (JsonFile::Save(SequencerData::GetFilePath(modelPath), sequencerData))
+	if (fileCache.Save(SequencerData::GetFilePath(modelPath), sequencerData,
+		[](const SequencerData& data) { return data.ToJson(); }))
 	{
 		isDirty = false;
 	}

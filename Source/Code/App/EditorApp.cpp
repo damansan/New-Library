@@ -132,10 +132,9 @@ void EditorApp::OnFrame()
 	// StudioOpenRequestを処理
 	if (editorContext.studioRequest.pending)
 	{
-		OpenStudioWindow(editorContext.studioRequest.assetPath, editorContext.studioRequest.graphPath);
+		OpenStudioWindow(editorContext.studioRequest.assetPath);
 		editorContext.studioRequest.pending = false;
 		editorContext.studioRequest.assetPath = "";
-		editorContext.studioRequest.graphPath = "";
 	}
 	for (auto& win : studioWindows)
 	{
@@ -280,7 +279,7 @@ void EditorApp::UpdateDebugCamera(float elapsedTime)
 }
 
 // Studioを開く
-void EditorApp::OpenStudioWindow(const std::string& assetPath, const std::string& graphPath)
+void EditorApp::OpenStudioWindow(const std::string& assetPath)
 {
 	auto win = std::make_unique<StudioWindow>();
 	win->Initialize(graphics.GetDevice(), &studioShared);
@@ -291,12 +290,6 @@ void EditorApp::OpenStudioWindow(const std::string& assetPath, const std::string
 	if (!assetPath.empty())
 	{
 		win->LoadAsset(assetPath);
-	}
-
-	// グラフのパスが指定されていたら紐付け状態にする
-	if (!graphPath.empty())
-	{
-		win->GetContext().attachedGraphPath = graphPath;
 	}
 
 	studioWindows.push_back(std::move(win));

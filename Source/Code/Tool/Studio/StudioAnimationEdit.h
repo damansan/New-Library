@@ -1,8 +1,12 @@
 ﻿#pragma once
 #include "IStudioAttachment.h"
+
+#include "Engine/Core/JsonFileCache.h"
 #include "Engine/Data/AnimationEditData.h"
 #include "Engine/Resource/Model.h"
+
 #include "StudioTimelineWidget.h"
+
 #include <imgui.h>
 #include <string>
 #include <vector>
@@ -42,6 +46,7 @@ private:
 	int windowId = 0;
 
 	AnimationEditData editData;      // 編集中の設定
+	JsonFileCache<AnimationEditData> fileCache; // ファイルの読み書き
 	std::string loadedModelPath;     // 最後に読み込んだモデルパス
 	bool isDirty = false;            // 未保存の変更があるか
 	EditMode mode = EditMode::Trim;  // 今のモード

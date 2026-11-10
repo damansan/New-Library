@@ -4,7 +4,9 @@
 #include <vector>
 
 #include "IStudioAttachment.h"
+#include "Engine/Core/JsonFileCache.h"
 #include "Engine/Data/StateMachineData.h"
+
 #include "Tool/NodeEditor/NodeEditorCanvas.h"
 
 #include "StudioStateParentCanvas.h"
@@ -28,19 +30,19 @@ public:
 private:
 	// --- ファイル関係 --- //
 
-	// ツールバー
+// ツールバー
 	void DrawToolbar(StudioContext& context);
-	// .stategraphのドロップ受け口
-	void DrawDropTarget(StudioContext& context);
-	// ドロップされたファイルが開けるか確認
-	void TryOpen(const std::string& path, StudioContext& context);
 
-	// 保存 / 読み込み
+	// 保存 / 読み込み（場所はモデルのパスから決まる）
 	void Save(StudioContext& context);
 	void Load(StudioContext& context);
 
-	// 保存先のパスを決める
-	std::string BuildNewSavePath(const StudioContext& context) const;
+	// .stategraph.json の中身
+	struct GraphFile
+	{
+		StateMachineData data;
+		bool valid = false; // 検証を通ったか
+	};
 
 	// モデルが持っているアニメーションの名前の一覧を作り直す
 	void RefreshAnimationNames(entt::registry& registry);
@@ -50,14 +52,13 @@ private:
 
 	// --- データ --- //
 
-	StateMachineData data;
+	StateMachineData data;              // 編集中のグラフ
+	JsonFileCache<GraphFile> fileCache; // ファイルの読み書き
 
 	// --- パネルの状態 --- //
 
 	int windowId = 0;
 
-	// attachedGraphPathの内容を読み込み済みか
-	bool loaded = false;
 	// 最後の検証でエラーがあったか
 	bool hasErrors = false;
 	// ツールバーに出すメッセージ

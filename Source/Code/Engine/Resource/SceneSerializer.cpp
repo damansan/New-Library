@@ -2,9 +2,9 @@
 #include "Engine/Resource/EntitySerializer.h"
 #include "Engine/ECS/Components/PrefabInstanceComponent.h"
 #include "Engine/Core/Log.h"
+#include "Engine/Core/JsonFileCache.h"
 #include <algorithm>
 #include <filesystem>
-#include <fstream>
 #include <vector>
 
 nlohmann::json SceneSerializer::Serialize(entt::registry& registry, const NameGetter& getName)
@@ -35,11 +35,10 @@ nlohmann::json SceneSerializer::Serialize(entt::registry& registry, const NameGe
 			// プレハブ配置のEntityは、現在値とプレハブの値の差分だけを書く
 			entry["prefab"] = prefab->prefabPath;
 
-			nlohmann::json prefabData;
-			if (EntitySerializer::LoadJsonFile(prefab->prefabPath, prefabData))
+			if (const nlohmann::json* prefabData = EntitySerializer::LoadPrefabFile(prefab->prefabPath))
 			{
 				nlohmann::json current = EntitySerializer::SerializeEntity(registry, e);
-				nlohmann::json overrides = DiffAgainstPrefab(current, prefabData);
+				nlohmann::json overrides = DiffAgainstPrefab(current, *prefabData);
 
 				if (!overrides.empty())
 				{
@@ -49,7 +48,7 @@ nlohmann::json SceneSerializer::Serialize(entt::registry& registry, const NameGe
 			else
 			{
 				// プレハブ本体が読めない場合は、差分を取れないので、参照だけ残す
-				Log(u8"[Warn] 差分比較のため、プレハブを読み込めませんでした: %s", prefab->prefabPath.c_str());
+				Log(u8"[Warn] 差分比較用のプレハブを読めない: %s", LogPath(prefab->prefabPath).c_str());
 			}
 		}
 		else
@@ -69,25 +68,14 @@ bool SceneSerializer::SaveToFile(entt::registry& registry, const std::string& pa
 {
 	nlohmann::json scene = Serialize(registry, getName);
 
-	// 保存先のフォルダが無ければ作る
-	std::filesystem::path filePath(path);
-	if (filePath.has_parent_path())
+	// シーンは使い回さないので、その場限りで使う
+	JsonFileCache<nlohmann::json> file;
+	if (!file.Save(path, scene, [](const nlohmann::json& d) { return nlohmann::ordered_json(d); }))
 	{
-		std::error_code ec;
-		std::filesystem::create_directories(filePath.parent_path(), ec);
-	}
-
-	std::ofstream ofs(filePath);
-	if (!ofs)
-	{
-		Log(u8"[Error] シーンを書き込めません: %s", path.c_str());
 		return false;
 	}
 
-	// UTF-8として不正な文字が名前・パスに入っていても、例外で落とさず置き換えて書き出す
-	ofs << scene.dump(4, ' ', false, nlohmann::json::error_handler_t::replace);
-
-	Log(u8"[Info] シーンを保存しました: %s (%d個のEntity)", path.c_str(), static_cast<int>(scene["entities"].size()));
+	Log(u8"[Info] シーンを保存: %s (Entity %d 個)", LogPath(path).c_str(), static_cast<int>(scene["entities"].size()));
 	return true;
 }
 
@@ -131,7 +119,7 @@ void SceneSerializer::Deserialize(entt::registry& registry, const nlohmann::json
 			}
 			catch (const nlohmann::json::exception&)
 			{
-				Log(u8"[Warn] overridesの適用中にエラー: %s", entry.value("name", std::string()).c_str());
+				Log(u8"[Warn] overrides の適用に失敗: %s", entry.value("name", std::string()).c_str());
 			}
 		}
 
@@ -150,8 +138,11 @@ void SceneSerializer::Deserialize(entt::registry& registry, const nlohmann::json
 // ファイルから読み込む。読み込み前に、既存のEntityを1つずつdestroyする
 bool SceneSerializer::LoadFromFile(entt::registry& registry, const std::string& path, const NameSetter& setName)
 {
-	nlohmann::json scene;
-	if (!EntitySerializer::LoadJsonFile(path, scene)) return false;
+	// シーンは開くときに1回読むだけなので、その場限りで使う
+	JsonFileCache<nlohmann::json> file;
+	const nlohmann::json& scene = file.GetOrLoad(path,
+		[](nlohmann::json& d, const nlohmann::json& j) { d = j; });
+	if (file.GetStatus(path) != JsonFileStatus::Loaded) return false;
 
 	// 既存のEntityを、1つずつ破棄する
 	std::vector<entt::entity> existing;
@@ -166,7 +157,7 @@ bool SceneSerializer::LoadFromFile(entt::registry& registry, const std::string& 
 
 	Deserialize(registry, scene, setName);
 
-	Log(u8"シーンを読み込みました: %s", path.c_str());
+	Log(u8"シーンを読み込み: %s", LogPath(path).c_str());
 	return true;
 }
 

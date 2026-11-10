@@ -282,10 +282,9 @@ void EditorApp::OnFrame()
 	// StudioOpenRequestを処理
 	if (editorContext.studioRequest.pending)
 	{
-		OpenStudioWindow(editorContext.studioRequest.assetPath, editorContext.studioRequest.graphPath);
+		OpenStudioWindow(editorContext.studioRequest.assetPath);
 		editorContext.studioRequest.pending = false;
 		editorContext.studioRequest.assetPath = "";
-		editorContext.studioRequest.graphPath = "";
 	}
 	for (auto& win : studioWindows)
 	{
@@ -430,7 +429,7 @@ void EditorApp::UpdateDebugCamera(float elapsedTime)
 }
 
 // Studioを開く
-void EditorApp::OpenStudioWindow(const std::string& assetPath, const std::string& graphPath)
+void EditorApp::OpenStudioWindow(const std::string& assetPath)
 {
 	auto win = std::make_unique<StudioWindow>();
 	win->Initialize(graphics.GetDevice(), &studioShared);
@@ -441,12 +440,6 @@ void EditorApp::OpenStudioWindow(const std::string& assetPath, const std::string
 	if (!assetPath.empty())
 	{
 		win->LoadAsset(assetPath);
-	}
-
-	// グラフのパスが指定されていたら紐付け状態にする
-	if (!graphPath.empty())
-	{
-		win->GetContext().attachedGraphPath = graphPath;
 	}
 
 	studioWindows.push_back(std::move(win));
@@ -587,7 +580,7 @@ private:
 	void UpdateDebugCamera(float elapsedTime);
 
 	// Studioを開く
-	void OpenStudioWindow(const std::string& assetPath = "", const std::string& graphPath = "");
+	void OpenStudioWindow(const std::string& assetPath = "");
 
 	// メニューバーの中身
 	void DrawMainMenu();
@@ -624,14 +617,17 @@ private:
 ===== GameApp.cpp =====
 Path: C:\Users\2240140\Desktop\New-Library\Source\Code\App\GameApp.cpp
 #include "GameApp.h"
-#include "tracy/Tracy.hpp"
-#include <fstream>
-#include <json.hpp>
+#include "GameApp.h"
 
 #include "Engine/Core/Log.h"
+#include "Engine/Core/JsonFileCache.h"
 #include "Engine/Resource/SceneSerializer.h"
 #include "Game/Scene/SceneGame.h"
 #include "Game/ECS/GameComponents.h"
+
+#include "tracy/Tracy.hpp"
+
+#include <json.hpp>
 
 namespace
 {
@@ -686,7 +682,7 @@ void GameApp::OnPostUpdate(float elapsedTime)
 	// エンティティの名前はエディタ専用なので、受け取らない
 	if (!SceneSerializer::LoadFromFile(scene->GetRegistry(), startScenePath))
 	{
-		Log(u8"最初のシーンの読み込みに失敗しました: %s", startScenePath.c_str());
+		Log(u8"最初のシーンを読めない: %s", LogPath(startScenePath).c_str());
 	}
 }
 
@@ -700,24 +696,14 @@ void GameApp::OnPresent()
 // プロジェクト設定から、最初に読み込むシーンのパスを取得する
 std::string GameApp::LoadStartScenePath()
 {
-	std::ifstream file(kProjectSettingsPath);
-	if (!file)
-	{
-		Log(u8"プロジェクト設定が見つかりません: %s", kProjectSettingsPath);
-		return "";
-	}
+	// 起動時に1回読むだけなので、その場限りで使う
+	JsonFileCache<std::string> file;
+	const std::string& path = file.GetOrLoad(kProjectSettingsPath,
+		[](std::string& startScene, const nlohmann::json& j) { startScene = j.value("startScene", ""); });
 
-	nlohmann::json json = nlohmann::json::parse(file, nullptr, false);
-	if (json.is_discarded() || !json.is_object())
+	if (file.GetStatus(kProjectSettingsPath) == JsonFileStatus::Loaded && path.empty())
 	{
-		Log(u8"プロジェクト設定の形式が正しくありません: %s", kProjectSettingsPath);
-		return "";
-	}
-
-	std::string path = json.value("startScene", "");
-	if (path.empty())
-	{
-		Log(u8"プロジェクト設定に startScene がありません");
+		Log(u8"プロジェクト設定に startScene が無い");
 	}
 	return path;
 }
@@ -1924,58 +1910,6 @@ private:
 };
 
 
-===== JsonFile.h =====
-Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Core\JsonFile.h
-#pragma once
-#include <string>
-#include <fstream>
-#include <filesystem>
-#include <json.hpp>
-#include "Engine/Core/Log.h"
-
-namespace JsonFile
-{
-	// data.FromJson に渡す
-	template<typename T>
-	bool Load(const std::string& path, T& data)
-	{
-		std::ifstream ifs(path);
-		if (!ifs.is_open()) return false;
-
-		try
-		{
-			nlohmann::json j;
-			ifs >> j;
-			data.FromJson(j);
-			return true;
-		}
-		catch (const std::exception& e)
-		{
-			Log(u8" JSONの読み込みに失敗: %s (%s)", path.c_str(), e.what());
-			return false;
-		}
-	}
-
-	// data.ToJson を書き出す
-	template<typename T>
-	bool Save(const std::string& path, const T& data)
-	{
-		std::error_code ec;
-		std::filesystem::create_directories(std::filesystem::path(path).parent_path(), ec);
-
-		std::ofstream ofs(path);
-		if (!ofs.is_open())
-		{
-			Log(u8" ファイルを保存できません: %s", path.c_str());
-			return false;
-		}
-
-		ofs << data.ToJson().dump(4);
-		return true;
-	}
-}
-
-
 ===== JsonFileCache.h =====
 Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Core\JsonFileCache.h
 #pragma once
@@ -1988,62 +1922,81 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Core\JsonFileCache
 #include <filesystem>
 #include <json.hpp>
 
+// 読み込み結果
+enum class JsonFileStatus
+{
+	Loaded,  // 読み込み済み
+	Missing, // ファイルなし
+	Broken,  // 読み込めない
+};
+
+// ファイルが無いときにログを出すか
+enum class JsonMissingLog
+{
+	Silent, // 無くても支障が無いもの
+	Report, // 無いとおかしいもの
+};
+
 template<typename T>
 class JsonFileCache
 {
 public:
-	T& GetOrLoad(const std::string& path, const std::function<void(T&, const nlohmann::json&)>& loadFunc)
+	using LoadFunc = std::function<void(T&, const nlohmann::json&)>;
+	using SaveFunc = std::function<nlohmann::ordered_json(const T&)>; // キーの順番を保つ
+
+	// 読む
+	T& GetOrLoad(const std::string& path, const LoadFunc& loadFunc, JsonMissingLog missingLog = JsonMissingLog::Report)
 	{
-		std::error_code ec;
-		auto writeTime = std::filesystem::last_write_time(path, ec);
-		const bool exists = !ec;
+		return Find(path, loadFunc, missingLog).data;
+	}
 
+	// 最後に読んだときの結果
+	JsonFileStatus GetStatus(const std::string& path) const
+	{
 		auto it = cache.find(path);
-		if (it != cache.end())
-		{
-			const Entry& cached = it->second;
+		return (it != cache.end()) ? it->second.status : JsonFileStatus::Missing;
+	}
 
-			// 前回と同じ状態なら、キャッシュをそのまま返す
-			if (exists == cached.exists && (!exists || writeTime == cached.lastWriteTime))
+	// 書く
+	bool Save(const std::string& path, const T& data, const SaveFunc& saveFunc)
+	{
+		namespace fs = std::filesystem;
+		std::error_code ec;
+		fs::create_directories(fs::path(path).parent_path(), ec);
+
+		// 一時ファイルに書き切る
+		const std::string tempPath = path + ".tmp";
+		{
+			std::ofstream ofs(tempPath);
+			if (!ofs.is_open())
 			{
-				return it->second.data;
+				Log(u8" 保存できない: %s", LogPath(path).c_str());
+				return false;
 			}
-			// ファイルが更新された・現れた・消えた場合は、読み込みをやり直す
-			cache.erase(it);
+			ofs << saveFunc(data).dump(4, ' ', false, nlohmann::ordered_json::error_handler_t::replace);
+			if (!ofs)
+			{
+				Log(u8" 保存できない: %s", LogPath(path).c_str());
+				return false;
+			}
 		}
 
-		// マップの中に直接構築してから読み込む
-		auto result = cache.try_emplace(path);
-		Entry& entry = result.first->second;
-		entry.lastWriteTime = writeTime;
-		entry.exists = exists;
-
-		// 状態が変わったときだけここに来るので、ログは1回だけ出る
-		if (!exists)
+		// 本物と置き換える
+		fs::rename(tempPath, path, ec);
+		if (ec)
 		{
-			Log(u8" ファイルが見つかりません: %s", path.c_str());
-			return entry.data;
+			Log(u8" 保存できない: %s", LogPath(path).c_str());
+			fs::remove(tempPath, ec);
+			return false;
 		}
 
-		std::ifstream ifs(path);
-		if (!ifs.is_open())
-		{
-			Log(u8" ファイルを開けません: %s", path.c_str());
-			return entry.data;
-		}
-
-		try
-		{
-			nlohmann::json j;
-			ifs >> j;
-			loadFunc(entry.data, j);
-		}
-		catch (const std::exception& e)
-		{
-			Log(u8" JSONの読み込みに失敗: %s (%s)", path.c_str(), e.what());
-		}
-
-		return entry.data;
+		// 自分のキャッシュも書いた内容にしておく
+		Entry& entry = cache[path];
+		entry.data = data;
+		entry.lastWriteTime = fs::last_write_time(path, ec);
+		entry.exists = !ec;
+		entry.status = JsonFileStatus::Loaded;
+		return true;
 	}
 
 private:
@@ -2051,8 +2004,72 @@ private:
 	{
 		T data;
 		std::filesystem::file_time_type lastWriteTime;
-		bool exists = false; // 読み込んだときにファイルがあったか
+		bool exists = false;                             // 読んだときにファイルがあったか
+		JsonFileStatus status = JsonFileStatus::Missing; // 読んだ結果
 	};
+
+	// キャッシュから探す。ファイルの状態が変わっていれば読み直す
+	Entry& Find(const std::string& path, const LoadFunc& loadFunc, JsonMissingLog missingLog)
+	{
+		std::error_code ec;
+		const auto writeTime = std::filesystem::last_write_time(path, ec);
+		const bool exists = !ec;
+
+		auto it = cache.find(path);
+		if (it != cache.end())
+		{
+			Entry& cached = it->second;
+
+			// 前回と同じ状態なら、キャッシュをそのまま返す
+			if (exists == cached.exists && (!exists || writeTime == cached.lastWriteTime))
+			{
+				return cached;
+			}
+			// ファイルが更新された・現れた・消えた場合は、読み直す
+			cache.erase(it);
+		}
+
+		// マップの中に直接作ってから読む
+		Entry& entry = cache.try_emplace(path).first->second;
+		entry.lastWriteTime = writeTime;
+		entry.exists = exists;
+
+		// 状態が変わったときだけここに来るので、ログは1回だけ出る
+		if (!exists)
+		{
+			entry.status = JsonFileStatus::Missing;
+			if (missingLog == JsonMissingLog::Report)
+			{
+				Log(u8" ファイルが見つからない: %s", LogPath(path).c_str());
+			}
+			return entry;
+		}
+
+		std::ifstream ifs(path);
+		if (!ifs.is_open())
+		{
+			entry.status = JsonFileStatus::Broken;
+			Log(u8" ファイルを開けない: %s", LogPath(path).c_str());
+			return entry;
+		}
+
+		try
+		{
+			nlohmann::json j;
+			ifs >> j;
+			loadFunc(entry.data, j);
+			entry.status = JsonFileStatus::Loaded;
+		}
+		catch (const std::exception&)
+		{
+			// 途中まで読んだ分は捨てて、初期値にする
+			entry.data = T{};
+			entry.status = JsonFileStatus::Broken;
+			Log(u8" JSON が読めない: %s", LogPath(path).c_str());
+		}
+
+		return entry;
+	}
 
 	std::unordered_map<std::string, Entry> cache;
 };
@@ -2069,6 +2086,7 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Core\Log.h
 #include <mutex>
 #include <string>
 #include <vector>
+#include <filesystem>
 
 // ログの保存先。メッセージはUTF-8で持つ（日本語は u8"..." を付けて書く）
 namespace LogBuffer
@@ -2155,6 +2173,24 @@ inline void Log(const char* format, ...)
 	va_end(args);
 
 	LogBuffer::Add(message);
+}
+
+// ログに出すパスを短くする：「Data/」から
+inline std::string LogPath(const std::string& path)
+{
+	const std::filesystem::path p(path); // std::string はシステムの文字コード（Shift-JIS）として読まれる
+
+	std::filesystem::path shortPath;
+	bool found = false;
+	for (const auto& part : p)
+	{
+		if (!found && part == "Data") found = true;
+		if (found) shortPath /= part;
+	}
+	if (!found) shortPath = p.filename();
+
+	const auto utf8 = shortPath.generic_u8string(); // 区切りは「/」、文字は UTF-8
+	return std::string(utf8.begin(), utf8.end());
 }
 
 
@@ -2619,6 +2655,7 @@ private:
 ===== AnimationEditData.cpp =====
 Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Data\AnimationEditData.cpp
 #include "AnimationEditData.h"
+#include "Engine/Data/DataFileKind.h"
 #include <filesystem>
 
 namespace
@@ -2731,7 +2768,7 @@ void AnimationEditData::FromJson(const nlohmann::json& j)
 std::string AnimationEditData::GetFilePath(const std::string& modelPath)
 {
 	std::filesystem::path p(modelPath);
-	return "Data/Json/Animation/" + p.stem().string() + ".animedit";
+	return "Data/Json/Animation/" + p.stem().string() + GetDataFileExtension(DataFileKind::AnimEdit);
 }
 
 
@@ -3744,10 +3781,75 @@ ValueType GetGetterFieldType(const ConditionGetterNode& node);
 bool IsGetterAxisValid(const ConditionGetterNode& node);
 
 
+===== DataFileKind.h =====
+Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Data\DataFileKind.h
+#pragma once
+#include <algorithm>
+#include <filesystem>
+#include <string>
+
+// データファイルの種類
+enum class DataFileKind
+{
+	Unknown,    // データファイルではない
+	Scene,      // .scene.json
+	Prefab,     // .prefab.json
+	StateGraph, // .stategraph.json
+	AnimEdit,   // .animedit.json
+	Sequencer,  // .sequencer.json
+};
+
+// 種類ごとの拡張子
+inline const char* GetDataFileExtension(DataFileKind kind)
+{
+	switch (kind)
+	{
+	case DataFileKind::Scene:      return ".scene.json";
+	case DataFileKind::Prefab:     return ".prefab.json";
+	case DataFileKind::StateGraph: return ".stategraph.json";
+	case DataFileKind::AnimEdit:   return ".animedit.json";
+	case DataFileKind::Sequencer:  return ".sequencer.json";
+	default:                       return "";
+	}
+}
+
+// パスから種類を判定する
+inline DataFileKind GetDataFileKind(const std::filesystem::path& path)
+{
+	// 大文字小文字を区別しない
+	std::string name = path.filename().string();
+	std::transform(name.begin(), name.end(), name.begin(),
+		[](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+
+	constexpr DataFileKind kinds[] =
+	{
+		DataFileKind::Scene,
+		DataFileKind::Prefab,
+		DataFileKind::StateGraph,
+		DataFileKind::AnimEdit,
+		DataFileKind::Sequencer,
+	};
+
+	for (DataFileKind kind : kinds)
+	{
+		const std::string extension = GetDataFileExtension(kind);
+
+		// 「.scene.json」だけの名前（中身の名前が空）は、データファイルとみなさない
+		if (name.size() > extension.size()
+			&& name.compare(name.size() - extension.size(), extension.size(), extension) == 0)
+		{
+			return kind;
+		}
+	}
+	return DataFileKind::Unknown;
+}
+
+
 ===== SequencerData.cpp =====
 Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Data\SequencerData.cpp
 #include "SequencerData.h"
 #include "Engine/Core/Log.h"
+#include "Engine/Data/DataFileKind.h"
 #include <filesystem>
 
 namespace
@@ -3893,7 +3995,7 @@ void SequencerData::FromJson(const nlohmann::json& j)
 std::string SequencerData::GetFilePath(const std::string& modelPath)
 {
 	std::filesystem::path p(modelPath);
-	return "Data/Json/Sequencer/" + p.stem().string() + ".sequencer";
+	return "Data/Json/Sequencer/" + p.stem().string() + GetDataFileExtension(DataFileKind::Sequencer);
 }
 
 
@@ -3958,10 +4060,12 @@ public:
 Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Data\StateMachineData.cpp
 #include "StateMachineData.h"
 #include <algorithm>
+#include <filesystem>
 #include <unordered_set>
 #include <utility>
 
 #include "Engine/Core/Log.h"
+#include "Engine/Data/DataFileKind.h"
 
 namespace
 {
@@ -4351,12 +4455,12 @@ bool StateMachineData::Validate(const std::string& sourceName) const
 
 	auto error = [&](const std::string& message)
 		{
-			Log(u8"[StateMachine] エラー(%s): %s", sourceName.c_str(), message.c_str());
+			Log(u8"[StateMachine] エラー(%s): %s", LogPath(sourceName).c_str(), message.c_str());
 			++errorCount;
 		};
 	auto warning = [&](const std::string& message)
 		{
-			Log(u8"[StateMachine] 警告(%s): %s", sourceName.c_str(), message.c_str());
+			Log(u8"[StateMachine] 警告(%s): %s", LogPath(sourceName).c_str(), message.c_str());
 		};
 
 	// IDの重複
@@ -4613,7 +4717,7 @@ bool StateMachineData::FromJson(const nlohmann::json& j, const std::string& sour
 	int version = j.value("version", 0);
 	if (version != kVersion)
 	{
-		Log(u8"[StateMachine] エラー(%s): 対応していない形式です(version %d)", sourceName.c_str(), version);
+		Log(u8"[StateMachine] エラー(%s): 対応していない形式（version %d）", LogPath(sourceName).c_str(), version);		
 		return false;
 	}
 
@@ -4727,6 +4831,13 @@ bool StateMachineData::FromJson(const nlohmann::json& j, const std::string& sour
 	nextId = (std::max)(j.value("nextId", 1), maxId + 1);
 
 	return Validate(sourceName);
+}
+
+// モデルパスから保存先のパスを組み立てる
+std::string StateMachineData::GetFilePath(const std::string& modelPath)
+{
+	std::filesystem::path p(modelPath);
+	return "Data/Json/StateGraph/" + p.stem().string() + GetDataFileExtension(DataFileKind::StateGraph);
 }
 
 // 編集用の検索
@@ -4930,9 +5041,12 @@ public:
 	// 整合性チェック
 	bool Validate(const std::string& sourceName) const;
 
-	// JSONとの変換
+	// 保存/読み込み
 	nlohmann::ordered_json ToJson() const;
 	bool FromJson(const nlohmann::json& j, const std::string& sourceName);
+
+	// モデルパスから保存先のパスを組み立てる
+	static std::string GetFilePath(const std::string& modelPath);
 
 private:
 	int nextId = 1;
@@ -5578,7 +5692,6 @@ struct StateMachineComponent
 {
 	REFLECT_BEGIN(StateMachineComponent, "State Machine")
 		
-		REFLECT_FIELD(std::string, graphPath,        (""), ("State Graph",   0.0f, 0.0f, 0.1f, "STATEGRAPH_PATH"))
 		REFLECT_FIELD(std::string, currentStateName, (""), ("Current State", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient))
 		REFLECT_FIELD(std::string, currentClipName,  (""), ("Current Clip",  0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient))
 		
@@ -7106,27 +7219,25 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\ECS\Systems\IKSyst
 
 namespace
 {
-	using namespace DirectX;
-
 	// ワールド回転を、親のワールド回転を基準にしたローカル回転に変換する
-	XMVECTOR WorldToLocalRotation(FXMVECTOR worldRotation, FXMVECTOR parentWorldRotation)
+	DirectX::XMVECTOR WorldToLocalRotation(DirectX::FXMVECTOR worldRotation, DirectX::FXMVECTOR parentWorldRotation)
 	{
-		XMVECTOR parentInverse = XMQuaternionInverse(parentWorldRotation);
+		DirectX::XMVECTOR parentInverse = DirectX::XMQuaternionInverse(parentWorldRotation);
 		// worldRotation = localRotation * parentWorldRotation なので
 		// localRotation = worldRotation * (parentWorldRotation)^-1
-		return XMQuaternionMultiply(worldRotation, parentInverse);
+		return DirectX::XMQuaternionMultiply(worldRotation, parentInverse);
 	}
 
 	// XMFLOAT4X4(ワールド行列)から、位置と回転(クォータニオン)を取り出す
-	void DecomposePosRot(const XMFLOAT4X4& world, XMFLOAT3& outPos, XMFLOAT4& outRot)
+	void DecomposePosRot(const DirectX::XMFLOAT4X4& world, DirectX::XMFLOAT3& outPos, DirectX::XMFLOAT4& outRot)
 	{
-		XMMATRIX m = XMLoadFloat4x4(&world);
+		DirectX::XMMATRIX m = DirectX::XMLoadFloat4x4(&world);
 
-		XMVECTOR scale, rotQuat, trans;
-		XMMatrixDecompose(&scale, &rotQuat, &trans, m);
+		DirectX::XMVECTOR scale, rotQuat, trans;
+		DirectX::XMMatrixDecompose(&scale, &rotQuat, &trans, m);
 
-		XMStoreFloat3(&outPos, trans);
-		XMStoreFloat4(&outRot, rotQuat);
+		DirectX::XMStoreFloat3(&outPos, trans);
+		DirectX::XMStoreFloat4(&outRot, rotQuat);
 	}
 }
 
@@ -7153,8 +7264,6 @@ void IKSystem::Update(entt::registry& registry, physx::PxScene* pxScene)
 // 1本の足のFootIK処理
 void IKSystem::SolveFootIK(FootIKSettings& footSettings, SkinnedMeshComponent& skinned, physx::PxScene* pxScene, const DirectX::XMFLOAT4X4& entityWorldMatrix)
 {
-	using namespace DirectX;
-
 	// ボーンインデックス
 	const int rootIndex = footSettings.rootBoneIndex;
 	const int midIndex = footSettings.midBoneIndex;
@@ -7170,8 +7279,8 @@ void IKSystem::SolveFootIK(FootIKSettings& footSettings, SkinnedMeshComponent& s
 	}
 
 	// 現在のワールド位置・回転を取り出す
-	XMFLOAT3 rootPos, midPos, endPos;
-	XMFLOAT4 rootRot, midRot, endRot;
+	DirectX::XMFLOAT3 rootPos, midPos, endPos;
+	DirectX::XMFLOAT4 rootRot, midRot, endRot;
 	DecomposePosRot(globals[rootIndex], rootPos, rootRot);
 	DecomposePosRot(globals[midIndex], midPos, midRot);
 	DecomposePosRot(globals[endIndex], endPos, endRot);
@@ -7183,18 +7292,18 @@ void IKSystem::SolveFootIK(FootIKSettings& footSettings, SkinnedMeshComponent& s
 		footSettings.hasInitializedTarget = true;
 	}
 
-	XMFLOAT3 targetPos = footSettings.targetPos;
+	DirectX::XMFLOAT3 targetPos = footSettings.targetPos;
 
 	// 足首の少し上からまっすぐ下へレイを飛ばし、地面の法線を取得する
-		// endPosはモデル空間の座標なので、レイを飛ばす前にワールド空間へ変換する
-	XMVECTOR endPosModel = XMLoadFloat3(&endPos);
-	XMMATRIX entityWorld = XMLoadFloat4x4(&entityWorldMatrix);
-	XMVECTOR endPosWorldV = XMVector3TransformCoord(endPosModel, entityWorld);
+	// endPosはモデル空間の座標なので、レイを飛ばす前にワールド空間へ変換する
+	DirectX::XMVECTOR endPosModel = DirectX::XMLoadFloat3(&endPos);
+	DirectX::XMMATRIX entityWorld = DirectX::XMLoadFloat4x4(&entityWorldMatrix);
+	DirectX::XMVECTOR endPosWorldV = DirectX::XMVector3TransformCoord(endPosModel, entityWorld);
 
-	XMFLOAT3 rayOrigin;
-	XMStoreFloat3(&rayOrigin, endPosWorldV);
+	DirectX::XMFLOAT3 rayOrigin;
+	DirectX::XMStoreFloat3(&rayOrigin, endPosWorldV);
 	rayOrigin.y += footSettings.rayStartOffset; // めり込まないように少し上げる
-	XMFLOAT3 rayDirection = { 0.0f, -1.0f, 0.0f };
+	DirectX::XMFLOAT3 rayDirection = { 0.0f, -1.0f, 0.0f };
 	float rayMaxDistance = footSettings.rayMaxDistance;
 
 	// レイを飛ばす
@@ -7204,19 +7313,19 @@ void IKSystem::SolveFootIK(FootIKSettings& footSettings, SkinnedMeshComponent& s
 	if (groundHit.hit)
 	{
 		// 地面から足首までの高さ分、地面の当たり位置より持ち上げる(めり込み防止)
-		XMFLOAT3 hitPos = groundHit.position;
+		DirectX::XMFLOAT3 hitPos = groundHit.position;
 		hitPos.y += footSettings.ankleHeight;
 
 		// groundHit.positionはワールド座標なので、モデル空間に変換してからtargetPosとして使う
 		// (地面が見つからなかった場合は、targetPosは最初に代入したfootSettings.targetPosのまま)
-		XMVECTOR hitPosWorldV = XMLoadFloat3(&hitPos);
-		XMMATRIX entityWorldInverse = XMMatrixInverse(nullptr, entityWorld);
-		XMVECTOR hitPosModelV = XMVector3TransformCoord(hitPosWorldV, entityWorldInverse);
-		XMStoreFloat3(&targetPos, hitPosModelV);
+		DirectX::XMVECTOR hitPosWorldV = DirectX::XMLoadFloat3(&hitPos);
+		DirectX::XMMATRIX entityWorldInverse = DirectX::XMMatrixInverse(nullptr, entityWorld);
+		DirectX::XMVECTOR hitPosModelV = DirectX::XMVector3TransformCoord(hitPosWorldV, entityWorldInverse);
+		DirectX::XMStoreFloat3(&targetPos, hitPosModelV);
 	}
 
 	// poleVector: 膝を前方(モデルのZ+方向を仮定)に向ける
-	XMFLOAT3 poleVector = rootPos;
+	DirectX::XMFLOAT3 poleVector = rootPos;
 	poleVector.z += footSettings.poleVectorForward ? -1.0f : 1.0f;
 
 	// 2BoneIKを解く
@@ -7227,34 +7336,34 @@ void IKSystem::SolveFootIK(FootIKSettings& footSettings, SkinnedMeshComponent& s
 
 	// ワールド回転 → ローカル回転 に変換して書き戻す
 	// rootの親(pelvis)のワールド回転はまだ変わっていないので、そのまま使える
-	XMVECTOR pelvisWorldRot;
+	DirectX::XMVECTOR pelvisWorldRot;
 	{
-		XMFLOAT3 dummyPos;
-		XMFLOAT4 pelvisRot;
+		DirectX::XMFLOAT3 dummyPos;
+		DirectX::XMFLOAT4 pelvisRot;
 		int pelvisIndex = skinned.model->GetNodes()[rootIndex].parentIndex;
 		DecomposePosRot(globals[pelvisIndex], dummyPos, pelvisRot);
-		pelvisWorldRot = XMLoadFloat4(&pelvisRot);
+		pelvisWorldRot = DirectX::XMLoadFloat4(&pelvisRot);
 	}
 
-	XMVECTOR newRootLocal = WorldToLocalRotation(
-		XMLoadFloat4(&result.rootRotation), pelvisWorldRot);
-	XMVECTOR newMidLocal = WorldToLocalRotation(
-		XMLoadFloat4(&result.midRotation), XMLoadFloat4(&result.rootRotation));
+	DirectX::XMVECTOR newRootLocal = WorldToLocalRotation(
+		DirectX::XMLoadFloat4(&result.rootRotation), pelvisWorldRot);
+	DirectX::XMVECTOR newMidLocal = WorldToLocalRotation(
+		DirectX::XMLoadFloat4(&result.midRotation), DirectX::XMLoadFloat4(&result.rootRotation));
 
-	XMStoreFloat4(&skinned.localRotations[rootIndex], newRootLocal);
-	XMStoreFloat4(&skinned.localRotations[midIndex], newMidLocal);
+	DirectX::XMStoreFloat4(&skinned.localRotations[rootIndex], newRootLocal);
+	DirectX::XMStoreFloat4(&skinned.localRotations[midIndex], newMidLocal);
 
 	// 足首: 地面の法線に合わせて、水平からのズレ分だけ元の向き(endRot)に上乗せする
-	XMVECTOR groundUp = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
-	XMVECTOR groundDeltaRotation = groundHit.hit
-		? TwoBoneIKSolver::RotationFromToRotation(groundUp, XMLoadFloat3(&groundHit.normal))
-		: XMQuaternionIdentity(); // 地面が見つからなければ、元の向きのまま何もしない
+	DirectX::XMVECTOR groundUp = DirectX::XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+	DirectX::XMVECTOR groundDeltaRotation = groundHit.hit
+		? TwoBoneIKSolver::RotationFromToRotation(groundUp, DirectX::XMLoadFloat3(&groundHit.normal))
+		: DirectX::XMQuaternionIdentity(); // 地面が見つからなければ、元の向きのまま何もしない
 
-	XMVECTOR newEndWorld = XMQuaternionMultiply(XMLoadFloat4(&endRot), groundDeltaRotation);
-	XMVECTOR newEndLocal = WorldToLocalRotation(
-		newEndWorld, XMLoadFloat4(&result.midRotation));
+	DirectX::XMVECTOR newEndWorld = DirectX::XMQuaternionMultiply(DirectX::XMLoadFloat4(&endRot), groundDeltaRotation);
+	DirectX::XMVECTOR newEndLocal = WorldToLocalRotation(
+		newEndWorld, DirectX::XMLoadFloat4(&result.midRotation));
 
-	XMStoreFloat4(&skinned.localRotations[endIndex], newEndLocal);
+	DirectX::XMStoreFloat4(&skinned.localRotations[endIndex], newEndLocal);
 
 	// IKで回転が変わったので、グローバル行列を再計算する
 	SkeletonUtils::CalcGlobalTransforms(
@@ -7300,19 +7409,29 @@ void MeshLoaderSystem::Update(
     ID3D11Device* device,
     ResourceManager& resourceManager)
 {
-    // パスが変わっていたら再ロードさせる
+
+    // 自分が作った派生を外す
+    auto removeDerived = [&](entt::entity entity)
+        {
+            registry.remove<MeshLoadedTag, SkinnedMeshComponent, StaticMeshComponent>(entity);
+        };
+
+    // Mesh が外されていたら、派生も外す
+    auto orphanView = registry.view<MeshLoadedTag>(entt::exclude<MeshComponent>);
+    const std::vector<entt::entity> orphans(orphanView.begin(), orphanView.end());
+    for (auto entity : orphans)
+    {
+        removeDerived(entity);
+    }
+
+    // パスが変わっていたら、派生を外して再ロードさせる
     auto loadedView = registry.view<MeshComponent, MeshLoadedTag>();
     for (auto entity : loadedView)
     {
         auto& mesh = loadedView.get<MeshComponent>(entity);
         if (mesh.modelPath != mesh.previousPath)
         {
-            // 自分が作った派生だけを外す
-            registry.remove<MeshLoadedTag>(entity);
-            if (registry.any_of<SkinnedMeshComponent>(entity))
-                registry.remove<SkinnedMeshComponent>(entity);
-            if (registry.any_of<StaticMeshComponent>(entity))
-                registry.remove<StaticMeshComponent>(entity);
+            removeDerived(entity);
         }
     }
 
@@ -7336,7 +7455,7 @@ void MeshLoaderSystem::Update(
         // スキニング有無で自動判定
         if (model->HasSkin())
         {
-            // スキニングあり (SkinnedMeshComponent + AnimatorComponent付与)
+            // スキニングあり  SkinnedMeshComponent 付与
             auto& skinned = registry.emplace<SkinnedMeshComponent>(entity);
             skinned.model = model;
             skinned.modelPath = mesh.modelPath;
@@ -8810,7 +8929,7 @@ void SequencerSystem::Update(entt::registry& registry)
 
 		// モデルごとのファイルを読む
 		const SequencerData& data = dataCache.GetOrLoad(SequencerData::GetFilePath(skinned.modelPath),
-			[](SequencerData& data, const nlohmann::json& j) { data.FromJson(j); });
+			[](SequencerData& data, const nlohmann::json& j) { data.FromJson(j); }, JsonMissingLog::Silent);
 
 		const SequencerClipData* clip = data.FindClip(animator.currentAnimation);
 
@@ -8880,6 +8999,7 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\ECS\Systems\StateM
 #include "Engine/Core/Log.h"
 #include "Engine/ECS/Components/AnimatorComponent.h"
 #include "Engine/ECS/Components/StateMachineComponent.h"
+#include "Engine/ECS/Components/SkinnedMeshComponent.h"
 
 // グラフを取得する
 const StateMachineData* StateMachineSystem::Load(const std::string& path)
@@ -8904,7 +9024,7 @@ const StateMachineData* StateMachineSystem::Load(const std::string& path)
 		// 同じパスについては1回だけ報告する
 		if (reportedPaths.insert(path).second)
 		{
-			Log(u8"[StateMachine] %s を使用できません(読み込みに失敗したか、検証でエラーがあります)", path.c_str());
+			Log(u8"[StateMachine] %s を使えない（読み込みの失敗か、検証のエラー）", LogPath(path).c_str());
 		}
 		return nullptr;
 	}
@@ -8943,16 +9063,19 @@ void StateMachineSystem::EnterState(StateMachineComponent& sm, const StateNode& 
 // Stateの遷移を決める
 void StateMachineSystem::UpdateState(entt::registry& registry)
 {
-	auto view = registry.view<StateMachineComponent>();
+	auto view = registry.view<StateMachineComponent, SkinnedMeshComponent>();
 	for (auto entity : view)
 	{
 		auto& sm = view.get<StateMachineComponent>(entity);
+		const auto& skinned = view.get<SkinnedMeshComponent>(entity);
 
 		sm.enteredThisFrame = false;
 
-		if (sm.graphPath.empty()) continue;
+		if (skinned.modelPath.empty()) continue;
 
-		const StateMachineData* data = Load(sm.graphPath);
+		// グラフはモデルごとに1つ
+		const std::string graphPath = StateMachineData::GetFilePath(skinned.modelPath);
+		const StateMachineData* data = Load(graphPath);
 		if (!data) continue;
 
 		const StateNode* current = data->FindState(sm.currentStateId);
@@ -8961,7 +9084,7 @@ void StateMachineSystem::UpdateState(entt::registry& registry)
 		if (!current)
 		{
 			// このエンティティを処理するSystemが使うStateが、グラフにあるかを確かめる
-			CheckRequiredStates(*data, sm.graphPath, registry, entity);
+			CheckRequiredStates(*data, graphPath, registry, entity);
 
 			const StateTransition* t = FindPassedTransition(data->entry.transitions, registry, entity);
 			if (!t) continue;
@@ -8987,14 +9110,15 @@ void StateMachineSystem::UpdateState(entt::registry& registry)
 // 再生するクリップを決める
 void StateMachineSystem::UpdateAnimation(entt::registry& registry)
 {
-	auto view = registry.view<StateMachineComponent, AnimatorComponent>();
+	auto view = registry.view<StateMachineComponent, AnimatorComponent, SkinnedMeshComponent>();
 	for (auto entity : view)
 	{
 		auto& sm = view.get<StateMachineComponent>(entity);
 		auto& animator = view.get<AnimatorComponent>(entity);
-		if (sm.graphPath.empty()) continue;
+		const auto& skinned = view.get<SkinnedMeshComponent>(entity);
+		if (skinned.modelPath.empty()) continue;
 
-		const StateMachineData* data = Load(sm.graphPath);
+		const StateMachineData* data = Load(StateMachineData::GetFilePath(skinned.modelPath));
 		if (!data) continue;
 
 		const StateNode* state = data->FindState(sm.currentStateId);
@@ -9028,7 +9152,7 @@ void StateMachineSystem::UpdateAnimation(entt::registry& registry)
 			if (!played)
 			{
 				// 条件が成立するつながりが無かった(前のクリップを再生し続ける)
-				Log(u8"[StateMachine] 「%s」に入りましたが、再生するクリップが決まりませんでした(遷移ID %d)",
+				Log(u8"[StateMachine] 「%s」に入ったが、再生するクリップが決まらない（遷移ID %d）",
 					state->name.c_str(), sm.enteredTransitionId);
 			}
 			continue;
@@ -9071,8 +9195,8 @@ void StateMachineSystem::CheckRequiredStates(const StateMachineData& data, const
 		std::string key = path + "\n" + r.stateName + "\n" + r.user;
 		if (!reportedMissingStates.insert(key).second) continue;
 
-		Log(u8"[StateMachine] 警告(%s): State「%s」がグラフにありません(%s が使用)",
-			path.c_str(), r.stateName.c_str(), r.user.c_str());
+		Log(u8"[StateMachine] 警告(%s): State「%s」がグラフに無い（%s が使用）",
+			LogPath(path).c_str(), r.stateName.c_str(), r.user.c_str());
 	}
 }
 
@@ -9215,8 +9339,6 @@ namespace TwoBoneIKSolver
 {
 	namespace
 	{
-		using namespace DirectX;
-
 		// 安全なacos(浮動小数の誤差でxが[-1,1]をわずかに超えることがあるため)
 		float SafeAcos(float x)
 		{
@@ -9249,101 +9371,96 @@ namespace TwoBoneIKSolver
 
 		// root→target方向を軸に、poleVectorが乗っている「曲げ平面」の法線を求める
 		// この法線を軸にmid関節を回転させることで、膝が狙った方向に曲がる
-		XMVECTOR CalcBendAxis(
-			FXMVECTOR rootToTarget, // 正規化済みでなくてよい
-			FXMVECTOR rootToPole)   // 正規化済みでなくてよい
+		DirectX::XMVECTOR CalcBendAxis(
+			DirectX::FXMVECTOR rootToTarget, // 正規化済みでなくてよい
+			DirectX::FXMVECTOR rootToPole)   // 正規化済みでなくてよい
 		{
-			XMVECTOR axis = XMVector3Cross(rootToTarget, rootToPole);
-			float lengthSq = XMVectorGetX(XMVector3LengthSq(axis));
+			DirectX::XMVECTOR axis = DirectX::XMVector3Cross(rootToTarget, rootToPole);
+			float lengthSq = DirectX::XMVectorGetX(DirectX::XMVector3LengthSq(axis));
 			if (lengthSq < 1e-8f)
 			{
 				// rootToTargetとrootToPoleがほぼ平行(poleVectorが役に立たない位置にある)
 				// 保険として適当な垂直軸を作る
-				XMVECTOR fallback = XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f);
-				axis = XMVector3Cross(rootToTarget, fallback);
-				if (XMVectorGetX(XMVector3LengthSq(axis)) < 1e-8f)
+				DirectX::XMVECTOR fallback = DirectX::XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f);
+				axis = DirectX::XMVector3Cross(rootToTarget, fallback);
+				if (DirectX::XMVectorGetX(DirectX::XMVector3LengthSq(axis)) < 1e-8f)
 				{
-					fallback = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
-					axis = XMVector3Cross(rootToTarget, fallback);
+					fallback = DirectX::XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
+					axis = DirectX::XMVector3Cross(rootToTarget, fallback);
 				}
 			}
-			return XMVector3Normalize(axis);
+			return DirectX::XMVector3Normalize(axis);
 		}
 
 		// 現在のdirectionを、axis周りにangle分だけ回転させたベクトルを返す
-		XMVECTOR RotateAroundAxis(FXMVECTOR direction, FXMVECTOR axis, float angle)
+		DirectX::XMVECTOR RotateAroundAxis(DirectX::FXMVECTOR direction, DirectX::FXMVECTOR axis, float angle)
 		{
-			XMVECTOR rotationQuat = XMQuaternionRotationAxis(axis, angle);
-			return XMVector3Rotate(direction, rotationQuat);
+			DirectX::XMVECTOR rotationQuat = DirectX::XMQuaternionRotationAxis(axis, angle);
+			return DirectX::XMVector3Rotate(direction, rotationQuat);
 		}
-
 	}
 
 	// fromベクトルをtoベクトルに向けて、最短回転のクォータニオンを求める
 	DirectX::XMVECTOR RotationFromToRotation(DirectX::FXMVECTOR from, DirectX::FXMVECTOR to)
 	{
-		using namespace DirectX;
+		DirectX::XMVECTOR fromN = DirectX::XMVector3Normalize(from);
+		DirectX::XMVECTOR toN = DirectX::XMVector3Normalize(to);
 
-		XMVECTOR fromN = XMVector3Normalize(from);
-		XMVECTOR toN = XMVector3Normalize(to);
-
-		float dot = std::clamp(XMVectorGetX(XMVector3Dot(fromN, toN)), -1.0f, 1.0f);
+		float dot = std::clamp(DirectX::XMVectorGetX(DirectX::XMVector3Dot(fromN, toN)), -1.0f, 1.0f);
 
 		if (dot > 0.9999f)
 		{
 			// ほぼ同じ向き: 回転不要
-			return XMQuaternionIdentity();
+			return DirectX::XMQuaternionIdentity();
 		}
 		if (dot < -0.9999f)
 		{
 			// ほぼ正反対: 任意の垂直軸で180度回転
-			XMVECTOR fallback = XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f);
-			XMVECTOR axis = XMVector3Cross(fromN, fallback);
-			if (XMVectorGetX(XMVector3LengthSq(axis)) < 1e-8f)
+			DirectX::XMVECTOR fallback = DirectX::XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f);
+			DirectX::XMVECTOR axis = DirectX::XMVector3Cross(fromN, fallback);
+			if (DirectX::XMVectorGetX(DirectX::XMVector3LengthSq(axis)) < 1e-8f)
 			{
-				fallback = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
-				axis = XMVector3Cross(fromN, fallback);
+				fallback = DirectX::XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
+				axis = DirectX::XMVector3Cross(fromN, fallback);
 			}
-			return XMQuaternionRotationAxis(XMVector3Normalize(axis), XM_PI);
+			return DirectX::XMQuaternionRotationAxis(DirectX::XMVector3Normalize(axis), DirectX::XM_PI);
 		}
 
-		XMVECTOR axis = XMVector3Normalize(XMVector3Cross(fromN, toN));
+		DirectX::XMVECTOR axis = DirectX::XMVector3Normalize(DirectX::XMVector3Cross(fromN, toN));
 		float angle = SafeAcos(dot);
-		return XMQuaternionRotationAxis(axis, angle);
+		return DirectX::XMQuaternionRotationAxis(axis, angle);
 	}
 
 	Result Solve(
-		const XMFLOAT3& root,
-		const XMFLOAT3& mid,
-		const XMFLOAT3& end,
-		const XMFLOAT4& rootRotation,
-		const XMFLOAT4& midRotation,
-		const XMFLOAT3& target,
-		const XMFLOAT3& poleVector)
+		const DirectX::XMFLOAT3& root,
+		const DirectX::XMFLOAT3& mid,
+		const DirectX::XMFLOAT3& end,
+		const DirectX::XMFLOAT4& rootRotation,
+		const DirectX::XMFLOAT4& midRotation,
+		const DirectX::XMFLOAT3& target,
+		const DirectX::XMFLOAT3& poleVector)
 	{
-		using namespace DirectX;
-
-		XMVECTOR rootV = XMLoadFloat3(&root);
-		XMVECTOR midV = XMLoadFloat3(&mid);
-		XMVECTOR endV = XMLoadFloat3(&end);
-		XMVECTOR targetV = XMLoadFloat3(&target);
-		XMVECTOR poleV = XMLoadFloat3(&poleVector);
+		DirectX::XMVECTOR rootV = DirectX::XMLoadFloat3(&root);
+		DirectX::XMVECTOR midV = DirectX::XMLoadFloat3(&mid);
+		DirectX::XMVECTOR endV = DirectX::XMLoadFloat3(&end);
+		DirectX::XMVECTOR targetV = DirectX::XMLoadFloat3(&target);
+		DirectX::XMVECTOR poleV = DirectX::XMLoadFloat3(&poleVector);
 
 		// 各辺のベクトルと長さ
-		XMVECTOR ab = midV - rootV;     // root→mid (上の骨)
-		XMVECTOR bc = endV - midV;      // mid→end (下の骨)
-		XMVECTOR ac = endV - rootV;     // root→end (現在の姿勢での対角)
-		XMVECTOR at = targetV - rootV;  // root→target
+		DirectX::XMVECTOR ab = DirectX::XMVectorSubtract(midV, rootV);    // root→mid (上の骨)
+		DirectX::XMVECTOR bc = DirectX::XMVectorSubtract(endV, midV);     // mid→end (下の骨)
+		DirectX::XMVECTOR ac = DirectX::XMVectorSubtract(endV, rootV);    // root→end (現在の姿勢での対角)
+		DirectX::XMVECTOR at = DirectX::XMVectorSubtract(targetV, rootV); // root→target
 
-		float upperLen = XMVectorGetX(XMVector3Length(ab));
-		float lowerLen = XMVectorGetX(XMVector3Length(bc));
-		float acLen = XMVectorGetX(XMVector3Length(ac));
-		float rawTargetLen = XMVectorGetX(XMVector3Length(at));
+		float upperLen = DirectX::XMVectorGetX(DirectX::XMVector3Length(ab));
+		float lowerLen = DirectX::XMVectorGetX(DirectX::XMVector3Length(bc));
+		float acLen = DirectX::XMVectorGetX(DirectX::XMVector3Length(ac));
+		float rawTargetLen = DirectX::XMVectorGetX(DirectX::XMVector3Length(at));
 
 		float targetLen = ClampTargetLength(rawTargetLen, upperLen, lowerLen);
 
 		// 曲げ平面の軸(root→target と root→poleVector が乗る平面の法線)
-		XMVECTOR bendAxis = CalcBendAxis(at, poleV - rootV);
+		DirectX::XMVECTOR bendAxis = CalcBendAxis(at, DirectX::XMVectorSubtract(poleV, rootV));
 
 		// mid関節の角度: 現在の角度 → targetLenに対応する角度、への差分を求める
 		float oldMidAngle = TriangleAngle(upperLen, lowerLen, acLen);
@@ -9351,36 +9468,36 @@ namespace TwoBoneIKSolver
 		float deltaMidAngle = newMidAngle - oldMidAngle;
 
 		// mid関節をbendAxis周りにdeltaMidAngleだけ回転させる
-		XMVECTOR midDeltaRotation = XMQuaternionRotationAxis(bendAxis, deltaMidAngle);
-		XMVECTOR midRotationV = XMLoadFloat4(&midRotation);
-		XMVECTOR bentMidRotationV = XMQuaternionMultiply(midRotationV, midDeltaRotation);
+		DirectX::XMVECTOR midDeltaRotation = DirectX::XMQuaternionRotationAxis(bendAxis, deltaMidAngle);
+		DirectX::XMVECTOR midRotationV = DirectX::XMLoadFloat4(&midRotation);
+		DirectX::XMVECTOR bentMidRotationV = DirectX::XMQuaternionMultiply(midRotationV, midDeltaRotation);
 
 		// mid関節を回したことで、bc(mid→end)の向きも一緒に変わる
-		XMVECTOR newBc = RotateAroundAxis(bc, bendAxis, deltaMidAngle);
-		XMVECTOR newAc = ab + newBc; // root→新しいend の方向・距離(長さ = targetLen になっているはず)
+		DirectX::XMVECTOR newBc = RotateAroundAxis(bc, bendAxis, deltaMidAngle);
+		DirectX::XMVECTOR newAc = DirectX::XMVectorAdd(ab, newBc); // root→新しいend の方向・距離(長さ = targetLen になっているはず)
 
 		// newAc(曲げた後のroot→end)を、at(root→target)の方向に向ける回転を求める
-		XMVECTOR aimRotation = RotationFromToRotation(newAc, at);
+		DirectX::XMVECTOR aimRotation = RotationFromToRotation(newAc, at);
 
 		// root回転にaimRotationを上乗せする
-		XMVECTOR rootRotationV = XMLoadFloat4(&rootRotation);
-		XMVECTOR newRootRotationV = XMQuaternionMultiply(rootRotationV, aimRotation);
+		DirectX::XMVECTOR rootRotationV = DirectX::XMLoadFloat4(&rootRotation);
+		DirectX::XMVECTOR newRootRotationV = DirectX::XMQuaternionMultiply(rootRotationV, aimRotation);
 
 		// rootが回ればmid, endも一緒に回るので、midの回転にも同じ分を上乗せする
-		XMVECTOR finalMidRotationV = XMQuaternionMultiply(bentMidRotationV, aimRotation);
+		DirectX::XMVECTOR finalMidRotationV = DirectX::XMQuaternionMultiply(bentMidRotationV, aimRotation);
 
 		// 最終的なmid, endのワールド位置を求める
-		XMVECTOR finalAb = XMVector3Rotate(ab, aimRotation);
-		XMVECTOR finalMidPositionV = rootV + finalAb;
+		DirectX::XMVECTOR finalAb = DirectX::XMVector3Rotate(ab, aimRotation);
+		DirectX::XMVECTOR finalMidPositionV = DirectX::XMVectorAdd(rootV, finalAb);
 
-		XMVECTOR finalBc = XMVector3Rotate(newBc, aimRotation);
-		XMVECTOR finalEndPositionV = finalMidPositionV + finalBc;
+		DirectX::XMVECTOR finalBc = DirectX::XMVector3Rotate(newBc, aimRotation);
+		DirectX::XMVECTOR finalEndPositionV = DirectX::XMVectorAdd(finalMidPositionV, finalBc);
 
 		Result result{};
-		XMStoreFloat3(&result.midPosition, finalMidPositionV);
-		XMStoreFloat4(&result.rootRotation, newRootRotationV);
-		XMStoreFloat4(&result.midRotation, finalMidRotationV);
-		XMStoreFloat3(&result.endPosition, finalEndPositionV);
+		DirectX::XMStoreFloat3(&result.midPosition, finalMidPositionV);
+		DirectX::XMStoreFloat4(&result.rootRotation, newRootRotationV);
+		DirectX::XMStoreFloat4(&result.midRotation, finalMidRotationV);
+		DirectX::XMStoreFloat3(&result.endPosition, finalEndPositionV);
 		return result;
 	}
 }
@@ -12099,14 +12216,16 @@ private:
 ===== EntitySerializer.cpp =====
 Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Resource\EntitySerializer.cpp
 #include "EntitySerializer.h"
-#include "Engine/Resource/ComponentRegistry.h"
-#include "Engine/ECS/Components/PrefabInstanceComponent.h"
-#include "Engine/Core/Log.h"
 
+#include "Engine/Resource/ComponentRegistry.h"
+
+#include "Engine/ECS/Components/PrefabInstanceComponent.h"
 #include "Engine/ECS/Reflection.h"
 
+#include "Engine/Core/Log.h"
+#include "Engine/Core/JsonFileCache.h"
+
 #include <DirectXMath.h>
-#include <fstream>
 
 nlohmann::json EntitySerializer::SerializeEntity(entt::registry& registry, entt::entity e)
 {
@@ -12186,7 +12305,7 @@ void EntitySerializer::DeserializeEntity(entt::registry& registry, entt::entity 
 		if (!info)
 		{
 			// 削除・改名されたコンポーネント。落とさずに飛ばして、ログに残す
-			Log(u8"未登録のコンポーネントを無視しました: %s", name.c_str());
+			Log(u8"未登録のコンポーネントを無視: %s", name.c_str());
 			continue;
 		}
 
@@ -12211,42 +12330,51 @@ void EntitySerializer::DeserializeEntity(entt::registry& registry, entt::entity 
 	}
 }
 
-// JSONファイルを読み込む。ファイルが無い・壊れている場合は、falseを返す
-bool EntitySerializer::LoadJsonFile(const std::string& path, nlohmann::json& out)
-{
-	std::ifstream ifs(path);
-	if (!ifs)
-	{
-		Log(u8"ファイルを開けません: %s", path.c_str());
-		return false;
-	}
 
-	// 例外を無効にして、壊れたファイルでもアプリを落とさない
-	out = nlohmann::json::parse(ifs, nullptr, false);
-	if (out.is_discarded())
+namespace
+{
+	// プレハブファイルの読み書き
+	JsonFileCache<nlohmann::json>& PrefabFiles()
 	{
-		Log(u8"JSONの形式が不正です: %s", path.c_str());
-		return false;
+		static JsonFileCache<nlohmann::json> cache;
+		return cache;
 	}
-	return true;
+}
+
+
+// プレハブファイルを読む
+const nlohmann::json* EntitySerializer::LoadPrefabFile(const std::string& path)
+{
+	auto& files = PrefabFiles();
+	const nlohmann::json& data = files.GetOrLoad(path,
+		[](nlohmann::json& d, const nlohmann::json& j) { d = j; });
+
+	if (files.GetStatus(path) != JsonFileStatus::Loaded) return nullptr;
+	return &data;
+}
+// プレハブファイルに書く
+bool EntitySerializer::SavePrefabFile(const std::string& path, const nlohmann::json& data)
+{
+	return PrefabFiles().Save(path, data,
+		[](const nlohmann::json& d) { return nlohmann::ordered_json(d); });
 }
 
 // プレハブファイルからEntityを生成する。成功したらそのEntityを、失敗したらentt::nullを返す
 entt::entity EntitySerializer::InstantiatePrefab(entt::registry& registry, const std::string& prefabPath)
 {
-	nlohmann::json data;
-	if (!LoadJsonFile(prefabPath, data)) return entt::null;
+	const nlohmann::json* data = LoadPrefabFile(prefabPath);
+	if (!data) return entt::null;
 
-	if (!data.is_object())
+	if (!data->is_object())
 	{
-		Log(u8"プレハブの形式が不正です: %s", prefabPath.c_str());
+		Log(u8"プレハブの形式が違う: %s", LogPath(prefabPath).c_str());
 		return entt::null;
 	}
 
-	entt::entity e = CreateFromComponents(registry, data);
+	entt::entity e = CreateFromComponents(registry, *data);
 	if (e == entt::null)
 	{
-		Log(u8"プレハブの復元中にエラー: %s", prefabPath.c_str());
+		Log(u8"プレハブの復元に失敗: %s", LogPath(prefabPath).c_str());
 		return entt::null;
 	}
 
@@ -12337,11 +12465,13 @@ public:
 	// Entity1つを、コンポーネント名をキーにしたJSONへ変換する
 	static nlohmann::json SerializeEntity(entt::registry& registry, entt::entity e);
 
-	// JSONの内容を、Entityへ反映する(コンポーネントを付与し、フィールドを書き戻す)
+	// JSONの内容を、Entityへ反映する
 	static void DeserializeEntity(entt::registry& registry, entt::entity e, const nlohmann::json& data);
 
-	// JSONファイルを読み込む。ファイルが無い・壊れている場合は、falseを返す
-	static bool LoadJsonFile(const std::string& path, nlohmann::json& out);
+	// プレハブファイルを読む
+	static const nlohmann::json* LoadPrefabFile(const std::string& path);
+	// プレハブファイルに書く
+	static bool SavePrefabFile(const std::string& path, const nlohmann::json& data);
 
 	// プレハブファイルからEntityを生成する。成功したらそのEntityを、失敗したらentt::nullを返す
 	static entt::entity InstantiatePrefab(entt::registry& registry, const std::string& prefabPath);
@@ -14747,9 +14877,7 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Resource\ResourceM
 #include "GpuResourceUtils.h" //（GPU再生成用）
 
 #include "Engine/Core/Log.h"
-#include "Engine/Data/AnimationEditData.h"
 #include "Engine/Resource/AnimationEditBaker.h"
-#include "Engine/Core/JsonFile.h"
 
 // モデル取得
 std::shared_ptr<Model> ResourceManager::GetModel(ID3D11Device* device, const std::string& filename)
@@ -14769,7 +14897,7 @@ std::shared_ptr<Model> ResourceManager::GetModel(ID3D11Device* device, const std
 	// .cereal がある(.cerealを読み込む)
 	if (ModelSerializer::Exists(filename))
 	{
-		Log(u8" .cerealから読み込み: %s", cerealPath.c_str());
+		Log(u8" .cereal から読み込み: %s", LogPath(cerealPath).c_str());
 
 		model = std::make_shared<Model>();
 		ModelSerializer::Load(*model, ModelSerializer::ToCerealPath(filename));
@@ -14778,7 +14906,7 @@ std::shared_ptr<Model> ResourceManager::GetModel(ID3D11Device* device, const std
 	// .cereal がない(GLTFを読み込む)
 	else
 	{
-		Log(u8" glTFから変換: %s -> 保存先 %s", filename.c_str(), cerealPath.c_str());
+		Log(u8" glTF から変換: %s -> %s", LogPath(filename).c_str(), LogPath(cerealPath).c_str());
 
 		auto gltfData = GLTFImporter::Load(filename);
 		model = GLTFConverter::Convert(device, gltfData);
@@ -14787,12 +14915,14 @@ std::shared_ptr<Model> ResourceManager::GetModel(ID3D11Device* device, const std
 	// アニメーションの編集設定を焼き込む
 	if (model->HasSkin())
 	{
-		AnimationEditData editData;
-
+		// 無くて普通のファイルなので、無いときはログを出さない
 		const std::string editPath = AnimationEditData::GetFilePath(filename);
-		if (JsonFile::Load(editPath, editData))
+		AnimationEditData editData = editCache.GetOrLoad(editPath,
+			[](AnimationEditData& data, const nlohmann::json& j) { data.FromJson(j); }, JsonMissingLog::Silent);
+
+		if (editCache.GetStatus(editPath) == JsonFileStatus::Loaded)
 		{
-			Log(u8" アニメーション編集設定を読み込み: %s", editPath.c_str());
+			Log(u8" アニメーション編集を読み込み: %s", LogPath(editPath).c_str());
 		}
 
 		// ルートノードが未設定なら、モデルから探す
@@ -14832,6 +14962,8 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Resource\ResourceM
 #include <unordered_map>
 #include <d3d11.h>
 #include "Model.h"
+#include "Engine/Core/JsonFileCache.h"
+#include "Engine/Data/AnimationEditData.h"
 
 class ResourceManager
 {
@@ -14859,7 +14991,8 @@ public:
 private:
     // モデルキャッシュ
     std::unordered_map<std::string, std::shared_ptr<Model>> modelCache;
-
+    // アニメーション編集
+    JsonFileCache<AnimationEditData> editCache;
 };
 
 
@@ -14869,9 +15002,9 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\Resource\SceneSeri
 #include "Engine/Resource/EntitySerializer.h"
 #include "Engine/ECS/Components/PrefabInstanceComponent.h"
 #include "Engine/Core/Log.h"
+#include "Engine/Core/JsonFileCache.h"
 #include <algorithm>
 #include <filesystem>
-#include <fstream>
 #include <vector>
 
 nlohmann::json SceneSerializer::Serialize(entt::registry& registry, const NameGetter& getName)
@@ -14902,11 +15035,10 @@ nlohmann::json SceneSerializer::Serialize(entt::registry& registry, const NameGe
 			// プレハブ配置のEntityは、現在値とプレハブの値の差分だけを書く
 			entry["prefab"] = prefab->prefabPath;
 
-			nlohmann::json prefabData;
-			if (EntitySerializer::LoadJsonFile(prefab->prefabPath, prefabData))
+			if (const nlohmann::json* prefabData = EntitySerializer::LoadPrefabFile(prefab->prefabPath))
 			{
 				nlohmann::json current = EntitySerializer::SerializeEntity(registry, e);
-				nlohmann::json overrides = DiffAgainstPrefab(current, prefabData);
+				nlohmann::json overrides = DiffAgainstPrefab(current, *prefabData);
 
 				if (!overrides.empty())
 				{
@@ -14916,7 +15048,7 @@ nlohmann::json SceneSerializer::Serialize(entt::registry& registry, const NameGe
 			else
 			{
 				// プレハブ本体が読めない場合は、差分を取れないので、参照だけ残す
-				Log(u8"[Warn] 差分比較のため、プレハブを読み込めませんでした: %s", prefab->prefabPath.c_str());
+				Log(u8"[Warn] 差分比較用のプレハブを読めない: %s", LogPath(prefab->prefabPath).c_str());
 			}
 		}
 		else
@@ -14936,25 +15068,14 @@ bool SceneSerializer::SaveToFile(entt::registry& registry, const std::string& pa
 {
 	nlohmann::json scene = Serialize(registry, getName);
 
-	// 保存先のフォルダが無ければ作る
-	std::filesystem::path filePath(path);
-	if (filePath.has_parent_path())
+	// シーンは使い回さないので、その場限りで使う
+	JsonFileCache<nlohmann::json> file;
+	if (!file.Save(path, scene, [](const nlohmann::json& d) { return nlohmann::ordered_json(d); }))
 	{
-		std::error_code ec;
-		std::filesystem::create_directories(filePath.parent_path(), ec);
-	}
-
-	std::ofstream ofs(filePath);
-	if (!ofs)
-	{
-		Log(u8"[Error] シーンを書き込めません: %s", path.c_str());
 		return false;
 	}
 
-	// UTF-8として不正な文字が名前・パスに入っていても、例外で落とさず置き換えて書き出す
-	ofs << scene.dump(4, ' ', false, nlohmann::json::error_handler_t::replace);
-
-	Log(u8"[Info] シーンを保存しました: %s (%d個のEntity)", path.c_str(), static_cast<int>(scene["entities"].size()));
+	Log(u8"[Info] シーンを保存: %s (Entity %d 個)", LogPath(path).c_str(), static_cast<int>(scene["entities"].size()));
 	return true;
 }
 
@@ -14998,7 +15119,7 @@ void SceneSerializer::Deserialize(entt::registry& registry, const nlohmann::json
 			}
 			catch (const nlohmann::json::exception&)
 			{
-				Log(u8"[Warn] overridesの適用中にエラー: %s", entry.value("name", std::string()).c_str());
+				Log(u8"[Warn] overrides の適用に失敗: %s", entry.value("name", std::string()).c_str());
 			}
 		}
 
@@ -15017,8 +15138,11 @@ void SceneSerializer::Deserialize(entt::registry& registry, const nlohmann::json
 // ファイルから読み込む。読み込み前に、既存のEntityを1つずつdestroyする
 bool SceneSerializer::LoadFromFile(entt::registry& registry, const std::string& path, const NameSetter& setName)
 {
-	nlohmann::json scene;
-	if (!EntitySerializer::LoadJsonFile(path, scene)) return false;
+	// シーンは開くときに1回読むだけなので、その場限りで使う
+	JsonFileCache<nlohmann::json> file;
+	const nlohmann::json& scene = file.GetOrLoad(path,
+		[](nlohmann::json& d, const nlohmann::json& j) { d = j; });
+	if (file.GetStatus(path) != JsonFileStatus::Loaded) return false;
 
 	// 既存のEntityを、1つずつ破棄する
 	std::vector<entt::entity> existing;
@@ -15033,7 +15157,7 @@ bool SceneSerializer::LoadFromFile(entt::registry& registry, const std::string& 
 
 	Deserialize(registry, scene, setName);
 
-	Log(u8"シーンを読み込みました: %s", path.c_str());
+	Log(u8"シーンを読み込み: %s", LogPath(path).c_str());
 	return true;
 }
 
@@ -19108,7 +19232,6 @@ struct StudioOpenRequest
 {
     bool        pending = false;
     std::string assetPath;
-    std::string graphPath;
 };
 
 // シーンの保存・読み込みのリクエスト
@@ -20024,7 +20147,6 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Editor\PrefabWindow.
 #include "PrefabWindow.h"
 #include <imgui.h>
 #include <algorithm>
-#include <fstream>
 #include "entt.hpp"
 #include "Engine/Resource/EntitySerializer.h"
 
@@ -20210,19 +20332,6 @@ void PrefabWindow::DrawFileGrid(entt::registry& registry, EditorContext& context
 
 	float windowWidth = ImGui::GetContentRegionAvail().x;
 	int columns = (std::max)(1, (int)(windowWidth / cellSize));
-
-	//ImGui::InvisibleButton("##fileGridDropArea", ImGui::GetContentRegionAvail());
-	//if (ImGui::BeginDragDropTarget())
-	//{
-	//	if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ENTITY"))
-	//	{
-	//		entt::entity droppedEntity = *(const entt::entity*)payload->Data;
-	//		SaveEntityAsPrefab(registry, context, droppedEntity, itemState.selectedPath);
-	//	}
-	//	ImGui::EndDragDropTarget();
-	//}
-	//ImGui::SetCursorScreenPos(ImGui::GetItemRectMin());
-
 	int index = 0;
 
 	for (auto& file : fileGridCache)
@@ -20347,12 +20456,7 @@ void PrefabWindow::SaveEntityAsPrefab(entt::registry& registry, EditorContext& c
 	std::string fileName = GenerateUniqueName(folder, name + ".prefab.json");
 
 	nlohmann::json data = EntitySerializer::SerializeEntity(registry, e);
-
-	std::ofstream ofs(folder / fileName);
-	if (ofs)
-	{
-		ofs << data.dump(4);
-	}
+	EntitySerializer::SavePrefabFile((folder / fileName).string(), data);
 }
 // Entityを、既存のプレハブファイルに上書き保存する
 void PrefabWindow::OverwritePrefab(entt::registry& registry, EditorContext& context, entt::entity e, const std::filesystem::path& filePath)
@@ -20360,14 +20464,8 @@ void PrefabWindow::OverwritePrefab(entt::registry& registry, EditorContext& cont
 	if (!registry.valid(e)) return;
 
 	nlohmann::json data = EntitySerializer::SerializeEntity(registry, e);
-
-	std::ofstream ofs(filePath);
-	if (ofs)
-	{
-		ofs << data.dump(4);
-	}
+	EntitySerializer::SavePrefabFile(filePath.string(), data);
 }
-
 // 間隔が経過していれば、フォルダツリーのキャッシュを作り直す
 void PrefabWindow::RefreshFolderTreeIfNeeded()
 {
@@ -20894,25 +20992,16 @@ void ProjectWindow::DrawFileGrid(entt::registry& registry, EditorContext& contex
 			{
 				context.studioRequest.pending = true;
 				context.studioRequest.assetPath = modelPath;
-				context.studioRequest.graphPath = "";
 			}
 		}
 
-		// ドラッグ開始（モデル／アニメーショングラフ/シーケンサー/アニメーション速度）
-		if ((isModel || isAnimGraph || isSequencer || isAnimSpeed) && ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
+		// ドラッグ開始（モデル／シーケンサー/アニメーション速度）
+		if ((isModel || isSequencer || isAnimSpeed) && ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
 		{
 			if (isModel)
 			{
 				ImGui::SetDragDropPayload(
 					"MODEL_PATH",
-					modelPath.c_str(),
-					modelPath.size() + 1
-				);
-			}
-			else if (isAnimGraph)
-			{
-				ImGui::SetDragDropPayload(
-					"STATEGRAPH_PATH",
 					modelPath.c_str(),
 					modelPath.size() + 1
 				);
@@ -21570,7 +21659,6 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Studio\StudioAnimati
 #include "Engine/ECS/Components/SkinnedMeshComponent.h"
 #include "Engine/ECS/Components/AnimatorComponent.h"
 #include "Engine/Resource/AnimationEditBaker.h"
-#include "Engine/Core/JsonFile.h"
 #include <algorithm>
 #include <cstdio>
 #include <cmath>
@@ -21947,12 +22035,9 @@ void StudioAnimationEdit::SetPreviewActive(Model& model, AnimatorComponent& anim
 // 読み込み
 void StudioAnimationEdit::Load(const std::string& modelPath, const Model& model)
 {
-	editData = AnimationEditData();
-	if (!JsonFile::Load(AnimationEditData::GetFilePath(modelPath), editData))
-	{
-		// 無い・壊れている：途中まで読んだ分は捨てる
-		editData = AnimationEditData();
-	}
+	// 無い・壊れているときは初期値が返る。無くて普通のファイルなので、ログは出さない
+	editData = fileCache.GetOrLoad(AnimationEditData::GetFilePath(modelPath),
+		[](AnimationEditData& data, const nlohmann::json& j) { data.FromJson(j); }, JsonMissingLog::Silent);
 
 	loadedModelPath = modelPath;
 	isDirty = false;
@@ -21970,7 +22055,8 @@ void StudioAnimationEdit::Save(const std::string& modelPath)
 {
 	if (modelPath.empty()) return;
 
-	if (JsonFile::Save(AnimationEditData::GetFilePath(modelPath), editData))
+	if (fileCache.Save(AnimationEditData::GetFilePath(modelPath), editData,
+		[](const AnimationEditData& data) { return data.ToJson(); }))
 	{
 		isDirty = false;
 	}
@@ -21982,9 +22068,13 @@ void StudioAnimationEdit::Save(const std::string& modelPath)
 Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Studio\StudioAnimationEdit.h
 #pragma once
 #include "IStudioAttachment.h"
+
+#include "Engine/Core/JsonFileCache.h"
 #include "Engine/Data/AnimationEditData.h"
 #include "Engine/Resource/Model.h"
+
 #include "StudioTimelineWidget.h"
+
 #include <imgui.h>
 #include <string>
 #include <vector>
@@ -22024,6 +22114,7 @@ private:
 	int windowId = 0;
 
 	AnimationEditData editData;      // 編集中の設定
+	JsonFileCache<AnimationEditData> fileCache; // ファイルの読み書き
 	std::string loadedModelPath;     // 最後に読み込んだモデルパス
 	bool isDirty = false;            // 未保存の変更があるか
 	EditMode mode = EditMode::Trim;  // 今のモード
@@ -25125,7 +25216,6 @@ struct StudioContext
     bool showAnimationSpeed = false;
     bool showAnimationEdit = false;
 
-    std::string attachedGraphPath;
     std::string currentModelPath;
 
     // タイムラインでスクラブ操作されたフラグ
@@ -25359,7 +25449,6 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Studio\StudioSequenc
 #include "StudioSequencer.h"
 #include "Engine/ECS/Components/SkinnedMeshComponent.h"
 #include "Engine/ECS/Components/AnimatorComponent.h"
-#include "Engine/Core/JsonFile.h"
 #include <algorithm>
 #include <cmath>
 
@@ -26105,8 +26194,9 @@ const char* StudioSequencer::GetFlagName(SequencerFlag flag)
 // 読み込み
 void StudioSequencer::Load(const std::string& modelPath)
 {
-	sequencerData = SequencerData();
-	JsonFile::Load(SequencerData::GetFilePath(modelPath), sequencerData);
+	// 無い・壊れているときは初期値が返る。無くて普通のファイルなので、ログは出さない
+	sequencerData = fileCache.GetOrLoad(SequencerData::GetFilePath(modelPath),
+		[](SequencerData& data, const nlohmann::json& j) { data.FromJson(j); }, JsonMissingLog::Silent);
 
 	loadedModelPath = modelPath;
 	isDirty = false;
@@ -26118,7 +26208,8 @@ void StudioSequencer::Save(const std::string& modelPath)
 {
 	if (modelPath.empty()) return;
 
-	if (JsonFile::Save(SequencerData::GetFilePath(modelPath), sequencerData))
+	if (fileCache.Save(SequencerData::GetFilePath(modelPath), sequencerData,
+		[](const SequencerData& data) { return data.ToJson(); }))
 	{
 		isDirty = false;
 	}
@@ -26129,6 +26220,7 @@ void StudioSequencer::Save(const std::string& modelPath)
 Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Studio\StudioSequencer.h
 #pragma once
 #include "IStudioAttachment.h"
+#include "Engine/Core/JsonFileCache.h"
 #include "Engine/Data/SequencerData.h"
 #include "StudioTimelineWidget.h"
 #include <imgui.h>
@@ -26162,6 +26254,7 @@ private:
 	int windowId = 0;
 
 	SequencerData sequencerData;    // 編集中のデータ
+	JsonFileCache<SequencerData> fileCache; // ファイルの読み書き
 	std::string loadedModelPath;    // 最後に読み込んだモデルパス
 	bool isDirty = false;           // 未保存の変更があるか
 	StudioTimelineWidget timeline;  // タイムライン部品
@@ -27255,8 +27348,6 @@ private:
 ===== StudioStateGraph.cpp =====
 Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Studio\StudioStateGraph.cpp
 #include "StudioStateGraph.h"
-#include <fstream>
-#include <filesystem>
 #include <algorithm>
 #include <imgui.h>
 #include <json.hpp>
@@ -27266,8 +27357,6 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Studio\StudioStateGr
 
 #include "Engine/ECS/Components/SkinnedMeshComponent.h"
 #include "Engine/ECS/Components/AnimatorComponent.h"
-
-#include "Tool/Editor/ProjectWindow.h"
 
 namespace
 {
@@ -27305,13 +27394,6 @@ void StudioStateGraph::DrawGUI(entt::registry& registry, StudioContext& context)
 	// 子のウィンドウに渡すアニメーションの一覧
 	RefreshAnimationNames(registry);
 
-	// 紐づいたファイルが変わったら読み込む
-	if (!loaded && !context.attachedGraphPath.empty())
-	{
-		Load(context);
-		loaded = true;
-	}
-
 	std::string panelName = "StateGraph##" + std::to_string(windowId);
 	bool open = ImGui::Begin(panelName.c_str());
 
@@ -27333,7 +27415,6 @@ void StudioStateGraph::DrawGUI(entt::registry& registry, StudioContext& context)
 
 		// 左：グラフ
 		parentCanvas.Draw(data);
-		DrawDropTarget(context);
 
 		ImGui::NextColumn();
 
@@ -27377,8 +27458,6 @@ void StudioStateGraph::DrawGUI(entt::registry& registry, StudioContext& context)
 // モデルが変わったときに呼ぶ
 void StudioStateGraph::OnModelChanged(StudioContext& context)
 {
-	data.Clear();
-
 	// 選択などを戻す
 	parentCanvas.Reset();
 	childCanvases.clear();
@@ -27386,10 +27465,8 @@ void StudioStateGraph::OnModelChanged(StudioContext& context)
 	pendingCopy = {};
 	openCopyConfirm = false;
 
-	context.attachedGraphPath.clear();
-	loaded = true;     // 空のグラフを、読み込み済みとして扱う
-	hasErrors = false; // 作り始めなので、検証は保存時に行う
-	message.clear();
+	// このモデルのグラフを読む
+	Load(context);
 }
 
 // ツールバー
@@ -27400,13 +27477,14 @@ void StudioStateGraph::DrawToolbar(StudioContext& context)
 		Save(context);
 	}
 	ImGui::SameLine();
-	if (!context.attachedGraphPath.empty())
+	const std::string path = StateMachineData::GetFilePath(context.currentModelPath);
+	if (fileCache.GetStatus(path) == JsonFileStatus::Missing)
 	{
-		ImGui::TextDisabled("%s", context.attachedGraphPath.c_str());
+		ImGui::TextDisabled("Not saved yet.");
 	}
 	else
 	{
-		ImGui::TextDisabled("Not saved yet.");
+		ImGui::TextDisabled("%s", path.c_str());
 	}
 
 	// ファイルの読み書きの失敗など
@@ -27423,126 +27501,41 @@ void StudioStateGraph::DrawToolbar(StudioContext& context)
 	ImGui::Separator();
 }
 
-// .stategraphのドロップ受け口
-void StudioStateGraph::DrawDropTarget(StudioContext& context)
-{
-	if (ImGui::BeginDragDropTarget())
-	{
-		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("STATEGRAPH_PATH"))
-		{
-			std::string path(static_cast<const char*>(payload->Data));
-			TryOpen(path, context);
-		}
-		ImGui::EndDragDropTarget();
-	}
-}
-
-// ドロップされたファイルが開けるか確認
-void StudioStateGraph::TryOpen(const std::string& path, StudioContext& context)
-{
-	std::ifstream ifs(path);
-	if (!ifs.is_open())
-	{
-		message = "Failed to open file.";
-		return;
-	}
-
-	std::string sourceModelPath;
-	try
-	{
-		nlohmann::json j;
-		ifs >> j;
-		sourceModelPath = j.value("sourceModelPath", "");
-	}
-	catch (const std::exception&)
-	{
-		message = "Invalid json.";
-		return;
-	}
-
-	// 別のモデル用のグラフは開かない
-	if (!sourceModelPath.empty() && sourceModelPath != context.currentModelPath)
-	{
-		message = "This graph belongs to a different model.";
-		return;
-	}
-
-	message.clear();
-	context.attachedGraphPath = path;
-	loaded = false; // 次のフレームで読み込む
-}
 
 // 保存
 void StudioStateGraph::Save(StudioContext& context)
 {
-	// まだ保存先が無ければ 自動で決める
-	if (context.attachedGraphPath.empty())
-	{
-		context.attachedGraphPath = BuildNewSavePath(context);
-		loaded = true; // 今のデータがそのまま保存先の内容になるので、読み直さない
-	}
+	if (context.currentModelPath.empty()) return;
+	const std::string path = StateMachineData::GetFilePath(context.currentModelPath);
 
 	// 作りかけでも保存はできる、エラーの有無はツールバーに表示する
-	hasErrors = !data.Validate(context.attachedGraphPath);
+	hasErrors = !data.Validate(path);
 
-	nlohmann::ordered_json j = data.ToJson();
-	j["sourceModelPath"] = context.currentModelPath;
+	GraphFile file;
+	file.data = data;
+	file.valid = !hasErrors;
 
-	std::ofstream ofs(context.attachedGraphPath);
-	if (!ofs.is_open())
-	{
-		message = "Failed to save file.";
-		return;
-	}
-	ofs << j.dump(4);
-	message.clear();
+	const bool saved = fileCache.Save(path, file,
+		[](const GraphFile& f) { return f.data.ToJson(); });
+
+	message = saved ? "" : "Failed to save file.";
 }
 // 読み込み
 void StudioStateGraph::Load(StudioContext& context)
 {
-	std::ifstream ifs(context.attachedGraphPath);
-	if (!ifs.is_open())
-	{
-		message = "Failed to open file.";
-		return;
-	}
+	if (context.currentModelPath.empty()) return;
+	const std::string path = StateMachineData::GetFilePath(context.currentModelPath);
 
-	try
-	{
-		nlohmann::json j;
-		ifs >> j;
+	// 無いのは「まだ作っていない」だけなので、ログは出さない
+	const GraphFile& file = fileCache.GetOrLoad(path,
+		[&path](GraphFile& f, const nlohmann::json& j) { f.valid = f.data.FromJson(j, path); },
+		JsonMissingLog::Silent);
+	const JsonFileStatus status = fileCache.GetStatus(path);
 
-		// 検証でエラーがあっても、直すために読み込んだ状態で開く
-		hasErrors = !data.FromJson(j, context.attachedGraphPath);
-
-		// 選択などを戻す
-		parentCanvas.Reset();
-		childCanvases.clear();
-		CloseConditionWindow();
-		pendingCopy = {};
-		openCopyConfirm = false;
-
-		message.clear();
-	}
-	catch (const std::exception&)
-	{
-		message = "Invalid json.";
-	}
-}
-
-// 保存先のパスを決める
-std::string StudioStateGraph::BuildNewSavePath(const StudioContext& context) const
-{
-	std::filesystem::path saveDir = "Data/Json/StateGraph";
-	std::filesystem::create_directories(saveDir);
-
-	std::string modelName = std::filesystem::path(context.currentModelPath).stem().string();
-	if (modelName.empty()) modelName = "NewStateGraph";
-
-	std::string uniqueName = ProjectWindow::GenerateUniqueName(saveDir, modelName + ".stategraph");
-	std::string result = (saveDir / uniqueName).string();
-	std::replace(result.begin(), result.end(), '\\', '/');
-	return result;
+	// 検証でエラーがあっても、直すために読み込んだ状態で開く
+	data = file.data;
+	hasErrors = (status == JsonFileStatus::Loaded) && !file.valid;
+	message = (status == JsonFileStatus::Broken) ? "Invalid json." : "";
 }
 
 // モデルが持っているアニメーションの名前の一覧を作り直す
@@ -27972,7 +27965,9 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Studio\StudioStateGr
 #include <vector>
 
 #include "IStudioAttachment.h"
+#include "Engine/Core/JsonFileCache.h"
 #include "Engine/Data/StateMachineData.h"
+
 #include "Tool/NodeEditor/NodeEditorCanvas.h"
 
 #include "StudioStateParentCanvas.h"
@@ -27996,19 +27991,19 @@ public:
 private:
 	// --- ファイル関係 --- //
 
-	// ツールバー
+// ツールバー
 	void DrawToolbar(StudioContext& context);
-	// .stategraphのドロップ受け口
-	void DrawDropTarget(StudioContext& context);
-	// ドロップされたファイルが開けるか確認
-	void TryOpen(const std::string& path, StudioContext& context);
 
-	// 保存 / 読み込み
+	// 保存 / 読み込み（場所はモデルのパスから決まる）
 	void Save(StudioContext& context);
 	void Load(StudioContext& context);
 
-	// 保存先のパスを決める
-	std::string BuildNewSavePath(const StudioContext& context) const;
+	// .stategraph.json の中身
+	struct GraphFile
+	{
+		StateMachineData data;
+		bool valid = false; // 検証を通ったか
+	};
 
 	// モデルが持っているアニメーションの名前の一覧を作り直す
 	void RefreshAnimationNames(entt::registry& registry);
@@ -28018,14 +28013,13 @@ private:
 
 	// --- データ --- //
 
-	StateMachineData data;
+	StateMachineData data;              // 編集中のグラフ
+	JsonFileCache<GraphFile> fileCache; // ファイルの読み書き
 
 	// --- パネルの状態 --- //
 
 	int windowId = 0;
 
-	// attachedGraphPathの内容を読み込み済みか
-	bool loaded = false;
 	// 最後の検証でエラーがあったか
 	bool hasErrors = false;
 	// ツールバーに出すメッセージ

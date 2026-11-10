@@ -1,9 +1,11 @@
 #include "StateMachineData.h"
 #include <algorithm>
+#include <filesystem>
 #include <unordered_set>
 #include <utility>
 
 #include "Engine/Core/Log.h"
+#include "Engine/Data/DataFileKind.h"
 
 namespace
 {
@@ -393,12 +395,12 @@ bool StateMachineData::Validate(const std::string& sourceName) const
 
 	auto error = [&](const std::string& message)
 		{
-			Log(u8"[StateMachine] エラー(%s): %s", sourceName.c_str(), message.c_str());
+			Log(u8"[StateMachine] エラー(%s): %s", LogPath(sourceName).c_str(), message.c_str());
 			++errorCount;
 		};
 	auto warning = [&](const std::string& message)
 		{
-			Log(u8"[StateMachine] 警告(%s): %s", sourceName.c_str(), message.c_str());
+			Log(u8"[StateMachine] 警告(%s): %s", LogPath(sourceName).c_str(), message.c_str());
 		};
 
 	// IDの重複
@@ -655,7 +657,7 @@ bool StateMachineData::FromJson(const nlohmann::json& j, const std::string& sour
 	int version = j.value("version", 0);
 	if (version != kVersion)
 	{
-		Log(u8"[StateMachine] エラー(%s): 対応していない形式です(version %d)", sourceName.c_str(), version);
+		Log(u8"[StateMachine] エラー(%s): 対応していない形式（version %d）", LogPath(sourceName).c_str(), version);		
 		return false;
 	}
 
@@ -769,6 +771,12 @@ bool StateMachineData::FromJson(const nlohmann::json& j, const std::string& sour
 	nextId = (std::max)(j.value("nextId", 1), maxId + 1);
 
 	return Validate(sourceName);
+}
+
+// モデルパスから保存先のパスを組み立てる
+std::string StateMachineData::GetFilePath(const std::string& modelPath)
+{
+	return GetModelDataFilePath(modelPath, DataFileKind::StateGraph);
 }
 
 // 編集用の検索

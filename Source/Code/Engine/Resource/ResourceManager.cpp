@@ -5,9 +5,7 @@
 #include "GpuResourceUtils.h" //（GPU再生成用）
 
 #include "Engine/Core/Log.h"
-#include "Engine/Data/AnimationEditData.h"
 #include "Engine/Resource/AnimationEditBaker.h"
-#include "Engine/Core/JsonFile.h"
 
 // モデル取得
 std::shared_ptr<Model> ResourceManager::GetModel(ID3D11Device* device, const std::string& filename)
@@ -27,7 +25,7 @@ std::shared_ptr<Model> ResourceManager::GetModel(ID3D11Device* device, const std
 	// .cereal がある(.cerealを読み込む)
 	if (ModelSerializer::Exists(filename))
 	{
-		Log(u8" .cerealから読み込み: %s", cerealPath.c_str());
+		Log(u8" .cereal から読み込み: %s", LogPath(cerealPath).c_str());
 
 		model = std::make_shared<Model>();
 		ModelSerializer::Load(*model, ModelSerializer::ToCerealPath(filename));
@@ -36,7 +34,7 @@ std::shared_ptr<Model> ResourceManager::GetModel(ID3D11Device* device, const std
 	// .cereal がない(GLTFを読み込む)
 	else
 	{
-		Log(u8" glTFから変換: %s -> 保存先 %s", filename.c_str(), cerealPath.c_str());
+		Log(u8" glTF から変換: %s -> %s", LogPath(filename).c_str(), LogPath(cerealPath).c_str());
 
 		auto gltfData = GLTFImporter::Load(filename);
 		model = GLTFConverter::Convert(device, gltfData);
@@ -45,12 +43,14 @@ std::shared_ptr<Model> ResourceManager::GetModel(ID3D11Device* device, const std
 	// アニメーションの編集設定を焼き込む
 	if (model->HasSkin())
 	{
-		AnimationEditData editData;
-
+		// 無くて普通のファイルなので、無いときはログを出さない
 		const std::string editPath = AnimationEditData::GetFilePath(filename);
-		if (JsonFile::Load(editPath, editData))
+		AnimationEditData editData = editCache.GetOrLoad(editPath,
+			[](AnimationEditData& data, const nlohmann::json& j) { data.FromJson(j); }, JsonMissingLog::Silent);
+
+		if (editCache.GetStatus(editPath) == JsonFileStatus::Loaded)
 		{
-			Log(u8" アニメーション編集設定を読み込み: %s", editPath.c_str());
+			Log(u8" アニメーション編集を読み込み: %s", LogPath(editPath).c_str());
 		}
 
 		// ルートノードが未設定なら、モデルから探す

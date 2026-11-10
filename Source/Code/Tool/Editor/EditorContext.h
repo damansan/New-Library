@@ -15,7 +15,6 @@ struct StudioOpenRequest
 {
     bool        pending = false;
     std::string assetPath;
-    std::string graphPath;
 };
 
 // シーンの保存・読み込みのリクエスト

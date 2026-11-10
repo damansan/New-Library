@@ -70,7 +70,6 @@
     <ClInclude Include="..\..\Source\Code\Engine\Core\Camera.h" />
     <ClInclude Include="..\..\Source\Code\Engine\Core\GameView.h" />
     <ClInclude Include="..\..\Source\Code\Engine\Core\Graphics.h" />
-    <ClInclude Include="..\..\Source\Code\Engine\Core\JsonFile.h" />
     <ClInclude Include="..\..\Source\Code\Engine\Core\JsonFileCache.h" />
     <ClInclude Include="..\..\Source\Code\Engine\Core\Log.h" />
     <ClInclude Include="..\..\Source\Code\Engine\Core\PhysicsDestroyQueue.h" />
@@ -82,6 +81,7 @@
     <ClInclude Include="..\..\Source\Code\Engine\Data\AnimationEditData.h" />
     <ClInclude Include="..\..\Source\Code\Engine\Data\AnimationSpeedData.h" />
     <ClInclude Include="..\..\Source\Code\Engine\Data\ConditionGraphData.h" />
+    <ClInclude Include="..\..\Source\Code\Engine\Data\DataFileKind.h" />
     <ClInclude Include="..\..\Source\Code\Engine\Data\SequencerData.h" />
     <ClInclude Include="..\..\Source\Code\Engine\Data\StateMachineData.h" />
     <ClInclude Include="..\..\Source\Code\Engine\ECS\Components\AdaptiveTrigger.h" />

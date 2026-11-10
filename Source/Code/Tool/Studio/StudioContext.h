@@ -17,7 +17,6 @@ struct StudioContext
     bool showAnimationSpeed = false;
     bool showAnimationEdit = false;
 
-    std::string attachedGraphPath;
     std::string currentModelPath;
 
     // タイムラインでスクラブ操作されたフラグ

@@ -261,25 +261,16 @@ void ProjectWindow::DrawFileGrid(entt::registry& registry, EditorContext& contex
 			{
 				context.studioRequest.pending = true;
 				context.studioRequest.assetPath = modelPath;
-				context.studioRequest.graphPath = "";
 			}
 		}
 
-		// ドラッグ開始（モデル／アニメーショングラフ/シーケンサー/アニメーション速度）
-		if ((isModel || isAnimGraph || isSequencer || isAnimSpeed) && ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
+		// ドラッグ開始（モデル／シーケンサー/アニメーション速度）
+		if ((isModel || isSequencer || isAnimSpeed) && ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
 		{
 			if (isModel)
 			{
 				ImGui::SetDragDropPayload(
 					"MODEL_PATH",
-					modelPath.c_str(),
-					modelPath.size() + 1
-				);
-			}
-			else if (isAnimGraph)
-			{
-				ImGui::SetDragDropPayload(
-					"STATEGRAPH_PATH",
 					modelPath.c_str(),
 					modelPath.size() + 1
 				);

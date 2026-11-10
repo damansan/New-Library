@@ -209,9 +209,6 @@
     <Filter Include="Sources\Engine\Resource\AnimationEditBaker">
       <UniqueIdentifier>{a4486186-6597-4795-81c2-bee13ce3c0e2}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Sources\Engine\Core\JsonFile">
-      <UniqueIdentifier>{cfd352be-9611-40f9-a6ea-6d7d413d45e9}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Source\Code\Engine\Core\Application.cpp">
@@ -573,8 +570,8 @@
     <ClInclude Include="..\..\Source\Code\Engine\Resource\AnimationEditBaker.h">
       <Filter>Sources\Engine\Resource\AnimationEditBaker</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Code\Engine\Core\JsonFile.h">
-      <Filter>Sources\Engine\Core\JsonFile</Filter>
+    <ClInclude Include="..\..\Source\Code\Engine\Data\DataFileKind.h">
+      <Filter>Sources\Engine\Data</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

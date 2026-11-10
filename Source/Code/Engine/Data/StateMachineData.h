@@ -154,9 +154,12 @@ public:
 	// 整合性チェック
 	bool Validate(const std::string& sourceName) const;
 
-	// JSONとの変換
+	// 保存/読み込み
 	nlohmann::ordered_json ToJson() const;
 	bool FromJson(const nlohmann::json& j, const std::string& sourceName);
+
+	// モデルパスから保存先のパスを組み立てる
+	static std::string GetFilePath(const std::string& modelPath);
 
 private:
 	int nextId = 1;

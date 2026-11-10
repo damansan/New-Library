@@ -1,12 +1,14 @@
 #include "EntitySerializer.h"
-#include "Engine/Resource/ComponentRegistry.h"
-#include "Engine/ECS/Components/PrefabInstanceComponent.h"
-#include "Engine/Core/Log.h"
 
+#include "Engine/Resource/ComponentRegistry.h"
+
+#include "Engine/ECS/Components/PrefabInstanceComponent.h"
 #include "Engine/ECS/Reflection.h"
 
+#include "Engine/Core/Log.h"
+#include "Engine/Core/JsonFileCache.h"
+
 #include <DirectXMath.h>
-#include <fstream>
 
 nlohmann::json EntitySerializer::SerializeEntity(entt::registry& registry, entt::entity e)
 {
@@ -86,7 +88,7 @@ void EntitySerializer::DeserializeEntity(entt::registry& registry, entt::entity 
 		if (!info)
 		{
 			// 削除・改名されたコンポーネント。落とさずに飛ばして、ログに残す
-			Log(u8"未登録のコンポーネントを無視しました: %s", name.c_str());
+			Log(u8"未登録のコンポーネントを無視: %s", name.c_str());
 			continue;
 		}
 
@@ -111,42 +113,51 @@ void EntitySerializer::DeserializeEntity(entt::registry& registry, entt::entity 
 	}
 }
 
-// JSONファイルを読み込む。ファイルが無い・壊れている場合は、falseを返す
-bool EntitySerializer::LoadJsonFile(const std::string& path, nlohmann::json& out)
-{
-	std::ifstream ifs(path);
-	if (!ifs)
-	{
-		Log(u8"ファイルを開けません: %s", path.c_str());
-		return false;
-	}
 
-	// 例外を無効にして、壊れたファイルでもアプリを落とさない
-	out = nlohmann::json::parse(ifs, nullptr, false);
-	if (out.is_discarded())
+namespace
+{
+	// プレハブファイルの読み書き
+	JsonFileCache<nlohmann::json>& PrefabFiles()
 	{
-		Log(u8"JSONの形式が不正です: %s", path.c_str());
-		return false;
+		static JsonFileCache<nlohmann::json> cache;
+		return cache;
 	}
-	return true;
+}
+
+
+// プレハブファイルを読む
+const nlohmann::json* EntitySerializer::LoadPrefabFile(const std::string& path)
+{
+	auto& files = PrefabFiles();
+	const nlohmann::json& data = files.GetOrLoad(path,
+		[](nlohmann::json& d, const nlohmann::json& j) { d = j; });
+
+	if (files.GetStatus(path) != JsonFileStatus::Loaded) return nullptr;
+	return &data;
+}
+// プレハブファイルに書く
+bool EntitySerializer::SavePrefabFile(const std::string& path, const nlohmann::json& data)
+{
+	return PrefabFiles().Save(path, data,
+		[](const nlohmann::json& d) { return nlohmann::ordered_json(d); });
 }
 
 // プレハブファイルからEntityを生成する。成功したらそのEntityを、失敗したらentt::nullを返す
 entt::entity EntitySerializer::InstantiatePrefab(entt::registry& registry, const std::string& prefabPath)
 {
-	nlohmann::json data;
-	if (!LoadJsonFile(prefabPath, data)) return entt::null;
+	const nlohmann::json* data = LoadPrefabFile(prefabPath);
+	if (!data) return entt::null;
 
-	if (!data.is_object())
+	if (!data->is_object())
 	{
-		Log(u8"プレハブの形式が不正です: %s", prefabPath.c_str());
+		Log(u8"プレハブの形式が違う: %s", LogPath(prefabPath).c_str());
 		return entt::null;
 	}
 
-	entt::entity e = CreateFromComponents(registry, data);
+	entt::entity e = CreateFromComponents(registry, *data);
 	if (e == entt::null)
 	{
-		Log(u8"プレハブの復元中にエラー: %s", prefabPath.c_str());
+		Log(u8"プレハブの復元に失敗: %s", LogPath(prefabPath).c_str());
 		return entt::null;
 	}
 

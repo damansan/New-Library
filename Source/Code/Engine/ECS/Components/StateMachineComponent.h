@@ -7,7 +7,6 @@ struct StateMachineComponent
 {
 	REFLECT_BEGIN(StateMachineComponent, "State Machine")
 		
-		REFLECT_FIELD(std::string, graphPath,        (""), ("State Graph",   0.0f, 0.0f, 0.1f, "STATEGRAPH_PATH"))
 		REFLECT_FIELD(std::string, currentStateName, (""), ("Current State", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient))
 		REFLECT_FIELD(std::string, currentClipName,  (""), ("Current Clip",  0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient))
 		

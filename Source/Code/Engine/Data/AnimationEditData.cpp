@@ -1,5 +1,5 @@
 #include "AnimationEditData.h"
-#include <filesystem>
+#include "Engine/Data/DataFileKind.h"
 
 namespace
 {
@@ -110,6 +110,5 @@ void AnimationEditData::FromJson(const nlohmann::json& j)
 // モデルパスから保存先のパスを組み立てる
 std::string AnimationEditData::GetFilePath(const std::string& modelPath)
 {
-	std::filesystem::path p(modelPath);
-	return "Data/Json/Animation/" + p.stem().string() + ".animedit";
+	return GetModelDataFilePath(modelPath, DataFileKind::AnimEdit);
 }

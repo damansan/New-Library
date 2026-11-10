@@ -1,12 +1,15 @@
 #include "GameApp.h"
-#include "tracy/Tracy.hpp"
-#include <fstream>
-#include <json.hpp>
+#include "GameApp.h"
 
 #include "Engine/Core/Log.h"
+#include "Engine/Core/JsonFileCache.h"
 #include "Engine/Resource/SceneSerializer.h"
 #include "Game/Scene/SceneGame.h"
 #include "Game/ECS/GameComponents.h"
+
+#include "tracy/Tracy.hpp"
+
+#include <json.hpp>
 
 namespace
 {
@@ -61,7 +64,7 @@ void GameApp::OnPostUpdate(float elapsedTime)
 	// エンティティの名前はエディタ専用なので、受け取らない
 	if (!SceneSerializer::LoadFromFile(scene->GetRegistry(), startScenePath))
 	{
-		Log(u8"最初のシーンの読み込みに失敗しました: %s", startScenePath.c_str());
+		Log(u8"最初のシーンを読めない: %s", LogPath(startScenePath).c_str());
 	}
 }
 
@@ -75,24 +78,14 @@ void GameApp::OnPresent()
 // プロジェクト設定から、最初に読み込むシーンのパスを取得する
 std::string GameApp::LoadStartScenePath()
 {
-	std::ifstream file(kProjectSettingsPath);
-	if (!file)
-	{
-		Log(u8"プロジェクト設定が見つかりません: %s", kProjectSettingsPath);
-		return "";
-	}
+	// 起動時に1回読むだけなので、その場限りで使う
+	JsonFileCache<std::string> file;
+	const std::string& path = file.GetOrLoad(kProjectSettingsPath,
+		[](std::string& startScene, const nlohmann::json& j) { startScene = j.value("startScene", ""); });
 
-	nlohmann::json json = nlohmann::json::parse(file, nullptr, false);
-	if (json.is_discarded() || !json.is_object())
+	if (file.GetStatus(kProjectSettingsPath) == JsonFileStatus::Loaded && path.empty())
 	{
-		Log(u8"プロジェクト設定の形式が正しくありません: %s", kProjectSettingsPath);
-		return "";
-	}
-
-	std::string path = json.value("startScene", "");
-	if (path.empty())
-	{
-		Log(u8"プロジェクト設定に startScene がありません");
+		Log(u8"プロジェクト設定に startScene が無い");
 	}
 	return path;
 }

@@ -3,6 +3,7 @@
 #include "Engine/Core/Log.h"
 #include "Engine/ECS/Components/AnimatorComponent.h"
 #include "Engine/ECS/Components/StateMachineComponent.h"
+#include "Engine/ECS/Components/SkinnedMeshComponent.h"
 
 // グラフを取得する
 const StateMachineData* StateMachineSystem::Load(const std::string& path)
@@ -27,7 +28,7 @@ const StateMachineData* StateMachineSystem::Load(const std::string& path)
 		// 同じパスについては1回だけ報告する
 		if (reportedPaths.insert(path).second)
 		{
-			Log(u8"[StateMachine] %s を使用できません(読み込みに失敗したか、検証でエラーがあります)", path.c_str());
+			Log(u8"[StateMachine] %s を使えない（読み込みの失敗か、検証のエラー）", LogPath(path).c_str());
 		}
 		return nullptr;
 	}
@@ -66,16 +67,19 @@ void StateMachineSystem::EnterState(StateMachineComponent& sm, const StateNode& 
 // Stateの遷移を決める
 void StateMachineSystem::UpdateState(entt::registry& registry)
 {
-	auto view = registry.view<StateMachineComponent>();
+	auto view = registry.view<StateMachineComponent, SkinnedMeshComponent>();
 	for (auto entity : view)
 	{
 		auto& sm = view.get<StateMachineComponent>(entity);
+		const auto& skinned = view.get<SkinnedMeshComponent>(entity);
 
 		sm.enteredThisFrame = false;
 
-		if (sm.graphPath.empty()) continue;
+		if (skinned.modelPath.empty()) continue;
 
-		const StateMachineData* data = Load(sm.graphPath);
+		// グラフはモデルごとに1つ
+		const std::string graphPath = StateMachineData::GetFilePath(skinned.modelPath);
+		const StateMachineData* data = Load(graphPath);
 		if (!data) continue;
 
 		const StateNode* current = data->FindState(sm.currentStateId);
@@ -84,7 +88,7 @@ void StateMachineSystem::UpdateState(entt::registry& registry)
 		if (!current)
 		{
 			// このエンティティを処理するSystemが使うStateが、グラフにあるかを確かめる
-			CheckRequiredStates(*data, sm.graphPath, registry, entity);
+			CheckRequiredStates(*data, graphPath, registry, entity);
 
 			const StateTransition* t = FindPassedTransition(data->entry.transitions, registry, entity);
 			if (!t) continue;
@@ -110,14 +114,15 @@ void StateMachineSystem::UpdateState(entt::registry& registry)
 // 再生するクリップを決める
 void StateMachineSystem::UpdateAnimation(entt::registry& registry)
 {
-	auto view = registry.view<StateMachineComponent, AnimatorComponent>();
+	auto view = registry.view<StateMachineComponent, AnimatorComponent, SkinnedMeshComponent>();
 	for (auto entity : view)
 	{
 		auto& sm = view.get<StateMachineComponent>(entity);
 		auto& animator = view.get<AnimatorComponent>(entity);
-		if (sm.graphPath.empty()) continue;
+		const auto& skinned = view.get<SkinnedMeshComponent>(entity);
+		if (skinned.modelPath.empty()) continue;
 
-		const StateMachineData* data = Load(sm.graphPath);
+		const StateMachineData* data = Load(StateMachineData::GetFilePath(skinned.modelPath));
 		if (!data) continue;
 
 		const StateNode* state = data->FindState(sm.currentStateId);
@@ -151,7 +156,7 @@ void StateMachineSystem::UpdateAnimation(entt::registry& registry)
 			if (!played)
 			{
 				// 条件が成立するつながりが無かった(前のクリップを再生し続ける)
-				Log(u8"[StateMachine] 「%s」に入りましたが、再生するクリップが決まりませんでした(遷移ID %d)",
+				Log(u8"[StateMachine] 「%s」に入ったが、再生するクリップが決まらない（遷移ID %d）",
 					state->name.c_str(), sm.enteredTransitionId);
 			}
 			continue;
@@ -194,8 +199,8 @@ void StateMachineSystem::CheckRequiredStates(const StateMachineData& data, const
 		std::string key = path + "\n" + r.stateName + "\n" + r.user;
 		if (!reportedMissingStates.insert(key).second) continue;
 
-		Log(u8"[StateMachine] 警告(%s): State「%s」がグラフにありません(%s が使用)",
-			path.c_str(), r.stateName.c_str(), r.user.c_str());
+		Log(u8"[StateMachine] 警告(%s): State「%s」がグラフに無い（%s が使用）",
+			LogPath(path).c_str(), r.stateName.c_str(), r.user.c_str());
 	}
 }
 

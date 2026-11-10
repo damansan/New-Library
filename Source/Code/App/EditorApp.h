@@ -43,7 +43,7 @@ private:
 	void UpdateDebugCamera(float elapsedTime);
 
 	// Studioを開く
-	void OpenStudioWindow(const std::string& assetPath = "", const std::string& graphPath = "");
+	void OpenStudioWindow(const std::string& assetPath = "");
 
 	// メニューバーの中身
 	void DrawMainMenu();

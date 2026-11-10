@@ -7,6 +7,7 @@
 #include <mutex>
 #include <string>
 #include <vector>
+#include <filesystem>
 
 // ログの保存先。メッセージはUTF-8で持つ（日本語は u8"..." を付けて書く）
 namespace LogBuffer
@@ -93,4 +94,22 @@ inline void Log(const char* format, ...)
 	va_end(args);
 
 	LogBuffer::Add(message);
+}
+
+// ログに出すパスを短くする：「Data/」から
+inline std::string LogPath(const std::string& path)
+{
+	const std::filesystem::path p(path); // std::string はシステムの文字コード（Shift-JIS）として読まれる
+
+	std::filesystem::path shortPath;
+	bool found = false;
+	for (const auto& part : p)
+	{
+		if (!found && part == "Data") found = true;
+		if (found) shortPath /= part;
+	}
+	if (!found) shortPath = p.filename();
+
+	const auto utf8 = shortPath.generic_u8string(); // 区切りは「/」、文字は UTF-8
+	return std::string(utf8.begin(), utf8.end());
 }

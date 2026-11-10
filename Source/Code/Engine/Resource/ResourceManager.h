@@ -4,6 +4,8 @@
 #include <unordered_map>
 #include <d3d11.h>
 #include "Model.h"
+#include "Engine/Core/JsonFileCache.h"
+#include "Engine/Data/AnimationEditData.h"
 
 class ResourceManager
 {
@@ -31,5 +33,6 @@ public:
 private:
     // モデルキャッシュ
     std::unordered_map<std::string, std::shared_ptr<Model>> modelCache;
-
+    // アニメーション編集
+    JsonFileCache<AnimationEditData> editCache;
 };

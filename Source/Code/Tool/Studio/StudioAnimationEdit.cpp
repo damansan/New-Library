@@ -2,7 +2,6 @@
 #include "Engine/ECS/Components/SkinnedMeshComponent.h"
 #include "Engine/ECS/Components/AnimatorComponent.h"
 #include "Engine/Resource/AnimationEditBaker.h"
-#include "Engine/Core/JsonFile.h"
 #include <algorithm>
 #include <cstdio>
 #include <cmath>
@@ -379,12 +378,9 @@ void StudioAnimationEdit::SetPreviewActive(Model& model, AnimatorComponent& anim
 // 読み込み
 void StudioAnimationEdit::Load(const std::string& modelPath, const Model& model)
 {
-	editData = AnimationEditData();
-	if (!JsonFile::Load(AnimationEditData::GetFilePath(modelPath), editData))
-	{
-		// 無い・壊れている：途中まで読んだ分は捨てる
-		editData = AnimationEditData();
-	}
+	// 無い・壊れているときは初期値が返る。無くて普通のファイルなので、ログは出さない
+	editData = fileCache.GetOrLoad(AnimationEditData::GetFilePath(modelPath),
+		[](AnimationEditData& data, const nlohmann::json& j) { data.FromJson(j); }, JsonMissingLog::Silent);
 
 	loadedModelPath = modelPath;
 	isDirty = false;
@@ -402,7 +398,8 @@ void StudioAnimationEdit::Save(const std::string& modelPath)
 {
 	if (modelPath.empty()) return;
 
-	if (JsonFile::Save(AnimationEditData::GetFilePath(modelPath), editData))
+	if (fileCache.Save(AnimationEditData::GetFilePath(modelPath), editData,
+		[](const AnimationEditData& data) { return data.ToJson(); }))
 	{
 		isDirty = false;
 	}

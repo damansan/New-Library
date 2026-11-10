@@ -1,5 +1,6 @@
 #include "SequencerData.h"
 #include "Engine/Core/Log.h"
+#include "Engine/Data/DataFileKind.h"
 #include <filesystem>
 
 namespace
@@ -144,6 +145,5 @@ void SequencerData::FromJson(const nlohmann::json& j)
 // モデルパスから保存先のパスを組み立てる
 std::string SequencerData::GetFilePath(const std::string& modelPath)
 {
-	std::filesystem::path p(modelPath);
-	return "Data/Json/Sequencer/" + p.stem().string() + ".sequencer";
+	return GetModelDataFilePath(modelPath, DataFileKind::Sequencer);
 }

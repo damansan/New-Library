@@ -60,7 +60,7 @@ void SequencerSystem::Update(entt::registry& registry)
 
 		// モデルごとのファイルを読む
 		const SequencerData& data = dataCache.GetOrLoad(SequencerData::GetFilePath(skinned.modelPath),
-			[](SequencerData& data, const nlohmann::json& j) { data.FromJson(j); });
+			[](SequencerData& data, const nlohmann::json& j) { data.FromJson(j); }, JsonMissingLog::Silent);
 
 		const SequencerClipData* clip = data.FindClip(animator.currentAnimation);
 

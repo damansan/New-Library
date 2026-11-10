@@ -8,11 +8,13 @@ public:
 	// Entity1つを、コンポーネント名をキーにしたJSONへ変換する
 	static nlohmann::json SerializeEntity(entt::registry& registry, entt::entity e);
 
-	// JSONの内容を、Entityへ反映する(コンポーネントを付与し、フィールドを書き戻す)
+	// JSONの内容を、Entityへ反映する
 	static void DeserializeEntity(entt::registry& registry, entt::entity e, const nlohmann::json& data);
 
-	// JSONファイルを読み込む。ファイルが無い・壊れている場合は、falseを返す
-	static bool LoadJsonFile(const std::string& path, nlohmann::json& out);
+	// プレハブファイルを読む
+	static const nlohmann::json* LoadPrefabFile(const std::string& path);
+	// プレハブファイルに書く
+	static bool SavePrefabFile(const std::string& path, const nlohmann::json& data);
 
 	// プレハブファイルからEntityを生成する。成功したらそのEntityを、失敗したらentt::nullを返す
 	static entt::entity InstantiatePrefab(entt::registry& registry, const std::string& prefabPath);

@@ -1,7 +1,6 @@
 #include "PrefabWindow.h"
 #include <imgui.h>
 #include <algorithm>
-#include <fstream>
 #include "entt.hpp"
 #include "Engine/Resource/EntitySerializer.h"
 
@@ -187,19 +186,6 @@ void PrefabWindow::DrawFileGrid(entt::registry& registry, EditorContext& context
 
 	float windowWidth = ImGui::GetContentRegionAvail().x;
 	int columns = (std::max)(1, (int)(windowWidth / cellSize));
-
-	//ImGui::InvisibleButton("##fileGridDropArea", ImGui::GetContentRegionAvail());
-	//if (ImGui::BeginDragDropTarget())
-	//{
-	//	if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ENTITY"))
-	//	{
-	//		entt::entity droppedEntity = *(const entt::entity*)payload->Data;
-	//		SaveEntityAsPrefab(registry, context, droppedEntity, itemState.selectedPath);
-	//	}
-	//	ImGui::EndDragDropTarget();
-	//}
-	//ImGui::SetCursorScreenPos(ImGui::GetItemRectMin());
-
 	int index = 0;
 
 	for (auto& file : fileGridCache)
@@ -324,12 +310,7 @@ void PrefabWindow::SaveEntityAsPrefab(entt::registry& registry, EditorContext& c
 	std::string fileName = GenerateUniqueName(folder, name + ".prefab.json");
 
 	nlohmann::json data = EntitySerializer::SerializeEntity(registry, e);
-
-	std::ofstream ofs(folder / fileName);
-	if (ofs)
-	{
-		ofs << data.dump(4);
-	}
+	EntitySerializer::SavePrefabFile((folder / fileName).string(), data);
 }
 // Entityを、既存のプレハブファイルに上書き保存する
 void PrefabWindow::OverwritePrefab(entt::registry& registry, EditorContext& context, entt::entity e, const std::filesystem::path& filePath)
@@ -337,14 +318,8 @@ void PrefabWindow::OverwritePrefab(entt::registry& registry, EditorContext& cont
 	if (!registry.valid(e)) return;
 
 	nlohmann::json data = EntitySerializer::SerializeEntity(registry, e);
-
-	std::ofstream ofs(filePath);
-	if (ofs)
-	{
-		ofs << data.dump(4);
-	}
+	EntitySerializer::SavePrefabFile(filePath.string(), data);
 }
-
 // 間隔が経過していれば、フォルダツリーのキャッシュを作り直す
 void PrefabWindow::RefreshFolderTreeIfNeeded()
 {
