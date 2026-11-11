@@ -1,15 +1,14 @@
 {
     "AnimationSpeedComponent": {
-        "animationSpeedPath": "Data/Json/AnimSpeed/Map_Robot3.animspeed"
+        "animationSpeedPath": ""
     },
     "AnimatorComponent": {
         "loop": true,
         "playSpeed": 1.0,
-        "rootMotionNodeName": "root",
         "useRootMotion": false,
         "useRootMotionY": false
     },
-    "ComponentCategory": {
+    "CategoryComponent": {
         "category": "Player"
     },
     "GameInputComponent": {},
@@ -24,9 +23,9 @@
     },
     "PlayerDodgeComponent": {
         "accelHalfLife": 0.019999999552965164,
-        "dodgeSpeed": 10.0,
-        "maxTime": 0.6000000238418579,
-        "minTime": 0.4000000059604645,
+        "dodgeSpeed": 8.0,
+        "maxTime": 0.5,
+        "minTime": 0.15000000596046448,
         "turnSpeed": 10.0
     },
     "PlayerIdleComponent": {
@@ -51,24 +50,23 @@
     "PlayerMoveComponent": {
         "accelHalfLife": 0.05000000074505806,
         "decelHalfLife": 0.07999999821186066,
-        "runSpeed": 5.0,
+        "runSpeed": 4.199999809265137,
         "turnSpeed": 10.0,
-        "walkSpeed": 2.5
+        "walkSpeed": 1.7000000476837158
     },
     "PlayerSprintComponent": {
-        "sprintSpeed": 15.0,
-        "turnSpeed": 15.0
+        "accelHalfLife": 0.10000000149011612,
+        "decelHalfLife": 0.15000000596046448,
+        "enterSpeed": 6.0,
+        "sprintSpeed": 7.400000095367432,
+        "turnSpeed": 8.0
     },
-    "SequencerComponent": {
-        "sequencerPath": "Data/Json/Sequencer/Map_Robot3.sequencer"
-    },
-    "StateMachineComponent": {
-        "graphPath": "Data/Json/StateGraph/Map_Robot3 -Test.stategraph"
-    },
+    "SequencerComponent": {},
+    "StateMachineComponent": {},
     "TransformComponent": {
         "position": [
             0.0,
-            -0.16267479956150055,
+            -0.016267426311969757,
             0.0
         ],
         "rotation": [

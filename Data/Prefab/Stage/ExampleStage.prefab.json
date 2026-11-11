@@ -1,8 +1,7 @@
 {
-    "ComponentCategory": {
-        "category": "Player"
+    "CategoryComponent": {
+        "category": "Stage"
     },
-    "GameInputComponent": {},
     "MaterialComponent": {
         "shadingModel": "Default"
     },
