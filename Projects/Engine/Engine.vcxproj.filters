@@ -573,6 +573,9 @@
     <ClInclude Include="..\..\Source\Code\Engine\Data\DataFileKind.h">
       <Filter>Sources\Engine\Data</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Source\Code\Engine\ECS\Components\CharacterContactComponent.h">
+      <Filter>Sources\Engine\ECS\Components</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="..\..\Source\Shader\Basic_PS.hlsl">

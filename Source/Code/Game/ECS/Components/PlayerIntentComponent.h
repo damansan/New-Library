@@ -29,6 +29,7 @@ struct PlayerIntentComponent
 		REFLECT_FIELD(float, moveGraceTime,     (0.1f),  ("Move Grace Time",     0.0f, 0.5f)) // 入力が途切れても wantsMove を保つ時間
 		REFLECT_FIELD(float, runEnterThreshold, (0.9f),  ("Run Enter Threshold", 0.0f, 1.0f)) // この倒し具合以上で走りに入る
 		REFLECT_FIELD(float, runExitThreshold,  (0.7f),  ("Run Exit Threshold",  0.0f, 1.0f)) // この倒し具合未満で歩きに戻る
+		REFLECT_FIELD(float, runGraceTime,      (0.15f), ("Run Grace Time",      0.0f, 0.5f)) // 倒し具合が戻っても wantsRun を保つ時間
 		REFLECT_FIELD(float, jumpBufferTime,    (0.15f), ("Jump Buffer Time",    0.0f, 0.5f)) // ジャンプの先行入力を受け付けておく時間
 		REFLECT_FIELD(float, dodgeBufferTime,   (0.15f), ("Dodge Buffer Time",   0.0f, 0.5f)) // 回避の先行入力を受け付けておく時間
 
@@ -49,4 +50,5 @@ struct PlayerIntentComponent
 
 		// 内部実装用
 		float graceTimer = 0.0f; // 入力が途切れてからの経過時間
+		float runGraceTimer = 0.0f; // 倒し具合が runExitThreshold を下回ってからの経過時間
 };

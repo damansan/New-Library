@@ -219,10 +219,15 @@ void SceneGame::UpdateGameplay(float elapsedTime, const SceneContext& context)
 		ZoneScopedN("InputSystem");
 		gameInputSystem.Update(registry, controllerSystem.GetSettings());
 	}
-	// 意図の集約(グラフが遷移を決める前に作る)
+	// 意図の集約
 	{
 		ZoneScopedN("PlayerIntentSystem");
 		playerIntentSystem.Update(registry, elapsedTime, context);
+	}
+	// 壁の見え方
+	{
+		ZoneScopedN("PlayerWallSenseSystem");
+		playerWallSenseSystem.Update(registry, elapsedTime, context);
 	}
 	// Stateマシン：Stateの遷移
 	{
@@ -254,6 +259,11 @@ void SceneGame::UpdateGameplay(float elapsedTime, const SceneContext& context)
 	{
 		ZoneScopedN("PlayerJumpSystem");
 		playerJumpSystem.Update(registry, elapsedTime, context);
+	}
+	// プレイヤー壁走り処理
+	{
+		ZoneScopedN("PlayerWallRunSystem");
+		playerWallRunSystem.Update(registry, elapsedTime, context);
 	}
 	// 水平移動(各ステートの指示をもとに velocity.xz と rotation.y を書く)
 	{

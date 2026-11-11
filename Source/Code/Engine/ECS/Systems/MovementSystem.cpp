@@ -14,6 +14,7 @@ void MovementSystem::Update(entt::registry& registry, float elapsedTime, const S
         TransformComponent& transform)
         {
             // èdóÕ
-            movement.velocity.y += movement.gravity * elapsedTime;
+            movement.velocity.y += movement.gravity * movement.gravityScale * elapsedTime;
+            movement.gravityScale = 1.0f;
         });
 }

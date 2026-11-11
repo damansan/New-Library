@@ -12,5 +12,8 @@ struct MovementComponent
 		REFLECT_FIELD(bool,              isGrounded,  (false),            ("Is Grounded"                      ))
 		REFLECT_FIELD(float,             planarSpeed, (0.0f),             ("Planar Speed", 0.0f, 0.0f, 0.01f, "", FieldFlags::VisibleOnly | FieldFlags::Transient))
 
+		// èdóÕÇÃî{ó¶
+		REFLECT_FIELD(float, gravityScale, (1.0f), ("Gravity Scale", 0.0f, 0.0f, 0.01f, "", FieldFlags::VisibleOnly | FieldFlags::Transient))
+
 	REFLECT_END()
 };

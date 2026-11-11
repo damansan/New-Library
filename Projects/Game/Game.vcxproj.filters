@@ -55,6 +55,12 @@
     <Filter Include="Sources\ECS\System\Player\PlayerLocomotionSystem">
       <UniqueIdentifier>{f9b6a8e2-dec4-4935-9a17-acb3eb8f7cf1}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\ECS\System\Player\PlayerWallSenseSystem">
+      <UniqueIdentifier>{da2d6207-011f-4245-a7c2-fb2f63dac176}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\ECS\System\Player\PlayerWallRunSystem">
+      <UniqueIdentifier>{cdf316d2-f73f-4b02-8727-09510df901aa}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Source\Code\Game\ECS\GameComponents.cpp">
@@ -95,6 +101,12 @@
     </ClCompile>
     <ClCompile Include="..\..\Source\Code\Game\ECS\Systems\PlayerLocomotionSystem.cpp">
       <Filter>Sources\ECS\System\Player\PlayerLocomotionSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Code\Game\ECS\Systems\PlayerWallSenseSystem.cpp">
+      <Filter>Sources\ECS\System\Player\PlayerWallSenseSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Code\Game\ECS\Systems\PlayerWallRunSystem.cpp">
+      <Filter>Sources\ECS\System\Player\PlayerWallRunSystem</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -163,6 +175,18 @@
     </ClInclude>
     <ClInclude Include="..\..\Source\Code\Game\ECS\Systems\PlayerLocomotionSystem.h">
       <Filter>Sources\ECS\System\Player\PlayerLocomotionSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Code\Game\ECS\Components\PlayerWallSenseComponent.h">
+      <Filter>Sources\ECS\Components\Player</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Code\Game\ECS\Systems\PlayerWallSenseSystem.h">
+      <Filter>Sources\ECS\System\Player\PlayerWallSenseSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Code\Game\ECS\Components\PlayerWallRunComponent.h">
+      <Filter>Sources\ECS\Components\Player</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Code\Game\ECS\Systems\PlayerWallRunSystem.h">
+      <Filter>Sources\ECS\System\Player\PlayerWallRunSystem</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

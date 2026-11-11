@@ -9,6 +9,7 @@
 
 #include "Engine/ECS/Components/ControllerComponent.h"
 #include "Engine/ECS/Components/MovementComponent.h"
+#include "Engine/ECS/Components/CharacterContactComponent.h"
 #include "Engine/ECS/Components/AnimatorComponent.h"
 #include "Engine/ECS/Components/SkinnedMeshComponent.h"
 #include "Engine/ECS/Components/FreeCameraComponent.h"
@@ -146,6 +147,13 @@ void ComponentRegistryInitializer::Initialize()
 				if (movement && ImGui::TreeNode("Movement"))
 				{
 					MetaRegistry::DrawMetaFields(entt::resolve<MovementComponent>(), entt::forward_as_meta(*movement));
+					ImGui::TreePop();
+				}
+				// ÚG‚ÌŒ‹‰ÊiCharacter‚Æˆê‚É•t—^‚³‚ê‚éCharacterContactComponentj
+				auto* contact = reg.try_get<CharacterContactComponent>(e);
+				if (contact && ImGui::TreeNode("Contact"))
+				{
+					MetaRegistry::DrawMetaFields(entt::resolve<CharacterContactComponent>(), entt::forward_as_meta(*contact));
 					ImGui::TreePop();
 				}
 				break;

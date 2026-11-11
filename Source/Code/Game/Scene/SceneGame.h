@@ -9,12 +9,14 @@
 // PlayerŠÖŒW
 #include "Game/ECS/Systems/PlayerIntentSystem.h"
 #include "Game/ECS/Systems/PlayerLocomotionSystem.h"
+#include "Game/ECS/Systems/PlayerWallSenseSystem.h"
 
 #include "Game/ECS/Systems/PlayerIdleSystem.h"
 #include "Game/ECS/Systems/PlayerMoveSystem.h"
 #include "Game/ECS/Systems/PlayerDodgeSystem.h"
 #include "Game/ECS/Systems/PlayerSprintSystem.h"
 #include "Game/ECS/Systems/PlayerJumpSystem.h"
+#include "Game/ECS/Systems/PlayerWallRunSystem.h"
 
 #include "Engine/ECS/Systems/MovementSystem.h"
 #include "Engine/ECS/Systems/AnimationSpeedSystem.h"
@@ -57,12 +59,14 @@ private:
 	// PlayerŠÖŒW
 	PlayerIntentSystem playerIntentSystem;
 	PlayerLocomotionSystem playerLocomotionSystem;
+	PlayerWallSenseSystem  playerWallSenseSystem;
 
 	PlayerIdleSystem   playerIdleSystem;
 	PlayerMoveSystem   playerMoveSystem;
 	PlayerDodgeSystem  playerDodgeSystem;
 	PlayerSprintSystem playerSprintSystem;
 	PlayerJumpSystem   playerJumpSystem;
+	PlayerWallRunSystem playerWallRunSystem;
 
 	MovementSystem    movementSystem;
 	AnimationSpeedSystem     animationSpeedSystem;

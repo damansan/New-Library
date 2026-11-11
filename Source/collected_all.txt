@@ -5332,6 +5332,25 @@ struct CategoryComponent
 };
 
 
+===== CharacterContactComponent.h =====
+Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\ECS\Components\CharacterContactComponent.h
+#pragma once
+#pragma once
+#include <DirectXMath.h>
+#include "Engine/ECS/Reflect.h"
+
+// キャラクターが触れた面の結果
+struct CharacterContactComponent
+{
+	REFLECT_BEGIN(CharacterContactComponent, "Character Contact")
+
+		REFLECT_FIELD(bool, hitSide, (false), ("Hit Side", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // このフレームの 移動 で横に当たったか
+		REFLECT_FIELD(DirectX::XMFLOAT3, sideNormal, (0.0f, 0.0f, 0.0f), ("Side Normal", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // 横に当たった面の法線
+
+		REFLECT_END()
+};
+
+
 ===== ControllerComponent.h =====
 Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\ECS\Components\ControllerComponent.h
 #pragma once
@@ -5560,6 +5579,9 @@ struct MovementComponent
 		REFLECT_FIELD(DirectX::XMFLOAT3, velocity,    (0.0f, 0.0f, 0.0f), ("Velocity",   0.0f,   0.0f,  0.01f ))
 		REFLECT_FIELD(bool,              isGrounded,  (false),            ("Is Grounded"                      ))
 		REFLECT_FIELD(float,             planarSpeed, (0.0f),             ("Planar Speed", 0.0f, 0.0f, 0.01f, "", FieldFlags::VisibleOnly | FieldFlags::Transient))
+
+		// 重力の倍率
+		REFLECT_FIELD(float, gravityScale, (1.0f), ("Gravity Scale", 0.0f, 0.0f, 0.01f, "", FieldFlags::VisibleOnly | FieldFlags::Transient))
 
 	REFLECT_END()
 };
@@ -7536,7 +7558,8 @@ void MovementSystem::Update(entt::registry& registry, float elapsedTime, const S
         TransformComponent& transform)
         {
             // 重力
-            movement.velocity.y += movement.gravity * elapsedTime;
+            movement.velocity.y += movement.gravity * movement.gravityScale * elapsedTime;
+            movement.gravityScale = 1.0f;
         });
 }
 
@@ -7565,6 +7588,7 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\ECS\Systems\Physic
 #include "Engine/ECS/Components/StaticMeshComponent.h"
 #include "Engine/ECS/Components/TransformComponent.h"
 #include "Engine/ECS/Components/MovementComponent.h"
+#include "Engine/ECS/Components/CharacterContactComponent.h"
 #include "Engine/Resource/Model.h"
 
 using namespace physx;
@@ -7583,6 +7607,62 @@ static PxQuat ToPxQuat(const DirectX::XMFLOAT3& rotation)
 
 namespace
 {
+
+	// 横に当たった面を1つ覚えておく
+	class SideHitCollector : public PxUserControllerHitReport
+	{
+	public:
+		void Reset(const PxVec3& moveDisp)
+		{
+			hasHit = false;
+			bestNormalY = 1.0f;
+			normal = PxVec3(0.0f, 0.0f, 0.0f);
+			intendedDir = PxVec3(moveDisp.x, 0.0f, moveDisp.z); // 水平だけ
+		}
+
+		//void onShapeHit(const PxControllerShapeHit& hit) override
+		//{
+		//	// 一番横向きの面を残す
+		//	const float normalY = fabsf(hit.worldNormal.y);
+		//	if (!hasHit || normalY < bestNormalY)
+		//	{
+		//		hasHit = true;
+		//		bestNormalY = normalY;
+		//		normal = hit.worldNormal;
+		//	}
+		//}
+		void onShapeHit(const PxControllerShapeHit& hit) override
+		{
+			// 三角形メッシュは裏から当たっても表の法線を返すので、
+			// 進んでいた向き(dir)と同じ側を向いていたら、プレイヤー側へ反転する
+			PxVec3 hitNormal = hit.worldNormal;
+			if (hitNormal.dot(intendedDir) > 0.0f)
+			{
+				hitNormal = -hitNormal;
+			}
+
+			// 一番「横向き」の面(法線の y が 0 に近い)を残す
+			const float normalY = fabsf(hitNormal.y);
+			if (!hasHit || normalY < bestNormalY)
+			{
+				hasHit = true;
+				bestNormalY = normalY;
+				normal = hitNormal;
+			}
+		}
+
+		void onControllerHit(const PxControllersHit&) override {}      // CCT 同士
+		void onObstacleHit(const PxControllerObstacleHit&) override {} // 使っていない
+
+		bool   hasHit = false;
+		float  bestNormalY = 1.0f;
+		PxVec3 normal = PxVec3(0.0f, 0.0f, 0.0f);
+		PxVec3 intendedDir = PxVec3(0.0f, 0.0f, 0.0f); // このフレームに動かしたかった水平の向き
+	};
+
+	// すべての CCT で1つを使い回す
+	SideHitCollector sideHitCollector;
+
 	// StaticBodyComponentが外れる／Entityが破棄される直前に、Actorを破棄予約する
 	void OnStaticBodyDestroyed(entt::registry& registry, entt::entity entity)
 	{
@@ -7721,6 +7801,10 @@ void PhysicsSystem::SyncBodyTypes(entt::registry& registry)
 			{
 				registry.emplace<MovementComponent>(entity);
 			}
+			if (!registry.all_of<CharacterContactComponent>(entity))
+			{
+				registry.emplace<CharacterContactComponent>(entity);
+			}
 		}
 		else if (registry.all_of<CharacterControllerComponent>(entity))
 		{
@@ -7730,6 +7814,10 @@ void PhysicsSystem::SyncBodyTypes(entt::registry& registry)
 			if (registry.all_of<MovementComponent>(entity))
 			{
 				registry.remove<MovementComponent>(entity);
+			}
+			if (registry.all_of<CharacterContactComponent>(entity))
+			{
+				registry.remove<CharacterContactComponent>(entity);
 			}
 		}
 	}
@@ -7857,6 +7945,7 @@ void PhysicsSystem::ProcessCharacterControllers(entt::registry& registry, PhysX&
 			//desc.slopeLimit = cosf(physx::PxDegToRad(45.0f)); // 歩行可能な坂の角度
 			//desc.climbingMode = physx::PxCapsuleClimbingMode::eCONSTRAINED;  // 段差の登りをより厳密に制限
 			desc.nonWalkableMode = physx::PxControllerNonWalkableMode::ePREVENT_CLIMBING_AND_FORCE_SLIDING;
+			desc.reportCallback = &sideHitCollector; // 当たった面の報告先
 			//desc.contactOffset = 0.01f; // 接触検出のマージンを狭める(検出精度UP)
 			
 			
@@ -7894,6 +7983,7 @@ void PhysicsSystem::ProcessCharacterControllers(entt::registry& registry, PhysX&
 		}
 
 		// 移動を実行（壁・段差・地面との衝突解決はPhysXが行う）
+		sideHitCollector.Reset(disp);
 		PxControllerFilters filters;
 		PxControllerCollisionFlags collisionFlags = ctrl.controller->move(disp, 0.001f, elapsedTime, filters);
 
@@ -7902,6 +7992,16 @@ void PhysicsSystem::ProcessCharacterControllers(entt::registry& registry, PhysX&
 		transform.position.x = static_cast<float>(foot.x);
 		transform.position.y = static_cast<float>(foot.y);
 		transform.position.z = static_cast<float>(foot.z);
+
+		// 接触の結果を反映
+		if (auto* contact = registry.try_get<CharacterContactComponent>(entity))
+		{
+			const bool sides = (collisionFlags & PxControllerCollisionFlag::eCOLLISION_SIDES);
+			contact->hitSide = sides && sideHitCollector.hasHit;
+			contact->sideNormal = contact->hitSide
+				? DirectX::XMFLOAT3{ sideHitCollector.normal.x, sideHitCollector.normal.y, sideHitCollector.normal.z }
+			: DirectX::XMFLOAT3{ 0.0f, 0.0f, 0.0f };
+		}
 
 		// 接地時に常にかけておく、地面に押し付ける力の大きさ
 		constexpr float kGroundStickSpeed = 2.0f;
@@ -9561,6 +9661,7 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\ECS\EngineComponen
 #include "Engine/ECS/Components/SequencerComponent.h"
 #include "Engine/ECS/Components/AnimationSpeedComponent.h"
 #include "Engine/ECS/Components/StateMachineComponent.h"
+#include "Engine/ECS/Components/CharacterContactComponent.h"
 
 void EngineComponents::Register()
 {
@@ -9599,6 +9700,9 @@ void EngineComponents::Register()
 
 			if (reg.any_of<MovementComponent>(e))
 				reg.remove<MovementComponent>(e);
+
+			if (reg.any_of<CharacterContactComponent>(e))
+				reg.remove<CharacterContactComponent>(e);
 
 			reg.remove<PhysicsBodyTypeComponent>(e);
 		},
@@ -16066,6 +16170,7 @@ struct PlayerIntentComponent
 		REFLECT_FIELD(float, moveGraceTime,     (0.1f),  ("Move Grace Time",     0.0f, 0.5f)) // 入力が途切れても wantsMove を保つ時間
 		REFLECT_FIELD(float, runEnterThreshold, (0.9f),  ("Run Enter Threshold", 0.0f, 1.0f)) // この倒し具合以上で走りに入る
 		REFLECT_FIELD(float, runExitThreshold,  (0.7f),  ("Run Exit Threshold",  0.0f, 1.0f)) // この倒し具合未満で歩きに戻る
+		REFLECT_FIELD(float, runGraceTime,      (0.15f), ("Run Grace Time",      0.0f, 0.5f)) // 倒し具合が戻っても wantsRun を保つ時間
 		REFLECT_FIELD(float, jumpBufferTime,    (0.15f), ("Jump Buffer Time",    0.0f, 0.5f)) // ジャンプの先行入力を受け付けておく時間
 		REFLECT_FIELD(float, dodgeBufferTime,   (0.15f), ("Dodge Buffer Time",   0.0f, 0.5f)) // 回避の先行入力を受け付けておく時間
 
@@ -16086,6 +16191,7 @@ struct PlayerIntentComponent
 
 		// 内部実装用
 		float graceTimer = 0.0f; // 入力が途切れてからの経過時間
+		float runGraceTimer = 0.0f; // 倒し具合が runExitThreshold を下回ってからの経過時間
 };
 
 
@@ -16192,8 +16298,12 @@ struct PlayerMoveComponent
 		REFLECT_FIELD(float, accelHalfLife, (0.05f), ("Accel Half Life", 0.0f, 1.0f))  // 加速時の半減期(秒)
 		REFLECT_FIELD(float, decelHalfLife, (0.08f), ("Decel Half Life", 0.0f, 1.0f))  // 減速時の半減期(秒)。旋回で目標速度が下がった時など
 		REFLECT_FIELD(float, turnSpeed, (10.0f), ("Turn Speed", 0.0f, 30.0f)) // 旋回速度(rad/s)
+		REFLECT_FIELD(float, runReachRatio, (0.95f), ("Run Reach Ratio", 0.0f, 1.0f)) // runSpeed のこの割合以上で「Run の速さに入った」とみなす
 
-		REFLECT_END()
+		// 状態
+		REFLECT_FIELD(float, runTime, (0.0f), ("Run Time", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // Run の速さに入ってからの時間
+
+	REFLECT_END()
 };
 
 
@@ -16211,8 +16321,66 @@ struct PlayerSprintComponent
 		REFLECT_FIELD(float, accelHalfLife, (0.1f),  ("Accel Half Life", 0.0f, 1.0f))  // 加速時の半減期
 		REFLECT_FIELD(float, decelHalfLife, (0.15f), ("Decel Half Life", 0.0f, 1.0f))  // 減速時の半減期
 		REFLECT_FIELD(float, turnSpeed,     (8.0f),  ("Turn Speed",      0.0f, 30.0f)) // 旋回速度
-
+		REFLECT_FIELD(float, enterRunTime,  (1.0f),  ("Enter Run Time", 0.0f, 5.0f))   // RunからSprintに入る経過時間
 	REFLECT_END()
+};
+
+
+===== PlayerWallRunComponent.h =====
+Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Game\ECS\Components\PlayerWallRunComponent.h
+#pragma once
+#include <DirectXMath.h>
+#include "Engine/ECS/Reflect.h"
+
+struct PlayerWallRunComponent
+{
+	REFLECT_BEGIN(PlayerWallRunComponent, "Player Wall Run")
+
+		// 入る条件
+		REFLECT_FIELD(float, enterMaxAngleDeg, (40.0f), ("Enter Max Angle Deg", 0.0f, 90.0f)) // 当たる角度がこれ以下なら入れる
+		REFLECT_FIELD(float, enterMinSpeed,    (4.0f),  ("Enter Min Speed",     0.0f, 20.0f)) // 水平の速さがこれ以上なら入れる
+
+		// 走り方
+		REFLECT_FIELD(float, minRunSpeed,   (7.0f), ("Min Run Speed", 0.0f, 20.0f))  // 壁を走る速さの下限
+		REFLECT_FIELD(float, accelHalfLife, (0.1f), ("Accel Half Life", 0.0f, 1.0f)) // 走る速度に寄せる半減期
+		REFLECT_FIELD(float, stickSpeed,    (1.0f), ("Stick Speed", 0.0f, 5.0f))     // 壁へ押し付ける速さ
+
+		// 縦の動き
+		REFLECT_FIELD(float, maxEnterVerticalSpeed, (3.0f),  ("Max Enter Vertical Speed", -10.0f, 10.0f)) // 入った瞬間の縦の速さの上限
+		REFLECT_FIELD(float, minEnterVerticalSpeed, (-1.0f), ("Min Enter Vertical Speed", -10.0f, 10.0f)) // 入った瞬間の縦の速さの下限
+		REFLECT_FIELD(float, gravityScale, (0.3f), ("Gravity Scale", 0.0f, 1.0f))    // 壁走り中の重力の倍率
+
+		// 状態
+		REFLECT_FIELD(bool, isWallRight, (false), ("Is Wall Right", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // 入った時に決めた左右
+		REFLECT_FIELD(float, elapsed, (0.0f), ("Elapsed", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // 入ってからの時間
+
+		REFLECT_END()
+
+		// 内部実装用
+		DirectX::XMFLOAT3 wallNormal = { 0.0f, 0.0f, 0.0f }; // 今沿っている壁の法線
+	DirectX::XMFLOAT3 runDir = { 0.0f, 0.0f, 0.0f }; // 壁に沿って進む向き
+	float             runSpeed = 0.0f;                 // 走る速さ
+};
+
+
+===== PlayerWallSenseComponent.h =====
+Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Game\ECS\Components\PlayerWallSenseComponent.h
+#pragma once
+#include "Engine/ECS/Reflect.h"
+
+struct PlayerWallSenseComponent
+{
+	REFLECT_BEGIN(PlayerWallSenseComponent, "Player Wall Sense")
+
+		// 設定値
+		REFLECT_FIELD(float, maxWallNormalY, (0.3f), ("Max Wall Normal Y", 0.0f, 1.0f)) // 法線の y の大きさがこれ以下なら壁とみなす
+
+		// 状態
+		REFLECT_FIELD(bool, touchingWall, (false), ("Touching Wall", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // 壁に当たっているか
+		REFLECT_FIELD(float, approachAngleDeg, (0.0f), ("Approach Angle Deg", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // 当たる角度(0=かすめる、90=正面、マイナス=離れていく)
+		REFLECT_FIELD(bool, isWallRight, (false), ("Is Wall Right", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // 進む向きから見て、壁が右にあるか
+
+		REFLECT_END()
 };
 
 
@@ -17216,18 +17384,32 @@ void PlayerIntentSystem::Update(entt::registry& registry, float elapsedTime, con
 				}
 			}
 
-			// 走りたいか(ヒステリシス)
+			// 走りたいか(ヒステリシス＋猶予)
 			if (!intent.wantsMove)
 			{
+				// 動きたくない：猶予なしで止める
 				intent.wantsRun = false;
+				intent.runGraceTimer = 0.0f;
 			}
 			else if (intent.moveAmount >= intent.runEnterThreshold)
 			{
+				// 深く倒した：走る。猶予を測り直す
 				intent.wantsRun = true;
+				intent.runGraceTimer = 0.0f;
 			}
 			else if (intent.moveAmount < intent.runExitThreshold)
 			{
-				intent.wantsRun = false;
+				// 浅くなった：猶予の時間だけ待ってから歩きに戻す
+				intent.runGraceTimer += elapsedTime;
+				if (intent.runGraceTimer >= intent.runGraceTime)
+				{
+					intent.wantsRun = false;
+				}
+			}
+			else
+			{
+				// その間：今の状態を保つ
+				intent.runGraceTimer = 0.0f;
 			}
 
 			// ボタンの意図
@@ -17703,14 +17885,23 @@ PlayerMoveSystem::PlayerMoveSystem()
 
 void PlayerMoveSystem::Update(entt::registry& registry, float elapsedTime, const SceneContext& context)
 {
-	(void)elapsedTime;
 	(void)context;
 
 	auto view = registry.view<PlayerIntentComponent, PlayerMoveComponent, StateMachineComponent, PlayerLocomotionComponent>();
-	view.each([&](const PlayerIntentComponent& intent, const PlayerMoveComponent& move,
+	view.each([&](const PlayerIntentComponent& intent, PlayerMoveComponent& move,
 		const StateMachineComponent& stateMachine, PlayerLocomotionComponent& loco)
 		{
 			if (!stateMachine.IsIn("Move")) return;
+
+			// 入った瞬間に計測をやり直す
+			if (stateMachine.enteredThisFrame)
+			{
+				move.runTime = 0.0f;
+			}
+
+			// Run の速さに入っている間だけ時間を進める
+			const bool atRunSpeed = loco.currentSpeed >= move.runSpeed * move.runReachRatio;
+			move.runTime = atRunSpeed ? move.runTime + elapsedTime : 0.0f;
 
 			// 意図を、Locomotion への指示に変える
 			LocomotionCommand& cmd = loco.command;
@@ -17790,6 +17981,222 @@ public:
 };
 
 
+===== PlayerWallRunSystem.cpp =====
+Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Game\ECS\Systems\PlayerWallRunSystem.cpp
+#include "PlayerWallRunSystem.h"
+#include <cmath>
+#include <algorithm>
+
+#include "Game/ECS/Components/PlayerWallRunComponent.h"
+#include "Game/ECS/Components/PlayerWallSenseComponent.h"
+#include "Game/ECS/Components/PlayerLocomotionComponent.h"
+#include "Game/ECS/Systems/PlayerMovementUtils.h"
+
+#include "Engine/ECS/Components/CharacterContactComponent.h"
+#include "Engine/ECS/Components/MovementComponent.h"
+#include "Engine/ECS/Components/TransformComponent.h"
+#include "Engine/ECS/Components/StateMachineComponent.h"
+#include "Engine/ECS/Systems/StateMachineSystem.h"
+
+namespace
+{
+	// 水平の向きを長さ1にする
+	bool NormalizeXZ(float& x, float& z)
+	{
+		const float len = sqrtf(x * x + z * z);
+		if (len < 1e-4f) return false;
+		x /= len;
+		z /= len;
+		return true;
+	}
+
+	// 向き(dx, dz)から壁へ向かう成分を取り除き、壁の面に沿わせる
+	bool ProjectOnWall(float& dx, float& dz, float nx, float nz)
+	{
+		const float d = dx * nx + dz * nz;
+		dx -= d * nx;
+		dz -= d * nz;
+		return NormalizeXZ(dx, dz);
+	}
+}
+
+PlayerWallRunSystem::PlayerWallRunSystem()
+{
+	StateMachineSystem::RequireState<PlayerWallRunComponent>("WallRun", "PlayerWallRunSystem");
+}
+
+void PlayerWallRunSystem::Update(entt::registry& registry, float elapsedTime, const SceneContext& context)
+{
+	(void)context;
+
+	auto view = registry.view<PlayerWallRunComponent, PlayerWallSenseComponent, CharacterContactComponent,
+		StateMachineComponent, PlayerLocomotionComponent, MovementComponent, TransformComponent>();
+
+	view.each([&](PlayerWallRunComponent& wallRun, const PlayerWallSenseComponent& sense, const CharacterContactComponent& contact,
+		const StateMachineComponent& stateMachine, PlayerLocomotionComponent& loco, MovementComponent& movement, const TransformComponent& transform)
+		{
+			if (!stateMachine.IsIn("WallRun")) return;
+
+			// 毎フレーム：壁に当たっていれば、法線を取り直す
+			float nx = contact.sideNormal.x;
+			float nz = contact.sideNormal.z;
+			if (contact.hitSide && NormalizeXZ(nx, nz))
+			{
+				wallRun.wallNormal = { nx, 0.0f, nz };
+			}
+			const float wnx = wallRun.wallNormal.x;
+			const float wnz = wallRun.wallNormal.z;
+
+			if (stateMachine.enteredThisFrame)
+			{
+				// 進む向き：今の速度を壁の面に沿わせる
+				float dx = movement.velocity.x;
+				float dz = movement.velocity.z;
+				if (!ProjectOnWall(dx, dz, wnx, wnz))
+				{
+					// 速度から決まらない：体の向きを使う
+					const DirectX::XMFLOAT3 forward = PlayerMovementUtils::YawToForward(transform.rotation.y);
+					dx = forward.x;
+					dz = forward.z;
+					ProjectOnWall(dx, dz, wnx, wnz);
+				}
+				wallRun.runDir = { dx, 0.0f, dz };
+
+				// 走る速さ：入った勢いを保つ
+				const float planarSpeed = sqrtf(movement.velocity.x * movement.velocity.x + movement.velocity.z * movement.velocity.z);
+				wallRun.runSpeed = (std::max)(planarSpeed, wallRun.minRunSpeed);
+
+				// クリップの選択用：入った瞬間だけ決める
+				wallRun.isWallRight = sense.isWallRight;
+				wallRun.elapsed = 0.0f;
+
+				// 1回限りの縦の速さは、ステートが直接書く
+				movement.velocity.y = (std::clamp)(movement.velocity.y, wallRun.minEnterVerticalSpeed, wallRun.maxEnterVerticalSpeed);
+			}
+			else
+			{
+				// 走っている向きを、今の壁の面に沿わせ直す
+				float dx = wallRun.runDir.x;
+				float dz = wallRun.runDir.z;
+				if (ProjectOnWall(dx, dz, wnx, wnz))
+				{
+					wallRun.runDir = { dx, 0.0f, dz };
+				}
+			}
+
+			wallRun.elapsed += elapsedTime;
+
+			// 毎フレーム：Locomotion への指示
+			float mx = wallRun.runDir.x * wallRun.runSpeed - wnx * wallRun.stickSpeed;
+			float mz = wallRun.runDir.z * wallRun.runSpeed - wnz * wallRun.stickSpeed;
+			const float targetSpeed = sqrtf(mx * mx + mz * mz);
+			NormalizeXZ(mx, mz);
+
+			LocomotionCommand& cmd = loco.command;
+			cmd.mode = LocomotionMode::Directional;
+			cmd.moveDir = { mx, 0.0f, mz };
+			cmd.targetSpeed = targetSpeed;
+			cmd.accelHalfLife = wallRun.accelHalfLife;
+			cmd.faceMoveDir = true;
+
+			// 毎フレーム：Movement への指示
+			movement.gravityScale = wallRun.gravityScale;
+		});
+}
+
+
+===== PlayerWallRunSystem.h =====
+Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Game\ECS\Systems\PlayerWallRunSystem.h
+#pragma once
+#include "entt.hpp"
+#include "Engine/Core/SceneContext.h"
+
+class PlayerWallRunSystem
+{
+public:
+	PlayerWallRunSystem();
+	void Update(entt::registry& registry, float elapsedTime, const SceneContext& context);
+};
+
+
+===== PlayerWallSenseSystem.cpp =====
+Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Game\ECS\Systems\PlayerWallSenseSystem.cpp
+#include "PlayerWallSenseSystem.h"
+#include <cmath>
+#include <algorithm>
+#include <DirectXMath.h>
+
+#include "Game/ECS/Components/PlayerWallSenseComponent.h"
+
+#include "Engine/ECS/Components/CharacterContactComponent.h"
+#include "Engine/ECS/Components/MovementComponent.h"
+
+void PlayerWallSenseSystem::Update(entt::registry& registry, float elapsedTime, const SceneContext& context)
+{
+	(void)elapsedTime;
+	(void)context;
+
+	auto view = registry.view<PlayerWallSenseComponent, CharacterContactComponent, MovementComponent>();
+	view.each([&](PlayerWallSenseComponent& sense, const CharacterContactComponent& contact, const MovementComponent& movement)
+		{
+			// フラグリセット
+			sense.touchingWall = false;
+			sense.approachAngleDeg = 0.0f;
+			sense.isWallRight = false;
+
+			if (!contact.hitSide) return;
+
+			// 壁らしさ：ほぼ垂直な面だけ
+			const DirectX::XMFLOAT3& n = contact.sideNormal;
+			if (fabsf(n.y) > sense.maxWallNormalY) return;
+
+			// 水平成分だけで考える
+			const float nLen = sqrtf(n.x * n.x + n.z * n.z);
+			if (nLen < 1e-4f) return;
+			const float nx = n.x / nLen;
+			const float nz = n.z / nLen;
+
+			sense.touchingWall = true;
+
+			const float vLen = sqrtf(movement.velocity.x * movement.velocity.x + movement.velocity.z * movement.velocity.z);
+			if (vLen < 1e-4f)
+			{
+				// 水平に動いていない：向きが決まらないので、正面扱いにしておく
+				sense.approachAngleDeg = 90.0f;
+				return;
+			}
+			const float vx = movement.velocity.x / vLen;
+			const float vz = movement.velocity.z / vLen;
+
+			// 壁へ向かう成分(1=正面、0=平行、マイナス=離れていく)
+			const float into = -(vx * nx + vz * nz);
+			sense.approachAngleDeg = DirectX::XMConvertToDegrees(asinf((std::clamp)(into, -1.0f, 1.0f)));
+
+			// 進む向きの右(前が +Z のとき、右は +X)
+			const float rightX = vz;
+			const float rightZ = -vx;
+
+			// 法線は壁から外向き
+			sense.isWallRight = (nx * rightX + nz * rightZ) < 0.0f;
+		});
+}
+
+
+===== PlayerWallSenseSystem.h =====
+Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Game\ECS\Systems\PlayerWallSenseSystem.h
+#pragma once
+#pragma once
+#include "entt.hpp"
+#include "Engine/Core/SceneContext.h"
+
+// 壁に当たった結果と速度から、当たる角度・左右を求める
+class PlayerWallSenseSystem
+{
+public:
+	void Update(entt::registry& registry, float elapsedTime, const SceneContext& context);
+};
+
+
 ===== GameComponents.cpp =====
 Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Game\ECS\GameComponents.cpp
 #include "GameComponents.h"
@@ -17802,9 +18209,11 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Game\ECS\GameComponents.c
 #include "Game/ECS/Components/PlayerDodgeComponent.h"
 #include "Game/ECS/Components/PlayerSprintComponent.h"
 #include "Game/ECS/Components/PlayerJumpComponent.h"
+#include "Game/ECS/Components/PlayerWallRunComponent.h"
 
 #include "Game/ECS/Components/PlayerIntentComponent.h"
 #include "Game/ECS/Components/PlayerLocomotionComponent.h"
+#include "Game/ECS/Components/PlayerWallSenseComponent.h"
 
 void GameComponents::Register() 
 {
@@ -17815,9 +18224,11 @@ void GameComponents::Register()
 	REGISTER_COMPONENT_TYPE(PlayerDodgeComponent,  "Player Dodge");
 	REGISTER_COMPONENT_TYPE(PlayerSprintComponent, "Player Sprint");
 	REGISTER_COMPONENT_TYPE(PlayerJumpComponent,   "Player Jump");
+	REGISTER_COMPONENT_TYPE(PlayerWallRunComponent, "Player Wall Run");
 
 	REGISTER_COMPONENT_TYPE(PlayerIntentComponent, "Player Intent");
 	REGISTER_COMPONENT_TYPE(PlayerLocomotionComponent, "Player Locomotion");
+	REGISTER_COMPONENT_TYPE(PlayerWallSenseComponent, "Player Wall Sense");
 }
 
 
@@ -18055,10 +18466,15 @@ void SceneGame::UpdateGameplay(float elapsedTime, const SceneContext& context)
 		ZoneScopedN("InputSystem");
 		gameInputSystem.Update(registry, controllerSystem.GetSettings());
 	}
-	// 意図の集約(グラフが遷移を決める前に作る)
+	// 意図の集約
 	{
 		ZoneScopedN("PlayerIntentSystem");
 		playerIntentSystem.Update(registry, elapsedTime, context);
+	}
+	// 壁の見え方
+	{
+		ZoneScopedN("PlayerWallSenseSystem");
+		playerWallSenseSystem.Update(registry, elapsedTime, context);
 	}
 	// Stateマシン：Stateの遷移
 	{
@@ -18090,6 +18506,11 @@ void SceneGame::UpdateGameplay(float elapsedTime, const SceneContext& context)
 	{
 		ZoneScopedN("PlayerJumpSystem");
 		playerJumpSystem.Update(registry, elapsedTime, context);
+	}
+	// プレイヤー壁走り処理
+	{
+		ZoneScopedN("PlayerWallRunSystem");
+		playerWallRunSystem.Update(registry, elapsedTime, context);
 	}
 	// 水平移動(各ステートの指示をもとに velocity.xz と rotation.y を書く)
 	{
@@ -18174,12 +18595,14 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Game\Scene\SceneGame.h
 // Player関係
 #include "Game/ECS/Systems/PlayerIntentSystem.h"
 #include "Game/ECS/Systems/PlayerLocomotionSystem.h"
+#include "Game/ECS/Systems/PlayerWallSenseSystem.h"
 
 #include "Game/ECS/Systems/PlayerIdleSystem.h"
 #include "Game/ECS/Systems/PlayerMoveSystem.h"
 #include "Game/ECS/Systems/PlayerDodgeSystem.h"
 #include "Game/ECS/Systems/PlayerSprintSystem.h"
 #include "Game/ECS/Systems/PlayerJumpSystem.h"
+#include "Game/ECS/Systems/PlayerWallRunSystem.h"
 
 #include "Engine/ECS/Systems/MovementSystem.h"
 #include "Engine/ECS/Systems/AnimationSpeedSystem.h"
@@ -18222,12 +18645,14 @@ private:
 	// Player関係
 	PlayerIntentSystem playerIntentSystem;
 	PlayerLocomotionSystem playerLocomotionSystem;
+	PlayerWallSenseSystem  playerWallSenseSystem;
 
 	PlayerIdleSystem   playerIdleSystem;
 	PlayerMoveSystem   playerMoveSystem;
 	PlayerDodgeSystem  playerDodgeSystem;
 	PlayerSprintSystem playerSprintSystem;
 	PlayerJumpSystem   playerJumpSystem;
+	PlayerWallRunSystem playerWallRunSystem;
 
 	MovementSystem    movementSystem;
 	AnimationSpeedSystem     animationSpeedSystem;
@@ -18814,6 +19239,7 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Tool\Editor\ComponentRegi
 
 #include "Engine/ECS/Components/ControllerComponent.h"
 #include "Engine/ECS/Components/MovementComponent.h"
+#include "Engine/ECS/Components/CharacterContactComponent.h"
 #include "Engine/ECS/Components/AnimatorComponent.h"
 #include "Engine/ECS/Components/SkinnedMeshComponent.h"
 #include "Engine/ECS/Components/FreeCameraComponent.h"
@@ -18951,6 +19377,13 @@ void ComponentRegistryInitializer::Initialize()
 				if (movement && ImGui::TreeNode("Movement"))
 				{
 					MetaRegistry::DrawMetaFields(entt::resolve<MovementComponent>(), entt::forward_as_meta(*movement));
+					ImGui::TreePop();
+				}
+				// 接触の結果（Characterと一緒に付与されるCharacterContactComponent）
+				auto* contact = reg.try_get<CharacterContactComponent>(e);
+				if (contact && ImGui::TreeNode("Contact"))
+				{
+					MetaRegistry::DrawMetaFields(entt::resolve<CharacterContactComponent>(), entt::forward_as_meta(*contact));
 					ImGui::TreePop();
 				}
 				break;

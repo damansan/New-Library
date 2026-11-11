@@ -14,6 +14,7 @@
 #include "Engine/ECS/Components/SequencerComponent.h"
 #include "Engine/ECS/Components/AnimationSpeedComponent.h"
 #include "Engine/ECS/Components/StateMachineComponent.h"
+#include "Engine/ECS/Components/CharacterContactComponent.h"
 
 void EngineComponents::Register()
 {
@@ -52,6 +53,9 @@ void EngineComponents::Register()
 
 			if (reg.any_of<MovementComponent>(e))
 				reg.remove<MovementComponent>(e);
+
+			if (reg.any_of<CharacterContactComponent>(e))
+				reg.remove<CharacterContactComponent>(e);
 
 			reg.remove<PhysicsBodyTypeComponent>(e);
 		},

@@ -133,6 +133,8 @@
     <ClCompile Include="..\..\Source\Code\Game\ECS\Systems\PlayerMovementUtils.cpp" />
     <ClCompile Include="..\..\Source\Code\Game\ECS\Systems\PlayerMoveSystem.cpp" />
     <ClCompile Include="..\..\Source\Code\Game\ECS\Systems\PlayerSprintSystem.cpp" />
+    <ClCompile Include="..\..\Source\Code\Game\ECS\Systems\PlayerWallRunSystem.cpp" />
+    <ClCompile Include="..\..\Source\Code\Game\ECS\Systems\PlayerWallSenseSystem.cpp" />
     <ClCompile Include="..\..\Source\Code\Game\Scene\SceneGame.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -146,6 +148,8 @@
     <ClInclude Include="..\..\Source\Code\Game\ECS\Components\PlayerLocomotionComponent.h" />
     <ClInclude Include="..\..\Source\Code\Game\ECS\Components\PlayerMoveComponent.h" />
     <ClInclude Include="..\..\Source\Code\Game\ECS\Components\PlayerSprintComponent.h" />
+    <ClInclude Include="..\..\Source\Code\Game\ECS\Components\PlayerWallRunComponent.h" />
+    <ClInclude Include="..\..\Source\Code\Game\ECS\Components\PlayerWallSenseComponent.h" />
     <ClInclude Include="..\..\Source\Code\Game\ECS\GameComponents.h" />
     <ClInclude Include="..\..\Source\Code\Game\ECS\Systems\GameCameraSystem.h" />
     <ClInclude Include="..\..\Source\Code\Game\ECS\Systems\GameInputSystem.h" />
@@ -157,6 +161,8 @@
     <ClInclude Include="..\..\Source\Code\Game\ECS\Systems\PlayerMovementUtils.h" />
     <ClInclude Include="..\..\Source\Code\Game\ECS\Systems\PlayerMoveSystem.h" />
     <ClInclude Include="..\..\Source\Code\Game\ECS\Systems\PlayerSprintSystem.h" />
+    <ClInclude Include="..\..\Source\Code\Game\ECS\Systems\PlayerWallRunSystem.h" />
+    <ClInclude Include="..\..\Source\Code\Game\ECS\Systems\PlayerWallSenseSystem.h" />
     <ClInclude Include="..\..\Source\Code\Game\Scene\SceneGame.h" />
   </ItemGroup>
   <ItemGroup>

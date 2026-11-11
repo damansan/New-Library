@@ -67,18 +67,32 @@ void PlayerIntentSystem::Update(entt::registry& registry, float elapsedTime, con
 				}
 			}
 
-			// ‘–‚è‚½‚¢‚©(ƒqƒXƒeƒŠƒVƒX)
+			// ‘–‚è‚½‚¢‚©(ƒqƒXƒeƒŠƒVƒX{—P—\)
 			if (!intent.wantsMove)
 			{
+				// “®‚«‚½‚­‚È‚¢F—P—\‚È‚µ‚Å~‚ß‚é
 				intent.wantsRun = false;
+				intent.runGraceTimer = 0.0f;
 			}
 			else if (intent.moveAmount >= intent.runEnterThreshold)
 			{
+				// [‚­“|‚µ‚½F‘–‚éB—P—\‚ğ‘ª‚è’¼‚·
 				intent.wantsRun = true;
+				intent.runGraceTimer = 0.0f;
 			}
 			else if (intent.moveAmount < intent.runExitThreshold)
 			{
-				intent.wantsRun = false;
+				// ó‚­‚È‚Á‚½F—P—\‚ÌŠÔ‚¾‚¯‘Ò‚Á‚Ä‚©‚ç•à‚«‚É–ß‚·
+				intent.runGraceTimer += elapsedTime;
+				if (intent.runGraceTimer >= intent.runGraceTime)
+				{
+					intent.wantsRun = false;
+				}
+			}
+			else
+			{
+				// ‚»‚ÌŠÔF¡‚Ìó‘Ô‚ğ•Û‚Â
+				intent.runGraceTimer = 0.0f;
 			}
 
 			// ƒ{ƒ^ƒ“‚ÌˆÓ}

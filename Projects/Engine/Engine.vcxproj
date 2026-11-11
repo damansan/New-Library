@@ -89,6 +89,7 @@
     <ClInclude Include="..\..\Source\Code\Engine\ECS\Components\AnimatorComponent.h" />
     <ClInclude Include="..\..\Source\Code\Engine\ECS\Components\BaseCameraComponent.h" />
     <ClInclude Include="..\..\Source\Code\Engine\ECS\Components\CategoryComponent.h" />
+    <ClInclude Include="..\..\Source\Code\Engine\ECS\Components\CharacterContactComponent.h" />
     <ClInclude Include="..\..\Source\Code\Engine\ECS\Components\ControllerComponent.h" />
     <ClInclude Include="..\..\Source\Code\Engine\ECS\Components\ControllerSettings.h" />
     <ClInclude Include="..\..\Source\Code\Engine\ECS\Components\FreeCameraComponent.h" />

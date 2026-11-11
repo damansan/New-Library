@@ -6,6 +6,7 @@
 #include "Engine/ECS/Components/StaticMeshComponent.h"
 #include "Engine/ECS/Components/TransformComponent.h"
 #include "Engine/ECS/Components/MovementComponent.h"
+#include "Engine/ECS/Components/CharacterContactComponent.h"
 #include "Engine/Resource/Model.h"
 
 using namespace physx;
@@ -24,6 +25,50 @@ static PxQuat ToPxQuat(const DirectX::XMFLOAT3& rotation)
 
 namespace
 {
+
+	// 横に当たった面を1つ覚えておく
+	class SideHitCollector : public PxUserControllerHitReport
+	{
+	public:
+		void Reset(const PxVec3& moveDisp)
+		{
+			hasHit = false;
+			bestNormalY = 1.0f;
+			normal = PxVec3(0.0f, 0.0f, 0.0f);
+			intendedDir = PxVec3(moveDisp.x, 0.0f, moveDisp.z); // 水平だけ
+		}
+
+		void onShapeHit(const PxControllerShapeHit& hit) override
+		{
+			// 保険：裏返った面や板に裏から当たっても、法線がプレイヤー側を向くようにする
+			PxVec3 hitNormal = hit.worldNormal;
+			if (hitNormal.dot(intendedDir) > 0.0f)
+			{
+				hitNormal = -hitNormal;
+			}
+
+			// 一番「横向き」の面(法線の y が 0 に近い)を残す
+			const float normalY = fabsf(hitNormal.y);
+			if (!hasHit || normalY < bestNormalY)
+			{
+				hasHit = true;
+				bestNormalY = normalY;
+				normal = hitNormal;
+			}
+		}
+
+		void onControllerHit(const PxControllersHit&) override {}      // CCT 同士
+		void onObstacleHit(const PxControllerObstacleHit&) override {} // 使っていない
+
+		bool   hasHit = false;
+		float  bestNormalY = 1.0f;
+		PxVec3 normal = PxVec3(0.0f, 0.0f, 0.0f);
+		PxVec3 intendedDir = PxVec3(0.0f, 0.0f, 0.0f); // このフレームに動かしたかった水平の向き
+	};
+
+	// すべての CCT で1つを使い回す
+	SideHitCollector sideHitCollector;
+
 	// StaticBodyComponentが外れる／Entityが破棄される直前に、Actorを破棄予約する
 	void OnStaticBodyDestroyed(entt::registry& registry, entt::entity entity)
 	{
@@ -162,6 +207,10 @@ void PhysicsSystem::SyncBodyTypes(entt::registry& registry)
 			{
 				registry.emplace<MovementComponent>(entity);
 			}
+			if (!registry.all_of<CharacterContactComponent>(entity))
+			{
+				registry.emplace<CharacterContactComponent>(entity);
+			}
 		}
 		else if (registry.all_of<CharacterControllerComponent>(entity))
 		{
@@ -171,6 +220,10 @@ void PhysicsSystem::SyncBodyTypes(entt::registry& registry)
 			if (registry.all_of<MovementComponent>(entity))
 			{
 				registry.remove<MovementComponent>(entity);
+			}
+			if (registry.all_of<CharacterContactComponent>(entity))
+			{
+				registry.remove<CharacterContactComponent>(entity);
 			}
 		}
 	}
@@ -298,6 +351,7 @@ void PhysicsSystem::ProcessCharacterControllers(entt::registry& registry, PhysX&
 			//desc.slopeLimit = cosf(physx::PxDegToRad(45.0f)); // 歩行可能な坂の角度
 			//desc.climbingMode = physx::PxCapsuleClimbingMode::eCONSTRAINED;  // 段差の登りをより厳密に制限
 			desc.nonWalkableMode = physx::PxControllerNonWalkableMode::ePREVENT_CLIMBING_AND_FORCE_SLIDING;
+			desc.reportCallback = &sideHitCollector; // 当たった面の報告先
 			//desc.contactOffset = 0.01f; // 接触検出のマージンを狭める(検出精度UP)
 			
 			
@@ -335,6 +389,7 @@ void PhysicsSystem::ProcessCharacterControllers(entt::registry& registry, PhysX&
 		}
 
 		// 移動を実行（壁・段差・地面との衝突解決はPhysXが行う）
+		sideHitCollector.Reset(disp);
 		PxControllerFilters filters;
 		PxControllerCollisionFlags collisionFlags = ctrl.controller->move(disp, 0.001f, elapsedTime, filters);
 
@@ -343,6 +398,16 @@ void PhysicsSystem::ProcessCharacterControllers(entt::registry& registry, PhysX&
 		transform.position.x = static_cast<float>(foot.x);
 		transform.position.y = static_cast<float>(foot.y);
 		transform.position.z = static_cast<float>(foot.z);
+
+		// 接触の結果を反映
+		if (auto* contact = registry.try_get<CharacterContactComponent>(entity))
+		{
+			const bool sides = (collisionFlags & PxControllerCollisionFlag::eCOLLISION_SIDES);
+			contact->hitSide = sides && sideHitCollector.hasHit;
+			contact->sideNormal = contact->hitSide
+				? DirectX::XMFLOAT3{ sideHitCollector.normal.x, sideHitCollector.normal.y, sideHitCollector.normal.z }
+			: DirectX::XMFLOAT3{ 0.0f, 0.0f, 0.0f };
+		}
 
 		// 接地時に常にかけておく、地面に押し付ける力の大きさ
 		constexpr float kGroundStickSpeed = 2.0f;
