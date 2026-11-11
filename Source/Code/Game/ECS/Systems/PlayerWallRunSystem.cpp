@@ -5,6 +5,8 @@
 #include "Game/ECS/Components/PlayerWallRunComponent.h"
 #include "Game/ECS/Components/PlayerWallSenseComponent.h"
 #include "Game/ECS/Components/PlayerLocomotionComponent.h"
+#include "Game/ECS/Components/PlayerIntentComponent.h"
+
 #include "Game/ECS/Systems/PlayerMovementUtils.h"
 
 #include "Engine/ECS/Components/CharacterContactComponent.h"
@@ -45,10 +47,11 @@ void PlayerWallRunSystem::Update(entt::registry& registry, float elapsedTime, co
 	(void)context;
 
 	auto view = registry.view<PlayerWallRunComponent, PlayerWallSenseComponent, CharacterContactComponent,
-		StateMachineComponent, PlayerLocomotionComponent, MovementComponent, TransformComponent>();
+		StateMachineComponent, PlayerLocomotionComponent, MovementComponent, TransformComponent, PlayerIntentComponent>();
 
 	view.each([&](PlayerWallRunComponent& wallRun, const PlayerWallSenseComponent& sense, const CharacterContactComponent& contact,
-		const StateMachineComponent& stateMachine, PlayerLocomotionComponent& loco, MovementComponent& movement, const TransformComponent& transform)
+		const StateMachineComponent& stateMachine, PlayerLocomotionComponent& loco, MovementComponent& movement, const TransformComponent& transform,
+		PlayerIntentComponent& intent)
 		{
 			if (!stateMachine.IsIn("WallRun")) return;
 
@@ -84,6 +87,7 @@ void PlayerWallRunSystem::Update(entt::registry& registry, float elapsedTime, co
 				// クリップの選択用：入った瞬間だけ決める
 				wallRun.isWallRight = sense.isWallRight;
 				wallRun.elapsed = 0.0f;
+				wallRun.kicked = false;
 
 				// 1回限りの縦の速さは、ステートが直接書く
 				movement.velocity.y = (std::clamp)(movement.velocity.y, wallRun.minEnterVerticalSpeed, wallRun.maxEnterVerticalSpeed);
@@ -100,6 +104,25 @@ void PlayerWallRunSystem::Update(entt::registry& registry, float elapsedTime, co
 			}
 
 			wallRun.elapsed += elapsedTime;
+
+			// × で壁を蹴る(1回限り)：走っていた向き ＋ 壁から離れる向き ＋ 上
+			if (!wallRun.kicked && intent.jump.buffered)
+			{
+				const float keep = wallRun.runSpeed * wallRun.kickKeepRatio;
+				movement.velocity.x = wallRun.runDir.x * keep + wnx * wallRun.kickOutSpeed;
+				movement.velocity.z = wallRun.runDir.z * keep + wnz * wallRun.kickOutSpeed;
+				movement.velocity.y = wallRun.kickUpSpeed;
+
+				intent.jump.Consume();
+				wallRun.kicked = true;
+			}
+
+			// 蹴った後：xz は書いたまま Locomotion に触らせない。重力もふつうに戻す(gravityScale を書かない)
+			if (wallRun.kicked)
+			{
+				loco.command.mode = LocomotionMode::External;
+				return;
+			}
 
 			// 毎フレーム：Locomotion への指示
 			float mx = wallRun.runDir.x * wallRun.runSpeed - wnx * wallRun.stickSpeed;

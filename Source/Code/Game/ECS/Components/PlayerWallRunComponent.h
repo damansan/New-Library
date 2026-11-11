@@ -20,9 +20,15 @@ struct PlayerWallRunComponent
 		REFLECT_FIELD(float, minEnterVerticalSpeed, (-1.0f), ("Min Enter Vertical Speed", -10.0f, 10.0f)) // “ü‚Á‚½uŠÔ‚Ìc‚Ì‘¬‚³‚Ì‰ºŒÀ
 		REFLECT_FIELD(float, gravityScale, (0.3f), ("Gravity Scale", 0.0f, 1.0f))    // •Ç‘–‚è’†‚Ìd—Í‚Ì”{—¦
 
+		// •Ç‚ğR‚é
+		REFLECT_FIELD(float, kickOutSpeed,  (6.0f), ("Kick Out Speed", 0.0f, 20.0f)) // •Ç‚©‚ç—£‚ê‚éŒü‚«‚Ì‘¬‚³
+		REFLECT_FIELD(float, kickUpSpeed,   (5.0f), ("Kick Up Speed", 0.0f, 20.0f))  // ãŒü‚«‚Ì‘¬‚³
+		REFLECT_FIELD(float, kickKeepRatio, (0.8f), ("Kick Keep Ratio", 0.0f, 1.0f)) // ‘–‚Á‚Ä‚¢‚½Œü‚«‚Ì‘¬‚³‚ğA‚Ç‚ê‚¾‚¯c‚·‚©
+
 		// ó‘Ô
-		REFLECT_FIELD(bool, isWallRight, (false), ("Is Wall Right", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // “ü‚Á‚½‚ÉŒˆ‚ß‚½¶‰E
-		REFLECT_FIELD(float, elapsed, (0.0f), ("Elapsed", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // “ü‚Á‚Ä‚©‚ç‚ÌŠÔ
+		REFLECT_FIELD(bool,  isWallRight, (false), ("Is Wall Right", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // “ü‚Á‚½‚ÉŒˆ‚ß‚½¶‰E
+		REFLECT_FIELD(float, elapsed,      (0.0f), ("Elapsed",       0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // “ü‚Á‚Ä‚©‚ç‚ÌŠÔ
+		REFLECT_FIELD(bool,  kicked,      (false), ("Kicked",        0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // •Ç‚ğR‚Á‚½
 
 		REFLECT_END()
 
