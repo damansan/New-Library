@@ -43,5 +43,5 @@ struct CharacterControllerComponent
 
     // カプセル形状パラメータ
     float radius = 0.5f;
-    float height = 1.2f;
+    float height = 0.8f;
 };

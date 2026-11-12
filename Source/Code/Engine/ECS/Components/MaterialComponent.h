@@ -6,13 +6,15 @@
 enum class ShadingModel : uint8_t
 {
     Default = 0,
-    Basic,      
+    Basic,
+    Grid,
 };
 
 REFLECT_ENUM(ShadingModel)
 
     REFLECT_ENUM_VALUE(Default, ShadingModel::Default, "Default (PBR)")
     REFLECT_ENUM_VALUE(Basic, ShadingModel::Basic, "Basic")
+    REFLECT_ENUM_VALUE(Grid, ShadingModel::Grid, "Grid ")
 
 REFLECT_ENUM_END()
 
@@ -30,6 +32,7 @@ struct MaterialComponent
         switch (shadingModel)
         {
         case ShadingModel::Basic:   return "gbuffer_basic";
+        case ShadingModel::Grid:    return "gbuffer_grid";
         default:                    return "gbuffer_default";
         }
     }

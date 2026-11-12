@@ -2,6 +2,14 @@
     "rootNodeName": "root",
     "clips": [
         {
+            "clipName": "AS_CA_Idle",
+            "yawOffsetDegrees": 0.0,
+            "trimStart": 2.749999761581421,
+            "trimEnd": 17.049999237060547,
+            "sectionsXZ": [],
+            "sectionsY": []
+        },
+        {
             "clipName": "AS_CA_WallRun_Left_Loop",
             "yawOffsetDegrees": 90.0,
             "trimStart": 0.0,

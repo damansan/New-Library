@@ -33,6 +33,10 @@ void RenderSystem::Initialize(ID3D11Device* device)
 	GpuResourceUtils::LoadPixelShader(device, "Data/Shader/Gbuffer_Basic_PS.cso", psBasic);
 	gBufferPixelShaders["gbuffer_basic"] = psBasic;
 
+	Microsoft::WRL::ComPtr<ID3D11PixelShader> psGrid;
+	GpuResourceUtils::LoadPixelShader(device, "Data/Shader/Gbuffer_Grid_PS.cso", psGrid);
+	gBufferPixelShaders["gbuffer_grid"] = psGrid;
+
 	// Lightingパス用シェーダー
 	Microsoft::WRL::ComPtr<ID3D11InputLayout> dummyLayoutL;
 	GpuResourceUtils::LoadVertexShader(
@@ -325,6 +329,9 @@ void RenderSystem::GeometryPass(
 				bool isMask = mesh.material &&
 					mesh.material->alphaMode == Model::Material::AlphaMode::Mask;
 				cbObjectData.alphaCutoff = isMask ? mesh.material->alphaCutoff : 0.0f;
+				cbObjectData.baseColor = mesh.material
+					? mesh.material->baseColor
+					: DirectX::XMFLOAT4{ 1.0f, 1.0f, 1.0f, 1.0f };
 				dc->UpdateSubresource(cbObject.Get(), 0, nullptr, &cbObjectData, 0, 0);
 				dc->PSSetConstantBuffers(2, 1, cbObject.GetAddressOf());
 
@@ -381,6 +388,9 @@ void RenderSystem::GeometryPass(
 				bool isMask = mesh.material &&
 					mesh.material->alphaMode == Model::Material::AlphaMode::Mask;
 				cbObjectData.alphaCutoff = isMask ? mesh.material->alphaCutoff : 0.0f;
+				cbObjectData.baseColor = mesh.material
+					? mesh.material->baseColor
+					: DirectX::XMFLOAT4{ 1.0f, 1.0f, 1.0f, 1.0f };
 				dc->UpdateSubresource(cbObject.Get(), 0, nullptr, &cbObjectData, 0, 0);
 				dc->PSSetConstantBuffers(2, 1, cbObject.GetAddressOf());
 
@@ -402,31 +412,6 @@ void RenderSystem::GeometryPass(
 				}
 				dc->UpdateSubresource(cbSkinning.Get(), 0, nullptr, &cbSkinningData, 0, 0);
 				dc->VSSetConstantBuffers(2, 1, cbSkinning.GetAddressOf());
-				//D3D11_MAPPED_SUBRESOURCE mapped{};
-				//if (SUCCEEDED(dc->Map(cbSkinning.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped)))
-				//{
-				//	auto* dst = static_cast<CbSkinning*>(mapped.pData);
-
-				//	if (m < (int)skinnedMesh.boneTransforms.size() && !skinnedMesh.boneTransforms[m].empty())
-				//	{
-				//		// 使うボーン分だけ書く
-				//		const auto& bt = skinnedMesh.boneTransforms[m];
-				//		size_t boneCount = (std::min)(bt.size(), (size_t)MAX_BONES);
-				//		for (size_t i = 0; i < boneCount; i++)
-				//			dst->boneTransforms[i] = bt[i];
-				//	}
-				//	else
-				//	{
-				//		int nodeIndex = mesh.nodeIndex;
-				//		if (nodeIndex >= 0 && nodeIndex < (int)skinnedMesh.nodeGlobalTransforms.size())
-				//			dst->boneTransforms[0] = skinnedMesh.nodeGlobalTransforms[nodeIndex];
-				//		else
-				//			dst->boneTransforms[0] = { 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 };
-				//	}
-				//	dc->Unmap(cbSkinning.Get(), 0);
-				//}
-				//dc->VSSetConstantBuffers(2, 1, cbSkinning.GetAddressOf());
-
 
 				UINT stride = sizeof(Model::Vertex), offset = 0;
 				dc->IASetVertexBuffers(0, 1, mesh.vertexBuffer.GetAddressOf(), &stride, &offset);
@@ -558,6 +543,11 @@ void RenderSystem::ForwardTransparentPass(
 					mesh.material->alphaMode == Model::Material::AlphaMode::Blend;
 				if (!isBlend) continue;
 
+				// マテリアルの基本色をピクセルシェーダーへ
+				cbObjectData.baseColor = mesh.material->baseColor;
+				dc->UpdateSubresource(cbObject.Get(), 0, nullptr, &cbObjectData, 0, 0);
+				dc->PSSetConstantBuffers(2, 1, cbObject.GetAddressOf());
+
 				UINT stride = sizeof(Model::Vertex), offset = 0;
 				dc->IASetVertexBuffers(0, 1, mesh.vertexBuffer.GetAddressOf(), &stride, &offset);
 				dc->IASetIndexBuffer(mesh.indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
@@ -620,31 +610,6 @@ void RenderSystem::ForwardTransparentPass(
 				}
 				dc->UpdateSubresource(cbSkinning.Get(), 0, nullptr, &cbSkinningData, 0, 0);
 				dc->VSSetConstantBuffers(2, 1, cbSkinning.GetAddressOf());
-				//D3D11_MAPPED_SUBRESOURCE mapped{};
-				//if (SUCCEEDED(dc->Map(cbSkinning.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped)))
-				//{
-				//	auto* dst = static_cast<CbSkinning*>(mapped.pData);
-
-				//	if (m < (int)skinnedMesh.boneTransforms.size() && !skinnedMesh.boneTransforms[m].empty())
-				//	{
-				//		// 使うボーン分だけ書く
-				//		const auto& bt = skinnedMesh.boneTransforms[m];
-				//		size_t boneCount = (std::min)(bt.size(), (size_t)MAX_BONES);
-				//		for (size_t i = 0; i < boneCount; i++)
-				//			dst->boneTransforms[i] = bt[i];
-				//	}
-				//	else
-				//	{
-				//		int nodeIndex = mesh.nodeIndex;
-				//		if (nodeIndex >= 0 && nodeIndex < (int)skinnedMesh.nodeGlobalTransforms.size())
-				//			dst->boneTransforms[0] = skinnedMesh.nodeGlobalTransforms[nodeIndex];
-				//		else
-				//			dst->boneTransforms[0] = { 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 };
-				//	}
-				//	dc->Unmap(cbSkinning.Get(), 0);
-				//}
-				//dc->VSSetConstantBuffers(2, 1, cbSkinning.GetAddressOf());
-
 
 				UINT stride = sizeof(Model::Vertex), offset = 0;
 				dc->IASetVertexBuffers(0, 1, mesh.vertexBuffer.GetAddressOf(), &stride, &offset);

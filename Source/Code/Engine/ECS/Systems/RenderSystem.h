@@ -21,11 +21,18 @@ struct CbScene
 	DirectX::XMFLOAT4   cameraPosition;   // カメラ位置（w未使用）
 };
 
+//struct CbObject
+//{
+//	DirectX::XMFLOAT4X4 world;       // ワールド行列
+//	float               alphaCutoff; // Mask素材のクリップしきい値
+//	DirectX::XMFLOAT3   padding;     // 16バイトアライメント用
+//};
 struct CbObject
 {
 	DirectX::XMFLOAT4X4 world;       // ワールド行列
 	float               alphaCutoff; // Mask素材のクリップしきい値
 	DirectX::XMFLOAT3   padding;     // 16バイトアライメント用
+	DirectX::XMFLOAT4   baseColor;   // マテリアルの基本色（glTF の baseColorFactor）
 };
 
 #define MAX_BONES 256

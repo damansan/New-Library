@@ -11,6 +11,7 @@ cbuffer CbObject : register(b2)
     row_major float4x4 world;
     float alphaCutoff;
     float3 padding;
+    float4 baseColorFactor; // マテリアルの基本色（リニア空間）
 };
 
 struct VS_OUT
@@ -40,10 +41,15 @@ PS_OUT main(VS_OUT pin)
     // Albedo
     float4 baseColor = baseMap.Sample(samplerState, pin.texcoord);
 
+    // アルファは係数を掛けてからクリップ判定する
+    baseColor.a *= baseColorFactor.a;
+
     // Maskクリップ
     clip(baseColor.a - alphaCutoff);
 
+    // テクスチャはsRGBなのでリニアに戻してから、リニアの係数を掛ける
     baseColor.rgb = pow(max(baseColor.rgb, 0.0001f), 2.2f);
+    baseColor.rgb *= baseColorFactor.rgb;
     pout.albedo = baseColor;
     
     // 法線マッピング

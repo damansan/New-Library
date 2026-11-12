@@ -1,0 +1,31 @@
+{
+    "CategoryComponent": {
+        "category": "None"
+    },
+    "MaterialComponent": {
+        "shadingModel": "Default"
+    },
+    "MeshComponent": {
+        "modelPath": "Data/Model/UEdefault/Blue_Cube.glb"
+    },
+    "PhysicsBodyTypeComponent": {
+        "type": "Static"
+    },
+    "TransformComponent": {
+        "position": [
+            -3.0,
+            5.0,
+            -13.899999618530273
+        ],
+        "rotation": [
+            0.0,
+            0.0,
+            0.0
+        ],
+        "scale": [
+            1.0,
+            4.0,
+            15.0
+        ]
+    }
+}
