@@ -1,6 +1,6 @@
 {
     "version": 2,
-    "nextId": 204,
+    "nextId": 228,
     "entry": {
         "transitions": [
             {
@@ -139,7 +139,7 @@
                     {
                         "id": 19,
                         "name": "Idle",
-                        "clip": "AS_Idle",
+                        "clip": "AS_CA_Idle",
                         "loop": true,
                         "rootMotion": false,
                         "editor": {
@@ -211,18 +211,18 @@
                 "editor": {
                     "entries": [
                         {
-                            "x": 256.0,
-                            "y": 224.0,
+                            "x": 32.0,
+                            "y": 448.0,
                             "entry": 6
                         },
                         {
-                            "x": 48.0,
-                            "y": 272.0,
+                            "x": 32.0,
+                            "y": 384.0,
                             "entry": 12
                         },
                         {
-                            "x": 48.0,
-                            "y": 512.0,
+                            "x": 32.0,
+                            "y": 320.0,
                             "entry": 18
                         }
                     ]
@@ -449,7 +449,7 @@
                     {
                         "id": 76,
                         "name": "Walk_Loop",
-                        "clip": "AS_Walk_Loop",
+                        "clip": "AS_CA_Walk_Loop",
                         "loop": true,
                         "rootMotion": false,
                         "editor": {
@@ -460,7 +460,7 @@
                     {
                         "id": 85,
                         "name": "Run_Loop",
-                        "clip": "AS_Run_Loop",
+                        "clip": "AS_CA_Run_Loop",
                         "loop": true,
                         "rootMotion": false,
                         "editor": {
@@ -470,53 +470,6 @@
                     }
                 ],
                 "entryLinks": [
-                    {
-                        "id": 77,
-                        "entry": 9,
-                        "to": 76,
-                        "always": true,
-                        "condition": {
-                            "returnNode": {
-                                "id": 1,
-                                "posX": 386.0,
-                                "posY": 176.0
-                            },
-                            "variableNodes": [],
-                            "operatorNodes": [],
-                            "logicNodes": [],
-                            "notNodes": [
-                                {
-                                    "id": 4,
-                                    "posX": 258.0,
-                                    "posY": 148.0
-                                }
-                            ],
-                            "getterNodes": [
-                                {
-                                    "id": 2,
-                                    "posX": 77.0,
-                                    "posY": 156.0,
-                                    "componentName": "PlayerIntentComponent",
-                                    "fieldName": "wantsRun",
-                                    "selectedComponent": "None"
-                                }
-                            ],
-                            "links": [
-                                {
-                                    "id": 5,
-                                    "fromId": 2,
-                                    "toId": 4,
-                                    "toPinB": false
-                                },
-                                {
-                                    "id": 6,
-                                    "fromId": 4,
-                                    "toId": 1,
-                                    "toPinB": false
-                                }
-                            ]
-                        }
-                    },
                     {
                         "id": 78,
                         "entry": 46,
@@ -565,41 +518,6 @@
                         }
                     },
                     {
-                        "id": 86,
-                        "entry": 9,
-                        "to": 85,
-                        "always": false,
-                        "condition": {
-                            "returnNode": {
-                                "id": 1,
-                                "posX": 482.0,
-                                "posY": 208.0
-                            },
-                            "variableNodes": [],
-                            "operatorNodes": [],
-                            "logicNodes": [],
-                            "notNodes": [],
-                            "getterNodes": [
-                                {
-                                    "id": 2,
-                                    "posX": 253.0,
-                                    "posY": 188.0,
-                                    "componentName": "PlayerIntentComponent",
-                                    "fieldName": "wantsRun",
-                                    "selectedComponent": "None"
-                                }
-                            ],
-                            "links": [
-                                {
-                                    "id": 3,
-                                    "fromId": 2,
-                                    "toId": 1,
-                                    "toPinB": false
-                                }
-                            ]
-                        }
-                    },
-                    {
                         "id": 96,
                         "entry": 46,
                         "to": 85,
@@ -638,6 +556,25 @@
                         "id": 194,
                         "entry": 189,
                         "to": 85,
+                        "always": true,
+                        "condition": {
+                            "returnNode": {
+                                "id": 1,
+                                "posX": 500.0,
+                                "posY": 200.0
+                            },
+                            "variableNodes": [],
+                            "operatorNodes": [],
+                            "logicNodes": [],
+                            "notNodes": [],
+                            "getterNodes": [],
+                            "links": []
+                        }
+                    },
+                    {
+                        "id": 209,
+                        "entry": 9,
+                        "to": 76,
                         "always": true,
                         "condition": {
                             "returnNode": {
@@ -745,8 +682,8 @@
                 "editor": {
                     "entries": [
                         {
-                            "x": 176.0,
-                            "y": 208.0,
+                            "x": 144.0,
+                            "y": 160.0,
                             "entry": 9
                         },
                         {
@@ -756,7 +693,7 @@
                         },
                         {
                             "x": 144.0,
-                            "y": 272.0,
+                            "y": 256.0,
                             "entry": 189
                         }
                     ]
@@ -893,7 +830,7 @@
                     {
                         "id": 79,
                         "name": "New Clip",
-                        "clip": "AS_Sprint_Loop",
+                        "clip": "AS_CA_Sprint_Loop",
                         "loop": true,
                         "rootMotion": false,
                         "editor": {
@@ -1374,7 +1311,7 @@
                     {
                         "id": 81,
                         "name": "JumpLoop",
-                        "clip": "AS_Jump_Loop",
+                        "clip": "AS_NO_Jump_Loop",
                         "loop": true,
                         "rootMotion": false,
                         "editor": {
@@ -1389,7 +1326,7 @@
                         "loop": false,
                         "rootMotion": false,
                         "editor": {
-                            "x": 192.0,
+                            "x": 208.0,
                             "y": 368.0
                         }
                     }
@@ -1798,8 +1735,108 @@
                 }
             },
             "editor": {
-                "x": 432.0,
+                "x": 400.0,
                 "y": 240.0,
+                "color": [
+                    0.27000001072883606,
+                    0.3499999940395355,
+                    0.4699999988079071
+                ]
+            }
+        },
+        {
+            "id": 210,
+            "name": "Crouch",
+            "transitions": [],
+            "child": {
+                "clips": [
+                    {
+                        "id": 216,
+                        "name": "Crouch Idle",
+                        "clip": "",
+                        "loop": true,
+                        "rootMotion": false,
+                        "editor": {
+                            "x": 224.0,
+                            "y": 80.0
+                        }
+                    },
+                    {
+                        "id": 218,
+                        "name": "New Clip",
+                        "clip": "",
+                        "loop": true,
+                        "rootMotion": false,
+                        "editor": {
+                            "x": 272.0,
+                            "y": -208.0
+                        }
+                    },
+                    {
+                        "id": 219,
+                        "name": "CrouchStart",
+                        "clip": "",
+                        "loop": true,
+                        "rootMotion": false,
+                        "editor": {
+                            "x": 320.0,
+                            "y": 192.0
+                        }
+                    },
+                    {
+                        "id": 221,
+                        "name": "Crouch Move",
+                        "clip": "",
+                        "loop": true,
+                        "rootMotion": false,
+                        "editor": {
+                            "x": 416.0,
+                            "y": 80.0
+                        }
+                    },
+                    {
+                        "id": 225,
+                        "name": "Crouch End",
+                        "clip": "",
+                        "loop": true,
+                        "rootMotion": false,
+                        "editor": {
+                            "x": 320.0,
+                            "y": -32.0
+                        }
+                    }
+                ],
+                "entryLinks": [],
+                "clipLinks": [],
+                "editor": {
+                    "entries": []
+                }
+            },
+            "editor": {
+                "x": -48.0,
+                "y": 240.0,
+                "color": [
+                    0.27000001072883606,
+                    0.3499999940395355,
+                    0.4699999988079071
+                ]
+            }
+        },
+        {
+            "id": 211,
+            "name": "Sliding",
+            "transitions": [],
+            "child": {
+                "clips": [],
+                "entryLinks": [],
+                "clipLinks": [],
+                "editor": {
+                    "entries": []
+                }
+            },
+            "editor": {
+                "x": -48.0,
+                "y": 128.0,
                 "color": [
                     0.27000001072883606,
                     0.3499999940395355,

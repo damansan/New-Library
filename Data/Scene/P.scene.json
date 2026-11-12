@@ -1,0 +1,142 @@
+{
+    "entities": [
+        {
+            "name": "Controller",
+            "prefab": "Data/Prefab/System/Controller.prefab.json"
+        },
+        {
+            "name": "FreeCamera",
+            "prefab": "Data/Prefab/Camera/FreeCamera.prefab.json"
+        },
+        {
+            "name": "GameCamera",
+            "prefab": "Data/Prefab/Camera/GameCamera.prefab.json"
+        },
+        {
+            "components": {
+                "CategoryComponent": {
+                    "category": "None"
+                },
+                "MaterialComponent": {
+                    "shadingModel": "Grid"
+                },
+                "MeshComponent": {
+                    "modelPath": "Data/Model/UEdefault/Cube.glb"
+                },
+                "PhysicsBodyTypeComponent": {
+                    "type": "Static"
+                },
+                "TransformComponent": {
+                    "position": [
+                        -2.5,
+                        2.0,
+                        2.5
+                    ],
+                    "rotation": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ],
+                    "scale": [
+                        5.0,
+                        0.30000001192092896,
+                        10.0
+                    ]
+                }
+            },
+            "name": "Start"
+        },
+        {
+            "components": {
+                "CategoryComponent": {
+                    "category": "None"
+                },
+                "MaterialComponent": {
+                    "shadingModel": "Default"
+                },
+                "MeshComponent": {
+                    "modelPath": "Data/Model/UEdefault/Blue_Cube.glb"
+                },
+                "PhysicsBodyTypeComponent": {
+                    "type": "Static"
+                },
+                "TransformComponent": {
+                    "position": [
+                        -3.0,
+                        5.0,
+                        -13.899999618530273
+                    ],
+                    "rotation": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ],
+                    "scale": [
+                        1.0,
+                        4.0,
+                        15.0
+                    ]
+                }
+            },
+            "name": "Blue_Cube"
+        },
+        {
+            "components": {
+                "CategoryComponent": {
+                    "category": "None"
+                },
+                "MaterialComponent": {
+                    "shadingModel": "Grid"
+                },
+                "MeshComponent": {
+                    "modelPath": "Data/Model/UEdefault/Ramp.glb"
+                },
+                "PhysicsBodyTypeComponent": {
+                    "type": "Static"
+                },
+                "TransformComponent": {
+                    "position": [
+                        2.5,
+                        2.299999952316284,
+                        -7.5
+                    ],
+                    "rotation": [
+                        0.0,
+                        3.140000104904175,
+                        0.0
+                    ],
+                    "scale": [
+                        5.0,
+                        0.5199999809265137,
+                        2.5299999713897705
+                    ]
+                }
+            },
+            "name": "Ramp"
+        },
+        {
+            "name": "Map_Robot3",
+            "prefab": "Data/Prefab/Player/Map_Robot3.prefab.json"
+        },
+        {
+            "name": "Blue_Cube",
+            "overrides": {
+                "TransformComponent": {
+                    "position": [
+                        3.0,
+                        3.0,
+                        -22.100000381469727
+                    ],
+                    "scale": [
+                        1.0,
+                        5.599999904632568,
+                        15.0
+                    ]
+                }
+            },
+            "prefab": "Data/Prefab/Stage/Blue_Cube.prefab.json"
+        }
+    ],
+    "settings": {},
+    "version": 1
+}

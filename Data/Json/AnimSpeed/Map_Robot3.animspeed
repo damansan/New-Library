@@ -53,6 +53,24 @@
                     "isEndpoint": true
                 }
             ]
+        },
+        {
+            "clipName": "AS_CA_Sprint_Loop",
+            "nextId": 3,
+            "points": [
+                {
+                    "id": 1,
+                    "time": 0.0,
+                    "speed": 0.800000011920929,
+                    "isEndpoint": true
+                },
+                {
+                    "id": 2,
+                    "time": 1.0,
+                    "speed": 0.800000011920929,
+                    "isEndpoint": true
+                }
+            ]
         }
     ]
 }

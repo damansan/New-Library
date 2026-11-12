@@ -209,6 +209,9 @@
     <Filter Include="Sources\Engine\Resource\AnimationEditBaker">
       <UniqueIdentifier>{a4486186-6597-4795-81c2-bee13ce3c0e2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\Shader\Grid">
+      <UniqueIdentifier>{7ef0aeb7-b4de-43af-94cf-c3a0aefad599}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Source\Code\Engine\Core\Application.cpp">
@@ -634,6 +637,9 @@
     </FxCompile>
     <FxCompile Include="..\..\Source\Shader\WiredShape_VS.hlsl">
       <Filter>Sources\Shader\WiredShape</Filter>
+    </FxCompile>
+    <FxCompile Include="..\..\Source\Shader\Gbuffer_Grid_PS.hlsl">
+      <Filter>Sources\Shader\Grid</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

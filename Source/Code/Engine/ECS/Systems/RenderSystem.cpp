@@ -33,6 +33,10 @@ void RenderSystem::Initialize(ID3D11Device* device)
 	GpuResourceUtils::LoadPixelShader(device, "Data/Shader/Gbuffer_Basic_PS.cso", psBasic);
 	gBufferPixelShaders["gbuffer_basic"] = psBasic;
 
+	Microsoft::WRL::ComPtr<ID3D11PixelShader> psGrid;
+	GpuResourceUtils::LoadPixelShader(device, "Data/Shader/Gbuffer_Grid_PS.cso", psGrid);
+	gBufferPixelShaders["gbuffer_grid"] = psGrid;
+
 	// Lightingパス用シェーダー
 	Microsoft::WRL::ComPtr<ID3D11InputLayout> dummyLayoutL;
 	GpuResourceUtils::LoadVertexShader(
