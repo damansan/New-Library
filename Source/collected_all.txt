@@ -5633,7 +5633,7 @@ struct CharacterControllerComponent
     physx::PxController* controller = nullptr;
 
     // カプセル形状パラメータ
-    float radius = 0.3f;
+    float radius = 0.5f;
     float height = 1.2f;
 };
 
@@ -7620,21 +7620,9 @@ namespace
 			intendedDir = PxVec3(moveDisp.x, 0.0f, moveDisp.z); // 水平だけ
 		}
 
-		//void onShapeHit(const PxControllerShapeHit& hit) override
-		//{
-		//	// 一番横向きの面を残す
-		//	const float normalY = fabsf(hit.worldNormal.y);
-		//	if (!hasHit || normalY < bestNormalY)
-		//	{
-		//		hasHit = true;
-		//		bestNormalY = normalY;
-		//		normal = hit.worldNormal;
-		//	}
-		//}
 		void onShapeHit(const PxControllerShapeHit& hit) override
 		{
-			// 三角形メッシュは裏から当たっても表の法線を返すので、
-			// 進んでいた向き(dir)と同じ側を向いていたら、プレイヤー側へ反転する
+			// 保険：裏返った面や板に裏から当たっても、法線がプレイヤー側を向くようにする
 			PxVec3 hitNormal = hit.worldNormal;
 			if (hitNormal.dot(intendedDir) > 0.0f)
 			{
@@ -16350,9 +16338,15 @@ struct PlayerWallRunComponent
 		REFLECT_FIELD(float, minEnterVerticalSpeed, (-1.0f), ("Min Enter Vertical Speed", -10.0f, 10.0f)) // 入った瞬間の縦の速さの下限
 		REFLECT_FIELD(float, gravityScale, (0.3f), ("Gravity Scale", 0.0f, 1.0f))    // 壁走り中の重力の倍率
 
+		// 壁を蹴る
+		REFLECT_FIELD(float, kickOutSpeed,  (6.0f), ("Kick Out Speed", 0.0f, 20.0f)) // 壁から離れる向きの速さ
+		REFLECT_FIELD(float, kickUpSpeed,   (5.0f), ("Kick Up Speed", 0.0f, 20.0f))  // 上向きの速さ
+		REFLECT_FIELD(float, kickKeepRatio, (0.8f), ("Kick Keep Ratio", 0.0f, 1.0f)) // 走っていた向きの速さを、どれだけ残すか
+
 		// 状態
-		REFLECT_FIELD(bool, isWallRight, (false), ("Is Wall Right", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // 入った時に決めた左右
-		REFLECT_FIELD(float, elapsed, (0.0f), ("Elapsed", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // 入ってからの時間
+		REFLECT_FIELD(bool,  isWallRight, (false), ("Is Wall Right", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // 入った時に決めた左右
+		REFLECT_FIELD(float, elapsed,      (0.0f), ("Elapsed",       0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // 入ってからの時間
+		REFLECT_FIELD(bool,  kicked,      (false), ("Kicked",        0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // 壁を蹴った
 
 		REFLECT_END()
 
@@ -17990,6 +17984,8 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Game\ECS\Systems\PlayerWa
 #include "Game/ECS/Components/PlayerWallRunComponent.h"
 #include "Game/ECS/Components/PlayerWallSenseComponent.h"
 #include "Game/ECS/Components/PlayerLocomotionComponent.h"
+#include "Game/ECS/Components/PlayerIntentComponent.h"
+
 #include "Game/ECS/Systems/PlayerMovementUtils.h"
 
 #include "Engine/ECS/Components/CharacterContactComponent.h"
@@ -18030,10 +18026,11 @@ void PlayerWallRunSystem::Update(entt::registry& registry, float elapsedTime, co
 	(void)context;
 
 	auto view = registry.view<PlayerWallRunComponent, PlayerWallSenseComponent, CharacterContactComponent,
-		StateMachineComponent, PlayerLocomotionComponent, MovementComponent, TransformComponent>();
+		StateMachineComponent, PlayerLocomotionComponent, MovementComponent, TransformComponent, PlayerIntentComponent>();
 
 	view.each([&](PlayerWallRunComponent& wallRun, const PlayerWallSenseComponent& sense, const CharacterContactComponent& contact,
-		const StateMachineComponent& stateMachine, PlayerLocomotionComponent& loco, MovementComponent& movement, const TransformComponent& transform)
+		const StateMachineComponent& stateMachine, PlayerLocomotionComponent& loco, MovementComponent& movement, const TransformComponent& transform,
+		PlayerIntentComponent& intent)
 		{
 			if (!stateMachine.IsIn("WallRun")) return;
 
@@ -18069,6 +18066,7 @@ void PlayerWallRunSystem::Update(entt::registry& registry, float elapsedTime, co
 				// クリップの選択用：入った瞬間だけ決める
 				wallRun.isWallRight = sense.isWallRight;
 				wallRun.elapsed = 0.0f;
+				wallRun.kicked = false;
 
 				// 1回限りの縦の速さは、ステートが直接書く
 				movement.velocity.y = (std::clamp)(movement.velocity.y, wallRun.minEnterVerticalSpeed, wallRun.maxEnterVerticalSpeed);
@@ -18085,6 +18083,25 @@ void PlayerWallRunSystem::Update(entt::registry& registry, float elapsedTime, co
 			}
 
 			wallRun.elapsed += elapsedTime;
+
+			// × で壁を蹴る(1回限り)：走っていた向き ＋ 壁から離れる向き ＋ 上
+			if (!wallRun.kicked && intent.jump.buffered)
+			{
+				const float keep = wallRun.runSpeed * wallRun.kickKeepRatio;
+				movement.velocity.x = wallRun.runDir.x * keep + wnx * wallRun.kickOutSpeed;
+				movement.velocity.z = wallRun.runDir.z * keep + wnz * wallRun.kickOutSpeed;
+				movement.velocity.y = wallRun.kickUpSpeed;
+
+				intent.jump.Consume();
+				wallRun.kicked = true;
+			}
+
+			// 蹴った後：xz は書いたまま Locomotion に触らせない。重力もふつうに戻す(gravityScale を書かない)
+			if (wallRun.kicked)
+			{
+				loco.command.mode = LocomotionMode::External;
+				return;
+			}
 
 			// 毎フレーム：Locomotion への指示
 			float mx = wallRun.runDir.x * wallRun.runSpeed - wnx * wallRun.stickSpeed;

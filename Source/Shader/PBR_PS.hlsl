@@ -29,6 +29,14 @@ cbuffer CbLights : register(b1)
     float3 cbPadding;
 };
 
+cbuffer CbObject : register(b2)
+{
+    row_major float4x4 world;
+    float alphaCutoff;
+    float3 padding;
+    float4 baseColorFactor; // マテリアルの基本色（リニア空間）
+};
+
 // テクスチャ
 Texture2D baseMap              : register(t0); // Albedo
 Texture2D normalMap            : register(t1); // 法線マップ
@@ -56,6 +64,9 @@ float4 main(VS_OUT pin) : SV_TARGET
     // Albedo取得
     float4 baseColor = baseMap.Sample(samplerState, pin.texcoord);
     baseColor.rgb = pow(max(baseColor.rgb, 0.0001f), GAMMA);
+
+    // マテリアルの基本色を掛ける（リニア同士）
+    baseColor *= baseColorFactor;
     
     // Emissive取得
     float3 emissive = emissiveMap.Sample(samplerState, pin.texcoord).rgb;

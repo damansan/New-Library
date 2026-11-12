@@ -368,13 +368,19 @@ void GLTFImporter::LoadMeshes(
 
 				mesh.indices.resize(acc.count);
 
-				if (acc.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT)
+				if (acc.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE)
+				{
+					const uint8_t* s = static_cast<const uint8_t*>(src);
+					for (size_t i = 0; i < acc.count; i += 3)
+					{
+						mesh.indices[i + 0] = s[i + 0];
+						mesh.indices[i + 1] = s[i + 2];
+						mesh.indices[i + 2] = s[i + 1];
+					}
+				}
+				else if (acc.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT)
 				{
 					const uint16_t* s = static_cast<const uint16_t*>(src);
-					//for (size_t i = 0; i < acc.count; i++)
-					//{
-					//	mesh.indices[i] = s[i];
-					//}
 					for (size_t i = 0; i < acc.count; i += 3)
 					{
 						mesh.indices[i + 0] = s[i + 0];
@@ -385,10 +391,6 @@ void GLTFImporter::LoadMeshes(
 				else if (acc.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT)
 				{
 					const uint32_t* s = static_cast<const uint32_t*>(src);
-					//for (size_t i = 0; i < acc.count; i++)
-					//{
-					//	mesh.indices[i] = s[i];
-					//}
 					for (size_t i = 0; i < acc.count; i += 3)
 					{
 						mesh.indices[i + 0] = s[i + 0];
