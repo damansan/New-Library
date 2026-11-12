@@ -1,6 +1,6 @@
 {
     "version": 2,
-    "nextId": 204,
+    "nextId": 209,
     "entry": {
         "transitions": [
             {
@@ -1504,7 +1504,7 @@
                         }
                     },
                     {
-                        "id": 203,
+                        "id": 208,
                         "entry": 196,
                         "to": 81,
                         "always": true,
@@ -1608,66 +1608,27 @@
                     "condition": {
                         "returnNode": {
                             "id": 1,
-                            "posX": 610.0,
+                            "posX": 562.0,
                             "posY": 240.0
                         },
                         "variableNodes": [],
                         "operatorNodes": [],
-                        "logicNodes": [
-                            {
-                                "id": 5,
-                                "posX": 466.0,
-                                "posY": 192.0,
-                                "op": "Or"
-                            }
-                        ],
-                        "notNodes": [
-                            {
-                                "id": 3,
-                                "posX": 338.0,
-                                "posY": 132.0
-                            }
-                        ],
+                        "logicNodes": [],
+                        "notNodes": [],
                         "getterNodes": [
                             {
-                                "id": 2,
-                                "posX": 135.0,
-                                "posY": 140.0,
-                                "componentName": "PlayerWallSenseComponent",
-                                "fieldName": "touchingWall",
-                                "selectedComponent": "None"
-                            },
-                            {
-                                "id": 7,
-                                "posX": 277.0,
-                                "posY": 252.0,
-                                "componentName": "MovementComponent",
-                                "fieldName": "isGrounded",
+                                "id": 10,
+                                "posX": 353.0,
+                                "posY": 220.0,
+                                "componentName": "PlayerWallRunComponent",
+                                "fieldName": "finished",
                                 "selectedComponent": "None"
                             }
                         ],
                         "links": [
                             {
-                                "id": 4,
-                                "fromId": 2,
-                                "toId": 3,
-                                "toPinB": false
-                            },
-                            {
-                                "id": 6,
-                                "fromId": 3,
-                                "toId": 5,
-                                "toPinB": false
-                            },
-                            {
-                                "id": 8,
-                                "fromId": 7,
-                                "toId": 5,
-                                "toPinB": true
-                            },
-                            {
-                                "id": 9,
-                                "fromId": 5,
+                                "id": 11,
+                                "fromId": 10,
                                 "toId": 1,
                                 "toPinB": false
                             }
@@ -1686,8 +1647,8 @@
                         "loop": true,
                         "rootMotion": false,
                         "editor": {
-                            "x": 240.0,
-                            "y": 32.0
+                            "x": 192.0,
+                            "y": 16.0
                         }
                     },
                     {
@@ -1697,8 +1658,19 @@
                         "loop": true,
                         "rootMotion": false,
                         "editor": {
-                            "x": 224.0,
-                            "y": 144.0
+                            "x": 192.0,
+                            "y": 160.0
+                        }
+                    },
+                    {
+                        "id": 204,
+                        "name": "WallJump",
+                        "clip": "AS_Jump_Front_Start",
+                        "loop": false,
+                        "rootMotion": false,
+                        "editor": {
+                            "x": 368.0,
+                            "y": 64.0
                         }
                     }
                 ],
@@ -1786,19 +1758,94 @@
                         }
                     }
                 ],
-                "clipLinks": [],
+                "clipLinks": [
+                    {
+                        "id": 205,
+                        "from": 197,
+                        "to": 204,
+                        "always": false,
+                        "condition": {
+                            "returnNode": {
+                                "id": 1,
+                                "posX": 498.0,
+                                "posY": 224.0
+                            },
+                            "variableNodes": [],
+                            "operatorNodes": [],
+                            "logicNodes": [],
+                            "notNodes": [],
+                            "getterNodes": [
+                                {
+                                    "id": 2,
+                                    "posX": 289.0,
+                                    "posY": 204.0,
+                                    "componentName": "PlayerWallRunComponent",
+                                    "fieldName": "kicked",
+                                    "selectedComponent": "None"
+                                }
+                            ],
+                            "links": [
+                                {
+                                    "id": 3,
+                                    "fromId": 2,
+                                    "toId": 1,
+                                    "toPinB": false
+                                }
+                            ]
+                        },
+                        "blend": true,
+                        "blendDuration": 0.20000000298023224
+                    },
+                    {
+                        "id": 206,
+                        "from": 200,
+                        "to": 204,
+                        "always": false,
+                        "condition": {
+                            "returnNode": {
+                                "id": 1,
+                                "posX": 498.0,
+                                "posY": 224.0
+                            },
+                            "variableNodes": [],
+                            "operatorNodes": [],
+                            "logicNodes": [],
+                            "notNodes": [],
+                            "getterNodes": [
+                                {
+                                    "id": 2,
+                                    "posX": 289.0,
+                                    "posY": 204.0,
+                                    "componentName": "PlayerWallRunComponent",
+                                    "fieldName": "kicked",
+                                    "selectedComponent": "None"
+                                }
+                            ],
+                            "links": [
+                                {
+                                    "id": 3,
+                                    "fromId": 2,
+                                    "toId": 1,
+                                    "toPinB": false
+                                }
+                            ]
+                        },
+                        "blend": true,
+                        "blendDuration": 0.20000000298023224
+                    }
+                ],
                 "editor": {
                     "entries": [
                         {
-                            "x": 50.0,
-                            "y": 100.0,
+                            "x": 48.0,
+                            "y": 96.0,
                             "entry": 195
                         }
                     ]
                 }
             },
             "editor": {
-                "x": 432.0,
+                "x": 416.0,
                 "y": 240.0,
                 "color": [
                     0.27000001072883606,

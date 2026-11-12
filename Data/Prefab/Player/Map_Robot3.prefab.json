@@ -36,7 +36,7 @@
         "airControlHalfLife": 0.5,
         "airSpeed": 4.199999809265137,
         "airTurnSpeed": 5.0,
-        "jumpSpeed": 8.0
+        "jumpSpeed": 7.0
     },
     "PlayerLocomotionComponent": {
         "fallGraceTime": 0.10000000149011612
@@ -62,25 +62,30 @@
         "enterMaxAngleDeg": 40.0,
         "enterMinSpeed": 4.0,
         "gravityScale": 0.30000001192092896,
+        "kickForwardScale": 1.2000000476837158,
+        "kickLockTime": 0.20000000298023224,
+        "kickOutSpeed": 10.0,
+        "kickUpSpeed": 10.0,
         "maxEnterVerticalSpeed": 3.0,
         "minEnterVerticalSpeed": -1.0,
         "minRunSpeed": 7.0,
         "stickSpeed": 1.0
     },
     "PlayerWallSenseComponent": {
-        "maxWallNormalY": 0.30000001192092896
+        "maxWallNormalY": 0.30000001192092896,
+        "wallGraceTime": 0.15000000596046448
     },
     "SequencerComponent": {},
     "StateMachineComponent": {},
     "TransformComponent": {
         "position": [
-            -6.852180004119873,
-            -0.013603799045085907,
-            8.664996147155762
+            2.8417718410491943,
+            -0.041792161762714386,
+            20.50876808166504
         ],
         "rotation": [
             0.0,
-            -0.7551895976066589,
+            0.09968583285808563,
             0.0
         ],
         "scale": [

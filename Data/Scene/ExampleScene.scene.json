@@ -13,11 +13,89 @@
             "prefab": "Data/Prefab/Camera/GameCamera.prefab.json"
         },
         {
-            "name": "ExampleStage",
-            "prefab": "Data/Prefab/Stage/ExampleStage.prefab.json"
+            "components": {
+                "CategoryComponent": {
+                    "category": "None"
+                },
+                "MaterialComponent": {
+                    "shadingModel": "Default"
+                },
+                "MeshComponent": {
+                    "modelPath": "Data/Model/Stage/ExampleStage/ExampleStage.gltf"
+                },
+                "PhysicsBodyTypeComponent": {
+                    "type": "Static"
+                },
+                "TransformComponent": {
+                    "position": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ],
+                    "rotation": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ],
+                    "scale": [
+                        1.0,
+                        2.0,
+                        2.0
+                    ]
+                }
+            },
+            "name": "ExampleStage"
+        },
+        {
+            "components": {
+                "CategoryComponent": {
+                    "category": "None"
+                },
+                "MaterialComponent": {
+                    "shadingModel": "Default"
+                },
+                "MeshComponent": {
+                    "modelPath": "Data/Model/Stage/ExampleStage/ExampleStage.gltf"
+                },
+                "PhysicsBodyTypeComponent": {
+                    "type": "Static"
+                },
+                "TransformComponent": {
+                    "position": [
+                        -21.0,
+                        0.0,
+                        0.0
+                    ],
+                    "rotation": [
+                        0.0,
+                        3.1500000953674316,
+                        0.0
+                    ],
+                    "scale": [
+                        1.0,
+                        2.0,
+                        2.0
+                    ]
+                }
+            },
+            "name": "ExampleStage"
         },
         {
             "name": "Map_Robot3",
+            "overrides": {
+                "TransformComponent": {
+                    "position": [
+                        -11.464136123657227,
+                        -0.017512153834104538,
+                        4.986483573913574
+                    ],
+                    "rotation": [
+                        0.0,
+                        0.35925233364105225,
+                        0.0
+                    ]
+                }
+            },
             "prefab": "Data/Prefab/Player/Map_Robot3.prefab.json"
         }
     ],

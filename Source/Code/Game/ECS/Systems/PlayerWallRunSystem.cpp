@@ -88,6 +88,8 @@ void PlayerWallRunSystem::Update(entt::registry& registry, float elapsedTime, co
 				wallRun.isWallRight = sense.isWallRight;
 				wallRun.elapsed = 0.0f;
 				wallRun.kicked = false;
+				wallRun.kickTime = 0.0f;
+				wallRun.finished = false;
 
 				// 1回限りの縦の速さは、ステートが直接書く
 				movement.velocity.y = (std::clamp)(movement.velocity.y, wallRun.minEnterVerticalSpeed, wallRun.maxEnterVerticalSpeed);
@@ -108,14 +110,28 @@ void PlayerWallRunSystem::Update(entt::registry& registry, float elapsedTime, co
 			// × で壁を蹴る(1回限り)：走っていた向き ＋ 壁から離れる向き ＋ 上
 			if (!wallRun.kicked && intent.jump.buffered)
 			{
-				const float keep = wallRun.runSpeed * wallRun.kickKeepRatio;
-				movement.velocity.x = wallRun.runDir.x * keep + wnx * wallRun.kickOutSpeed;
-				movement.velocity.z = wallRun.runDir.z * keep + wnz * wallRun.kickOutSpeed;
+				const float forward = wallRun.runSpeed * wallRun.kickForwardScale;
+				movement.velocity.x = wallRun.runDir.x * forward + wnx * wallRun.kickOutSpeed;
+				movement.velocity.z = wallRun.runDir.z * forward + wnz * wallRun.kickOutSpeed;
 				movement.velocity.y = wallRun.kickUpSpeed;
 
 				intent.jump.Consume();
 				wallRun.kicked = true;
 			}
+
+			// 蹴った後：ロックの時間を数える
+			if (wallRun.kicked)
+			{
+				wallRun.kickTime += elapsedTime;
+			}
+
+			// 終わりの判断
+			//   蹴る前：壁が無くなった(猶予付き)
+			//   蹴った後：ロックが終わった(壁から離れても終わらない)
+			//   どちらでも：地面に着いた
+			const bool kickDone = wallRun.kicked && wallRun.kickTime >= wallRun.kickLockTime;
+			const bool wallLost = !wallRun.kicked && !sense.nearWall;
+			wallRun.finished = kickDone || wallLost || movement.isGrounded;
 
 			// 蹴った後：xz は書いたまま Locomotion に触らせない。重力もふつうに戻す(gravityScale を書かない)
 			if (wallRun.kicked)
@@ -124,9 +140,10 @@ void PlayerWallRunSystem::Update(entt::registry& registry, float elapsedTime, co
 				return;
 			}
 
-			// 毎フレーム：Locomotion への指示
-			float mx = wallRun.runDir.x * wallRun.runSpeed - wnx * wallRun.stickSpeed;
-			float mz = wallRun.runDir.z * wallRun.runSpeed - wnz * wallRun.stickSpeed;
+			// 壁へ押し付けるのは、実際に触れている間だけ(猶予の間は押さない)
+			const float stick = sense.touchingWall ? wallRun.stickSpeed : 0.0f;
+			float mx = wallRun.runDir.x * wallRun.runSpeed - wnx * stick;
+			float mz = wallRun.runDir.z * wallRun.runSpeed - wnz * stick;
 			const float targetSpeed = sqrtf(mx * mx + mz * mz);
 			NormalizeXZ(mx, mz);
 

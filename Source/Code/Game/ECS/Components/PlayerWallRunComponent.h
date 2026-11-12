@@ -21,14 +21,17 @@ struct PlayerWallRunComponent
 		REFLECT_FIELD(float, gravityScale, (0.3f), ("Gravity Scale", 0.0f, 1.0f))    // 壁走り中の重力の倍率
 
 		// 壁を蹴る
-		REFLECT_FIELD(float, kickOutSpeed,  (6.0f), ("Kick Out Speed", 0.0f, 20.0f)) // 壁から離れる向きの速さ
-		REFLECT_FIELD(float, kickUpSpeed,   (5.0f), ("Kick Up Speed", 0.0f, 20.0f))  // 上向きの速さ
-		REFLECT_FIELD(float, kickKeepRatio, (0.8f), ("Kick Keep Ratio", 0.0f, 1.0f)) // 走っていた向きの速さを、どれだけ残すか
+		REFLECT_FIELD(float, kickOutSpeed, (4.0f), ("Kick Out Speed", 0.0f, 20.0f)) // 壁から離れる向きの速さ
+		REFLECT_FIELD(float, kickUpSpeed, (7.0f), ("Kick Up Speed", 0.0f, 20.0f)) // 上向きの速さ
+		REFLECT_FIELD(float, kickForwardScale, (1.6f), ("Kick Forward Scale", 0.0f, 3.0f))  // 走っていた速さ × これ を前へ(1 より大きいと加速)
+		REFLECT_FIELD(float, kickLockTime, (0.2f), ("Kick Lock Time", 0.0f, 1.0f))  // 蹴った後、スティックが効かない時間
 
 		// 状態
 		REFLECT_FIELD(bool,  isWallRight, (false), ("Is Wall Right", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // 入った時に決めた左右
 		REFLECT_FIELD(float, elapsed,      (0.0f), ("Elapsed",       0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // 入ってからの時間
-		REFLECT_FIELD(bool,  kicked,      (false), ("Kicked",        0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // 壁を蹴った
+		REFLECT_FIELD(bool, kicked, (false), ("Kicked", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // 壁を蹴った
+		REFLECT_FIELD(float, kickTime, (0.0f), ("Kick Time", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // 蹴ってからの時間
+		REFLECT_FIELD(bool, finished, (false), ("Finished", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // 壁走りが終わった
 
 		REFLECT_END()
 
