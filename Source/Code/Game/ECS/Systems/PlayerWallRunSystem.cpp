@@ -119,6 +119,9 @@ void PlayerWallRunSystem::Update(entt::registry& registry, float elapsedTime, co
 				wallRun.kicked = true;
 			}
 
+			// •Ç‘–‚è’†‚à“–‚½‚è”»’è‚ğ‘¾‚¢‚Ü‚Ü‚É‚·‚é
+			movement.radiusOverride = wallRun.radius;
+
 			// R‚Á‚½ŒãFƒƒbƒN‚ÌŠÔ‚ğ”‚¦‚é
 			if (wallRun.kicked)
 			{

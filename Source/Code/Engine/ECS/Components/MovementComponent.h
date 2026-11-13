@@ -14,6 +14,9 @@ struct MovementComponent
 
 		// d—Í‚Ì”{—¦
 		REFLECT_FIELD(float, gravityScale, (1.0f), ("Gravity Scale", 0.0f, 0.0f, 0.01f, "", FieldFlags::VisibleOnly | FieldFlags::Transient))
-
+		// “–‚½‚è”»’è(‚‚³)‚Ì”{—¦
+		REFLECT_FIELD(float, heightScale, (1.0f), ("Height Scale", 0.0f, 0.0f, 0.01f, "", FieldFlags::VisibleOnly | FieldFlags::Transient))
+		// “–‚½‚è”»’è (•) ‚Ì”{—¦
+		REFLECT_FIELD(float, radiusOverride, (0.0f), ("Radius Override", 0.0f, 0.0f, 0.01f, "", FieldFlags::VisibleOnly | FieldFlags::Transient))
 	REFLECT_END()
 };

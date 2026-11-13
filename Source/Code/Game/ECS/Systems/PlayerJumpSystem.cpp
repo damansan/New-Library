@@ -46,5 +46,8 @@ void PlayerJumpSystem::Update(entt::registry& registry, float elapsedTime, const
 			cmd.targetSpeed = (std::max)(jump.takeoffSpeed, jump.airSpeed); // “¥‚İØ‚è‚Ì¨‚¢‚ğ‹ó’†‚Å¸‚í‚È‚¢‚æ‚¤‚É
 			cmd.accelHalfLife = jump.airControlHalfLife;
 			cmd.turnSpeed = jump.airTurnSpeed;
+
+			//‹ó’†‚Í“–‚½‚è”»’è‚ğ‘¾‚­‚·‚é
+			movement.radiusOverride = jump.airRadius;
 		});
 }

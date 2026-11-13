@@ -116,6 +116,20 @@
         },
         {
             "name": "Map_Robot3",
+            "overrides": {
+                "TransformComponent": {
+                    "position": [
+                        13.061101913452148,
+                        -3.9716692157298894e-08,
+                        1.3189226388931274
+                    ],
+                    "rotation": [
+                        0.0,
+                        -1.6634039878845215,
+                        0.0
+                    ]
+                }
+            },
             "prefab": "Data/Prefab/Player/Map_Robot3.prefab.json"
         },
         {
@@ -135,6 +149,44 @@
                 }
             },
             "prefab": "Data/Prefab/Stage/Blue_Cube.prefab.json"
+        },
+        {
+            "name": "default",
+            "prefab": "Data/Prefab/Stage/default.prefab.json"
+        },
+        {
+            "components": {
+                "CategoryComponent": {
+                    "category": "None"
+                },
+                "MaterialComponent": {
+                    "shadingModel": "Default"
+                },
+                "MeshComponent": {
+                    "modelPath": "Data/Model/UEdefault/Blue_Cube.glb"
+                },
+                "PhysicsBodyTypeComponent": {
+                    "type": "Static"
+                },
+                "TransformComponent": {
+                    "position": [
+                        9.899999618530273,
+                        2.299999952316284,
+                        -5.699999809265137
+                    ],
+                    "rotation": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ],
+                    "scale": [
+                        9.789999961853027,
+                        3.5999999046325684,
+                        1.0
+                    ]
+                }
+            },
+            "name": "Blue_Cube"
         }
     ],
     "settings": {},

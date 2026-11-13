@@ -1,6 +1,6 @@
 {
     "AnimationSpeedComponent": {
-        "animationSpeedPath": ""
+        "animationSpeedPath": "Data/Json/AnimSpeed/Map_Robot3.animspeed"
     },
     "AnimatorComponent": {
         "loop": true,
@@ -20,6 +20,13 @@
     },
     "PhysicsBodyTypeComponent": {
         "type": "Character"
+    },
+    "PlayerCrouchComponent": {
+        "accelHalfLife": 0.07999999821186066,
+        "decelHalfLife": 0.07999999821186066,
+        "heightScale": 0.5,
+        "turnSpeed": 8.0,
+        "walkSpeed": 1.600000023841858
     },
     "PlayerIdleComponent": {
         "stopHalfLife": 0.05999999865889549
@@ -45,9 +52,9 @@
         "accelHalfLife": 0.05000000074505806,
         "decelHalfLife": 0.07999999821186066,
         "runReachRatio": 0.949999988079071,
-        "runSpeed": 4.199999809265137,
+        "runSpeed": 5.0,
         "turnSpeed": 13.0,
-        "walkSpeed": 1.7000000476837158
+        "walkSpeed": 1.0
     },
     "PlayerSprintComponent": {
         "accelHalfLife": 0.10000000149011612,
@@ -59,13 +66,13 @@
     },
     "PlayerWallRunComponent": {
         "accelHalfLife": 0.10000000149011612,
-        "enterMaxAngleDeg": 40.0,
+        "enterMaxAngleDeg": 50.0,
         "enterMinSpeed": 4.0,
         "gravityScale": 0.30000001192092896,
         "kickForwardScale": 1.2000000476837158,
         "kickLockTime": 0.20000000298023224,
-        "kickOutSpeed": 10.0,
-        "kickUpSpeed": 10.0,
+        "kickOutSpeed": 9.0,
+        "kickUpSpeed": 9.0,
         "maxEnterVerticalSpeed": 3.0,
         "minEnterVerticalSpeed": -1.0,
         "minRunSpeed": 7.0,
@@ -79,13 +86,13 @@
     "StateMachineComponent": {},
     "TransformComponent": {
         "position": [
-            2.8417718410491943,
-            -0.041792161762714386,
-            20.50876808166504
+            8.351391792297363,
+            -6.423629628216077e-08,
+            -0.5781655311584473
         ],
         "rotation": [
             0.0,
-            0.09968583285808563,
+            -2.3355753421783447,
             0.0
         ],
         "scale": [

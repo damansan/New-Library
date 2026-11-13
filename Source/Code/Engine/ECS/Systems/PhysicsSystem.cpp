@@ -88,6 +88,27 @@ namespace
 			ctrl->controller = nullptr; // 二重予約の保険
 		}
 	}
+
+	// 足元 foot に「全体の高さ height・半径 radius」のカプセルを置いたら、Static/Dynamic に重なるか
+	bool OverlapsCapsuleAt(PxScene* scene, const PxExtendedVec3& foot, float contactOffset, float radius, float height)
+	{
+		const float halfCylinder = CharacterControllerComponent::CylinderHeight(height, radius) * 0.5f;
+		const float centerY = static_cast<float>(foot.y) + contactOffset + radius + halfCylinder;
+
+		// PhysX のカプセルは X 軸向き → Z 軸まわりに 90° 回して Y 軸向きにする
+		const PxTransform pose(
+			PxVec3(static_cast<float>(foot.x), centerY, static_cast<float>(foot.z)),
+			PxQuat(PxHalfPi, PxVec3(0.0f, 0.0f, 1.0f)));
+		const PxCapsuleGeometry geometry(radius, halfCylinder);
+
+		// 自分(Character レイヤー)は除いて、Static と Dynamic だけを見る
+		PhysicsQueryFilter filter(PhysicsLayer::Static | PhysicsLayer::Dynamic);
+		PxQueryFilterData filterData;
+		filterData.flags = PxQueryFlag::eSTATIC | PxQueryFlag::eDYNAMIC | PxQueryFlag::ePREFILTER | PxQueryFlag::eANY_HIT;
+
+		PxOverlapBuffer overlapHit;
+		return scene->overlap(geometry, pose, overlapHit, filterData, &filter);
+	}
 }
 
 // 更新
@@ -341,8 +362,8 @@ void PhysicsSystem::ProcessCharacterControllers(entt::registry& registry, PhysX&
 		if (ctrl.controller == nullptr)
 		{
 			PxCapsuleControllerDesc desc;
-			desc.radius = ctrl.radius; // カプセル半径
-			desc.height = ctrl.height; // カプセル高さ
+			desc.radius = ctrl.radius;                                                        // カプセル半径
+			desc.height = CharacterControllerComponent::CylinderHeight(ctrl.height, ctrl.radius); // 円柱部分の長さ
 			desc.position = PxExtendedVec3(transform.position.x, transform.position.y, transform.position.z); // 生成位置
 			desc.material = physX.GetDefaultMaterial();  // 物理マテリアル
 			desc.upDirection = PxVec3(0.0f, 1.0f, 0.0f); // Y軸+を上方向とする
@@ -358,9 +379,10 @@ void PhysicsSystem::ProcessCharacterControllers(entt::registry& registry, PhysX&
 			if (!desc.isValid()) continue; // パラメータ不正なら生成しない
 
 			ctrl.controller = controllerManager->createController(desc);
+			ctrl.appliedRadius = ctrl.radius;
+			ctrl.appliedHeight = ctrl.height;
 
 			ctrl.controller->setFootPosition(PxExtendedVec3(transform.position.x, transform.position.y, transform.position.z));
-
 
 			// Characterレイヤー付与
 			if (PxRigidDynamic* controllerActor = ctrl.controller->getActor())
@@ -377,6 +399,38 @@ void PhysicsSystem::ProcessCharacterControllers(entt::registry& registry, PhysX&
 
 		// MovementComponentが無いEntityは移動させない（その場で待機）
 		auto* movement = registry.try_get<MovementComponent>(entity);
+
+		// 当たり判定の高さと半径
+		if (movement)
+		{
+			const float wantedHeight = ctrl.height * movement->heightScale;
+			float       wantedRadius = movement->radiusOverride > 0.0f ? movement->radiusOverride : ctrl.radius;
+			movement->heightScale = 1.0f;
+			movement->radiusOverride = 0.0f;
+
+			const PxExtendedVec3 foot = ctrl.controller->getFootPosition();
+
+			// 太くする時だけ：周りに空間がなければ、今の太さのまま(空間ができたフレームで太くなる)
+			if (wantedRadius > ctrl.appliedRadius + 1e-4f &&
+				OverlapsCapsuleAt(ctrl.controller->getScene(), foot, ctrl.controller->getContactOffset(), wantedRadius, wantedHeight))
+			{
+				wantedRadius = ctrl.appliedRadius;
+			}
+
+			// 変わった時だけ設定し直す
+			const bool heightChanged = fabsf(wantedHeight - ctrl.appliedHeight) > 1e-4f;
+			const bool radiusChanged = fabsf(wantedRadius - ctrl.appliedRadius) > 1e-4f;
+			if (heightChanged || radiusChanged)
+			{
+				auto* capsule = static_cast<PxCapsuleController*>(ctrl.controller);
+				capsule->setRadius(wantedRadius);
+				capsule->resize(CharacterControllerComponent::CylinderHeight(wantedHeight, wantedRadius));
+				capsule->setFootPosition(foot); // 半径を変えると中心基準で伸び縮みするので、足元を元の位置に戻す
+
+				ctrl.appliedRadius = wantedRadius;
+				ctrl.appliedHeight = wantedHeight;
+			}
+		}
 
 		PxVec3 disp(0.0f, 0.0f, 0.0f);
 		if (movement)
@@ -407,6 +461,16 @@ void PhysicsSystem::ProcessCharacterControllers(entt::registry& registry, PhysX&
 			contact->sideNormal = contact->hitSide
 				? DirectX::XMFLOAT3{ sideHitCollector.normal.x, sideHitCollector.normal.y, sideHitCollector.normal.z }
 			: DirectX::XMFLOAT3{ 0.0f, 0.0f, 0.0f };
+
+			// 立てるか：今のカプセルが立った時より低い時だけ調べる(立っている時は常に true)
+			contact->canStand = true;
+			if (ctrl.appliedHeight < ctrl.height - 1e-4f)
+			{
+				// 立った時のカプセル(今の半径・元の高さ)が、何かに重なるか
+				contact->canStand = !OverlapsCapsuleAt(
+					ctrl.controller->getScene(), ctrl.controller->getFootPosition(),
+					ctrl.controller->getContactOffset(), ctrl.appliedRadius, ctrl.height);
+			}
 		}
 
 		// 接地時に常にかけておく、地面に押し付ける力の大きさ

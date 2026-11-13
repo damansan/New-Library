@@ -33,6 +33,9 @@ struct PlayerWallRunComponent
 		REFLECT_FIELD(float, kickTime, (0.0f), ("Kick Time", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // R‚Á‚Ä‚©‚ç‚ÌŠÔ
 		REFLECT_FIELD(bool, finished, (false), ("Finished", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // •Ç‘–‚è‚ªI‚í‚Á‚½
 
+
+		REFLECT_FIELD(float, radius, (0.5f), ("Radius", 0.0f, 2.0f)) // •Ç‘–‚è’†‚Ì“–‚½‚è”»’è‚Ì”¼Œa
+
 		REFLECT_END()
 
 		// “à•”À‘•—p

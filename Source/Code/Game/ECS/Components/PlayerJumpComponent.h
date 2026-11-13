@@ -14,6 +14,8 @@ struct PlayerJumpComponent
 		// 跳び方(実行中)
 		REFLECT_FIELD(bool, fromGround, (false), ("From Ground", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // 地上から跳んだか(子グラフの入口で使う)
 
+		REFLECT_FIELD(float, airRadius, (0.5f), ("Air Radius", 0.0f, 2.0f)) // 空中の当たり判定の半径
+
 		REFLECT_END()
 
 		// 内部実装用

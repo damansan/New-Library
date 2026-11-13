@@ -201,31 +201,25 @@ void PhysicsDebugRenderer::Render(
 		for (physx::PxU32 i = 0; i < numControllers; ++i)
 		{
 			physx::PxController* ctrl = pxControllerManager->getController(i);
-			physx::PxRigidActor* actor = ctrl->getActor();
-			if (!actor) continue;
+			if (ctrl->getType() != physx::PxControllerShapeType::eCAPSULE) continue;
 
-			physx::PxExtendedVec3 footPos = ctrl->getFootPosition();
-
-			// カプセルコントローラーとして、半径+半分の高さを中心へのオフセットとして使う
 			physx::PxCapsuleController* capsuleCtrl = static_cast<physx::PxCapsuleController*>(ctrl);
-			float centerOffsetY = capsuleCtrl->getHeight() * 0.5f + capsuleCtrl->getRadius();
+			const float radius = capsuleCtrl->getRadius();
+			const float halfHeight = capsuleCtrl->getHeight() * 0.5f;
+			const float contactOffset = ctrl->getContactOffset();
 
-			physx::PxTransform correctedActorPose(
-				physx::PxVec3((float)footPos.x, (float)footPos.y + centerOffsetY, (float)footPos.z),
-				actor->getGlobalPose().q
-			);
+			// 足元から中心へ
+			const physx::PxExtendedVec3 footPos = ctrl->getFootPosition();
+			const float centerY = static_cast<float>(footPos.y) + halfHeight + radius + contactOffset;
 
-			physx::PxRigidDynamic* dynamic = actor->is<physx::PxRigidDynamic>();
-			bool sleeping = dynamic ? dynamic->isSleeping() : false;
+			// 最初から Y 軸向きのカプセルとして描く
+			DirectX::XMFLOAT4X4 world;
+			DirectX::XMStoreFloat4x4(&world, DirectX::XMMatrixTranslation(
+				static_cast<float>(footPos.x), centerY, static_cast<float>(footPos.z)));
 
-			const physx::PxU32 numShapes = actor->getNbShapes();
-			actor->getShapes(pxShapes, numShapes);
-
-			for (physx::PxU32 s = 0; s < numShapes; ++s)
-			{
-				physx::PxTransform shapeWorldPose = correctedActorPose * pxShapes[s]->getLocalPose();
-				drawShape(pxShapes[s], shapeWorldPose, 0.0f, sleeping);
-			}
+			// 外側：壁や床に触れて止まる大きさ
+			const DirectX::XMFLOAT4 color = { 0.0f, 1.0f, 0.0f, 0.3f };
+			shapeRenderer.DrawCapsule(world, radius + contactOffset, halfHeight, color);
 		}
 	}
 

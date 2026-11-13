@@ -61,6 +61,9 @@
     <Filter Include="Sources\ECS\System\Player\PlayerWallRunSystem">
       <UniqueIdentifier>{cdf316d2-f73f-4b02-8727-09510df901aa}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\ECS\System\Player\PlayerCrouchSystem">
+      <UniqueIdentifier>{1f68c851-4a45-4f21-bcbc-1d65da15e772}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Source\Code\Game\ECS\GameComponents.cpp">
@@ -107,6 +110,9 @@
     </ClCompile>
     <ClCompile Include="..\..\Source\Code\Game\ECS\Systems\PlayerWallRunSystem.cpp">
       <Filter>Sources\ECS\System\Player\PlayerWallRunSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Code\Game\ECS\Systems\PlayerCrouchSystem.cpp">
+      <Filter>Sources\ECS\System\Player\PlayerCrouchSystem</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -187,6 +193,12 @@
     </ClInclude>
     <ClInclude Include="..\..\Source\Code\Game\ECS\Systems\PlayerWallRunSystem.h">
       <Filter>Sources\ECS\System\Player\PlayerWallRunSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Code\Game\ECS\Components\PlayerCrouchComponent.h">
+      <Filter>Sources\ECS\Components\Player</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Code\Game\ECS\Systems\PlayerCrouchSystem.h">
+      <Filter>Sources\ECS\System\Player\PlayerCrouchSystem</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

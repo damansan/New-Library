@@ -125,6 +125,7 @@
     <ClCompile Include="..\..\Source\Code\Game\ECS\GameComponents.cpp" />
     <ClCompile Include="..\..\Source\Code\Game\ECS\Systems\GameCameraSystem.cpp" />
     <ClCompile Include="..\..\Source\Code\Game\ECS\Systems\GameInputSystem.cpp" />
+    <ClCompile Include="..\..\Source\Code\Game\ECS\Systems\PlayerCrouchSystem.cpp" />
     <ClCompile Include="..\..\Source\Code\Game\ECS\Systems\PlayerDodgeSystem.cpp" />
     <ClCompile Include="..\..\Source\Code\Game\ECS\Systems\PlayerIdleSystem.cpp" />
     <ClCompile Include="..\..\Source\Code\Game\ECS\Systems\PlayerIntentSystem.cpp" />
@@ -141,6 +142,7 @@
     <ClInclude Include="..\..\Source\Code\Game\Demo\WaveDemo.h" />
     <ClInclude Include="..\..\Source\Code\Game\ECS\Components\GameCameraComponent.h" />
     <ClInclude Include="..\..\Source\Code\Game\ECS\Components\GameInputComponent.h" />
+    <ClInclude Include="..\..\Source\Code\Game\ECS\Components\PlayerCrouchComponent.h" />
     <ClInclude Include="..\..\Source\Code\Game\ECS\Components\PlayerDodgeComponent.h" />
     <ClInclude Include="..\..\Source\Code\Game\ECS\Components\PlayerIdleComponent.h" />
     <ClInclude Include="..\..\Source\Code\Game\ECS\Components\PlayerIntentComponent.h" />
@@ -153,6 +155,7 @@
     <ClInclude Include="..\..\Source\Code\Game\ECS\GameComponents.h" />
     <ClInclude Include="..\..\Source\Code\Game\ECS\Systems\GameCameraSystem.h" />
     <ClInclude Include="..\..\Source\Code\Game\ECS\Systems\GameInputSystem.h" />
+    <ClInclude Include="..\..\Source\Code\Game\ECS\Systems\PlayerCrouchSystem.h" />
     <ClInclude Include="..\..\Source\Code\Game\ECS\Systems\PlayerDodgeSystem.h" />
     <ClInclude Include="..\..\Source\Code\Game\ECS\Systems\PlayerIdleSystem.h" />
     <ClInclude Include="..\..\Source\Code\Game\ECS\Systems\PlayerIntentSystem.h" />

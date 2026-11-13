@@ -17,6 +17,7 @@
 #include "Game/ECS/Systems/PlayerSprintSystem.h"
 #include "Game/ECS/Systems/PlayerJumpSystem.h"
 #include "Game/ECS/Systems/PlayerWallRunSystem.h"
+#include "Game/ECS/Systems/PlayerCrouchSystem.h"
 
 #include "Engine/ECS/Systems/MovementSystem.h"
 #include "Engine/ECS/Systems/AnimationSpeedSystem.h"
@@ -67,6 +68,7 @@ private:
 	PlayerSprintSystem playerSprintSystem;
 	PlayerJumpSystem   playerJumpSystem;
 	PlayerWallRunSystem playerWallRunSystem;
+	PlayerCrouchSystem  playerCrouchSystem;
 
 	MovementSystem    movementSystem;
 	AnimationSpeedSystem     animationSpeedSystem;

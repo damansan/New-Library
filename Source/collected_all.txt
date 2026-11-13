@@ -5344,8 +5344,9 @@ struct CharacterContactComponent
 {
 	REFLECT_BEGIN(CharacterContactComponent, "Character Contact")
 
-		REFLECT_FIELD(bool, hitSide, (false), ("Hit Side", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // このフレームの 移動 で横に当たったか
+		REFLECT_FIELD(bool, hitSide, (false), ("Hit Side", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient))  // このフレームの 移動 で横に当たったか
 		REFLECT_FIELD(DirectX::XMFLOAT3, sideNormal, (0.0f, 0.0f, 0.0f), ("Side Normal", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // 横に当たった面の法線
+		REFLECT_FIELD(bool, canStand, (true), ("Can Stand", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // 元の高さに戻っても、何にも重ならないか
 
 		REFLECT_END()
 };
@@ -5512,13 +5513,15 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Engine\ECS\Components\Mat
 enum class ShadingModel : uint8_t
 {
     Default = 0,
-    Basic,      
+    Basic,
+    Grid,
 };
 
 REFLECT_ENUM(ShadingModel)
 
     REFLECT_ENUM_VALUE(Default, ShadingModel::Default, "Default (PBR)")
     REFLECT_ENUM_VALUE(Basic, ShadingModel::Basic, "Basic")
+    REFLECT_ENUM_VALUE(Grid, ShadingModel::Grid, "Grid ")
 
 REFLECT_ENUM_END()
 
@@ -5536,6 +5539,7 @@ struct MaterialComponent
         switch (shadingModel)
         {
         case ShadingModel::Basic:   return "gbuffer_basic";
+        case ShadingModel::Grid:    return "gbuffer_grid";
         default:                    return "gbuffer_default";
         }
     }
@@ -5582,7 +5586,10 @@ struct MovementComponent
 
 		// 重力の倍率
 		REFLECT_FIELD(float, gravityScale, (1.0f), ("Gravity Scale", 0.0f, 0.0f, 0.01f, "", FieldFlags::VisibleOnly | FieldFlags::Transient))
-
+		// 当たり判定(高さ)の倍率
+		REFLECT_FIELD(float, heightScale, (1.0f), ("Height Scale", 0.0f, 0.0f, 0.01f, "", FieldFlags::VisibleOnly | FieldFlags::Transient))
+		// 当たり判定 (幅) の倍率
+		REFLECT_FIELD(float, radiusOverride, (0.0f), ("Radius Override", 0.0f, 0.0f, 0.01f, "", FieldFlags::VisibleOnly | FieldFlags::Transient))
 	REFLECT_END()
 };
 
@@ -5633,8 +5640,19 @@ struct CharacterControllerComponent
     physx::PxController* controller = nullptr;
 
     // カプセル形状パラメータ
-    float radius = 0.5f;
-    float height = 1.2f;
+    float radius = 0.2f; // 半径
+    float height = 1.6f; // 立っている時の全体の高さ
+
+    // 現在PhysXに設定している値
+    float appliedRadius = 0.0f;
+    float appliedHeight = 0.0f;
+
+    // 全体の高さと半径から、PhysX に渡す円柱部分の長さを出す
+    static float CylinderHeight(float total, float r)
+    {
+        const float cylinder = total - r * 2.0f;
+        return cylinder > 0.01f ? cylinder : 0.01f;
+    }
 };
 
 
@@ -7670,6 +7688,27 @@ namespace
 			ctrl->controller = nullptr; // 二重予約の保険
 		}
 	}
+
+	// 足元 foot に「全体の高さ height・半径 radius」のカプセルを置いたら、Static/Dynamic に重なるか
+	bool OverlapsCapsuleAt(PxScene* scene, const PxExtendedVec3& foot, float contactOffset, float radius, float height)
+	{
+		const float halfCylinder = CharacterControllerComponent::CylinderHeight(height, radius) * 0.5f;
+		const float centerY = static_cast<float>(foot.y) + contactOffset + radius + halfCylinder;
+
+		// PhysX のカプセルは X 軸向き → Z 軸まわりに 90° 回して Y 軸向きにする
+		const PxTransform pose(
+			PxVec3(static_cast<float>(foot.x), centerY, static_cast<float>(foot.z)),
+			PxQuat(PxHalfPi, PxVec3(0.0f, 0.0f, 1.0f)));
+		const PxCapsuleGeometry geometry(radius, halfCylinder);
+
+		// 自分(Character レイヤー)は除いて、Static と Dynamic だけを見る
+		PhysicsQueryFilter filter(PhysicsLayer::Static | PhysicsLayer::Dynamic);
+		PxQueryFilterData filterData;
+		filterData.flags = PxQueryFlag::eSTATIC | PxQueryFlag::eDYNAMIC | PxQueryFlag::ePREFILTER | PxQueryFlag::eANY_HIT;
+
+		PxOverlapBuffer overlapHit;
+		return scene->overlap(geometry, pose, overlapHit, filterData, &filter);
+	}
 }
 
 // 更新
@@ -7923,8 +7962,8 @@ void PhysicsSystem::ProcessCharacterControllers(entt::registry& registry, PhysX&
 		if (ctrl.controller == nullptr)
 		{
 			PxCapsuleControllerDesc desc;
-			desc.radius = ctrl.radius; // カプセル半径
-			desc.height = ctrl.height; // カプセル高さ
+			desc.radius = ctrl.radius;                                                        // カプセル半径
+			desc.height = CharacterControllerComponent::CylinderHeight(ctrl.height, ctrl.radius); // 円柱部分の長さ
 			desc.position = PxExtendedVec3(transform.position.x, transform.position.y, transform.position.z); // 生成位置
 			desc.material = physX.GetDefaultMaterial();  // 物理マテリアル
 			desc.upDirection = PxVec3(0.0f, 1.0f, 0.0f); // Y軸+を上方向とする
@@ -7940,9 +7979,10 @@ void PhysicsSystem::ProcessCharacterControllers(entt::registry& registry, PhysX&
 			if (!desc.isValid()) continue; // パラメータ不正なら生成しない
 
 			ctrl.controller = controllerManager->createController(desc);
+			ctrl.appliedRadius = ctrl.radius;
+			ctrl.appliedHeight = ctrl.height;
 
 			ctrl.controller->setFootPosition(PxExtendedVec3(transform.position.x, transform.position.y, transform.position.z));
-
 
 			// Characterレイヤー付与
 			if (PxRigidDynamic* controllerActor = ctrl.controller->getActor())
@@ -7959,6 +7999,38 @@ void PhysicsSystem::ProcessCharacterControllers(entt::registry& registry, PhysX&
 
 		// MovementComponentが無いEntityは移動させない（その場で待機）
 		auto* movement = registry.try_get<MovementComponent>(entity);
+
+		// 当たり判定の高さと半径
+		if (movement)
+		{
+			const float wantedHeight = ctrl.height * movement->heightScale;
+			float       wantedRadius = movement->radiusOverride > 0.0f ? movement->radiusOverride : ctrl.radius;
+			movement->heightScale = 1.0f;
+			movement->radiusOverride = 0.0f;
+
+			const PxExtendedVec3 foot = ctrl.controller->getFootPosition();
+
+			// 太くする時だけ：周りに空間がなければ、今の太さのまま(空間ができたフレームで太くなる)
+			if (wantedRadius > ctrl.appliedRadius + 1e-4f &&
+				OverlapsCapsuleAt(ctrl.controller->getScene(), foot, ctrl.controller->getContactOffset(), wantedRadius, wantedHeight))
+			{
+				wantedRadius = ctrl.appliedRadius;
+			}
+
+			// 変わった時だけ設定し直す
+			const bool heightChanged = fabsf(wantedHeight - ctrl.appliedHeight) > 1e-4f;
+			const bool radiusChanged = fabsf(wantedRadius - ctrl.appliedRadius) > 1e-4f;
+			if (heightChanged || radiusChanged)
+			{
+				auto* capsule = static_cast<PxCapsuleController*>(ctrl.controller);
+				capsule->setRadius(wantedRadius);
+				capsule->resize(CharacterControllerComponent::CylinderHeight(wantedHeight, wantedRadius));
+				capsule->setFootPosition(foot); // 半径を変えると中心基準で伸び縮みするので、足元を元の位置に戻す
+
+				ctrl.appliedRadius = wantedRadius;
+				ctrl.appliedHeight = wantedHeight;
+			}
+		}
 
 		PxVec3 disp(0.0f, 0.0f, 0.0f);
 		if (movement)
@@ -7989,6 +8061,16 @@ void PhysicsSystem::ProcessCharacterControllers(entt::registry& registry, PhysX&
 			contact->sideNormal = contact->hitSide
 				? DirectX::XMFLOAT3{ sideHitCollector.normal.x, sideHitCollector.normal.y, sideHitCollector.normal.z }
 			: DirectX::XMFLOAT3{ 0.0f, 0.0f, 0.0f };
+
+			// 立てるか：今のカプセルが立った時より低い時だけ調べる(立っている時は常に true)
+			contact->canStand = true;
+			if (ctrl.appliedHeight < ctrl.height - 1e-4f)
+			{
+				// 立った時のカプセル(今の半径・元の高さ)が、何かに重なるか
+				contact->canStand = !OverlapsCapsuleAt(
+					ctrl.controller->getScene(), ctrl.controller->getFootPosition(),
+					ctrl.controller->getContactOffset(), ctrl.appliedRadius, ctrl.height);
+			}
 		}
 
 		// 接地時に常にかけておく、地面に押し付ける力の大きさ
@@ -8121,6 +8203,10 @@ void RenderSystem::Initialize(ID3D11Device* device)
 	Microsoft::WRL::ComPtr<ID3D11PixelShader> psBasic;
 	GpuResourceUtils::LoadPixelShader(device, "Data/Shader/Gbuffer_Basic_PS.cso", psBasic);
 	gBufferPixelShaders["gbuffer_basic"] = psBasic;
+
+	Microsoft::WRL::ComPtr<ID3D11PixelShader> psGrid;
+	GpuResourceUtils::LoadPixelShader(device, "Data/Shader/Gbuffer_Grid_PS.cso", psGrid);
+	gBufferPixelShaders["gbuffer_grid"] = psGrid;
 
 	// Lightingパス用シェーダー
 	Microsoft::WRL::ComPtr<ID3D11InputLayout> dummyLayoutL;
@@ -8414,6 +8500,9 @@ void RenderSystem::GeometryPass(
 				bool isMask = mesh.material &&
 					mesh.material->alphaMode == Model::Material::AlphaMode::Mask;
 				cbObjectData.alphaCutoff = isMask ? mesh.material->alphaCutoff : 0.0f;
+				cbObjectData.baseColor = mesh.material
+					? mesh.material->baseColor
+					: DirectX::XMFLOAT4{ 1.0f, 1.0f, 1.0f, 1.0f };
 				dc->UpdateSubresource(cbObject.Get(), 0, nullptr, &cbObjectData, 0, 0);
 				dc->PSSetConstantBuffers(2, 1, cbObject.GetAddressOf());
 
@@ -8470,6 +8559,9 @@ void RenderSystem::GeometryPass(
 				bool isMask = mesh.material &&
 					mesh.material->alphaMode == Model::Material::AlphaMode::Mask;
 				cbObjectData.alphaCutoff = isMask ? mesh.material->alphaCutoff : 0.0f;
+				cbObjectData.baseColor = mesh.material
+					? mesh.material->baseColor
+					: DirectX::XMFLOAT4{ 1.0f, 1.0f, 1.0f, 1.0f };
 				dc->UpdateSubresource(cbObject.Get(), 0, nullptr, &cbObjectData, 0, 0);
 				dc->PSSetConstantBuffers(2, 1, cbObject.GetAddressOf());
 
@@ -8491,31 +8583,6 @@ void RenderSystem::GeometryPass(
 				}
 				dc->UpdateSubresource(cbSkinning.Get(), 0, nullptr, &cbSkinningData, 0, 0);
 				dc->VSSetConstantBuffers(2, 1, cbSkinning.GetAddressOf());
-				//D3D11_MAPPED_SUBRESOURCE mapped{};
-				//if (SUCCEEDED(dc->Map(cbSkinning.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped)))
-				//{
-				//	auto* dst = static_cast<CbSkinning*>(mapped.pData);
-
-				//	if (m < (int)skinnedMesh.boneTransforms.size() && !skinnedMesh.boneTransforms[m].empty())
-				//	{
-				//		// 使うボーン分だけ書く
-				//		const auto& bt = skinnedMesh.boneTransforms[m];
-				//		size_t boneCount = (std::min)(bt.size(), (size_t)MAX_BONES);
-				//		for (size_t i = 0; i < boneCount; i++)
-				//			dst->boneTransforms[i] = bt[i];
-				//	}
-				//	else
-				//	{
-				//		int nodeIndex = mesh.nodeIndex;
-				//		if (nodeIndex >= 0 && nodeIndex < (int)skinnedMesh.nodeGlobalTransforms.size())
-				//			dst->boneTransforms[0] = skinnedMesh.nodeGlobalTransforms[nodeIndex];
-				//		else
-				//			dst->boneTransforms[0] = { 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 };
-				//	}
-				//	dc->Unmap(cbSkinning.Get(), 0);
-				//}
-				//dc->VSSetConstantBuffers(2, 1, cbSkinning.GetAddressOf());
-
 
 				UINT stride = sizeof(Model::Vertex), offset = 0;
 				dc->IASetVertexBuffers(0, 1, mesh.vertexBuffer.GetAddressOf(), &stride, &offset);
@@ -8647,6 +8714,11 @@ void RenderSystem::ForwardTransparentPass(
 					mesh.material->alphaMode == Model::Material::AlphaMode::Blend;
 				if (!isBlend) continue;
 
+				// マテリアルの基本色をピクセルシェーダーへ
+				cbObjectData.baseColor = mesh.material->baseColor;
+				dc->UpdateSubresource(cbObject.Get(), 0, nullptr, &cbObjectData, 0, 0);
+				dc->PSSetConstantBuffers(2, 1, cbObject.GetAddressOf());
+
 				UINT stride = sizeof(Model::Vertex), offset = 0;
 				dc->IASetVertexBuffers(0, 1, mesh.vertexBuffer.GetAddressOf(), &stride, &offset);
 				dc->IASetIndexBuffer(mesh.indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
@@ -8709,31 +8781,6 @@ void RenderSystem::ForwardTransparentPass(
 				}
 				dc->UpdateSubresource(cbSkinning.Get(), 0, nullptr, &cbSkinningData, 0, 0);
 				dc->VSSetConstantBuffers(2, 1, cbSkinning.GetAddressOf());
-				//D3D11_MAPPED_SUBRESOURCE mapped{};
-				//if (SUCCEEDED(dc->Map(cbSkinning.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped)))
-				//{
-				//	auto* dst = static_cast<CbSkinning*>(mapped.pData);
-
-				//	if (m < (int)skinnedMesh.boneTransforms.size() && !skinnedMesh.boneTransforms[m].empty())
-				//	{
-				//		// 使うボーン分だけ書く
-				//		const auto& bt = skinnedMesh.boneTransforms[m];
-				//		size_t boneCount = (std::min)(bt.size(), (size_t)MAX_BONES);
-				//		for (size_t i = 0; i < boneCount; i++)
-				//			dst->boneTransforms[i] = bt[i];
-				//	}
-				//	else
-				//	{
-				//		int nodeIndex = mesh.nodeIndex;
-				//		if (nodeIndex >= 0 && nodeIndex < (int)skinnedMesh.nodeGlobalTransforms.size())
-				//			dst->boneTransforms[0] = skinnedMesh.nodeGlobalTransforms[nodeIndex];
-				//		else
-				//			dst->boneTransforms[0] = { 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 };
-				//	}
-				//	dc->Unmap(cbSkinning.Get(), 0);
-				//}
-				//dc->VSSetConstantBuffers(2, 1, cbSkinning.GetAddressOf());
-
 
 				UINT stride = sizeof(Model::Vertex), offset = 0;
 				dc->IASetVertexBuffers(0, 1, mesh.vertexBuffer.GetAddressOf(), &stride, &offset);
@@ -8784,11 +8831,18 @@ struct CbScene
 	DirectX::XMFLOAT4   cameraPosition;   // カメラ位置（w未使用）
 };
 
+//struct CbObject
+//{
+//	DirectX::XMFLOAT4X4 world;       // ワールド行列
+//	float               alphaCutoff; // Mask素材のクリップしきい値
+//	DirectX::XMFLOAT3   padding;     // 16バイトアライメント用
+//};
 struct CbObject
 {
 	DirectX::XMFLOAT4X4 world;       // ワールド行列
 	float               alphaCutoff; // Mask素材のクリップしきい値
 	DirectX::XMFLOAT3   padding;     // 16バイトアライメント用
+	DirectX::XMFLOAT4   baseColor;   // マテリアルの基本色（glTF の baseColorFactor）
 };
 
 #define MAX_BONES 256
@@ -10529,31 +10583,25 @@ void PhysicsDebugRenderer::Render(
 		for (physx::PxU32 i = 0; i < numControllers; ++i)
 		{
 			physx::PxController* ctrl = pxControllerManager->getController(i);
-			physx::PxRigidActor* actor = ctrl->getActor();
-			if (!actor) continue;
+			if (ctrl->getType() != physx::PxControllerShapeType::eCAPSULE) continue;
 
-			physx::PxExtendedVec3 footPos = ctrl->getFootPosition();
-
-			// カプセルコントローラーとして、半径+半分の高さを中心へのオフセットとして使う
 			physx::PxCapsuleController* capsuleCtrl = static_cast<physx::PxCapsuleController*>(ctrl);
-			float centerOffsetY = capsuleCtrl->getHeight() * 0.5f + capsuleCtrl->getRadius();
+			const float radius = capsuleCtrl->getRadius();
+			const float halfHeight = capsuleCtrl->getHeight() * 0.5f;
+			const float contactOffset = ctrl->getContactOffset();
 
-			physx::PxTransform correctedActorPose(
-				physx::PxVec3((float)footPos.x, (float)footPos.y + centerOffsetY, (float)footPos.z),
-				actor->getGlobalPose().q
-			);
+			// 足元から中心へ
+			const physx::PxExtendedVec3 footPos = ctrl->getFootPosition();
+			const float centerY = static_cast<float>(footPos.y) + halfHeight + radius + contactOffset;
 
-			physx::PxRigidDynamic* dynamic = actor->is<physx::PxRigidDynamic>();
-			bool sleeping = dynamic ? dynamic->isSleeping() : false;
+			// 最初から Y 軸向きのカプセルとして描く
+			DirectX::XMFLOAT4X4 world;
+			DirectX::XMStoreFloat4x4(&world, DirectX::XMMatrixTranslation(
+				static_cast<float>(footPos.x), centerY, static_cast<float>(footPos.z)));
 
-			const physx::PxU32 numShapes = actor->getNbShapes();
-			actor->getShapes(pxShapes, numShapes);
-
-			for (physx::PxU32 s = 0; s < numShapes; ++s)
-			{
-				physx::PxTransform shapeWorldPose = correctedActorPose * pxShapes[s]->getLocalPose();
-				drawShape(pxShapes[s], shapeWorldPose, 0.0f, sleeping);
-			}
+			// 外側：壁や床に触れて止まる大きさ
+			const DirectX::XMFLOAT4 color = { 0.0f, 1.0f, 0.0f, 0.3f };
+			shapeRenderer.DrawCapsule(world, radius + contactOffset, halfHeight, color);
 		}
 	}
 
@@ -13498,13 +13546,19 @@ void GLTFImporter::LoadMeshes(
 
 				mesh.indices.resize(acc.count);
 
-				if (acc.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT)
+				if (acc.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE)
+				{
+					const uint8_t* s = static_cast<const uint8_t*>(src);
+					for (size_t i = 0; i < acc.count; i += 3)
+					{
+						mesh.indices[i + 0] = s[i + 0];
+						mesh.indices[i + 1] = s[i + 2];
+						mesh.indices[i + 2] = s[i + 1];
+					}
+				}
+				else if (acc.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT)
 				{
 					const uint16_t* s = static_cast<const uint16_t*>(src);
-					//for (size_t i = 0; i < acc.count; i++)
-					//{
-					//	mesh.indices[i] = s[i];
-					//}
 					for (size_t i = 0; i < acc.count; i += 3)
 					{
 						mesh.indices[i + 0] = s[i + 0];
@@ -13515,10 +13569,6 @@ void GLTFImporter::LoadMeshes(
 				else if (acc.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT)
 				{
 					const uint32_t* s = static_cast<const uint32_t*>(src);
-					//for (size_t i = 0; i < acc.count; i++)
-					//{
-					//	mesh.indices[i] = s[i];
-					//}
 					for (size_t i = 0; i < acc.count; i += 3)
 					{
 						mesh.indices[i + 0] = s[i + 0];
@@ -16060,6 +16110,29 @@ struct GameInputComponent
 };
 
 
+===== PlayerCrouchComponent.h =====
+Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Game\ECS\Components\PlayerCrouchComponent.h
+#pragma once
+#include "Engine/ECS/Reflect.h"
+
+struct PlayerCrouchComponent
+{
+	REFLECT_BEGIN(PlayerCrouchComponent, "Player Crouch")
+
+		REFLECT_FIELD(float, walkSpeed,      (1.2f), ("Walk Speed",      0.0f, 10.0f)) // しゃがみ歩きの速さ
+		REFLECT_FIELD(float, accelHalfLife, (0.08f), ("Accel Half Life", 0.0f, 1.0f))  // 加速時の半減期
+		REFLECT_FIELD(float, decelHalfLife, (0.08f), ("Decel Half Life", 0.0f, 1.0f))  // 減速時の半減期
+		REFLECT_FIELD(float, turnSpeed,      (8.0f), ("Turn Speed",      0.0f, 30.0f)) // 旋回速度
+		REFLECT_FIELD(float, heightScale, (0.5f), ("Height Scale", 0.1f, 1.0f))        // しゃがみ中の当たり判定の高さ
+		
+		// 状態
+		REFLECT_FIELD(bool, wantsStand, (false), ("Wants Stand", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // 立ちたい
+		REFLECT_FIELD(bool, standRequested, (false), ("Stand Requested", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // 立ちたい かつ 立てる
+
+		REFLECT_END()
+};
+
+
 ===== PlayerDodgeComponent.h =====
 Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Game\ECS\Components\PlayerDodgeComponent.h
 #pragma once
@@ -16201,6 +16274,8 @@ struct PlayerJumpComponent
 		// 跳び方(実行中)
 		REFLECT_FIELD(bool, fromGround, (false), ("From Ground", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // 地上から跳んだか(子グラフの入口で使う)
 
+		REFLECT_FIELD(float, airRadius, (0.5f), ("Air Radius", 0.0f, 2.0f)) // 空中の当たり判定の半径
+
 		REFLECT_END()
 
 		// 内部実装用
@@ -16339,14 +16414,20 @@ struct PlayerWallRunComponent
 		REFLECT_FIELD(float, gravityScale, (0.3f), ("Gravity Scale", 0.0f, 1.0f))    // 壁走り中の重力の倍率
 
 		// 壁を蹴る
-		REFLECT_FIELD(float, kickOutSpeed,  (6.0f), ("Kick Out Speed", 0.0f, 20.0f)) // 壁から離れる向きの速さ
-		REFLECT_FIELD(float, kickUpSpeed,   (5.0f), ("Kick Up Speed", 0.0f, 20.0f))  // 上向きの速さ
-		REFLECT_FIELD(float, kickKeepRatio, (0.8f), ("Kick Keep Ratio", 0.0f, 1.0f)) // 走っていた向きの速さを、どれだけ残すか
+		REFLECT_FIELD(float, kickOutSpeed, (4.0f), ("Kick Out Speed", 0.0f, 20.0f)) // 壁から離れる向きの速さ
+		REFLECT_FIELD(float, kickUpSpeed, (7.0f), ("Kick Up Speed", 0.0f, 20.0f)) // 上向きの速さ
+		REFLECT_FIELD(float, kickForwardScale, (1.6f), ("Kick Forward Scale", 0.0f, 3.0f))  // 走っていた速さ × これ を前へ(1 より大きいと加速)
+		REFLECT_FIELD(float, kickLockTime, (0.2f), ("Kick Lock Time", 0.0f, 1.0f))  // 蹴った後、スティックが効かない時間
 
 		// 状態
 		REFLECT_FIELD(bool,  isWallRight, (false), ("Is Wall Right", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // 入った時に決めた左右
 		REFLECT_FIELD(float, elapsed,      (0.0f), ("Elapsed",       0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // 入ってからの時間
-		REFLECT_FIELD(bool,  kicked,      (false), ("Kicked",        0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // 壁を蹴った
+		REFLECT_FIELD(bool, kicked, (false), ("Kicked", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // 壁を蹴った
+		REFLECT_FIELD(float, kickTime, (0.0f), ("Kick Time", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // 蹴ってからの時間
+		REFLECT_FIELD(bool, finished, (false), ("Finished", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // 壁走りが終わった
+
+
+		REFLECT_FIELD(float, radius, (0.5f), ("Radius", 0.0f, 2.0f)) // 壁走り中の当たり判定の半径
 
 		REFLECT_END()
 
@@ -16368,11 +16449,16 @@ struct PlayerWallSenseComponent
 
 		// 設定値
 		REFLECT_FIELD(float, maxWallNormalY, (0.3f), ("Max Wall Normal Y", 0.0f, 1.0f)) // 法線の y の大きさがこれ以下なら壁とみなす
+		REFLECT_FIELD(float, wallGraceTime, (0.15f), ("Wall Grace Time", 0.0f, 1.0f))   // 壁から離れても nearWall を保つ時間
 
 		// 状態
 		REFLECT_FIELD(bool, touchingWall, (false), ("Touching Wall", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // 壁に当たっているか
 		REFLECT_FIELD(float, approachAngleDeg, (0.0f), ("Approach Angle Deg", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // 当たる角度(0=かすめる、90=正面、マイナス=離れていく)
 		REFLECT_FIELD(bool, isWallRight, (false), ("Is Wall Right", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // 進む向きから見て、壁が右にあるか
+
+		// 猶予付き
+		REFLECT_FIELD(float, wallLostTime, (999.0f), ("Wall Lost Time", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // 壁から離れてからの時間
+		REFLECT_FIELD(bool,  nearWall,      (false), ("Near Wall",      0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // 壁にいる(猶予付き)
 
 		REFLECT_END()
 };
@@ -17113,6 +17199,80 @@ private:
 };
 
 
+===== PlayerCrouchSystem.cpp =====
+Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Game\ECS\Systems\PlayerCrouchSystem.cpp
+#include "PlayerCrouchSystem.h"
+#include "Game/ECS/Components/PlayerIntentComponent.h"
+#include "Game/ECS/Components/PlayerCrouchComponent.h"
+#include "Game/ECS/Components/PlayerLocomotionComponent.h"
+
+#include "Engine/ECS/Components/StateMachineComponent.h"
+#include "Engine/ECS/Components/MovementComponent.h"
+#include "Engine/ECS/Components/CharacterContactComponent.h"
+#include "Engine/ECS/Systems/StateMachineSystem.h"
+
+PlayerCrouchSystem::PlayerCrouchSystem()
+{
+	StateMachineSystem::RequireState<PlayerCrouchComponent>("Crouch", "PlayerCrouchSystem");
+}
+
+void PlayerCrouchSystem::Update(entt::registry& registry, float elapsedTime, const SceneContext& context)
+{
+	(void)elapsedTime;
+	(void)context;
+
+	auto view = registry.view<PlayerIntentComponent, PlayerCrouchComponent, StateMachineComponent, PlayerLocomotionComponent, MovementComponent, CharacterContactComponent>();
+	view.each([&](PlayerIntentComponent& intent, PlayerCrouchComponent& crouch,
+		const StateMachineComponent& stateMachine, PlayerLocomotionComponent& loco, MovementComponent& movement,
+		const CharacterContactComponent& contact)
+		{
+			if (!stateMachine.IsIn("Crouch")) return;
+
+			if (stateMachine.enteredThisFrame)
+			{
+				// 入った瞬間：入ってきた ○ を使い切る(残っていると、立つ判定にも使われてしまう)
+				intent.dodge.Consume();
+				crouch.wantsStand = false;
+			}
+			else if (intent.dodge.buffered)
+			{
+				// しゃがみ中に ○：立ちたい。使い切る(立った後に、また Crouch に入らないように)
+				crouch.wantsStand = true;
+				intent.dodge.Consume();
+			}
+
+			// 立ちたい かつ 頭の上が空いている → 立つ(天井の下なら、出るまで待つ)
+			crouch.standRequested = crouch.wantsStand && contact.canStand;
+
+			// 意図を、Locomotion への指示に変える
+			LocomotionCommand& cmd = loco.command;
+			cmd.mode = LocomotionMode::Ground;
+			cmd.moveDir = intent.moveDir;
+			cmd.targetSpeed = intent.wantsMove ? crouch.walkSpeed : 0.0f;
+			cmd.accelHalfLife = crouch.accelHalfLife;
+			cmd.decelHalfLife = crouch.decelHalfLife;
+			cmd.turnSpeed = crouch.turnSpeed;
+
+			// 当たり判定を低くする指示
+			movement.heightScale = crouch.heightScale;
+		});
+}
+
+
+===== PlayerCrouchSystem.h =====
+Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Game\ECS\Systems\PlayerCrouchSystem.h
+#pragma once
+#include "entt.hpp"
+#include "Engine/Core/SceneContext.h"
+
+class PlayerCrouchSystem
+{
+public:
+	PlayerCrouchSystem();
+	void Update(entt::registry& registry, float elapsedTime, const SceneContext& context);
+};
+
+
 ===== PlayerDodgeSystem.cpp =====
 Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Game\ECS\Systems\PlayerDodgeSystem.cpp
 #include "PlayerDodgeSystem.h"
@@ -17477,6 +17637,9 @@ void PlayerJumpSystem::Update(entt::registry& registry, float elapsedTime, const
 			cmd.targetSpeed = (std::max)(jump.takeoffSpeed, jump.airSpeed); // 踏み切りの勢いを空中で失わないように
 			cmd.accelHalfLife = jump.airControlHalfLife;
 			cmd.turnSpeed = jump.airTurnSpeed;
+
+			//空中は当たり判定を太くする
+			movement.radiusOverride = jump.airRadius;
 		});
 }
 
@@ -18067,6 +18230,8 @@ void PlayerWallRunSystem::Update(entt::registry& registry, float elapsedTime, co
 				wallRun.isWallRight = sense.isWallRight;
 				wallRun.elapsed = 0.0f;
 				wallRun.kicked = false;
+				wallRun.kickTime = 0.0f;
+				wallRun.finished = false;
 
 				// 1回限りの縦の速さは、ステートが直接書く
 				movement.velocity.y = (std::clamp)(movement.velocity.y, wallRun.minEnterVerticalSpeed, wallRun.maxEnterVerticalSpeed);
@@ -18087,14 +18252,30 @@ void PlayerWallRunSystem::Update(entt::registry& registry, float elapsedTime, co
 			// × で壁を蹴る(1回限り)：走っていた向き ＋ 壁から離れる向き ＋ 上
 			if (!wallRun.kicked && intent.jump.buffered)
 			{
-				const float keep = wallRun.runSpeed * wallRun.kickKeepRatio;
-				movement.velocity.x = wallRun.runDir.x * keep + wnx * wallRun.kickOutSpeed;
-				movement.velocity.z = wallRun.runDir.z * keep + wnz * wallRun.kickOutSpeed;
+				const float forward = wallRun.runSpeed * wallRun.kickForwardScale;
+				movement.velocity.x = wallRun.runDir.x * forward + wnx * wallRun.kickOutSpeed;
+				movement.velocity.z = wallRun.runDir.z * forward + wnz * wallRun.kickOutSpeed;
 				movement.velocity.y = wallRun.kickUpSpeed;
 
 				intent.jump.Consume();
 				wallRun.kicked = true;
 			}
+
+			// 壁走り中も当たり判定を太いままにする
+			
+			// 蹴った後：ロックの時間を数える
+			if (wallRun.kicked)
+			{
+				wallRun.kickTime += elapsedTime;
+			}
+
+			// 終わりの判断
+			//   蹴る前：壁が無くなった(猶予付き)
+			//   蹴った後：ロックが終わった(壁から離れても終わらない)
+			//   どちらでも：地面に着いた
+			const bool kickDone = wallRun.kicked && wallRun.kickTime >= wallRun.kickLockTime;
+			const bool wallLost = !wallRun.kicked && !sense.nearWall;
+			wallRun.finished = kickDone || wallLost || movement.isGrounded;
 
 			// 蹴った後：xz は書いたまま Locomotion に触らせない。重力もふつうに戻す(gravityScale を書かない)
 			if (wallRun.kicked)
@@ -18103,9 +18284,10 @@ void PlayerWallRunSystem::Update(entt::registry& registry, float elapsedTime, co
 				return;
 			}
 
-			// 毎フレーム：Locomotion への指示
-			float mx = wallRun.runDir.x * wallRun.runSpeed - wnx * wallRun.stickSpeed;
-			float mz = wallRun.runDir.z * wallRun.runSpeed - wnz * wallRun.stickSpeed;
+			// 壁へ押し付けるのは、実際に触れている間だけ(猶予の間は押さない)
+			const float stick = sense.touchingWall ? wallRun.stickSpeed : 0.0f;
+			float mx = wallRun.runDir.x * wallRun.runSpeed - wnx * stick;
+			float mz = wallRun.runDir.z * wallRun.runSpeed - wnz * stick;
 			const float targetSpeed = sqrtf(mx * mx + mz * mz);
 			NormalizeXZ(mx, mz);
 
@@ -18161,40 +18343,48 @@ void PlayerWallSenseSystem::Update(entt::registry& registry, float elapsedTime, 
 			sense.approachAngleDeg = 0.0f;
 			sense.isWallRight = false;
 
-			if (!contact.hitSide) return;
-
-			// 壁らしさ：ほぼ垂直な面だけ
-			const DirectX::XMFLOAT3& n = contact.sideNormal;
-			if (fabsf(n.y) > sense.maxWallNormalY) return;
-
-			// 水平成分だけで考える
-			const float nLen = sqrtf(n.x * n.x + n.z * n.z);
-			if (nLen < 1e-4f) return;
-			const float nx = n.x / nLen;
-			const float nz = n.z / nLen;
-
-			sense.touchingWall = true;
-
-			const float vLen = sqrtf(movement.velocity.x * movement.velocity.x + movement.velocity.z * movement.velocity.z);
-			if (vLen < 1e-4f)
+			// 今のフレームの壁(途中で抜けても、下の猶予の計算は必ず通る)
+			do
 			{
-				// 水平に動いていない：向きが決まらないので、正面扱いにしておく
-				sense.approachAngleDeg = 90.0f;
-				return;
-			}
-			const float vx = movement.velocity.x / vLen;
-			const float vz = movement.velocity.z / vLen;
+				if (!contact.hitSide) break;
 
-			// 壁へ向かう成分(1=正面、0=平行、マイナス=離れていく)
-			const float into = -(vx * nx + vz * nz);
-			sense.approachAngleDeg = DirectX::XMConvertToDegrees(asinf((std::clamp)(into, -1.0f, 1.0f)));
+				// 壁らしさ：ほぼ垂直な面だけ
+				const DirectX::XMFLOAT3& n = contact.sideNormal;
+				if (fabsf(n.y) > sense.maxWallNormalY) break;
 
-			// 進む向きの右(前が +Z のとき、右は +X)
-			const float rightX = vz;
-			const float rightZ = -vx;
+				// 水平成分だけで考える
+				const float nLen = sqrtf(n.x * n.x + n.z * n.z);
+				if (nLen < 1e-4f) break;
+				const float nx = n.x / nLen;
+				const float nz = n.z / nLen;
 
-			// 法線は壁から外向き
-			sense.isWallRight = (nx * rightX + nz * rightZ) < 0.0f;
+				sense.touchingWall = true;
+
+				const float vLen = sqrtf(movement.velocity.x * movement.velocity.x + movement.velocity.z * movement.velocity.z);
+				if (vLen < 1e-4f)
+				{
+					// 水平に動いていない：向きが決まらないので、正面扱いにしておく
+					sense.approachAngleDeg = 90.0f;
+					break;
+				}
+				const float vx = movement.velocity.x / vLen;
+				const float vz = movement.velocity.z / vLen;
+
+				// 壁へ向かう成分(1=正面、0=平行、マイナス=離れていく)
+				const float into = -(vx * nx + vz * nz);
+				sense.approachAngleDeg = DirectX::XMConvertToDegrees(asinf((std::clamp)(into, -1.0f, 1.0f)));
+
+				// 進む向きの右(前が +Z のとき、右は +X)
+				const float rightX = vz;
+				const float rightZ = -vx;
+
+				// 法線は壁から外向き
+				sense.isWallRight = (nx * rightX + nz * rightZ) < 0.0f;
+			} while (false);
+
+			// 猶予付き：壁から離れても、少しの間は「壁にいる」とみなす(地面の isAirborne と対)
+			sense.wallLostTime = sense.touchingWall ? 0.0f : sense.wallLostTime + elapsedTime;
+			sense.nearWall = sense.touchingWall || (sense.wallLostTime < sense.wallGraceTime);
 		});
 }
 
@@ -18227,6 +18417,7 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Game\ECS\GameComponents.c
 #include "Game/ECS/Components/PlayerSprintComponent.h"
 #include "Game/ECS/Components/PlayerJumpComponent.h"
 #include "Game/ECS/Components/PlayerWallRunComponent.h"
+#include "Game/ECS/Components/PlayerCrouchComponent.h"
 
 #include "Game/ECS/Components/PlayerIntentComponent.h"
 #include "Game/ECS/Components/PlayerLocomotionComponent.h"
@@ -18242,10 +18433,12 @@ void GameComponents::Register()
 	REGISTER_COMPONENT_TYPE(PlayerSprintComponent, "Player Sprint");
 	REGISTER_COMPONENT_TYPE(PlayerJumpComponent,   "Player Jump");
 	REGISTER_COMPONENT_TYPE(PlayerWallRunComponent, "Player Wall Run");
+	REGISTER_COMPONENT_TYPE(PlayerCrouchComponent, "Player Crouch");
 
 	REGISTER_COMPONENT_TYPE(PlayerIntentComponent, "Player Intent");
 	REGISTER_COMPONENT_TYPE(PlayerLocomotionComponent, "Player Locomotion");
 	REGISTER_COMPONENT_TYPE(PlayerWallSenseComponent, "Player Wall Sense");
+
 }
 
 
@@ -18529,6 +18722,11 @@ void SceneGame::UpdateGameplay(float elapsedTime, const SceneContext& context)
 		ZoneScopedN("PlayerWallRunSystem");
 		playerWallRunSystem.Update(registry, elapsedTime, context);
 	}
+	// プレイヤーしゃがみ処理
+	{
+		ZoneScopedN("PlayerCrouchSystem");
+		playerCrouchSystem.Update(registry, elapsedTime, context);
+	}
 	// 水平移動(各ステートの指示をもとに velocity.xz と rotation.y を書く)
 	{
 		ZoneScopedN("PlayerLocomotionSystem");
@@ -18620,6 +18818,7 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Game\Scene\SceneGame.h
 #include "Game/ECS/Systems/PlayerSprintSystem.h"
 #include "Game/ECS/Systems/PlayerJumpSystem.h"
 #include "Game/ECS/Systems/PlayerWallRunSystem.h"
+#include "Game/ECS/Systems/PlayerCrouchSystem.h"
 
 #include "Engine/ECS/Systems/MovementSystem.h"
 #include "Engine/ECS/Systems/AnimationSpeedSystem.h"
@@ -18670,6 +18869,7 @@ private:
 	PlayerSprintSystem playerSprintSystem;
 	PlayerJumpSystem   playerJumpSystem;
 	PlayerWallRunSystem playerWallRunSystem;
+	PlayerCrouchSystem  playerCrouchSystem;
 
 	MovementSystem    movementSystem;
 	AnimationSpeedSystem     animationSpeedSystem;
