@@ -64,6 +64,9 @@
     <Filter Include="Sources\ECS\System\Player\PlayerCrouchSystem">
       <UniqueIdentifier>{1f68c851-4a45-4f21-bcbc-1d65da15e772}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\ECS\System\Player\PlayerSlideSystem">
+      <UniqueIdentifier>{c9e57d57-71d7-48d0-bb9d-b395656009ee}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Source\Code\Game\ECS\GameComponents.cpp">
@@ -113,6 +116,9 @@
     </ClCompile>
     <ClCompile Include="..\..\Source\Code\Game\ECS\Systems\PlayerCrouchSystem.cpp">
       <Filter>Sources\ECS\System\Player\PlayerCrouchSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Code\Game\ECS\Systems\PlayerSlideSystem.cpp">
+      <Filter>Sources\ECS\System\Player\PlayerSlideSystem</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -199,6 +205,12 @@
     </ClInclude>
     <ClInclude Include="..\..\Source\Code\Game\ECS\Systems\PlayerCrouchSystem.h">
       <Filter>Sources\ECS\System\Player\PlayerCrouchSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Code\Game\ECS\Components\PlayerSlideComponent.h">
+      <Filter>Sources\ECS\Components\Player</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Code\Game\ECS\Systems\PlayerSlideSystem.h">
+      <Filter>Sources\ECS\System\Player\PlayerSlideSystem</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

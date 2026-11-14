@@ -10,6 +10,7 @@
 #include "Game/ECS/Components/PlayerJumpComponent.h"
 #include "Game/ECS/Components/PlayerWallRunComponent.h"
 #include "Game/ECS/Components/PlayerCrouchComponent.h"
+#include "Game/ECS/Components/PlayerSlideComponent.h"
 
 #include "Game/ECS/Components/PlayerIntentComponent.h"
 #include "Game/ECS/Components/PlayerLocomotionComponent.h"
@@ -26,6 +27,7 @@ void GameComponents::Register()
 	REGISTER_COMPONENT_TYPE(PlayerJumpComponent,   "Player Jump");
 	REGISTER_COMPONENT_TYPE(PlayerWallRunComponent, "Player Wall Run");
 	REGISTER_COMPONENT_TYPE(PlayerCrouchComponent, "Player Crouch");
+	REGISTER_COMPONENT_TYPE(PlayerSlideComponent, "Player Slide");
 
 	REGISTER_COMPONENT_TYPE(PlayerIntentComponent, "Player Intent");
 	REGISTER_COMPONENT_TYPE(PlayerLocomotionComponent, "Player Locomotion");
