@@ -22,6 +22,7 @@ struct LocomotionCommand
 	float  turnSpeed = 0.0f;      // 旋回速度
 	float  carryHalfLife = 0.2f;  // 持ち越しの速度が減る半減期
 	bool   faceMoveDir = false;   // 体の向きを 向かいたい方向 に一気に向ける
+	DirectX::XMFLOAT3 faceDir = { 0.0f, 0.0f, 0.0f }; // 体を向ける方向
 };
 
 // 水平移動の運転手と、体の状態

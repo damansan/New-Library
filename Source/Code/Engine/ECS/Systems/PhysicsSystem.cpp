@@ -36,10 +36,27 @@ namespace
 			bestNormalY = 1.0f;
 			normal = PxVec3(0.0f, 0.0f, 0.0f);
 			intendedDir = PxVec3(moveDisp.x, 0.0f, moveDisp.z); // 水平だけ
+
+			hasGround = false;
+			bestGroundY = -1.0f;
+			groundNormal = PxVec3(0.0f, 1.0f, 0.0f);
 		}
 
 		void onShapeHit(const PxControllerShapeHit& hit) override
 		{
+			// 床：一番「上向き」の面を残す(裏返った面に当たって下を向いていたら、上向きに直す)
+			PxVec3 upNormal = hit.worldNormal;
+			if (upNormal.y < 0.0f)
+			{
+				upNormal = -upNormal;
+			}
+			if (!hasGround || upNormal.y > bestGroundY)
+			{
+				hasGround = true;
+				bestGroundY = upNormal.y;
+				groundNormal = upNormal;
+			}
+
 			// 保険：裏返った面や板に裏から当たっても、法線がプレイヤー側を向くようにする
 			PxVec3 hitNormal = hit.worldNormal;
 			if (hitNormal.dot(intendedDir) > 0.0f)
@@ -64,6 +81,10 @@ namespace
 		float  bestNormalY = 1.0f;
 		PxVec3 normal = PxVec3(0.0f, 0.0f, 0.0f);
 		PxVec3 intendedDir = PxVec3(0.0f, 0.0f, 0.0f); // このフレームに動かしたかった水平の向き
+
+		bool   hasGround = false;
+		float  bestGroundY = -1.0f;
+		PxVec3 groundNormal = PxVec3(0.0f, 1.0f, 0.0f);
 	};
 
 	// すべての CCT で1つを使い回す
@@ -440,6 +461,25 @@ void PhysicsSystem::ProcessCharacterControllers(entt::registry& registry, PhysX&
 				movement->velocity.y * elapsedTime,
 				movement->velocity.z * elapsedTime
 			);
+
+			// 下り坂で浮かないように：前のフレームで接地していて、上へ動いていない時だけ
+			// 水平の移動量に合わせて、坂に沿う分だけ下へずらす(上り坂・平地では何もしない)
+			const auto* contact = registry.try_get<CharacterContactComponent>(entity);
+			if (contact && movement->isGrounded && movement->velocity.y <= 0.0f)
+			{
+				const DirectX::XMFLOAT3& n = contact->groundNormal;
+
+				// 歩ける程度の坂だけ(急すぎる面は PhysX に任せて滑らせる)
+				constexpr float kMinFollowNormalY = 0.7f;
+				if (n.y >= kMinFollowNormalY)
+				{
+					const float followY = -(n.x * disp.x + n.z * disp.z) / n.y;
+					if (followY < 0.0f)
+					{
+						disp.y += followY;
+					}
+				}
+			}
 		}
 
 		// 移動を実行（壁・段差・地面との衝突解決はPhysXが行う）
@@ -461,6 +501,16 @@ void PhysicsSystem::ProcessCharacterControllers(entt::registry& registry, PhysX&
 			contact->sideNormal = contact->hitSide
 				? DirectX::XMFLOAT3{ sideHitCollector.normal.x, sideHitCollector.normal.y, sideHitCollector.normal.z }
 			: DirectX::XMFLOAT3{ 0.0f, 0.0f, 0.0f };
+
+			// 床：下に当たった時だけ法線を入れる(当たっていなければ真上)
+			const bool down = (collisionFlags & PxControllerCollisionFlag::eCOLLISION_DOWN);
+			contact->hitGround = false;
+			contact->groundNormal = DirectX::XMFLOAT3{ 0.0f, 1.0f, 0.0f };
+			if (down && sideHitCollector.hasGround)
+			{
+				contact->hitGround = true;
+				contact->groundNormal = DirectX::XMFLOAT3{ sideHitCollector.groundNormal.x, sideHitCollector.groundNormal.y, sideHitCollector.groundNormal.z };
+			}
 
 			// 立てるか：今のカプセルが立った時より低い時だけ調べる(立っている時は常に true)
 			contact->canStand = true;

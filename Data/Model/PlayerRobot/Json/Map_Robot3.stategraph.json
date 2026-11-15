@@ -1,6 +1,6 @@
 {
     "version": 2,
-    "nextId": 245,
+    "nextId": 248,
     "entry": {
         "transitions": [
             {
@@ -25,8 +25,8 @@
             }
         ],
         "editor": {
-            "x": -48.0,
-            "y": 336.0
+            "x": 112.0,
+            "y": 432.0
         }
     },
     "states": [
@@ -272,17 +272,17 @@
                         },
                         {
                             "x": 80.0,
-                            "y": 448.0,
-                            "entry": 220
-                        },
-                        {
-                            "x": 80.0,
                             "y": 352.0,
                             "entry": 12
                         },
                         {
                             "x": 80.0,
-                            "y": 496.0,
+                            "y": 480.0,
+                            "entry": 220
+                        },
+                        {
+                            "x": 80.0,
+                            "y": 432.0,
                             "entry": 18
                         }
                     ]
@@ -1151,20 +1151,20 @@
                         },
                         {
                             "x": 48.0,
-                            "y": 272.0,
-                            "entry": 238
+                            "y": 208.0,
+                            "entry": 190
                         },
                         {
                             "x": 48.0,
-                            "y": 208.0,
-                            "entry": 190
+                            "y": 272.0,
+                            "entry": 238
                         }
                     ]
                 }
             },
             "editor": {
-                "x": 112.0,
-                "y": 144.0,
+                "x": 272.0,
+                "y": 64.0,
                 "color": [
                     0.27000001072883606,
                     0.3499999940395355,
@@ -1840,7 +1840,7 @@
                 }
             },
             "editor": {
-                "x": 256.0,
+                "x": 432.0,
                 "y": 224.0,
                 "color": [
                     0.27000001072883606,
@@ -2097,8 +2097,8 @@
                 }
             },
             "editor": {
-                "x": 256.0,
-                "y": 144.0,
+                "x": 592.0,
+                "y": 224.0,
                 "color": [
                     0.27000001072883606,
                     0.3499999940395355,
@@ -2466,7 +2466,7 @@
                 }
             },
             "editor": {
-                "x": 256.0,
+                "x": 432.0,
                 "y": 336.0,
                 "color": [
                     0.27000001072883606,
@@ -2488,8 +2488,8 @@
                 }
             },
             "editor": {
-                "x": -32.0,
-                "y": 144.0,
+                "x": -48.0,
+                "y": 224.0,
                 "color": [
                     0.27000001072883606,
                     0.3499999940395355,
@@ -2502,33 +2502,60 @@
             "name": "Slide",
             "transitions": [
                 {
-                    "id": 236,
-                    "to": 209,
+                    "id": 241,
+                    "to": 5,
                     "always": false,
                     "condition": {
                         "returnNode": {
                             "id": 1,
                             "posX": 498.0,
-                            "posY": 272.0
+                            "posY": 192.0
                         },
                         "variableNodes": [],
                         "operatorNodes": [],
-                        "logicNodes": [],
+                        "logicNodes": [
+                            {
+                                "id": 3,
+                                "posX": 350.0,
+                                "posY": 144.0,
+                                "op": "Or"
+                            }
+                        ],
                         "notNodes": [],
                         "getterNodes": [
                             {
                                 "id": 2,
-                                "posX": 242.0,
-                                "posY": 252.0,
-                                "componentName": "PlayerSlideComponent",
-                                "fieldName": "finished",
+                                "posX": 141.0,
+                                "posY": 108.0,
+                                "componentName": "PlayerIntentComponent",
+                                "fieldName": "jump.buffered",
+                                "selectedComponent": "None"
+                            },
+                            {
+                                "id": 6,
+                                "posX": 109.0,
+                                "posY": 188.0,
+                                "componentName": "PlayerLocomotionComponent",
+                                "fieldName": "isAirborne",
                                 "selectedComponent": "None"
                             }
                         ],
                         "links": [
                             {
-                                "id": 3,
+                                "id": 4,
                                 "fromId": 2,
+                                "toId": 3,
+                                "toPinB": false
+                            },
+                            {
+                                "id": 7,
+                                "fromId": 6,
+                                "toId": 3,
+                                "toPinB": true
+                            },
+                            {
+                                "id": 8,
+                                "fromId": 3,
                                 "toId": 1,
                                 "toPinB": false
                             }
@@ -2654,69 +2681,6 @@
                     "blendDuration": 0.20000000298023224
                 },
                 {
-                    "id": 241,
-                    "to": 5,
-                    "always": false,
-                    "condition": {
-                        "returnNode": {
-                            "id": 1,
-                            "posX": 498.0,
-                            "posY": 192.0
-                        },
-                        "variableNodes": [],
-                        "operatorNodes": [],
-                        "logicNodes": [
-                            {
-                                "id": 3,
-                                "posX": 350.0,
-                                "posY": 144.0,
-                                "op": "Or"
-                            }
-                        ],
-                        "notNodes": [],
-                        "getterNodes": [
-                            {
-                                "id": 2,
-                                "posX": 141.0,
-                                "posY": 108.0,
-                                "componentName": "PlayerIntentComponent",
-                                "fieldName": "jump.buffered",
-                                "selectedComponent": "None"
-                            },
-                            {
-                                "id": 6,
-                                "posX": 109.0,
-                                "posY": 188.0,
-                                "componentName": "PlayerLocomotionComponent",
-                                "fieldName": "isAirborne",
-                                "selectedComponent": "None"
-                            }
-                        ],
-                        "links": [
-                            {
-                                "id": 4,
-                                "fromId": 2,
-                                "toId": 3,
-                                "toPinB": false
-                            },
-                            {
-                                "id": 7,
-                                "fromId": 6,
-                                "toId": 3,
-                                "toPinB": true
-                            },
-                            {
-                                "id": 8,
-                                "fromId": 3,
-                                "toId": 1,
-                                "toPinB": false
-                            }
-                        ]
-                    },
-                    "blend": true,
-                    "blendDuration": 0.20000000298023224
-                },
-                {
                     "id": 243,
                     "to": 2,
                     "always": false,
@@ -2778,6 +2742,107 @@
                     },
                     "blend": true,
                     "blendDuration": 0.20000000298023224
+                },
+                {
+                    "id": 236,
+                    "to": 209,
+                    "always": false,
+                    "condition": {
+                        "returnNode": {
+                            "id": 1,
+                            "posX": 594.0,
+                            "posY": 352.0
+                        },
+                        "variableNodes": [],
+                        "operatorNodes": [],
+                        "logicNodes": [
+                            {
+                                "id": 4,
+                                "posX": 354.0,
+                                "posY": 304.0,
+                                "op": "Or"
+                            },
+                            {
+                                "id": 7,
+                                "posX": 194.0,
+                                "posY": 336.0,
+                                "op": "And"
+                            }
+                        ],
+                        "notNodes": [
+                            {
+                                "id": 10,
+                                "posX": 66.0,
+                                "posY": 388.0
+                            }
+                        ],
+                        "getterNodes": [
+                            {
+                                "id": 2,
+                                "posX": 162.0,
+                                "posY": 236.0,
+                                "componentName": "PlayerSlideComponent",
+                                "fieldName": "finished",
+                                "selectedComponent": "None"
+                            },
+                            {
+                                "id": 6,
+                                "posX": 18.0,
+                                "posY": 300.0,
+                                "componentName": "PlayerSlideComponent",
+                                "fieldName": "standRequested",
+                                "selectedComponent": "None"
+                            },
+                            {
+                                "id": 9,
+                                "posX": -131.0,
+                                "posY": 396.0,
+                                "componentName": "PlayerIntentComponent",
+                                "fieldName": "wantsMove",
+                                "selectedComponent": "None"
+                            }
+                        ],
+                        "links": [
+                            {
+                                "id": 5,
+                                "fromId": 2,
+                                "toId": 4,
+                                "toPinB": false
+                            },
+                            {
+                                "id": 8,
+                                "fromId": 6,
+                                "toId": 7,
+                                "toPinB": false
+                            },
+                            {
+                                "id": 11,
+                                "fromId": 9,
+                                "toId": 10,
+                                "toPinB": false
+                            },
+                            {
+                                "id": 12,
+                                "fromId": 10,
+                                "toId": 7,
+                                "toPinB": true
+                            },
+                            {
+                                "id": 13,
+                                "fromId": 7,
+                                "toId": 4,
+                                "toPinB": true
+                            },
+                            {
+                                "id": 14,
+                                "fromId": 4,
+                                "toId": 1,
+                                "toPinB": false
+                            }
+                        ]
+                    },
+                    "blend": true,
+                    "blendDuration": 0.20000000298023224
                 }
             ],
             "child": {
@@ -2789,7 +2854,7 @@
                         "loop": true,
                         "rootMotion": false,
                         "editor": {
-                            "x": 208.0,
+                            "x": 192.0,
                             "y": 96.0
                         }
                     }
@@ -2827,8 +2892,8 @@
                 }
             },
             "editor": {
-                "x": 192.0,
-                "y": 0.0,
+                "x": 272.0,
+                "y": 160.0,
                 "color": [
                     0.27000001072883606,
                     0.3499999940395355,

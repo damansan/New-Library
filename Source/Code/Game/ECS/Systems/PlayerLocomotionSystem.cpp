@@ -132,7 +132,11 @@ void PlayerLocomotionSystem::Update(entt::registry& registry, float elapsedTime)
 			loco.isAirborne = (loco.airTime >= loco.fallGraceTime);
 
 			// 指示があれば、向きを進む方向へ一気に合わせる
-			if (cmd.faceMoveDir && HasDirection(cmd.moveDir))
+			if (HasDirection(cmd.faceDir))
+			{
+				transform.rotation.y = PlayerMovementUtils::CalcFacingYaw(cmd.faceDir.x, cmd.faceDir.z);
+			}
+			else if (cmd.faceMoveDir && HasDirection(cmd.moveDir))
 			{
 				transform.rotation.y = PlayerMovementUtils::CalcFacingYaw(cmd.moveDir.x, cmd.moveDir.z);
 			}

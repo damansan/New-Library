@@ -13,6 +13,27 @@
             "prefab": "Data/Prefab/Camera/GameCamera.prefab.json"
         },
         {
+            "name": "Map_Robot3",
+            "overrides": {
+                "PlayerSlideComponent": {
+                    "heightScale": 0.10000000149011612
+                },
+                "TransformComponent": {
+                    "position": [
+                        -1.5844204425811768,
+                        -0.13725534081459045,
+                        -39.791927337646484
+                    ],
+                    "rotation": [
+                        0.0,
+                        1.6932544708251953,
+                        0.0
+                    ]
+                }
+            },
+            "prefab": "Data/Prefab/Player/Map_Robot3.prefab.json"
+        },
+        {
             "components": {
                 "CategoryComponent": {
                     "category": "None"
@@ -29,7 +50,7 @@
                 "TransformComponent": {
                     "position": [
                         -2.5,
-                        2.0,
+                        -0.30000001192092896,
                         2.5
                     ],
                     "rotation": [
@@ -44,41 +65,7 @@
                     ]
                 }
             },
-            "name": "Start"
-        },
-        {
-            "components": {
-                "CategoryComponent": {
-                    "category": "None"
-                },
-                "MaterialComponent": {
-                    "shadingModel": "Default"
-                },
-                "MeshComponent": {
-                    "modelPath": "Data/Model/UEdefault/Blue_Cube.glb"
-                },
-                "PhysicsBodyTypeComponent": {
-                    "type": "Static"
-                },
-                "TransformComponent": {
-                    "position": [
-                        -3.0,
-                        5.0,
-                        -13.899999618530273
-                    ],
-                    "rotation": [
-                        0.0,
-                        0.0,
-                        0.0
-                    ],
-                    "scale": [
-                        1.0,
-                        4.0,
-                        15.0
-                    ]
-                }
-            },
-            "name": "Blue_Cube"
+            "name": "Start_Floor"
         },
         {
             "components": {
@@ -97,62 +84,22 @@
                 "TransformComponent": {
                     "position": [
                         2.5,
-                        2.299999952316284,
+                        0.0,
                         -7.5
                     ],
                     "rotation": [
                         0.0,
-                        3.140000104904175,
+                        3.1414999961853027,
                         0.0
                     ],
                     "scale": [
                         5.0,
-                        0.5199999809265137,
-                        2.5299999713897705
+                        0.5,
+                        2.0
                     ]
                 }
             },
-            "name": "Ramp"
-        },
-        {
-            "name": "Map_Robot3",
-            "overrides": {
-                "TransformComponent": {
-                    "position": [
-                        13.061101913452148,
-                        -3.9716692157298894e-08,
-                        1.3189226388931274
-                    ],
-                    "rotation": [
-                        0.0,
-                        -1.6634039878845215,
-                        0.0
-                    ]
-                }
-            },
-            "prefab": "Data/Prefab/Player/Map_Robot3.prefab.json"
-        },
-        {
-            "name": "Blue_Cube",
-            "overrides": {
-                "TransformComponent": {
-                    "position": [
-                        3.0,
-                        3.0,
-                        -22.100000381469727
-                    ],
-                    "scale": [
-                        1.0,
-                        5.599999904632568,
-                        15.0
-                    ]
-                }
-            },
-            "prefab": "Data/Prefab/Stage/Blue_Cube.prefab.json"
-        },
-        {
-            "name": "default",
-            "prefab": "Data/Prefab/Stage/default.prefab.json"
+            "name": "Start_Ramp"
         },
         {
             "components": {
@@ -170,9 +117,43 @@
                 },
                 "TransformComponent": {
                     "position": [
-                        9.899999618530273,
-                        2.299999952316284,
-                        -5.699999809265137
+                        -2.200000047683716,
+                        2.5999999046325684,
+                        -14.399999618530273
+                    ],
+                    "rotation": [
+                        0.0,
+                        -0.1899999976158142,
+                        0.0
+                    ],
+                    "scale": [
+                        1.0,
+                        5.0,
+                        10.0
+                    ]
+                }
+            },
+            "name": "Start_WallRun1"
+        },
+        {
+            "components": {
+                "CategoryComponent": {
+                    "category": "None"
+                },
+                "MaterialComponent": {
+                    "shadingModel": "Default"
+                },
+                "MeshComponent": {
+                    "modelPath": "Data/Model/UEdefault/Blue_Cube.glb"
+                },
+                "PhysicsBodyTypeComponent": {
+                    "type": "Static"
+                },
+                "TransformComponent": {
+                    "position": [
+                        2.9000000953674316,
+                        3.0,
+                        -17.399999618530273
                     ],
                     "rotation": [
                         0.0,
@@ -180,13 +161,115 @@
                         0.0
                     ],
                     "scale": [
-                        9.789999961853027,
-                        3.5999999046325684,
-                        1.0
+                        1.0,
+                        5.0,
+                        10.0
                     ]
                 }
             },
-            "name": "Blue_Cube"
+            "name": "Start_WallRun2"
+        },
+        {
+            "components": {
+                "CategoryComponent": {
+                    "category": "None"
+                },
+                "MaterialComponent": {
+                    "shadingModel": "Grid"
+                },
+                "MeshComponent": {
+                    "modelPath": "Data/Model/UEdefault/Cube.glb"
+                },
+                "PhysicsBodyTypeComponent": {
+                    "type": "Static"
+                },
+                "TransformComponent": {
+                    "position": [
+                        -5.0,
+                        -0.028999999165534973,
+                        -34.22999954223633
+                    ],
+                    "rotation": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ],
+                    "scale": [
+                        10.0,
+                        1.0,
+                        1.0099999904632568
+                    ]
+                }
+            },
+            "name": "Start_Slope1"
+        },
+        {
+            "components": {
+                "CategoryComponent": {
+                    "category": "None"
+                },
+                "MaterialComponent": {
+                    "shadingModel": "Grid"
+                },
+                "MeshComponent": {
+                    "modelPath": "Data/Model/UEdefault/Cube.glb"
+                },
+                "PhysicsBodyTypeComponent": {
+                    "type": "Static"
+                },
+                "TransformComponent": {
+                    "position": [
+                        -5.0,
+                        0.0,
+                        -35.0
+                    ],
+                    "rotation": [
+                        -0.23999999463558197,
+                        0.0,
+                        0.0
+                    ],
+                    "scale": [
+                        10.0,
+                        1.0,
+                        100.0
+                    ]
+                }
+            },
+            "name": "Start_Slope2"
+        },
+        {
+            "components": {
+                "CategoryComponent": {
+                    "category": "None"
+                },
+                "MaterialComponent": {
+                    "shadingModel": "Default"
+                },
+                "MeshComponent": {
+                    "modelPath": "Data/Model/UEdefault/Blue_Cube.glb"
+                },
+                "PhysicsBodyTypeComponent": {
+                    "type": "Static"
+                },
+                "TransformComponent": {
+                    "position": [
+                        0.0,
+                        -1.2999999523162842,
+                        -56.400001525878906
+                    ],
+                    "rotation": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ],
+                    "scale": [
+                        10.0,
+                        3.0,
+                        0.9900000095367432
+                    ]
+                }
+            },
+            "name": "Start_Hinder1"
         }
     ],
     "settings": {},

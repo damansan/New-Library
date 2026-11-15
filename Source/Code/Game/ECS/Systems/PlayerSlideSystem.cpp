@@ -1,4 +1,4 @@
-#include "PlayerSlideSystem.h"
+ï»¿#include "PlayerSlideSystem.h"
 #include <cmath>
 
 #include "Game/ECS/Components/PlayerIntentComponent.h"
@@ -32,13 +32,14 @@ void PlayerSlideSystem::Update(entt::registry& registry, float elapsedTime, cons
 
 			if (stateMachine.enteredThisFrame)
 			{
-				// “ü‚Á‚½uŠÔF“ü‚Á‚Ä‚«‚½ › ‚ğg‚¢Ø‚é
+				// å…¥ã£ãŸç¬é–“ï¼šå…¥ã£ã¦ããŸ â—‹ ã‚’ä½¿ã„åˆ‡ã‚‹
 				intent.dodge.Consume();
 				slide.wantsStand = false;
 				slide.standRequested = false;
 				slide.finished = false;
+				slide.elapsed = 0.0f;
 
-				// ŠŠ‚éŒü‚«‚Æ‘¬‚³F¡‚Ì‘¬“x‚ğˆø‚«Œp‚®
+				// æ»‘ã‚‹å‘ãã¨é€Ÿã•ï¼šä»Šã®é€Ÿåº¦ã‚’å¼•ãç¶™ã
 				const float vx = movement.velocity.x;
 				const float vz = movement.velocity.z;
 				const float speed = sqrtf(vx * vx + vz * vz);
@@ -48,71 +49,147 @@ void PlayerSlideSystem::Update(entt::registry& registry, float elapsedTime, cons
 				}
 				else
 				{
-					// ~‚Ü‚Á‚Ä‚¢‚éF‘Ì‚ÌŒü‚«‚ÖŠŠ‚é
+					// æ­¢ã¾ã£ã¦ã„ã‚‹ï¼šä½“ã®å‘ãã¸æ»‘ã‚‹
 					slide.slideDir = PlayerMovementUtils::YawToForward(transform.rotation.y);
 				}
 				slide.slideSpeed = speed;
 			}
 			else if (intent.dodge.buffered)
 			{
-				// ŠŠ‚Á‚Ä‚¢‚é“r’†‚Å ›F—§‚¿‚½‚¢Bg‚¢Ø‚é
+				// æ»‘ã£ã¦ã„ã‚‹é€”ä¸­ã§ â—‹ï¼šç«‹ã¡ãŸã„ã€‚ä½¿ã„åˆ‡ã‚‹
 				slide.wantsStand = true;
 				intent.dodge.Consume();
 			}
 
-			// ¶‰E‚Ì‘€ìFƒXƒeƒBƒbƒN‚ÌuŠŠ‚éŒü‚«‚É‘Î‚µ‚Ä‰¡‚Ì¬•ªv‚¾‚¯‚ÅAŒü‚«‚ğ­‚µ‚¸‚Â‰ñ‚·
-			if (intent.wantsMove)
+			slide.elapsed += elapsedTime;
+
+			// å‚ï¼šæ»‘ã‚‹å‘ãã‚’ã€å‚ã®ä¸‹ã‚‹å‘ãã¸å°‘ã—ãšã¤å›ã™(æ€¥ãªå‚ã»ã©é€Ÿãå›ã‚‹)
 			{
-				// ŠŠ‚éŒü‚«‚Ì‰E(‘O‚ª +Z ‚Ì‚Æ‚«A‰E‚Í +X)
-				const float rightX = slide.slideDir.z;
-				const float rightZ = -slide.slideDir.x;
-
-				// ‰¡‚Ì¬•ª(‰E‚ª +A¶‚ª -A‘OŒã‚É“|‚µ‚½•ª‚Í 0)
-				const float side = intent.moveDir.x * rightX + intent.moveDir.z * rightZ;
-				const float angle = side * slide.steerTurnSpeed * elapsedTime;
-
-				// Œü‚«‚ğ angle ‚¾‚¯‰E‚Ö‰ñ‚·
-				const float c = cosf(angle);
-				const float s = sinf(angle);
-				const float newX = slide.slideDir.x * c + rightX * s;
-				const float newZ = slide.slideDir.z * c + rightZ * s;
-				const float len = sqrtf(newX * newX + newZ * newZ);
-				if (len > 1e-4f)
+				const DirectX::XMFLOAT3& n = contact.groundNormal;
+				const float steepness = sqrtf(n.x * n.x + n.z * n.z); // å‚ã®æ€¥ã•(å¹³åœ°ã¯ 0)
+				if (steepness > 0.05f)
 				{
-					slide.slideDir = { newX / len, 0.0f, newZ / len };
+					// å‚ã®ä¸‹ã‚‹å‘ã(æ°´å¹³ã€é•·ã•1)
+					const float downX = n.x / steepness;
+					const float downZ = n.z / steepness;
+
+					// ä»Šã®æ»‘ã‚‹å‘ãã‹ã‚‰è¦‹ã¦ã€ä¸‹ã‚‹å‘ããŒä½•åº¦ãšã‚Œã¦ã„ã‚‹ã‹(å³ãŒ +)
+					const float rightX = slide.slideDir.z;
+					const float rightZ = -slide.slideDir.x;
+					const float front = downX * slide.slideDir.x + downZ * slide.slideDir.z;
+					const float side = downX * rightX + downZ * rightZ;
+					const float angleToDown = atan2f(side, front);
+
+					// ä¸‹ã‚‹å‘ããŒå¾Œã‚å´ã«ã‚ã‚‹(ä¸Šã‚Šå‚ã‚’ç™»ã£ã¦ã„ã‚‹)æ™‚ã¯å›ã•ãªã„(æŒ¯ã‚Šå‘ã‹ãªã„)
+					float maxStep = 0.0f;
+					if (front > 0.0f)
+					{
+						// ã“ã®ãƒ•ãƒ¬ãƒ¼ãƒ ã§å›ã‚Œã‚‹è§’åº¦(è¡Œãéããªã„)
+						maxStep = slide.downhillTurnSpeed * steepness * elapsedTime;
+					}
+					float step = angleToDown;
+					if (step > maxStep)
+					{
+						step = maxStep;
+					}
+					if (step < -maxStep)
+					{
+						step = -maxStep;
+					}
+
+					// æ»‘ã‚‹å‘ãã‚’ step ã ã‘å³ã¸å›ã™(ãƒã‚¤ãƒŠã‚¹ãªã‚‰å·¦)
+					const float c = cosf(step);
+					const float s = sinf(step);
+					float newX = slide.slideDir.x * c + rightX * s;
+					float newZ = slide.slideDir.z * c + rightZ * s;
+					const float len = sqrtf(newX * newX + newZ * newZ);
+					if (len > 1e-4f)
+					{
+						slide.slideDir = { newX / len, 0.0f, newZ / len };
+					}
 				}
 			}
 
-			// Œ¸‘¬(•½’n)F–ˆ•b friction ‚¸‚ÂŒ¸‚ç‚·
-			slide.slideSpeed -= slide.friction * elapsedTime;
+			// å‰ã¸ã®é€Ÿã•ï¼šå…¥ã£ãŸç›´å¾Œã¯å°‘ã—åŠ é€Ÿã€ãã®å¾Œã¯æ‘©æ“¦ã§æ¸›é€Ÿ
+			if (slide.elapsed <= slide.boostTime)
+			{
+				if (slide.boostTime > 0.0f)
+				{
+					slide.slideSpeed += slide.boostSpeed / slide.boostTime * elapsedTime;
+				}
+			}
+			else
+			{
+				slide.slideSpeed -= slide.friction * elapsedTime;
+			}
+
+			// å‚ï¼šé‡åŠ›ã®ã†ã¡ã€æ»‘ã‚‹å‘ãã«æ²¿ã£ãŸåˆ†ã ã‘åŠ é€Ÿ(ä¸Šã‚Šå‚ãªã‚‰æ¸›é€Ÿ)
+			// åœ°é¢ã«å½“ãŸã£ã¦ã„ãªã„æ™‚ã¯æ³•ç·šãŒçœŸä¸Šãªã®ã§ã€0 ã«ãªã‚‹
+			const DirectX::XMFLOAT3& n = contact.groundNormal;
+			const float gravity = fabsf(movement.gravity);
+			const float alongSlide = n.x * slide.slideDir.x + n.z * slide.slideDir.z;
+			slide.slideSpeed += gravity * n.y * alongSlide * slide.slopeGravityScale * elapsedTime;
+
+			// é€Ÿã•ã‚’ 0 ã€œ maxSpeed ã«åã‚ã‚‹
 			if (slide.slideSpeed < 0.0f)
 			{
 				slide.slideSpeed = 0.0f;
 			}
+			if (slide.slideSpeed > slide.maxSpeed)
+			{
+				slide.slideSpeed = slide.maxSpeed;
+			}
 
-			// I‚í‚èF’x‚­‚È‚Á‚½‚çŠŠ‚èI‚í‚é(¨ ‚µ‚á‚ª‚İ)
+			// çµ‚ã‚ã‚Šï¼šåŠ é€ŸãŒçµ‚ã‚ã£ãŸå¾Œã€é…ããªã£ãŸã‚‰æ»‘ã‚Šçµ‚ã‚ã‚‹(â†’ ã—ã‚ƒãŒã¿)
 			slide.finished = false;
-			if (slide.slideSpeed <= slide.endSpeed)
+			if (slide.elapsed > slide.boostTime && slide.slideSpeed <= slide.endSpeed)
 			{
 				slide.finished = true;
 			}
 
-			// —§‚ÂF—§‚¿‚½‚¢ ‚©‚Â “ª‚Ìã‚ª‹ó‚¢‚Ä‚¢‚é(’á‚¢Œ„ŠÔ‚Ì’†‚È‚çA”²‚¯‚é‚Ü‚Å‘Ò‚Â)
+			// çµ‚ã‚ã‚Šï¼šæ€¥ãªä¸Šã‚Šå‚ã«æ»‘ã‚Šè¾¼ã‚“ã ã‚‰ã€ã™ãæ»‘ã‚Šçµ‚ã‚ã‚‹(â†’ ã—ã‚ƒãŒã¿)
+			if (contact.hitGround && alongSlide < -sinf(DirectX::XMConvertToRadians(slide.uphillEndAngleDeg)))
+			{
+				slide.finished = true;
+			}
+
+			// å·¦å³ã®æ“ä½œï¼šæ»‘ã‚‹å‘ãã¯å¤‰ãˆãšã€æ¨ªã¸ãšã‚‰ã™(å‰å¾Œã«å€’ã—ãŸåˆ†ã¯ä½¿ã‚ãªã„)
+			// æ»‘ã‚‹å‘ãã®å³(å‰ãŒ +Z ã®ã¨ãã€å³ã¯ +X)
+			const float rightX = slide.slideDir.z;
+			const float rightZ = -slide.slideDir.x;
+			float side = 0.0f;
+			if (intent.wantsMove)
+			{
+				// æ¨ªã®æˆåˆ†(å³ãŒ +ã€å·¦ãŒ -)
+				side = intent.moveDir.x * rightX + intent.moveDir.z * rightZ;
+			}
+
+			// ç«‹ã¤ï¼šç«‹ã¡ãŸã„ ã‹ã¤ é ­ã®ä¸ŠãŒç©ºã„ã¦ã„ã‚‹(ä½ã„éš™é–“ã®ä¸­ãªã‚‰ã€æŠœã‘ã‚‹ã¾ã§å¾…ã¤)
 			slide.standRequested = false;
 			if (slide.wantsStand && contact.canStand)
 			{
 				slide.standRequested = true;
 			}
 
-			// –ˆƒtƒŒ[ƒ€FLocomotion ‚Ö‚Ìw¦(ŠŠ‚éŒü‚« ~ ‘¬‚³)
+			// æ¯ãƒ•ãƒ¬ãƒ¼ãƒ ï¼šLocomotion ã¸ã®æŒ‡ç¤º(å‰ã¸æ»‘ã‚‹ ï¼‹ æ¨ªã¸ãšã‚Œã‚‹)
+			float vx = slide.slideDir.x * slide.slideSpeed + rightX * side * slide.strafeSpeed;
+			float vz = slide.slideDir.z * slide.slideSpeed + rightZ * side * slide.strafeSpeed;
+			const float targetSpeed = sqrtf(vx * vx + vz * vz);
+			if (targetSpeed > 1e-4f)
+			{
+				vx /= targetSpeed;
+				vz /= targetSpeed;
+			}
+
 			LocomotionCommand& cmd = loco.command;
 			cmd.mode = LocomotionMode::Directional;
-			cmd.moveDir = slide.slideDir;
-			cmd.targetSpeed = slide.slideSpeed;
+			cmd.moveDir = { vx, 0.0f, vz };
+			cmd.targetSpeed = targetSpeed;
 			cmd.accelHalfLife = slide.accelHalfLife;
-			cmd.faceMoveDir = true;
+			cmd.faceMoveDir = false;
+			cmd.faceDir = slide.slideDir; // ä½“ã¯æ»‘ã‚‹å‘ãã¸(æ¨ªã¸ãšã‚Œã‚‹åˆ†ã¯å…¥ã‚Œãªã„)
 
-			// –ˆƒtƒŒ[ƒ€F“–‚½‚è”»’è‚ğ’á‚­‚·‚é
+			// æ¯ãƒ•ãƒ¬ãƒ¼ãƒ ï¼šå½“ãŸã‚Šåˆ¤å®šã‚’ä½ãã™ã‚‹
 			movement.heightScale = slide.heightScale;
 		});
 }
