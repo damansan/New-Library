@@ -39,7 +39,7 @@ void SceneGame::Initialize(const SceneContext& context)
 
 
 	const int lightCount = 20;
-	const float radius = 5.0f;
+	const float radius = 3.0f;
 	const float height = 1.0f;
 
 	for (int i = 0; i < lightCount; i++)

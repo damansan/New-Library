@@ -4,7 +4,7 @@
     <Filter Include="Sources">
       <UniqueIdentifier>{50dd131a-0e06-4ca8-84d8-1c16a1c53d96}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Sources\GameApp">
+    <Filter Include="Sources\App">
       <UniqueIdentifier>{9dca6952-ebdc-4ac7-8ae8-963abb7ce927}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
@@ -13,12 +13,12 @@
       <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\Code\App\GameApp.cpp">
-      <Filter>Sources\GameApp</Filter>
+      <Filter>Sources\App</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Source\Code\App\GameApp.h">
-      <Filter>Sources\GameApp</Filter>
+      <Filter>Sources\App</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -54,6 +54,7 @@ struct PlayerLocomotionComponent
 	// 内部実装用
 	DirectX::XMFLOAT3 carryVelocity = { 0.0f, 0.0f, 0.0f }; // 持ち越しの速度
 	LocomotionMode    lastMode = LocomotionMode::Ground;    // 前フレームのモード
+	int               landingCount = 0;                     // 着地した回数
 
 	// ステートからの指示
 	LocomotionCommand command;

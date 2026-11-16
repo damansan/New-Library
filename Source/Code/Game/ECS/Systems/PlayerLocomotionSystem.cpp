@@ -127,6 +127,11 @@ void PlayerLocomotionSystem::Update(entt::registry& registry, float elapsedTime)
 		{
 			const LocomotionCommand& cmd = loco.command;
 
+			// 体の状態：着地した回数
+			if (movement.isGrounded && loco.airTime > 0.0f)
+			{
+				loco.landingCount++;
+			}
 			// 体の状態：接地していない時間
 			loco.airTime = movement.isGrounded ? 0.0f : loco.airTime + elapsedTime;
 			loco.isAirborne = (loco.airTime >= loco.fallGraceTime);

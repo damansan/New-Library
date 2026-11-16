@@ -70,6 +70,7 @@ cbuffer CbObject : register(b2)
     row_major float4x4 world;
     float alphaCutoff;
     float3 padding;
+    float4 baseColorFactor; // ƒ}ƒeƒŠƒAƒ‹‚ÌŠî–{FiƒŠƒjƒA‹óŠÔj
 };
 
 struct VS_OUT
@@ -98,10 +99,15 @@ PS_OUT main(VS_OUT pin)
     // AlbedoiƒKƒ“ƒ}•â³‚ÅƒŠƒjƒA‹óŠÔ‚Öj
     float4 baseColor = baseMap.Sample(samplerState, pin.texcoord);
 
+    // ƒAƒ‹ƒtƒ@‚ÍŒW”‚ğŠ|‚¯‚Ä‚©‚çƒNƒŠƒbƒv”»’è‚·‚é
+    baseColor.a *= baseColorFactor.a;
+
     // MaskƒNƒŠƒbƒv
     clip(baseColor.a - alphaCutoff);
 
+    // ƒeƒNƒXƒ`ƒƒ‚ÍsRGB‚È‚Ì‚ÅƒŠƒjƒA‚É–ß‚µ‚Ä‚©‚çAƒŠƒjƒA‚ÌŒW”‚ğŠ|‚¯‚é
     baseColor.rgb = pow(max(baseColor.rgb, 0.0001f), 2.2f);
+    baseColor.rgb *= baseColorFactor.rgb;
     pout.albedo = baseColor;
     
     // –@ü
@@ -123,6 +129,91 @@ PS_OUT main(VS_OUT pin)
     return pout;
 } 
  
+===== Gbuffer_Grid_PS.hlsl ===== 
+Path: Gbuffer_Grid_PS.hlsl 
+SamplerState samplerState : register(s0);
+
+cbuffer CbObject : register(b2)
+{
+    row_major float4x4 world;
+    float alphaCutoff;
+    float3 padding;
+    float4 baseColorFactor; // æ ¼å­ã®ä¸‹åœ°ã®è‰²ï¼ˆãƒªãƒ‹ã‚¢ç©ºé–“ï¼‰
+};
+
+// æ ¼å­ã®è¨­å®šï¼ˆãƒ¯ãƒ¼ãƒ«ãƒ‰å˜ä½ï¼‰
+static const float GRID_SIZE = 1.0f; // ç·šã®é–“éš”
+static const float LINE_WIDTH = 0.02f; // ç·šã®å¤ªã•
+static const float LINE_DARKNESS = 0.66f; // ç·šã®æš—ã•ï¼ˆä¸‹åœ°ã®è‰²ã«æ›ã‘ã‚‹ã€UEã®ç´°ç·šã«åˆã‚ã›ãŸå€¤ï¼‰
+static const float3 GRID_BASE_COLOR = float3(0.18f, 0.18f, 0.18f); // ä¸‹åœ°ã®è‰²ï¼ˆãƒªãƒ‹ã‚¢ã€UEã®ã‚°ãƒ¬ãƒ¼ã«åˆã‚ã›ãŸå€¤ï¼‰
+
+struct VS_OUT
+{
+    float4 position : SV_POSITION;
+    float3 normal : NORMAL;
+    float4 tangent : TANGENT;
+    float2 texcoord : TEXCOORD;
+    float3 worldPos : WORLD_POSITION;
+};
+
+struct PS_OUT
+{
+    float4 albedo : SV_TARGET0;
+    float4 normal : SV_TARGET1;
+    float4 position : SV_TARGET2;
+    float4 roughnessMetallic : SV_TARGET3;
+    float4 emissive : SV_TARGET4;
+    float occlusion : SV_TARGET5;
+};
+
+PS_OUT main(VS_OUT pin)
+{
+    PS_OUT pout;
+
+    float3 N = normalize(pin.normal);
+
+    // é¢ã®å‘ãã‹ã‚‰æŠ•å½±ã™ã‚‹2è»¸ã‚’é¸ã¶ï¼ˆä¸€ç•ªå¤§ãã„æ³•ç·šæˆåˆ†ã®è»¸ã‚’æ¨ã¦ã‚‹ï¼‰
+    float3 an = abs(N);
+    float2 uv;
+    if (an.x >= an.y && an.x >= an.z)
+        uv = pin.worldPos.zy; // å·¦å³ã‚’å‘ã„ãŸé¢
+    else if (an.y >= an.z)
+        uv = pin.worldPos.xz; // ä¸Šä¸‹ã‚’å‘ã„ãŸé¢
+    else
+        uv = pin.worldPos.xy; // å‰å¾Œã‚’å‘ã„ãŸé¢
+
+    // ãƒã‚¹å˜ä½ã®åº§æ¨™
+    float2 g = uv / GRID_SIZE;
+
+    // ä¸€ç•ªè¿‘ã„ç·šã¾ã§ã®è·é›¢ï¼ˆãƒã‚¹å˜ä½ã€0ã€œ0.5ï¼‰
+    float2 d = abs(frac(g - 0.5f) - 0.5f);
+
+    // 1ãƒ”ã‚¯ã‚»ãƒ«ã‚ãŸã‚Šã®å¤‰åŒ–é‡ï¼ˆé ãã§ç·šãŒã¡ã‚‰ã¤ã‹ãªã„ã‚ˆã†ã«ã¼ã‹ã—å¹…ã«ä½¿ã†ï¼‰
+    float2 w = max(fwidth(g), 1e-5f);
+
+    // ç·šã®ä¸Šãªã‚‰1ã€ç·šã®å¤–ãªã‚‰0ï¼ˆå¢ƒç•Œã¯wã®å¹…ã§ãªã‚ã‚‰ã‹ã«ï¼‰
+    float halfWidth = (LINE_WIDTH / GRID_SIZE) * 0.5f;
+    float2 lineMask = 1.0f - saturate((d - halfWidth) / w);
+    float onLine = max(lineMask.x, lineMask.y);
+
+    // è‰²ï¼ˆã©ã¡ã‚‰ã‚‚ãƒªãƒ‹ã‚¢ãªã®ã§æ›ã‘åˆã‚ã›ã‚‹ï¼‰
+    float3 baseCol = GRID_BASE_COLOR * baseColorFactor.rgb;
+    float3 lineCol = baseCol * LINE_DARKNESS;
+    float4 albedo = float4(lerp(baseCol, lineCol, onLine), baseColorFactor.a);
+
+    // Maskã‚¯ãƒªãƒƒãƒ—
+    clip(albedo.a - alphaCutoff);
+
+    pout.albedo = albedo;
+    pout.normal = float4(N * 0.5f + 0.5f, 1.0f);
+    pout.position = float4(pin.worldPos, 1.0f);
+    pout.roughnessMetallic = float4(1.0f, 0.0f, 0.0f, 1.0f);
+    pout.emissive = float4(0.0f, 0.0f, 0.0f, 1.0f);
+    pout.occlusion = 1.0f;
+
+    return pout;
+} 
+ 
 ===== Gbuffer_PS.hlsl ===== 
 Path: Gbuffer_PS.hlsl 
 Texture2D baseMap              : register(t0); // Albedo
@@ -138,6 +229,7 @@ cbuffer CbObject : register(b2)
     row_major float4x4 world;
     float alphaCutoff;
     float3 padding;
+    float4 baseColorFactor; // ƒ}ƒeƒŠƒAƒ‹‚ÌŠî–{FiƒŠƒjƒA‹óŠÔj
 };
 
 struct VS_OUT
@@ -167,10 +259,15 @@ PS_OUT main(VS_OUT pin)
     // Albedo
     float4 baseColor = baseMap.Sample(samplerState, pin.texcoord);
 
+    // ƒAƒ‹ƒtƒ@‚ÍŒW”‚ğŠ|‚¯‚Ä‚©‚çƒNƒŠƒbƒv”»’è‚·‚é
+    baseColor.a *= baseColorFactor.a;
+
     // MaskƒNƒŠƒbƒv
     clip(baseColor.a - alphaCutoff);
 
+    // ƒeƒNƒXƒ`ƒƒ‚ÍsRGB‚È‚Ì‚ÅƒŠƒjƒA‚É–ß‚µ‚Ä‚©‚çAƒŠƒjƒA‚ÌŒW”‚ğŠ|‚¯‚é
     baseColor.rgb = pow(max(baseColor.rgb, 0.0001f), 2.2f);
+    baseColor.rgb *= baseColorFactor.rgb;
     pout.albedo = baseColor;
     
     // –@üƒ}ƒbƒsƒ“ƒO
@@ -470,6 +567,14 @@ cbuffer CbLights : register(b1)
     float3 cbPadding;
 };
 
+cbuffer CbObject : register(b2)
+{
+    row_major float4x4 world;
+    float alphaCutoff;
+    float3 padding;
+    float4 baseColorFactor; // ƒ}ƒeƒŠƒAƒ‹‚ÌŠî–{FiƒŠƒjƒA‹óŠÔj
+};
+
 // ƒeƒNƒXƒ`ƒƒ
 Texture2D baseMap              : register(t0); // Albedo
 Texture2D normalMap            : register(t1); // –@üƒ}ƒbƒv
@@ -497,6 +602,9 @@ float4 main(VS_OUT pin) : SV_TARGET
     // Albedoæ“¾
     float4 baseColor = baseMap.Sample(samplerState, pin.texcoord);
     baseColor.rgb = pow(max(baseColor.rgb, 0.0001f), GAMMA);
+
+    // ƒ}ƒeƒŠƒAƒ‹‚ÌŠî–{F‚ğŠ|‚¯‚éiƒŠƒjƒA“¯mj
+    baseColor *= baseColorFactor;
     
     // Emissiveæ“¾
     float3 emissive = emissiveMap.Sample(samplerState, pin.texcoord).rgb;

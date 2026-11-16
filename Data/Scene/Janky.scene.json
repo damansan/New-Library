@@ -14,24 +14,6 @@
         },
         {
             "name": "Map_Robot3",
-            "overrides": {
-                "PlayerWallRunComponent": {
-                    "gravityScale": 0.009999999776482582,
-                    "kickUpSpeed": 10.0
-                },
-                "TransformComponent": {
-                    "position": [
-                        -4.451046466827393,
-                        -1.0000001192092896,
-                        -52.5919189453125
-                    ],
-                    "rotation": [
-                        0.0,
-                        -3.071894645690918,
-                        0.0
-                    ]
-                }
-            },
             "prefab": "Data/Prefab/Player/Map_Robot3.prefab.json"
         },
         {

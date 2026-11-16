@@ -1,6 +1,5 @@
 # 設計メモ（New-Library）
 
-このファイルは collect_all.bat で collected_all.txt の先頭に書き出される。
 構成のルールはここが正。コードと食い違ったら、このメモを更新する。
 
 ## 0. 目的と判断の物差し
@@ -98,14 +97,13 @@
 | 保存 | 一時ファイルに書いてから置き換える |
 | 読み直し | 更新日時が変わったら読み直す。シーンは読み直さない |
 | 拡張子 | `.種類.json`（scene、prefab、stategraph、animedit、sequencer）。種類の判断は GetDataFileKind の1か所 |
-| 先頭 | type、version。モデルに属するものは model（モデルのパス） |
+| 先頭 | 決まった項目は無し。version は形式を変えるときに足す |
 | 例外 | ProjectSettings.json（固定のパス、手書き） |
 
 **モデルに属するデータ**
-- .animedit、.sequencer、.stategraph は 1モデルに1種ずつ
-- 置き場所は Data/Model/<モデル名>/Json/。名前は自由
-- そのフォルダから、先頭の model が一致するものに自動で結び付く。Inspector には表示だけ
-- 同じ種類が2つあれば警告し、どちらも使わない
+- .animedit、.sequencer、.stategraph は 1モデルに1種ずつ。場所はモデルのパスから決まる（GetFilePath）
+- 置き場所は Data/Model/<モデル名>/Json/<モデル名>.種類.json
+- バリエーションは、モデルをコピーして別のモデルにする（グラフの共有、Entity ごとの差し替えはしない）
 
 **アニメーション**
 - 読み込み時に、生データ ＋ .animedit から焼き込む（トリミング → ルートのずれ除去 → 区間 → 向き）。生データは控えておく
@@ -122,9 +120,8 @@
 
 ## 8. 用語と書き方
 
-- ブレンド：上半身と下半身などに分けてポーズを混ぜること
 - レイヤー：物理の衝突の組み合わせ（レイヤー表）
-- ログは簡潔に。敬語を使わない
+- ログは簡潔に。
 - `using namespace DirectX;` は使わない。`DirectX::` を付ける
 - windows.h の max/min マクロを避けるため `(std::max)` と書く
 

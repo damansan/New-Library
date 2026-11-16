@@ -61,10 +61,14 @@
         "accelHalfLife": 0.05000000074505806,
         "boostSpeed": 2.0,
         "boostTime": 0.20000000298023224,
+        "downhillTurnSpeed": 6.0,
         "endSpeed": 1.5,
         "friction": 5.0,
         "heightScale": 0.5,
-        "strafeSpeed": 2.0
+        "maxSpeed": 15.0,
+        "slopeGravityScale": 1.0,
+        "strafeSpeed": 2.0,
+        "uphillEndAngleDeg": 10.0
     },
     "PlayerSprintComponent": {
         "accelHalfLife": 0.10000000149011612,
@@ -76,17 +80,21 @@
     },
     "PlayerWallRunComponent": {
         "accelHalfLife": 0.10000000149011612,
+        "climbHeight": 3.0,
+        "climbSpeed": 3.0,
         "enterMaxAngleDeg": 50.0,
         "enterMinSpeed": 4.0,
-        "gravityScale": 0.30000001192092896,
+        "fallGravityScale": 0.5,
+        "fallSpeedHalfLife": 1.0,
         "kickForwardScale": 1.2000000476837158,
         "kickLockTime": 0.20000000298023224,
-        "kickOutSpeed": 9.0,
-        "kickUpSpeed": 9.0,
+        "kickOutSpeed": 7.0,
+        "kickUpSpeed": 7.0,
         "maxEnterVerticalSpeed": 3.0,
         "minEnterVerticalSpeed": -1.0,
         "minRunSpeed": 7.0,
         "radius": 0.5,
+        "riseGravityScale": 0.5,
         "stickSpeed": 1.0
     },
     "PlayerWallSenseComponent": {
@@ -98,7 +106,7 @@
     "TransformComponent": {
         "position": [
             0.0,
-            -9.778887033462524e-08,
+            -1.2665987014770508e-07,
             0.0
         ],
         "rotation": [
