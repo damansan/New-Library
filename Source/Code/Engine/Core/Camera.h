@@ -23,6 +23,9 @@ public:
         float nearZ, float farZ
     );
 
+    // Fovのセット
+    void SetFovDeg(float fovDeg);
+
     // ゲッター
     const DirectX::XMFLOAT4X4& GetView()        const { return view; }
     const DirectX::XMFLOAT4X4& GetProjection()  const { return projection; }
@@ -43,4 +46,9 @@ private:
     DirectX::XMFLOAT3   front = {};
     DirectX::XMFLOAT3   right = {};
     float               viewingAngle = 40.0f;
+
+    // 最後に SetPerspectiveFov で使った値
+    float               aspect = 16.0f / 9.0f;
+    float               nearZ = 0.1f;
+    float               farZ = 1000.0f;
 };

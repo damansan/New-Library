@@ -342,4 +342,7 @@ void SceneGame::UpdateCamera(float elapsedTime, const SceneContext& context)
 	// ゲームカメラは常に更新する(どのカメラで描画するかはApp側が決める)
 	gameCameraSystem.Update(registry, elapsedTime);
 	gameCameraSystem.ApplyToCamera(registry, *context.camera);
+
+	cameraEffectSystem.Update(registry, elapsedTime);
+	cameraEffectSystem.ApplyToCamera(registry, *context.camera);
 }

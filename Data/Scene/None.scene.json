@@ -1,5 +1,116 @@
 {
-    "entities": [],
+    "entities": [
+        {
+            "name": "Controller",
+            "prefab": "Data/Prefab/System/Controller.prefab.json"
+        },
+        {
+            "name": "FreeCamera",
+            "prefab": "Data/Prefab/Camera/FreeCamera.prefab.json"
+        },
+        {
+            "name": "GameCamera",
+            "overrides": {
+                "CameraEffectComponent": {
+                    "maxFov": 80.0
+                }
+            },
+            "prefab": "Data/Prefab/Camera/GameCamera.prefab.json"
+        },
+        {
+            "name": "default",
+            "prefab": "Data/Prefab/Stage/default.prefab.json"
+        },
+        {
+            "name": "Map_Robot3",
+            "overrides": {
+                "PlayerWallRunComponent": {
+                    "kickLockTime": 0.0
+                },
+                "TransformComponent": {
+                    "position": [
+                        -1.2588176727294922,
+                        -1.1811499689429183e-07,
+                        2.085519790649414
+                    ],
+                    "rotation": [
+                        0.0,
+                        2.448073148727417,
+                        0.0
+                    ]
+                }
+            },
+            "prefab": "Data/Prefab/Player/Map_Robot3.prefab.json"
+        },
+        {
+            "components": {
+                "CategoryComponent": {
+                    "category": "None"
+                },
+                "MaterialComponent": {
+                    "shadingModel": "Grid"
+                },
+                "MeshComponent": {
+                    "modelPath": "Data/Model/UEdefault/Cube.glb"
+                },
+                "PhysicsBodyTypeComponent": {
+                    "type": "Static"
+                },
+                "TransformComponent": {
+                    "position": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ],
+                    "rotation": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ],
+                    "scale": [
+                        100.0,
+                        10.0,
+                        1.0
+                    ]
+                }
+            },
+            "name": "Cube"
+        },
+        {
+            "components": {
+                "CategoryComponent": {
+                    "category": "None"
+                },
+                "MaterialComponent": {
+                    "shadingModel": "Grid"
+                },
+                "MeshComponent": {
+                    "modelPath": "Data/Model/UEdefault/Cube.glb"
+                },
+                "PhysicsBodyTypeComponent": {
+                    "type": "Static"
+                },
+                "TransformComponent": {
+                    "position": [
+                        0.0,
+                        0.0,
+                        5.0
+                    ],
+                    "rotation": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ],
+                    "scale": [
+                        100.0,
+                        10.0,
+                        1.0
+                    ]
+                }
+            },
+            "name": "Cube"
+        }
+    ],
     "settings": {},
     "version": 1
 }

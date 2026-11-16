@@ -1,4 +1,11 @@
 {
+    "CameraEffectComponent": {
+        "baseFov": 40.0,
+        "fovHalfLife": 0.25,
+        "maxFov": 55.0,
+        "speedFull": 15.0,
+        "speedStart": 5.0
+    },
     "CategoryComponent": {
         "category": "Camera"
     },

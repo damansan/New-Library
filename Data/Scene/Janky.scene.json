@@ -10,6 +10,14 @@
         },
         {
             "name": "GameCamera",
+            "overrides": {
+                "CameraEffectComponent": {
+                    "maxFov": 80.0
+                },
+                "GameCameraComponent": {
+                    "followCameraHeight": 1.0
+                }
+            },
             "prefab": "Data/Prefab/Camera/GameCamera.prefab.json"
         },
         {

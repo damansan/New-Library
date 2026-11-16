@@ -50,7 +50,19 @@ void Camera::SetPerspectiveFov(
     float fovY, float aspect,
     float nearZ, float farZ)
 {
+    // FOV だけを変える時のために覚えておく
+    this->aspect = aspect;
+    this->nearZ = nearZ;
+    this->farZ = farZ;
+
     DirectX::XMMATRIX Projection =
         DirectX::XMMatrixPerspectiveFovLH(fovY, aspect, nearZ, farZ);
     DirectX::XMStoreFloat4x4(&projection, Projection);
+}
+
+// Fovのセット
+void Camera::SetFovDeg(float fovDeg)
+{
+    viewingAngle = fovDeg;
+    SetPerspectiveFov(DirectX::XMConvertToRadians(fovDeg), aspect, nearZ, farZ);
 }

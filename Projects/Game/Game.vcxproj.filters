@@ -37,9 +37,6 @@
     <Filter Include="Sources\ECS\System\Player\PlayerIdleSystem">
       <UniqueIdentifier>{5ef56113-c2e7-4939-8866-eb0e91a73ea2}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Sources\ECS\System\Player\PlayerJumpSystem">
-      <UniqueIdentifier>{0e2e7921-e809-4c80-a74f-feef0e620b32}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Sources\ECS\System\Player\PlayerMovementUtils">
       <UniqueIdentifier>{03b9a65b-664f-4233-bfdb-a65232e2c860}</UniqueIdentifier>
     </Filter>
@@ -66,6 +63,12 @@
     </Filter>
     <Filter Include="Sources\ECS\System\Player\PlayerSlideSystem">
       <UniqueIdentifier>{c9e57d57-71d7-48d0-bb9d-b395656009ee}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\ECS\System\CameraEffectSystem">
+      <UniqueIdentifier>{5697fc52-c297-42e3-8cf7-4afa6ffbf206}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\ECS\System\Player\PlayerJumpSystem">
+      <UniqueIdentifier>{0e2e7921-e809-4c80-a74f-feef0e620b32}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -119,6 +122,9 @@
     </ClCompile>
     <ClCompile Include="..\..\Source\Code\Game\ECS\Systems\PlayerSlideSystem.cpp">
       <Filter>Sources\ECS\System\Player\PlayerSlideSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Code\Game\ECS\Systems\CameraEffectSystem.cpp">
+      <Filter>Sources\ECS\System\CameraEffectSystem</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -211,6 +217,12 @@
     </ClInclude>
     <ClInclude Include="..\..\Source\Code\Game\ECS\Systems\PlayerSlideSystem.h">
       <Filter>Sources\ECS\System\Player\PlayerSlideSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Code\Game\ECS\Components\CameraEffectComponent.h">
+      <Filter>Sources\ECS\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Code\Game\ECS\Systems\CameraEffectSystem.h">
+      <Filter>Sources\ECS\System\CameraEffectSystem</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

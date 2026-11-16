@@ -12,6 +12,8 @@
 #include "Game/ECS/Components/PlayerCrouchComponent.h"
 #include "Game/ECS/Components/PlayerSlideComponent.h"
 
+#include "Game/ECS/Components/CameraEffectComponent.h"
+
 #include "Game/ECS/Components/PlayerIntentComponent.h"
 #include "Game/ECS/Components/PlayerLocomotionComponent.h"
 #include "Game/ECS/Components/PlayerWallSenseComponent.h"
@@ -28,6 +30,8 @@ void GameComponents::Register()
 	REGISTER_COMPONENT_TYPE(PlayerWallRunComponent, "Player Wall Run");
 	REGISTER_COMPONENT_TYPE(PlayerCrouchComponent, "Player Crouch");
 	REGISTER_COMPONENT_TYPE(PlayerSlideComponent, "Player Slide");
+
+	REGISTER_COMPONENT_TYPE(CameraEffectComponent, "Camera Effect");
 
 	REGISTER_COMPONENT_TYPE(PlayerIntentComponent, "Player Intent");
 	REGISTER_COMPONENT_TYPE(PlayerLocomotionComponent, "Player Locomotion");

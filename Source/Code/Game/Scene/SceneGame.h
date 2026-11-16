@@ -20,6 +20,8 @@
 #include "Game/ECS/Systems/PlayerCrouchSystem.h"
 #include "Game/ECS/Systems/PlayerSlideSystem.h"
 
+#include "Game/ECS/Systems/CameraEffectSystem.h"
+
 #include "Engine/ECS/Systems/MovementSystem.h"
 #include "Engine/ECS/Systems/AnimationSpeedSystem.h"
 #include "Engine/ECS/Systems/AnimationSystem.h"
@@ -71,6 +73,8 @@ private:
 	PlayerWallRunSystem playerWallRunSystem;
 	PlayerCrouchSystem  playerCrouchSystem;
 	PlayerSlideSystem   playerSlideSystem;
+
+	CameraEffectSystem  cameraEffectSystem;
 
 	MovementSystem    movementSystem;
 	AnimationSpeedSystem     animationSpeedSystem;

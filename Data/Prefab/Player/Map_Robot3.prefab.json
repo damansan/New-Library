@@ -87,7 +87,7 @@
         "fallGravityScale": 0.5,
         "fallSpeedHalfLife": 1.0,
         "kickForwardScale": 1.2000000476837158,
-        "kickLockTime": 0.20000000298023224,
+        "kickLockTime": 0.800000011920929,
         "kickOutSpeed": 7.0,
         "kickUpSpeed": 7.0,
         "maxEnterVerticalSpeed": 3.0,
