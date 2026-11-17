@@ -4,6 +4,9 @@
 
 #include "Game/ECS/Components/PlayerLocomotionComponent.h"
 #include "Game/ECS/Components/PlayerWallRunComponent.h"
+#include "Engine/ECS/Components/MovementComponent.h"
+#include "Engine/ECS/Components/StateMachineComponent.h"
+#include "Game/ECS/Components/PlayerSlideComponent.h"
 #include "Game/ECS/Systems/PlayerMovementUtils.h"
 
 void CameraEffectSystem::Update(entt::registry& registry, float elapsedTime)
@@ -31,6 +34,8 @@ void CameraEffectSystem::Update(entt::registry& registry, float elapsedTime)
 			FovEffect(effect, trigger, elapsedTime);
 			RunBobEffect(effect, trigger, cam, elapsedTime);
 			KickShakeEffect(effect, trigger, cam, elapsedTime);
+			LandShakeEffect(effect, trigger, cam, elapsedTime);
+			SlideDropEffect(effect, trigger, elapsedTime);
 		});
 }
 
@@ -40,6 +45,7 @@ CameraEffectTrigger CameraEffectSystem::BuildTrigger(entt::registry& registry, c
 	CameraEffectTrigger trigger;
 	if (player == entt::null) return trigger;
 
+	// 速度
 	const auto* loco = registry.try_get<PlayerLocomotionComponent>(player);
 	if (loco)
 	{
@@ -48,12 +54,31 @@ CameraEffectTrigger CameraEffectSystem::BuildTrigger(entt::registry& registry, c
 
 	trigger.running = trigger.speed >= effect.runSpeed;
 
+	// 壁蹴り
 	const auto* wallRun = registry.try_get<PlayerWallRunComponent>(player);
 	if (wallRun)
 	{
 		trigger.wallKicked = wallRun->kicked;
 		trigger.kickWallRight = wallRun->isWallRight;
 	}
+
+	// 落下速度
+	const auto* movement = registry.try_get<MovementComponent>(player);
+	if (movement)
+	{
+		trigger.velocityY = movement->velocity.y;
+		trigger.isGround = movement->isGrounded;
+	}
+
+	// スライディング
+	const auto* stateMachine = registry.try_get<StateMachineComponent>(player);
+	const auto* slide = registry.try_get<PlayerSlideComponent>(player);
+	if (stateMachine && slide && stateMachine->IsIn("Slide"))
+	{
+		trigger.sliding = true;
+		trigger.slideSpeed = slide->slideSpeed;
+	}
+
 	return trigger;
 }
 
@@ -200,4 +225,94 @@ void CameraEffectSystem::KickShakeEffect(CameraEffectComponent& effect, const Ca
 	}
 
 	effect.roll += amount * effect.kickShakeRollDeg;
+}
+// 着地で揺らす
+void CameraEffectSystem::LandShakeEffect(CameraEffectComponent& effect, const CameraEffectTrigger& trigger, const GameCameraComponent& cam, float elapsedTime)
+{
+	PulseState& pulse = effect.landShake;
+
+	// ① 空中で速く落ちたら、着地で揺らせる
+	if (!trigger.isGround)
+	{
+		pulse.ready = false;
+		if (trigger.velocityY <= -effect.landFallSpeed)
+		{
+			pulse.ready = true;
+		}
+	}
+
+	// ② 着地した瞬間に発火
+	if (pulse.ready && trigger.isGround)
+	{
+		pulse.ready = false;
+		pulse.active = true;
+		pulse.time = 0.0f;
+	}
+	if (!pulse.active) return;
+
+	// ③ 時間を進め、終わったら止める
+	pulse.time += elapsedTime;
+	if (pulse.time >= effect.landShakeDuration)
+	{
+		pulse.active = false;
+		return;
+	}
+
+	// ④ 揺れの量：1往復（2回）、だんだん小さく
+	const float phase = pulse.time / effect.landShakeDuration * DirectX::XM_2PI;
+	const float remain = 1.0f - pulse.time / effect.landShakeDuration;
+	const float envelope = remain * remain;
+	const float amount = std::sin(phase) * envelope; // -1～+1（＋で右）
+
+	// ⑤ カメラから見た右へ、eye と target を同じだけずらす
+	const float fx = cam.base.currentTarget.x - cam.base.currentEye.x;
+	const float fz = cam.base.currentTarget.z - cam.base.currentEye.z;
+	const float len = std::sqrt(fx * fx + fz * fz);
+	if (len > 0.0001f)
+	{
+		const float rightX = fz / len;
+		const float rightZ = -fx / len;
+		const float shift = amount * effect.landShakeSway;
+
+		effect.eyeOffset.x += rightX * shift;
+		effect.eyeOffset.z += rightZ * shift;
+		effect.targetOffset.x += rightX * shift;
+		effect.targetOffset.z += rightZ * shift;
+	}
+
+	effect.roll += amount * effect.landShakeRollDeg;
+}
+// スライド中は下げ続ける
+void CameraEffectSystem::SlideDropEffect(CameraEffectComponent& effect, const CameraEffectTrigger& trigger, float elapsedTime)
+{
+	// ① スライド中は 1 へ、それ以外は 0 へ、一定の速さで進める
+	float step = 1.0f;
+	if (effect.slideDropTime > 0.0f)
+	{
+		step = elapsedTime / effect.slideDropTime;
+	}
+	if (trigger.sliding)
+	{
+		effect.slideDropRate += step;
+		if (effect.slideDropRate > 1.0f)
+		{
+			effect.slideDropRate = 1.0f;
+		}
+	}
+	else
+	{
+		effect.slideDropRate -= step;
+		if (effect.slideDropRate < 0.0f)
+		{
+			effect.slideDropRate = 0.0f;
+		}
+	}
+	if (effect.slideDropRate <= 0.0f) return;
+
+	// ② sin の山の前半で下げる（速く下がって、底でゆっくり止まる）
+	const float dropY = -std::sin(effect.slideDropRate * DirectX::XM_PIDIV2) * effect.slideDrop;
+
+	// ③ eye と target を同じだけ（向きは変えない）
+	effect.eyeOffset.y += dropY;
+	effect.targetOffset.y += dropY;
 }

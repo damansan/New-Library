@@ -11,6 +11,12 @@ struct CameraEffectTrigger
 
 	bool wallKicked = false;    // 壁を蹴った
 	bool kickWallRight = false; // 蹴った壁が右にあるか
+
+	float velocityY = 0.0f;  // 縦の速さ
+	bool  isGround = false;  // 着地している
+
+	bool  sliding = false; // スライド中
+	float slideSpeed = 0.0f;  // 滑る速さ
 };
 
 
@@ -29,4 +35,9 @@ private:
 	void RunBobEffect(CameraEffectComponent& effect, const CameraEffectTrigger& trigger, const GameCameraComponent& cam, float elapsedTime);
 	// 壁蹴りで小さく揺らす
 	void KickShakeEffect(CameraEffectComponent& effect, const CameraEffectTrigger& trigger, const GameCameraComponent& cam, float elapsedTime);
+	// 着地で揺らす
+	void LandShakeEffect(CameraEffectComponent& effect, const CameraEffectTrigger& trigger, const GameCameraComponent& cam, float elapsedTime);
+	// スライド中は下げ続ける
+	void SlideDropEffect(CameraEffectComponent& effect, const CameraEffectTrigger& trigger, float elapsedTime);
+
 };
