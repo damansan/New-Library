@@ -27,4 +27,6 @@ private:
 	void FovEffect(CameraEffectComponent& effect, const CameraEffectTrigger& trigger, float elapsedTime);
 	// ‘–‚èo‚µ‚É¶‰E‚Ö—h‚ç‚·
 	void RunBobEffect(CameraEffectComponent& effect, const CameraEffectTrigger& trigger, const GameCameraComponent& cam, float elapsedTime);
+	// •ÇR‚è‚Å¬‚³‚­—h‚ç‚·
+	void KickShakeEffect(CameraEffectComponent& effect, const CameraEffectTrigger& trigger, const GameCameraComponent& cam, float elapsedTime);
 };

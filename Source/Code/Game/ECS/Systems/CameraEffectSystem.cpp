@@ -30,6 +30,7 @@ void CameraEffectSystem::Update(entt::registry& registry, float elapsedTime)
 			// 演出ごとの処理
 			FovEffect(effect, trigger, elapsedTime);
 			RunBobEffect(effect, trigger, cam, elapsedTime);
+			KickShakeEffect(effect, trigger, cam, elapsedTime);
 		});
 }
 
@@ -46,7 +47,6 @@ CameraEffectTrigger CameraEffectSystem::BuildTrigger(entt::registry& registry, c
 	}
 
 	trigger.running = trigger.speed >= effect.runSpeed;
-	return trigger;
 
 	const auto* wallRun = registry.try_get<PlayerWallRunComponent>(player);
 	if (wallRun)
@@ -145,4 +145,59 @@ void CameraEffectSystem::RunBobEffect(CameraEffectComponent& effect, const Camer
 	effect.targetOffset.y += liftY;
 
 	effect.roll += amount * effect.runBobRollDeg;
+}
+// 壁蹴りで小さく揺らす
+void CameraEffectSystem::KickShakeEffect(CameraEffectComponent& effect, const CameraEffectTrigger& trigger, const GameCameraComponent& cam, float elapsedTime)
+{
+	PulseState& pulse = effect.kickShake;
+
+	// ① 次の壁走りに入ったら（kicked が戻ったら）、また揺らせる
+	if (!trigger.wallKicked)
+	{
+		pulse.ready = true;
+	}
+
+	// ② 蹴った瞬間に発火
+	if (pulse.ready && trigger.wallKicked)
+	{
+		pulse.ready = false;
+		pulse.active = true;
+		pulse.time = 0.0f;
+	}
+	if (!pulse.active) return;
+
+	// ③ 時間を進め、終わったら止める
+	pulse.time += elapsedTime;
+	if (pulse.time >= effect.kickShakeDuration)
+	{
+		pulse.active = false;
+		return;
+	}
+
+	// ④ 揺れの量：壁側へ寄って戻る（sin の山1つ）
+	const float phase = pulse.time / effect.kickShakeDuration * DirectX::XM_PI;
+	float dir = -1.0f; // 壁が左 → 左へ
+	if (trigger.kickWallRight)
+	{
+		dir = 1.0f;    // 壁が右 → 右へ
+	}
+	const float amount = std::sin(phase) * dir; // -1～+1（＋で右）
+
+	// ⑤ カメラから見た右へ、eye と target を同じだけずらす
+	const float fx = cam.base.currentTarget.x - cam.base.currentEye.x;
+	const float fz = cam.base.currentTarget.z - cam.base.currentEye.z;
+	const float len = std::sqrt(fx * fx + fz * fz);
+	if (len > 0.0001f)
+	{
+		const float rightX = fz / len;
+		const float rightZ = -fx / len;
+		const float shift = amount * effect.kickShakeSway;
+
+		effect.eyeOffset.x += rightX * shift;
+		effect.eyeOffset.z += rightZ * shift;
+		effect.targetOffset.x += rightX * shift;
+		effect.targetOffset.z += rightZ * shift;
+	}
+
+	effect.roll += amount * effect.kickShakeRollDeg;
 }

@@ -36,11 +36,10 @@ struct CameraEffectComponent
 		REFLECT_FIELD(float, runBobLift, (0.05f), ("Run Bob Lift", 0.0f, 1.0f))  // ã‰º‚ÌÅ‘å(m)B‰¡‚Ì”{‚Ì‘¬‚³‚Å‡‚ğ•`‚­
 		REFLECT_FIELD(float, runBobRollDeg, (2.0f), ("Run Bob Roll Deg", 0.0f, 15.0f)) // ŒX‚«‚ÌÅ‘å(“x)
 
-		// KickShakeF•ÇR‚è‚Å¬‚³‚­—h‚ç‚·
-		REFLECT_FIELD(float, kickShakeHalfPeriod, (0.06f), ("Kick Shake Half Period", 0.01f, 0.5f))  // •Ğ‘¤‚ÖU‚ê‚éŠÔ(•b)
-		REFLECT_FIELD(float, kickShakeDuration, (0.3f), ("Kick Shake Duration", 0.05f, 2.0f))  // Á‚¦‚é‚Ü‚Å‚ÌŠÔ(•b)
-		REFLECT_FIELD(float, kickShakeSway, (0.03f), ("Kick Shake Sway", 0.0f, 0.5f))   // ‰¡‚¸‚ê‚ÌÅ‘å(m)
-		REFLECT_FIELD(float, kickShakeRollDeg, (1.0f), ("Kick Shake Roll Deg", 0.0f, 10.0f))  // ŒX‚«‚ÌÅ‘å(“x)
+		// KickShakeF•ÇR‚è‚Å1‰ñ—h‚ç‚·
+		REFLECT_FIELD(float, kickShakeDuration, (0.3f), ("Kick Shake Duration", 0.05f, 2.0f))  // Šñ‚Á‚Ä–ß‚é‚Ü‚Å‚ÌŠÔ(•b)
+		REFLECT_FIELD(float, kickShakeSway, (0.08f), ("Kick Shake Sway", 0.0f, 0.5f))   // ‰¡‚¸‚ê‚ÌÅ‘å(m)
+		REFLECT_FIELD(float, kickShakeRollDeg, (1.5f), ("Kick Shake Roll Deg", 0.0f, 10.0f))  // ŒX‚«‚ÌÅ‘å(“x)
 
 
 
