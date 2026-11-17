@@ -16024,6 +16024,14 @@ struct CameraEffectComponent
 		REFLECT_FIELD(float, speedFull,   (15.0f), ("Speed Full",    0.0f, 50.0f)) // この速さで fovAddMax になる(m/s)
 		REFLECT_FIELD(float, fovHalfLife, (0.25f), ("Fov Half Life", 0.01f, 2.0f)) // 足す量を寄せる半減期(秒)
 
+		// HeadBob：走り出しにカメラを揺らす
+		REFLECT_FIELD(float, runBobStartSpeed, (1.0f), ("Run Bob Start Speed", 0, 10))
+		REFLECT_FIELD(float, runBobStepInterval, (0.3f), ("Run Bob Step Interval", 0.05, 1))
+		REFLECT_FIELD(float, runBobDuration, (1.5f), ("Run Bob Duration", 0.1, 5))
+		REFLECT_FIELD(float, runBobSway, (0.15f), ("Run Bob Sway", 0, 1))
+		REFLECT_FIELD(float, runBobRollDeg, (2.0f), ("Run Bob Roll Deg", 0, 15))
+
+
 		// 演出ごとの状態
 		REFLECT_FIELD(float, fovAdd, (0.0f), ("Fov Add", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // Fov：今足している量(度)
 
