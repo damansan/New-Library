@@ -5,16 +5,9 @@
 #include "Engine/ECS/Components/BaseCameraComponent.h"
 
 // カメラの種類
-enum class Mode
+enum class GameCameraMode
 {
 	Follow, // 追従カメラ
-	LookAt, // 注視カメラ
-};
-// 注視カメラの距離状態
-enum class LockOnRangeState
-{
-	Near, // 近距離：くの字
-	Far,  // 遠距離：縦並び
 };
 
 // ゲームカメラコンポーネント
@@ -23,75 +16,39 @@ struct GameCameraComponent
 	// 調整用カメラパラメーター
 	REFLECT_BEGIN(GameCameraComponent, "GameCamera")
 
-		// 追従カメラ
-		REFLECT_FIELD(float, followCameraDistance, (4.4f), ("Follow Distance"))
-		REFLECT_FIELD(float, followCameraHeight, (1.7f), ("Follow Height"))
-		REFLECT_FIELD(float, followCameraTargetYUp, (1.6f), ("Follow Target Y Up"))
-		REFLECT_FIELD(float, followCameraEyeSpeedRatio, (12.0f), ("Follow Eye Speed Ratio"))
-		REFLECT_FIELD(float, followCameraTargetSpeedRatio, (24.0f), ("Follow Target Speed Ratio"))
+		// 追従
+		REFLECT_FIELD(float, followDistance,  (4.4f), ("Follow Distance",    0.0f, 50.0f))  // プレイヤーからの距離
+		REFLECT_FIELD(float, followHeight,    (1.7f), ("Follow Height",      0.0f, 20.0f))  // 目の高さ
+		REFLECT_FIELD(float, followTargetYUp, (1.6f), ("Follow Target Y Up", 0.0f, 10.0f))  // 注視点の高さ
+		REFLECT_FIELD(float, fov,            (40.0f), ("Fov",               10.0f, 120.0f)) // 基本 FOV
 
-		// ロックオン共通
-		REFLECT_FIELD(float, lockOnCameraEyeSpeedRatio, (12.0f), ("LockOn Eye Speed Ratio"))
-		REFLECT_FIELD(float, lockOnCameraTargetSpeedRatio, (15.0f), ("LockOn Target Speed Ratio"))
-		REFLECT_FIELD(float, lockOnRangeSwitchDistance, (10.0f), ("LockOn Range Switch Distance"))
+		// 回転
+		REFLECT_FIELD(float, rotateSpeed, (2.0f), ("Rotate Speed", 0.0f, 10.0f)) // 回転速度
+		REFLECT_FIELD(float, pitchMin,   (-0.8f), ("Pitch Min",   -1.5f, 1.5f))  // 上下の角度の下限
+		REFLECT_FIELD(float, pitchMax,    (1.0f), ("Pitch Max",   -1.5f, 1.5f))  // 上下の角度の上限
 
-		// ロックオン近距離
-		REFLECT_FIELD(float, lockOnNearCameraDistance, (6.0f), ("Near Distance"))
-		REFLECT_FIELD(float, lockOnNearCameraHeight, (3.0f), ("Near Height"))
-		REFLECT_FIELD(float, lockOnNearCameraTargetYUp, (2.0f), ("Near Target Y Up"))
-		REFLECT_FIELD(float, lockOnNearAngleOffsetMax, (30.0f), ("Near Angle Offset Max"))
+		// 補間
+		REFLECT_FIELD(float, eyeLerpRatio,     (12.0f), ("Eye Lerp Ratio",    0.0f, 100.0f))  // eye の XZ を、毎フレーム残りの何%詰めるか
+		REFLECT_FIELD(float, targetLerpRatio,  (24.0f), ("Target Lerp Ratio", 0.0f, 100.0f))  // target の XZ・Y を、毎フレーム残りの何%詰めるか
+		REFLECT_FIELD(float, springStiffness, (200.0f), ("Spring Stiffness",  0.0f, 1000.0f)) // eye の Y のばねの強さ
+		REFLECT_FIELD(float, springDamping,    (20.0f), ("Spring Damping",    0.0f, 200.0f))  // eye の Y のばねの減衰
 
-		// ロックオン遠距離
-		REFLECT_FIELD(float, lockOnFarCameraDistance, (6.0f), ("Far Distance"))
-		REFLECT_FIELD(float, lockOnFarCameraHeight, (3.0f), ("Far Height"))
-		REFLECT_FIELD(float, lockOnFarCameraTargetYUp, (2.0f), ("Far Target Y Up"))
-
-		// くの字の向き
-		REFLECT_FIELD(float, lockOnSideSwitchThreshold, (0.35f), ("Side Switch Threshold"))
-		REFLECT_FIELD(float, lockOnSideSmoothSpeed, (2.0f), ("Side Smooth Speed"))
-
-		// 円の中心O
-		REFLECT_FIELD(float, lockOnCenterRatio, (0.25f), ("Center Ratio"))
-		REFLECT_FIELD(float, lockOnFarCenterMaxDistance, (1.2f), ("Far Center Max Distance"))
-		REFLECT_FIELD(float, lockOnTargetCircleRadiusMax, (3.0f), ("Target Circle Radius Max"))
-
-		// 円周上の回転（スティック操作）
-		REFLECT_FIELD(float, lockOnOrbitRotateSpeed, (2.0f), ("Orbit Rotate Speed"))
-		REFLECT_FIELD(float, lockOnOrbitPitchRotateSpeed, (2.0f), ("Orbit Pitch Rotate Speed"))
-		REFLECT_FIELD(float, lockOnOrbitReturnSpeed, (2.0f), ("Orbit Return Speed"))
-
-		// 減衰ばね（Y軸）
-		REFLECT_FIELD(float, eyeSpringStiffness, (200.0f), ("Spring Stiffness"))
-		REFLECT_FIELD(float, eyeSpringDamping, (20.0f), ("Spring Damping"))
-
+		// 状態
+		REFLECT_FIELD(float, yaw, (0.0f), ("Yaw", 0.0f, 0.0f, 0.01f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // 左右の角度(rad)
+		REFLECT_FIELD(float, pitch, (0.3f), ("Pitch", 0.0f, 0.0f, 0.01f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // 上下の角度(rad)
+	
 	REFLECT_END()
 
-	// カメラの共通データ（eye, target）
+	// 土台の出力
 	BaseCameraComponent base;
 
 	// カメラの種類
-	Mode mode = Mode::Follow;
-	// 注視カメラの距離状態
-	LockOnRangeState lockOnRange = LockOnRangeState::Near;
+	GameCameraMode mode = GameCameraMode::Follow;
 
-	// 追従対象の Entity
+	// 追従対象
 	entt::entity followTarget = entt::null;
-	// 注視対象の Entity
-	entt::entity lookAtTarget = entt::null;
 
-	// パラメータ
-	float yaw = 0.0f;   // カメラの回転角度
-	float pitch = 0.3f; // カメラの上下角度
-	
-	// ロックオン中の、円周上の角度（スティックで動く）
-	float lockOnOrbitAngle = 0.0f;
-	float lockOnOrbitPitch = 0.0f;
+	bool initialized = false;
 
-	// くの字の向き（+1=右 -1=左）と、それになめらかに追従する値
-	float lockOnSide = 1.0f;
-	float lockOnSideSmooth = 1.0f;
-
-	// ばね計算用の現在速度
-	DirectX::XMFLOAT3 eyeVelocity = {};
-	DirectX::XMFLOAT3 targetVelocity = {};
+	float eyeVelocityY = 0.0f;
 };

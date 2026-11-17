@@ -21,6 +21,7 @@
 #include "Game/ECS/Systems/PlayerSlideSystem.h"
 
 #include "Game/ECS/Systems/CameraEffectSystem.h"
+#include "Game/ECS/Systems/CameraViewSystem.h"
 
 #include "Engine/ECS/Systems/MovementSystem.h"
 #include "Engine/ECS/Systems/AnimationSpeedSystem.h"
@@ -75,6 +76,7 @@ private:
 	PlayerSlideSystem   playerSlideSystem;
 
 	CameraEffectSystem  cameraEffectSystem;
+	CameraViewSystem    cameraViewSystem;
 
 	MovementSystem    movementSystem;
 	AnimationSpeedSystem     animationSpeedSystem;

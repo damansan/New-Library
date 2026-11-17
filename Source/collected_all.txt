@@ -1124,10 +1124,23 @@ void Camera::SetPerspectiveFov(
     float fovY, float aspect,
     float nearZ, float farZ)
 {
+    // FOV だけを変える時のために覚えておく
+    this->aspect = aspect;
+    this->nearZ = nearZ;
+    this->farZ = farZ;
+
     DirectX::XMMATRIX Projection =
         DirectX::XMMatrixPerspectiveFovLH(fovY, aspect, nearZ, farZ);
     DirectX::XMStoreFloat4x4(&projection, Projection);
 }
+
+// Fovのセット
+void Camera::SetFovDeg(float fovDeg)
+{
+    viewingAngle = fovDeg;
+    SetPerspectiveFov(DirectX::XMConvertToRadians(fovDeg), aspect, nearZ, farZ);
+}
+
 
 
 ===== Camera.h =====
@@ -1157,6 +1170,9 @@ public:
         float nearZ, float farZ
     );
 
+    // Fovのセット
+    void SetFovDeg(float fovDeg);
+
     // ゲッター
     const DirectX::XMFLOAT4X4& GetView()        const { return view; }
     const DirectX::XMFLOAT4X4& GetProjection()  const { return projection; }
@@ -1177,6 +1193,11 @@ private:
     DirectX::XMFLOAT3   front = {};
     DirectX::XMFLOAT3   right = {};
     float               viewingAngle = 40.0f;
+
+    // 最後に SetPerspectiveFov で使った値
+    float               aspect = 16.0f / 9.0f;
+    float               nearZ = 0.1f;
+    float               farZ = 1000.0f;
 };
 
 
@@ -15986,6 +16007,59 @@ private:
 };
 
 
+===== CameraEffectComponent.h =====
+Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Game\ECS\Components\CameraEffectComponent.h
+#pragma once
+#include <DirectXMath.h>
+#include "Engine/ECS/Reflect.h"
+
+// カメラの演出
+struct CameraEffectComponent
+{
+	REFLECT_BEGIN(CameraEffectComponent, "Camera Effect")
+
+		// Fov：速さで広げる
+		REFLECT_FIELD(float, fovAddMax,   (15.0f), ("Fov Add Max",   0.0f, 60.0f)) // 速い時に足す FOV(度)
+		REFLECT_FIELD(float, speedStart,   (5.0f), ("Speed Start",   0.0f, 50.0f)) // この速さから広げ始める(m/s)
+		REFLECT_FIELD(float, speedFull,   (15.0f), ("Speed Full",    0.0f, 50.0f)) // この速さで fovAddMax になる(m/s)
+		REFLECT_FIELD(float, fovHalfLife, (0.25f), ("Fov Half Life", 0.01f, 2.0f)) // 足す量を寄せる半減期(秒)
+
+		// 演出ごとの状態
+		REFLECT_FIELD(float, fovAdd, (0.0f), ("Fov Add", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // Fov：今足している量(度)
+
+		// 
+		REFLECT_FIELD(DirectX::XMFLOAT3, eyeOffset, (0.0f, 0.0f, 0.0f), ("Eye Offset", 0.0f, 0.0f, 0.01f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // eye のずれ
+		REFLECT_FIELD(DirectX::XMFLOAT3, targetOffset, (0.0f, 0.0f, 0.0f), ("Target Offset", 0.0f, 0.0f, 0.01f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // target のずれ
+		REFLECT_FIELD(float, fovOffset, (0.0f), ("Fov Offset", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // FOV の増減(度)
+		REFLECT_FIELD(float, roll, (0.0f), ("Roll", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // 傾き(度。＋で右へ傾く)
+
+
+		REFLECT_END()
+};
+
+
+===== CameraViewComponent.h =====
+Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Game\ECS\Components\CameraViewComponent.h
+#pragma once
+#include <DirectXMath.h>
+#include "Engine/ECS/Reflect.h"
+
+struct CameraViewComponent
+{
+	REFLECT_BEGIN(CameraViewComponent, "Camera View")
+
+		REFLECT_FIELD(DirectX::XMFLOAT3,   eye,  (0.0f, 0.0f, 0.0f), ("Eye",    0.0f, 0.0f, 0.01f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // 最終の eye
+		REFLECT_FIELD(DirectX::XMFLOAT3, target, (0.0f, 0.0f, 0.0f), ("Target", 0.0f, 0.0f, 0.01f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // 最終の target
+		
+		REFLECT_FIELD(float, fov,  (0.0f), ("Fov",  0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // 最終の FOV
+		REFLECT_FIELD(float, roll, (0.0f), ("Roll", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // 最終の傾き
+		
+		REFLECT_FIELD(bool, valid, (false), ("Valid", 0.0f, 0.0f, 0.1f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // 値ができているか
+
+	REFLECT_END()
+};
+
+
 ===== GameCameraComponent.h =====
 Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Game\ECS\Components\GameCameraComponent.h
 #pragma once
@@ -15995,16 +16069,9 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Game\ECS\Components\GameC
 #include "Engine/ECS/Components/BaseCameraComponent.h"
 
 // カメラの種類
-enum class Mode
+enum class GameCameraMode
 {
 	Follow, // 追従カメラ
-	LookAt, // 注視カメラ
-};
-// 注視カメラの距離状態
-enum class LockOnRangeState
-{
-	Near, // 近距離：くの字
-	Far,  // 遠距離：縦並び
 };
 
 // ゲームカメラコンポーネント
@@ -16013,77 +16080,41 @@ struct GameCameraComponent
 	// 調整用カメラパラメーター
 	REFLECT_BEGIN(GameCameraComponent, "GameCamera")
 
-		// 追従カメラ
-		REFLECT_FIELD(float, followCameraDistance, (4.4f), ("Follow Distance"))
-		REFLECT_FIELD(float, followCameraHeight, (1.7f), ("Follow Height"))
-		REFLECT_FIELD(float, followCameraTargetYUp, (1.6f), ("Follow Target Y Up"))
-		REFLECT_FIELD(float, followCameraEyeSpeedRatio, (12.0f), ("Follow Eye Speed Ratio"))
-		REFLECT_FIELD(float, followCameraTargetSpeedRatio, (24.0f), ("Follow Target Speed Ratio"))
+		// 追従
+		REFLECT_FIELD(float, followDistance,  (4.4f), ("Follow Distance",    0.0f, 50.0f))  // プレイヤーからの距離
+		REFLECT_FIELD(float, followHeight,    (1.7f), ("Follow Height",      0.0f, 20.0f))  // 目の高さ
+		REFLECT_FIELD(float, followTargetYUp, (1.6f), ("Follow Target Y Up", 0.0f, 10.0f))  // 注視点の高さ
+		REFLECT_FIELD(float, fov,            (40.0f), ("Fov",               10.0f, 120.0f)) // 基本 FOV
 
-		// ロックオン共通
-		REFLECT_FIELD(float, lockOnCameraEyeSpeedRatio, (12.0f), ("LockOn Eye Speed Ratio"))
-		REFLECT_FIELD(float, lockOnCameraTargetSpeedRatio, (15.0f), ("LockOn Target Speed Ratio"))
-		REFLECT_FIELD(float, lockOnRangeSwitchDistance, (10.0f), ("LockOn Range Switch Distance"))
+		// 回転
+		REFLECT_FIELD(float, rotateSpeed, (2.0f), ("Rotate Speed", 0.0f, 10.0f)) // 回転速度
+		REFLECT_FIELD(float, pitchMin,   (-0.8f), ("Pitch Min",   -1.5f, 1.5f))  // 上下の角度の下限
+		REFLECT_FIELD(float, pitchMax,    (1.0f), ("Pitch Max",   -1.5f, 1.5f))  // 上下の角度の上限
 
-		// ロックオン近距離
-		REFLECT_FIELD(float, lockOnNearCameraDistance, (6.0f), ("Near Distance"))
-		REFLECT_FIELD(float, lockOnNearCameraHeight, (3.0f), ("Near Height"))
-		REFLECT_FIELD(float, lockOnNearCameraTargetYUp, (2.0f), ("Near Target Y Up"))
-		REFLECT_FIELD(float, lockOnNearAngleOffsetMax, (30.0f), ("Near Angle Offset Max"))
+		// 補間
+		REFLECT_FIELD(float, eyeLerpRatio,     (12.0f), ("Eye Lerp Ratio",    0.0f, 100.0f))  // eye の XZ を、毎フレーム残りの何%詰めるか
+		REFLECT_FIELD(float, targetLerpRatio,  (24.0f), ("Target Lerp Ratio", 0.0f, 100.0f))  // target の XZ・Y を、毎フレーム残りの何%詰めるか
+		REFLECT_FIELD(float, springStiffness, (200.0f), ("Spring Stiffness",  0.0f, 1000.0f)) // eye の Y のばねの強さ
+		REFLECT_FIELD(float, springDamping,    (20.0f), ("Spring Damping",    0.0f, 200.0f))  // eye の Y のばねの減衰
 
-		// ロックオン遠距離
-		REFLECT_FIELD(float, lockOnFarCameraDistance, (6.0f), ("Far Distance"))
-		REFLECT_FIELD(float, lockOnFarCameraHeight, (3.0f), ("Far Height"))
-		REFLECT_FIELD(float, lockOnFarCameraTargetYUp, (2.0f), ("Far Target Y Up"))
-
-		// くの字の向き
-		REFLECT_FIELD(float, lockOnSideSwitchThreshold, (0.35f), ("Side Switch Threshold"))
-		REFLECT_FIELD(float, lockOnSideSmoothSpeed, (2.0f), ("Side Smooth Speed"))
-
-		// 円の中心O
-		REFLECT_FIELD(float, lockOnCenterRatio, (0.25f), ("Center Ratio"))
-		REFLECT_FIELD(float, lockOnFarCenterMaxDistance, (1.2f), ("Far Center Max Distance"))
-		REFLECT_FIELD(float, lockOnTargetCircleRadiusMax, (3.0f), ("Target Circle Radius Max"))
-
-		// 円周上の回転（スティック操作）
-		REFLECT_FIELD(float, lockOnOrbitRotateSpeed, (2.0f), ("Orbit Rotate Speed"))
-		REFLECT_FIELD(float, lockOnOrbitPitchRotateSpeed, (2.0f), ("Orbit Pitch Rotate Speed"))
-		REFLECT_FIELD(float, lockOnOrbitReturnSpeed, (2.0f), ("Orbit Return Speed"))
-
-		// 減衰ばね（Y軸）
-		REFLECT_FIELD(float, eyeSpringStiffness, (200.0f), ("Spring Stiffness"))
-		REFLECT_FIELD(float, eyeSpringDamping, (20.0f), ("Spring Damping"))
-
+		// 状態
+		REFLECT_FIELD(float, yaw, (0.0f), ("Yaw", 0.0f, 0.0f, 0.01f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // 左右の角度(rad)
+		REFLECT_FIELD(float, pitch, (0.3f), ("Pitch", 0.0f, 0.0f, 0.01f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // 上下の角度(rad)
+	
 	REFLECT_END()
 
-	// カメラの共通データ（eye, target）
+	// 土台の出力
 	BaseCameraComponent base;
 
 	// カメラの種類
-	Mode mode = Mode::Follow;
-	// 注視カメラの距離状態
-	LockOnRangeState lockOnRange = LockOnRangeState::Near;
+	GameCameraMode mode = GameCameraMode::Follow;
 
-	// 追従対象の Entity
+	// 追従対象
 	entt::entity followTarget = entt::null;
-	// 注視対象の Entity
-	entt::entity lookAtTarget = entt::null;
 
-	// パラメータ
-	float yaw = 0.0f;   // カメラの回転角度
-	float pitch = 0.3f; // カメラの上下角度
-	
-	// ロックオン中の、円周上の角度（スティックで動く）
-	float lockOnOrbitAngle = 0.0f;
-	float lockOnOrbitPitch = 0.0f;
+	bool initialized = false;
 
-	// くの字の向き（+1=右 -1=左）と、それになめらかに追従する値
-	float lockOnSide = 1.0f;
-	float lockOnSideSmooth = 1.0f;
-
-	// ばね計算用の現在速度
-	DirectX::XMFLOAT3 eyeVelocity = {};
-	DirectX::XMFLOAT3 targetVelocity = {};
+	float eyeVelocityY = 0.0f;
 };
 
 
@@ -16569,187 +16600,236 @@ struct PlayerWallSenseComponent
 };
 
 
+===== CameraEffectSystem.cpp =====
+Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Game\ECS\Systems\CameraEffectSystem.cpp
+#include "CameraEffectSystem.h"
+
+#include "Game/ECS/Components/PlayerLocomotionComponent.h"
+#include "Game/ECS/Systems/PlayerMovementUtils.h"
+
+void CameraEffectSystem::Update(entt::registry& registry, float elapsedTime)
+{
+	auto view = registry.view<CameraEffectComponent, GameCameraComponent>();
+	view.each([&](CameraEffectComponent& effect, const GameCameraComponent& cam)
+		{
+			// 出力を初期化
+			effect.eyeOffset = { 0.0f, 0.0f, 0.0f };
+			effect.targetOffset = { 0.0f, 0.0f, 0.0f };
+			effect.fovOffset = 0.0f;
+			effect.roll = 0.0f;
+
+			// 
+			entt::entity player = entt::null;
+			if (cam.followTarget != entt::null && registry.valid(cam.followTarget))
+			{
+				player = cam.followTarget;
+			}
+
+			// 演出ごとの処理
+			FovEffect(registry, effect, player, elapsedTime);
+		});
+}
+
+// 速さで Fov を広げる
+void CameraEffectSystem::FovEffect(entt::registry& registry, CameraEffectComponent& effect, entt::entity player, float elapsedTime)
+{
+	// プレイヤーの速さ
+	float speed = 0.0f;
+	if (player != entt::null)
+	{
+		const auto* loco = registry.try_get<PlayerLocomotionComponent>(player);
+		if (loco)
+		{
+			speed = loco->horizontalSpeed;
+		}
+	}
+
+	// 
+	float t = 0.0f;
+	const float range = effect.speedFull - effect.speedStart;
+	if (range > 0.0f)
+	{
+		t = (speed - effect.speedStart) / range;
+	}
+	if (t < 0.0f)
+	{
+		t = 0.0f;
+	}
+	if (t > 1.0f)
+	{
+		t = 1.0f;
+	}
+	const float targetAdd = effect.fovAddMax * t;
+
+	// 急に変わらないように、半減期で寄せる
+	effect.fovAdd = PlayerMovementUtils::Damper(effect.fovAdd, targetAdd, effect.fovHalfLife, elapsedTime);
+
+	// 出力に足す
+	effect.fovOffset += effect.fovAdd;
+}
+
+
+
+===== CameraEffectSystem.h =====
+Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Game\ECS\Systems\CameraEffectSystem.h
+#pragma once
+#include "entt.hpp"
+#include "Game/ECS/Components/CameraEffectComponent.h"
+#include "Game/ECS/Components/GameCameraComponent.h"
+
+class CameraEffectSystem
+{
+public:
+	void Update(entt::registry& registry, float elapsedTime);
+
+private:
+	// 速さで FOV を広げる
+	void FovEffect(entt::registry& registry, CameraEffectComponent& effect, entt::entity player, float elapsedTime);
+
+};
+
+
+===== CameraViewSystem.cpp =====
+Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Game\ECS\Systems\CameraViewSystem.cpp
+#include "CameraViewSystem.h"
+#include <cmath>
+
+#include "Game/ECS/Components/CameraViewComponent.h"
+#include "Game/ECS/Components/CameraEffectComponent.h"
+#include "Game/ECS/Components/GameCameraComponent.h"
+
+void CameraViewSystem::Update(entt::registry& registry)
+{
+	auto view = registry.view<CameraViewComponent, GameCameraComponent>();
+	view.each([&](entt::entity entity, CameraViewComponent& camView, const GameCameraComponent& cam)
+		{
+			// 土台の位置合わせがまだなら、作らない
+			camView.valid = false;
+			if (!cam.initialized) return;
+
+			// 土台
+			camView.eye = cam.base.currentEye;
+			camView.target = cam.base.currentTarget;
+			camView.fov = cam.fov;
+			camView.roll = 0.0f;
+
+			// ＋ 演出
+			const auto* effect = registry.try_get<CameraEffectComponent>(entity);
+			if (effect)
+			{
+				camView.eye.x += effect->eyeOffset.x;
+				camView.eye.y += effect->eyeOffset.y;
+				camView.eye.z += effect->eyeOffset.z;
+				camView.target.x += effect->targetOffset.x;
+				camView.target.y += effect->targetOffset.y;
+				camView.target.z += effect->targetOffset.z;
+				camView.fov += effect->fovOffset;
+				camView.roll += effect->roll;
+			}
+
+			// あたり判定
+
+			camView.valid = true;
+		});
+}
+
+// Camera に渡す
+void CameraViewSystem::ApplyToCamera(entt::registry& registry, Camera& camera)
+{
+	auto view = registry.view<CameraViewComponent>();
+	for (auto entity : view)
+	{
+		const auto& camView = view.get<CameraViewComponent>(entity);
+		if (!camView.valid) continue;
+
+		// 傾き：見る向きを軸に、上の向き(0,1,0)を roll だけ回す
+		const DirectX::XMVECTOR eye = DirectX::XMLoadFloat3(&camView.eye);
+		const DirectX::XMVECTOR target = DirectX::XMLoadFloat3(&camView.target);
+		const DirectX::XMVECTOR forward = DirectX::XMVector3Normalize(DirectX::XMVectorSubtract(target, eye));
+		const DirectX::XMMATRIX rollMatrix = DirectX::XMMatrixRotationAxis(forward, DirectX::XMConvertToRadians(camView.roll));
+		DirectX::XMFLOAT3 up;
+		DirectX::XMStoreFloat3(&up, DirectX::XMVector3TransformNormal(DirectX::XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f), rollMatrix));
+
+		camera.SetLookAt(camView.eye, camView.target, up);
+		camera.SetFovDeg(camView.fov);
+		break; // カメラは1つだけ
+	}
+}
+
+
+
+===== CameraViewSystem.h =====
+Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Game\ECS\Systems\CameraViewSystem.h
+#pragma once
+#include "entt.hpp"
+#include "Engine/Core/Camera.h"
+
+class CameraViewSystem
+{
+public:
+	// 最終の値を作る
+	void Update(entt::registry& registry);
+
+	// Camera に渡す
+	void ApplyToCamera(entt::registry& registry, Camera& camera);
+};
+
+
 ===== GameCameraSystem.cpp =====
 Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Game\ECS\Systems\GameCameraSystem.cpp
 #include "GameCameraSystem.h"
-#include "Engine/ECS/EntityFinder.h"
-
 #include <algorithm>
+#include <cmath>
 
-void GameCameraSystem::Initialize(ID3D11Device* device)
-{
-	shapeRenderer = ShapeRenderer(device);
-}
+#include "Engine/ECS/EntityFinder.h"
+#include "Game/ECS/Components/GameInputComponent.h"
 
+// 更新
 void GameCameraSystem::Update(entt::registry& registry, float elapsedTime)
 {
-	auto view = registry.view<GameCameraComponent, TransformComponent>();
-	view.each([&](auto entity, GameCameraComponent& cam, TransformComponent& transform)
+	auto view = registry.view<GameCameraComponent>();
+	view.each([&](GameCameraComponent& cam)
 		{
-			// 追従対象が未設定なら Player属性 を持つEntityを見つけるまで探す
+			// 追従対象が消えていたら、空に戻す
+			if (cam.followTarget != entt::null && !registry.valid(cam.followTarget))
+			{
+				cam.followTarget = entt::null;
+			}
+
+			// 空なら Player を探す
 			if (cam.followTarget == entt::null)
 			{
 				cam.followTarget = FindFirstByCategory(registry, EntityCategory::Player);
+				cam.initialized = false;
 			}
-
-			// それでも見つからなければ、何も行わない
 			if (cam.followTarget == entt::null) return;
-			if (!registry.valid(cam.followTarget)) return;
 
-			// 追従対象のTransformComponentを取得、なければ何も行わない
-			auto* followTransform = registry.try_get<TransformComponent>(cam.followTarget);
+			const auto* followTransform = registry.try_get<TransformComponent>(cam.followTarget);
 			if (!followTransform) return;
 
-			// 初回だけ currentEye / currentTarget を即座に設定
-			if (cam.base.currentEye.x == 0.0f && 
-				cam.base.currentEye.y == 0.0f &&
-				cam.base.currentEye.z == 0.0f)
-			{
-				cam.base.currentTarget = followTransform->position;
-				cam.base.currentEye =
-				{
-					followTransform->position.x,
-					followTransform->position.y + cam.followCameraHeight,
-					followTransform->position.z - cam.followCameraDistance
-				};
-			}
-
-			// InputComponent からカメラ操作入力を取得
-			auto* input = registry.try_get<GameInputComponent>(cam.followTarget);
+			// 右スティックで回す
+			const auto* input = registry.try_get<GameInputComponent>(cam.followTarget);
 			if (input)
 			{
-				if (cam.mode == Mode::Follow)
-				{
-					// Follow カメラ
-					const float rotSpeed = 2.0f;
-					cam.yaw += input->cameraStick.x * rotSpeed * elapsedTime;   // スティック左右でカメラ回転
-					cam.pitch += input->cameraStick.y * rotSpeed * elapsedTime; // スティック上下でカメラ上下角度
-					cam.pitch = std::clamp(cam.pitch, -0.8f, 1.0f); // 上下角度の制限
-				}
-				else // LockOn カメラ
-				{
-					// スティック入力有
-					if (input->cameraStick.hasInput)
-					{
-						// スティック左右でカメラ回転
-						cam.lockOnOrbitAngle -= input->cameraStick.x * cam.lockOnOrbitRotateSpeed * elapsedTime;
-						cam.lockOnOrbitPitch += input->cameraStick.y * cam.lockOnOrbitPitchRotateSpeed * elapsedTime;
-					}
-					else // スティック入力無
-					{
-						// 戻る強さの倍率、Enemyに近いほど弱くする
-						float returnScale = 1.0f;
-						if (registry.valid(cam.lookAtTarget))
-						{
-							DirectX::XMFLOAT3 enemyPos = registry.get<TransformComponent>(cam.lookAtTarget).position;
-							float dx = followTransform->position.x - enemyPos.x;
-							float dz = followTransform->position.z - enemyPos.z;
-							float distToEnemy = sqrtf(dx * dx + dz * dz);
-							returnScale = std::clamp(distToEnemy / cam.lockOnFarCenterMaxDistance, 0.0f, 1.0f);
-						}
-
-						// lerpでふわっと戻す
-						float returnT = std::clamp(cam.lockOnOrbitReturnSpeed * returnScale * elapsedTime, 0.0f, 1.0f);
-						cam.lockOnOrbitAngle -= cam.lockOnOrbitAngle * returnT;
-						cam.lockOnOrbitPitch -= cam.lockOnOrbitPitch * returnT;
-					}
-
-					// -180度～180度の範囲に抑えて最短距離で戻すようにする
-					cam.lockOnOrbitAngle = fmodf(cam.lockOnOrbitAngle + DirectX::XM_PI, DirectX::XM_2PI);
-					if (cam.lockOnOrbitAngle < 0.0f) cam.lockOnOrbitAngle += DirectX::XM_2PI;
-					cam.lockOnOrbitAngle -= DirectX::XM_PI;
-
-					cam.lockOnOrbitPitch = std::clamp(cam.lockOnOrbitPitch, -0.8f, 0.8f); // 上下角度の制限
-				
-					// くの字が曲がる向きの判定（ヒステリシス）
-					// 閾値を超えて倒した時だけ切り替わり、それ以外は今の向きを維持する
-					if (cam.lockOnOrbitAngle > cam.lockOnSideSwitchThreshold)
-					{
-						cam.lockOnSide = 1.0f;
-					}
-					else if (cam.lockOnOrbitAngle < -cam.lockOnSideSwitchThreshold)
-					{
-						cam.lockOnSide = -1.0f;
-					}
-
-					// lockOnSideへ、lerpでなめらかに追従させる
-					float sideT = std::clamp(cam.lockOnSideSmoothSpeed * elapsedTime, 0.0f, 1.0f);
-					cam.lockOnSideSmooth += (cam.lockOnSide - cam.lockOnSideSmooth) * sideT;
-				}
-
-				// L2を押した瞬間、Follow<->LookAtをトグル切り替え
-				if (input->lockOnTrigger.pressed)
-				{
-					if (cam.mode == Mode::Follow)
-					{
-						// Playerに一番近いEnemyを選ぶ
-						auto enemies = FindAllByCategory(registry, EntityCategory::Enemy);
-
-						entt::entity best = entt::null;
-						float bestDistSq = FLT_MAX;
-
-						for (auto e : enemies)
-						{
-
-							if (!registry.valid(e)) continue;
-							auto* enemyTransform = registry.try_get<TransformComponent>(e);
-							if (!enemyTransform) continue;
-
-							float dx = enemyTransform->position.x - followTransform->position.x;
-							float dy = enemyTransform->position.y - followTransform->position.y;
-							float dz = enemyTransform->position.z - followTransform->position.z;
-							float distSq = dx * dx + dy * dy + dz * dz;
-							if (distSq < 0.0001f) continue;
-
-							if (distSq < bestDistSq)
-							{
-								bestDistSq = distSq;
-								best = e;
-							}
-						}
-
-						if (best != entt::null)
-						{
-							cam.lookAtTarget = best;
-							cam.mode = Mode::LookAt;
-						}
-					}
-					else if (cam.mode == Mode::LookAt)
-					{
-						// LockOnからFollowに戻す際に逆算して同期させる
-						float dx = cam.base.currentEye.x - followTransform->position.x;
-						float dy = cam.base.currentEye.y - followTransform->position.y - cam.followCameraHeight;
-						float dz = cam.base.currentEye.z - followTransform->position.z;
-						float horizDist = sqrtf(dx * dx + dz * dz);
-
-						if (horizDist > 0.0001f)
-						{
-							cam.yaw = atan2f(-dx, -dz);
-							cam.pitch = std::clamp(atan2f(dy, horizDist), -0.8f, 1.0f);
-						}
-
-						cam.mode = Mode::Follow;
-					}
-				}
+				cam.yaw += input->cameraStick.x * cam.rotateSpeed * elapsedTime;
+				cam.pitch += input->cameraStick.y * cam.rotateSpeed * elapsedTime;
+				cam.pitch = std::clamp(cam.pitch, cam.pitchMin, cam.pitchMax);
 			}
 
-			// LookAt中に、注視対象が破棄されていたら、Followへ自動的に戻す
-			if (cam.mode == Mode::LookAt && !registry.valid(cam.lookAtTarget))
+			// 最初・追従対象が変わった時：補間せずに正しい位置へ置く
+			if (!cam.initialized)
 			{
-				cam.mode = Mode::Follow;
+				cam.base.currentEye = CalcFollowIdealEye(cam, *followTransform);
+				cam.base.currentTarget = CalcFollowIdealTarget(cam, *followTransform);
+				cam.eyeVelocityY = 0.0f;
+				cam.initialized = true;
 			}
 
-
-			// 注視点をカメラのモードに応じて変更
+			// モードごとの処理
 			switch (cam.mode)
 			{
-			case Mode::Follow: // 追従対象自身を見る
-				UpdateFollowEye(cam, *followTransform, elapsedTime);
-				UpdateFollowTarget(cam, *followTransform, elapsedTime);
-				break;
-			case Mode::LookAt: // ロックオン先を見る
-				UpdateLockOnEye(cam, registry, elapsedTime);
-				UpdateLookAtTarget(cam, registry, elapsedTime);
+			case GameCameraMode::Follow:
+				UpdateFollow(cam, *followTransform, elapsedTime);
 				break;
 			}
 		});
@@ -16761,352 +16841,59 @@ void GameCameraSystem::ApplyToCamera(entt::registry& registry, Camera& camera)
 	auto view = registry.view<GameCameraComponent>();
 	for (auto entity : view)
 	{
-		auto& cam = view.get<GameCameraComponent>(entity);
+		const auto& cam = view.get<GameCameraComponent>(entity);
+		if (!cam.initialized) continue;
 
-		// followTarget が未設定ならスキップ
-		if (cam.followTarget == entt::null) continue;
-
-		// eye と target が同じ位置ならスキップ
-		if (cam.base.currentEye.x == cam.base.currentTarget.x &&
-			cam.base.currentEye.y == cam.base.currentTarget.y &&
-			cam.base.currentEye.z == cam.base.currentTarget.z) continue;
-
-		// Camera クラスに eye と target を反映
-		camera.SetLookAt(
-			cam.base.currentEye,
-			cam.base.currentTarget,
-			{ 0.0f, 1.0f, 0.0f }
-		);
+		camera.SetLookAt(cam.base.currentEye, cam.base.currentTarget, { 0.0f, 1.0f, 0.0f });
 		break;
 	}
 }
 
-// デバッグ描画
-void GameCameraSystem::DrawDebug(
-	entt::registry& registry,
-	ID3D11DeviceContext* dc, 
-	const DirectX::XMFLOAT4X4& view,
-	const DirectX::XMFLOAT4X4& projection, 
-	const DirectX::XMFLOAT3& lightDirection)
+// 追従カメラの処理
+void GameCameraSystem::UpdateFollow(GameCameraComponent& cam, const TransformComponent& followTransform, float elapsedTime)
 {
-	const DirectX::XMFLOAT4 eyeColor        = { 0.2f, 0.5f, 1.0f, 1.0f }; // eye         ：青
-	const DirectX::XMFLOAT4 targetColor     = { 1.0f, 0.6f, 0.1f, 1.0f }; // target      ：オレンジ
-	const DirectX::XMFLOAT4 centerColor     = { 1.0f, 1.0f, 1.0f, 1.0f }; // 中心 O      ：白
-	const DirectX::XMFLOAT4 ringColor       = { 0.2f, 0.5f, 1.0f, 0.6f }; // 円周        ：薄い青
-	const DirectX::XMFLOAT4 targetRingColor = { 0.6f, 0.3f, 1.0f, 0.6f }; // targetの円周：薄い紫
+	const DirectX::XMFLOAT3 idealEye = CalcFollowIdealEye(cam, followTransform);
+	const DirectX::XMFLOAT3 idealTarget = CalcFollowIdealTarget(cam, followTransform);
 
-	auto camView = registry.view<GameCameraComponent>();
-	for (auto entity : camView)
-	{
-		auto& cam = camView.get<GameCameraComponent>(entity);
-		if (cam.mode != Mode::LookAt) continue;
+	// target XYZ lerp 補間
+	const float targetT = std::clamp(cam.targetLerpRatio / 100.0f, 0.0f, 1.0f);
+	cam.base.currentTarget.x += (idealTarget.x - cam.base.currentTarget.x) * targetT;
+	cam.base.currentTarget.y += (idealTarget.y - cam.base.currentTarget.y) * targetT;
+	cam.base.currentTarget.z += (idealTarget.z - cam.base.currentTarget.z) * targetT;
 
-		// 現在のeye/target
-		shapeRenderer.DrawSphere(cam.base.currentEye, 0.15f, eyeColor);
-		shapeRenderer.DrawSphere(cam.base.currentTarget, 0.15f, targetColor);
+	// eye XZ lerp 補間
+	const float eyeT = std::clamp(cam.eyeLerpRatio / 100.0f, 0.0f, 1.0f);
+	cam.base.currentEye.x += (idealEye.x - cam.base.currentEye.x) * eyeT;
+	cam.base.currentEye.z += (idealEye.z - cam.base.currentEye.z) * eyeT;
 
-		if (registry.valid(cam.followTarget) && registry.valid(cam.lookAtTarget)) 
-		{
-			DirectX::XMFLOAT3 playerPos = registry.get<TransformComponent>(cam.followTarget).position;
-			DirectX::XMFLOAT3 enemyPos = registry.get<TransformComponent>(cam.lookAtTarget).position;
-
-			// EnemyからPlayerの方向ベクトル
-			float backX = playerPos.x - enemyPos.x;
-			float backZ = playerPos.z - enemyPos.z;
-			float len = sqrtf(backX * backX + backZ * backZ);
-
-			if (len <= 0.0001f) continue;
-
-
-			backX /= len;
-			backZ /= len;
-
-			// 円の中心 O
-			float centerDistByRatio = len * cam.lockOnCenterRatio;
-			float centerDist = (std::min)(centerDistByRatio, cam.lockOnFarCenterMaxDistance);
-
-			DirectX::XMFLOAT3 center =
-			{
-				playerPos.x - backX * centerDist,
-				playerPos.y,
-				playerPos.z - backZ * centerDist
-			};
-
-			shapeRenderer.DrawSphere(center, 0.15f, centerColor);
-
-			// 近距離/遠距離で、eyeの半径・高さ・targetの高さを切り替える
-			float eyeRadius, eyeHeight, targetYUp;
-			if (cam.lockOnRange == LockOnRangeState::Near)
-			{
-				eyeRadius = cam.lockOnNearCameraDistance;
-				eyeHeight = cam.lockOnNearCameraHeight;
-				targetYUp = cam.lockOnNearCameraTargetYUp;
-			}
-			else
-			{
-				eyeRadius = cam.lockOnFarCameraDistance;
-				eyeHeight = cam.lockOnFarCameraHeight;
-				targetYUp = cam.lockOnFarCameraTargetYUp;
-
-			}
-
-			// デフォルト角度のオフセット
-			float nearT = 1.0f - std::clamp(len / cam.lockOnRangeSwitchDistance, 0.0f, 1.0f);
-			float angleOffset = DirectX::XMConvertToRadians(cam.lockOnNearAngleOffsetMax) * nearT * cam.lockOnSideSmooth;
-
-			// eyeの円周を、点の集まりで描く
-			const int segments = 32;
-			for (int i = 0; i < segments; ++i)
-			{
-				float t = (float)i / (float)segments * DirectX::XM_2PI + angleOffset;
-				DirectX::XMFLOAT3 p =
-				{
-					center.x + sinf(t) * eyeRadius,
-					center.y + eyeHeight,
-					center.z + cosf(t) * eyeRadius
-				};
-				shapeRenderer.DrawSphere(p, 0.05f, ringColor);
-			}
-
-			// targetの円周を、点の集まりで描く
-			const float targetRadius = (std::min)(len * 0.25f, cam.lockOnTargetCircleRadiusMax);
-			for (int i = 0; i < segments; ++i)
-			{
-				float t = (float)i / (float)segments * DirectX::XM_2PI + angleOffset;
-				DirectX::XMFLOAT3 p =
-				{
-					center.x + sinf(t) * targetRadius,
-					center.y + targetYUp,
-					center.z + cosf(t) * targetRadius
-				};
-				shapeRenderer.DrawSphere(p, 0.05f, targetRingColor);
-			}
-		}
-	}
-
-	shapeRenderer.Render(dc, view, projection, lightDirection);
+	// eye ばね 補間
+	const float accel = cam.springStiffness * (idealEye.y - cam.base.currentEye.y) - cam.springDamping * cam.eyeVelocityY;
+	cam.eyeVelocityY += accel * elapsedTime;
+	cam.base.currentEye.y += cam.eyeVelocityY * elapsedTime;
 }
 
-// Followカメラの更新
-void GameCameraSystem::UpdateFollowTarget(GameCameraComponent& cam, const TransformComponent& followTransform, float elapsedTime)
+// 追従カメラの理想の eye
+DirectX::XMFLOAT3 GameCameraSystem::CalcFollowIdealEye(const GameCameraComponent& cam, const TransformComponent& followTransform) const
 {
-	DirectX::XMFLOAT3 targetPos = followTransform.position;
+	const DirectX::XMFLOAT3& p = followTransform.position;
+	const float sinYaw = sinf(cam.yaw);
+	const float cosYaw = cosf(cam.yaw);
+	const float sinPitch = sinf(cam.pitch);
+	const float cosPitch = cosf(cam.pitch);
 
-	// targetの補間速度を正規化
-	float t = std::clamp(cam.followCameraTargetSpeedRatio / 100.0f, 0.0f, 1.0f);
-
-	// X,Zはlerpで補間、YはfollowCameraTargetYUpを加算してlerpで補間
-	cam.base.currentTarget.x += (targetPos.x - cam.base.currentTarget.x) * t;
-	cam.base.currentTarget.y += ((targetPos.y + cam.followCameraTargetYUp) - cam.base.currentTarget.y) * t;
-	cam.base.currentTarget.z += (targetPos.z - cam.base.currentTarget.z) * t;
-}
-// Follow用のcurrentEye計算
-void GameCameraSystem::UpdateFollowEye(GameCameraComponent& cam, const TransformComponent& followTransform, float elapsedTime)
-{
-	DirectX::XMFLOAT3 basePos = followTransform.position;
-
-	// yaw, pitchから理想のeye位置を計算
-	float sinYaw = sinf(cam.yaw);
-	float cosYaw = cosf(cam.yaw);
-	float cosPitch = cosf(cam.pitch);
-	float sinPitch = sinf(cam.pitch);
-
-	// FollowTargetからDistanceだけ離れた球面上の点を求める
-	DirectX::XMFLOAT3 idealEye =
-	{
-		basePos.x - sinYaw * cosPitch * cam.followCameraDistance,
-		basePos.y + sinPitch * cam.followCameraDistance + cam.followCameraHeight,
-		basePos.z - cosYaw * cosPitch * cam.followCameraDistance
+	return {
+		p.x - sinYaw * cosPitch * cam.followDistance,
+		p.y + sinPitch * cam.followDistance + cam.followHeight,
+		p.z - cosYaw * cosPitch * cam.followDistance
 	};
-
-	// eyeの補間速度を正規化
-	float t = std::clamp(cam.followCameraEyeSpeedRatio / 100.0f, 0.0f, 1.0f);
-
-	// X,Zはlerpで補間
-	cam.base.currentEye.x += (idealEye.x - cam.base.currentEye.x) * t;
-	cam.base.currentEye.z += (idealEye.z - cam.base.currentEye.z) * t;
-
-	// 減衰ばね
-	auto springAxis = [&](float current, float ideal, float& velocity) -> float
-		{
-			// 加速度 = バネの力（目標との差） - ダンパーの力（速度に比例して減衰）
-			float accel = cam.eyeSpringStiffness * (ideal - current) - cam.eyeSpringDamping * velocity;
-			velocity += accel * elapsedTime;
-			return current + velocity * elapsedTime;
-		};
-
-	// Yは減衰ばねで補間
-	cam.base.currentEye.y = springAxis(cam.base.currentEye.y, idealEye.y, cam.eyeVelocity.y);
 }
-
-// LookAtカメラの更新
-void GameCameraSystem::UpdateLookAtTarget(GameCameraComponent& cam, entt::registry& registry, float elapsedTime)
+// 追従カメラの理想の target
+DirectX::XMFLOAT3 GameCameraSystem::CalcFollowIdealTarget(const GameCameraComponent& cam, const TransformComponent& followTransform) const
 {
-	DirectX::XMFLOAT3 playerPos = registry.get<TransformComponent>(cam.followTarget).position;
-	DirectX::XMFLOAT3 enemyPos = registry.get<TransformComponent>(cam.lookAtTarget).position;
-
-	// EnemyからPlayer方向のベクトル算出
-	float backX = playerPos.x - enemyPos.x;
-	float backZ = playerPos.z - enemyPos.z;
-	float len = sqrtf(backX * backX + backZ * backZ);
-
-	DirectX::XMFLOAT3 idealTarget = cam.base.currentTarget;
-
-	if (len > 0.0001f)
-	{
-		backX /= len;
-		backZ /= len;
-
-		// 円の中心 O
-		float centerDistByRatio = len * cam.lockOnCenterRatio;
-		float centerDist = (std::min)(centerDistByRatio, cam.lockOnFarCenterMaxDistance);
-
-		DirectX::XMFLOAT3 center =
-		{
-			playerPos.x - backX * centerDist,
-			playerPos.y,
-			playerPos.z - backZ * centerDist
-		};
-
-		// targetの円の半径
-		float targetRadius = (std::min)(len * 0.25f, cam.lockOnTargetCircleRadiusMax);
-
-		// targetの高さ(近距離/遠距離で切り替え)
-		float targetYUp = (cam.lockOnRange == LockOnRangeState::Near)
-			? cam.lockOnNearCameraTargetYUp
-			: cam.lockOnFarCameraTargetYUp;
-
-		// 距離に応じてなめらかに変化
-		float nearT = 1.0f - std::clamp(len / cam.lockOnRangeSwitchDistance, 0.0f, 1.0f);
-		float angleOffset = DirectX::XMConvertToRadians(cam.lockOnNearAngleOffsetMax) * nearT * cam.lockOnSideSmooth;
-
-		// Cameraと同じ角度で回転させた方向を求め、反対方向に配置する
-		float angle = cam.lockOnOrbitAngle + angleOffset;
-		float cosA = cosf(angle);
-		float sinA = sinf(angle);
-		float rotatedX = backX * cosA - backZ * sinA;
-		float rotatedZ = backX * sinA + backZ * cosA;
-
-		// orbitPitchも、eyeとは上下逆方向にすることで、点対称を保つ
-		float cosP = cosf(cam.lockOnOrbitPitch);
-		float sinP = sinf(cam.lockOnOrbitPitch);
-
-		idealTarget =
-		{
-			center.x - rotatedX * targetRadius * cosP,
-			center.y + targetYUp - targetRadius * sinP,
-			center.z - rotatedZ * targetRadius * cosP
-		};
-	}
-
-	// targetの補間速度を正規化
-	float t = std::clamp(cam.lockOnCameraTargetSpeedRatio / 100.0f, 0.0f, 1.0f);
-
-	// X,Zはlerpで補間
-	cam.base.currentTarget.x += (idealTarget.x - cam.base.currentTarget.x) * t;
-	cam.base.currentTarget.z += (idealTarget.z - cam.base.currentTarget.z) * t;
-
-	// 減衰ばね
-	auto springAxis = [&](float current, float ideal, float& velocity) -> float
-		{
-			float accel = cam.eyeSpringStiffness * (ideal - current) - cam.eyeSpringDamping * velocity;
-			velocity += accel * elapsedTime;
-			return current + velocity * elapsedTime;
-		};
-
-	// Yは減衰ばねで補間
-	cam.base.currentTarget.y = springAxis(cam.base.currentTarget.y, idealTarget.y, cam.targetVelocity.y);
+	const DirectX::XMFLOAT3& p = followTransform.position;
+	return { p.x, p.y + cam.followTargetYUp, p.z };
 }
-// LookAt用のcurrentEye計算
-void GameCameraSystem::UpdateLockOnEye(GameCameraComponent& cam, entt::registry& registry, float elapsedTime)
-{
-	DirectX::XMFLOAT3 playerPos = registry.get<TransformComponent>(cam.followTarget).position;
-	DirectX::XMFLOAT3 enemyPos = registry.get<TransformComponent>(cam.lookAtTarget).position;
 
-	// EnemyからPlayer方向のベクトル算出
-	float backX = playerPos.x - enemyPos.x;
-	float backZ = playerPos.z - enemyPos.z;
-	float len = sqrtf(backX * backX + backZ * backZ);
-
-	// EnemyとPlayerが同じ位置の場合は現在の位置を維持する
-	DirectX::XMFLOAT3 idealEye = cam.base.currentEye;
-	if (len > 0.0001f)
-	{
-		// 正規化
-		backX /= len;
-		backZ /= len;
-	
-		// 距離に応じて 近距離 / 遠距離 を切り替える
-		cam.lockOnRange = (len >= cam.lockOnRangeSwitchDistance)
-			? LockOnRangeState::Far
-			: LockOnRangeState::Near;
-
-		// 近距離 / 遠距離 で、半径・高さと、デフォルト角度のオフセットを切り替える
-		float eyeRadius, eyeHeight;
-		if (cam.lockOnRange == LockOnRangeState::Near)
-		{
-			eyeRadius = cam.lockOnNearCameraDistance;
-			eyeHeight = cam.lockOnNearCameraHeight;
-		}
-		else
-		{
-			eyeRadius = cam.lockOnFarCameraDistance;
-			eyeHeight = cam.lockOnFarCameraHeight;
-		}
-
-		// デフォルト角度のoffsetEnemyに近づく程滑らかに角度を増やす
-		float nearT = 1.0f - std::clamp(len / cam.lockOnRangeSwitchDistance, 0.0f, 1.0f);
-		float angleOffset = DirectX::XMConvertToRadians(cam.lockOnNearAngleOffsetMax) * nearT * cam.lockOnSideSmooth;
-
-		// 円の中心Oを求める
-		float centerDistByRatio = len * cam.lockOnCenterRatio;
-		float centerDist = (std::min)(centerDistByRatio, cam.lockOnFarCenterMaxDistance);
-
-		DirectX::XMFLOAT3 center =
-		{
-			playerPos.x - backX * centerDist,
-			playerPos.y,
-			playerPos.z - backZ * centerDist
-		};
-
-		// backベクトル（Enemyの反対方向＝角度0の基準）を、(orbitAngle + angleOffset)ぶん回転させる
-		float angle = cam.lockOnOrbitAngle + angleOffset;
-		float cosA = cosf(angle);
-		float sinA = sinf(angle);
-		float rotatedX = backX * cosA - backZ * sinA;
-		float rotatedZ = backX * sinA + backZ * cosA;
-
-		// orbitPitchで、水平方向の広がり(cosP)と、上下方向の高さ(sinP)に分配する
-		float cosP = cosf(cam.lockOnOrbitPitch);
-		float sinP = sinf(cam.lockOnOrbitPitch);
-
-		idealEye =
-		{
-			center.x + rotatedX * eyeRadius * cosP,
-			center.y + eyeHeight + eyeRadius * sinP,
-			center.z + rotatedZ * eyeRadius * cosP
-		};
-		
-	}
-
-	// eyeの補間速度を正規化
-	float t = std::clamp(cam.lockOnCameraEyeSpeedRatio / 100.0f, 0.0f, 1.0f);
-
-	// X,Zはlerpで補間
-	cam.base.currentEye.x += (idealEye.x - cam.base.currentEye.x) * t;
-	cam.base.currentEye.z += (idealEye.z - cam.base.currentEye.z) * t;
-
-	// 減衰ばね
-	auto springAxis = [&](float current, float ideal, float& velocity) -> float
-		{
-			float accel = cam.eyeSpringStiffness * (ideal - current) - cam.eyeSpringDamping * velocity;
-			velocity += accel * elapsedTime;
-			return current + velocity * elapsedTime;
-		};
-
-	// Yは減衰ばねで補間
-	cam.base.currentEye.y = springAxis(cam.base.currentEye.y, idealEye.y, cam.eyeVelocity.y);
-}
 
 
 
@@ -17117,41 +16904,23 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Game\ECS\Systems\GameCame
 #include "Engine/Core/Camera.h"
 #include "Game/ECS/Components/GameCameraComponent.h"
 #include "Engine/ECS/Components/TransformComponent.h"
-#include "Game/ECS/Components/GameInputComponent.h"
-
-#include "Engine/Rendering/ShapeRenderer.h"
 
 class GameCameraSystem
 {
 public:
-    void Initialize(ID3D11Device* device);
-
-    // ゲームカメラの更新
+    // 更新
     void Update(entt::registry& registry, float elapsedTime);
 
     // Camera クラスに結果を反映
     void ApplyToCamera(entt::registry& registry, Camera& camera);
 
-    // デバッグ描画
-    void DrawDebug(
-        entt::registry& registry,
-        ID3D11DeviceContext* dc,
-        const DirectX::XMFLOAT4X4& view,
-        const DirectX::XMFLOAT4X4& projection,
-        const DirectX::XMFLOAT3& lightDirection);
-
 private:
-    ShapeRenderer shapeRenderer;
+    // 追従カメラの処理
+    void UpdateFollow(GameCameraComponent& cam, const TransformComponent& followTransform, float elapsedTime);
 
-    // Followカメラの更新
-    void UpdateFollowTarget(GameCameraComponent& cam, const TransformComponent& followTransform, float elapsedTime);
-	// Follow用のcurrentEye計算
-    void UpdateFollowEye(GameCameraComponent& cam, const TransformComponent& followTransform, float elapsedTime);
-
-    // LookAtカメラの更新
-    void UpdateLookAtTarget(GameCameraComponent& cam, entt::registry& registry, float elapsedTime);
-    // LookAt用のcurrentEye計算
-    void UpdateLockOnEye(GameCameraComponent& cam, entt::registry& registry, float elapsedTime);
+    // 追従カメラの理想の eye・target
+    DirectX::XMFLOAT3 CalcFollowIdealEye(const GameCameraComponent& cam, const TransformComponent& followTransform) const;
+    DirectX::XMFLOAT3 CalcFollowIdealTarget(const GameCameraComponent& cam, const TransformComponent& followTransform) const;
 };
 
 
@@ -18686,7 +18455,7 @@ void PlayerWallRunSystem::Update(entt::registry& registry, float elapsedTime, co
 			cmd.accelHalfLife = wallRun.accelHalfLife;
 			cmd.faceMoveDir = true;
 
-			// 重力を Movement へ指示指示する
+			// 重力を Movement へ指示する
 			if (wallRun.isClimbing)
 			{
 				// 駆け上がり：重力 0
@@ -18822,6 +18591,9 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Game\ECS\GameComponents.c
 #include "Game/ECS/Components/PlayerCrouchComponent.h"
 #include "Game/ECS/Components/PlayerSlideComponent.h"
 
+#include "Game/ECS/Components/CameraEffectComponent.h"
+#include "Game/ECS/Components/CameraViewComponent.h"
+
 #include "Game/ECS/Components/PlayerIntentComponent.h"
 #include "Game/ECS/Components/PlayerLocomotionComponent.h"
 #include "Game/ECS/Components/PlayerWallSenseComponent.h"
@@ -18838,6 +18610,9 @@ void GameComponents::Register()
 	REGISTER_COMPONENT_TYPE(PlayerWallRunComponent, "Player Wall Run");
 	REGISTER_COMPONENT_TYPE(PlayerCrouchComponent, "Player Crouch");
 	REGISTER_COMPONENT_TYPE(PlayerSlideComponent, "Player Slide");
+
+	REGISTER_COMPONENT_TYPE(CameraEffectComponent, "Camera Effect");
+	REGISTER_COMPONENT_TYPE(CameraViewComponent, "Camera View");
 
 	REGISTER_COMPONENT_TYPE(PlayerIntentComponent, "Player Intent");
 	REGISTER_COMPONENT_TYPE(PlayerLocomotionComponent, "Player Locomotion");
@@ -18921,7 +18696,6 @@ void SceneGame::Initialize(const SceneContext& context)
 		);
 	}
 
-	gameCameraSystem.Initialize(context.device);
 
 #if WaveDemo && !defined(_DEBUG)
 	// デモ初期化
@@ -19058,12 +18832,6 @@ void SceneGame::Render(const SceneContext& context)
 
 		DirectX::XMFLOAT4 lightDir4 = lightManager.GetDirectionalLight().direction;
 		DirectX::XMFLOAT3 lightDir3 = { lightDir4.x, lightDir4.y, lightDir4.z };
-		gameCameraSystem.DrawDebug(
-			registry,
-			context.deviceContext,
-			context.view,
-			context.projection,
-			lightDir3);
 	}
 }
 
@@ -19200,9 +18968,10 @@ void SceneGame::UpdateCamera(float elapsedTime, const SceneContext& context)
 {
 	ZoneScopedN("CameraSystem");
 
-	// ゲームカメラは常に更新する(どのカメラで描画するかはApp側が決める)
-	gameCameraSystem.Update(registry, elapsedTime);
-	gameCameraSystem.ApplyToCamera(registry, *context.camera);
+	gameCameraSystem.Update(registry, elapsedTime);   // 土台：どこから、どこを見るか
+	cameraEffectSystem.Update(registry, elapsedTime); // 演出：土台に重ねるずれ
+	cameraViewSystem.Update(registry);                // 最終：土台 ＋ 演出
+	cameraViewSystem.ApplyToCamera(registry, *context.camera);
 }
 
 
@@ -19229,6 +18998,9 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Code\Game\Scene\SceneGame.h
 #include "Game/ECS/Systems/PlayerWallRunSystem.h"
 #include "Game/ECS/Systems/PlayerCrouchSystem.h"
 #include "Game/ECS/Systems/PlayerSlideSystem.h"
+
+#include "Game/ECS/Systems/CameraEffectSystem.h"
+#include "Game/ECS/Systems/CameraViewSystem.h"
 
 #include "Engine/ECS/Systems/MovementSystem.h"
 #include "Engine/ECS/Systems/AnimationSpeedSystem.h"
@@ -19282,6 +19054,9 @@ private:
 	PlayerCrouchSystem  playerCrouchSystem;
 	PlayerSlideSystem   playerSlideSystem;
 
+	CameraEffectSystem  cameraEffectSystem;
+	CameraViewSystem    cameraViewSystem;
+
 	MovementSystem    movementSystem;
 	AnimationSpeedSystem     animationSpeedSystem;
 	AnimationSystem   animationSystem;
@@ -19320,103 +19095,6 @@ Path: C:\Users\2240140\Desktop\New-Library\Source\Code\GameTool\GameInspectors.c
 
 void GameInspectors::Register() 
 {
-	// ゲームカメラ
-	REGISTER_INSPECTOR(GameCameraComponent,
-		[](auto& reg, auto e)
-		{
-			auto* _c = reg.try_get<GameCameraComponent>(e);
-			if (!_c) return;
-			if (!ImGui::CollapsingHeader("GameCamera", ImGuiTreeNodeFlags_DefaultOpen)) return;
-
-			const char* modeNames[] = { "Follow", "LookAt" };
-			int mode = (int)_c->mode;
-			if (ImGui::Combo("Mode", &mode, modeNames, 2))
-				_c->mode = (Mode)mode;
-
-			// FollowTargetは自動で探す(Playerタグ)
-			std::string followTargetName = "None (auto)";
-			if (_c->followTarget != entt::null && reg.valid(_c->followTarget))
-				followTargetName = "Entity " + std::to_string((uint32_t)_c->followTarget);
-
-			ImGui::Text("Follow Target: %s", followTargetName.c_str());
-
-			// LookAtTargetは自動で探す(Enemyタグ)
-			std::string lookAtTargetName = "None (auto)";
-			if (_c->lookAtTarget != entt::null && reg.valid(_c->lookAtTarget))
-				lookAtTargetName = "Entity " + std::to_string((uint32_t)_c->lookAtTarget);
-
-			ImGui::Text("LookAt Target: %s", lookAtTargetName.c_str());
-
-			ImGui::DragFloat("Yaw", &_c->yaw, 0.01f);
-			ImGui::DragFloat("Pitch", &_c->pitch, 0.01f, -1.5f, 1.5f);
-
-			// --- Follow Camera ---
-			ImGui::Separator();
-			ImGui::Text("Follow Camera");
-			ImGui::DragFloat("Distance", &_c->followCameraDistance, 0.1f, 0.0f, 50.0f);
-			ImGui::DragFloat("Height", &_c->followCameraHeight, 0.1f, 0.0f, 20.0f);
-			ImGui::DragFloat("Target Y Up", &_c->followCameraTargetYUp, 0.1f, 0.0f, 10.0f);
-			ImGui::DragFloat("Eye Speed Ratio", &_c->followCameraEyeSpeedRatio, 0.5f, 0.0f, 100.0f);
-			ImGui::DragFloat("Target Speed Ratio", &_c->followCameraTargetSpeedRatio, 0.5f, 0.0f, 100.0f);
-
-			// --- LockOn Camera（共通） ---
-			ImGui::Separator();
-			ImGui::Text("LockOn Camera");
-			ImGui::DragFloat("Eye Speed Ratio##LockOn", &_c->lockOnCameraEyeSpeedRatio, 0.5f, 0.0f, 100.0f);
-			ImGui::DragFloat("Target Speed Ratio##LockOn", &_c->lockOnCameraTargetSpeedRatio, 0.5f, 0.0f, 100.0f);
-			ImGui::DragFloat("Range Switch Distance", &_c->lockOnRangeSwitchDistance, 0.1f, 0.1f, 50.0f);
-
-			// --- 円の中心O ---
-			ImGui::Separator();
-			ImGui::Text("Center O");
-			ImGui::DragFloat("Center Ratio", &_c->lockOnCenterRatio, 0.01f, 0.0f, 1.0f);
-			ImGui::DragFloat("Far Center Max Distance", &_c->lockOnFarCenterMaxDistance, 0.05f, 0.0f, 20.0f);
-			ImGui::DragFloat("Target Circle Radius Max", &_c->lockOnTargetCircleRadiusMax, 0.1f, 0.0f, 20.0f);
-
-			// --- 円周上の角度・スティック操作 ---
-			ImGui::Separator();
-			ImGui::Text("Orbit");
-			ImGui::DragFloat("Orbit Rotate Speed", &_c->lockOnOrbitRotateSpeed, 0.1f, 0.0f, 20.0f);
-			ImGui::DragFloat("Orbit Pitch Rotate Speed", &_c->lockOnOrbitPitchRotateSpeed, 0.1f, 0.0f, 20.0f);
-			ImGui::DragFloat("Orbit Return Speed", &_c->lockOnOrbitReturnSpeed, 0.5f, 0.0f, 50.0f);
-			ImGui::Separator();
-			ImGui::Text("Orbit");
-			ImGui::DragFloat("Orbit Angle", &_c->lockOnOrbitAngle, 0.01f);
-			ImGui::DragFloat("Orbit Pitch", &_c->lockOnOrbitPitch, 0.01f, -0.8f, 0.8f);
-
-			// --- くの字の向き ---
-			ImGui::Separator();
-			ImGui::Text("Side");
-			ImGui::DragFloat("Side Switch Threshold", &_c->lockOnSideSwitchThreshold, 0.01f, 0.0f, 3.14f);
-			ImGui::DragFloat("Side Smooth Speed", &_c->lockOnSideSmoothSpeed, 0.5f, 0.0f, 50.0f);
-			ImGui::Text("Side : %.2f -> %.2f", _c->lockOnSide, _c->lockOnSideSmooth);
-
-			// --- 近距離用パラメータ ---
-			ImGui::Separator();
-			ImGui::Text("Near");
-			ImGui::DragFloat("Near Distance", &_c->lockOnNearCameraDistance, 0.1f, 0.0f, 30.0f);
-			ImGui::DragFloat("Near Height", &_c->lockOnNearCameraHeight, 0.1f, 0.0f, 20.0f);
-			ImGui::DragFloat("Near Target Y Up", &_c->lockOnNearCameraTargetYUp, 0.1f, 0.0f, 10.0f);
-			ImGui::DragFloat("Near Angle Offset Max", &_c->lockOnNearAngleOffsetMax, 0.5f, 0.0f, 90.0f);
-
-			// --- 遠距離用パラメータ ---
-			ImGui::Separator();
-			ImGui::Text("Far");
-			ImGui::DragFloat("Far Distance", &_c->lockOnFarCameraDistance, 0.1f, 0.0f, 30.0f);
-			ImGui::DragFloat("Far Height", &_c->lockOnFarCameraHeight, 0.1f, 0.0f, 20.0f);
-			ImGui::DragFloat("Far Target Y Up", &_c->lockOnFarCameraTargetYUp, 0.1f, 0.0f, 10.0f);
-
-			// --- 減衰ばね ---
-			ImGui::Separator();
-			ImGui::Text("Spring");
-			ImGui::DragFloat("Stiffness", &_c->eyeSpringStiffness, 5.0f, 0.0f, 1000.0f);
-			ImGui::DragFloat("Damping", &_c->eyeSpringDamping, 1.0f, 0.0f, 200.0f);
-
-			// --- 現在のeye/target（デバッグ表示） ---
-			ImGui::Separator();
-			ImGui::DragFloat3("Eye", &_c->base.currentEye.x, 0.1f);
-			ImGui::DragFloat3("Target", &_c->base.currentTarget.x, 0.1f);
-		});
 }
 
 

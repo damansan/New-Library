@@ -70,6 +70,9 @@
     <Filter Include="Sources\ECS\System\Player\PlayerJumpSystem">
       <UniqueIdentifier>{0e2e7921-e809-4c80-a74f-feef0e620b32}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\ECS\System\CameraViewSystem">
+      <UniqueIdentifier>{e0a667b9-a4e8-4f98-96bd-0a7ca536f885}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Source\Code\Game\ECS\GameComponents.cpp">
@@ -125,6 +128,9 @@
     </ClCompile>
     <ClCompile Include="..\..\Source\Code\Game\ECS\Systems\CameraEffectSystem.cpp">
       <Filter>Sources\ECS\System\CameraEffectSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Code\Game\ECS\Systems\CameraViewSystem.cpp">
+      <Filter>Sources\ECS\System\CameraViewSystem</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -223,6 +229,12 @@
     </ClInclude>
     <ClInclude Include="..\..\Source\Code\Game\ECS\Systems\CameraEffectSystem.h">
       <Filter>Sources\ECS\System\CameraEffectSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Code\Game\ECS\Systems\CameraViewSystem.h">
+      <Filter>Sources\ECS\System\CameraViewSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Code\Game\ECS\Components\CameraViewComponent.h">
+      <Filter>Sources\ECS\Components</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

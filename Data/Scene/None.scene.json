@@ -10,11 +10,6 @@
         },
         {
             "name": "GameCamera",
-            "overrides": {
-                "CameraEffectComponent": {
-                    "maxFov": 80.0
-                }
-            },
             "prefab": "Data/Prefab/Camera/GameCamera.prefab.json"
         },
         {
@@ -41,74 +36,6 @@
                 }
             },
             "prefab": "Data/Prefab/Player/Map_Robot3.prefab.json"
-        },
-        {
-            "components": {
-                "CategoryComponent": {
-                    "category": "None"
-                },
-                "MaterialComponent": {
-                    "shadingModel": "Grid"
-                },
-                "MeshComponent": {
-                    "modelPath": "Data/Model/UEdefault/Cube.glb"
-                },
-                "PhysicsBodyTypeComponent": {
-                    "type": "Static"
-                },
-                "TransformComponent": {
-                    "position": [
-                        0.0,
-                        0.0,
-                        0.0
-                    ],
-                    "rotation": [
-                        0.0,
-                        0.0,
-                        0.0
-                    ],
-                    "scale": [
-                        100.0,
-                        10.0,
-                        1.0
-                    ]
-                }
-            },
-            "name": "Cube"
-        },
-        {
-            "components": {
-                "CategoryComponent": {
-                    "category": "None"
-                },
-                "MaterialComponent": {
-                    "shadingModel": "Grid"
-                },
-                "MeshComponent": {
-                    "modelPath": "Data/Model/UEdefault/Cube.glb"
-                },
-                "PhysicsBodyTypeComponent": {
-                    "type": "Static"
-                },
-                "TransformComponent": {
-                    "position": [
-                        0.0,
-                        0.0,
-                        5.0
-                    ],
-                    "rotation": [
-                        0.0,
-                        0.0,
-                        0.0
-                    ],
-                    "scale": [
-                        100.0,
-                        10.0,
-                        1.0
-                    ]
-                }
-            },
-            "name": "Cube"
         }
     ],
     "settings": {},

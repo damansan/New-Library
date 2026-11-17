@@ -124,6 +124,7 @@
     <ClCompile Include="..\..\Source\Code\Game\Demo\WaveDemo.cpp" />
     <ClCompile Include="..\..\Source\Code\Game\ECS\GameComponents.cpp" />
     <ClCompile Include="..\..\Source\Code\Game\ECS\Systems\CameraEffectSystem.cpp" />
+    <ClCompile Include="..\..\Source\Code\Game\ECS\Systems\CameraViewSystem.cpp" />
     <ClCompile Include="..\..\Source\Code\Game\ECS\Systems\GameCameraSystem.cpp" />
     <ClCompile Include="..\..\Source\Code\Game\ECS\Systems\GameInputSystem.cpp" />
     <ClCompile Include="..\..\Source\Code\Game\ECS\Systems\PlayerCrouchSystem.cpp" />
@@ -143,6 +144,7 @@
   <ItemGroup>
     <ClInclude Include="..\..\Source\Code\Game\Demo\WaveDemo.h" />
     <ClInclude Include="..\..\Source\Code\Game\ECS\Components\CameraEffectComponent.h" />
+    <ClInclude Include="..\..\Source\Code\Game\ECS\Components\CameraViewComponent.h" />
     <ClInclude Include="..\..\Source\Code\Game\ECS\Components\GameCameraComponent.h" />
     <ClInclude Include="..\..\Source\Code\Game\ECS\Components\GameInputComponent.h" />
     <ClInclude Include="..\..\Source\Code\Game\ECS\Components\PlayerCrouchComponent.h" />
@@ -158,6 +160,7 @@
     <ClInclude Include="..\..\Source\Code\Game\ECS\Components\PlayerWallSenseComponent.h" />
     <ClInclude Include="..\..\Source\Code\Game\ECS\GameComponents.h" />
     <ClInclude Include="..\..\Source\Code\Game\ECS\Systems\CameraEffectSystem.h" />
+    <ClInclude Include="..\..\Source\Code\Game\ECS\Systems\CameraViewSystem.h" />
     <ClInclude Include="..\..\Source\Code\Game\ECS\Systems\GameCameraSystem.h" />
     <ClInclude Include="..\..\Source\Code\Game\ECS\Systems\GameInputSystem.h" />
     <ClInclude Include="..\..\Source\Code\Game\ECS\Systems\PlayerCrouchSystem.h" />

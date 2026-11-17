@@ -13,6 +13,7 @@
 #include "Game/ECS/Components/PlayerSlideComponent.h"
 
 #include "Game/ECS/Components/CameraEffectComponent.h"
+#include "Game/ECS/Components/CameraViewComponent.h"
 
 #include "Game/ECS/Components/PlayerIntentComponent.h"
 #include "Game/ECS/Components/PlayerLocomotionComponent.h"
@@ -32,6 +33,7 @@ void GameComponents::Register()
 	REGISTER_COMPONENT_TYPE(PlayerSlideComponent, "Player Slide");
 
 	REGISTER_COMPONENT_TYPE(CameraEffectComponent, "Camera Effect");
+	REGISTER_COMPONENT_TYPE(CameraViewComponent, "Camera View");
 
 	REGISTER_COMPONENT_TYPE(PlayerIntentComponent, "Player Intent");
 	REGISTER_COMPONENT_TYPE(PlayerLocomotionComponent, "Player Locomotion");

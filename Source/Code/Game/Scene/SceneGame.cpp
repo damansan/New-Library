@@ -60,7 +60,6 @@ void SceneGame::Initialize(const SceneContext& context)
 		);
 	}
 
-	gameCameraSystem.Initialize(context.device);
 
 #if WaveDemo && !defined(_DEBUG)
 	// デモ初期化
@@ -197,12 +196,6 @@ void SceneGame::Render(const SceneContext& context)
 
 		DirectX::XMFLOAT4 lightDir4 = lightManager.GetDirectionalLight().direction;
 		DirectX::XMFLOAT3 lightDir3 = { lightDir4.x, lightDir4.y, lightDir4.z };
-		gameCameraSystem.DrawDebug(
-			registry,
-			context.deviceContext,
-			context.view,
-			context.projection,
-			lightDir3);
 	}
 }
 
@@ -339,10 +332,8 @@ void SceneGame::UpdateCamera(float elapsedTime, const SceneContext& context)
 {
 	ZoneScopedN("CameraSystem");
 
-	// ゲームカメラは常に更新する(どのカメラで描画するかはApp側が決める)
-	gameCameraSystem.Update(registry, elapsedTime);
-	gameCameraSystem.ApplyToCamera(registry, *context.camera);
-
-	cameraEffectSystem.Update(registry, elapsedTime);
-	cameraEffectSystem.ApplyToCamera(registry, *context.camera);
+	gameCameraSystem.Update(registry, elapsedTime);   // 土台：どこから、どこを見るか
+	cameraEffectSystem.Update(registry, elapsedTime); // 演出：土台に重ねるずれ
+	cameraViewSystem.Update(registry);                // 最終：土台 ＋ 演出
+	cameraViewSystem.ApplyToCamera(registry, *context.camera);
 }
