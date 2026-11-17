@@ -18,9 +18,7 @@ void SceneGame::Initialize(const SceneContext& context)
 	// SkyBox初期化
 	skyBox.Initialize(
 		context.device,
-		//"Data/SkyBox/BlueSky"
 		"Data/SkyBox/DynamicSky"
-		//"Data/SkyBox/GoldenGateHills"
 	);
 	// IBLテクスチャセット
 	renderSystem.SetIBLTextures(
