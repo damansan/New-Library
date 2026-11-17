@@ -3,6 +3,7 @@
 #include <cmath>
 
 #include "Game/ECS/Components/PlayerLocomotionComponent.h"
+#include "Game/ECS/Components/PlayerWallRunComponent.h"
 #include "Game/ECS/Systems/PlayerMovementUtils.h"
 
 void CameraEffectSystem::Update(entt::registry& registry, float elapsedTime)
@@ -46,6 +47,14 @@ CameraEffectTrigger CameraEffectSystem::BuildTrigger(entt::registry& registry, c
 
 	trigger.running = trigger.speed >= effect.runSpeed;
 	return trigger;
+
+	const auto* wallRun = registry.try_get<PlayerWallRunComponent>(player);
+	if (wallRun)
+	{
+		trigger.wallKicked = wallRun->kicked;
+		trigger.kickWallRight = wallRun->isWallRight;
+	}
+	return trigger;
 }
 
 // 速さで Fov を広げる
@@ -77,39 +86,40 @@ void CameraEffectSystem::FovEffect(CameraEffectComponent& effect, const CameraEf
 // 走り出しに左右へ揺らす
 void CameraEffectSystem::RunBobEffect(CameraEffectComponent& effect, const CameraEffectTrigger& trigger, const GameCameraComponent& cam, float elapsedTime)
 {
+	PulseState& pulse = effect.runBob;
+
 	// 速度が一定以下になるまで再度揺らさない
 	if (trigger.speed <= effect.runBobRearmSpeed)
 	{
-		effect.runBobArmed = true;
+		pulse.ready = true;
 	}
 
 	// 走り出しに揺らす
-	if (effect.runBobArmed && trigger.running)
+	if (pulse.ready && trigger.running)
 	{
-		effect.runBobArmed = false;
-		effect.runBobActive = true;
-		effect.runBobTime = 0.0f;
+		pulse.ready = false;
+		pulse.active = true;
+		pulse.time = 0.0f;
 	}
-	if (!effect.runBobActive) return;
+	if (!pulse.active) return;
 
 	// 一定時間で止める
-	effect.runBobTime += elapsedTime;
-	if (effect.runBobTime >= effect.runBobDuration)
+	pulse.time += elapsedTime;
+	if (pulse.time >= effect.runBobDuration)
 	{
-		effect.runBobActive = false;
+		pulse.active = false;
 		return;
 	}
-
 
 	// 揺れの量
 	float phase = 0.0f;
 	if (effect.runBobStepInterval > 0.0f)
 	{
-		phase = effect.runBobTime / effect.runBobStepInterval * DirectX::XM_PI;
+		phase = pulse.time / effect.runBobStepInterval * DirectX::XM_PI;
 	}
 	const float sway = std::sin(phase);
 	const float lift = std::sin(phase * 2.0f); // 横の倍の速さ → ∞
-	const float remain = 1.0f - effect.runBobTime / effect.runBobDuration;
+	const float remain = 1.0f - pulse.time / effect.runBobDuration;
 	const float envelope = remain * remain;
 	const float amount = sway * envelope; // -1～+1（＋で右）
 	const float liftY = lift * envelope * effect.runBobLift;

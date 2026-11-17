@@ -8,7 +8,11 @@ struct CameraEffectTrigger
 {
 	float speed = 0.0f;    // …•½‚Ì‘¬‚³
 	bool  running = false; // ‘–‚Á‚Ä‚¢‚é(runSpeed ˆÈã)
+
+	bool wallKicked = false;    // •Ç‚ğR‚Á‚½
+	bool kickWallRight = false; // R‚Á‚½•Ç‚ª‰E‚É‚ ‚é‚©
 };
+
 
 class CameraEffectSystem
 {
