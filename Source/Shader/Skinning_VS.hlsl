@@ -1,23 +1,4 @@
-// 定数バッファ0：シーン情報
-cbuffer CbScene : register(b0)
-{
-    row_major float4x4 view;
-    row_major float4x4 projection;
-    float4 cameraPosition;
-};
-
-// 定数バッファ1：オブジェクト情報
-cbuffer CbObject : register(b1)
-{
-    row_major float4x4 world;
-};
-
-// 定数バッファ2：ボーン行列
-#define MAX_BONES 256
-cbuffer CbSkinning : register(b2)
-{
-    row_major float4x4 boneTransforms[MAX_BONES];
-};
+#include "ShaderConstants.hlsli"
 
 // 頂点入力
 struct VS_IN
@@ -70,7 +51,7 @@ VS_OUT main(VS_IN vin)
     vout.position = mul(mul(worldPos, view), projection);
     
     // 法線・接線をワールド空間へ
-    vout.normal = normalize(mul(skinnedNormal.xyz, (float3x3) world));
+    vout.normal = normalize(mul(skinnedNormal.xyz, (float3x3) worldInverseTranspose));
     vout.tangent.xyz = normalize(mul(skinnedTangent.xyz, (float3x3) world));
     vout.tangent.w = vin.tangent.w;
     

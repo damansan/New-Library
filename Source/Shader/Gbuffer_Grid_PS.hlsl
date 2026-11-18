@@ -1,12 +1,6 @@
-//SamplerState samplerState : register(s0);
+#include "ShaderConstants.hlsli"
 
-//cbuffer CbObject : register(b2)
-//{
-//    row_major float4x4 world;
-//    float alphaCutoff;
-//    float3 padding;
-//    float4 baseColorFactor; // 格子の下地の色（リニア空間）
-//};
+//SamplerState samplerState : register(s0);
 
 //// 格子の設定（ワールド単位）
 //static const float GRID_SIZE = 1.0f; // 線の間隔
@@ -84,14 +78,6 @@
 
 
 SamplerState samplerState : register(s0);
-
-cbuffer CbObject : register(b2)
-{
-    row_major float4x4 world;
-    float alphaCutoff;
-    float3 padding;
-    float4 baseColorFactor; // 格子の下地の色（リニア空間）
-};
 
 // 市松模様の設定（ワールド単位）
 static const float GRID_SIZE = 1.0f; // 市松1マスの大きさ

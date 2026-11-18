@@ -78,7 +78,6 @@ void LightManager::Bind(ID3D11DeviceContext* dc)
     // GPU転送
     dc->UpdateSubresource(cbLights.Get(), 0, nullptr, &cbData, 0, 0);
 
-    // b1スロットにセット
-    dc->VSSetConstantBuffers(1, 1, cbLights.GetAddressOf());
-    dc->PSSetConstantBuffers(1, 1, cbLights.GetAddressOf());
+    // b2スロットにセット
+    dc->PSSetConstantBuffers(2, 1, cbLights.GetAddressOf());
 }

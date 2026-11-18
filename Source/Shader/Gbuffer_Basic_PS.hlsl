@@ -1,15 +1,10 @@
+#include "ShaderConstants.hlsli"
+
 Texture2D baseMap : register(t0);
 Texture2D normalMap : register(t1);
 
 SamplerState samplerState : register(s0);
 
-cbuffer CbObject : register(b2)
-{
-    row_major float4x4 world;
-    float alphaCutoff;
-    float3 padding;
-    float4 baseColorFactor; // マテリアルの基本色（リニア空間）
-};
 
 struct VS_OUT
 {

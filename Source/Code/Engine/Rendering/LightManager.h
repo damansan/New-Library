@@ -4,6 +4,8 @@
 #include <DirectXMath.h>
 #include <vector>
 
+#include "Engine/Rendering/ShaderLimits.h"
+
 class LightManager
 {
 public:
@@ -19,8 +21,6 @@ public:
         DirectX::XMFLOAT4 position;  // xyz=位置 w=範囲
         DirectX::XMFLOAT4 color;     // xyz=色 w=強度
     };
-
-    static constexpr int MAX_POINT_LIGHTS = 64;
 
     // 定数バッファ構造体
     struct CbLights

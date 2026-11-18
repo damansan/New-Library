@@ -125,6 +125,7 @@
     <ClInclude Include="..\..\Source\Code\Engine\Rendering\LightManager.h" />
     <ClInclude Include="..\..\Source\Code\Engine\Rendering\PhysicsDebugRenderer.h" />
     <ClInclude Include="..\..\Source\Code\Engine\Rendering\PrimitiveRenderer.h" />
+    <ClInclude Include="..\..\Source\Code\Engine\Rendering\ShaderLimits.h" />
     <ClInclude Include="..\..\Source\Code\Engine\Rendering\ShapeRenderer.h" />
     <ClInclude Include="..\..\Source\Code\Engine\Rendering\SkyBox.h" />
     <ClInclude Include="..\..\Source\Code\Engine\Resource\AnimationEditBaker.h" />
@@ -303,6 +304,12 @@
     <FxCompile Include="..\..\Source\Shader\WiredShape_VS.hlsl">
       <ShaderType>Vertex</ShaderType>
     </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\Source\Shader\IBL_Functions.hlsli" />
+    <None Include="..\..\Source\Shader\LightingCommon.hlsli" />
+    <None Include="..\..\Source\Shader\PBR_Functions.hlsli" />
+    <None Include="..\..\Source\Shader\ShaderConstants.hlsli" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

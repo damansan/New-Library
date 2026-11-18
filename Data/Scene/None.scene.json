@@ -13,29 +13,66 @@
             "prefab": "Data/Prefab/Camera/GameCamera.prefab.json"
         },
         {
-            "name": "default",
-            "prefab": "Data/Prefab/Stage/default.prefab.json"
-        },
-        {
-            "name": "Map_Robot3",
-            "overrides": {
-                "PlayerWallRunComponent": {
-                    "kickLockTime": 0.0
+            "components": {
+                "CategoryComponent": {
+                    "category": "None"
+                },
+                "MaterialComponent": {
+                    "shadingModel": "Default"
+                },
+                "MeshComponent": {
+                    "modelPath": "Data/Model/Stage/Sponza/Sponza.gltf"
                 },
                 "TransformComponent": {
                     "position": [
-                        -1.2588176727294922,
-                        -1.1811499689429183e-07,
-                        2.085519790649414
+                        0.0,
+                        0.0,
+                        0.0
                     ],
                     "rotation": [
                         0.0,
-                        2.448073148727417,
+                        0.0,
                         0.0
+                    ],
+                    "scale": [
+                        0.05000000074505806,
+                        0.05000000074505806,
+                        0.05000000074505806
                     ]
                 }
             },
-            "prefab": "Data/Prefab/Player/Map_Robot3.prefab.json"
+            "name": "Sponza"
+        },
+        {
+            "components": {
+                "CategoryComponent": {
+                    "category": "None"
+                },
+                "MaterialComponent": {
+                    "shadingModel": "Default"
+                },
+                "MeshComponent": {
+                    "modelPath": "Data/Model/unitychan/unitychan.glb"
+                },
+                "TransformComponent": {
+                    "position": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ],
+                    "rotation": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ],
+                    "scale": [
+                        1.0,
+                        1.0,
+                        1.0
+                    ]
+                }
+            },
+            "name": "unitychan"
         }
     ],
     "settings": {},

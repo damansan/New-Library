@@ -1,41 +1,4 @@
-#include "PBR_Functions.hlsli"
-#include "IBL_Functions.hlsli" 
-
-cbuffer CbScene : register(b0)
-{
-    row_major float4x4 view;
-    row_major float4x4 projection;
-    float4 cameraPosition;
-};
-
-struct DirectionalLight
-{
-    float4 direction;
-    float4 color;
-};
-struct PointLight
-{
-    float4 position;
-    float4 color;
-};
-
-#define MAX_POINT_LIGHTS 64
-
-cbuffer CbLights : register(b1)
-{
-    DirectionalLight directionalLight;
-    PointLight pointLights[MAX_POINT_LIGHTS];
-    int pointLightCount;
-    float3 cbPadding;
-};
-
-cbuffer CbObject : register(b2)
-{
-    row_major float4x4 world;
-    float alphaCutoff;
-    float3 padding;
-    float4 baseColorFactor; // マテリアルの基本色（リニア空間）
-};
+#include "LightingCommon.hlsli"
 
 // テクスチャ
 Texture2D baseMap              : register(t0); // Albedo
@@ -93,71 +56,20 @@ float4 main(VS_OUT pin) : SV_TARGET
     N = normalize(normalSample.x * T
                 + normalSample.y * B
                 + normalSample.z * N);
-    
-    // PBRパラメーター計算
-    float3 diffuse_reflectance = lerp(baseColor.rgb, 0.0f, metalness);
-    float3 F0 = lerp(0.04f, baseColor.rgb, metalness);
 
-    // ベクトル計算
-    float3 V = normalize(cameraPosition.xyz - pin.worldPos);
-    float3 diffuse = 0;
-    float3 specular = 0;
+    // 材料を詰める
+    SurfaceData s;
+    s.albedo = baseColor.rgb;
+    s.normal = N;
+    s.worldPos = pin.worldPos;
+    s.roughness = roughness;
+    s.metalness = metalness;
+    s.occlusion = occlusion;
+    s.emissive = emissive;
 
-    // 平行光源
-    {
-        float3 L = normalize(-directionalLight.direction.xyz);
-        float3 LC = directionalLight.color.rgb * directionalLight.color.a;
-        float3 d = 0;
-        float3 s = 0;
-        DirectBRDF(diffuse_reflectance, F0, N, V, L, LC, roughness, d, s);
-        diffuse += d;
-        specular += s;
-    }
+    // 光を当てる
+    float3 color = ShadeSurface(s, diffuseIem, specularPmrem, lutGgx, samplerState);
 
-    // ポイントライト
-    for (int i = 0; i < pointLightCount; i++)
-    {
-        float3 toLight = pointLights[i].position.xyz - pin.worldPos;
-        float dist = length(toLight);
-        float range = pointLights[i].position.w;
-
-        if (dist > range)
-            continue;
-
-        float attenuation = 1.0f - saturate(dist / range);
-        attenuation *= attenuation;
-
-        float3 L = normalize(toLight);
-        float3 LC = pointLights[i].color.rgb
-              * pointLights[i].color.a
-              * attenuation;
-
-        float3 d = 0;
-        float3 s = 0;
-        DirectBRDF(diffuse_reflectance, F0, N, V, L, LC, roughness, d, s);
-        diffuse += d;
-        specular += s;
-    }
-
-    // 間接光
-    float3 iblDiffuse = IBL_Diffuse(
-        diffuseIem, samplerState, N,
-        diffuse_reflectance, F0, V);
-
-    float3 iblSpecular = IBL_Specular(
-        specularPmrem, lutGgx, samplerState,
-        N, V, F0, roughness);
-
-    float3 ambient = iblDiffuse + iblSpecular;
-
-    // Occlusion適用
-    diffuse *= occlusion;
-    specular *= occlusion;
-    ambient *= occlusion;
-
-    // 最終カラー合成
-    float3 color = diffuse + specular + ambient + emissive;
-    
     // ガンマ補正
     color = pow(max(color, 0.0001f), 1.0f / GAMMA);
 

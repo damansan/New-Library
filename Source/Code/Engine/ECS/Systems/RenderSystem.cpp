@@ -2,6 +2,18 @@
 #include "Engine/Resource/GpuResourceUtils.h"
 #include "Engine/Utility/misc.h"
 
+namespace
+{
+	// 法線用の行列を作る
+	DirectX::XMFLOAT4X4 CalcInverseTranspose(const DirectX::XMFLOAT4X4& world)
+	{
+		const DirectX::XMMATRIX m = DirectX::XMLoadFloat4x4(&world);
+		const DirectX::XMMATRIX invT = DirectX::XMMatrixTranspose(DirectX::XMMatrixInverse(nullptr, m));
+		DirectX::XMFLOAT4X4 result;
+		DirectX::XMStoreFloat4x4(&result, invT);
+		return result;
+	}
+}
 
 // 初期化
 void RenderSystem::Initialize(ID3D11Device* device)
@@ -176,6 +188,10 @@ void RenderSystem::Render(
 		gBuffer.Initialize(device, width, height);
 	}
 
+	// 定数バッファをセット
+	dc->VSSetConstantBuffers(0, 1, cbScene.GetAddressOf());
+	dc->PSSetConstantBuffers(0, 1, cbScene.GetAddressOf());
+
 	// 不透明ジオメトリをGBufferへ
 	GeometryPass(registry, dc, dsv, cachedFrustum);
 
@@ -315,6 +331,7 @@ void RenderSystem::GeometryPass(
 
 			CbObject cbObjectData{};
 			cbObjectData.world = worldMatrix;
+			cbObjectData.worldInverseTranspose = CalcInverseTranspose(worldMatrix);
 			dc->UpdateSubresource(cbObject.Get(), 0, nullptr, &cbObjectData, 0, 0);
 			dc->VSSetConstantBuffers(1, 1, cbObject.GetAddressOf());
 
@@ -333,7 +350,7 @@ void RenderSystem::GeometryPass(
 					? mesh.material->baseColor
 					: DirectX::XMFLOAT4{ 1.0f, 1.0f, 1.0f, 1.0f };
 				dc->UpdateSubresource(cbObject.Get(), 0, nullptr, &cbObjectData, 0, 0);
-				dc->PSSetConstantBuffers(2, 1, cbObject.GetAddressOf());
+				dc->PSSetConstantBuffers(1, 1, cbObject.GetAddressOf());
 
 				UINT stride = sizeof(Model::Vertex), offset = 0;
 				dc->IASetVertexBuffers(0, 1, mesh.vertexBuffer.GetAddressOf(), &stride, &offset);
@@ -371,6 +388,7 @@ void RenderSystem::GeometryPass(
 
 			CbObject cbObjectData{};
 			cbObjectData.world = worldMatrix;
+			cbObjectData.worldInverseTranspose = CalcInverseTranspose(worldMatrix);
 			dc->UpdateSubresource(cbObject.Get(), 0, nullptr, &cbObjectData, 0, 0);
 			dc->VSSetConstantBuffers(1, 1, cbObject.GetAddressOf());
 
@@ -392,7 +410,7 @@ void RenderSystem::GeometryPass(
 					? mesh.material->baseColor
 					: DirectX::XMFLOAT4{ 1.0f, 1.0f, 1.0f, 1.0f };
 				dc->UpdateSubresource(cbObject.Get(), 0, nullptr, &cbObjectData, 0, 0);
-				dc->PSSetConstantBuffers(2, 1, cbObject.GetAddressOf());
+				dc->PSSetConstantBuffers(1, 1, cbObject.GetAddressOf());
 
 				CbSkinning cbSkinningData{};
 				if (m < (int)skinnedMesh.boneTransforms.size() && !skinnedMesh.boneTransforms[m].empty())
@@ -411,7 +429,7 @@ void RenderSystem::GeometryPass(
 						cbSkinningData.boneTransforms[0] = { 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 };
 				}
 				dc->UpdateSubresource(cbSkinning.Get(), 0, nullptr, &cbSkinningData, 0, 0);
-				dc->VSSetConstantBuffers(2, 1, cbSkinning.GetAddressOf());
+				dc->VSSetConstantBuffers(3, 1, cbSkinning.GetAddressOf());
 
 				UINT stride = sizeof(Model::Vertex), offset = 0;
 				dc->IASetVertexBuffers(0, 1, mesh.vertexBuffer.GetAddressOf(), &stride, &offset);
@@ -473,9 +491,6 @@ void RenderSystem::LightingPass(ID3D11DeviceContext* dc, ID3D11RenderTargetView*
 	// 深度書き込みOFF
 	dc->OMSetDepthStencilState(depthStencilStateLighting.Get(), 1);
 
-	// CbSceneをピクセルシェーダーにセット
-	dc->PSSetConstantBuffers(0, 1, cbScene.GetAddressOf());
-
 	// サンプラーもセット
 	dc->PSSetSamplers(0, 1, samplerState.GetAddressOf());
 
@@ -533,6 +548,7 @@ void RenderSystem::ForwardTransparentPass(
 
 			CbObject cbObjectData{};
 			cbObjectData.world = worldMatrix;
+			cbObjectData.worldInverseTranspose = CalcInverseTranspose(worldMatrix);
 			dc->UpdateSubresource(cbObject.Get(), 0, nullptr, &cbObjectData, 0, 0);
 			dc->VSSetConstantBuffers(1, 1, cbObject.GetAddressOf());
 
@@ -546,7 +562,7 @@ void RenderSystem::ForwardTransparentPass(
 				// マテリアルの基本色をピクセルシェーダーへ
 				cbObjectData.baseColor = mesh.material->baseColor;
 				dc->UpdateSubresource(cbObject.Get(), 0, nullptr, &cbObjectData, 0, 0);
-				dc->PSSetConstantBuffers(2, 1, cbObject.GetAddressOf());
+				dc->PSSetConstantBuffers(1, 1, cbObject.GetAddressOf());
 
 				UINT stride = sizeof(Model::Vertex), offset = 0;
 				dc->IASetVertexBuffers(0, 1, mesh.vertexBuffer.GetAddressOf(), &stride, &offset);
@@ -579,6 +595,7 @@ void RenderSystem::ForwardTransparentPass(
 
 			CbObject cbObjectData{};
 			cbObjectData.world = worldMatrix;
+			cbObjectData.worldInverseTranspose = CalcInverseTranspose(worldMatrix);
 			dc->UpdateSubresource(cbObject.Get(), 0, nullptr, &cbObjectData, 0, 0);
 			dc->VSSetConstantBuffers(1, 1, cbObject.GetAddressOf());
 
@@ -591,6 +608,11 @@ void RenderSystem::ForwardTransparentPass(
 				bool isBlend = mesh.material &&
 					mesh.material->alphaMode == Model::Material::AlphaMode::Blend;
 				if (!isBlend) continue;
+
+				// マテリアルの基本色をピクセルシェーダーへ
+				cbObjectData.baseColor = mesh.material->baseColor;
+				dc->UpdateSubresource(cbObject.Get(), 0, nullptr, &cbObjectData, 0, 0);
+				dc->PSSetConstantBuffers(1, 1, cbObject.GetAddressOf());
 
 				CbSkinning cbSkinningData{};
 				if (m < (int)skinnedMesh.boneTransforms.size() && !skinnedMesh.boneTransforms[m].empty())
@@ -609,7 +631,7 @@ void RenderSystem::ForwardTransparentPass(
 						cbSkinningData.boneTransforms[0] = { 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 };
 				}
 				dc->UpdateSubresource(cbSkinning.Get(), 0, nullptr, &cbSkinningData, 0, 0);
-				dc->VSSetConstantBuffers(2, 1, cbSkinning.GetAddressOf());
+				dc->VSSetConstantBuffers(3, 1, cbSkinning.GetAddressOf());
 
 				UINT stride = sizeof(Model::Vertex), offset = 0;
 				dc->IASetVertexBuffers(0, 1, mesh.vertexBuffer.GetAddressOf(), &stride, &offset);
@@ -628,7 +650,7 @@ void RenderSystem::ForwardTransparentPass(
 			}
 		});
 
-	// SRVの束縛解除（t0〜t7）
+	// SRVの束縛解除（t0～t7）
 	ID3D11ShaderResourceView* nullSrvs[8] = {};
 	dc->PSSetShaderResources(0, 8, nullSrvs);
 }

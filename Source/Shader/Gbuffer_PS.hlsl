@@ -1,3 +1,5 @@
+#include "ShaderConstants.hlsli"
+
 Texture2D baseMap              : register(t0); // Albedo
 Texture2D normalMap            : register(t1); // 法線マップ
 Texture2D metallicRoughnessMap : register(t2); // G:Roughness B:Metallic
@@ -6,13 +8,6 @@ Texture2D emissiveMap          : register(t4); // Emissive
 
 SamplerState samplerState      : register(s0);
 
-cbuffer CbObject : register(b2)
-{
-    row_major float4x4 world;
-    float alphaCutoff;
-    float3 padding;
-    float4 baseColorFactor; // マテリアルの基本色（リニア空間）
-};
 
 struct VS_OUT
 {

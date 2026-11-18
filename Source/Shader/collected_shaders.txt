@@ -1,23 +1,3 @@
-===== Basic_PS.hlsl ===== 
-Path: Basic_PS.hlsl 
-Texture2D baseMap : register(t0);
-SamplerState samplerState : register(s0);
-
-struct VS_OUT
-{
-    float4 position : SV_POSITION;
-    float3 normal   : NORMAL;
-    float4 tangent  : TANGENT;
-    float2 texcoord : TEXCOORD;
-    float3 worldPos : WORLD_POSITION;
-};
-
-float4 main(VS_OUT pin) : SV_TARGET
-{
-    // ƒx[ƒXƒJƒ‰[‚Ì‚İ•Ô‚·
-    return baseMap.Sample(samplerState, pin.texcoord);
-} 
- 
 ===== Debug_PS.hlsl ===== 
 Path: Debug_PS.hlsl 
 struct PS_IN
@@ -60,18 +40,13 @@ VS_OUT main(VS_IN vin)
  
 ===== Gbuffer_Basic_PS.hlsl ===== 
 Path: Gbuffer_Basic_PS.hlsl 
+#include "ShaderConstants.hlsli"
+
 Texture2D baseMap : register(t0);
 Texture2D normalMap : register(t1);
 
 SamplerState samplerState : register(s0);
 
-cbuffer CbObject : register(b2)
-{
-    row_major float4x4 world;
-    float alphaCutoff;
-    float3 padding;
-    float4 baseColorFactor; // ƒ}ƒeƒŠƒAƒ‹‚ÌŠî–{FiƒŠƒjƒA‹óŠÔj
-};
 
 struct VS_OUT
 {
@@ -131,21 +106,98 @@ PS_OUT main(VS_OUT pin)
  
 ===== Gbuffer_Grid_PS.hlsl ===== 
 Path: Gbuffer_Grid_PS.hlsl 
+#include "ShaderConstants.hlsli"
+
+//SamplerState samplerState : register(s0);
+
+//// æ ¼å­ã®è¨­å®šï¼ˆãƒ¯ãƒ¼ãƒ«ãƒ‰å˜ä½ï¼‰
+//static const float GRID_SIZE = 1.0f; // ç·šã®é–“éš”
+//static const float LINE_WIDTH = 0.02f; // ç·šã®å¤ªã•
+//static const float LINE_DARKNESS = 0.66f; // ç·šã®æš—ã•ï¼ˆä¸‹åœ°ã®è‰²ã«æ›ã‘ã‚‹ã€UEã®ç´°ç·šã«åˆã‚ã›ãŸå€¤ï¼‰
+//static const float3 GRID_BASE_COLOR = float3(0.18f, 0.18f, 0.18f); // ä¸‹åœ°ã®è‰²ï¼ˆãƒªãƒ‹ã‚¢ã€UEã®ã‚°ãƒ¬ãƒ¼ã«åˆã‚ã›ãŸå€¤ï¼‰
+
+//struct VS_OUT
+//{
+//    float4 position : SV_POSITION;
+//    float3 normal : NORMAL;
+//    float4 tangent : TANGENT;
+//    float2 texcoord : TEXCOORD;
+//    float3 worldPos : WORLD_POSITION;
+//};
+
+//struct PS_OUT
+//{
+//    float4 albedo : SV_TARGET0;
+//    float4 normal : SV_TARGET1;
+//    float4 position : SV_TARGET2;
+//    float4 roughnessMetallic : SV_TARGET3;
+//    float4 emissive : SV_TARGET4;
+//    float occlusion : SV_TARGET5;
+//};
+
+//PS_OUT main(VS_OUT pin)
+//{
+//    PS_OUT pout;
+
+//    float3 N = normalize(pin.normal);
+
+//    // é¢ã®å‘ãã‹ã‚‰æŠ•å½±ã™ã‚‹2è»¸ã‚’é¸ã¶ï¼ˆä¸€ç•ªå¤§ãã„æ³•ç·šæˆåˆ†ã®è»¸ã‚’æ¨ã¦ã‚‹ï¼‰
+//    float3 an = abs(N);
+//    float2 uv;
+//    if (an.x >= an.y && an.x >= an.z)
+//        uv = pin.worldPos.zy; // å·¦å³ã‚’å‘ã„ãŸé¢
+//    else if (an.y >= an.z)
+//        uv = pin.worldPos.xz; // ä¸Šä¸‹ã‚’å‘ã„ãŸé¢
+//    else
+//        uv = pin.worldPos.xy; // å‰å¾Œã‚’å‘ã„ãŸé¢
+
+//    // ãƒã‚¹å˜ä½ã®åº§æ¨™
+//    float2 g = uv / GRID_SIZE;
+
+//    // ä¸€ç•ªè¿‘ã„ç·šã¾ã§ã®è·é›¢ï¼ˆãƒã‚¹å˜ä½ã€0ã€œ0.5ï¼‰
+//    float2 d = abs(frac(g - 0.5f) - 0.5f);
+
+//    // 1ãƒ”ã‚¯ã‚»ãƒ«ã‚ãŸã‚Šã®å¤‰åŒ–é‡ï¼ˆé ãã§ç·šãŒã¡ã‚‰ã¤ã‹ãªã„ã‚ˆã†ã«ã¼ã‹ã—å¹…ã«ä½¿ã†ï¼‰
+//    float2 w = max(fwidth(g), 1e-5f);
+
+//    // ç·šã®ä¸Šãªã‚‰1ã€ç·šã®å¤–ãªã‚‰0ï¼ˆå¢ƒç•Œã¯wã®å¹…ã§ãªã‚ã‚‰ã‹ã«ï¼‰
+//    float halfWidth = (LINE_WIDTH / GRID_SIZE) * 0.5f;
+//    float2 lineMask = 1.0f - saturate((d - halfWidth) / w);
+//    float onLine = max(lineMask.x, lineMask.y);
+
+//    // è‰²ï¼ˆã©ã¡ã‚‰ã‚‚ãƒªãƒ‹ã‚¢ãªã®ã§æ›ã‘åˆã‚ã›ã‚‹ï¼‰
+//    float3 baseCol = GRID_BASE_COLOR * baseColorFactor.rgb;
+//    float3 lineCol = baseCol * LINE_DARKNESS;
+//    float4 albedo = float4(lerp(baseCol, lineCol, onLine), baseColorFactor.a);
+
+//    // Maskã‚¯ãƒªãƒƒãƒ—
+//    clip(albedo.a - alphaCutoff);
+
+//    pout.albedo = albedo;
+//    pout.normal = float4(N * 0.5f + 0.5f, 1.0f);
+//    pout.position = float4(pin.worldPos, 1.0f);
+//    pout.roughnessMetallic = float4(1.0f, 0.0f, 0.0f, 1.0f);
+//    pout.emissive = float4(0.0f, 0.0f, 0.0f, 1.0f);
+//    pout.occlusion = 1.0f;
+
+//    return pout;
+//}
+
+
+
 SamplerState samplerState : register(s0);
 
-cbuffer CbObject : register(b2)
-{
-    row_major float4x4 world;
-    float alphaCutoff;
-    float3 padding;
-    float4 baseColorFactor; // æ ¼å­ã®ä¸‹åœ°ã®è‰²ï¼ˆãƒªãƒ‹ã‚¢ç©ºé–“ï¼‰
-};
+// å¸‚æ¾æ¨¡æ§˜ã®è¨­å®šï¼ˆãƒ¯ãƒ¼ãƒ«ãƒ‰å˜ä½ï¼‰
+static const float GRID_SIZE = 1.0f; // å¸‚æ¾1ãƒã‚¹ã®å¤§ãã•
+static const float3 CHECKER_COLOR_A = float3(0.18f, 0.18f, 0.18f); // æ˜ã‚‹ã„ãƒã‚¹ï¼ˆãƒªãƒ‹ã‚¢ã€ç°è‰²ï¼‰
+static const float3 CHECKER_COLOR_B = float3(0.05f, 0.05f, 0.05f); // æš—ã„ãƒã‚¹ï¼ˆãƒªãƒ‹ã‚¢ã€é»’ã£ã½ã„è‰²ï¼‰
 
-// æ ¼å­ã®è¨­å®šï¼ˆãƒ¯ãƒ¼ãƒ«ãƒ‰å˜ä½ï¼‰
-static const float GRID_SIZE = 1.0f; // ç·šã®é–“éš”
-static const float LINE_WIDTH = 0.02f; // ç·šã®å¤ªã•
-static const float LINE_DARKNESS = 0.66f; // ç·šã®æš—ã•ï¼ˆä¸‹åœ°ã®è‰²ã«æ›ã‘ã‚‹ã€UEã®ç´°ç·šã«åˆã‚ã›ãŸå€¤ï¼‰
-static const float3 GRID_BASE_COLOR = float3(0.18f, 0.18f, 0.18f); // ä¸‹åœ°ã®è‰²ï¼ˆãƒªãƒ‹ã‚¢ã€UEã®ã‚°ãƒ¬ãƒ¼ã«åˆã‚ã›ãŸå€¤ï¼‰
+// æ ¼å­ç·šã®è¨­å®šï¼ˆãƒ¯ãƒ¼ãƒ«ãƒ‰å˜ä½ï¼‰
+static const float SUB_DIVISION = 4.0f; // 1ãƒã‚¹ã‚’ä½•åˆ†å‰²ã™ã‚‹ç´°ç·šã‚’å¼•ãã‹
+static const float MAJOR_LINE_WIDTH = 0.02f; // å¤ªç·šï¼ˆãƒã‚¹ã®å¢ƒç•Œï¼‰ã®å¤ªã•
+static const float MINOR_LINE_WIDTH = 0.01f; // ç´°ç·šã®å¤ªã•
+static const float3 MAJOR_LINE_COLOR = float3(0.6f, 0.6f, 0.6f); // å¤ªç·šã®è‰²ï¼ˆãƒªãƒ‹ã‚¢ã€ç™½ã£ã½ã„è‰²ï¼‰
+static const float MINOR_LINE_DARKNESS = 0.8f; // ç´°ç·šã®æš—ã•ï¼ˆãƒã‚¹ã®è‰²ã«æ›ã‘ã‚‹ï¼‰
 
 struct VS_OUT
 {
@@ -155,6 +207,21 @@ struct VS_OUT
     float2 texcoord : TEXCOORD;
     float3 worldPos : WORLD_POSITION;
 };
+
+// ç·šã®ä¸Šãªã‚‰1ã€ç·šã®å¤–ãªã‚‰0ã‚’è¿”ã™ï¼ˆå¢ƒç•Œã¯1ãƒ”ã‚¯ã‚»ãƒ«å¹…ã§ãªã‚ã‚‰ã‹ã«ï¼‰
+// g    : ç·šã®é–“éš”ã‚’1ã¨ã—ãŸåº§æ¨™
+// width: ç·šã®é–“éš”ã‚’1ã¨ã—ãŸç·šã®å¤ªã•
+float LineMask(float2 g, float width)
+{
+    // ä¸€ç•ªè¿‘ã„ç·šã¾ã§ã®è·é›¢ï¼ˆ0ã€œ0.5ï¼‰
+    float2 d = abs(frac(g - 0.5f) - 0.5f);
+
+    // 1ãƒ”ã‚¯ã‚»ãƒ«ã‚ãŸã‚Šã®å¤‰åŒ–é‡ï¼ˆé ãã§ç·šãŒã¡ã‚‰ã¤ã‹ãªã„ã‚ˆã†ã«ã¼ã‹ã—å¹…ã«ä½¿ã†ï¼‰
+    float2 w = max(fwidth(g), 1e-5f);
+
+    float2 m = 1.0f - saturate((d - width * 0.5f) / w);
+    return max(m.x, m.y);
+}
 
 struct PS_OUT
 {
@@ -185,22 +252,29 @@ PS_OUT main(VS_OUT pin)
     // ãƒã‚¹å˜ä½ã®åº§æ¨™
     float2 g = uv / GRID_SIZE;
 
-    // ä¸€ç•ªè¿‘ã„ç·šã¾ã§ã®è·é›¢ï¼ˆãƒã‚¹å˜ä½ã€0ã€œ0.5ï¼‰
-    float2 d = abs(frac(g - 0.5f) - 0.5f);
+    // ä»Šã„ã‚‹ãƒã‚¹ã®ç•ªå·ï¼ˆæ•´æ•°ï¼‰
+    float2 cell = floor(g);
 
-    // 1ãƒ”ã‚¯ã‚»ãƒ«ã‚ãŸã‚Šã®å¤‰åŒ–é‡ï¼ˆé ãã§ç·šãŒã¡ã‚‰ã¤ã‹ãªã„ã‚ˆã†ã«ã¼ã‹ã—å¹…ã«ä½¿ã†ï¼‰
-    float2 w = max(fwidth(g), 1e-5f);
+    // ç•ªå·ã®å’ŒãŒå¶æ•°ãªã‚‰0ã€å¥‡æ•°ãªã‚‰1ï¼ˆè² ã®åº§æ¨™ã§ã‚‚å´©ã‚Œãªã„ã‚ˆã†ã«fracã‚’ä½¿ã†ï¼‰
+    float checker = frac((cell.x + cell.y) * 0.5f) * 2.0f;
 
-    // ç·šã®ä¸Šãªã‚‰1ã€ç·šã®å¤–ãªã‚‰0ï¼ˆå¢ƒç•Œã¯wã®å¹…ã§ãªã‚ã‚‰ã‹ã«ï¼‰
-    float halfWidth = (LINE_WIDTH / GRID_SIZE) * 0.5f;
-    float2 lineMask = 1.0f - saturate((d - halfWidth) / w);
-    float onLine = max(lineMask.x, lineMask.y);
+    // å¤ªç·šï¼šãƒã‚¹ã®å¢ƒç•Œï¼ˆç·šã®é–“éš”ï¼1ãƒã‚¹ï¼‰
+    float major = LineMask(g, MAJOR_LINE_WIDTH / GRID_SIZE);
 
-    // è‰²ï¼ˆã©ã¡ã‚‰ã‚‚ãƒªãƒ‹ã‚¢ãªã®ã§æ›ã‘åˆã‚ã›ã‚‹ï¼‰
-    float3 baseCol = GRID_BASE_COLOR * baseColorFactor.rgb;
-    float3 lineCol = baseCol * LINE_DARKNESS;
-    float4 albedo = float4(lerp(baseCol, lineCol, onLine), baseColorFactor.a);
+    // ç´°ç·šï¼š1ãƒã‚¹ã‚’SUB_DIVISIONåˆ†å‰²ï¼ˆç·šã®é–“éš”ï¼1ãƒã‚¹/SUB_DIVISIONï¼‰
+    float minor = LineMask(g * SUB_DIVISION, MINOR_LINE_WIDTH * SUB_DIVISION / GRID_SIZE);
 
+    // ãƒã‚¹ã®è‰²ã«ç´°ç·šã®æš—ã•ã‚’æ›ã‘ã‚‹
+    float3 col = lerp(CHECKER_COLOR_A, CHECKER_COLOR_B, checker);
+    col *= lerp(1.0f, MINOR_LINE_DARKNESS, minor);
+
+    // å¤ªç·šã¯æ±ºã¾ã£ãŸè‰²ã§ä¸Šæ›¸ãã™ã‚‹ï¼ˆæœ€å¾Œã«å¡—ã‚‹ã®ã§ã€ç´°ç·šã¨é‡ãªã‚‹æ‰€ã‚‚å¤ªç·šãŒå„ªå…ˆã•ã‚Œã‚‹ï¼‰
+    col = lerp(col, MAJOR_LINE_COLOR, major);
+
+    // ãƒãƒ†ãƒªã‚¢ãƒ«ã®è‰²å‘³ã‚’å…¨ä½“ã«æ›ã‘ã‚‹ï¼ˆã©ã¡ã‚‰ã‚‚ãƒªãƒ‹ã‚¢ï¼‰
+    col *= baseColorFactor.rgb;
+    float4 albedo = float4(col, baseColorFactor.a);
+    
     // Maskã‚¯ãƒªãƒƒãƒ—
     clip(albedo.a - alphaCutoff);
 
@@ -216,6 +290,8 @@ PS_OUT main(VS_OUT pin)
  
 ===== Gbuffer_PS.hlsl ===== 
 Path: Gbuffer_PS.hlsl 
+#include "ShaderConstants.hlsli"
+
 Texture2D baseMap              : register(t0); // Albedo
 Texture2D normalMap            : register(t1); // –@üƒ}ƒbƒv
 Texture2D metallicRoughnessMap : register(t2); // G:Roughness B:Metallic
@@ -224,13 +300,6 @@ Texture2D emissiveMap          : register(t4); // Emissive
 
 SamplerState samplerState      : register(s0);
 
-cbuffer CbObject : register(b2)
-{
-    row_major float4x4 world;
-    float alphaCutoff;
-    float3 padding;
-    float4 baseColorFactor; // ƒ}ƒeƒŠƒAƒ‹‚ÌŠî–{FiƒŠƒjƒA‹óŠÔj
-};
 
 struct VS_OUT
 {
@@ -307,87 +376,9 @@ PS_OUT main(VS_OUT pin)
     return pout;
 } 
  
-===== Lambert_PS.hlsl ===== 
-Path: Lambert_PS.hlsl 
-cbuffer CbScene : register(b0)
-{
-    row_major float4x4 view;
-    row_major float4x4 projection;
-    float4 lightDirection;
-    float4 lightColor;
-    float4 ambientColor;
-    float4 cameraPosition;
-};
-
-Texture2D baseMap : register(t0);
-SamplerState samplerState : register(s0);
-
-struct VS_OUT
-{
-    float4 position : SV_POSITION;
-    float3 normal   : NORMAL;
-    float4 tangent  : TANGENT;
-    float2 texcoord : TEXCOORD;
-    float3 worldPos : WORLD_POSITION;
-};
-
-float4 main(VS_OUT pin) : SV_TARGET
-{
-    // ƒx[ƒXƒJƒ‰[æ“¾
-    float4 baseColor = baseMap.Sample(samplerState, pin.texcoord);
-
-    // –@ü³‹K‰»
-    float3 N = normalize(pin.normal);
-
-    // ƒ‰ƒCƒg•ûŒü³‹K‰»i‹t•ûŒüj
-    float3 L = normalize(-lightDirection.xyz);
-
-    // ƒ‰ƒ“ƒo[ƒgŠgUŒõ
-    float diffuse = max(dot(N, L), 0.0f);
-
-    // ÅIƒJƒ‰[ŒvZ
-    float3 color =
-        baseColor.rgb * lightColor.rgb * diffuse +
-        baseColor.rgb * ambientColor.rgb;
-
-    return float4(color, baseColor.a);
-} 
- 
 ===== Lighting_PS.hlsl ===== 
 Path: Lighting_PS.hlsl 
-#include "PBR_Functions.hlsli"
-#include "IBL_Functions.hlsli"
-
-cbuffer CbScene : register(b0)
-{
-    row_major float4x4 view;
-    row_major float4x4 projection;
-    //float4 lightDirection;
-    //float4 lightColor;
-    //float4 ambientColor;
-    float4 cameraPosition;
-};
-
-struct DirectionalLight
-{
-    float4 direction; // xyz=•ûŒü w=–¢g—p
-    float4 color; // xyz=F w=‹­“x
-};
-struct PointLight
-{
-    float4 position; // xyz=ˆÊ’u w=”ÍˆÍ
-    float4 color; // xyz=F w=‹­“x
-};
-
-#define MAX_POINT_LIGHTS 64
-
-cbuffer CbLights : register(b1)
-{
-    DirectionalLight directionalLight;
-    PointLight pointLights[MAX_POINT_LIGHTS];
-    int pointLightCount;
-    float3 cbPadding;
-};
+#include "LightingCommon.hlsli"
 
 // Gƒoƒbƒtƒ@
 Texture2D gbAlbedo            : register(t0);
@@ -411,95 +402,24 @@ struct VS_OUT
 };
 
 float4 main(VS_OUT pin) : SV_TARGET
-{
+{    
     float2 uv = pin.texcoord;
 
-    // Gƒoƒbƒtƒ@‚©‚çî•ñ‚ğ“Ç‚İo‚·
+    // Gƒoƒbƒtƒ@‚©‚çŞ—¿‚ğ“Ç‚İo‚·
     float4 albedo = gbAlbedo.Sample(samplerState, uv);
-    float3 N = gbNormal.Sample(samplerState, uv).xyz;
-    float3 worldPos = gbPosition.Sample(samplerState, uv).xyz;
     float4 roughnessMetallic = gbRoughnessMetallic.Sample(samplerState, uv);
-    float3 emissive = gbEmissive.Sample(samplerState, uv).rgb;
-    float  occlusion = gbOcclusion.Sample(samplerState, uv).r;
 
-    // –@üƒfƒR[ƒh
-    N = normalize(N * 2.0f - 1.0f);
+    SurfaceData s;
+    s.albedo = albedo.rgb;
+    s.normal = normalize(gbNormal.Sample(samplerState, uv).xyz * 2.0f - 1.0f);
+    s.worldPos = gbPosition.Sample(samplerState, uv).xyz;
+    s.roughness = roughnessMetallic.r;
+    s.metalness = roughnessMetallic.g;
+    s.occlusion = gbOcclusion.Sample(samplerState, uv).r;
+    s.emissive = gbEmissive.Sample(samplerState, uv).rgb;
 
-    float roughness = roughnessMetallic.r;
-    float metalness = roughnessMetallic.g;
-
-    // PBRƒpƒ‰ƒ[ƒ^[ŒvZ
-    float3 diffuse_reflectance = lerp(albedo.rgb, 0.0f, metalness);
-    float3 F0 = lerp(0.04f, albedo.rgb, metalness);
-
-    // ƒxƒNƒgƒ‹ŒvZ
-    float3 V = normalize(cameraPosition.xyz - worldPos);
-    float3 diffuse = 0;
-    float3 specular = 0;
-    
-    // •½sŒõŒ¹
-    {
-        float3 L = normalize(-directionalLight.direction.xyz);
-        float3 LC = directionalLight.color.rgb * directionalLight.color.a;
-        float3 d = 0;
-        float3 s = 0;
-        DirectBRDF(diffuse_reflectance, F0, N, V, L, LC, roughness, d, s);
-        diffuse += d;
-        specular += s;
-    }
-
-    // ƒ|ƒCƒ“ƒgƒ‰ƒCƒg
-    for (int i = 0; i < pointLightCount; i++)
-    {
-        float3 toLight = pointLights[i].position.xyz - worldPos;
-        float dist = length(toLight);
-        float range = pointLights[i].position.w;
-
-        if (dist > range)
-            continue;
-
-        float attenuation = 1.0f - saturate(dist / range);
-        attenuation *= attenuation;
-
-        float3 L = normalize(toLight);
-        float3 LC = pointLights[i].color.rgb
-              * pointLights[i].color.a
-              * attenuation;
-
-        float3 d = 0;
-        float3 s = 0;
-        DirectBRDF(diffuse_reflectance, F0, N, V, L, LC, roughness, d, s);
-        diffuse += d;
-        specular += s;
-    }
-    
-    //float3 L = normalize(-lightDirection.xyz);
-    //float3 LC = lightColor.rgb * lightColor.a;
-
-    //// ’¼ÚŒõ‚ÌPBRƒ‰ƒCƒeƒBƒ“ƒO
-    //float3 diffuse = 0;
-    //float3 specular = 0;
-    //DirectBRDF(diffuse_reflectance, F0, N, V, L, LC,
-    //           roughness, diffuse, specular);
-
-    // ŠÔÚŒõiIBLj
-    float3 iblDiffuse = IBL_Diffuse(
-        diffuseIem, samplerState, N,
-        diffuse_reflectance, F0, V);
-
-    float3 iblSpecular = IBL_Specular(
-        specularPmrem, lutGgx, samplerState,
-        N, V, F0, roughness);
-
-    float3 ambient = iblDiffuse + iblSpecular;
-
-    // Occlusion“K—p
-    diffuse *= occlusion;
-    specular *= occlusion;
-    ambient *= occlusion;
-
-    // ÅIƒJƒ‰[‡¬
-    float3 color = diffuse + specular + ambient + emissive;
+    // Œõ‚ğ“–‚Ä‚é
+    float3 color = ShadeSurface(s, diffuseIem, specularPmrem, lutGgx, samplerState);
 
     // ƒKƒ“ƒ}•â³
     color = pow(max(color, 0.0001f), 1.0f / 2.2f);
@@ -536,44 +456,7 @@ VS_OUT main(uint vertexID : SV_VertexID)
  
 ===== PBR_PS.hlsl ===== 
 Path: PBR_PS.hlsl 
-#include "PBR_Functions.hlsli"
-#include "IBL_Functions.hlsli" 
-
-cbuffer CbScene : register(b0)
-{
-    row_major float4x4 view;
-    row_major float4x4 projection;
-    float4 cameraPosition;
-};
-
-struct DirectionalLight
-{
-    float4 direction;
-    float4 color;
-};
-struct PointLight
-{
-    float4 position;
-    float4 color;
-};
-
-#define MAX_POINT_LIGHTS 64
-
-cbuffer CbLights : register(b1)
-{
-    DirectionalLight directionalLight;
-    PointLight pointLights[MAX_POINT_LIGHTS];
-    int pointLightCount;
-    float3 cbPadding;
-};
-
-cbuffer CbObject : register(b2)
-{
-    row_major float4x4 world;
-    float alphaCutoff;
-    float3 padding;
-    float4 baseColorFactor; // ƒ}ƒeƒŠƒAƒ‹‚ÌŠî–{FiƒŠƒjƒA‹óŠÔj
-};
+#include "LightingCommon.hlsli"
 
 // ƒeƒNƒXƒ`ƒƒ
 Texture2D baseMap              : register(t0); // Albedo
@@ -631,71 +514,20 @@ float4 main(VS_OUT pin) : SV_TARGET
     N = normalize(normalSample.x * T
                 + normalSample.y * B
                 + normalSample.z * N);
-    
-    // PBRƒpƒ‰ƒ[ƒ^[ŒvZ
-    float3 diffuse_reflectance = lerp(baseColor.rgb, 0.0f, metalness);
-    float3 F0 = lerp(0.04f, baseColor.rgb, metalness);
 
-    // ƒxƒNƒgƒ‹ŒvZ
-    float3 V = normalize(cameraPosition.xyz - pin.worldPos);
-    float3 diffuse = 0;
-    float3 specular = 0;
+    // Ş—¿‚ğ‹l‚ß‚é
+    SurfaceData s;
+    s.albedo = baseColor.rgb;
+    s.normal = N;
+    s.worldPos = pin.worldPos;
+    s.roughness = roughness;
+    s.metalness = metalness;
+    s.occlusion = occlusion;
+    s.emissive = emissive;
 
-    // •½sŒõŒ¹
-    {
-        float3 L = normalize(-directionalLight.direction.xyz);
-        float3 LC = directionalLight.color.rgb * directionalLight.color.a;
-        float3 d = 0;
-        float3 s = 0;
-        DirectBRDF(diffuse_reflectance, F0, N, V, L, LC, roughness, d, s);
-        diffuse += d;
-        specular += s;
-    }
+    // Œõ‚ğ“–‚Ä‚é
+    float3 color = ShadeSurface(s, diffuseIem, specularPmrem, lutGgx, samplerState);
 
-    // ƒ|ƒCƒ“ƒgƒ‰ƒCƒg
-    for (int i = 0; i < pointLightCount; i++)
-    {
-        float3 toLight = pointLights[i].position.xyz - pin.worldPos;
-        float dist = length(toLight);
-        float range = pointLights[i].position.w;
-
-        if (dist > range)
-            continue;
-
-        float attenuation = 1.0f - saturate(dist / range);
-        attenuation *= attenuation;
-
-        float3 L = normalize(toLight);
-        float3 LC = pointLights[i].color.rgb
-              * pointLights[i].color.a
-              * attenuation;
-
-        float3 d = 0;
-        float3 s = 0;
-        DirectBRDF(diffuse_reflectance, F0, N, V, L, LC, roughness, d, s);
-        diffuse += d;
-        specular += s;
-    }
-
-    // ŠÔÚŒõ
-    float3 iblDiffuse = IBL_Diffuse(
-        diffuseIem, samplerState, N,
-        diffuse_reflectance, F0, V);
-
-    float3 iblSpecular = IBL_Specular(
-        specularPmrem, lutGgx, samplerState,
-        N, V, F0, roughness);
-
-    float3 ambient = iblDiffuse + iblSpecular;
-
-    // Occlusion“K—p
-    diffuse *= occlusion;
-    specular *= occlusion;
-    ambient *= occlusion;
-
-    // ÅIƒJƒ‰[‡¬
-    float3 color = diffuse + specular + ambient + emissive;
-    
     // ƒKƒ“ƒ}•â³
     color = pow(max(color, 0.0001f), 1.0f / GAMMA);
 
@@ -720,26 +552,7 @@ float4 main(VS_OUT pin) : SV_TARGET
  
 ===== Skinning_VS.hlsl ===== 
 Path: Skinning_VS.hlsl 
-// ’è”ƒoƒbƒtƒ@0FƒV[ƒ“î•ñ
-cbuffer CbScene : register(b0)
-{
-    row_major float4x4 view;
-    row_major float4x4 projection;
-    float4 cameraPosition;
-};
-
-// ’è”ƒoƒbƒtƒ@1FƒIƒuƒWƒFƒNƒgî•ñ
-cbuffer CbObject : register(b1)
-{
-    row_major float4x4 world;
-};
-
-// ’è”ƒoƒbƒtƒ@2Fƒ{[ƒ“s—ñ
-#define MAX_BONES 256
-cbuffer CbSkinning : register(b2)
-{
-    row_major float4x4 boneTransforms[MAX_BONES];
-};
+#include "ShaderConstants.hlsli"
 
 // ’¸“_“ü—Í
 struct VS_IN
@@ -792,7 +605,7 @@ VS_OUT main(VS_IN vin)
     vout.position = mul(mul(worldPos, view), projection);
     
     // –@üEÚü‚ğƒ[ƒ‹ƒh‹óŠÔ‚Ö
-    vout.normal = normalize(mul(skinnedNormal.xyz, (float3x3) world));
+    vout.normal = normalize(mul(skinnedNormal.xyz, (float3x3) worldInverseTranspose));
     vout.tangent.xyz = normalize(mul(skinnedTangent.xyz, (float3x3) world));
     vout.tangent.w = vin.tangent.w;
     
@@ -921,19 +734,7 @@ VS_OUT main(
  
 ===== Static_VS.hlsl ===== 
 Path: Static_VS.hlsl 
-// ƒV[ƒ“î•ñ
-cbuffer CbScene : register(b0)
-{
-    row_major float4x4 view;
-    row_major float4x4 projection;
-    float4 cameraPosition;
-};
-
-// ƒIƒuƒWƒFƒNƒgî•ñ
-cbuffer CbObject : register(b1)
-{
-    row_major float4x4 world;
-};
+#include "ShaderConstants.hlsli"
 
 // ’¸“_“ü—Í
 struct VS_IN
@@ -967,7 +768,7 @@ VS_OUT main(VS_IN vin)
     pos = mul(pos, projection);
     vout.position = pos;
 
-    vout.normal = normalize(mul(vin.normal, (float3x3) world));
+    vout.normal = normalize(mul(vin.normal, (float3x3) worldInverseTranspose));
     vout.tangent.xyz = normalize(mul(vin.tangent.xyz, (float3x3) world));
     vout.tangent.w = vin.tangent.w;
     vout.texcoord = vin.texcoord;
@@ -1005,6 +806,9 @@ VS_OUT main(
  
 ===== IBL_Functions.hlsli ===== 
 Path: IBL_Functions.hlsli 
+#ifndef IBL_FUNCTIONS_HLSLI
+#define IBL_FUNCTIONS_HLSLI
+
 // Diffuse IBL
 // irradianceMap: –‘Oô‚İ‚İÏ‚İ‚ÌDiffuseŠÂ‹«ƒ}ƒbƒv
 // N            : –@üƒxƒNƒgƒ‹iƒ[ƒ‹ƒh‹óŠÔj
@@ -1051,7 +855,9 @@ float3 IBL_Specular(
     float3 R = reflect(-V, N);
 
     // roughness‚É‰‚¶‚ÄMipƒŒƒxƒ‹‚ğ‘I‘ğ
-    float mipLevel = roughness * 10.0f;
+    uint width, height, mipCount;
+    prefilteredMap.GetDimensions(0, width, height, mipCount);
+    float mipLevel = roughness * (float) (mipCount - 1);
 
     // –‘OƒtƒBƒ‹ƒ^ƒŠƒ“ƒOÏ‚İŠÂ‹«ƒ}ƒbƒv‚ğƒTƒ“ƒvƒŠƒ“ƒO
     float3 prefilteredColor = prefilteredMap.SampleLevel(
@@ -1062,14 +868,113 @@ float3 IBL_Specular(
         float2(NdotV, roughness)).rg;
 
     // ƒtƒŒƒlƒ‹€
-    float3 F = F0 + (max(1.0f - roughness, F0) - F0) *
-               pow(clamp(1.0f - NdotV, 0.0f, 1.0f), 5.0f);
-
+    float3 F = F0 + (1.0f - F0) * pow(clamp(1.0f - NdotV, 0.0f, 1.0f), 5.0f);
+    
     return prefilteredColor * (F * brdf.x + brdf.y);
-} 
+}
+
+#endif 
+ 
+===== LightingCommon.hlsli ===== 
+Path: LightingCommon.hlsli 
+// ƒ‰ƒCƒeƒBƒ“ƒO‚Ì‹¤’Êˆ—
+
+#ifndef LIGHTING_COMMON_HLSLI
+#define LIGHTING_COMMON_HLSLI
+
+#include "ShaderConstants.hlsli"
+#include "PBR_Functions.hlsli"
+#include "IBL_Functions.hlsli"
+
+// •\–Ê‚ÌŞ—¿
+struct SurfaceData
+{
+    float3 albedo; // Šî–{F
+    float3 normal; // –@ü
+    float3 worldPos; // ƒ[ƒ‹ƒhÀ•W
+    float roughness; // ‘e‚³
+    float metalness; // ‹à‘®“x
+    float occlusion; // AO
+    float3 emissive; // ”­Œõ
+};
+
+// Œõ‚ğ“–‚Ä‚½F‚ğ•Ô‚·
+float3 ShadeSurface(
+    SurfaceData s,
+    TextureCube diffuseIem,
+    TextureCube specularPmrem,
+    Texture2D lutGgx,
+    SamplerState samplerState)
+{
+    // PBR ƒpƒ‰ƒ[ƒ^[
+    float3 diffuse_reflectance = lerp(s.albedo, 0.0f, s.metalness);
+    float3 F0 = lerp(0.04f, s.albedo, s.metalness);
+
+    float3 N = s.normal;
+    float3 V = normalize(cameraPosition.xyz - s.worldPos);
+    float3 diffuse = 0;
+    float3 specular = 0;
+
+    // •½sŒõŒ¹
+    {
+        float3 L = normalize(-directionalLight.direction.xyz);
+        float3 LC = directionalLight.color.rgb * directionalLight.color.a;
+        float3 d = 0;
+        float3 sp = 0;
+        DirectBRDF(diffuse_reflectance, F0, N, V, L, LC, s.roughness, d, sp);
+        diffuse += d;
+        specular += sp;
+    }
+
+    // ƒ|ƒCƒ“ƒgƒ‰ƒCƒg
+    for (int i = 0; i < pointLightCount; i++)
+    {
+        float3 toLight = pointLights[i].position.xyz - s.worldPos;
+        float dist = length(toLight);
+        float range = pointLights[i].position.w;
+
+        if (dist > range)
+            continue;
+
+        float attenuation = 1.0f - saturate(dist / range);
+        attenuation *= attenuation;
+
+        float3 L = normalize(toLight);
+        float3 LC = pointLights[i].color.rgb
+                  * pointLights[i].color.a
+                  * attenuation;
+
+        float3 d = 0;
+        float3 sp = 0;
+        DirectBRDF(diffuse_reflectance, F0, N, V, L, LC, s.roughness, d, sp);
+        diffuse += d;
+        specular += sp;
+    }
+
+    // ŠÔÚŒõiIBLj
+    float3 iblDiffuse = IBL_Diffuse(
+        diffuseIem, samplerState, N,
+        diffuse_reflectance, F0, V);
+
+    float3 iblSpecular = IBL_Specular(
+        specularPmrem, lutGgx, samplerState,
+        N, V, F0, s.roughness);
+
+    float3 ambient = iblDiffuse + iblSpecular;
+
+    // Occlusion
+    ambient *= s.occlusion;
+    
+    return diffuse + specular + ambient + s.emissive;
+}
+
+#endif 
  
 ===== PBR_Functions.hlsli ===== 
 Path: PBR_Functions.hlsli 
+#ifndef PBR_FUNCTIONS_HLSLI
+#define PBR_FUNCTIONS_HLSLI
+
 #ifndef PI
 #define PI 3.14159265358979323846f
 #endif
@@ -1167,7 +1072,67 @@ void DirectBRDF(
 
     out_diffuse = DiffuseBRDF(VdotH, F0, diffuse_reflectance) * irradiance;
     out_specular = SpecularBRDF(NdotV, NdotL, NdotH, VdotH, F0, roughness) * irradiance;
-} 
+}
+
+#endif 
+ 
+===== ShaderConstants.hlsli ===== 
+Path: ShaderConstants.hlsli 
+#ifndef SHADER_CONSTANTS_HLSLI
+#define SHADER_CONSTANTS_HLSLI
+
+
+#define MAX_BONES        256 // ƒXƒLƒjƒ“ƒO‚Ìƒ{[ƒ“”‚ÌãŒÀ
+#define MAX_POINT_LIGHTS 64  // ƒ|ƒCƒ“ƒgƒ‰ƒCƒg‚Ì”‚ÌãŒÀ
+
+// b0FƒV[ƒ“
+cbuffer CbScene : register(b0)
+{
+    row_major float4x4 view;
+    row_major float4x4 projection;
+    float4 cameraPosition; // xyz=ˆÊ’u w=–¢g—p
+};
+
+// b1FƒIƒuƒWƒFƒNƒg
+cbuffer CbObject : register(b1)
+{
+    row_major float4x4 world;
+    row_major float4x4 worldInverseTranspose; // –@ü—p
+    float alphaCutoff;      // Mask‘fŞ‚ÌƒNƒŠƒbƒv‚µ‚«‚¢’l
+    float3 objectPadding;
+    float4 baseColorFactor; // ƒ}ƒeƒŠƒAƒ‹‚ÌŠî–{F
+};
+
+// b2Fƒ‰ƒCƒg
+struct DirectionalLight
+{
+    float4 direction; // xyz=•ûŒü w=–¢g—p
+    float4 color;     // xyz=F w=‹­“x
+};
+struct PointLight
+{
+    float4 position; // xyz=ˆÊ’u w=”ÍˆÍ
+    float4 color;    // xyz=F w=‹­“x
+};
+cbuffer CbLights : register(b2)
+{
+    DirectionalLight directionalLight;
+    PointLight pointLights[MAX_POINT_LIGHTS];
+    int pointLightCount;
+    float3 lightsPadding;
+};
+
+// b3FƒXƒLƒjƒ“ƒO
+cbuffer CbSkinning : register(b3)
+{
+    row_major float4x4 boneTransforms[MAX_BONES];
+};
+
+// b4FƒJƒXƒP[ƒhƒVƒƒƒhƒEƒ}ƒbƒv
+
+// b5Fƒ|ƒXƒgƒGƒtƒFƒNƒg
+
+#endif 
  
 ===== SolidShape.hlsli ===== 
 Path: SolidShape.hlsli 

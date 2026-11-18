@@ -1,3 +1,6 @@
+#ifndef IBL_FUNCTIONS_HLSLI
+#define IBL_FUNCTIONS_HLSLI
+
 // Diffuse IBL
 // irradianceMap: 事前畳み込み済みのDiffuse環境マップ
 // N            : 法線ベクトル（ワールド空間）
@@ -44,7 +47,9 @@ float3 IBL_Specular(
     float3 R = reflect(-V, N);
 
     // roughnessに応じてMipレベルを選択
-    float mipLevel = roughness * 10.0f;
+    uint width, height, mipCount;
+    prefilteredMap.GetDimensions(0, width, height, mipCount);
+    float mipLevel = roughness * (float) (mipCount - 1);
 
     // 事前フィルタリング済み環境マップをサンプリング
     float3 prefilteredColor = prefilteredMap.SampleLevel(
@@ -55,8 +60,9 @@ float3 IBL_Specular(
         float2(NdotV, roughness)).rg;
 
     // フレネル項
-    float3 F = F0 + (max(1.0f - roughness, F0) - F0) *
-               pow(clamp(1.0f - NdotV, 0.0f, 1.0f), 5.0f);
-
+    float3 F = F0 + (1.0f - F0) * pow(clamp(1.0f - NdotV, 0.0f, 1.0f), 5.0f);
+    
     return prefilteredColor * (F * brdf.x + brdf.y);
 }
+
+#endif

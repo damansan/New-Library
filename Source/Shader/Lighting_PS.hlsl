@@ -1,36 +1,4 @@
-#include "PBR_Functions.hlsli"
-#include "IBL_Functions.hlsli"
-
-cbuffer CbScene : register(b0)
-{
-    row_major float4x4 view;
-    row_major float4x4 projection;
-    //float4 lightDirection;
-    //float4 lightColor;
-    //float4 ambientColor;
-    float4 cameraPosition;
-};
-
-struct DirectionalLight
-{
-    float4 direction; // xyz=方向 w=未使用
-    float4 color; // xyz=色 w=強度
-};
-struct PointLight
-{
-    float4 position; // xyz=位置 w=範囲
-    float4 color; // xyz=色 w=強度
-};
-
-#define MAX_POINT_LIGHTS 64
-
-cbuffer CbLights : register(b1)
-{
-    DirectionalLight directionalLight;
-    PointLight pointLights[MAX_POINT_LIGHTS];
-    int pointLightCount;
-    float3 cbPadding;
-};
+#include "LightingCommon.hlsli"
 
 // Gバッファ
 Texture2D gbAlbedo            : register(t0);
@@ -54,95 +22,24 @@ struct VS_OUT
 };
 
 float4 main(VS_OUT pin) : SV_TARGET
-{
+{    
     float2 uv = pin.texcoord;
 
-    // Gバッファから情報を読み出す
+    // Gバッファから材料を読み出す
     float4 albedo = gbAlbedo.Sample(samplerState, uv);
-    float3 N = gbNormal.Sample(samplerState, uv).xyz;
-    float3 worldPos = gbPosition.Sample(samplerState, uv).xyz;
     float4 roughnessMetallic = gbRoughnessMetallic.Sample(samplerState, uv);
-    float3 emissive = gbEmissive.Sample(samplerState, uv).rgb;
-    float  occlusion = gbOcclusion.Sample(samplerState, uv).r;
 
-    // 法線デコード
-    N = normalize(N * 2.0f - 1.0f);
+    SurfaceData s;
+    s.albedo = albedo.rgb;
+    s.normal = normalize(gbNormal.Sample(samplerState, uv).xyz * 2.0f - 1.0f);
+    s.worldPos = gbPosition.Sample(samplerState, uv).xyz;
+    s.roughness = roughnessMetallic.r;
+    s.metalness = roughnessMetallic.g;
+    s.occlusion = gbOcclusion.Sample(samplerState, uv).r;
+    s.emissive = gbEmissive.Sample(samplerState, uv).rgb;
 
-    float roughness = roughnessMetallic.r;
-    float metalness = roughnessMetallic.g;
-
-    // PBRパラメーター計算
-    float3 diffuse_reflectance = lerp(albedo.rgb, 0.0f, metalness);
-    float3 F0 = lerp(0.04f, albedo.rgb, metalness);
-
-    // ベクトル計算
-    float3 V = normalize(cameraPosition.xyz - worldPos);
-    float3 diffuse = 0;
-    float3 specular = 0;
-    
-    // 平行光源
-    {
-        float3 L = normalize(-directionalLight.direction.xyz);
-        float3 LC = directionalLight.color.rgb * directionalLight.color.a;
-        float3 d = 0;
-        float3 s = 0;
-        DirectBRDF(diffuse_reflectance, F0, N, V, L, LC, roughness, d, s);
-        diffuse += d;
-        specular += s;
-    }
-
-    // ポイントライト
-    for (int i = 0; i < pointLightCount; i++)
-    {
-        float3 toLight = pointLights[i].position.xyz - worldPos;
-        float dist = length(toLight);
-        float range = pointLights[i].position.w;
-
-        if (dist > range)
-            continue;
-
-        float attenuation = 1.0f - saturate(dist / range);
-        attenuation *= attenuation;
-
-        float3 L = normalize(toLight);
-        float3 LC = pointLights[i].color.rgb
-              * pointLights[i].color.a
-              * attenuation;
-
-        float3 d = 0;
-        float3 s = 0;
-        DirectBRDF(diffuse_reflectance, F0, N, V, L, LC, roughness, d, s);
-        diffuse += d;
-        specular += s;
-    }
-    
-    //float3 L = normalize(-lightDirection.xyz);
-    //float3 LC = lightColor.rgb * lightColor.a;
-
-    //// 直接光のPBRライティング
-    //float3 diffuse = 0;
-    //float3 specular = 0;
-    //DirectBRDF(diffuse_reflectance, F0, N, V, L, LC,
-    //           roughness, diffuse, specular);
-
-    // 間接光（IBL）
-    float3 iblDiffuse = IBL_Diffuse(
-        diffuseIem, samplerState, N,
-        diffuse_reflectance, F0, V);
-
-    float3 iblSpecular = IBL_Specular(
-        specularPmrem, lutGgx, samplerState,
-        N, V, F0, roughness);
-
-    float3 ambient = iblDiffuse + iblSpecular;
-
-    // Occlusion適用
-    diffuse *= occlusion;
-    specular *= occlusion;
-    ambient *= occlusion;
-
-    // 最終カラー合成
-    float3 color = diffuse + specular + ambient + emissive;
+    // 光を当てる
+    float3 color = ShadeSurface(s, diffuseIem, specularPmrem, lutGgx, samplerState);
 
     // ガンマ補正
     color = pow(max(color, 0.0001f), 1.0f / 2.2f);

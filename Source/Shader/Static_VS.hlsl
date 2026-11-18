@@ -1,16 +1,4 @@
-// シーン情報
-cbuffer CbScene : register(b0)
-{
-    row_major float4x4 view;
-    row_major float4x4 projection;
-    float4 cameraPosition;
-};
-
-// オブジェクト情報
-cbuffer CbObject : register(b1)
-{
-    row_major float4x4 world;
-};
+#include "ShaderConstants.hlsli"
 
 // 頂点入力
 struct VS_IN
@@ -44,7 +32,7 @@ VS_OUT main(VS_IN vin)
     pos = mul(pos, projection);
     vout.position = pos;
 
-    vout.normal = normalize(mul(vin.normal, (float3x3) world));
+    vout.normal = normalize(mul(vin.normal, (float3x3) worldInverseTranspose));
     vout.tangent.xyz = normalize(mul(vin.tangent.xyz, (float3x3) world));
     vout.tangent.w = vin.tangent.w;
     vout.texcoord = vin.texcoord;

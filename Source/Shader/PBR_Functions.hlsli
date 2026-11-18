@@ -1,3 +1,6 @@
+#ifndef PBR_FUNCTIONS_HLSLI
+#define PBR_FUNCTIONS_HLSLI
+
 #ifndef PI
 #define PI 3.14159265358979323846f
 #endif
@@ -96,3 +99,5 @@ void DirectBRDF(
     out_diffuse = DiffuseBRDF(VdotH, F0, diffuse_reflectance) * irradiance;
     out_specular = SpecularBRDF(NdotV, NdotL, NdotH, VdotH, F0, roughness) * irradiance;
 }
+
+#endif

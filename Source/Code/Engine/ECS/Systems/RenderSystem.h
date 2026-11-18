@@ -12,6 +12,7 @@
 
 #include "Engine/Resource/Model.h"
 #include "Engine/Rendering/GBuffer.h"
+#include "Engine/Rendering/ShaderLimits.h"
 
 // 定数バッファ構造体
 struct CbScene
@@ -21,21 +22,14 @@ struct CbScene
 	DirectX::XMFLOAT4   cameraPosition;   // カメラ位置（w未使用）
 };
 
-//struct CbObject
-//{
-//	DirectX::XMFLOAT4X4 world;       // ワールド行列
-//	float               alphaCutoff; // Mask素材のクリップしきい値
-//	DirectX::XMFLOAT3   padding;     // 16バイトアライメント用
-//};
 struct CbObject
 {
-	DirectX::XMFLOAT4X4 world;       // ワールド行列
-	float               alphaCutoff; // Mask素材のクリップしきい値
-	DirectX::XMFLOAT3   padding;     // 16バイトアライメント用
-	DirectX::XMFLOAT4   baseColor;   // マテリアルの基本色（glTF の baseColorFactor）
+	DirectX::XMFLOAT4X4 world;                 // ワールド行列
+	DirectX::XMFLOAT4X4 worldInverseTranspose; // 法線用
+	float               alphaCutoff;           // Mask素材のクリップしきい値
+	DirectX::XMFLOAT3   padding;               // 16バイトアライメント用
+	DirectX::XMFLOAT4   baseColor;             // マテリアルの基本色
 };
-
-#define MAX_BONES 256
 
 struct CbSkinning
 {
