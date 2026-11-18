@@ -80,13 +80,26 @@ HRESULT GpuResourceUtils::LoadTexture(
 	ID3D11Device* device,
 	const unsigned char* data,
 	size_t dataSize,
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>& shaderResourceView
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>& shaderResourceView,
+	TextureColorSpace colorSpace
 )
 {
+	const bool srgb = (colorSpace == TextureColorSpace::sRGB);
+	
+	// グレースケールや1チャンネルの画像も RGBA に広げて読む
+	const DirectX::WIC_LOADER_FLAGS wicFlags = static_cast<DirectX::WIC_LOADER_FLAGS>(
+		DirectX::WIC_LOADER_FORCE_RGBA32 |
+		(srgb ? DirectX::WIC_LOADER_FORCE_SRGB : DirectX::WIC_LOADER_IGNORE_SRGB));
+
 	// まずWICで試みる（PNG・JPG）
-	HRESULT hr = DirectX::CreateWICTextureFromMemory(
-		device, data, dataSize, nullptr,
-		shaderResourceView.GetAddressOf());
+	HRESULT hr = DirectX::CreateWICTextureFromMemoryEx(
+		device, data, dataSize,
+		0,                          // 最大サイズ
+		D3D11_USAGE_DEFAULT,        // GPU だけが読み書きする
+		D3D11_BIND_SHADER_RESOURCE, // シェーダーから読む
+		0, 0,                       // CPU アクセス・その他のフラグ
+		wicFlags,
+		nullptr, shaderResourceView.GetAddressOf());
 
 	if (SUCCEEDED(hr)) return hr;
 
@@ -103,7 +116,7 @@ HRESULT GpuResourceUtils::LoadTexture(
 		desc.Height = height;
 		desc.MipLevels = 1;
 		desc.ArraySize = 1;
-		desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		desc.Format = srgb ? DXGI_FORMAT_R8G8B8A8_UNORM_SRGB : DXGI_FORMAT_R8G8B8A8_UNORM;
 		desc.SampleDesc.Count = 1;
 		desc.Usage = D3D11_USAGE_DEFAULT;
 		desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
@@ -134,9 +147,10 @@ HRESULT GpuResourceUtils::LoadTexture(
 
 // ファイルパスからテクスチャ読み込み
 HRESULT GpuResourceUtils::LoadTextureFromFile(
-	ID3D11Device* device, 
+	ID3D11Device* device,
 	const std::string& filename,
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>& shaderResourceView)
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>& shaderResourceView,
+	TextureColorSpace colorSpace)
 {
 	// ファイルを開いてバイナリを読み込む
 	FILE* fp = nullptr;
@@ -156,7 +170,7 @@ HRESULT GpuResourceUtils::LoadTextureFromFile(
 	fclose(fp);
 
 	// 既存の LoadTexture（メモリ版）に流す
-	return LoadTexture(device, data.data(), data.size(), shaderResourceView);
+	return LoadTexture(device, data.data(), data.size(), shaderResourceView, colorSpace);
 }
 
 // DDSテクスチャ読み込み
@@ -164,14 +178,27 @@ HRESULT GpuResourceUtils::LoadDDSTexture(
 	ID3D11Device* device,
 	const std::string& filename,
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>& shaderResourceView,
-	bool* isCubemap
-)
+	bool* isCubemap,
+	TextureColorSpace colorSpace
+) 
 {
 	// std::stringをstd::wstring変換
 	std::wstring wfilename = ToWString(filename);
 
+	// sRGBフラグを指定
+	const DirectX::DDS_LOADER_FLAGS ddsFlags = (colorSpace == TextureColorSpace::sRGB)
+		? DirectX::DDS_LOADER_FORCE_SRGB
+		: DirectX::DDS_LOADER_DEFAULT;
+
 	Microsoft::WRL::ComPtr<ID3D11Resource> resource;
-	HRESULT hr = DirectX::CreateDDSTextureFromFile(device, wfilename.c_str(), resource.GetAddressOf(), shaderResourceView.GetAddressOf());
+	HRESULT hr = DirectX::CreateDDSTextureFromFileEx(
+		device, wfilename.c_str(),
+		0,                          // 最大サイズ
+		D3D11_USAGE_DEFAULT,
+		D3D11_BIND_SHADER_RESOURCE,
+		0, 0,                       // CPU アクセス・その他のフラグ
+		ddsFlags,
+		resource.GetAddressOf(), shaderResourceView.GetAddressOf());
 	_ASSERT_EXPR(SUCCEEDED(hr), hr_trace(hr));
 
 	// キューブマップ判定
@@ -190,29 +217,29 @@ HRESULT GpuResourceUtils::LoadDDSTexture(
 }
 // DDSキャッシュ付きテクスチャ読み込み
 HRESULT GpuResourceUtils::LoadTextureWithDDSCache(
-	ID3D11Device* device, 
+	ID3D11Device* device,
 	const std::string& filename,
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>& shaderResourceView)
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>& shaderResourceView,
+	TextureColorSpace colorSpace) 
 {
 	// 同名の .dds キャッシュパスを生成
 	std::string ddsPath = filename + ".dds";
 
-	// DDSキャッシュが存在すればそちらから読む
-	if (std::filesystem::exists(ddsPath))
+	// キャッシュが無ければ、先に作る
+	if (!std::filesystem::exists(ddsPath))
 	{
-		HRESULT hr = LoadDDSTexture(device, ddsPath, shaderResourceView);
-		if (SUCCEEDED(hr)) return hr;
-		// DDSロード失敗時は通常ロードにフォールバック
-	}
-
-	// DDSがない場合は通常ロードしてDDSを保存
-	HRESULT hr = LoadTextureFromFile(device, filename, shaderResourceView);
-	if (SUCCEEDED(hr))
-	{
-		// バックグラウンドではなく初回のみ保存
 		SaveToDDS(device, filename, ddsPath);
 	}
-	return hr;
+
+	// キャッシュから読む
+	if (std::filesystem::exists(ddsPath))
+	{
+		HRESULT hr = LoadDDSTexture(device, ddsPath, shaderResourceView, nullptr, colorSpace);
+		if (SUCCEEDED(hr)) return hr;
+	}
+
+	// キャッシュを作れなかった・読めなかったときだけ、元のファイルから直接読む
+	return LoadTextureFromFile(device, filename, shaderResourceView, colorSpace);
 }
 // PNGなどのファイルをDDSとして保存
 HRESULT GpuResourceUtils::SaveToDDS(
@@ -234,9 +261,10 @@ HRESULT GpuResourceUtils::SaveToDDS(
 
 	// DirectXTex でメモリからイメージを読み込む
 	DirectX::ScratchImage image;
+	// 画像の中の sRGB の目印は無視して、中身の数値をそのまま保存する
 	HRESULT hr = DirectX::LoadFromWICMemory(
 		data.data(), data.size(),
-		DirectX::WIC_FLAGS_NONE,
+		DirectX::WIC_FLAGS_IGNORE_SRGB,
 		nullptr, image);
 
 	if (FAILED(hr)) return hr;

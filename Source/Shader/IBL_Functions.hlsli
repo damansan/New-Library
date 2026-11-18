@@ -14,8 +14,8 @@ float3 IBL_Diffuse(
 {
     // ÉtÉåÉlÉãçÄ
     float NdotV = max(0.0001f, dot(N, V));
-    float3 F = F0 + (max(1.0f - 0.0f, F0) - F0) * pow(clamp(1.0f - NdotV, 0.0f, 1.0f), 5.0f);
-
+    float3 F = F0 + (1.0f - F0) * pow(clamp(1.0f - NdotV, 0.0f, 1.0f), 5.0f);
+    
     // kd
     float3 kd = (1.0f - F);
 
