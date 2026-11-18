@@ -53,6 +53,7 @@ struct GLTFData
         DirectX::XMFLOAT4    baseColor = { 1, 1, 1, 1 };
         float                roughnessFactor = 1.0f;
         float                metallicFactor = 0.0f;
+        DirectX::XMFLOAT3    emissiveFactor = { 0, 0, 0 };
 
         // テクスチャインデックス（-1 は未使用）
         int baseMapIndex = -1;

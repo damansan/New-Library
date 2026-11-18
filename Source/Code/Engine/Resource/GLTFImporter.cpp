@@ -489,6 +489,17 @@ void GLTFImporter::LoadMaterials(
 		mat.roughnessFactor = static_cast<float>(pbr.roughnessFactor);
 		mat.metallicFactor = static_cast<float>(pbr.metallicFactor);
 
+		// î≠åıÇÃåWêî
+		if (gltfMaterial.emissiveFactor.size() == 3)
+		{
+			mat.emissiveFactor =
+			{
+				static_cast<float>(gltfMaterial.emissiveFactor[0]),
+				static_cast<float>(gltfMaterial.emissiveFactor[1]),
+				static_cast<float>(gltfMaterial.emissiveFactor[2])
+			};
+		}
+
 		if (gltfMaterial.alphaMode == "BLEND")
 		{
 			mat.alphaMode = GLTFData::MaterialData::AlphaMode::Blend;

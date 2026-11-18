@@ -241,14 +241,6 @@ HRESULT GpuResourceUtils::SaveToDDS(
 
 	if (FAILED(hr)) return hr;
 
-	//// DDS形式で保存
-	//std::wstring wDdsPath = ToWString(ddsFilename);
-	//hr = DirectX::SaveToDDSFile(
-	//	image.GetImages(),
-	//	image.GetImageCount(),
-	//	image.GetMetadata(),
-	//	DirectX::DDS_FLAGS_NONE,
-	//	wDdsPath.c_str());
 
 	// ミップマップを生成（0 = 1x1まで全段作る）
 	DirectX::ScratchImage mipChain;

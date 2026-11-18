@@ -40,6 +40,7 @@ void serialize(T& archive, Model::Material& m)
 		m.baseColor,
 		m.roughnessFactor,
 		m.metallicFactor,
+		m.emissiveFactor,
 		alphaMode,
 		m.alphaCutoff,
 		// 外部ファイル参照用パス

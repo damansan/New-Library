@@ -50,6 +50,7 @@ public:
         DirectX::XMFLOAT4 baseColor = { 1, 1, 1, 1 };
         float             roughnessFactor = 1.0f;
         float             metallicFactor = 0.0f;
+        DirectX::XMFLOAT3 emissiveFactor = { 0, 0, 0 }; // 発光の係数
 
         // 外部ファイル参照テクスチャ用パス（シリアライズ対象）
         std::string baseTextureFileName;

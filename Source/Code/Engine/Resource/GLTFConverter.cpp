@@ -260,6 +260,7 @@ void GLTFConverter::ConvertMaterials(
 		dst.baseColor = src.baseColor;
 		dst.roughnessFactor = src.roughnessFactor;
 		dst.metallicFactor = src.metallicFactor;
+		dst.emissiveFactor = src.emissiveFactor;
 		dst.alphaMode = static_cast<Model::Material::AlphaMode>(src.alphaMode);
 		dst.alphaCutoff = src.alphaCutoff;
 
