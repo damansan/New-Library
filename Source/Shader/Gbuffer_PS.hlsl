@@ -42,8 +42,7 @@ PS_OUT main(VS_OUT pin)
     // Maskクリップ
     clip(baseColor.a - alphaCutoff);
 
-    // テクスチャはsRGBなのでリニアに戻してから、リニアの係数を掛ける
-    baseColor.rgb = pow(max(baseColor.rgb, 0.0001f), 2.2f);
+    // テクスチャは sRGB 形式で読んでいるので、GPU がリニアに直した値が届く
     baseColor.rgb *= baseColorFactor.rgb;
     pout.albedo = baseColor;
     
@@ -76,9 +75,8 @@ PS_OUT main(VS_OUT pin)
     );
     
     // Emissive
-    float3 emissive = emissiveMap.Sample(samplerState, pin.texcoord).rgb;
-    emissive = pow(max(emissive, 0.0001f), 2.2f);
-    emissive *= emissiveFactor; // glTF：発光 = 係数 × テクスチャ
+    float3 emissive = emissiveMap.Sample(samplerState, pin.texcoord).rgb; // sRGB 形式なのでリニアで届く
+    emissive *= emissiveFactor; // glTF：発光 = 係数 × テクスチャ（どちらもリニアで掛ける）
     pout.emissive = float4(emissive, 1.0f);
     pout.occlusion = occlusionMap.Sample(samplerState, pin.texcoord).r;
 

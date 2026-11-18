@@ -58,33 +58,34 @@ void GLTFConverter::CreateGpuResources(ID3D11Device* device, Model& model)
 	// マテリアルのテクスチャ再生成
 	for (auto& mat : model.materials)
 	{
-		// パス優先、なければバイナリ、両方空ならダミー
+		// colorSpace : 色のテクスチャ（Base・Emissive）なら sRGB、データ（Normal など）なら Linear
 		auto loadTex = [&](
 			const std::string& filepath,
 			const std::vector<uint8_t>& pixels,
 			Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>& srv,
-			DWORD dummyColor)
+			DWORD dummyColor,
+			TextureColorSpace colorSpace)
 			{
 				if (!filepath.empty())
 				{
 					// 外部ファイル → DDSキャッシュ優先でロード
-					GpuResourceUtils::LoadTextureWithDDSCache(device, filepath, srv);
+					GpuResourceUtils::LoadTextureWithDDSCache(device, filepath, srv, colorSpace);
 				}
 				else if (!pixels.empty())
 				{
 					// 埋め込みバイナリ → そのままロード（DDSキャッシュ対象外）
-					GpuResourceUtils::LoadTexture(device, pixels.data(), pixels.size(), srv);
+					GpuResourceUtils::LoadTexture(device, pixels.data(), pixels.size(), srv, colorSpace);
 				}
 				else
 				{
 					GpuResourceUtils::CreateDummyTexture(device, srv, dummyColor, 1);
 				}
 			};
-		loadTex(mat.baseTextureFileName, mat.baseMapData, mat.baseMap, 0xFFFFFFFF);
-		loadTex(mat.normalTextureFileName, mat.normalMapData, mat.normalMap, 0xFFFF8080);
-		loadTex(mat.metallicRoughnessTextureFileName, mat.metallicRoughnessMapData, mat.metallicRoughnessMap, 0xFFFFFFFF);
-		loadTex(mat.occlusionTextureFileName, mat.occlusionMapData, mat.occlusionMap, 0xFFFFFFFF);
-		loadTex(mat.emissiveTextureFileName, mat.emissiveMapData, mat.emissiveMap, 0xFFFFFFFF); // 白（テクスチャがなければ発光 = 係数）	
+		loadTex(mat.baseTextureFileName, mat.baseMapData, mat.baseMap, 0xFFFFFFFF, TextureColorSpace::sRGB);
+		loadTex(mat.normalTextureFileName, mat.normalMapData, mat.normalMap, 0xFFFF8080, TextureColorSpace::Linear);
+		loadTex(mat.metallicRoughnessTextureFileName, mat.metallicRoughnessMapData, mat.metallicRoughnessMap, 0xFFFFFFFF, TextureColorSpace::Linear);
+		loadTex(mat.occlusionTextureFileName, mat.occlusionMapData, mat.occlusionMap, 0xFFFFFFFF, TextureColorSpace::Linear);
+		loadTex(mat.emissiveTextureFileName, mat.emissiveMapData, mat.emissiveMap, 0xFFFFFFFF, TextureColorSpace::sRGB); // テクスチャがなければ白（発光 = 係数）
 	}
 
 	// material ポインタの再接続
@@ -220,12 +221,12 @@ void GLTFConverter::ConvertMaterials(
 {
 	model.materials.reserve(data.materials.size());
 
-	// テクスチャ変換ヘルパー
-	// インデックスが -1 ならダミーテクスチャを生成する
+	// colorSpace : 色のテクスチャ（Base・Emissive）なら sRGB、データ（Normal など）なら Linear
 	auto convertTexture = [&](
 		int texIndex,
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>& srv,
-		DWORD dummyColor)
+		DWORD dummyColor,
+		TextureColorSpace colorSpace)
 		{
 			if (texIndex < 0 ||
 				texIndex >= (int)data.textures.size())
@@ -240,12 +241,12 @@ void GLTFConverter::ConvertMaterials(
 			{
 				// 外部ファイルから読む
 				// DDSキャッシュ優先でロード
-				GpuResourceUtils::LoadTextureWithDDSCache(device, texData.filepath, srv);
+				GpuResourceUtils::LoadTextureWithDDSCache(device, texData.filepath, srv, colorSpace);
 			}
 			else if (!texData.pixels.empty())
 			{
 				// 埋め込みバイナリから読む(そのままロード(DDSキャッシュ対象外))
-				GpuResourceUtils::LoadTexture(device, texData.pixels.data(), texData.pixels.size(), srv);
+				GpuResourceUtils::LoadTexture(device, texData.pixels.data(), texData.pixels.size(), srv, colorSpace);
 			}
 			else
 			{
@@ -292,11 +293,11 @@ void GLTFConverter::ConvertMaterials(
 		saveTexture(src.emissiveMapIndex, dst.emissiveTextureFileName, dst.emissiveMapData);
 
 		// テクスチャ生成（初回ロード時）
-		convertTexture(src.baseMapIndex, dst.baseMap, 0xFFFFFFFF);
-		convertTexture(src.normalMapIndex, dst.normalMap, 0xFFFF8080);
-		convertTexture(src.metallicRoughnessMapIndex, dst.metallicRoughnessMap, 0xFFFFFFFF);
-		convertTexture(src.occlusionMapIndex, dst.occlusionMap, 0xFFFFFFFF);
-		convertTexture(src.emissiveMapIndex, dst.emissiveMap, 0xFFFFFFFF); // 白（テクスチャがなければ発光 = 係数）
+		convertTexture(src.baseMapIndex, dst.baseMap, 0xFFFFFFFF, TextureColorSpace::sRGB);
+		convertTexture(src.normalMapIndex, dst.normalMap, 0xFFFF8080, TextureColorSpace::Linear);
+		convertTexture(src.metallicRoughnessMapIndex, dst.metallicRoughnessMap, 0xFFFFFFFF, TextureColorSpace::Linear);
+		convertTexture(src.occlusionMapIndex, dst.occlusionMap, 0xFFFFFFFF, TextureColorSpace::Linear);
+		convertTexture(src.emissiveMapIndex, dst.emissiveMap, 0xFFFFFFFF, TextureColorSpace::sRGB); // テクスチャがなければ白
 
 		model.materials.push_back(std::move(dst));
 	}

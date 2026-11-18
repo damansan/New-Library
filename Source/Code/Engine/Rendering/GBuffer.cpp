@@ -14,7 +14,7 @@ void GBuffer::Initialize(ID3D11Device* device, UINT width, UINT height)
     // GBufferのフォーマット定義
     DXGI_FORMAT formats[BUFFER_COUNT] =
     {
-        DXGI_FORMAT_R8G8B8A8_UNORM,      // Albedo
+        DXGI_FORMAT_R8G8B8A8_UNORM_SRGB, // Albedo（書くとき sRGB へ、読むときリニアへ GPU が変換）
         DXGI_FORMAT_R16G16B16A16_FLOAT,  // Normal
         DXGI_FORMAT_R32G32B32A32_FLOAT,  // Position
         DXGI_FORMAT_R8G8B8A8_UNORM,      // Roughness/Metallic

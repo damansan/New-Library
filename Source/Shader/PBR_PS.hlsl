@@ -25,15 +25,13 @@ struct VS_OUT
 float4 main(VS_OUT pin) : SV_TARGET
 {
     // Albedo取得
-    float4 baseColor = baseMap.Sample(samplerState, pin.texcoord);
-    baseColor.rgb = pow(max(baseColor.rgb, 0.0001f), GAMMA);
-
+    float4 baseColor = baseMap.Sample(samplerState, pin.texcoord); // sRGB 形式なのでリニアで届く
+    
     // マテリアルの基本色を掛ける（リニア同士）
     baseColor *= baseColorFactor;
     
     // Emissive取得
-    float3 emissive = emissiveMap.Sample(samplerState, pin.texcoord).rgb;
-    emissive = pow(max(emissive, 0.0001f), GAMMA);
+    float3 emissive = emissiveMap.Sample(samplerState, pin.texcoord).rgb; // sRGB 形式なのでリニアで届く
     emissive *= emissiveFactor; // glTF：発光 = 係数 × テクスチャ
     
     // MetallicRoughness取得（glTF：値 = 係数 × テクスチャ）

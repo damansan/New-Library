@@ -38,8 +38,7 @@ PS_OUT main(VS_OUT pin)
     // Maskクリップ
     clip(baseColor.a - alphaCutoff);
 
-    // テクスチャはsRGBなのでリニアに戻してから、リニアの係数を掛ける
-    baseColor.rgb = pow(max(baseColor.rgb, 0.0001f), 2.2f);
+    // テクスチャは sRGB 形式で読んでいるので、GPU がリニアに直した値が届く
     baseColor.rgb *= baseColorFactor.rgb;
     pout.albedo = baseColor;
     
