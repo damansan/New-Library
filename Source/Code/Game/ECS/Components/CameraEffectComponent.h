@@ -51,11 +51,16 @@ struct CameraEffectComponent
 		REFLECT_FIELD(float, slideDropTime, (0.525f), ("Slide Drop Time", 0.01f, 2.0f)) // 底まで下がる(戻る)時間
 		REFLECT_FIELD(float, slideDrop,       (0.5f), ("Slide Drop",      0.0f, 3.0f))  // 下げる深さ
 
+		// WallTilt：壁走り中傾ける
+		REFLECT_FIELD(float, wallTiltMaxDeg,       (8.0f), ("Wall Tilt Max Deg",      0.0f, 30.0f))  // 傾きの最大(度)
+		REFLECT_FIELD(float, wallTiltHalfLife,     (1.0f), ("Wall Tilt Half Life",    0.01f, 5.0f))  // 傾いていく半減期(秒)。大きいほどじわじわ
+		REFLECT_FIELD(float, wallTiltReturnSpeed, (40.0f), ("Wall Tilt Return Speed", 0.0f, 200.0f)) // 戻る速さ
 
 
 		// 演出ごとの状態
 		REFLECT_FIELD(float, fovAdd,        (0.0f), ("Fov Add",         0.0f, 0.0f, 0.1f,  "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // Fov：現在追加している量
 		REFLECT_FIELD(float, slideDropRate, (0.0f), ("Slide Drop Rate", 0.0f, 0.0f, 0.01f, "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // SlideDrop：下がり具合
+		REFLECT_FIELD(float, wallTilt,      (0.0f), ("Wall Tilt",       0.0f, 0.0f, 0.1f,  "", FieldFlags::VisibleOnly | FieldFlags::Transient)) // WallTilt：今の傾き
 
 		REFLECT_FIELD(PulseState, runBob,    (), ("Run Bob"))    // HeadBob
 		REFLECT_FIELD(PulseState, kickShake, (), ("Kick Shake")) // KickShake

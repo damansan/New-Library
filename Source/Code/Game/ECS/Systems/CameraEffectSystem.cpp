@@ -36,6 +36,7 @@ void CameraEffectSystem::Update(entt::registry& registry, float elapsedTime)
 			KickShakeEffect(effect, trigger, cam, elapsedTime);
 			LandShakeEffect(effect, trigger, cam, elapsedTime);
 			SlideDropEffect(effect, trigger, elapsedTime);
+			WallTiltEffect(effect, trigger, elapsedTime);
 		});
 }
 
@@ -54,12 +55,18 @@ CameraEffectTrigger CameraEffectSystem::BuildTrigger(entt::registry& registry, c
 
 	trigger.running = trigger.speed >= effect.runSpeed;
 
-	// 壁蹴り
+	const auto* stateMachine = registry.try_get<StateMachineComponent>(player);
+
+	// 壁走り・壁蹴り
 	const auto* wallRun = registry.try_get<PlayerWallRunComponent>(player);
 	if (wallRun)
 	{
 		trigger.wallKicked = wallRun->kicked;
-		trigger.kickWallRight = wallRun->isWallRight;
+		trigger.wallRight = wallRun->isWallRight;
+		if (stateMachine && stateMachine->IsIn("WallRun") && !wallRun->kicked)
+		{
+			trigger.wallRunning = true;
+		}
 	}
 
 	// 落下速度
@@ -71,7 +78,6 @@ CameraEffectTrigger CameraEffectSystem::BuildTrigger(entt::registry& registry, c
 	}
 
 	// スライディング
-	const auto* stateMachine = registry.try_get<StateMachineComponent>(player);
 	const auto* slide = registry.try_get<PlayerSlideComponent>(player);
 	if (stateMachine && slide && stateMachine->IsIn("Slide"))
 	{
@@ -102,7 +108,7 @@ void CameraEffectSystem::FovEffect(CameraEffectComponent& effect, const CameraEf
 	}
 	const float targetAdd = effect.fovAddMax * t;
 
-	// 急に変わらないように、半減期で寄せる
+	// 半減期で寄せる
 	effect.fovAdd = PlayerMovementUtils::Damper(effect.fovAdd, targetAdd, effect.fovHalfLife, elapsedTime);
 
 	// 出力に足す
@@ -143,10 +149,10 @@ void CameraEffectSystem::RunBobEffect(CameraEffectComponent& effect, const Camer
 		phase = pulse.time / effect.runBobStepInterval * DirectX::XM_PI;
 	}
 	const float sway = std::sin(phase);
-	const float lift = std::sin(phase * 2.0f); // 横の倍の速さ → ∞
+	const float lift = std::sin(phase * 2.0f); 
 	const float remain = 1.0f - pulse.time / effect.runBobDuration;
 	const float envelope = remain * remain;
-	const float amount = sway * envelope; // -1～+1（＋で右）
+	const float amount = sway * envelope; // +1 で右
 	const float liftY = lift * envelope * effect.runBobLift;
 
 	// カメラから見た右へ、eye と target を同じだけずらす
@@ -165,7 +171,7 @@ void CameraEffectSystem::RunBobEffect(CameraEffectComponent& effect, const Camer
 		effect.targetOffset.z += rightZ * shift;
 	}
 
-	// 上下も eye と target を同じだけ（向きは変えない）
+	// 上下も eye と target を同じだけ
 	effect.eyeOffset.y += liftY;
 	effect.targetOffset.y += liftY;
 
@@ -176,13 +182,13 @@ void CameraEffectSystem::KickShakeEffect(CameraEffectComponent& effect, const Ca
 {
 	PulseState& pulse = effect.kickShake;
 
-	// ① 次の壁走りに入ったら（kicked が戻ったら）、また揺らせる
+	// 壁走りに入るまで再度揺らさない
 	if (!trigger.wallKicked)
 	{
 		pulse.ready = true;
 	}
 
-	// ② 蹴った瞬間に発火
+	// 蹴った瞬間に揺らす
 	if (pulse.ready && trigger.wallKicked)
 	{
 		pulse.ready = false;
@@ -191,7 +197,7 @@ void CameraEffectSystem::KickShakeEffect(CameraEffectComponent& effect, const Ca
 	}
 	if (!pulse.active) return;
 
-	// ③ 時間を進め、終わったら止める
+	// 一定時間で止める
 	pulse.time += elapsedTime;
 	if (pulse.time >= effect.kickShakeDuration)
 	{
@@ -199,16 +205,16 @@ void CameraEffectSystem::KickShakeEffect(CameraEffectComponent& effect, const Ca
 		return;
 	}
 
-	// ④ 揺れの量：壁側へ寄って戻る（sin の山1つ）
+	// 揺れの量
 	const float phase = pulse.time / effect.kickShakeDuration * DirectX::XM_PI;
-	float dir = -1.0f; // 壁が左 → 左へ
-	if (trigger.kickWallRight)
+	float dir = -1.0f; // 壁が左
+	if (trigger.wallRight) 
 	{
-		dir = 1.0f;    // 壁が右 → 右へ
+		dir = 1.0f;    // 壁が右
 	}
-	const float amount = std::sin(phase) * dir; // -1～+1（＋で右）
+	const float amount = std::sin(phase) * dir; // +1で右
 
-	// ⑤ カメラから見た右へ、eye と target を同じだけずらす
+	// カメラから見た右へ、eye と target を同じだけずらす
 	const float fx = cam.base.currentTarget.x - cam.base.currentEye.x;
 	const float fz = cam.base.currentTarget.z - cam.base.currentEye.z;
 	const float len = std::sqrt(fx * fx + fz * fz);
@@ -231,7 +237,7 @@ void CameraEffectSystem::LandShakeEffect(CameraEffectComponent& effect, const Ca
 {
 	PulseState& pulse = effect.landShake;
 
-	// ① 空中で速く落ちたら、着地で揺らせる
+	// 素早く落ちるまで再度揺らさない
 	if (!trigger.isGround)
 	{
 		pulse.ready = false;
@@ -241,7 +247,7 @@ void CameraEffectSystem::LandShakeEffect(CameraEffectComponent& effect, const Ca
 		}
 	}
 
-	// ② 着地した瞬間に発火
+	// 着地時に揺らす
 	if (pulse.ready && trigger.isGround)
 	{
 		pulse.ready = false;
@@ -250,7 +256,7 @@ void CameraEffectSystem::LandShakeEffect(CameraEffectComponent& effect, const Ca
 	}
 	if (!pulse.active) return;
 
-	// ③ 時間を進め、終わったら止める
+	// 一定時間で止める
 	pulse.time += elapsedTime;
 	if (pulse.time >= effect.landShakeDuration)
 	{
@@ -258,13 +264,13 @@ void CameraEffectSystem::LandShakeEffect(CameraEffectComponent& effect, const Ca
 		return;
 	}
 
-	// ④ 揺れの量：1往復（2回）、だんだん小さく
+	// 揺れの量：２回揺らす
 	const float phase = pulse.time / effect.landShakeDuration * DirectX::XM_2PI;
 	const float remain = 1.0f - pulse.time / effect.landShakeDuration;
 	const float envelope = remain * remain;
-	const float amount = std::sin(phase) * envelope; // -1～+1（＋で右）
+	const float amount = std::sin(phase) * envelope; // +1で右
 
-	// ⑤ カメラから見た右へ、eye と target を同じだけずらす
+	// カメラから見た右へ、eye と target を同じだけずらす
 	const float fx = cam.base.currentTarget.x - cam.base.currentEye.x;
 	const float fz = cam.base.currentTarget.z - cam.base.currentEye.z;
 	const float len = std::sqrt(fx * fx + fz * fz);
@@ -285,7 +291,7 @@ void CameraEffectSystem::LandShakeEffect(CameraEffectComponent& effect, const Ca
 // スライド中は下げ続ける
 void CameraEffectSystem::SlideDropEffect(CameraEffectComponent& effect, const CameraEffectTrigger& trigger, float elapsedTime)
 {
-	// ① スライド中は 1 へ、それ以外は 0 へ、一定の速さで進める
+	// スライド中は 1 へ、それ以外は 0 へ、一定の速さで進める
 	float step = 1.0f;
 	if (effect.slideDropTime > 0.0f)
 	{
@@ -309,10 +315,62 @@ void CameraEffectSystem::SlideDropEffect(CameraEffectComponent& effect, const Ca
 	}
 	if (effect.slideDropRate <= 0.0f) return;
 
-	// ② sin の山の前半で下げる（速く下がって、底でゆっくり止まる）
+	// sin の山の前半で下げる
 	const float dropY = -std::sin(effect.slideDropRate * DirectX::XM_PIDIV2) * effect.slideDrop;
 
-	// ③ eye と target を同じだけ（向きは変えない）
+	// eye と target を同じだけ下げる
 	effect.eyeOffset.y += dropY;
 	effect.targetOffset.y += dropY;
+}
+// 壁走り中傾ける
+void CameraEffectSystem::WallTiltEffect(CameraEffectComponent& effect, const CameraEffectTrigger& trigger, float elapsedTime)
+{
+	// 目標と、傾けていく途中かを決める
+	float target = 0.0f;
+	bool  growing = false;
+	if (trigger.wallRunning)
+	{
+		float dir = -1.0f; // 壁が左
+		if (trigger.wallRight)
+		{
+			dir = 1.0f;    // 壁が右
+		}
+		target = dir * effect.wallTiltMaxDeg;
+
+		// 反対側に傾いている間は、まず素早く 0 へ
+		if (effect.wallTilt * dir >= 0.0f)
+		{
+			growing = true;
+		}
+	}
+
+	// 段々弱く傾ける
+	if (growing)
+	{
+		effect.wallTilt = PlayerMovementUtils::Damper(effect.wallTilt, target, effect.wallTiltHalfLife, elapsedTime);
+		effect.roll += effect.wallTilt;
+		return;
+	}
+
+	// 戻す
+	const float step = effect.wallTiltReturnSpeed * elapsedTime;
+	if (effect.wallTilt < target) 
+	{
+		effect.wallTilt += step;
+		if (effect.wallTilt > target)
+		{
+			effect.wallTilt = target;
+		}
+	}
+	else
+	{
+		effect.wallTilt -= step;
+		if (effect.wallTilt < target)
+		{
+			effect.wallTilt = target;
+		}
+	}
+
+	// 出力に足す
+	effect.roll += effect.wallTilt;
 }

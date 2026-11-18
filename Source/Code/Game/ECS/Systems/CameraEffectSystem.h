@@ -9,8 +9,9 @@ struct CameraEffectTrigger
 	float speed = 0.0f;    // …•½‚Ì‘¬‚³
 	bool  running = false; // ‘–‚Á‚Ä‚¢‚é(runSpeed ˆÈã)
 
-	bool wallKicked = false;    // •Ç‚ğR‚Á‚½
-	bool kickWallRight = false; // R‚Á‚½•Ç‚ª‰E‚É‚ ‚é‚©
+	bool wallRunning = false; // •Ç‘–‚è’†
+	bool wallKicked = false;  // •Ç‚ğR‚Á‚½
+	bool wallRight = false;   // •Ç‚ª‰E‚É‚ ‚é‚©
 
 	float velocityY = 0.0f;  // c‚Ì‘¬‚³
 	bool  isGround = false;  // ’…’n‚µ‚Ä‚¢‚é
@@ -39,5 +40,6 @@ private:
 	void LandShakeEffect(CameraEffectComponent& effect, const CameraEffectTrigger& trigger, const GameCameraComponent& cam, float elapsedTime);
 	// ƒXƒ‰ƒCƒh’†‚Í‰º‚°‘±‚¯‚é
 	void SlideDropEffect(CameraEffectComponent& effect, const CameraEffectTrigger& trigger, float elapsedTime);
-
+	// •Ç‘–‚è’†ŒX‚¯‚é
+	void WallTiltEffect(CameraEffectComponent& effect, const CameraEffectTrigger& trigger, float elapsedTime);
 };

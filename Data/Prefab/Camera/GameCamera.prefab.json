@@ -2,8 +2,26 @@
     "CameraEffectComponent": {
         "fovAddMax": 40.0,
         "fovHalfLife": 0.25,
+        "kickShakeDuration": 0.30000001192092896,
+        "kickShakeRollDeg": 10.0,
+        "kickShakeSway": 0.5,
+        "landFallSpeed": 10.0,
+        "landShakeDuration": 0.5,
+        "landShakeRollDeg": 2.0,
+        "landShakeSway": 0.11999999731779099,
+        "runBobDuration": 1.5,
+        "runBobLift": 0.05000000074505806,
+        "runBobRearmSpeed": 1.0,
+        "runBobRollDeg": 2.0,
+        "runBobStepInterval": 0.30000001192092896,
+        "runBobSway": 0.15000000596046448,
+        "runSpeed": 5.0,
+        "slideDrop": 0.5,
+        "slideDropTime": 0.5249999761581421,
         "speedFull": 15.0,
-        "speedStart": 5.0
+        "wallTiltHalfLife": 1.0,
+        "wallTiltMaxDeg": 20.0,
+        "wallTiltReturnSpeed": 40.0
     },
     "CameraViewComponent": {},
     "CategoryComponent": {
