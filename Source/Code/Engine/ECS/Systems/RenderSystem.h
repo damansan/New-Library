@@ -26,9 +26,17 @@ struct CbObject
 {
 	DirectX::XMFLOAT4X4 world;                 // ワールド行列
 	DirectX::XMFLOAT4X4 worldInverseTranspose; // 法線用
+
 	float               alphaCutoff;           // Mask素材のクリップしきい値
-	DirectX::XMFLOAT3   padding;               // 16バイトアライメント用
+	float               metallicFactor;        // 金属度の係数
+	float               roughnessFactor;       // 粗さの係数
+	float               padding0;              // 16バイトアライメント用
+
 	DirectX::XMFLOAT4   baseColor;             // マテリアルの基本色
+
+	DirectX::XMFLOAT3   emissiveFactor;        // 発光の係数
+
+	float               padding1;              // 16バイトアライメント用
 };
 
 struct CbSkinning

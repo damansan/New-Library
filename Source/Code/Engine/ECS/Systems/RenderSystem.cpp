@@ -349,6 +349,11 @@ void RenderSystem::GeometryPass(
 				cbObjectData.baseColor = mesh.material
 					? mesh.material->baseColor
 					: DirectX::XMFLOAT4{ 1.0f, 1.0f, 1.0f, 1.0f };
+				// 係数（マテリアルがなければ「テクスチャの値をそのまま使う」1.0、発光は 0）
+				cbObjectData.metallicFactor = mesh.material ? mesh.material->metallicFactor : 1.0f;
+				cbObjectData.roughnessFactor = mesh.material ? mesh.material->roughnessFactor : 1.0f;
+				cbObjectData.emissiveFactor = mesh.material ? mesh.material->emissiveFactor : DirectX::XMFLOAT3{ 0.0f, 0.0f, 0.0f };
+
 				dc->UpdateSubresource(cbObject.Get(), 0, nullptr, &cbObjectData, 0, 0);
 				dc->PSSetConstantBuffers(1, 1, cbObject.GetAddressOf());
 
@@ -362,7 +367,7 @@ void RenderSystem::GeometryPass(
 					(mesh.material && mesh.material->normalMap) ? mesh.material->normalMap.Get() : dummyNormal.Get(),
 					(mesh.material && mesh.material->metallicRoughnessMap) ? mesh.material->metallicRoughnessMap.Get() : dummyWhite.Get(),
 					(mesh.material && mesh.material->occlusionMap) ? mesh.material->occlusionMap.Get() : dummyWhite.Get(),
-					(mesh.material && mesh.material->emissiveMap) ? mesh.material->emissiveMap.Get() : dummyBlack.Get(),
+					(mesh.material && mesh.material->emissiveMap) ? mesh.material->emissiveMap.Get() : dummyWhite.Get(), 
 				};
 				dc->PSSetShaderResources(0, 5, srvs);
 				dc->DrawIndexed(static_cast<UINT>(mesh.indices.size()), 0, 0);
@@ -409,6 +414,11 @@ void RenderSystem::GeometryPass(
 				cbObjectData.baseColor = mesh.material
 					? mesh.material->baseColor
 					: DirectX::XMFLOAT4{ 1.0f, 1.0f, 1.0f, 1.0f };
+				// 係数（マテリアルがなければ「テクスチャの値をそのまま使う」1.0、発光は 0）
+				cbObjectData.metallicFactor = mesh.material ? mesh.material->metallicFactor : 1.0f;
+				cbObjectData.roughnessFactor = mesh.material ? mesh.material->roughnessFactor : 1.0f;
+				cbObjectData.emissiveFactor = mesh.material ? mesh.material->emissiveFactor : DirectX::XMFLOAT3{ 0.0f, 0.0f, 0.0f };
+
 				dc->UpdateSubresource(cbObject.Get(), 0, nullptr, &cbObjectData, 0, 0);
 				dc->PSSetConstantBuffers(1, 1, cbObject.GetAddressOf());
 
@@ -441,7 +451,7 @@ void RenderSystem::GeometryPass(
 					(mesh.material && mesh.material->normalMap) ? mesh.material->normalMap.Get() : dummyNormal.Get(),
 					(mesh.material && mesh.material->metallicRoughnessMap) ? mesh.material->metallicRoughnessMap.Get() : dummyWhite.Get(),
 					(mesh.material && mesh.material->occlusionMap) ? mesh.material->occlusionMap.Get() : dummyWhite.Get(),
-					(mesh.material && mesh.material->emissiveMap) ? mesh.material->emissiveMap.Get() : dummyBlack.Get(),
+					(mesh.material&& mesh.material->emissiveMap) ? mesh.material->emissiveMap.Get() : dummyWhite.Get(), 
 				};
 				dc->PSSetShaderResources(0, 5, srvs);
 				dc->DrawIndexed(static_cast<UINT>(mesh.indices.size()), 0, 0);
@@ -561,6 +571,9 @@ void RenderSystem::ForwardTransparentPass(
 
 				// マテリアルの基本色をピクセルシェーダーへ
 				cbObjectData.baseColor = mesh.material->baseColor;
+				cbObjectData.metallicFactor = mesh.material->metallicFactor;
+				cbObjectData.roughnessFactor = mesh.material->roughnessFactor;
+				cbObjectData.emissiveFactor = mesh.material->emissiveFactor;
 				dc->UpdateSubresource(cbObject.Get(), 0, nullptr, &cbObjectData, 0, 0);
 				dc->PSSetConstantBuffers(1, 1, cbObject.GetAddressOf());
 
@@ -574,7 +587,7 @@ void RenderSystem::ForwardTransparentPass(
 					(mesh.material && mesh.material->normalMap) ? mesh.material->normalMap.Get() : dummyNormal.Get(),
 					(mesh.material && mesh.material->metallicRoughnessMap) ? mesh.material->metallicRoughnessMap.Get() : dummyWhite.Get(),
 					(mesh.material && mesh.material->occlusionMap) ? mesh.material->occlusionMap.Get() : dummyWhite.Get(),
-					(mesh.material && mesh.material->emissiveMap) ? mesh.material->emissiveMap.Get() : dummyBlack.Get(),
+					(mesh.material && mesh.material->emissiveMap) ? mesh.material->emissiveMap.Get() : dummyWhite.Get(), 
 				};
 				dc->PSSetShaderResources(0, 5, srvs);
 				dc->DrawIndexed(static_cast<UINT>(mesh.indices.size()), 0, 0);
@@ -611,6 +624,9 @@ void RenderSystem::ForwardTransparentPass(
 
 				// マテリアルの基本色をピクセルシェーダーへ
 				cbObjectData.baseColor = mesh.material->baseColor;
+				cbObjectData.metallicFactor = mesh.material->metallicFactor;
+				cbObjectData.roughnessFactor = mesh.material->roughnessFactor;
+				cbObjectData.emissiveFactor = mesh.material->emissiveFactor;
 				dc->UpdateSubresource(cbObject.Get(), 0, nullptr, &cbObjectData, 0, 0);
 				dc->PSSetConstantBuffers(1, 1, cbObject.GetAddressOf());
 
@@ -643,7 +659,7 @@ void RenderSystem::ForwardTransparentPass(
 					(mesh.material && mesh.material->normalMap) ? mesh.material->normalMap.Get() : dummyNormal.Get(),
 					(mesh.material && mesh.material->metallicRoughnessMap) ? mesh.material->metallicRoughnessMap.Get() : dummyWhite.Get(),
 					(mesh.material && mesh.material->occlusionMap) ? mesh.material->occlusionMap.Get() : dummyWhite.Get(),
-					(mesh.material && mesh.material->emissiveMap) ? mesh.material->emissiveMap.Get() : dummyBlack.Get(),
+					(mesh.material&& mesh.material->emissiveMap) ? mesh.material->emissiveMap.Get() : dummyWhite.Get(), 
 				};
 				dc->PSSetShaderResources(0, 5, srvs);
 				dc->DrawIndexed(static_cast<UINT>(mesh.indices.size()), 0, 0);

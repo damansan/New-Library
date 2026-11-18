@@ -84,7 +84,7 @@ void GLTFConverter::CreateGpuResources(ID3D11Device* device, Model& model)
 		loadTex(mat.normalTextureFileName, mat.normalMapData, mat.normalMap, 0xFFFF8080);
 		loadTex(mat.metallicRoughnessTextureFileName, mat.metallicRoughnessMapData, mat.metallicRoughnessMap, 0xFFFFFFFF);
 		loadTex(mat.occlusionTextureFileName, mat.occlusionMapData, mat.occlusionMap, 0xFFFFFFFF);
-		loadTex(mat.emissiveTextureFileName, mat.emissiveMapData, mat.emissiveMap, 0xFF000000);
+		loadTex(mat.emissiveTextureFileName, mat.emissiveMapData, mat.emissiveMap, 0xFFFFFFFF); // 白（テクスチャがなければ発光 = 係数）	
 	}
 
 	// material ポインタの再接続
@@ -296,7 +296,7 @@ void GLTFConverter::ConvertMaterials(
 		convertTexture(src.normalMapIndex, dst.normalMap, 0xFFFF8080);
 		convertTexture(src.metallicRoughnessMapIndex, dst.metallicRoughnessMap, 0xFFFFFFFF);
 		convertTexture(src.occlusionMapIndex, dst.occlusionMap, 0xFFFFFFFF);
-		convertTexture(src.emissiveMapIndex, dst.emissiveMap, 0xFF000000);
+		convertTexture(src.emissiveMapIndex, dst.emissiveMap, 0xFFFFFFFF); // 白（テクスチャがなければ発光 = 係数）
 
 		model.materials.push_back(std::move(dst));
 	}

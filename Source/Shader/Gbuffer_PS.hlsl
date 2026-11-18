@@ -69,15 +69,16 @@ PS_OUT main(VS_OUT pin)
     // MetallicRoughness
     float4 mr = metallicRoughnessMap.Sample(samplerState, pin.texcoord);
     pout.roughnessMetallic = float4(
-        max(mr.g, 0.01f), // R: Roughness
-        mr.b, // G: Metallic
+        max(mr.g * roughnessFactor, 0.01f), // R: Roughness
+        mr.b * metallicFactor, // G: Metallic
         0.0f,
         1.0f
     );
-
+    
     // Emissive
     float3 emissive = emissiveMap.Sample(samplerState, pin.texcoord).rgb;
     emissive = pow(max(emissive, 0.0001f), 2.2f);
+    emissive *= emissiveFactor; // glTF：発光 = 係数 × テクスチャ
     pout.emissive = float4(emissive, 1.0f);
     pout.occlusion = occlusionMap.Sample(samplerState, pin.texcoord).r;
 

@@ -34,12 +34,13 @@ float4 main(VS_OUT pin) : SV_TARGET
     // Emissive取得
     float3 emissive = emissiveMap.Sample(samplerState, pin.texcoord).rgb;
     emissive = pow(max(emissive, 0.0001f), GAMMA);
+    emissive *= emissiveFactor; // glTF：発光 = 係数 × テクスチャ
     
-    // MetallicRoughness取得
+    // MetallicRoughness取得（glTF：値 = 係数 × テクスチャ）
     float4 mr = metallicRoughnessMap.Sample(samplerState, pin.texcoord);
-    float roughness = max(mr.g, 0.01f);
-    float metalness = mr.b;
-
+    float roughness = max(mr.g * roughnessFactor, 0.01f);
+    float metalness = mr.b * metallicFactor;
+    
     // Occlusion取得
     float occlusion = occlusionMap.Sample(samplerState, pin.texcoord).r;
     

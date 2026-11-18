@@ -18,9 +18,16 @@ cbuffer CbObject : register(b1)
 {
     row_major float4x4 world;
     row_major float4x4 worldInverseTranspose; // 法線用
-    float alphaCutoff;      // Mask素材のクリップしきい値
-    float3 objectPadding;
+    
+    float alphaCutoff;     // Mask素材のクリップしきい値
+    float metallicFactor;  // 金属度の係数
+    float roughnessFactor; // 粗さの係数
+    float objectPadding0;  // 16バイトアライメント用
+    
     float4 baseColorFactor; // マテリアルの基本色
+
+    float3 emissiveFactor; // 発光の係数
+    float objectPadding1;  // 16バイトアライメント用
 };
 
 // b2：ライト
