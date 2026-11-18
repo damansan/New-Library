@@ -270,9 +270,6 @@
     <FxCompile Include="..\..\Source\Shader\Static_VS.hlsl">
       <ShaderType>Vertex</ShaderType>
     </FxCompile>
-    <FxCompile Include="..\..\Source\Shader\Basic_PS.hlsl">
-      <ShaderType>Pixel</ShaderType>
-    </FxCompile>
     <FxCompile Include="..\..\Source\Shader\Debug_PS.hlsl">
       <ShaderType>Pixel</ShaderType>
     </FxCompile>
@@ -280,9 +277,6 @@
       <ShaderType>Vertex</ShaderType>
     </FxCompile>
     <FxCompile Include="..\..\Source\Shader\Gbuffer_PS.hlsl">
-      <ShaderType>Pixel</ShaderType>
-    </FxCompile>
-    <FxCompile Include="..\..\Source\Shader\Lambert_PS.hlsl">
       <ShaderType>Pixel</ShaderType>
     </FxCompile>
     <FxCompile Include="..\..\Source\Shader\Lighting_PS.hlsl">

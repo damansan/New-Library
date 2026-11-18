@@ -155,45 +155,6 @@
     <Filter Include="External\tracy-0.13.1">
       <UniqueIdentifier>{8451d30c-c014-456b-95c9-571a4e63996b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Sources\Shader">
-      <UniqueIdentifier>{1a7c7769-3d14-4952-a39a-a4fa2eafb33b}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Shader\Basic">
-      <UniqueIdentifier>{0d20cf5f-8964-443c-8396-6bc597ee67f2}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Shader\Debug">
-      <UniqueIdentifier>{f8ca9a71-067d-48ec-b5eb-855dc3a77de8}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Shader\Gbuffer">
-      <UniqueIdentifier>{b62094e1-f9b4-4cdd-9b53-aa20a26421f5}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Shader\Lambert">
-      <UniqueIdentifier>{3b830c3a-1f17-4927-92d0-6b8e2ce53d3d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Shader\Lighting">
-      <UniqueIdentifier>{73a44568-c713-4ead-bb7f-87e06bea5b4b}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Shader\PBR">
-      <UniqueIdentifier>{f37743e7-65f5-4786-88a1-c4ca67de5120}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Shader\Present">
-      <UniqueIdentifier>{0086b771-6f91-4bf6-b23a-f05bd47ef2e5}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Shader\Skinning">
-      <UniqueIdentifier>{24715db9-f49a-4151-8eb4-373ccf6459f4}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Shader\SkyBox">
-      <UniqueIdentifier>{f8ec87bb-9620-4cc4-a660-49ca52ca712f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Shader\SolidShape">
-      <UniqueIdentifier>{5bf71bea-9710-47b0-ab7a-cab983c467a9}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Shader\Static">
-      <UniqueIdentifier>{c7dc2373-6bc7-4977-b2e3-1d12e3568890}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Sources\Shader\WiredShape">
-      <UniqueIdentifier>{b431c496-dd05-45af-9383-7561c08c120e}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Sources\Engine\Data\ConditionGraphData">
       <UniqueIdentifier>{b9e6525e-8254-4912-9428-bdb8dddcea2c}</UniqueIdentifier>
     </Filter>
@@ -209,7 +170,43 @@
     <Filter Include="Sources\Engine\Resource\AnimationEditBaker">
       <UniqueIdentifier>{a4486186-6597-4795-81c2-bee13ce3c0e2}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Sources\Shader\Grid">
+    <Filter Include="Shader">
+      <UniqueIdentifier>{1a7c7769-3d14-4952-a39a-a4fa2eafb33b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shader\Basic">
+      <UniqueIdentifier>{0d20cf5f-8964-443c-8396-6bc597ee67f2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shader\Debug">
+      <UniqueIdentifier>{f8ca9a71-067d-48ec-b5eb-855dc3a77de8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shader\Gbuffer">
+      <UniqueIdentifier>{b62094e1-f9b4-4cdd-9b53-aa20a26421f5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shader\Lighting">
+      <UniqueIdentifier>{73a44568-c713-4ead-bb7f-87e06bea5b4b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shader\PBR">
+      <UniqueIdentifier>{f37743e7-65f5-4786-88a1-c4ca67de5120}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shader\Present">
+      <UniqueIdentifier>{0086b771-6f91-4bf6-b23a-f05bd47ef2e5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shader\Skinning">
+      <UniqueIdentifier>{24715db9-f49a-4151-8eb4-373ccf6459f4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shader\SkyBox">
+      <UniqueIdentifier>{f8ec87bb-9620-4cc4-a660-49ca52ca712f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shader\SolidShape">
+      <UniqueIdentifier>{5bf71bea-9710-47b0-ab7a-cab983c467a9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shader\Static">
+      <UniqueIdentifier>{c7dc2373-6bc7-4977-b2e3-1d12e3568890}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shader\WiredShape">
+      <UniqueIdentifier>{b431c496-dd05-45af-9383-7561c08c120e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shader\Grid">
       <UniqueIdentifier>{7ef0aeb7-b4de-43af-94cf-c3a0aefad599}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
@@ -581,65 +578,59 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="..\..\Source\Shader\Basic_PS.hlsl">
-      <Filter>Sources\Shader\Basic</Filter>
-    </FxCompile>
     <FxCompile Include="..\..\Source\Shader\Debug_PS.hlsl">
-      <Filter>Sources\Shader\Debug</Filter>
+      <Filter>Shader\Debug</Filter>
     </FxCompile>
     <FxCompile Include="..\..\Source\Shader\Debug_VS.hlsl">
-      <Filter>Sources\Shader\Debug</Filter>
+      <Filter>Shader\Debug</Filter>
     </FxCompile>
     <FxCompile Include="..\..\Source\Shader\Gbuffer_Basic_PS.hlsl">
-      <Filter>Sources\Shader\Basic</Filter>
+      <Filter>Shader\Basic</Filter>
     </FxCompile>
     <FxCompile Include="..\..\Source\Shader\Gbuffer_PS.hlsl">
-      <Filter>Sources\Shader\Gbuffer</Filter>
-    </FxCompile>
-    <FxCompile Include="..\..\Source\Shader\Lambert_PS.hlsl">
-      <Filter>Sources\Shader\Lambert</Filter>
+      <Filter>Shader\Gbuffer</Filter>
     </FxCompile>
     <FxCompile Include="..\..\Source\Shader\Lighting_PS.hlsl">
-      <Filter>Sources\Shader\Lighting</Filter>
+      <Filter>Shader\Lighting</Filter>
     </FxCompile>
     <FxCompile Include="..\..\Source\Shader\Lighting_VS.hlsl">
-      <Filter>Sources\Shader\Lighting</Filter>
+      <Filter>Shader\Lighting</Filter>
     </FxCompile>
     <FxCompile Include="..\..\Source\Shader\PBR_PS.hlsl">
-      <Filter>Sources\Shader\PBR</Filter>
+      <Filter>Shader\PBR</Filter>
     </FxCompile>
     <FxCompile Include="..\..\Source\Shader\Present_PS.hlsl">
-      <Filter>Sources\Shader\Present</Filter>
+      <Filter>Shader\Present</Filter>
     </FxCompile>
     <FxCompile Include="..\..\Source\Shader\Skinning_VS.hlsl">
-      <Filter>Sources\Shader\Skinning</Filter>
+      <Filter>Shader\Skinning</Filter>
     </FxCompile>
     <FxCompile Include="..\..\Source\Shader\SkyBox_PS.hlsl">
-      <Filter>Sources\Shader\SkyBox</Filter>
+      <Filter>Shader\SkyBox</Filter>
     </FxCompile>
     <FxCompile Include="..\..\Source\Shader\SkyBox_VS.hlsl">
-      <Filter>Sources\Shader\SkyBox</Filter>
+      <Filter>Shader\SkyBox</Filter>
     </FxCompile>
     <FxCompile Include="..\..\Source\Shader\SolidShape_PS.hlsl">
-      <Filter>Sources\Shader\SolidShape</Filter>
+      <Filter>Shader\SolidShape</Filter>
     </FxCompile>
     <FxCompile Include="..\..\Source\Shader\SolidShape_VS.hlsl">
-      <Filter>Sources\Shader\SolidShape</Filter>
+      <Filter>Shader\SolidShape</Filter>
     </FxCompile>
     <FxCompile Include="..\..\Source\Shader\SolidShapeDepth_VS.hlsl">
-      <Filter>Sources\Shader\SolidShape</Filter>
+      <Filter>Shader\SolidShape</Filter>
     </FxCompile>
     <FxCompile Include="..\..\Source\Shader\Static_VS.hlsl">
-      <Filter>Sources\Shader\Static</Filter>
+      <Filter>Shader\Static</Filter>
     </FxCompile>
     <FxCompile Include="..\..\Source\Shader\WiredShape_PS.hlsl">
-      <Filter>Sources\Shader\WiredShape</Filter>
+      <Filter>Shader\WiredShape</Filter>
     </FxCompile>
     <FxCompile Include="..\..\Source\Shader\WiredShape_VS.hlsl">
-      <Filter>Sources\Shader\WiredShape</Filter>
+      <Filter>Shader\WiredShape</Filter>
     </FxCompile>
     <FxCompile Include="..\..\Source\Shader\Gbuffer_Grid_PS.hlsl">
-      <Filter>Sources\Shader\Grid</Filter>
+      <Filter>Shader\Grid</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>
