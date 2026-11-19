@@ -56,97 +56,6 @@ std::shared_ptr<GLTFData> GLTFImporter::Load(const std::string& filename)
 	LoadAnimations(*data, gltfModel);
 
 	return data;
-
-
-
-	//// TODO デバッグ時間計測
-	//// 計測用ヘルパー（ローカルラムダ）
-	//auto now = []() {
-	//	LARGE_INTEGER t;
-	//	QueryPerformanceCounter(&t);
-	//	return t.QuadPart;
-	//	};
-	//LARGE_INTEGER freq;
-	//QueryPerformanceFrequency(&freq);
-	//auto ms = [&](LONGLONG start, LONGLONG end) {
-	//	return (double)(end - start) / freq.QuadPart * 1000.0;
-	//	};
-
-	//LONGLONG t0, t1;
-	//char buf[256];
-
-	//// ------- tinygltf ロード -------
-	//t0 = now();
-	//tinygltf::TinyGLTF loader;
-	//loader.SetImageLoader(NullLoadImageData, nullptr);
-	//tinygltf::Model gltfModel;
-	//std::string error, warning;
-	//bool succeeded = false;
-
-	//if (filename.find(".glb") != std::string::npos)
-	//	succeeded = loader.LoadBinaryFromFile(&gltfModel, &error, &warning, filename.c_str());
-	//else if (filename.find(".gltf") != std::string::npos)
-	//	succeeded = loader.LoadASCIIFromFile(&gltfModel, &error, &warning, filename.c_str());
-
-	//t1 = now();
-	//sprintf_s(buf, "[GLTF] TinyGLTF Load     : %.1f ms\n", ms(t0, t1));
-	//OutputDebugStringA(buf);
-
-	//_ASSERT_EXPR_A(warning.empty(), warning.c_str());
-	//_ASSERT_EXPR_A(error.empty(), error.c_str());
-	//_ASSERT_EXPR_A(succeeded, "Failed to load glTF file");
-
-	//auto data = std::make_shared<GLTFData>();
-	//data->hasSkin = CheckHasSkin(gltfModel);
-
-	//std::filesystem::path filepath(filename);
-
-	//// ------- LoadNodes -------
-	//t0 = now();
-	//LoadNodes(*data, gltfModel);
-	//t1 = now();
-	//sprintf_s(buf, "[GLTF] LoadNodes         : %.1f ms\n", ms(t0, t1));
-	//OutputDebugStringA(buf);
-
-	//// ------- LoadTextures -------
-	//t0 = now();
-	//LoadTextures(*data, gltfModel, filepath);
-	//t1 = now();
-	//sprintf_s(buf, "[GLTF] LoadTextures      : %.1f ms\n", ms(t0, t1));
-	//OutputDebugStringA(buf);
-
-	//// ------- LoadMaterials -------
-	//t0 = now();
-	//LoadMaterials(*data, gltfModel, filepath);
-	//t1 = now();
-	//sprintf_s(buf, "[GLTF] LoadMaterials     : %.1f ms\n", ms(t0, t1));
-	//OutputDebugStringA(buf);
-
-	//// ------- LoadMeshes -------
-	//t0 = now();
-	//LoadMeshes(*data, gltfModel);
-	//t1 = now();
-	//sprintf_s(buf, "[GLTF] LoadMeshes        : %.1f ms\n", ms(t0, t1));
-	//OutputDebugStringA(buf);
-
-	//// ------- LoadAnimations -------
-	//t0 = now();
-	//LoadAnimations(*data, gltfModel);
-	//t1 = now();
-	//sprintf_s(buf, "[GLTF] LoadAnimations    : %.1f ms\n", ms(t0, t1));
-	//OutputDebugStringA(buf);
-
-	//// ------- Convert -------
-	//// ※ ResourceManager側で計測するか、ここには含まれないので別途必要なら追加
-
-	//sprintf_s(buf, "[GLTF] nodes=%d meshes=%d textures=%d anims=%d\n",
-	//	(int)data->nodes.size(),
-	//	(int)data->meshes.size(),
-	//	(int)data->textures.size(),
-	//	(int)data->animations.size());
-	//OutputDebugStringA(buf);
-
-	//return data;
 }
 
 // ノード読み込み
@@ -626,10 +535,14 @@ void GLTFImporter::LoadAnimations(
 			{
 				for (size_t i = 0; i < inputAcc.count; i++)
 				{
+					#if 0
 					// なぜかUnityで出力したアニメーションデータにはゴミと思われるキーフレームが存在している場合がある。
 					// 小数点が存在するフレーム（時間）がゴミデータっぽいので除外する。
 					float frame = times[i] * 60.0f;
 					if (fabs(std::round(frame) - frame) > 0.001) continue;
+
+					#endif // 0
+
 
 					GLTFData::QuaternionKeyframe kf;
 					kf.seconds = times[i];
