@@ -55,17 +55,14 @@ public:
     // 定数バッファをGPUに転送してスロットにセット
     void Bind(ID3D11DeviceContext* dc);
 
-    // IBLの強さ
-    void SetIBLIntensity(float intensity) { iblIntensity = intensity; }
-    float GetIBLIntensity() const { return iblIntensity; }
-
     // ゲッター
     const DirectionalLight& GetDirectionalLight() const { return directionalLight; }
 
 private:
+    static constexpr float kIblIntensity = 1.0f;
+
     DirectionalLight directionalLight{};
     std::vector<PointLight> pointLights;
-    float iblIntensity = 1.0f;
 
     Microsoft::WRL::ComPtr<ID3D11Buffer> cbLights;
 };

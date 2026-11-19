@@ -10460,6 +10460,9 @@ void LightManager::Bind(ID3D11DeviceContext* dc)
         cbData.pointLights[i] = pointLights[i];
     cbData.pointLightCount = count;
 
+    // IBL の強さ
+    cbData.iblIntensity = iblIntensity;
+
     // GPU転送
     dc->UpdateSubresource(cbLights.Get(), 0, nullptr, &cbData, 0, 0);
 
@@ -10501,7 +10504,8 @@ public:
         DirectionalLight directionalLight;
         PointLight       pointLights[MAX_POINT_LIGHTS];
         int              pointLightCount;
-        DirectX::XMFLOAT3 padding;
+        float            iblIntensity;  // IBLの強さ
+        DirectX::XMFLOAT2 padding;      // 16バイトアラインメント用
     };
 
 public:
@@ -10527,12 +10531,17 @@ public:
     // 定数バッファをGPUに転送してスロットにセット
     void Bind(ID3D11DeviceContext* dc);
 
+    // IBLの強さ
+    void SetIBLIntensity(float intensity) { iblIntensity = intensity; }
+    float GetIBLIntensity() const { return iblIntensity; }
+
     // ゲッター
     const DirectionalLight& GetDirectionalLight() const { return directionalLight; }
 
 private:
     DirectionalLight directionalLight{};
     std::vector<PointLight> pointLights;
+    float iblIntensity = 1.0f;
 
     Microsoft::WRL::ComPtr<ID3D11Buffer> cbLights;
 };
@@ -19600,27 +19609,27 @@ void SceneGame::Initialize(const SceneContext& context)
 	physicsDebugRenderer.Initialize(context.device);
 
 
-	const int lightCount = 20;
-	const float radius = 3.0f;
-	const float height = 1.0f;
+	//const int lightCount = 20;
+	//const float radius = 3.0f;
+	//const float height = 1.0f;
 
-	for (int i = 0; i < lightCount; i++)
-	{
-		float angle = (2.0f * 3.14159265f / lightCount) * i;
-		float x = radius * cosf(angle);
-		float z = radius * sinf(angle);
+	//for (int i = 0; i < lightCount; i++)
+	//{
+	//	float angle = (2.0f * 3.14159265f / lightCount) * i;
+	//	float x = radius * cosf(angle);
+	//	float z = radius * sinf(angle);
 
-		float r = (sinf(angle) + 1.0f) * 0.5f;
-		float g = (sinf(angle + 2.0f) + 1.0f) * 0.5f;
-		float b = (sinf(angle + 4.0f) + 1.0f) * 0.5f;
+	//	float r = (sinf(angle) + 1.0f) * 0.5f;
+	//	float g = (sinf(angle + 2.0f) + 1.0f) * 0.5f;
+	//	float b = (sinf(angle + 4.0f) + 1.0f) * 0.5f;
 
-		lightManager.AddPointLight(
-			{ x, height, z }, // 位置
-			{ r, g, b },      // 色
-			5.0f,             // 範囲
-			3.0f              // 強度
-		);
-	}
+	//	lightManager.AddPointLight(
+	//		{ x, height, z }, // 位置
+	//		{ r, g, b },      // 色
+	//		5.0f,             // 範囲
+	//		3.0f              // 強度
+	//	);
+	//}
 
 
 #if WaveDemo && !defined(_DEBUG)

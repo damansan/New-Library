@@ -71,6 +71,9 @@ struct VS_OUT
     float2 texcoord : TEXCOORD;
 };
 
+// ブルームに入れる明るさの上限
+static const float BLOOM_MAX_BRIGHTNESS = 100.0f;
+
 float4 main(VS_OUT pin) : SV_TARGET
 {
     // 1/2 の1ピクセル = 元の 2×2 ピクセル。その真ん中をバイリニアで読むと、4つの平均になる
@@ -79,8 +82,19 @@ float4 main(VS_OUT pin) : SV_TARGET
     // 画面に出るときと同じ明るさで判定するため、露出を先にかける
     color *= exposure;
  
-    // いちばん明るいチャンネルが、しきい値をどれだけ超えたかの割合を、色全体に掛ける
+    // NaN/Inf はブルームに持ち込まない
+    if (any((asuint(color) & 0x7F800000) == 0x7F800000))
+    {
+        color = 0.0f;
+    }
+    
+    // 明るさに上限を付ける
     float brightness = max(color.r, max(color.g, color.b));
+    float limitScale = min(1.0f, BLOOM_MAX_BRIGHTNESS / max(brightness, 0.0001f));
+    color *= limitScale;
+    brightness *= limitScale;
+    
+    // いちばん明るいチャンネルが、しきい値をどれだけ超えたかの割合を、色全体に掛ける
     float contribution = max(brightness - bloomThreshold, 0.0f) / max(brightness, 0.0001f);
 
     return float4(color * contribution, 1.0f);
@@ -235,7 +249,7 @@ float4 main(VS_OUT pin) : SV_TARGET
     
     // 読む側と書く側が同じ大きさなので、ピクセルの位置で直接読む
     float3 color = sceneTexture.Load(int3(pin.position.xy, 0)).rgb;
-    
+        
     // 露出設定
     color *= exposure;
     
@@ -1204,8 +1218,8 @@ float3 ShadeSurface(
         specularPmrem, lutGgx, samplerState,
         N, V, F0, s.roughness);
 
-    float3 ambient = iblDiffuse + iblSpecular;
-
+    float3 ambient = (iblDiffuse + iblSpecular) * iblIntensity;
+    
     // Occlusion
     ambient *= s.occlusion;
     
@@ -1370,7 +1384,8 @@ cbuffer CbLights : register(b2)
     DirectionalLight directionalLight;
     PointLight pointLights[MAX_POINT_LIGHTS];
     int pointLightCount;
-    float3 lightsPadding;
+    float iblIntensity;   // IBLの強さ
+    float2 lightsPadding; // 16バイトアラインメント用
 };
 
 // b3：スキニング
