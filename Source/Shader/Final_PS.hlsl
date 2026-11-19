@@ -25,6 +25,22 @@ float3 ColorAdjust(float3 color)
     return max(color, 0.0f);
 }
 
+// ビネット
+float3 ApplyVignette(float3 color, float2 uv)
+{
+    // 中心からの距離に強さを掛ける
+    float2 d = abs(uv - 0.5f) * vignetteIntensity;
+
+    // 縦横比で補正して、横長の画面でも円にする
+    d.x *= aspectRatio;
+
+    // 中心ほど 1、隅ほど 0 になる
+    float factor = pow(saturate(1.0f - dot(d, d)), vignetteSmoothness);
+
+    // 隅ほどビネットの色に近づける
+    return color * lerp(vignetteColor, 1.0f, factor);
+}
+
 // ACES トーンマップ
 float3 TonemapACES(float3 x)
 {
@@ -56,6 +72,9 @@ float4 main(VS_OUT pin) : SV_TARGET
     // カラー調整
     color = ColorAdjust(color);
     
+    // ビネット
+    color = ApplyVignette(color, pin.texcoord);
+
     // トーンマップ
     if (tonemapEnabled != 0)
     {

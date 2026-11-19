@@ -14,7 +14,13 @@ namespace
 		float saturation;
 
 		DirectX::XMFLOAT3 colorFilter; // リニア
-		float padding0;
+		float vignetteIntensity;
+
+		DirectX::XMFLOAT3 vignetteColor; // リニア
+		float vignetteSmoothness;
+
+		float aspectRatio;
+		float padding0[3];
 	};
 
 	// sRGB から リニア
@@ -92,6 +98,18 @@ void PostProcess::Render(
 		SRGBToLinear(settings.colorFilter.y),
 		SRGBToLinear(settings.colorFilter.z)
 	};
+
+	// ビネット
+	cb.vignetteIntensity = settings.vignetteIntensity * 3.0f;
+	cb.vignetteSmoothness = settings.vignetteSmoothness * 5.0f;
+	cb.vignetteColor =
+	{
+		SRGBToLinear(settings.vignetteColor.x),
+		SRGBToLinear(settings.vignetteColor.y),
+		SRGBToLinear(settings.vignetteColor.z)
+	};
+	// 画面の縦横比
+	cb.aspectRatio = (height > 0) ? static_cast<float>(width) / static_cast<float>(height) : 1.0f;
 
 	dc->UpdateSubresource(cbPostProcess.Get(), 0, nullptr, &cb, 0, 0);
 	dc->PSSetConstantBuffers(5, 1, cbPostProcess.GetAddressOf());

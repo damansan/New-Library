@@ -13,4 +13,8 @@ struct PostProcessSettings
 	float saturation = 1.0f; // 彩度
 	DirectX::XMFLOAT3 colorFilter = { 1.0f, 1.0f, 1.0f }; // カラーフィルタ
 
+	// ビネット
+	float vignetteIntensity = 0.0f;  // 強さ
+	float vignetteSmoothness = 0.2f; // 境目のなだらかさ
+	DirectX::XMFLOAT3 vignetteColor = { 0.0f, 0.0f, 0.0f }; // 隅の色
 };

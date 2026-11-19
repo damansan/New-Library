@@ -60,12 +60,19 @@ cbuffer CbSkinning : register(b3)
 // b5：ポストエフェクト
 cbuffer CbPostProcess : register(b5)
 {
-    float exposure;     // 露出（明るさの倍率）
+    float exposure;     // 露出
     int tonemapEnabled; // 1 なら ACES、0 なら切り捨て
     float contrast;     // コントラスト
     float saturation;   // 彩度
 
-    float3 colorFilter;        // カラーフィルタ（リニア。C++ 側で変換済み）
-    float postProcessPadding0; // 16バイトアライメント用};
+    float3 colorFilter;      // カラーフィルタ
+    float vignetteIntensity; // ビネットの強さ
+    
+    float3 vignetteColor;     // ビネットの色
+    float vignetteSmoothness; // ビネットの境目のなだらかさ
+    
+    float aspectRatio; // 画面の縦横比
+    float3 postProcessPadding0; // 16バイトアライメント用
+    
 };
 #endif

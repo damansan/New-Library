@@ -15,14 +15,20 @@ void PostProcessToolWindow::Draw(PostProcessSettings& settings)
 
 	// トーンマップ
 	ImGui::SeparatorText("Tone Mapping");
-	ImGui::SliderFloat("Exposure", &settings.exposure, 0.0f, 4.0f, "%.2f");
-	ImGui::Checkbox("ACES", &settings.tonemapEnabled);
+	ImGui::SliderFloat  ("Exposure", &settings.exposure, 0.0f, 4.0f, "%.2f");
+	ImGui::Checkbox     ("ACES", &settings.tonemapEnabled);
 
 	// カラー調整
 	ImGui::SeparatorText("Color Adjustments");
-	ImGui::SliderFloat("Contrast", &settings.contrast, 0.0f, 2.0f, "%.2f");
-	ImGui::ColorEdit3("Color Filter", &settings.colorFilter.x);
-	ImGui::SliderFloat("Saturation", &settings.saturation, 0.0f, 2.0f, "%.2f");
+	ImGui::SliderFloat  ("Contrast", &settings.contrast, 0.0f, 2.0f, "%.2f");
+	ImGui::ColorEdit3   ("Color Filter", &settings.colorFilter.x);
+	ImGui::SliderFloat  ("Saturation", &settings.saturation, 0.0f, 2.0f, "%.2f");
+
+	// ビネット
+	ImGui::SeparatorText("Vignette");
+	ImGui::SliderFloat  ("Intensity", &settings.vignetteIntensity, 0.0f, 1.0f, "%.2f");
+	ImGui::SliderFloat  ("Smoothness", &settings.vignetteSmoothness, 0.01f, 1.0f, "%.2f");
+	ImGui::ColorEdit3   ("Vignette Color", &settings.vignetteColor.x);
 
 
 	ImGui::Spacing();
