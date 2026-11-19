@@ -1,6 +1,18 @@
 #include "PostProcess.h"
 #include "Engine/Resource/GpuResourceUtils.h"
 
+namespace
+{
+	// b5：GPU に送る形（並びは ShaderConstants.hlsli の CbPostProcess と同じにする）
+	struct CbPostProcess
+	{
+		float exposure;
+		int   tonemapEnabled; // bool は HLSL と大きさが違うので int で送る
+		float padding[2];
+	};
+	static_assert(sizeof(CbPostProcess) % 16 == 0, "定数バッファは16バイトの倍数にする");
+}
+
 // 初期化
 void PostProcess::Initialize(ID3D11Device* device)
 {
@@ -18,6 +30,9 @@ void PostProcess::Initialize(ID3D11Device* device)
 	rd.FillMode = D3D11_FILL_SOLID;
 	rd.CullMode = D3D11_CULL_NONE;
 	device->CreateRasterizerState(&rd, rasterizerState.GetAddressOf());
+
+	// 設定値の定数バッファ
+	GpuResourceUtils::CreateConstantBuffer(device, sizeof(CbPostProcess), cbPostProcess);
 }
 
 // HDRScene を読んで output へ書き出す
@@ -26,7 +41,8 @@ void PostProcess::Render(
 	ID3D11ShaderResourceView* hdrScene,
 	ID3D11RenderTargetView* output,
 	UINT width,
-	UINT height)
+	UINT height,
+	const PostProcessSettings& settings) 
 {
 	// 書き出し先
 	dc->OMSetRenderTargets(1, &output, nullptr);
@@ -48,6 +64,13 @@ void PostProcess::Render(
 	dc->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 	dc->VSSetShader(fullscreenVS.Get(), nullptr, 0);
 	dc->PSSetShader(finalPS.Get(), nullptr, 0);
+
+	// 設定値を GPU に送る形にして渡す
+	CbPostProcess cb{};
+	cb.exposure = settings.exposure;
+	cb.tonemapEnabled = settings.tonemapEnabled ? 1 : 0;
+	dc->UpdateSubresource(cbPostProcess.Get(), 0, nullptr, &cb, 0, 0);
+	dc->PSSetConstantBuffers(5, 1, cbPostProcess.GetAddressOf());
 
 	// 読む物をセットして描画
 	dc->PSSetShaderResources(0, 1, &hdrScene);

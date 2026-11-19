@@ -45,6 +45,9 @@ protected:
 	// GameViewに描いたゲームを、画面へ出す
 	virtual void OnPresent() = 0;
 
+	// ポストエフェクトの設定
+	PostProcessSettings postProcessSettings;
+
 	// メッセージ(処理した場合はtrueを返す)
 	virtual bool OnMessage(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) { return false; }
 

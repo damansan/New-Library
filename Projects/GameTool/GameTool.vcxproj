@@ -123,10 +123,12 @@
   <ItemGroup>
     <ClCompile Include="..\..\Source\Code\GameTool\GameInspectors.cpp" />
     <ClCompile Include="..\..\Source\Code\GameTool\MovementMonitorWindow.cpp" />
+    <ClCompile Include="..\..\Source\Code\GameTool\PostProcessToolWindow.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Source\Code\GameTool\GameInspectors.h" />
     <ClInclude Include="..\..\Source\Code\GameTool\MovementMonitorWindow.h" />
+    <ClInclude Include="..\..\Source\Code\GameTool\PostProcessToolWindow.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Engine\Engine.vcxproj">

@@ -151,6 +151,7 @@ void Application::UpdateSceneContext()
 	sceneContext.sceneShaderResourceView = gameView.GetSceneSRV();
 	sceneContext.outputRenderTargetView = gameView.GetOutputRTV();
 	sceneContext.depthStencilView = gameView.GetDSV();
+	sceneContext.postProcessSettings = &postProcessSettings;
 	sceneContext.camera = &gameView.GetCamera();
 
 	Camera& renderCamera = GetRenderCamera();

@@ -186,12 +186,18 @@ void SceneGame::Render(const SceneContext& context)
 	// 最終パス：シーン（HDR）を読んで、表示用へ書き出す
 	{
 		ZoneScopedN("PostProcess::Render");
+
+		// 設定が渡されていなければ初期値で描く
+		static const PostProcessSettings kDefaultSettings{};
+		const PostProcessSettings& settings = context.postProcessSettings ? *context.postProcessSettings : kDefaultSettings;
+
 		postProcess.Render(
 			context.deviceContext,
 			context.sceneShaderResourceView,
 			context.outputRenderTargetView,
 			context.screenWidth,
-			context.screenHeight
+			context.screenHeight,
+			settings
 		);
 	}
 

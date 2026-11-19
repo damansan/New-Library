@@ -58,5 +58,11 @@ cbuffer CbSkinning : register(b3)
 // b4：カスケードシャドウマップ
 
 // b5：ポストエフェクト
+cbuffer CbPostProcess : register(b5)
+{
+    float exposure;            // 露出（明るさの倍率）
+    int tonemapEnabled; // 1 なら ACES、0 なら切り捨て
+    float3 postProcessPadding; // 16バイトアライメント用
+};
 
 #endif

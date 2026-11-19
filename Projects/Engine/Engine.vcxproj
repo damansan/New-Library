@@ -126,6 +126,7 @@
     <ClInclude Include="..\..\Source\Code\Engine\Rendering\LightManager.h" />
     <ClInclude Include="..\..\Source\Code\Engine\Rendering\PhysicsDebugRenderer.h" />
     <ClInclude Include="..\..\Source\Code\Engine\Rendering\PostProcess.h" />
+    <ClInclude Include="..\..\Source\Code\Engine\Rendering\PostProcessSettings.h" />
     <ClInclude Include="..\..\Source\Code\Engine\Rendering\PrimitiveRenderer.h" />
     <ClInclude Include="..\..\Source\Code\Engine\Rendering\ShaderLimits.h" />
     <ClInclude Include="..\..\Source\Code\Engine\Rendering\ShapeRenderer.h" />

@@ -13,6 +13,9 @@
     <Filter Include="Sources\GameTool\MovementMonitorWindow">
       <UniqueIdentifier>{2d53f362-7767-481f-8727-edbb6280df6f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\GameTool\PostProcessToolWindow">
+      <UniqueIdentifier>{cfb27716-88b9-43a7-b1ab-41e9c1b727c4}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Source\Code\GameTool\GameInspectors.cpp">
@@ -21,6 +24,9 @@
     <ClCompile Include="..\..\Source\Code\GameTool\MovementMonitorWindow.cpp">
       <Filter>Sources\GameTool\MovementMonitorWindow</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Source\Code\GameTool\PostProcessToolWindow.cpp">
+      <Filter>Sources\GameTool\PostProcessToolWindow</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Source\Code\GameTool\GameInspectors.h">
@@ -28,6 +34,9 @@
     </ClInclude>
     <ClInclude Include="..\..\Source\Code\GameTool\MovementMonitorWindow.h">
       <Filter>Sources\GameTool\MovementMonitorWindow</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Code\GameTool\PostProcessToolWindow.h">
+      <Filter>Sources\GameTool\PostProcessToolWindow</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

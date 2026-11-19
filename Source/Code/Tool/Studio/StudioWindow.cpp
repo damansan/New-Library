@@ -164,7 +164,9 @@ void StudioWindow::Render()
 	}
 
 	// 最終パス：シーン（HDR）を読んで、表示用へ書き出す
-	postProcess.Render(dc, srv.Get(), outputRtv.Get(), renderWidth, renderHeight);
+	static const PostProcessSettings kDefaultSettings{};
+	const PostProcessSettings& settings = (shared && shared->postProcessSettings) ? *shared->postProcessSettings : kDefaultSettings;
+	postProcess.Render(dc, srv.Get(), outputRtv.Get(), renderWidth, renderHeight, settings);
 
 	// 描画先をメインに戻す
 	End();

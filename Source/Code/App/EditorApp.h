@@ -17,6 +17,7 @@
 #include "Tool/Studio/StudioWindow.h"
 
 #include "GameTool/MovementMonitorWindow.h"
+#include "GameTool/PostProcessToolWindow.h"
 #include "Tool/AdaptiveTriggerToolWindow.h"
 
 // エディタのアプリケーション
@@ -62,7 +63,8 @@ private:
 	PrefabWindow    prefabWindow;
 	LogWindow       logWindow;
 
-	MovementMonitorWindow movementMonitor;
+	MovementMonitorWindow     movementMonitor;
+	PostProcessToolWindow     postProcessTool;
 	AdaptiveTriggerToolWindow adaptiveTriggerTool;
 
 	StudioSharedContext studioShared;

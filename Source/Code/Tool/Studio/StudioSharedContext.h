@@ -8,6 +8,9 @@ struct StudioSharedContext
     SkyBox          skyBox;
     ResourceManager resourceManager;
 
+    // ポストエフェクトの設定
+    const PostProcessSettings* postProcessSettings = nullptr;
+
     void Initialize(ID3D11Device* device)
     {
         skyBox.Initialize(

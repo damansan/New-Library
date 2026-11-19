@@ -1,3 +1,4 @@
+#include "ShaderConstants.hlsli"
 
 Texture2D sceneTexture : register(t0);
 
@@ -7,11 +8,40 @@ struct VS_OUT
     float2 texcoord : TEXCOORD;
 };
 
+// ACES トーンマップ
+float3 TonemapACES(float3 x)
+{
+    const float a = 2.51f;
+    const float b = 0.03f;
+    const float c = 2.43f;
+    const float d = 0.59f;
+    const float e = 0.14f;
+    return saturate((x * (a * x + b)) / (x * (c * x + d) + e));
+}
+
+// リニア から sRGB
+float3 LinearToSRGB(float3 c)
+{
+    c = saturate(c);
+    float3 low = c * 12.92f;
+    float3 high = 1.055f * pow(c, 1.0f / 2.4f) - 0.055f;
+    return (c <= 0.0031308f) ? low : high; // 成分ごとに選ぶ
+}
+
 float4 main(VS_OUT pin) : SV_TARGET
 {
     // 読む側と書く側が同じ大きさなので、ピクセルの位置で直接読む
     float3 color = sceneTexture.Load(int3(pin.position.xy, 0)).rgb;
 
+    // 露出設定
+    color *= exposure;
+    
+    // トーンマップ
+    if (tonemapEnabled != 0)
+    {
+        color = TonemapACES(color);
+    }
+    
      // 出口：リニア → モニター向けの値（ガンマ補正はここ1か所だけ）
     color = pow(max(color, 0.0001f), 1.0f / 2.2f);
     

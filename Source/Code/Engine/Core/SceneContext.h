@@ -2,6 +2,8 @@
 #include <d3d11.h>
 #include <DirectXMath.h>
 #include "Engine/Resource/ResourceManager.h"
+#include "Engine/Rendering/PostProcessSettings.h"
+
 #include "Camera.h"
 #include "PhysX.h"
 
@@ -18,6 +20,8 @@ struct SceneContext
 	ID3D11ShaderResourceView* sceneShaderResourceView = nullptr; // シーン（HDR）を読む
 	ID3D11RenderTargetView* outputRenderTargetView = nullptr;    // 表示用
 	ID3D11DepthStencilView* depthStencilView = nullptr;
+
+	const PostProcessSettings* postProcessSettings = nullptr; // ポストエフェクトの設定
 
 	// ゲームカメラ。ゲームの処理が書き込み、ゲームの処理が読む
 	Camera* camera = nullptr;

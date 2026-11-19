@@ -37,6 +37,7 @@ void EditorApp::OnInitialize()
 
 	// Studio共有リソース初期化
 	studioShared.Initialize(graphics.GetDevice());
+	studioShared.postProcessSettings = &postProcessSettings;
 }
 
 // シーン更新の前
@@ -128,6 +129,7 @@ void EditorApp::OnFrame()
 	logWindow.Draw();
 	// 実行中に確認するツール
 	movementMonitor.Draw();
+	postProcessTool.Draw(postProcessSettings);
 
 	// StudioOpenRequestを処理
 	if (editorContext.studioRequest.pending)
@@ -323,6 +325,7 @@ void EditorApp::DrawMainMenu()
 		if (ImGui::BeginMenu("Tool"))
 		{
 			ImGui::MenuItem("Movement Monitor", nullptr, &movementMonitor.isOpen);
+			ImGui::MenuItem("Post Process", nullptr, &postProcessTool.isOpen);
 			ImGui::MenuItem("Adaptive Trigger Tool", nullptr, &adaptiveTriggerTool.isOpen);
 			ImGui::EndMenu();
 		}

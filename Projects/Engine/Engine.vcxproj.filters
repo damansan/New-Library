@@ -212,6 +212,9 @@
     <Filter Include="Sources\Engine\Rendering\PostProcess">
       <UniqueIdentifier>{75b20ca2-bbb0-45b8-b565-356021b511cc}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\Engine\Rendering\PostProcessSettings">
+      <UniqueIdentifier>{2db8e2b6-f7a2-4b46-8fee-2cd879e689de}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Source\Code\Engine\Core\Application.cpp">
@@ -587,6 +590,9 @@
     </ClInclude>
     <ClInclude Include="..\..\Source\Code\Engine\Rendering\PostProcess.h">
       <Filter>Sources\Engine\Rendering\PostProcess</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Code\Engine\Rendering\PostProcessSettings.h">
+      <Filter>Sources\Engine\Rendering\PostProcessSettings</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

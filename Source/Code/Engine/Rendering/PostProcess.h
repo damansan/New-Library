@@ -2,6 +2,8 @@
 #include <d3d11.h>
 #include <wrl.h>
 
+#include "Engine/Rendering/PostProcessSettings.h"
+
 // ポストプロセス
 class PostProcess
 {
@@ -15,10 +17,12 @@ public:
 		ID3D11ShaderResourceView* hdrScene,
 		ID3D11RenderTargetView* output,
 		UINT width,
-		UINT height);
+		UINT height,
+		const PostProcessSettings& settings);
 
 private:
 	Microsoft::WRL::ComPtr<ID3D11VertexShader>    fullscreenVS;
 	Microsoft::WRL::ComPtr<ID3D11PixelShader>     finalPS;
 	Microsoft::WRL::ComPtr<ID3D11RasterizerState> rasterizerState; // カリングなし
+	Microsoft::WRL::ComPtr<ID3D11Buffer>          cbPostProcess;   // b5：設定値
 };
