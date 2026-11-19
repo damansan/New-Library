@@ -1,6 +1,8 @@
 #include "PostProcess.h"
 #include "Engine/Resource/GpuResourceUtils.h"
 
+#include <cmath>
+
 namespace
 {
 	// b5：GPU に送る形（並びは ShaderConstants.hlsli の CbPostProcess と同じにする）
@@ -8,8 +10,19 @@ namespace
 	{
 		float exposure;
 		int   tonemapEnabled; // bool は HLSL と大きさが違うので int で送る
-		float padding[2];
+		float contrast;
+		float saturation;
+
+		DirectX::XMFLOAT3 colorFilter; // リニア
+		float padding0;
 	};
+
+	// sRGB から リニア
+	float SRGBToLinear(float c)
+	{
+		return (c <= 0.04045f) ? c / 12.92f : powf((c + 0.055f) / 1.055f, 2.4f);
+	}
+
 	static_assert(sizeof(CbPostProcess) % 16 == 0, "定数バッファは16バイトの倍数にする");
 }
 
@@ -69,6 +82,17 @@ void PostProcess::Render(
 	CbPostProcess cb{};
 	cb.exposure = settings.exposure;
 	cb.tonemapEnabled = settings.tonemapEnabled ? 1 : 0;
+	cb.contrast = settings.contrast;
+	cb.saturation = settings.saturation;
+
+	// リニアに直してから送る
+	cb.colorFilter =
+	{
+		SRGBToLinear(settings.colorFilter.x),
+		SRGBToLinear(settings.colorFilter.y),
+		SRGBToLinear(settings.colorFilter.z)
+	};
+
 	dc->UpdateSubresource(cbPostProcess.Get(), 0, nullptr, &cb, 0, 0);
 	dc->PSSetConstantBuffers(5, 1, cbPostProcess.GetAddressOf());
 

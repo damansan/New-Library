@@ -8,6 +8,23 @@ struct VS_OUT
     float2 texcoord : TEXCOORD;
 };
 
+// カラー調整
+float3 ColorAdjust(float3 color)
+{
+    // コントラスト
+    const float middleGray = 0.18f;
+    color = middleGray * pow(max(color, 0.0f) / middleGray, contrast);
+
+    // カラーフィルタ
+    color *= colorFilter;
+
+    // 彩度
+    float luma = dot(color, float3(0.2126f, 0.7152f, 0.0722f));
+    color = lerp(luma.xxx, color, saturation);
+
+    return max(color, 0.0f);
+}
+
 // ACES トーンマップ
 float3 TonemapACES(float3 x)
 {
@@ -35,6 +52,9 @@ float4 main(VS_OUT pin) : SV_TARGET
 
     // 露出設定
     color *= exposure;
+    
+    // カラー調整
+    color = ColorAdjust(color);
     
     // トーンマップ
     if (tonemapEnabled != 0)

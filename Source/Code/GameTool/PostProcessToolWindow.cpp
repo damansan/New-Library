@@ -18,6 +18,13 @@ void PostProcessToolWindow::Draw(PostProcessSettings& settings)
 	ImGui::SliderFloat("Exposure", &settings.exposure, 0.0f, 4.0f, "%.2f");
 	ImGui::Checkbox("ACES", &settings.tonemapEnabled);
 
+	// ÉJÉâÅ[í≤êÆ
+	ImGui::SeparatorText("Color Adjustments");
+	ImGui::SliderFloat("Contrast", &settings.contrast, 0.0f, 2.0f, "%.2f");
+	ImGui::ColorEdit3("Color Filter", &settings.colorFilter.x);
+	ImGui::SliderFloat("Saturation", &settings.saturation, 0.0f, 2.0f, "%.2f");
+
+
 	ImGui::Spacing();
 	ImGui::Separator();
 
