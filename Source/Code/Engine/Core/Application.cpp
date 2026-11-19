@@ -147,7 +147,9 @@ void Application::UpdateSceneContext()
 	sceneContext.physX = &physX;
 
 	// GameViewの専用テクスチャを描画先として渡す
-	sceneContext.renderTargetView = gameView.GetRTV();
+	sceneContext.renderTargetView = gameView.GetSceneRTV();
+	sceneContext.sceneShaderResourceView = gameView.GetSceneSRV();
+	sceneContext.outputRenderTargetView = gameView.GetOutputRTV();
 	sceneContext.depthStencilView = gameView.GetDSV();
 	sceneContext.camera = &gameView.GetCamera();
 

@@ -76,7 +76,7 @@ void ViewportWindow::Draw(GameView& gameView, const std::function<void()>& drawM
         );
     }
 
-    ImGui::Image(reinterpret_cast<ImTextureID>(gameView.GetSRV()), region);
+    ImGui::Image(reinterpret_cast<ImTextureID>(gameView.GetOutputSRV()), region);
 
     // カメラ操作の開始判定はViewport単体のホバーだけを見る
     viewportHovered = ImGui::IsWindowHovered();

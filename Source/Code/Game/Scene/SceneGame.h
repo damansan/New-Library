@@ -37,6 +37,7 @@
 // •`‰æŒn
 #include "Engine/ECS/Systems/RenderSystem.h"
 #include "Engine/Rendering/SkyBox.h"
+#include "Engine/Rendering/PostProcess.h"
 #include "Engine/Rendering/LightManager.h"
 #include "Engine/Rendering/PhysicsDebugRenderer.h"
 
@@ -92,6 +93,7 @@ private:
 	// •`‰æŒn
 	RenderSystem         renderSystem;
 	SkyBox                skyBox;
+	PostProcess           postProcess;
 	LightManager          lightManager;
 	PhysicsDebugRenderer  physicsDebugRenderer;
 

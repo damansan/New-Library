@@ -11,6 +11,7 @@
 
 #include "entt.hpp"
 #include "Engine/ECS/Systems/RenderSystem.h"
+#include "Engine/Rendering/PostProcess.h"
 #include "Engine/ECS/Systems/AnimationSystem.h"
 #include "Engine/ECS/Systems/AnimationSpeedSystem.h"
 
@@ -75,6 +76,11 @@ private:
     Microsoft::WRL::ComPtr<ID3D11Texture2D>          depthTexture;
     Microsoft::WRL::ComPtr<ID3D11DepthStencilView>   dsv;
 
+    // ï\é¶óp
+    Microsoft::WRL::ComPtr<ID3D11Texture2D>          outputTexture;
+    Microsoft::WRL::ComPtr<ID3D11RenderTargetView>   outputRtv;
+    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> outputSrv;
+
     // ÉJÉÅÉâ
     StudioCamera camera;
 
@@ -83,6 +89,7 @@ private:
 
     entt::registry    studioRegistry;
     RenderSystem      renderSystem;
+    PostProcess       postProcess;
     AnimationSystem   animationSystem;
     AnimationSpeedSystem  animationSpeedSystem;
     LightManager      lightManager;

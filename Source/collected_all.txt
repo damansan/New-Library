@@ -361,7 +361,7 @@ void EditorApp::OnPresent()
 	{
 		// プレビュー中：ゲームのテクスチャを画面全体に貼る
 		ZoneScopedN("PresentTexture");
-		graphics.PresentTexture(gameView.GetSRV());
+		sceneContext.renderTargetView = gameView.GetSceneRTV();
 	}
 }
 
@@ -687,7 +687,7 @@ void GameApp::OnPostUpdate(float elapsedTime)
 void GameApp::OnPresent()
 {
 	ZoneScopedN("PresentTexture");
-	graphics.PresentTexture(gameView.GetSRV());
+	sceneContext.renderTargetView = gameView.GetSceneRTV();
 }
 
 // プロジェクト設定から、最初に読み込むシーンのパスを取得する
@@ -885,7 +885,7 @@ void Application::UpdateSceneContext()
 	sceneContext.physX = &physX;
 
 	// GameViewの専用テクスチャを描画先として渡す
-	sceneContext.renderTargetView = gameView.GetRTV();
+	sceneContext.renderTargetView = gameView.GetSceneRTV();
 	sceneContext.depthStencilView = gameView.GetDSV();
 	sceneContext.camera = &gameView.GetCamera();
 
@@ -1272,6 +1272,9 @@ void GameView::ResizeRenderTarget(UINT width, UINT height)
     renderTexture.Reset();
     dsv.Reset();
     depthTexture.Reset();
+    outputSrv.Reset();
+    outputRtv.Reset();
+    outputTexture.Reset();
 
     HRESULT hr;
 
@@ -1310,6 +1313,26 @@ void GameView::ResizeRenderTarget(UINT width, UINT height)
         hr = device->CreateTexture2D(&desc, nullptr, depthTexture.GetAddressOf());
         assert(SUCCEEDED(hr));
         hr = device->CreateDepthStencilView(depthTexture.Get(), nullptr, dsv.GetAddressOf());
+        assert(SUCCEEDED(hr));
+    }
+
+    // 表示用テクスチャ再生成
+    {
+        D3D11_TEXTURE2D_DESC desc{};
+        desc.Width = renderWidth;
+        desc.Height = renderHeight;
+        desc.MipLevels = 1;
+        desc.ArraySize = 1;
+        desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+        desc.SampleDesc.Count = 1;
+        desc.Usage = D3D11_USAGE_DEFAULT;
+        desc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+
+        hr = device->CreateTexture2D(&desc, nullptr, outputTexture.GetAddressOf());
+        assert(SUCCEEDED(hr));
+        hr = device->CreateRenderTargetView(outputTexture.Get(), nullptr, outputRtv.GetAddressOf());
+        assert(SUCCEEDED(hr));
+        hr = device->CreateShaderResourceView(outputTexture.Get(), nullptr, outputSrv.GetAddressOf());
         assert(SUCCEEDED(hr));
     }
 }
@@ -1360,10 +1383,15 @@ public:
     // ゲームカメラ取得
     Camera& GetCamera() { return camera; }
 
-    // 描画結果・描画先の取得
-    ID3D11ShaderResourceView* GetSRV() { return srv.Get(); }
-    ID3D11RenderTargetView* GetRTV() { return rtv.Get(); }
+    // シーン（HDR）
+    ID3D11RenderTargetView* GetSceneRTV() { return rtv.Get(); }
+    ID3D11ShaderResourceView* GetSceneSRV() { return srv.Get(); }
     ID3D11DepthStencilView* GetDSV() { return dsv.Get(); }
+
+    // 表示用（8bit）
+    ID3D11RenderTargetView* GetOutputRTV() { return outputRtv.Get(); }
+    ID3D11ShaderResourceView* GetOutputSRV() { return outputSrv.Get(); }
+
     UINT GetRenderWidth()  const { return renderWidth; }
     UINT GetRenderHeight() const { return renderHeight; }
 
@@ -1374,6 +1402,11 @@ private:
     Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv;
     Microsoft::WRL::ComPtr<ID3D11Texture2D>          depthTexture;
     Microsoft::WRL::ComPtr<ID3D11DepthStencilView>   dsv;
+
+    // 表示用
+    Microsoft::WRL::ComPtr<ID3D11Texture2D>          outputTexture;
+    Microsoft::WRL::ComPtr<ID3D11RenderTargetView>   outputRtv;
+    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> outputSrv;
 
     Camera camera; // ゲームカメラ
 
@@ -8294,7 +8327,7 @@ void RenderSystem::Initialize(ID3D11Device* device)
 	// Lightingパス用シェーダー
 	Microsoft::WRL::ComPtr<ID3D11InputLayout> dummyLayoutL;
 	GpuResourceUtils::LoadVertexShader(
-		device, "Data/Shader/Lighting_VS.cso",
+		device, "Data/Shader/Fullscreen_VS.cso",
 		nullptr, 0, dummyLayoutL, lightingVS
 	);
 	GpuResourceUtils::LoadPixelShader(
@@ -8591,6 +8624,11 @@ void RenderSystem::GeometryPass(
 				cbObjectData.baseColor = mesh.material
 					? mesh.material->baseColor
 					: DirectX::XMFLOAT4{ 1.0f, 1.0f, 1.0f, 1.0f };
+				// 係数（マテリアルがなければ「テクスチャの値をそのまま使う」1.0、発光は 0）
+				cbObjectData.metallicFactor = mesh.material ? mesh.material->metallicFactor : 1.0f;
+				cbObjectData.roughnessFactor = mesh.material ? mesh.material->roughnessFactor : 1.0f;
+				cbObjectData.emissiveFactor = mesh.material ? mesh.material->emissiveFactor : DirectX::XMFLOAT3{ 0.0f, 0.0f, 0.0f };
+
 				dc->UpdateSubresource(cbObject.Get(), 0, nullptr, &cbObjectData, 0, 0);
 				dc->PSSetConstantBuffers(1, 1, cbObject.GetAddressOf());
 
@@ -8604,7 +8642,7 @@ void RenderSystem::GeometryPass(
 					(mesh.material && mesh.material->normalMap) ? mesh.material->normalMap.Get() : dummyNormal.Get(),
 					(mesh.material && mesh.material->metallicRoughnessMap) ? mesh.material->metallicRoughnessMap.Get() : dummyWhite.Get(),
 					(mesh.material && mesh.material->occlusionMap) ? mesh.material->occlusionMap.Get() : dummyWhite.Get(),
-					(mesh.material && mesh.material->emissiveMap) ? mesh.material->emissiveMap.Get() : dummyBlack.Get(),
+					(mesh.material && mesh.material->emissiveMap) ? mesh.material->emissiveMap.Get() : dummyWhite.Get(), 
 				};
 				dc->PSSetShaderResources(0, 5, srvs);
 				dc->DrawIndexed(static_cast<UINT>(mesh.indices.size()), 0, 0);
@@ -8651,6 +8689,11 @@ void RenderSystem::GeometryPass(
 				cbObjectData.baseColor = mesh.material
 					? mesh.material->baseColor
 					: DirectX::XMFLOAT4{ 1.0f, 1.0f, 1.0f, 1.0f };
+				// 係数（マテリアルがなければ「テクスチャの値をそのまま使う」1.0、発光は 0）
+				cbObjectData.metallicFactor = mesh.material ? mesh.material->metallicFactor : 1.0f;
+				cbObjectData.roughnessFactor = mesh.material ? mesh.material->roughnessFactor : 1.0f;
+				cbObjectData.emissiveFactor = mesh.material ? mesh.material->emissiveFactor : DirectX::XMFLOAT3{ 0.0f, 0.0f, 0.0f };
+
 				dc->UpdateSubresource(cbObject.Get(), 0, nullptr, &cbObjectData, 0, 0);
 				dc->PSSetConstantBuffers(1, 1, cbObject.GetAddressOf());
 
@@ -8683,7 +8726,7 @@ void RenderSystem::GeometryPass(
 					(mesh.material && mesh.material->normalMap) ? mesh.material->normalMap.Get() : dummyNormal.Get(),
 					(mesh.material && mesh.material->metallicRoughnessMap) ? mesh.material->metallicRoughnessMap.Get() : dummyWhite.Get(),
 					(mesh.material && mesh.material->occlusionMap) ? mesh.material->occlusionMap.Get() : dummyWhite.Get(),
-					(mesh.material && mesh.material->emissiveMap) ? mesh.material->emissiveMap.Get() : dummyBlack.Get(),
+					(mesh.material&& mesh.material->emissiveMap) ? mesh.material->emissiveMap.Get() : dummyWhite.Get(), 
 				};
 				dc->PSSetShaderResources(0, 5, srvs);
 				dc->DrawIndexed(static_cast<UINT>(mesh.indices.size()), 0, 0);
@@ -8803,6 +8846,9 @@ void RenderSystem::ForwardTransparentPass(
 
 				// マテリアルの基本色をピクセルシェーダーへ
 				cbObjectData.baseColor = mesh.material->baseColor;
+				cbObjectData.metallicFactor = mesh.material->metallicFactor;
+				cbObjectData.roughnessFactor = mesh.material->roughnessFactor;
+				cbObjectData.emissiveFactor = mesh.material->emissiveFactor;
 				dc->UpdateSubresource(cbObject.Get(), 0, nullptr, &cbObjectData, 0, 0);
 				dc->PSSetConstantBuffers(1, 1, cbObject.GetAddressOf());
 
@@ -8816,7 +8862,7 @@ void RenderSystem::ForwardTransparentPass(
 					(mesh.material && mesh.material->normalMap) ? mesh.material->normalMap.Get() : dummyNormal.Get(),
 					(mesh.material && mesh.material->metallicRoughnessMap) ? mesh.material->metallicRoughnessMap.Get() : dummyWhite.Get(),
 					(mesh.material && mesh.material->occlusionMap) ? mesh.material->occlusionMap.Get() : dummyWhite.Get(),
-					(mesh.material && mesh.material->emissiveMap) ? mesh.material->emissiveMap.Get() : dummyBlack.Get(),
+					(mesh.material && mesh.material->emissiveMap) ? mesh.material->emissiveMap.Get() : dummyWhite.Get(), 
 				};
 				dc->PSSetShaderResources(0, 5, srvs);
 				dc->DrawIndexed(static_cast<UINT>(mesh.indices.size()), 0, 0);
@@ -8853,6 +8899,9 @@ void RenderSystem::ForwardTransparentPass(
 
 				// マテリアルの基本色をピクセルシェーダーへ
 				cbObjectData.baseColor = mesh.material->baseColor;
+				cbObjectData.metallicFactor = mesh.material->metallicFactor;
+				cbObjectData.roughnessFactor = mesh.material->roughnessFactor;
+				cbObjectData.emissiveFactor = mesh.material->emissiveFactor;
 				dc->UpdateSubresource(cbObject.Get(), 0, nullptr, &cbObjectData, 0, 0);
 				dc->PSSetConstantBuffers(1, 1, cbObject.GetAddressOf());
 
@@ -8885,7 +8934,7 @@ void RenderSystem::ForwardTransparentPass(
 					(mesh.material && mesh.material->normalMap) ? mesh.material->normalMap.Get() : dummyNormal.Get(),
 					(mesh.material && mesh.material->metallicRoughnessMap) ? mesh.material->metallicRoughnessMap.Get() : dummyWhite.Get(),
 					(mesh.material && mesh.material->occlusionMap) ? mesh.material->occlusionMap.Get() : dummyWhite.Get(),
-					(mesh.material && mesh.material->emissiveMap) ? mesh.material->emissiveMap.Get() : dummyBlack.Get(),
+					(mesh.material&& mesh.material->emissiveMap) ? mesh.material->emissiveMap.Get() : dummyWhite.Get(), 
 				};
 				dc->PSSetShaderResources(0, 5, srvs);
 				dc->DrawIndexed(static_cast<UINT>(mesh.indices.size()), 0, 0);
@@ -8929,9 +8978,17 @@ struct CbObject
 {
 	DirectX::XMFLOAT4X4 world;                 // ワールド行列
 	DirectX::XMFLOAT4X4 worldInverseTranspose; // 法線用
+
 	float               alphaCutoff;           // Mask素材のクリップしきい値
-	DirectX::XMFLOAT3   padding;               // 16バイトアライメント用
+	float               metallicFactor;        // 金属度の係数
+	float               roughnessFactor;       // 粗さの係数
+	float               padding0;              // 16バイトアライメント用
+
 	DirectX::XMFLOAT4   baseColor;             // マテリアルの基本色
+
+	DirectX::XMFLOAT3   emissiveFactor;        // 発光の係数
+
+	float               padding1;              // 16バイトアライメント用
 };
 
 struct CbSkinning
@@ -10201,7 +10258,7 @@ void GBuffer::Initialize(ID3D11Device* device, UINT width, UINT height)
     // GBufferのフォーマット定義
     DXGI_FORMAT formats[BUFFER_COUNT] =
     {
-        DXGI_FORMAT_R8G8B8A8_UNORM,      // Albedo
+        DXGI_FORMAT_R8G8B8A8_UNORM_SRGB, // Albedo（書くとき sRGB へ、読むときリニアへ GPU が変換）
         DXGI_FORMAT_R16G16B16A16_FLOAT,  // Normal
         DXGI_FORMAT_R32G32B32A32_FLOAT,  // Position
         DXGI_FORMAT_R8G8B8A8_UNORM,      // Roughness/Metallic
@@ -10866,6 +10923,98 @@ private:
 
 	std::unordered_map<const physx::PxTriangleMesh*, TriangleMeshCache> triangleMeshCache;
 	std::vector<const TriangleMeshCache*> triangleMeshDrawList;
+};
+
+
+===== PostProcess.cpp =====
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\Rendering\PostProcess.cpp
+#include "PostProcess.h"
+#include "Engine/Resource/GpuResourceUtils.h"
+
+// 初期化
+void PostProcess::Initialize(ID3D11Device* device)
+{
+	// 全画面の 頂点シェーダー
+	Microsoft::WRL::ComPtr<ID3D11InputLayout> dummyLayout;
+	GpuResourceUtils::LoadVertexShader(
+		device, "Data/Shader/Fullscreen_VS.cso",
+		nullptr, 0, dummyLayout, fullscreenVS);
+
+	// 最終パスの ピクセルシェーダー
+	GpuResourceUtils::LoadPixelShader(device, "Data/Shader/Final_PS.cso", finalPS);
+
+	// ラスタライザー
+	D3D11_RASTERIZER_DESC rd{};
+	rd.FillMode = D3D11_FILL_SOLID;
+	rd.CullMode = D3D11_CULL_NONE;
+	device->CreateRasterizerState(&rd, rasterizerState.GetAddressOf());
+}
+
+// HDRScene を読んで output へ書き出す
+void PostProcess::Render(
+	ID3D11DeviceContext* dc,
+	ID3D11ShaderResourceView* hdrScene,
+	ID3D11RenderTargetView* output,
+	UINT width,
+	UINT height)
+{
+	// 書き出し先
+	dc->OMSetRenderTargets(1, &output, nullptr);
+
+	D3D11_VIEWPORT vp{};
+	vp.Width = static_cast<float>(width);
+	vp.Height = static_cast<float>(height);
+	vp.MinDepth = 0.0f;
+	vp.MaxDepth = 1.0f;
+	dc->RSSetViewports(1, &vp);
+
+
+	// ステート
+	dc->RSSetState(rasterizerState.Get());
+	dc->OMSetBlendState(nullptr, nullptr, 0xFFFFFFFF);
+
+	// 全画面の四角形
+	dc->IASetInputLayout(nullptr);
+	dc->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+	dc->VSSetShader(fullscreenVS.Get(), nullptr, 0);
+	dc->PSSetShader(finalPS.Get(), nullptr, 0);
+
+	// 読む物をセットして描画
+	dc->PSSetShaderResources(0, 1, &hdrScene);
+	dc->Draw(4, 0);
+
+	// SRV の束縛を解除
+	ID3D11ShaderResourceView* nullSrv = nullptr;
+	dc->PSSetShaderResources(0, 1, &nullSrv);
+}
+
+
+
+===== PostProcess.h =====
+Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\Rendering\PostProcess.h
+#pragma once
+#include <d3d11.h>
+#include <wrl.h>
+
+// ポストプロセス
+class PostProcess
+{
+public:
+	// 初期化
+	void Initialize(ID3D11Device* device);
+
+	// HDRScene を読んで output へ書き出す
+	void Render(
+		ID3D11DeviceContext* dc,
+		ID3D11ShaderResourceView* hdrScene,
+		ID3D11RenderTargetView* output,
+		UINT width,
+		UINT height);
+
+private:
+	Microsoft::WRL::ComPtr<ID3D11VertexShader>    fullscreenVS;
+	Microsoft::WRL::ComPtr<ID3D11PixelShader>     finalPS;
+	Microsoft::WRL::ComPtr<ID3D11RasterizerState> rasterizerState; // カリングなし
 };
 
 
@@ -12788,33 +12937,34 @@ void GLTFConverter::CreateGpuResources(ID3D11Device* device, Model& model)
 	// マテリアルのテクスチャ再生成
 	for (auto& mat : model.materials)
 	{
-		// パス優先、なければバイナリ、両方空ならダミー
+		// colorSpace : 色のテクスチャ（Base・Emissive）なら sRGB、データ（Normal など）なら Linear
 		auto loadTex = [&](
 			const std::string& filepath,
 			const std::vector<uint8_t>& pixels,
 			Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>& srv,
-			DWORD dummyColor)
+			DWORD dummyColor,
+			TextureColorSpace colorSpace)
 			{
 				if (!filepath.empty())
 				{
 					// 外部ファイル → DDSキャッシュ優先でロード
-					GpuResourceUtils::LoadTextureWithDDSCache(device, filepath, srv);
+					GpuResourceUtils::LoadTextureWithDDSCache(device, filepath, srv, colorSpace);
 				}
 				else if (!pixels.empty())
 				{
 					// 埋め込みバイナリ → そのままロード（DDSキャッシュ対象外）
-					GpuResourceUtils::LoadTexture(device, pixels.data(), pixels.size(), srv);
+					GpuResourceUtils::LoadTexture(device, pixels.data(), pixels.size(), srv, colorSpace);
 				}
 				else
 				{
 					GpuResourceUtils::CreateDummyTexture(device, srv, dummyColor, 1);
 				}
 			};
-		loadTex(mat.baseTextureFileName, mat.baseMapData, mat.baseMap, 0xFFFFFFFF);
-		loadTex(mat.normalTextureFileName, mat.normalMapData, mat.normalMap, 0xFFFF8080);
-		loadTex(mat.metallicRoughnessTextureFileName, mat.metallicRoughnessMapData, mat.metallicRoughnessMap, 0xFFFFFFFF);
-		loadTex(mat.occlusionTextureFileName, mat.occlusionMapData, mat.occlusionMap, 0xFFFFFFFF);
-		loadTex(mat.emissiveTextureFileName, mat.emissiveMapData, mat.emissiveMap, 0xFF000000);
+		loadTex(mat.baseTextureFileName, mat.baseMapData, mat.baseMap, 0xFFFFFFFF, TextureColorSpace::sRGB);
+		loadTex(mat.normalTextureFileName, mat.normalMapData, mat.normalMap, 0xFFFF8080, TextureColorSpace::Linear);
+		loadTex(mat.metallicRoughnessTextureFileName, mat.metallicRoughnessMapData, mat.metallicRoughnessMap, 0xFFFFFFFF, TextureColorSpace::Linear);
+		loadTex(mat.occlusionTextureFileName, mat.occlusionMapData, mat.occlusionMap, 0xFFFFFFFF, TextureColorSpace::Linear);
+		loadTex(mat.emissiveTextureFileName, mat.emissiveMapData, mat.emissiveMap, 0xFFFFFFFF, TextureColorSpace::sRGB); // テクスチャがなければ白（発光 = 係数）
 	}
 
 	// material ポインタの再接続
@@ -12950,12 +13100,12 @@ void GLTFConverter::ConvertMaterials(
 {
 	model.materials.reserve(data.materials.size());
 
-	// テクスチャ変換ヘルパー
-	// インデックスが -1 ならダミーテクスチャを生成する
+	// colorSpace : 色のテクスチャ（Base・Emissive）なら sRGB、データ（Normal など）なら Linear
 	auto convertTexture = [&](
 		int texIndex,
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>& srv,
-		DWORD dummyColor)
+		DWORD dummyColor,
+		TextureColorSpace colorSpace)
 		{
 			if (texIndex < 0 ||
 				texIndex >= (int)data.textures.size())
@@ -12970,12 +13120,12 @@ void GLTFConverter::ConvertMaterials(
 			{
 				// 外部ファイルから読む
 				// DDSキャッシュ優先でロード
-				GpuResourceUtils::LoadTextureWithDDSCache(device, texData.filepath, srv);
+				GpuResourceUtils::LoadTextureWithDDSCache(device, texData.filepath, srv, colorSpace);
 			}
 			else if (!texData.pixels.empty())
 			{
 				// 埋め込みバイナリから読む(そのままロード(DDSキャッシュ対象外))
-				GpuResourceUtils::LoadTexture(device, texData.pixels.data(), texData.pixels.size(), srv);
+				GpuResourceUtils::LoadTexture(device, texData.pixels.data(), texData.pixels.size(), srv, colorSpace);
 			}
 			else
 			{
@@ -12990,6 +13140,7 @@ void GLTFConverter::ConvertMaterials(
 		dst.baseColor = src.baseColor;
 		dst.roughnessFactor = src.roughnessFactor;
 		dst.metallicFactor = src.metallicFactor;
+		dst.emissiveFactor = src.emissiveFactor;
 		dst.alphaMode = static_cast<Model::Material::AlphaMode>(src.alphaMode);
 		dst.alphaCutoff = src.alphaCutoff;
 
@@ -13021,11 +13172,11 @@ void GLTFConverter::ConvertMaterials(
 		saveTexture(src.emissiveMapIndex, dst.emissiveTextureFileName, dst.emissiveMapData);
 
 		// テクスチャ生成（初回ロード時）
-		convertTexture(src.baseMapIndex, dst.baseMap, 0xFFFFFFFF);
-		convertTexture(src.normalMapIndex, dst.normalMap, 0xFFFF8080);
-		convertTexture(src.metallicRoughnessMapIndex, dst.metallicRoughnessMap, 0xFFFFFFFF);
-		convertTexture(src.occlusionMapIndex, dst.occlusionMap, 0xFFFFFFFF);
-		convertTexture(src.emissiveMapIndex, dst.emissiveMap, 0xFF000000);
+		convertTexture(src.baseMapIndex, dst.baseMap, 0xFFFFFFFF, TextureColorSpace::sRGB);
+		convertTexture(src.normalMapIndex, dst.normalMap, 0xFFFF8080, TextureColorSpace::Linear);
+		convertTexture(src.metallicRoughnessMapIndex, dst.metallicRoughnessMap, 0xFFFFFFFF, TextureColorSpace::Linear);
+		convertTexture(src.occlusionMapIndex, dst.occlusionMap, 0xFFFFFFFF, TextureColorSpace::Linear);
+		convertTexture(src.emissiveMapIndex, dst.emissiveMap, 0xFFFFFFFF, TextureColorSpace::sRGB); // テクスチャがなければ白
 
 		model.materials.push_back(std::move(dst));
 	}
@@ -13207,6 +13358,7 @@ struct GLTFData
         DirectX::XMFLOAT4    baseColor = { 1, 1, 1, 1 };
         float                roughnessFactor = 1.0f;
         float                metallicFactor = 0.0f;
+        DirectX::XMFLOAT3    emissiveFactor = { 0, 0, 0 };
 
         // テクスチャインデックス（-1 は未使用）
         int baseMapIndex = -1;
@@ -13761,6 +13913,17 @@ void GLTFImporter::LoadMaterials(
 		mat.roughnessFactor = static_cast<float>(pbr.roughnessFactor);
 		mat.metallicFactor = static_cast<float>(pbr.metallicFactor);
 
+		// 発光の係数
+		if (gltfMaterial.emissiveFactor.size() == 3)
+		{
+			mat.emissiveFactor =
+			{
+				static_cast<float>(gltfMaterial.emissiveFactor[0]),
+				static_cast<float>(gltfMaterial.emissiveFactor[1]),
+				static_cast<float>(gltfMaterial.emissiveFactor[2])
+			};
+		}
+
 		if (gltfMaterial.alphaMode == "BLEND")
 		{
 			mat.alphaMode = GLTFData::MaterialData::AlphaMode::Blend;
@@ -14198,13 +14361,26 @@ HRESULT GpuResourceUtils::LoadTexture(
 	ID3D11Device* device,
 	const unsigned char* data,
 	size_t dataSize,
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>& shaderResourceView
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>& shaderResourceView,
+	TextureColorSpace colorSpace
 )
 {
+	const bool srgb = (colorSpace == TextureColorSpace::sRGB);
+	
+	// グレースケールや1チャンネルの画像も RGBA に広げて読む
+	const DirectX::WIC_LOADER_FLAGS wicFlags = static_cast<DirectX::WIC_LOADER_FLAGS>(
+		DirectX::WIC_LOADER_FORCE_RGBA32 |
+		(srgb ? DirectX::WIC_LOADER_FORCE_SRGB : DirectX::WIC_LOADER_IGNORE_SRGB));
+
 	// まずWICで試みる（PNG・JPG）
-	HRESULT hr = DirectX::CreateWICTextureFromMemory(
-		device, data, dataSize, nullptr,
-		shaderResourceView.GetAddressOf());
+	HRESULT hr = DirectX::CreateWICTextureFromMemoryEx(
+		device, data, dataSize,
+		0,                          // 最大サイズ
+		D3D11_USAGE_DEFAULT,        // GPU だけが読み書きする
+		D3D11_BIND_SHADER_RESOURCE, // シェーダーから読む
+		0, 0,                       // CPU アクセス・その他のフラグ
+		wicFlags,
+		nullptr, shaderResourceView.GetAddressOf());
 
 	if (SUCCEEDED(hr)) return hr;
 
@@ -14221,7 +14397,7 @@ HRESULT GpuResourceUtils::LoadTexture(
 		desc.Height = height;
 		desc.MipLevels = 1;
 		desc.ArraySize = 1;
-		desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		desc.Format = srgb ? DXGI_FORMAT_R8G8B8A8_UNORM_SRGB : DXGI_FORMAT_R8G8B8A8_UNORM;
 		desc.SampleDesc.Count = 1;
 		desc.Usage = D3D11_USAGE_DEFAULT;
 		desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
@@ -14252,9 +14428,10 @@ HRESULT GpuResourceUtils::LoadTexture(
 
 // ファイルパスからテクスチャ読み込み
 HRESULT GpuResourceUtils::LoadTextureFromFile(
-	ID3D11Device* device, 
+	ID3D11Device* device,
 	const std::string& filename,
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>& shaderResourceView)
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>& shaderResourceView,
+	TextureColorSpace colorSpace)
 {
 	// ファイルを開いてバイナリを読み込む
 	FILE* fp = nullptr;
@@ -14274,7 +14451,7 @@ HRESULT GpuResourceUtils::LoadTextureFromFile(
 	fclose(fp);
 
 	// 既存の LoadTexture（メモリ版）に流す
-	return LoadTexture(device, data.data(), data.size(), shaderResourceView);
+	return LoadTexture(device, data.data(), data.size(), shaderResourceView, colorSpace);
 }
 
 // DDSテクスチャ読み込み
@@ -14282,14 +14459,27 @@ HRESULT GpuResourceUtils::LoadDDSTexture(
 	ID3D11Device* device,
 	const std::string& filename,
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>& shaderResourceView,
-	bool* isCubemap
-)
+	bool* isCubemap,
+	TextureColorSpace colorSpace
+) 
 {
 	// std::stringをstd::wstring変換
 	std::wstring wfilename = ToWString(filename);
 
+	// sRGBフラグを指定
+	const DirectX::DDS_LOADER_FLAGS ddsFlags = (colorSpace == TextureColorSpace::sRGB)
+		? DirectX::DDS_LOADER_FORCE_SRGB
+		: DirectX::DDS_LOADER_DEFAULT;
+
 	Microsoft::WRL::ComPtr<ID3D11Resource> resource;
-	HRESULT hr = DirectX::CreateDDSTextureFromFile(device, wfilename.c_str(), resource.GetAddressOf(), shaderResourceView.GetAddressOf());
+	HRESULT hr = DirectX::CreateDDSTextureFromFileEx(
+		device, wfilename.c_str(),
+		0,                          // 最大サイズ
+		D3D11_USAGE_DEFAULT,
+		D3D11_BIND_SHADER_RESOURCE,
+		0, 0,                       // CPU アクセス・その他のフラグ
+		ddsFlags,
+		resource.GetAddressOf(), shaderResourceView.GetAddressOf());
 	_ASSERT_EXPR(SUCCEEDED(hr), hr_trace(hr));
 
 	// キューブマップ判定
@@ -14308,29 +14498,29 @@ HRESULT GpuResourceUtils::LoadDDSTexture(
 }
 // DDSキャッシュ付きテクスチャ読み込み
 HRESULT GpuResourceUtils::LoadTextureWithDDSCache(
-	ID3D11Device* device, 
+	ID3D11Device* device,
 	const std::string& filename,
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>& shaderResourceView)
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>& shaderResourceView,
+	TextureColorSpace colorSpace) 
 {
 	// 同名の .dds キャッシュパスを生成
 	std::string ddsPath = filename + ".dds";
 
-	// DDSキャッシュが存在すればそちらから読む
-	if (std::filesystem::exists(ddsPath))
+	// キャッシュが無ければ、先に作る
+	if (!std::filesystem::exists(ddsPath))
 	{
-		HRESULT hr = LoadDDSTexture(device, ddsPath, shaderResourceView);
-		if (SUCCEEDED(hr)) return hr;
-		// DDSロード失敗時は通常ロードにフォールバック
-	}
-
-	// DDSがない場合は通常ロードしてDDSを保存
-	HRESULT hr = LoadTextureFromFile(device, filename, shaderResourceView);
-	if (SUCCEEDED(hr))
-	{
-		// バックグラウンドではなく初回のみ保存
 		SaveToDDS(device, filename, ddsPath);
 	}
-	return hr;
+
+	// キャッシュから読む
+	if (std::filesystem::exists(ddsPath))
+	{
+		HRESULT hr = LoadDDSTexture(device, ddsPath, shaderResourceView, nullptr, colorSpace);
+		if (SUCCEEDED(hr)) return hr;
+	}
+
+	// キャッシュを作れなかった・読めなかったときだけ、元のファイルから直接読む
+	return LoadTextureFromFile(device, filename, shaderResourceView, colorSpace);
 }
 // PNGなどのファイルをDDSとして保存
 HRESULT GpuResourceUtils::SaveToDDS(
@@ -14352,21 +14542,14 @@ HRESULT GpuResourceUtils::SaveToDDS(
 
 	// DirectXTex でメモリからイメージを読み込む
 	DirectX::ScratchImage image;
+	// 画像の中の sRGB の目印は無視して、中身の数値をそのまま保存する
 	HRESULT hr = DirectX::LoadFromWICMemory(
 		data.data(), data.size(),
-		DirectX::WIC_FLAGS_NONE,
+		DirectX::WIC_FLAGS_IGNORE_SRGB,
 		nullptr, image);
 
 	if (FAILED(hr)) return hr;
 
-	//// DDS形式で保存
-	//std::wstring wDdsPath = ToWString(ddsFilename);
-	//hr = DirectX::SaveToDDSFile(
-	//	image.GetImages(),
-	//	image.GetImageCount(),
-	//	image.GetMetadata(),
-	//	DirectX::DDS_FLAGS_NONE,
-	//	wDdsPath.c_str());
 
 	// ミップマップを生成（0 = 1x1まで全段作る）
 	DirectX::ScratchImage mipChain;
@@ -14479,6 +14662,13 @@ Path: C:\Users\offri\Desktop\New-Library\Source\Code\Engine\Resource\GpuResource
 #include <wrl.h>
 #include <string>
 
+// テクスチャの値をどう解釈するか
+enum class TextureColorSpace
+{
+    Linear, // データのテクスチャ
+    sRGB,   // 色のテクスチャ
+};
+
 class GpuResourceUtils
 {
 public:
@@ -14504,14 +14694,16 @@ public:
         ID3D11Device* device,
         const unsigned char* data,
         size_t dataSize,
-        Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>& shaderResourceView
+        Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>& shaderResourceView,
+        TextureColorSpace colorSpace = TextureColorSpace::Linear
     );
 
     // ファイルパスからテクスチャ読み込み
     static HRESULT LoadTextureFromFile(
         ID3D11Device* device,
         const std::string& filename,
-        Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>& shaderResourceView
+        Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>& shaderResourceView,
+        TextureColorSpace colorSpace = TextureColorSpace::Linear
     );
 
     // DDSテクスチャ読み込み
@@ -14519,14 +14711,17 @@ public:
         ID3D11Device* device,
         const std::string& filename,
         Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>& shaderResourceView,
-        bool* isCubemap = nullptr
+        bool* isCubemap = nullptr,
+        TextureColorSpace colorSpace = TextureColorSpace::Linear
     );
     // DDSキャッシュ付きテクスチャ読み込み
     static HRESULT LoadTextureWithDDSCache(
         ID3D11Device* device,
         const std::string& filename,
-        Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>& shaderResourceView
+        Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>& shaderResourceView,
+        TextureColorSpace colorSpace = TextureColorSpace::Linear
     );
+
     // PNGなどのファイルをDDSとして保存
     static HRESULT SaveToDDS(
         ID3D11Device* device,
@@ -14746,6 +14941,7 @@ public:
         DirectX::XMFLOAT4 baseColor = { 1, 1, 1, 1 };
         float             roughnessFactor = 1.0f;
         float             metallicFactor = 0.0f;
+        DirectX::XMFLOAT3 emissiveFactor = { 0, 0, 0 }; // 発光の係数
 
         // 外部ファイル参照テクスチャ用パス（シリアライズ対象）
         std::string baseTextureFileName;
@@ -14960,6 +15156,7 @@ void serialize(T& archive, Model::Material& m)
 		m.baseColor,
 		m.roughnessFactor,
 		m.metallicFactor,
+		m.emissiveFactor,
 		alphaMode,
 		m.alphaCutoff,
 		// 外部ファイル参照用パス
@@ -22670,7 +22867,7 @@ void ViewportWindow::Draw(GameView& gameView, const std::function<void()>& drawM
         );
     }
 
-    ImGui::Image(reinterpret_cast<ImTextureID>(gameView.GetSRV()), region);
+    ImGui::Image(reinterpret_cast<ImTextureID>(gameView.GetSceneSRV()), region); // 7c で GetOutputSRV に変える
 
     // カメラ操作の開始判定はViewport単体のホバーだけを見る
     viewportHovered = ImGui::IsWindowHovered();

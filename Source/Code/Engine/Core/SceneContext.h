@@ -14,7 +14,9 @@ struct SceneContext
 	ResourceManager* resourceManager = nullptr;   // リソース管理
 	PhysX* physX = nullptr;                       // 物理(PhysX)
 
-	ID3D11RenderTargetView* renderTargetView = nullptr;
+	ID3D11RenderTargetView* renderTargetView = nullptr;          // シーン（HDR）の描画先
+	ID3D11ShaderResourceView* sceneShaderResourceView = nullptr; // シーン（HDR）を読む
+	ID3D11RenderTargetView* outputRenderTargetView = nullptr;    // 表示用
 	ID3D11DepthStencilView* depthStencilView = nullptr;
 
 	// ゲームカメラ。ゲームの処理が書き込み、ゲームの処理が読む

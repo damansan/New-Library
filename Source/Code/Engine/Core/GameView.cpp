@@ -67,6 +67,9 @@ void GameView::ResizeRenderTarget(UINT width, UINT height)
     renderTexture.Reset();
     dsv.Reset();
     depthTexture.Reset();
+    outputSrv.Reset();
+    outputRtv.Reset();
+    outputTexture.Reset();
 
     HRESULT hr;
 
@@ -105,6 +108,26 @@ void GameView::ResizeRenderTarget(UINT width, UINT height)
         hr = device->CreateTexture2D(&desc, nullptr, depthTexture.GetAddressOf());
         assert(SUCCEEDED(hr));
         hr = device->CreateDepthStencilView(depthTexture.Get(), nullptr, dsv.GetAddressOf());
+        assert(SUCCEEDED(hr));
+    }
+
+    // 表示用テクスチャ再生成
+    {
+        D3D11_TEXTURE2D_DESC desc{};
+        desc.Width = renderWidth;
+        desc.Height = renderHeight;
+        desc.MipLevels = 1;
+        desc.ArraySize = 1;
+        desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+        desc.SampleDesc.Count = 1;
+        desc.Usage = D3D11_USAGE_DEFAULT;
+        desc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+
+        hr = device->CreateTexture2D(&desc, nullptr, outputTexture.GetAddressOf());
+        assert(SUCCEEDED(hr));
+        hr = device->CreateRenderTargetView(outputTexture.Get(), nullptr, outputRtv.GetAddressOf());
+        assert(SUCCEEDED(hr));
+        hr = device->CreateShaderResourceView(outputTexture.Get(), nullptr, outputSrv.GetAddressOf());
         assert(SUCCEEDED(hr));
     }
 }

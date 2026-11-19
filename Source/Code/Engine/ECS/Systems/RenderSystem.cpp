@@ -52,7 +52,7 @@ void RenderSystem::Initialize(ID3D11Device* device)
 	// Lightingパス用シェーダー
 	Microsoft::WRL::ComPtr<ID3D11InputLayout> dummyLayoutL;
 	GpuResourceUtils::LoadVertexShader(
-		device, "Data/Shader/Lighting_VS.cso",
+		device, "Data/Shader/Fullscreen_VS.cso",
 		nullptr, 0, dummyLayoutL, lightingVS
 	);
 	GpuResourceUtils::LoadPixelShader(

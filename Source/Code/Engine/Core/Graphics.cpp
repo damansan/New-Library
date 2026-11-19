@@ -419,7 +419,7 @@ void Graphics::InitializePresentResources()
 	// 頂点シェーダー
 	Microsoft::WRL::ComPtr<ID3D11InputLayout> dummyLayout;
 	GpuResourceUtils::LoadVertexShader(
-		device.Get(), "Data/Shader/Lighting_VS.cso",
+		device.Get(), "Data/Shader/Fullscreen_VS.cso",
 		nullptr, 0, dummyLayout, presentVS
 	);
 

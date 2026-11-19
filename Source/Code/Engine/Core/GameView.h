@@ -30,10 +30,15 @@ public:
     // ゲームカメラ取得
     Camera& GetCamera() { return camera; }
 
-    // 描画結果・描画先の取得
-    ID3D11ShaderResourceView* GetSRV() { return srv.Get(); }
-    ID3D11RenderTargetView* GetRTV() { return rtv.Get(); }
+    // シーン（HDR）
+    ID3D11RenderTargetView* GetSceneRTV() { return rtv.Get(); }
+    ID3D11ShaderResourceView* GetSceneSRV() { return srv.Get(); }
     ID3D11DepthStencilView* GetDSV() { return dsv.Get(); }
+
+    // 表示用（8bit）
+    ID3D11RenderTargetView* GetOutputRTV() { return outputRtv.Get(); }
+    ID3D11ShaderResourceView* GetOutputSRV() { return outputSrv.Get(); }
+
     UINT GetRenderWidth()  const { return renderWidth; }
     UINT GetRenderHeight() const { return renderHeight; }
 
@@ -44,6 +49,11 @@ private:
     Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv;
     Microsoft::WRL::ComPtr<ID3D11Texture2D>          depthTexture;
     Microsoft::WRL::ComPtr<ID3D11DepthStencilView>   dsv;
+
+    // 表示用
+    Microsoft::WRL::ComPtr<ID3D11Texture2D>          outputTexture;
+    Microsoft::WRL::ComPtr<ID3D11RenderTargetView>   outputRtv;
+    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> outputSrv;
 
     Camera camera; // ゲームカメラ
 

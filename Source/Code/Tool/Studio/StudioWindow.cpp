@@ -62,6 +62,7 @@ void StudioWindow::Initialize(ID3D11Device* device, StudioSharedContext* shared,
 	this->shared = shared;
 
 	renderSystem.Initialize(device);
+	postProcess.Initialize(device);
 	lightManager.Initialize(device);
 
 	// IBLテクスチャセット
@@ -161,6 +162,9 @@ void StudioWindow::Render()
 			renderHeight
 		);
 	}
+
+	// 最終パス：シーン（HDR）を読んで、表示用へ書き出す
+	postProcess.Render(dc, srv.Get(), outputRtv.Get(), renderWidth, renderHeight);
 
 	// 描画先をメインに戻す
 	End();
@@ -269,7 +273,7 @@ void StudioWindow::DrawWindow(const char* windowName)
 		camera.UpdateAspect(region.x, region.y);
 	}
 
-	ImGui::Image(reinterpret_cast<ImTextureID>(srv.Get()), region);
+	ImGui::Image(reinterpret_cast<ImTextureID>(outputSrv.Get()), region);
 
 	// モデルのドロップを受け取る
 	if (ImGui::BeginDragDropTarget())
@@ -391,6 +395,9 @@ void StudioWindow::ResizeRenderTarget()
 	renderTexture.Reset();
 	dsv.Reset();
 	depthTexture.Reset();
+	outputSrv.Reset();
+	outputRtv.Reset();
+	outputTexture.Reset();
 
 	HRESULT hr;
 
@@ -429,6 +436,26 @@ void StudioWindow::ResizeRenderTarget()
 		hr = device->CreateTexture2D(&desc, nullptr, depthTexture.GetAddressOf());
 		assert(SUCCEEDED(hr));
 		hr = device->CreateDepthStencilView(depthTexture.Get(), nullptr, dsv.GetAddressOf());
+		assert(SUCCEEDED(hr));
+	}
+
+	// 表示用テクスチャ再生成
+	{
+		D3D11_TEXTURE2D_DESC desc{};
+		desc.Width = renderWidth;
+		desc.Height = renderHeight;
+		desc.MipLevels = 1;
+		desc.ArraySize = 1;
+		desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		desc.SampleDesc.Count = 1;
+		desc.Usage = D3D11_USAGE_DEFAULT;
+		desc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+
+		hr = device->CreateTexture2D(&desc, nullptr, outputTexture.GetAddressOf());
+		assert(SUCCEEDED(hr));
+		hr = device->CreateRenderTargetView(outputTexture.Get(), nullptr, outputRtv.GetAddressOf());
+		assert(SUCCEEDED(hr));
+		hr = device->CreateShaderResourceView(outputTexture.Get(), nullptr, outputSrv.GetAddressOf());
 		assert(SUCCEEDED(hr));
 	}
 }

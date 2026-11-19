@@ -206,6 +206,12 @@
     <Filter Include="Shader\Common">
       <UniqueIdentifier>{8ed1bcc0-ba28-414c-93a0-baeea55cffb1}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shader\PostProcess">
+      <UniqueIdentifier>{a33f153f-bfbe-4005-a216-74b05ad0ebee}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\Engine\Rendering\PostProcess">
+      <UniqueIdentifier>{75b20ca2-bbb0-45b8-b565-356021b511cc}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Source\Code\Engine\Core\Application.cpp">
@@ -342,6 +348,9 @@
     </ClCompile>
     <ClCompile Include="..\..\Source\Code\Engine\Resource\AnimationEditBaker.cpp">
       <Filter>Sources\Engine\Resource\AnimationEditBaker</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Code\Engine\Rendering\PostProcess.cpp">
+      <Filter>Sources\Engine\Rendering\PostProcess</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -576,6 +585,9 @@
     <ClInclude Include="..\..\Source\Code\Engine\Rendering\ShaderLimits.h">
       <Filter>Sources\Engine\Rendering</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Source\Code\Engine\Rendering\PostProcess.h">
+      <Filter>Sources\Engine\Rendering\PostProcess</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="..\..\Source\Shader\Debug_PS.hlsl">
@@ -590,7 +602,7 @@
     <FxCompile Include="..\..\Source\Shader\Lighting_PS.hlsl">
       <Filter>Shader\Lighting</Filter>
     </FxCompile>
-    <FxCompile Include="..\..\Source\Shader\Lighting_VS.hlsl">
+    <FxCompile Include="..\..\Source\Shader\Fullscreen_VS.hlsl">
       <Filter>Shader\Lighting</Filter>
     </FxCompile>
     <FxCompile Include="..\..\Source\Shader\Present_PS.hlsl">
@@ -631,6 +643,9 @@
     </FxCompile>
     <FxCompile Include="..\..\Source\Shader\PBR_PS.hlsl">
       <Filter>Shader\Lighting</Filter>
+    </FxCompile>
+    <FxCompile Include="..\..\Source\Shader\Final_PS.hlsl">
+      <Filter>Shader\PostProcess</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>

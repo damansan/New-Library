@@ -72,7 +72,7 @@ void GameApp::OnPostUpdate(float elapsedTime)
 void GameApp::OnPresent()
 {
 	ZoneScopedN("PresentTexture");
-	graphics.PresentTexture(gameView.GetSRV());
+	graphics.PresentTexture(gameView.GetOutputSRV());
 }
 
 // プロジェクト設定から、最初に読み込むシーンのパスを取得する

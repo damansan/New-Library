@@ -214,7 +214,7 @@ void EditorApp::OnPresent()
 	{
 		// プレビュー中：ゲームのテクスチャを画面全体に貼る
 		ZoneScopedN("PresentTexture");
-		graphics.PresentTexture(gameView.GetSRV());
+		graphics.PresentTexture(gameView.GetOutputSRV());
 	}
 }
 

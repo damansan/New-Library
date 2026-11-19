@@ -14,6 +14,7 @@ void SceneGame::Initialize(const SceneContext& context)
 
 	// 描画システム初期化
 	renderSystem.Initialize(context.device);
+	postProcess.Initialize(context.device);
 
 	// SkyBox初期化
 	skyBox.Initialize(
@@ -181,6 +182,21 @@ void SceneGame::Render(const SceneContext& context)
 		);
 	}
 #endif
+
+	// 最終パス：シーン（HDR）を読んで、表示用へ書き出す
+	{
+		ZoneScopedN("PostProcess::Render");
+		postProcess.Render(
+			context.deviceContext,
+			context.sceneShaderResourceView,
+			context.outputRenderTargetView,
+			context.screenWidth,
+			context.screenHeight
+		);
+	}
+
+	// デバッグ描画
+	context.deviceContext->OMSetRenderTargets(1, &context.outputRenderTargetView, context.depthStencilView);
 
 	if (DrawDebug && context.debugDrawAllowed)
 	{
