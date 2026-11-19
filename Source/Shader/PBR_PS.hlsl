@@ -66,11 +66,8 @@ float4 main(VS_OUT pin) : SV_TARGET
     s.occlusion = occlusion;
     s.emissive = emissive;
 
-    // 光を当てる
+    // 光を当てる（リニアのまま出す。ガンマ補正は最終パスで行う）
     float3 color = ShadeSurface(s, diffuseIem, specularPmrem, lutGgx, samplerState);
-
-    // ガンマ補正
-    color = pow(max(color, 0.0001f), 1.0f / GAMMA);
 
     return float4(color, baseColor.a);
 }

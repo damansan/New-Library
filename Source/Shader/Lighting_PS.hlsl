@@ -38,11 +38,8 @@ float4 main(VS_OUT pin) : SV_TARGET
     s.occlusion = gbOcclusion.Sample(samplerState, uv).r;
     s.emissive = gbEmissive.Sample(samplerState, uv).rgb;
 
-    // 光を当てる
+    // 光を当てる（リニアのまま出す。ガンマ補正は最終パスで行う）
     float3 color = ShadeSurface(s, diffuseIem, specularPmrem, lutGgx, samplerState);
-
-    // ガンマ補正
-    color = pow(max(color, 0.0001f), 1.0f / 2.2f);
 
     return float4(color, albedo.a);
 }
