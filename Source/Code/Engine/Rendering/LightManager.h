@@ -28,7 +28,8 @@ public:
         DirectionalLight directionalLight;
         PointLight       pointLights[MAX_POINT_LIGHTS];
         int              pointLightCount;
-        DirectX::XMFLOAT3 padding;
+        float            iblIntensity;  // IBLの強さ
+        DirectX::XMFLOAT2 padding;      // 16バイトアラインメント用
     };
 
 public:
@@ -54,12 +55,17 @@ public:
     // 定数バッファをGPUに転送してスロットにセット
     void Bind(ID3D11DeviceContext* dc);
 
+    // IBLの強さ
+    void SetIBLIntensity(float intensity) { iblIntensity = intensity; }
+    float GetIBLIntensity() const { return iblIntensity; }
+
     // ゲッター
     const DirectionalLight& GetDirectionalLight() const { return directionalLight; }
 
 private:
     DirectionalLight directionalLight{};
     std::vector<PointLight> pointLights;
+    float iblIntensity = 1.0f;
 
     Microsoft::WRL::ComPtr<ID3D11Buffer> cbLights;
 };

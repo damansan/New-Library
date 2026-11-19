@@ -15,8 +15,8 @@ struct StudioSharedContext
     {
         skyBox.Initialize(
             device, 		
-            "Data/SkyBox/ToolSky"
-            //"Data/SkyBox/DynamicSky"
+            //"Data/SkyBox/ToolSky"
+            "Data/SkyBox/DynamicSky"
         );
     }
 };

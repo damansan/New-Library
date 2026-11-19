@@ -1,3 +1,115 @@
+===== BloomBlurH_PS.hlsl ===== 
+Path: BloomBlurH_PS.hlsl 
+#include "BloomBlur.hlsli"
+
+Texture2D sourceTexture : register(t0);
+SamplerState linearSampler : register(s0);
+
+struct VS_OUT
+{
+    float4 position : SV_POSITION;
+    float2 texcoord : TEXCOORD;
+};
+
+// ブルーム：横にぼかす
+float4 main(VS_OUT pin) : SV_TARGET
+{
+    return float4(GaussianBlur9(sourceTexture, linearSampler, pin.texcoord, float2(1.0f, 0.0f)), 1.0f);
+} 
+ 
+===== BloomBlurV_PS.hlsl ===== 
+Path: BloomBlurV_PS.hlsl 
+#include "BloomBlur.hlsli"
+
+Texture2D sourceTexture : register(t0);
+SamplerState linearSampler : register(s0);
+
+struct VS_OUT
+{
+    float4 position : SV_POSITION;
+    float2 texcoord : TEXCOORD;
+};
+
+// ブルーム：縦にぼかす
+float4 main(VS_OUT pin) : SV_TARGET
+{
+    return float4(GaussianBlur9(sourceTexture, linearSampler, pin.texcoord, float2(0.0f, 1.0f)), 1.0f);
+} 
+ 
+===== BloomDownsample_PS.hlsl ===== 
+Path: BloomDownsample_PS.hlsl 
+
+// ブルーム：1段小さくする（縦横 1/2）
+
+Texture2D sourceTexture : register(t0);
+SamplerState linearSampler : register(s0);
+
+struct VS_OUT
+{
+    float4 position : SV_POSITION;
+    float2 texcoord : TEXCOORD;
+};
+
+float4 main(VS_OUT pin) : SV_TARGET
+{
+    // 小さい方の1ピクセル = 大きい方の 2×2。真ん中をバイリニアで読むと、4つの平均になる
+    return float4(sourceTexture.Sample(linearSampler, pin.texcoord).rgb, 1.0f);
+} 
+ 
+===== BloomExtract_PS.hlsl ===== 
+Path: BloomExtract_PS.hlsl 
+#include "ShaderConstants.hlsli"
+
+// ブルーム：明るい所を書き出す(ついでに 1/2 の大きさへ縮小する)
+
+Texture2D sceneTexture : register(t0);
+SamplerState linearSampler : register(s0);
+
+struct VS_OUT
+{
+    float4 position : SV_POSITION;
+    float2 texcoord : TEXCOORD;
+};
+
+float4 main(VS_OUT pin) : SV_TARGET
+{
+    // 1/2 の1ピクセル = 元の 2×2 ピクセル。その真ん中をバイリニアで読むと、4つの平均になる
+    float3 color = sceneTexture.Sample(linearSampler, pin.texcoord).rgb;
+    
+    // 画面に出るときと同じ明るさで判定するため、露出を先にかける
+    color *= exposure;
+ 
+    // いちばん明るいチャンネルが、しきい値をどれだけ超えたかの割合を、色全体に掛ける
+    float brightness = max(color.r, max(color.g, color.b));
+    float contribution = max(brightness - bloomThreshold, 0.0f) / max(brightness, 0.0001f);
+
+    return float4(color * contribution, 1.0f);
+} 
+ 
+===== BloomUpsample_PS.hlsl ===== 
+Path: BloomUpsample_PS.hlsl 
+// ブルーム：1つ下の段を2倍に広げて、この段に足す
+
+Texture2D    currentTexture : register(t0); // この段のぼかした絵
+Texture2D    lowerTexture   : register(t1); // 1つ下の段までを足した絵
+SamplerState linearSampler  : register(s0);
+
+struct VS_OUT
+{
+    float4 position : SV_POSITION;
+    float2 texcoord : TEXCOORD;
+};
+
+float4 main(VS_OUT pin) : SV_TARGET
+{
+    float3 current = currentTexture.Sample(linearSampler, pin.texcoord).rgb;
+
+    // 同じ uv で半分の大きさの絵を読むと、バイリニアで2倍に広げた値になる
+    float3 lower = lowerTexture.Sample(linearSampler, pin.texcoord).rgb;
+
+    return float4(current + lower, 1.0f);
+} 
+ 
 ===== Debug_PS.hlsl ===== 
 Path: Debug_PS.hlsl 
 struct PS_IN
@@ -40,8 +152,17 @@ VS_OUT main(VS_IN vin)
  
 ===== Final_PS.hlsl ===== 
 Path: Final_PS.hlsl 
+#include "ShaderConstants.hlsli"
 
-Texture2D sceneTexture : register(t0);
+Texture2D sceneTexture : register(t0); // シーン（HDR）
+Texture2D bloomTexture : register(t1); // ブルームの結果（1/2 の大きさ）
+SamplerState linearSampler : register(s0);
+
+// デバッグ表示の種類
+#define DEBUG_VIEW_NONE          0
+#define DEBUG_VIEW_BLOOM_EXTRACT 1
+#define DEBUG_VIEW_BLOOM_BLUR    2
+#define DEBUG_VIEW_BLOOM_RESULT  3
 
 struct VS_OUT
 {
@@ -49,11 +170,93 @@ struct VS_OUT
     float2 texcoord : TEXCOORD;
 };
 
+// カラー調整
+float3 ColorAdjust(float3 color)
+{
+    // コントラスト
+    const float middleGray = 0.18f;
+    color = middleGray * pow(max(color, 0.0f) / middleGray, contrast);
+
+    // カラーフィルタ
+    color *= colorFilter;
+
+    // 彩度
+    float luma = dot(color, float3(0.2126f, 0.7152f, 0.0722f));
+    color = lerp(luma.xxx, color, saturation);
+
+    return max(color, 0.0f);
+}
+
+// ビネット
+float3 ApplyVignette(float3 color, float2 uv)
+{
+    // 中心からの距離に強さを掛ける
+    float2 d = abs(uv - 0.5f) * vignetteIntensity;
+
+    // 縦横比で補正して、横長の画面でも円にする
+    d.x *= aspectRatio;
+
+    // 中心ほど 1、隅ほど 0 になる
+    float factor = pow(saturate(1.0f - dot(d, d)), vignetteSmoothness);
+
+    // 隅ほどビネットの色に近づける
+    return color * lerp(vignetteColor, 1.0f, factor);
+}
+
+// ACES トーンマップ
+float3 TonemapACES(float3 x)
+{
+    const float a = 2.51f;
+    const float b = 0.03f;
+    const float c = 2.43f;
+    const float d = 0.59f;
+    const float e = 0.14f;
+    return saturate((x * (a * x + b)) / (x * (c * x + d) + e));
+}
+
+// リニア から sRGB
+float3 LinearToSRGB(float3 c)
+{
+    c = saturate(c);
+    float3 low = c * 12.92f;
+    float3 high = 1.055f * pow(c, 1.0f / 2.4f) - 0.055f;
+    return (c <= 0.0031308f) ? low : high; // 成分ごとに選ぶ
+}
+
 float4 main(VS_OUT pin) : SV_TARGET
 {
+    // デバッグ表示：ブルームの途中の絵を出す
+    if (debugView != DEBUG_VIEW_NONE)
+    { 
+        // 画面の割合（texcoord）で読む
+        float3 bloom = bloomTexture.Sample(linearSampler, pin.texcoord).rgb;
+        return float4(LinearToSRGB(TonemapACES(bloom)), 1.0f);
+    }
+    
     // 読む側と書く側が同じ大きさなので、ピクセルの位置で直接読む
     float3 color = sceneTexture.Load(int3(pin.position.xy, 0)).rgb;
+    
+    // 露出設定
+    color *= exposure;
+    
+    // ブルームを足す
+    color += bloomTexture.Sample(linearSampler, pin.texcoord).rgb * bloomScale;
+    
+    // カラー調整
+    color = ColorAdjust(color);
+    
+    // ビネット
+    color = ApplyVignette(color, pin.texcoord);
 
+    // トーンマップ
+    if (tonemapEnabled != 0)
+    {
+        color = TonemapACES(color);
+    }
+    
+     // 出口：リニア → モニター向けの値（ガンマ補正はここ1か所だけ）
+    color = pow(max(color, 0.0001f), 1.0f / 2.2f);
+    
     return float4(color, 1.0f);
 } 
  
@@ -462,11 +665,8 @@ float4 main(VS_OUT pin) : SV_TARGET
     s.occlusion = gbOcclusion.Sample(samplerState, uv).r;
     s.emissive = gbEmissive.Sample(samplerState, uv).rgb;
 
-    // 光を当てる
+    // 光を当てる（リニアのまま出す。ガンマ補正は最終パスで行う）
     float3 color = ShadeSurface(s, diffuseIem, specularPmrem, lutGgx, samplerState);
-
-    // ガンマ補正
-    color = pow(max(color, 0.0001f), 1.0f / 2.2f);
 
     return float4(color, albedo.a);
 } 
@@ -541,11 +741,8 @@ float4 main(VS_OUT pin) : SV_TARGET
     s.occlusion = occlusion;
     s.emissive = emissive;
 
-    // 光を当てる
+    // 光を当てる（リニアのまま出す。ガンマ補正は最終パスで行う）
     float3 color = ShadeSurface(s, diffuseIem, specularPmrem, lutGgx, samplerState);
-
-    // ガンマ補正
-    color = pow(max(color, 0.0001f), 1.0f / GAMMA);
 
     return float4(color, baseColor.a);
 } 
@@ -643,10 +840,8 @@ struct VS_OUT
 
 float4 main(VS_OUT pin) : SV_TARGET
 {
+    // 空のテクスチャ（HDR）はリニアの値なので、そのまま出す。ガンマ補正は最終パスで行う
     float3 color = skyMap.Sample(samplerState, pin.texcoord).rgb;
-
-    // ガンマ補正
-    color = pow(max(color, 0.0001f), 1.0f / 2.2f);
 
     return float4(color, 1.0f);
 } 
@@ -819,6 +1014,39 @@ VS_OUT main(
 
     return vout;
 } 
+ 
+===== BloomBlur.hlsli ===== 
+Path: BloomBlur.hlsli 
+
+// ブルーム：9タップのガウスぼかし
+
+#ifndef BLOOM_BLUR_HLSLI
+#define BLOOM_BLUR_HLSLI
+
+// direction : 横なら (1,0)、縦なら (0,1)
+float3 GaussianBlur9(Texture2D tex, SamplerState samp, float2 uv, float2 direction)
+{
+    // 1ピクセルぶんの uv の大きさ
+    uint width, height;
+    tex.GetDimensions(width, height);
+    float2 texel = direction / float2(width, height);
+
+    // 9個のピクセルの重みを、真ん中1回 ＋ 左右2回ずつの5回で取る
+    const float weight0 = 0.2270270270f; // 真ん中
+    const float weight1 = 0.3162162162f; // 1・2個目をまとめた重み
+    const float weight2 = 0.0702702703f; // 3・4個目をまとめた重み
+    const float offset1 = 1.3846153846f; // 1・2個目の間
+    const float offset2 = 3.2307692308f; // 3・4個目の間
+
+    float3 color = tex.Sample(samp, uv).rgb * weight0;
+    color += tex.Sample(samp, uv + texel * offset1).rgb * weight1;
+    color += tex.Sample(samp, uv - texel * offset1).rgb * weight1;
+    color += tex.Sample(samp, uv + texel * offset2).rgb * weight2;
+    color += tex.Sample(samp, uv - texel * offset2).rgb * weight2;
+    return color;
+}
+
+#endif 
  
 ===== IBL_Functions.hlsli ===== 
 Path: IBL_Functions.hlsli 
@@ -1154,6 +1382,24 @@ cbuffer CbSkinning : register(b3)
 // b4：カスケードシャドウマップ
 
 // b5：ポストエフェクト
+cbuffer CbPostProcess : register(b5)
+{
+    float exposure;     // 露出
+    int tonemapEnabled; // 1 なら ACES、0 なら切り捨て
+    float contrast;     // コントラスト
+    float saturation;   // 彩度
+
+    float3 colorFilter;      // カラーフィルタ
+    float vignetteIntensity; // ビネットの強さ
+    
+    float3 vignetteColor;     // ビネットの色
+    float vignetteSmoothness; // ビネットの境目のなだらかさ
+    
+    float aspectRatio; // 画面の縦横比
+    float bloomThreshold; // ブルームのしきい値
+    int debugView; // デバッグ表示の種類
+    float bloomScale; // ブルームの強さ
+};
 
 #endif 
  

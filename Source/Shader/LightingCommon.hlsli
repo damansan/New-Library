@@ -81,8 +81,8 @@ float3 ShadeSurface(
         specularPmrem, lutGgx, samplerState,
         N, V, F0, s.roughness);
 
-    float3 ambient = iblDiffuse + iblSpecular;
-
+    float3 ambient = (iblDiffuse + iblSpecular) * iblIntensity;
+    
     // Occlusion
     ambient *= s.occlusion;
     

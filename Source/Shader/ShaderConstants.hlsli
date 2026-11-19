@@ -46,7 +46,8 @@ cbuffer CbLights : register(b2)
     DirectionalLight directionalLight;
     PointLight pointLights[MAX_POINT_LIGHTS];
     int pointLightCount;
-    float3 lightsPadding;
+    float iblIntensity;   // IBLの強さ
+    float2 lightsPadding; // 16バイトアラインメント用
 };
 
 // b3：スキニング
@@ -72,7 +73,9 @@ cbuffer CbPostProcess : register(b5)
     float vignetteSmoothness; // ビネットの境目のなだらかさ
     
     float aspectRatio; // 画面の縦横比
-    float3 postProcessPadding0; // 16バイトアライメント用
-    
+    float bloomThreshold; // ブルームのしきい値
+    int debugView; // デバッグ表示の種類
+    float bloomScale; // ブルームの強さ
 };
+
 #endif

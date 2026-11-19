@@ -75,6 +75,9 @@ void LightManager::Bind(ID3D11DeviceContext* dc)
         cbData.pointLights[i] = pointLights[i];
     cbData.pointLightCount = count;
 
+    // IBL ‚Ì‹­‚³
+    cbData.iblIntensity = iblIntensity;
+
     // GPU“]‘—
     dc->UpdateSubresource(cbLights.Get(), 0, nullptr, &cbData, 0, 0);
 

@@ -1,6 +1,14 @@
 #include "ShaderConstants.hlsli"
 
-Texture2D sceneTexture : register(t0);
+Texture2D sceneTexture : register(t0); // シーン（HDR）
+Texture2D bloomTexture : register(t1); // ブルームの結果（1/2 の大きさ）
+SamplerState linearSampler : register(s0);
+
+// デバッグ表示の種類
+#define DEBUG_VIEW_NONE          0
+#define DEBUG_VIEW_BLOOM_EXTRACT 1
+#define DEBUG_VIEW_BLOOM_BLUR    2
+#define DEBUG_VIEW_BLOOM_RESULT  3
 
 struct VS_OUT
 {
@@ -63,11 +71,22 @@ float3 LinearToSRGB(float3 c)
 
 float4 main(VS_OUT pin) : SV_TARGET
 {
+    // デバッグ表示：ブルームの途中の絵を出す
+    if (debugView != DEBUG_VIEW_NONE)
+    { 
+        // 画面の割合（texcoord）で読む
+        float3 bloom = bloomTexture.Sample(linearSampler, pin.texcoord).rgb;
+        return float4(LinearToSRGB(TonemapACES(bloom)), 1.0f);
+    }
+    
     // 読む側と書く側が同じ大きさなので、ピクセルの位置で直接読む
     float3 color = sceneTexture.Load(int3(pin.position.xy, 0)).rgb;
-
+        
     // 露出設定
     color *= exposure;
+    
+    // ブルームを足す
+    color += bloomTexture.Sample(linearSampler, pin.texcoord).rgb * bloomScale;
     
     // カラー調整
     color = ColorAdjust(color);

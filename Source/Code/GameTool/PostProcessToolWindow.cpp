@@ -1,4 +1,7 @@
 #include "PostProcessToolWindow.h"
+
+#include "Engine/Rendering/PostProcess.h"
+
 #include <imgui.h>
 #include <string>
 
@@ -30,6 +33,26 @@ void PostProcessToolWindow::Draw(PostProcessSettings& settings)
 	ImGui::SliderFloat  ("Smoothness", &settings.vignetteSmoothness, 0.01f, 1.0f, "%.2f");
 	ImGui::ColorEdit3   ("Vignette Color", &settings.vignetteColor.x);
 
+	// ブルーム
+	ImGui::SeparatorText("Bloom");
+	ImGui::SliderFloat("Threshold", &settings.bloomThreshold, 0.0f, 5.0f);
+	ImGui::SliderFloat("Intensity##Bloom", &settings.bloomIntensity, 0.0f, 3.0f);
+
+	// デバッグ表示
+	ImGui::SeparatorText("Debug");
+	const char* debugViews[] = { "None", "Bloom Extract", "Bloom Blur", "Bloom Result" };
+	int debugView = static_cast<int>(settings.debugView);
+	if (ImGui::Combo("View", &debugView, debugViews, IM_ARRAYSIZE(debugViews)))
+	{
+		settings.debugView = static_cast<PostProcessDebugView>(debugView);
+	}
+
+	// ぼかした段を見るときだけ、どの段かを選ぶ
+	if (settings.debugView == PostProcessDebugView::BloomBlur)
+	{
+		ImGui::SliderInt("Level", &settings.debugBloomLevel, 0, PostProcess::kBloomLevels - 1);
+		ImGui::TextDisabled("0 = 1/2 ... %d = 1/%d", PostProcess::kBloomLevels - 1, 1 << PostProcess::kBloomLevels);
+	}
 
 	ImGui::Spacing();
 	ImGui::Separator();
