@@ -32,8 +32,13 @@ struct PostProcessSettings
 	float bloomThreshold = 1.0f; // これより明るい個所を光らせる
 	float bloomIntensity = 0.5f; // 1.0 = 全段の平均を足す
 
+	// ラジアルブラー
+	bool  radialBlurEnabled = false;  // ブラーをかけるか
+	float radialBlurStrength = 0.3f;  // 強度
+	float radialBlurRadius = 1.2f;    // 境目
+	float radialBlurSoftness = 1.3f;  // 滑らかさ
+
 	// デバッグ表示
 	PostProcessDebugView debugView = PostProcessDebugView::None;
 	int debugBloomLevel = 0; // BloomBlur で表示する段
-
 };

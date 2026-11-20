@@ -5,7 +5,7 @@
 
 namespace
 {
-	// b5：GPU に送る形（並びは ShaderConstants.hlsli の CbPostProcess と同じにする）
+	// b5：GPU に送る形
 	struct CbPostProcess
 	{
 		float exposure;
@@ -23,6 +23,11 @@ namespace
 		float bloomThreshold;
 		int   debugView;
 		float bloomScale;
+
+		float radialBlurStrength;
+		float radialBlurRadius;
+		float radialBlurSoftness;
+		float postPadding; // 16バイトアライメント用
 	};
 	static_assert(sizeof(CbPostProcess) % 16 == 0, "定数バッファは16バイトの倍数にする");
 
@@ -53,6 +58,8 @@ void PostProcess::Initialize(ID3D11Device* device)
 	GpuResourceUtils::LoadPixelShader(device, "Data/Shader/BloomBlurH_PS.cso", bloomBlurHPS);
 	GpuResourceUtils::LoadPixelShader(device, "Data/Shader/BloomBlurV_PS.cso", bloomBlurVPS);
 	
+	GpuResourceUtils::LoadPixelShader(device, "Data/Shader/RadialBlur_PS.cso", radialBlurPS);
+
 	// ラスタライザー
 	D3D11_RASTERIZER_DESC rd{};
 	rd.FillMode = D3D11_FILL_SOLID;
@@ -118,8 +125,12 @@ void PostProcess::Render(
 
 	// ブルーム
 	cb.bloomThreshold = settings.bloomThreshold;
-
 	cb.bloomScale = settings.bloomIntensity / static_cast<float>(kBloomLevels);
+
+	// ラジアルブラー
+	cb.radialBlurStrength = settings.radialBlurStrength;
+	cb.radialBlurRadius = settings.radialBlurRadius;
+	cb.radialBlurSoftness = settings.radialBlurSoftness;
 
 	// デバッグ表示
 	cb.debugView = static_cast<int>(settings.debugView);
@@ -137,6 +148,18 @@ void PostProcess::Render(
 
 	// シーンを「描く先」から外す
 	dc->OMSetRenderTargets(0, nullptr, nullptr);
+
+	// この後のパスが読むシーン
+	ID3D11ShaderResourceView* sceneSrv = hdrScene;
+
+	// ラジアルブラー
+	if (settings.radialBlurEnabled)
+	{
+		dc->PSSetShaderResources(0, 1, &hdrScene);
+		DrawFullscreen(dc, radialBlurPS.Get(),
+			radialBlurTarget.rtv.Get(), radialBlurTarget.width, radialBlurTarget.height);
+		sceneSrv = radialBlurTarget.srv.Get();
+	}
 
 	// ブルーム：明るい所を抜き出して、1/2 の大きさへ
 	dc->PSSetShaderResources(0, 1, &hdrScene);
@@ -199,7 +222,7 @@ void PostProcess::Render(
 	}
 
 	// 最終パス：シーンとブルームを読んで、表示用へ
-	ID3D11ShaderResourceView* finalSrvs[2] = { hdrScene, bloomResult };
+	ID3D11ShaderResourceView* finalSrvs[2] = { sceneSrv, bloomResult };
 	dc->PSSetShaderResources(0, 2, finalSrvs);
 	DrawFullscreen(dc, finalPS.Get(), output, width, height);
 
@@ -213,6 +236,10 @@ void PostProcess::ResizeBloomTargets(UINT width, UINT height)
 {
 	bloomSourceWidth = width;
 	bloomSourceHeight = height;
+
+
+	// ラジアルブラー
+	CreateRenderTexture(radialBlurTarget, width, height, DXGI_FORMAT_R16G16B16A16_FLOAT);
 
 	// [0] が 1/2、そこから段ごとに半分
 	UINT w = width;

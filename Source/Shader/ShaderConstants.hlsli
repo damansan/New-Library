@@ -72,10 +72,16 @@ cbuffer CbPostProcess : register(b5)
     float3 vignetteColor;     // ビネットの色
     float vignetteSmoothness; // ビネットの境目のなだらかさ
     
-    float aspectRatio; // 画面の縦横比
+    float aspectRatio;    // 画面の縦横比
     float bloomThreshold; // ブルームのしきい値
-    int debugView; // デバッグ表示の種類
-    float bloomScale; // ブルームの強さ
+    int debugView;        // デバッグ表示の種類
+    float bloomScale;     // ブルームの強さ
+    
+    float radialBlurStrength; // ラジアルブラー
+    float radialBlurRadius;   // 境目
+    float radialBlurSoftness; // 滑らかさ
+    
+    float postPadding; // 16バイトアライメント用
 };
 
 #endif

@@ -38,6 +38,16 @@ void PostProcessToolWindow::Draw(PostProcessSettings& settings)
 	ImGui::SliderFloat("Threshold", &settings.bloomThreshold, 0.0f, 5.0f);
 	ImGui::SliderFloat("Intensity##Bloom", &settings.bloomIntensity, 0.0f, 3.0f);
 
+	// ラジアルブラー
+	ImGui::SeparatorText("Radial Blur");
+	ImGui::Checkbox("Enabled##RadialBlur", &settings.radialBlurEnabled);
+	// OFF の間は触れないようにする
+	ImGui::BeginDisabled(!settings.radialBlurEnabled);
+	ImGui::SliderFloat("Strength##RadialBlur", &settings.radialBlurStrength, 0.0f, 0.5f, "%.2f");
+	ImGui::SliderFloat("Radius##RadialBlur", &settings.radialBlurRadius, 0.0f, 2.0f, "%.2f");
+	ImGui::SliderFloat("Softness##RadialBlur", &settings.radialBlurSoftness, 0.01f, 2.0f, "%.2f");
+	ImGui::EndDisabled();
+
 	// デバッグ表示
 	ImGui::SeparatorText("Debug");
 	const char* debugViews[] = { "None", "Bloom Extract", "Bloom Blur", "Bloom Result" };

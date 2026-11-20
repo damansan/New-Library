@@ -51,6 +51,8 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11PixelShader>     bloomBlurVPS;
 	Microsoft::WRL::ComPtr<ID3D11PixelShader>     bloomUpsamplePS;
 
+	Microsoft::WRL::ComPtr<ID3D11PixelShader>     radialBlurPS;
+
 	Microsoft::WRL::ComPtr<ID3D11RasterizerState> rasterizerState; // カリングなし
 	Microsoft::WRL::ComPtr<ID3D11SamplerState>    linearSampler;   // バイリニア・端は引き伸ばし
 	Microsoft::WRL::ComPtr<ID3D11Buffer>          cbPostProcess;   // b5：設定値
@@ -59,6 +61,9 @@ private:
 	RenderTexture bloomDown[kBloomLevels]; // 縮小した絵（[0] は抜き出した絵）
 	RenderTexture bloomTemp[kBloomLevels]; // 横ぼかしの途中
 	RenderTexture bloomBlur[kBloomLevels]; // 縦横ぼかした絵
+
+	// ラジアルブラーの作業用テクスチャ
+	RenderTexture radialBlurTarget;
 
 	UINT bloomSourceWidth = 0;  // 作ったときの画面の大きさ
 	UINT bloomSourceHeight = 0;
