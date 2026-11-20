@@ -247,17 +247,21 @@ RenderSystem::Frustum RenderSystem::CalcFrustum(
 	const DirectX::XMFLOAT4X4& view,
 	const DirectX::XMFLOAT4X4& projection)
 {
-	// ViewProjection行列を計算
+	// ViewProjection行列を計算して、掛け合わせ済みの版に渡す
 	DirectX::XMMATRIX vp = DirectX::XMLoadFloat4x4(&view) * DirectX::XMLoadFloat4x4(&projection);
 	DirectX::XMFLOAT4X4 m;
 	DirectX::XMStoreFloat4x4(&m, vp);
-
+	return CalcFrustum(m);
+}
+// フラスタム計算
+RenderSystem::Frustum RenderSystem::CalcFrustum(const DirectX::XMFLOAT4X4& m)
+{
 	Frustum frustum;
 	frustum.planes[0] = { { m._14 + m._11, m._24 + m._21, m._34 + m._31 }, m._44 + m._41 }; // Left
 	frustum.planes[1] = { { m._14 - m._11, m._24 - m._21, m._34 - m._31 }, m._44 - m._41 }; // Right
 	frustum.planes[2] = { { m._14 + m._12, m._24 + m._22, m._34 + m._32 }, m._44 + m._42 }; // Bottom
 	frustum.planes[3] = { { m._14 - m._12, m._24 - m._22, m._34 - m._32 }, m._44 - m._42 }; // Top
-	frustum.planes[4] = { { m._13,         m._23,         m._33         }, m._43         }; // Near
+	frustum.planes[4] = { { m._13,         m._23,         m._33         }, m._43 }; // Near
 	frustum.planes[5] = { { m._14 - m._13, m._24 - m._23, m._34 - m._33 }, m._44 - m._43 }; // Far
 
 	// 各平面を正規化
@@ -455,14 +459,23 @@ void RenderSystem::ShadowPass(entt::registry& registry, ID3D11DeviceContext* dc)
 
 		shadowMap.BeginCascade(dc, cascade); // 描画先・クリア・ビューポート
 
+		// この段に描く物を選ぶ範囲
+		Frustum casterFrustum = CalcFrustum(cascadeViewProjections[cascade]);
+		casterFrustum.planes[4] = { { 0.0f, 0.0f, 0.0f }, 1.0f };
+
 		// 静的メッシュ
 		dc->VSSetShader(shadowStaticVS.Get(), nullptr, 0);
 		staticView.each([&](auto entity, TransformComponent& transform, StaticMeshComponent& staticMesh)
 			{
 				if (!staticMesh.model) return;
 
+				XMFLOAT4X4 worldMatrix{};
+				XMStoreFloat4x4(&worldMatrix, transform.GetWorldMatrix());
+				if (!IsInFrustum(casterFrustum, staticMesh.model->GetBoundingBox(), worldMatrix)) return;
+
 				CbObject cbObjectData{};
-				XMStoreFloat4x4(&cbObjectData.world, transform.GetWorldMatrix());
+				cbObjectData.world = worldMatrix;
+
 				dc->UpdateSubresource(cbObject.Get(), 0, nullptr, &cbObjectData, 0, 0);
 				dc->VSSetConstantBuffers(1, 1, cbObject.GetAddressOf());
 
@@ -486,8 +499,13 @@ void RenderSystem::ShadowPass(entt::registry& registry, ID3D11DeviceContext* dc)
 			{
 				if (!skinnedMesh.model) return;
 
+				XMFLOAT4X4 worldMatrix{};
+				XMStoreFloat4x4(&worldMatrix, transform.GetWorldMatrix());
+				if (!IsInFrustum(casterFrustum, skinnedMesh.model->GetBoundingBox(), worldMatrix)) return;
+
 				CbObject cbObjectData{};
-				XMStoreFloat4x4(&cbObjectData.world, transform.GetWorldMatrix());
+				cbObjectData.world = worldMatrix;
+
 				dc->UpdateSubresource(cbObject.Get(), 0, nullptr, &cbObjectData, 0, 0);
 				dc->VSSetConstantBuffers(1, 1, cbObject.GetAddressOf());
 

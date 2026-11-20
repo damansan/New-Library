@@ -9,8 +9,35 @@
             "prefab": "Data/Prefab/Camera/FreeCamera.prefab.json"
         },
         {
-            "name": "GameCamera",
-            "prefab": "Data/Prefab/Camera/GameCamera.prefab.json"
+            "components": {
+                "CategoryComponent": {
+                    "category": "None"
+                },
+                "MaterialComponent": {
+                    "shadingModel": "Grid"
+                },
+                "MeshComponent": {
+                    "modelPath": "Data/Model/UEdefault/Cube.glb"
+                },
+                "TransformComponent": {
+                    "position": [
+                        -500.0,
+                        -1.0,
+                        500.0
+                    ],
+                    "rotation": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ],
+                    "scale": [
+                        1000.0,
+                        1.0,
+                        1000.0
+                    ]
+                }
+            },
+            "name": "default"
         },
         {
             "components": {
@@ -21,42 +48,11 @@
                     "shadingModel": "Default"
                 },
                 "MeshComponent": {
-                    "modelPath": "Data/Model/Stage/Sponza/Sponza.gltf"
+                    "modelPath": "Data/Model/UEdefault/Cube.glb"
                 },
                 "TransformComponent": {
                     "position": [
-                        0.0,
-                        0.0,
-                        0.0
-                    ],
-                    "rotation": [
-                        0.0,
-                        0.0,
-                        0.0
-                    ],
-                    "scale": [
-                        0.05000000074505806,
-                        0.05000000074505806,
-                        0.05000000074505806
-                    ]
-                }
-            },
-            "name": "Sponza"
-        },
-        {
-            "components": {
-                "CategoryComponent": {
-                    "category": "None"
-                },
-                "MaterialComponent": {
-                    "shadingModel": "Default"
-                },
-                "MeshComponent": {
-                    "modelPath": "Data/Model/unitychan/unitychan.glb"
-                },
-                "TransformComponent": {
-                    "position": [
-                        0.0,
+                        15.899999618530273,
                         0.0,
                         0.0
                     ],
@@ -67,12 +63,12 @@
                     ],
                     "scale": [
                         1.0,
-                        1.0,
-                        1.0
+                        15.0,
+                        100.0
                     ]
                 }
             },
-            "name": "unitychan"
+            "name": "wall"
         }
     ],
     "settings": {},

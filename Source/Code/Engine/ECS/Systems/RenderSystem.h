@@ -136,6 +136,8 @@ private:
 		const DirectX::XMFLOAT4X4& view,
 		const DirectX::XMFLOAT4X4& projection
 	);
+	// フラスタム計算
+	Frustum CalcFrustum(const DirectX::XMFLOAT4X4& viewProjection);
 
 	// バウンディングボックスがフラスタム内にあるか判定
 	bool IsInFrustum(
