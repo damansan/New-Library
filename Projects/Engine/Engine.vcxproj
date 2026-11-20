@@ -51,6 +51,7 @@
     <ClCompile Include="..\..\Source\Code\Engine\Rendering\PhysicsDebugRenderer.cpp" />
     <ClCompile Include="..\..\Source\Code\Engine\Rendering\PostProcess.cpp" />
     <ClCompile Include="..\..\Source\Code\Engine\Rendering\PrimitiveRenderer.cpp" />
+    <ClCompile Include="..\..\Source\Code\Engine\Rendering\ShadowMap.cpp" />
     <ClCompile Include="..\..\Source\Code\Engine\Rendering\ShapeRenderer.cpp" />
     <ClCompile Include="..\..\Source\Code\Engine\Rendering\SkyBox.cpp" />
     <ClCompile Include="..\..\Source\Code\Engine\Resource\AnimationEditBaker.cpp" />
@@ -129,6 +130,7 @@
     <ClInclude Include="..\..\Source\Code\Engine\Rendering\PostProcessSettings.h" />
     <ClInclude Include="..\..\Source\Code\Engine\Rendering\PrimitiveRenderer.h" />
     <ClInclude Include="..\..\Source\Code\Engine\Rendering\ShaderLimits.h" />
+    <ClInclude Include="..\..\Source\Code\Engine\Rendering\ShadowMap.h" />
     <ClInclude Include="..\..\Source\Code\Engine\Rendering\ShapeRenderer.h" />
     <ClInclude Include="..\..\Source\Code\Engine\Rendering\SkyBox.h" />
     <ClInclude Include="..\..\Source\Code\Engine\Resource\AnimationEditBaker.h" />
@@ -304,6 +306,18 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
+    <FxCompile Include="..\..\Source\Shader\ShadowCaster_Skinning_VS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+    </FxCompile>
+    <FxCompile Include="..\..\Source\Shader\ShadowCaster_Static_VS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+    </FxCompile>
     <FxCompile Include="..\..\Source\Shader\SolidShapeDepth_VS.hlsl">
       <ShaderType>Vertex</ShaderType>
     </FxCompile>
@@ -356,6 +370,7 @@
     <None Include="..\..\Source\Shader\LightingCommon.hlsli" />
     <None Include="..\..\Source\Shader\PBR_Functions.hlsli" />
     <None Include="..\..\Source\Shader\ShaderConstants.hlsli" />
+    <None Include="..\..\Source\Shader\Shadow.hlsli" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

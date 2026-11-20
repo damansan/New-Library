@@ -170,6 +170,7 @@ Path: Final_PS.hlsl
 
 Texture2D sceneTexture : register(t0); // シーン（HDR）
 Texture2D bloomTexture : register(t1); // ブルームの結果（1/2 の大きさ）
+
 SamplerState linearSampler : register(s0);
 
 // デバッグ表示の種類
@@ -239,6 +240,7 @@ float3 LinearToSRGB(float3 c)
 
 float4 main(VS_OUT pin) : SV_TARGET
 {
+    
     // デバッグ表示：ブルームの途中の絵を出す
     if (debugView != DEBUG_VIEW_NONE)
     { 
@@ -268,8 +270,8 @@ float4 main(VS_OUT pin) : SV_TARGET
         color = TonemapACES(color);
     }
     
-     // 出口：リニア → モニター向けの値（ガンマ補正はここ1か所だけ）
-    color = pow(max(color, 0.0001f), 1.0f / 2.2f);
+     // ガンマ補正
+    color = LinearToSRGB(color);
     
     return float4(color, 1.0f);
 } 
@@ -777,6 +779,112 @@ float4 main(VS_OUT pin) : SV_TARGET
     return sourceTexture.Sample(samplerState, pin.texcoord);
 } 
  
+===== RadialBlur_PS.hlsl ===== 
+Path: RadialBlur_PS.hlsl 
+#include "ShaderConstants.hlsli"
+
+Texture2D sceneTexture : register(t0);
+SamplerState linearSampler : register(s0);
+
+struct VS_OUT
+{
+    float4 position : SV_POSITION;
+    float2 texcoord : TEXCOORD;
+};
+
+static const int RADIAL_BLUR_SAMPLES = 16; // 線の上で読む点の数
+static const float2 RADIAL_BLUR_CENTER = float2(0.5f, 0.5f); // 中心
+
+// ピクセルの位置から 0から1 のばらけた値を作る
+float InterleavedGradientNoise(float2 pixel)
+{
+    return frac(52.9829189f * frac(dot(pixel, float2(0.06711056f, 0.00583715f))));
+}
+
+float4 main(VS_OUT pin) : SV_TARGET
+{
+    float2 uv = pin.texcoord;
+    
+    // 中心からの距離
+    float2 d = (uv - RADIAL_BLUR_CENTER) * 2.0f;
+    d.x *= aspectRatio;
+    float dist = length(d);
+    
+    // 滑らかにする
+    float mask = smoothstep(radialBlurRadius, radialBlurRadius + radialBlurSoftness, dist);
+
+    // 線の全長
+    float2 blurVector = (RADIAL_BLUR_CENTER - uv) * radialBlurStrength * mask;
+    
+    // 1点ずつ進む幅
+    float2 stepUV = blurVector / RADIAL_BLUR_SAMPLES;
+    
+    // 読み始めを区間の中でずらす量
+    float jitter = InterleavedGradientNoise(pin.position.xy);
+
+    float3 color = 0.0f;
+    [unroll]
+    for (int i = 0; i < RADIAL_BLUR_SAMPLES; i++)
+    {
+        color += sceneTexture.SampleLevel(linearSampler, uv + stepUV * (i + jitter), 0).rgb;
+    }
+    color /= RADIAL_BLUR_SAMPLES;
+
+    return float4(color, 1.0f);
+} 
+ 
+===== ShadowCaster_Skinning_VS.hlsl ===== 
+Path: ShadowCaster_Skinning_VS.hlsl 
+#include "ShaderConstants.hlsli"
+
+// 頂点入力
+struct VS_IN
+{
+    float3 position : POSITION;
+    float3 normal : NORMAL;
+    float4 tangent : TANGENT;
+    float2 texcoord : TEXCOORD;
+    float4 boneWeight : WEIGHTS;
+    uint4 boneIndex : BONES;
+};
+
+float4 main(VS_IN vin) : SV_POSITION
+{
+    // スキニング
+    float4 pos = float4(vin.position, 1.0f);
+    float4 skinnedPos = float4(0, 0, 0, 0);
+
+    for (int i = 0; i < 4; i++)
+    {
+        skinnedPos += vin.boneWeight[i] * mul(pos, boneTransforms[vin.boneIndex[i]]);
+    }
+
+    float4 worldPos = mul(skinnedPos, world);
+    return mul(worldPos, lightViewProjection);
+} 
+ 
+===== ShadowCaster_Static_VS.hlsl ===== 
+Path: ShadowCaster_Static_VS.hlsl 
+#include "ShaderConstants.hlsli"
+
+// 頂点入力
+struct VS_IN
+{
+    float3 position : POSITION;
+    float3 normal : NORMAL;
+    float4 tangent : TANGENT;
+    float2 texcoord : TEXCOORD;
+    float4 boneWeight : WEIGHTS;
+    uint4 boneIndex : BONES;
+};
+
+// 影マップには深度だけ書くので、出力は位置のみ
+float4 main(VS_IN vin) : SV_POSITION
+{
+    float4 worldPos = mul(float4(vin.position, 1.0f), world);
+    return mul(worldPos, lightViewProjection);
+} 
+ 
 ===== Skinning_VS.hlsl ===== 
 Path: Skinning_VS.hlsl 
 #include "ShaderConstants.hlsli"
@@ -1143,6 +1251,7 @@ Path: LightingCommon.hlsli
 #include "ShaderConstants.hlsli"
 #include "PBR_Functions.hlsli"
 #include "IBL_Functions.hlsli"
+#include "Shadow.hlsli"
 
 // 表面の材料
 struct SurfaceData
@@ -1173,10 +1282,13 @@ float3 ShadeSurface(
     float3 diffuse = 0;
     float3 specular = 0;
 
-    // 平行光源
+    // 平行光源の影
+    float shadow = CalcShadow(s.worldPos, N);
+    
+// 平行光源
     {
         float3 L = normalize(-directionalLight.direction.xyz);
-        float3 LC = directionalLight.color.rgb * directionalLight.color.a;
+        float3 LC = directionalLight.color.rgb * directionalLight.color.a * shadow;
         float3 d = 0;
         float3 sp = 0;
         DirectBRDF(diffuse_reflectance, F0, N, V, L, LC, s.roughness, d, sp);
@@ -1222,6 +1334,9 @@ float3 ShadeSurface(
     
     // Occlusion
     ambient *= s.occlusion;
+    
+    // 影の中は環境光も暗くする
+    ambient *= lerp(1.0f, shadow, shadowStrength);
     
     return diffuse + specular + ambient + s.emissive;
 }
@@ -1343,6 +1458,8 @@ Path: ShaderConstants.hlsli
 #define MAX_BONES        256 // スキニングのボーン数の上限
 #define MAX_POINT_LIGHTS 64  // ポイントライトの数の上限
 
+#define SHADOW_CASCADE_COUNT 3   // カスケードシャドウの段数
+
 // b0：シーン
 cbuffer CbScene : register(b0)
 {
@@ -1394,10 +1511,8 @@ cbuffer CbSkinning : register(b3)
     row_major float4x4 boneTransforms[MAX_BONES];
 };
 
-// b4：カスケードシャドウマップ
-
-// b5：ポストエフェクト
-cbuffer CbPostProcess : register(b5)
+// b4：ポストエフェクト
+cbuffer CbPostProcess : register(b4)
 {
     float exposure;     // 露出
     int tonemapEnabled; // 1 なら ACES、0 なら切り捨て
@@ -1410,11 +1525,115 @@ cbuffer CbPostProcess : register(b5)
     float3 vignetteColor;     // ビネットの色
     float vignetteSmoothness; // ビネットの境目のなだらかさ
     
-    float aspectRatio; // 画面の縦横比
+    float aspectRatio;    // 画面の縦横比
     float bloomThreshold; // ブルームのしきい値
-    int debugView; // デバッグ表示の種類
-    float bloomScale; // ブルームの強さ
+    int debugView;        // デバッグ表示の種類
+    float bloomScale;     // ブルームの強さ
+    
+    float radialBlurStrength; // ラジアルブラー
+    float radialBlurRadius;   // 境目
+    float radialBlurSoftness; // 滑らかさ
+    
+    float postPadding; // 16バイトアライメント用
 };
+
+// b5：カスケードシャドウマップ（影を読む側）
+cbuffer CbShadow : register(b5)
+{
+    row_major float4x4 shadowViewProjections[SHADOW_CASCADE_COUNT]; // 各段のライト ビュー×プロジェクション
+    
+    float4 cascadeSplits; // カメラからの距離
+    
+    float shadowStrength; // 影の中で環境光をどれだけ暗くするか
+    float3 shadowPadding; // 16バイトアライメント用
+};
+
+// b6：カスケードシャドウマップ（影を描く側）
+cbuffer CbShadowCaster : register(b6)
+{
+    row_major float4x4 lightViewProjection; // いま描いている段のライト
+};
+
+#endif 
+ 
+===== Shadow.hlsli ===== 
+Path: Shadow.hlsli 
+// 影を読む側の共通処理
+
+#ifndef SHADOW_HLSLI
+#define SHADOW_HLSLI
+
+#include "ShaderConstants.hlsli"
+
+Texture2DArray shadowMap : register(t9); // 影マップ（段ごとの配列）
+SamplerComparisonState shadowSampler : register(s1); // 比較サンプラー
+
+static const float SHADOW_NORMAL_OFFSET = 1.5f; // 法線方向へ浮かせる量
+static const float SHADOW_DEPTH_BIAS = 0.0005f; // 深度を手前に寄せる量
+static const float SHADOW_FADE_RATIO = 0.1f;    // 最後の段の奥
+
+// 指定した段の影マップを読む。光が届いていれば 1、影なら 0
+float SampleShadowCascade(int cascade, float3 worldPos, float3 normal)
+{
+    float4x4 m = shadowViewProjections[cascade];
+    
+    // 影マップ1ピクセルがワールドで何mか
+    uint width, height, elements;
+    shadowMap.GetDimensions(width, height, elements);
+    float texelWorld = 2.0f / (length(float3(m._11, m._21, m._31)) * width);
+    
+    // 表面を法線の方向へ少し浮かせてから調べる
+    float3 offsetPos = worldPos + normal * texelWorld * SHADOW_NORMAL_OFFSET;
+    
+    // ライトから見た位置へ
+    float4 lightPos = mul(float4(offsetPos, 1.0f), m);
+    float3 ndc = lightPos.xyz / lightPos.w;
+    
+    // NDC から テクスチャ座標 へ変換
+    float2 uv = float2(ndc.x * 0.5f + 0.5f, -ndc.y * 0.5f + 0.5f);
+    float depth = ndc.z;
+    
+    // ライトの範囲より奥は、影マップに情報がないので影なしにする
+    if (depth > 1.0f)
+    {
+        return 1.0f;
+    }
+    
+    // 「自分の深度 <= 影マップの深度」なら 光が届く
+    return shadowMap.SampleCmpLevelZero(shadowSampler, float3(uv, (float) cascade), depth - SHADOW_DEPTH_BIAS);
+}
+
+// 光が届いていれば 1、影なら 0 を返す
+float CalcShadow(float3 worldPos, float3 normal)
+{
+    // カメラからの距離
+    float viewDepth = mul(float4(worldPos, 1.0f), view).z;
+    
+    // 影を出す範囲より奥は、影なし
+    float shadowEnd = cascadeSplits[SHADOW_CASCADE_COUNT - 1];
+    if (viewDepth >= shadowEnd)
+    {
+        return 1.0f;
+    }
+    
+    // どの段を読むか
+    int cascade = 0;
+    [unroll]
+    for (int i = 0; i < SHADOW_CASCADE_COUNT - 1; i++)
+    {
+        if (viewDepth > cascadeSplits[i])
+        {
+            cascade = i + 1;
+        }
+    }
+    
+    float shadow = SampleShadowCascade(cascade, worldPos, normal);
+
+     // いちばん奥の手前で、影を少しずつ消す
+    float fadeStart = shadowEnd * (1.0f - SHADOW_FADE_RATIO);
+    float fade = saturate((viewDepth - fadeStart) / (shadowEnd - fadeStart));
+    return lerp(shadow, 1.0f, fade);
+}
 
 #endif 
  

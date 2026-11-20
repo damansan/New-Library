@@ -30,7 +30,7 @@ void SceneGame::Initialize(const SceneContext& context)
 
 	lightManager.Initialize(context.device);
 	lightManager.SetDirectionalLight(
-		{ 0.5f, -1.0f, 0.5f },
+		{ -0.5f, -1.0f, -0.5f },
 		{ 1.0f,  1.0f, 1.0f },
 		1.0f
 	);
@@ -138,6 +138,12 @@ void SceneGame::Render(const SceneContext& context)
 	// フラスタム計算
 	renderSystem.SetFrustum(context.view, context.projection);
 
+	// 影の設定
+	{
+		const auto& lightDir4 = lightManager.GetDirectionalLight().direction;
+		DirectX::XMFLOAT3 lightDir = { lightDir4.x, lightDir4.y, lightDir4.z };
+		renderSystem.SetShadowParams(lightDir, context.view, context.projection);
+	}
 
 	// スカイボックス
 	{

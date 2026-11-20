@@ -6,6 +6,7 @@
 #include "ShaderConstants.hlsli"
 #include "PBR_Functions.hlsli"
 #include "IBL_Functions.hlsli"
+#include "Shadow.hlsli"
 
 // 表面の材料
 struct SurfaceData
@@ -36,10 +37,13 @@ float3 ShadeSurface(
     float3 diffuse = 0;
     float3 specular = 0;
 
-    // 平行光源
+    // 平行光源の影
+    float shadow = CalcShadow(s.worldPos, N);
+    
+// 平行光源
     {
         float3 L = normalize(-directionalLight.direction.xyz);
-        float3 LC = directionalLight.color.rgb * directionalLight.color.a;
+        float3 LC = directionalLight.color.rgb * directionalLight.color.a * shadow;
         float3 d = 0;
         float3 sp = 0;
         DirectBRDF(diffuse_reflectance, F0, N, V, L, LC, s.roughness, d, sp);
@@ -85,6 +89,9 @@ float3 ShadeSurface(
     
     // Occlusion
     ambient *= s.occlusion;
+    
+    // 影の中は環境光も暗くする
+    ambient *= lerp(1.0f, shadow, shadowStrength);
     
     return diffuse + specular + ambient + s.emissive;
 }

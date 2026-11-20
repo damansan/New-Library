@@ -2,6 +2,7 @@
 
 Texture2D sceneTexture : register(t0); // シーン（HDR）
 Texture2D bloomTexture : register(t1); // ブルームの結果（1/2 の大きさ）
+
 SamplerState linearSampler : register(s0);
 
 // デバッグ表示の種類
@@ -71,6 +72,7 @@ float3 LinearToSRGB(float3 c)
 
 float4 main(VS_OUT pin) : SV_TARGET
 {
+    
     // デバッグ表示：ブルームの途中の絵を出す
     if (debugView != DEBUG_VIEW_NONE)
     { 

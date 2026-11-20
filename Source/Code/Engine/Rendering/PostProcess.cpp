@@ -5,7 +5,7 @@
 
 namespace
 {
-	// b5：GPU に送る形
+	// b4：GPU に送る形
 	struct CbPostProcess
 	{
 		float exposure;
@@ -87,7 +87,7 @@ void PostProcess::Render(
 	ID3D11RenderTargetView* output,
 	UINT width,
 	UINT height,
-	const PostProcessSettings& settings) 
+	const PostProcessSettings& settings)
 {
 	// 画面の大きさが変わったら、ブルームの作業用テクスチャを作り直す
 	if (width != bloomSourceWidth || height != bloomSourceHeight)
@@ -136,7 +136,7 @@ void PostProcess::Render(
 	cb.debugView = static_cast<int>(settings.debugView);
 
 	dc->UpdateSubresource(cbPostProcess.Get(), 0, nullptr, &cb, 0, 0);
-	dc->PSSetConstantBuffers(5, 1, cbPostProcess.GetAddressOf());
+	dc->PSSetConstantBuffers(4, 1, cbPostProcess.GetAddressOf());
 
 	// 全画面の描画で共通のステート
 	dc->RSSetState(rasterizerState.Get());
@@ -228,7 +228,7 @@ void PostProcess::Render(
 
 	// 読む物の束縛を解除
 	ID3D11ShaderResourceView* nullSrvs[2] = {};
-	dc->PSSetShaderResources(0, 2, nullSrvs);
+	dc->PSSetShaderResources(0, 2, nullSrvs); 
 }
 
 // 画面の大きさに合わせて、ブルームの作業用テクスチャを作り直す

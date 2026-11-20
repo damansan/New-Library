@@ -12,6 +12,7 @@
 
 #include "Engine/Resource/Model.h"
 #include "Engine/Rendering/GBuffer.h"
+#include "Engine/Rendering/ShadowMap.h"
 #include "Engine/Rendering/ShaderLimits.h"
 
 // 定数バッファ構造体
@@ -44,6 +45,22 @@ struct CbSkinning
 	DirectX::XMFLOAT4X4 boneTransforms[MAX_BONES];
 };
 
+// b5：影を読む側
+struct CbShadow
+{
+	DirectX::XMFLOAT4X4 shadowViewProjections[SHADOW_CASCADE_COUNT]; // 各段のライトVP
+
+	DirectX::XMFLOAT4   cascadeSplits;  // xyz = 各段の奥の端（カメラからの距離 m）
+
+	float               shadowStrength; // 影の中で環境光をどれだけ暗くするか
+	DirectX::XMFLOAT3   shadowPadding;  // 16バイトアライメント用
+};
+
+// b6：影を描く側
+struct CbShadowCaster
+{
+	DirectX::XMFLOAT4X4 lightViewProjection; // いま描いている段のライトVP
+};
 
 class RenderSystem
 {
@@ -69,6 +86,20 @@ public:
 	{
 		cachedFrustum = CalcFrustum(view, projection);
 	}
+
+	// 影の設定をScene側からセット
+	void SetShadowParams(
+		const DirectX::XMFLOAT3& lightDirection,
+		const DirectX::XMFLOAT4X4& cameraView,
+		const DirectX::XMFLOAT4X4& cameraProjection)
+	{
+		shadowLightDirection = lightDirection;
+		shadowCameraView = cameraView;
+		shadowCameraProjection = cameraProjection;
+	}
+
+	// 影の濃さ
+	void SetShadowStrength(float strength) { shadowStrength = strength; }
 
 	// IBLテクスチャセット
 	void SetIBLTextures(
@@ -113,6 +144,14 @@ private:
 		const DirectX::XMFLOAT4X4& world
 	);
 
+	// カスケードの分割距離と、各段のライト行列を計算する
+	void CalcCascades();
+
+	// Shadowパス
+	void ShadowPass(
+		entt::registry& registry,
+		ID3D11DeviceContext* dc
+	);
 
 	// Geometryパス
 	void GeometryPass(
@@ -144,6 +183,9 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11VertexShader> lightingVS;           // Lightingパス用頂点シェーダー
 	Microsoft::WRL::ComPtr<ID3D11PixelShader>  lightingPS;           // Lightingパス用ピクセルシェーダー
 	Microsoft::WRL::ComPtr<ID3D11PixelShader>  forwardTransparentPS; // 半透明フォワード用(PBR)
+
+	Microsoft::WRL::ComPtr<ID3D11VertexShader> shadowStaticVS;       // 影を描く（静的メッシュ）
+	Microsoft::WRL::ComPtr<ID3D11VertexShader> shadowSkinnedVS;      // 影を描く（スキニングメッシュ）
 
 	// GBufferシェーダーマップ
 	std::unordered_map<std::string, Microsoft::WRL::ComPtr<ID3D11PixelShader>> gBufferPixelShaders;
@@ -180,7 +222,8 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11Buffer> cbScene;    // シーン情報
 	Microsoft::WRL::ComPtr<ID3D11Buffer> cbObject;   // オブジェクト情報
 	Microsoft::WRL::ComPtr<ID3D11Buffer> cbSkinning; // スキニング定数バッファ
-
+	Microsoft::WRL::ComPtr<ID3D11Buffer> cbShadow;       // 影を読む側（b5）
+	Microsoft::WRL::ComPtr<ID3D11Buffer> cbShadowCaster; // 影を描く側（b6）
 
 	// ダミーテクスチャ
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> dummyWhite;  // Albedo/Occlusion用
@@ -197,6 +240,25 @@ private:
 	Frustum cachedFrustum;
 	// GBuffer
 	GBuffer gBuffer;
+	// 影マップ
+	ShadowMap shadowMap;
+	
+	// 影の設定
+	DirectX::XMFLOAT3   shadowLightDirection = { 0.5f, -1.0f, 0.5f }; // 光の進む向き
+	DirectX::XMFLOAT4X4 shadowCameraView{};                           // 影を合わせるカメラ
+	DirectX::XMFLOAT4X4 shadowCameraProjection{};
+
+	// カスケードの調整値
+	static constexpr float SHADOW_DISTANCE = 60.0f;      // 影を出す最大距離
+	static constexpr float SHADOW_SPLIT_LAMBDA = 0.75f;  // 分割の偏り
+	static constexpr float SHADOW_CASTER_MARGIN = 50.0f; // ライト側へ伸ばす距離
+
+	// CalcCascades の結果
+	DirectX::XMFLOAT4X4 cascadeViewProjections[SHADOW_CASCADE_COUNT]{};
+	float               cascadeSplits[SHADOW_CASCADE_COUNT]{};
+
+	// 影の濃さ
+	float shadowStrength = 0.6f;
 
 	// 画面サイズ
 	UINT screenWidth = 0;

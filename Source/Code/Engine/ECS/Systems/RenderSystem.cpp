@@ -1,6 +1,8 @@
 ﻿#include "RenderSystem.h"
 #include "Engine/Resource/GpuResourceUtils.h"
 #include "Engine/Utility/misc.h"
+#include <cfloat>
+#include <cmath>
 
 namespace
 {
@@ -12,6 +14,29 @@ namespace
 		DirectX::XMFLOAT4X4 result;
 		DirectX::XMStoreFloat4x4(&result, invT);
 		return result;
+	}
+
+	// スキニング行列を詰める
+	void FillSkinning(
+		CbSkinning& out,
+		const SkinnedMeshComponent& skinnedMesh,
+		int meshIndex,
+		int nodeIndex)
+	{
+		if (meshIndex < (int)skinnedMesh.boneTransforms.size() && !skinnedMesh.boneTransforms[meshIndex].empty())
+		{
+			const auto& bt = skinnedMesh.boneTransforms[meshIndex];
+			size_t boneCount = (std::min)(bt.size(), (size_t)MAX_BONES);
+			for (size_t i = 0; i < boneCount; i++)
+				out.boneTransforms[i] = bt[i];
+		}
+		else
+		{
+			if (nodeIndex >= 0 && nodeIndex < (int)skinnedMesh.nodeGlobalTransforms.size())
+				out.boneTransforms[0] = skinnedMesh.nodeGlobalTransforms[nodeIndex];
+			else
+				out.boneTransforms[0] = { 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 };
+		}
 	}
 }
 
@@ -62,20 +87,25 @@ void RenderSystem::Initialize(ID3D11Device* device)
 	// 半透明フォワード用ピクセルシェーダー(PBR)
 	GpuResourceUtils::LoadPixelShader(device, "Data/Shader/PBR_PS.cso", forwardTransparentPS);
 
+	// 影を描く頂点シェーダー
+	Microsoft::WRL::ComPtr<ID3D11InputLayout> dummyLayoutS0, dummyLayoutS1;
+	GpuResourceUtils::LoadVertexShader(
+		device, "Data/Shader/ShadowCaster_Static_VS.cso",
+		inputElementDescs.data(), static_cast<UINT>(inputElementDescs.size()),
+		dummyLayoutS0, shadowStaticVS
+	);
+	GpuResourceUtils::LoadVertexShader(
+		device, "Data/Shader/ShadowCaster_Skinning_VS.cso",
+		inputElementDescs.data(), static_cast<UINT>(inputElementDescs.size()),
+		dummyLayoutS1, shadowSkinnedVS
+	);
+
 	// 定数バッファ
 	GpuResourceUtils::CreateConstantBuffer(device, sizeof(CbScene), cbScene);
 	GpuResourceUtils::CreateConstantBuffer(device, sizeof(CbObject), cbObject);
 	GpuResourceUtils::CreateConstantBuffer(device, sizeof(CbSkinning), cbSkinning);
-
-	//// スキニング用は毎メッシュ書き換えるのでDYNAMICで作る
-	//{
-	//	D3D11_BUFFER_DESC desc{};
-	//	desc.ByteWidth = sizeof(CbSkinning);
-	//	desc.Usage = D3D11_USAGE_DYNAMIC;
-	//	desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	//	desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-	//	device->CreateBuffer(&desc, nullptr, cbSkinning.GetAddressOf());
-	//}
+	GpuResourceUtils::CreateConstantBuffer(device, sizeof(CbShadow), cbShadow);
+	GpuResourceUtils::CreateConstantBuffer(device, sizeof(CbShadowCaster), cbShadowCaster);
 
 	// サンプラーステート
 	D3D11_SAMPLER_DESC samplerDesc{};
@@ -168,6 +198,9 @@ void RenderSystem::Initialize(ID3D11Device* device)
 	GpuResourceUtils::CreateDummyTexture(device, dummyWhite, 0xFFFFFFFF, 1);  // Albedo/Occlusion用
 	GpuResourceUtils::CreateDummyTexture(device, dummyNormal, 0xFFFF8080, 1); // 法線
 	GpuResourceUtils::CreateDummyTexture(device, dummyBlack, 0xFF000000, 1);  // Emissive用
+
+	// 影マップ
+	shadowMap.Initialize(device);
 }
 
 // 描画
@@ -191,6 +224,9 @@ void RenderSystem::Render(
 	// 定数バッファをセット
 	dc->VSSetConstantBuffers(0, 1, cbScene.GetAddressOf());
 	dc->PSSetConstantBuffers(0, 1, cbScene.GetAddressOf());
+
+	// ライトから見た深度を影マップへ
+	ShadowPass(registry, dc);
 
 	// 不透明ジオメトリをGBufferへ
 	GeometryPass(registry, dc, dsv, cachedFrustum);
@@ -279,6 +315,175 @@ bool RenderSystem::IsInFrustum(const Frustum& frustum, const Model::BoundingBox&
 		}
 	}
 	return true;
+}
+
+// カスケードの分割距離と、各段のライト行列を計算する
+void RenderSystem::CalcCascades()
+{
+	using namespace DirectX;
+
+	const XMFLOAT4X4& p = shadowCameraProjection;
+
+	// 射影行列から、カメラの near と「距離1mあたりの半分の幅・高さ」を取り出す
+	const float nearZ = -p._43 / p._33;
+	const float tanX = 1.0f / p._11;
+	const float tanY = 1.0f / p._22;
+
+	// 分割距離
+	for (int i = 0; i < SHADOW_CASCADE_COUNT; i++)
+	{
+		float t = static_cast<float>(i + 1) / SHADOW_CASCADE_COUNT;
+		float uniform = nearZ + (SHADOW_DISTANCE - nearZ) * t;
+		float logarith = nearZ * powf(SHADOW_DISTANCE / nearZ, t);
+		cascadeSplits[i] = uniform + (logarith - uniform) * SHADOW_SPLIT_LAMBDA;
+	}
+
+	// ライトの向き
+	XMVECTOR dir = XMVector3Normalize(XMLoadFloat3(&shadowLightDirection));
+	XMVECTOR up = (fabsf(XMVectorGetY(dir)) > 0.99f)
+		? XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f)
+		: XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+	XMMATRIX lightView = XMMatrixLookToLH(XMVectorZero(), dir, up);
+
+	// カメラのビュー空間 から ライトのビュー空間
+	XMMATRIX invCameraView = XMMatrixInverse(nullptr, XMLoadFloat4x4(&shadowCameraView));
+	XMMATRIX viewToLight = invCameraView * lightView;
+
+	// 段ごとに、視錐台の一部を囲む正射影を作る
+	float sliceNear = nearZ;
+	for (int i = 0; i < SHADOW_CASCADE_COUNT; i++)
+	{
+		float sliceFar = cascadeSplits[i];
+
+		// 角8点をライト空間へ移して、範囲を求める
+		XMFLOAT3 mn = { FLT_MAX,  FLT_MAX,  FLT_MAX };
+		XMFLOAT3 mx = { -FLT_MAX, -FLT_MAX, -FLT_MAX };
+		for (float d : { sliceNear, sliceFar })
+		{
+			for (float sy : { -1.0f, 1.0f })
+			{
+				for (float sx : { -1.0f, 1.0f })
+				{
+					XMVECTOR corner = XMVectorSet(sx * tanX * d, sy * tanY * d, d, 1.0f);
+					XMFLOAT3 c;
+					XMStoreFloat3(&c, XMVector3TransformCoord(corner, viewToLight));
+					mn = { (std::min)(mn.x, c.x), (std::min)(mn.y, c.y), (std::min)(mn.z, c.z) };
+					mx = { (std::max)(mx.x, c.x), (std::max)(mx.y, c.y), (std::max)(mx.z, c.z) };
+				}
+			}
+		}
+
+		// 手前は、範囲の外から影を落とす物のぶんだけ伸ばす
+		XMMATRIX lightProj = XMMatrixOrthographicOffCenterLH(
+			mn.x, mx.x, mn.y, mx.y, mn.z - SHADOW_CASTER_MARGIN, mx.z);
+
+		XMStoreFloat4x4(&cascadeViewProjections[i], lightView * lightProj);
+
+		sliceNear = sliceFar;
+	}
+}
+
+// Shadowパス
+void RenderSystem::ShadowPass(entt::registry& registry, ID3D11DeviceContext* dc)
+{
+	using namespace DirectX;
+
+	// 各段の行列と分割距離
+	CalcCascades();
+
+	// b5 へ
+	CbShadow cbShadowData{};
+	for (int i = 0; i < SHADOW_CASCADE_COUNT; i++)
+	{
+		cbShadowData.shadowViewProjections[i] = cascadeViewProjections[i];
+	}
+	cbShadowData.cascadeSplits = { cascadeSplits[0], cascadeSplits[1], cascadeSplits[2], 0.0f };
+	cbShadowData.shadowStrength = shadowStrength;
+	dc->UpdateSubresource(cbShadow.Get(), 0, nullptr, &cbShadowData, 0, 0);
+
+	// 共通のステート
+	float blendFactor[4] = {};
+	dc->RSSetState(shadowMap.GetRasterizerState());
+	dc->OMSetDepthStencilState(depthStencilState.Get(), 0);
+	dc->OMSetBlendState(blendStateOpaque.Get(), blendFactor, 0xFFFFFFFF);
+	dc->IASetInputLayout(inputLayout.Get());
+	dc->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	dc->PSSetShader(nullptr, nullptr, 0); // 深度だけなので PS なし
+
+	auto staticView = registry.view<TransformComponent, StaticMeshComponent>(entt::exclude<NoShadowTag>);
+	auto skinnedView = registry.view<TransformComponent, SkinnedMeshComponent>(entt::exclude<NoShadowTag>);
+
+	// 段ごとに描く
+	for (UINT cascade = 0; cascade < SHADOW_CASCADE_COUNT; cascade++)
+	{
+		// b6 へ
+		CbShadowCaster cbCasterData{};
+		cbCasterData.lightViewProjection = cascadeViewProjections[cascade];
+		dc->UpdateSubresource(cbShadowCaster.Get(), 0, nullptr, &cbCasterData, 0, 0);
+		dc->VSSetConstantBuffers(6, 1, cbShadowCaster.GetAddressOf());
+
+		shadowMap.BeginCascade(dc, cascade); // 描画先・クリア・ビューポート
+
+		// 静的メッシュ
+		dc->VSSetShader(shadowStaticVS.Get(), nullptr, 0);
+		staticView.each([&](auto entity, TransformComponent& transform, StaticMeshComponent& staticMesh)
+			{
+				if (!staticMesh.model) return;
+
+				CbObject cbObjectData{};
+				XMStoreFloat4x4(&cbObjectData.world, transform.GetWorldMatrix());
+				dc->UpdateSubresource(cbObject.Get(), 0, nullptr, &cbObjectData, 0, 0);
+				dc->VSSetConstantBuffers(1, 1, cbObject.GetAddressOf());
+
+				for (auto& mesh : staticMesh.model->GetMeshes())
+				{
+					// 半透明は影を落とさない
+					bool isBlend = mesh.material &&
+						mesh.material->alphaMode == Model::Material::AlphaMode::Blend;
+					if (isBlend) continue;
+
+					UINT stride = sizeof(Model::Vertex), offset = 0;
+					dc->IASetVertexBuffers(0, 1, mesh.vertexBuffer.GetAddressOf(), &stride, &offset);
+					dc->IASetIndexBuffer(mesh.indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+					dc->DrawIndexed(static_cast<UINT>(mesh.indices.size()), 0, 0);
+				}
+			});
+
+		// スキニングメッシュ
+		dc->VSSetShader(shadowSkinnedVS.Get(), nullptr, 0);
+		skinnedView.each([&](auto entity, TransformComponent& transform, SkinnedMeshComponent& skinnedMesh)
+			{
+				if (!skinnedMesh.model) return;
+
+				CbObject cbObjectData{};
+				XMStoreFloat4x4(&cbObjectData.world, transform.GetWorldMatrix());
+				dc->UpdateSubresource(cbObject.Get(), 0, nullptr, &cbObjectData, 0, 0);
+				dc->VSSetConstantBuffers(1, 1, cbObject.GetAddressOf());
+
+				const auto& meshes = skinnedMesh.model->GetMeshes();
+				for (int m = 0; m < (int)meshes.size(); m++)
+				{
+					const auto& mesh = meshes[m];
+
+					// 半透明は影を落とさない
+					bool isBlend = mesh.material &&
+						mesh.material->alphaMode == Model::Material::AlphaMode::Blend;
+					if (isBlend) continue;
+
+					CbSkinning cbSkinningData{};
+					FillSkinning(cbSkinningData, skinnedMesh, m, mesh.nodeIndex);
+					dc->UpdateSubresource(cbSkinning.Get(), 0, nullptr, &cbSkinningData, 0, 0);
+					dc->VSSetConstantBuffers(3, 1, cbSkinning.GetAddressOf());
+
+					UINT stride = sizeof(Model::Vertex), offset = 0;
+					dc->IASetVertexBuffers(0, 1, mesh.vertexBuffer.GetAddressOf(), &stride, &offset);
+					dc->IASetIndexBuffer(mesh.indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+					dc->DrawIndexed(static_cast<UINT>(mesh.indices.size()), 0, 0);
+				}
+			});
+	}
+
+	shadowMap.End(dc);
 }
 
 // Geometryパス
@@ -487,6 +692,13 @@ void RenderSystem::LightingPass(ID3D11DeviceContext* dc, ID3D11RenderTargetView*
 	};
 	dc->PSSetShaderResources(0, 6, gbSrvs);
 
+	// 影
+	ID3D11ShaderResourceView* shadowSrv = shadowMap.GetSRV();
+	ID3D11SamplerState* shadowSampler = shadowMap.GetComparisonSampler();
+	dc->PSSetConstantBuffers(5, 1, cbShadow.GetAddressOf());
+	dc->PSSetShaderResources(9, 1, &shadowSrv);
+	dc->PSSetSamplers(1, 1, &shadowSampler);
+
 	// Lightingシェーダーセット
 	dc->VSSetShader(lightingVS.Get(), nullptr, 0);
 	dc->PSSetShader(lightingPS.Get(), nullptr, 0);
@@ -507,9 +719,9 @@ void RenderSystem::LightingPass(ID3D11DeviceContext* dc, ID3D11RenderTargetView*
 	// フルスクリーン描画
 	dc->Draw(4, 0);
 
-	// GBufferSRVの束縛を解除
-	ID3D11ShaderResourceView* nullSrvs[9] = {};
-	dc->PSSetShaderResources(0, 9, nullSrvs);
+	// GBuffer・IBL・影マップ（t0～t9）の束縛を解除
+	ID3D11ShaderResourceView* nullSrvs[10] = {};
+	dc->PSSetShaderResources(0, 10, nullSrvs);
 }
 
 // 半透明パス(フォワードレンダリング)
@@ -541,6 +753,13 @@ void RenderSystem::ForwardTransparentPass(
 	// LightingPass末尾でSRVがクリアされているため改めてセット
 	ID3D11ShaderResourceView* iblSrvs[3] = { iblDiffuseIem, iblSpecularPmrem, iblLutGgx };
 	dc->PSSetShaderResources(5, 3, iblSrvs);
+
+	// 影
+	ID3D11ShaderResourceView* shadowSrv = shadowMap.GetSRV();
+	ID3D11SamplerState* shadowSampler = shadowMap.GetComparisonSampler();
+	dc->PSSetConstantBuffers(5, 1, cbShadow.GetAddressOf());
+	dc->PSSetShaderResources(9, 1, &shadowSrv);
+	dc->PSSetSamplers(1, 1, &shadowSampler);
 
 	dc->PSSetShader(forwardTransparentPS.Get(), nullptr, 0);
 
@@ -666,7 +885,6 @@ void RenderSystem::ForwardTransparentPass(
 			}
 		});
 
-	// SRVの束縛解除（t0～t7）
-	ID3D11ShaderResourceView* nullSrvs[8] = {};
-	dc->PSSetShaderResources(0, 8, nullSrvs);
-}
+	// SRVの束縛解除（t0～t9）
+	ID3D11ShaderResourceView* nullSrvs[10] = {};
+	dc->PSSetShaderResources(0, 10, nullSrvs); }

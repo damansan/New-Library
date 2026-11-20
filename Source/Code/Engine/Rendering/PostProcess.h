@@ -55,7 +55,7 @@ private:
 
 	Microsoft::WRL::ComPtr<ID3D11RasterizerState> rasterizerState; // カリングなし
 	Microsoft::WRL::ComPtr<ID3D11SamplerState>    linearSampler;   // バイリニア・端は引き伸ばし
-	Microsoft::WRL::ComPtr<ID3D11Buffer>          cbPostProcess;   // b5：設定値
+	Microsoft::WRL::ComPtr<ID3D11Buffer>          cbPostProcess;   // b4：設定値
 
 	// ブルームの作業用テクスチャ
 	RenderTexture bloomDown[kBloomLevels]; // 縮小した絵（[0] は抜き出した絵）

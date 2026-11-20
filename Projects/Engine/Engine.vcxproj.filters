@@ -215,6 +215,12 @@
     <Filter Include="Sources\Engine\Rendering\PostProcessSettings">
       <UniqueIdentifier>{2db8e2b6-f7a2-4b46-8fee-2cd879e689de}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\Engine\Rendering\ShadowMap">
+      <UniqueIdentifier>{cc0d8f58-3586-43f3-affb-4ef27db00a23}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shader\Shadow">
+      <UniqueIdentifier>{dd852d40-6090-4f81-8184-792ceb3bb2b4}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Source\Code\Engine\Core\Application.cpp">
@@ -354,6 +360,9 @@
     </ClCompile>
     <ClCompile Include="..\..\Source\Code\Engine\Rendering\PostProcess.cpp">
       <Filter>Sources\Engine\Rendering\PostProcess</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Code\Engine\Rendering\ShadowMap.cpp">
+      <Filter>Sources\Engine\Rendering\ShadowMap</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -594,6 +603,9 @@
     <ClInclude Include="..\..\Source\Code\Engine\Rendering\PostProcessSettings.h">
       <Filter>Sources\Engine\Rendering\PostProcessSettings</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Source\Code\Engine\Rendering\ShadowMap.h">
+      <Filter>Sources\Engine\Rendering\ShadowMap</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="..\..\Source\Shader\Debug_PS.hlsl">
@@ -671,6 +683,12 @@
     <FxCompile Include="..\..\Source\Shader\RadialBlur_PS.hlsl">
       <Filter>Shader\PostProcess</Filter>
     </FxCompile>
+    <FxCompile Include="..\..\Source\Shader\ShadowCaster_Static_VS.hlsl">
+      <Filter>Shader\Shadow</Filter>
+    </FxCompile>
+    <FxCompile Include="..\..\Source\Shader\ShadowCaster_Skinning_VS.hlsl">
+      <Filter>Shader\Shadow</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\Source\Shader\IBL_Functions.hlsli">
@@ -687,6 +705,9 @@
     </None>
     <None Include="..\..\Source\Shader\BloomBlur.hlsli">
       <Filter>Shader\PostProcess</Filter>
+    </None>
+    <None Include="..\..\Source\Shader\Shadow.hlsli">
+      <Filter>Shader\Lighting</Filter>
     </None>
   </ItemGroup>
 </Project>

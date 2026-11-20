@@ -5,6 +5,8 @@
 #define MAX_BONES        256 // スキニングのボーン数の上限
 #define MAX_POINT_LIGHTS 64  // ポイントライトの数の上限
 
+#define SHADOW_CASCADE_COUNT 3   // カスケードシャドウの段数
+
 // b0：シーン
 cbuffer CbScene : register(b0)
 {
@@ -56,10 +58,8 @@ cbuffer CbSkinning : register(b3)
     row_major float4x4 boneTransforms[MAX_BONES];
 };
 
-// b4：カスケードシャドウマップ
-
-// b5：ポストエフェクト
-cbuffer CbPostProcess : register(b5)
+// b4：ポストエフェクト
+cbuffer CbPostProcess : register(b4)
 {
     float exposure;     // 露出
     int tonemapEnabled; // 1 なら ACES、0 なら切り捨て
@@ -82,6 +82,23 @@ cbuffer CbPostProcess : register(b5)
     float radialBlurSoftness; // 滑らかさ
     
     float postPadding; // 16バイトアライメント用
+};
+
+// b5：カスケードシャドウマップ（影を読む側）
+cbuffer CbShadow : register(b5)
+{
+    row_major float4x4 shadowViewProjections[SHADOW_CASCADE_COUNT]; // 各段のライト ビュー×プロジェクション
+    
+    float4 cascadeSplits; // カメラからの距離
+    
+    float shadowStrength; // 影の中で環境光をどれだけ暗くするか
+    float3 shadowPadding; // 16バイトアライメント用
+};
+
+// b6：カスケードシャドウマップ（影を描く側）
+cbuffer CbShadowCaster : register(b6)
+{
+    row_major float4x4 lightViewProjection; // いま描いている段のライト
 };
 
 #endif
