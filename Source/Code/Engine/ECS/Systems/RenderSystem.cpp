@@ -355,9 +355,9 @@ void RenderSystem::CalcCascades()
 	{
 		float sliceFar = cascadeSplits[i];
 
-		// 角8点をライト空間へ移して、範囲を求める
-		XMFLOAT3 mn = { FLT_MAX,  FLT_MAX,  FLT_MAX };
-		XMFLOAT3 mx = { -FLT_MAX, -FLT_MAX, -FLT_MAX };
+		// 角8点をライト空間へ移す
+		XMFLOAT3 corners[8];
+		int k = 0;
 		for (float d : { sliceNear, sliceFar })
 		{
 			for (float sy : { -1.0f, 1.0f })
@@ -365,17 +365,48 @@ void RenderSystem::CalcCascades()
 				for (float sx : { -1.0f, 1.0f })
 				{
 					XMVECTOR corner = XMVectorSet(sx * tanX * d, sy * tanY * d, d, 1.0f);
-					XMFLOAT3 c;
-					XMStoreFloat3(&c, XMVector3TransformCoord(corner, viewToLight));
-					mn = { (std::min)(mn.x, c.x), (std::min)(mn.y, c.y), (std::min)(mn.z, c.z) };
-					mx = { (std::max)(mx.x, c.x), (std::max)(mx.y, c.y), (std::max)(mx.z, c.z) };
+					XMStoreFloat3(&corners[k++], XMVector3TransformCoord(corner, viewToLight));
 				}
 			}
 		}
 
-		// 手前は、範囲の外から影を落とす物のぶんだけ伸ばす
+		// 球の中心（8点の平均）
+		XMFLOAT3 center = { 0.0f, 0.0f, 0.0f };
+		for (const XMFLOAT3& c : corners)
+		{
+			center.x += c.x;
+			center.y += c.y;
+			center.z += c.z;
+		}
+		center.x /= 8.0f;
+		center.y /= 8.0f;
+		center.z /= 8.0f;
+
+		// 球の半径
+		float radius = 0.0f;
+		for (const XMFLOAT3& c : corners)
+		{
+			float dx = c.x - center.x;
+			float dy = c.y - center.y;
+			float dz = c.z - center.z;
+			radius = (std::max)(radius, sqrtf(dx * dx + dy * dy + dz * dz));
+		}
+
+		// 計算誤差で半径が毎フレームわずかに揺れないよう、1/16m 単位で切り上げてそろえる
+		radius = ceilf(radius * 16.0f) / 16.0f;
+
+		// 影マップ1ピクセルの大きさ
+		float texelSize = (radius * 2.0f) / static_cast<float>(ShadowMap::RESOLUTION);
+
+		// 中心をピクセル単位にスナップ
+		center.x = floorf(center.x / texelSize) * texelSize;
+		center.y = floorf(center.y / texelSize) * texelSize;
+
+		// 球を囲む正射影
 		XMMATRIX lightProj = XMMatrixOrthographicOffCenterLH(
-			mn.x, mx.x, mn.y, mx.y, mn.z - SHADOW_CASTER_MARGIN, mx.z);
+			center.x - radius, center.x + radius,
+			center.y - radius, center.y + radius,
+			center.z - radius - SHADOW_CASTER_MARGIN, center.z + radius);
 
 		XMStoreFloat4x4(&cascadeViewProjections[i], lightView * lightProj);
 
