@@ -45,14 +45,14 @@
                     "category": "None"
                 },
                 "MaterialComponent": {
-                    "shadingModel": "Default"
+                    "shadingModel": "Grid"
                 },
                 "MeshComponent": {
                     "modelPath": "Data/Model/UEdefault/Cube.glb"
                 },
                 "TransformComponent": {
                     "position": [
-                        15.899999618530273,
+                        16.0,
                         0.0,
                         0.0
                     ],
